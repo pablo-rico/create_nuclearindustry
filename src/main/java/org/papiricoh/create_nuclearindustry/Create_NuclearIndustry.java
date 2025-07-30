@@ -3,15 +3,9 @@ package org.papiricoh.create_nuclearindustry;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -44,10 +38,10 @@ public class Create_NuclearIndustry {
     // Creates a creative tab with the id "examplemod:example_tab" for the example item, that is placed after the combat tab
     public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
             .withTabsBefore(CreativeModeTabs.COMBAT)
-            .icon(() -> AllNuclearItems.EXAMPLE_ITEM.get().getDefaultInstance())
+            .icon(() -> AllNuclearItems.RAW_URANIUM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
-                output.accept(AllNuclearItems.EXAMPLE_ITEM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
-                output.accept(AllNuclearItems.EXAMPLE_BLOCK_ITEM.get());
+                output.accept(AllNuclearItems.RAW_URANIUM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
+                output.accept(AllNuclearItems.URANIUM_ORE.get());
             }).build());
 
     public Create_NuclearIndustry() {
