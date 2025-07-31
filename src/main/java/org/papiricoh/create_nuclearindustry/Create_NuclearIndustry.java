@@ -31,24 +31,15 @@ public class Create_NuclearIndustry {
     public static final String MODID = "create_nuclearindustry";
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
-    // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
-
-    // Creates a creative tab with the id "examplemod:example_tab" for the example item, that is placed after the combat tab
-    public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
-            .withTabsBefore(CreativeModeTabs.COMBAT)
-            .icon(() -> AllNuclearItems.RAW_URANIUM.get().getDefaultInstance())
-            .displayItems((parameters, output) -> {
-                output.accept(AllNuclearItems.RAW_URANIUM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
-                output.accept(AllNuclearItems.URANIUM_ORE.get());
-            }).build());
 
     public Create_NuclearIndustry() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+
+        AllCreativeTabs.init();
 
 
         AllNuclearBlocks.init();
@@ -61,7 +52,7 @@ public class Create_NuclearIndustry {
         // Register the Deferred Register to the mod event bus so items get registered
         AllNuclearItems.ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
-        CREATIVE_MODE_TABS.register(modEventBus);
+        AllCreativeTabs.CREATIVE_MODE_TABS.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);

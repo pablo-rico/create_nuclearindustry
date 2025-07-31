@@ -1,0 +1,26 @@
+package org.papiricoh.create_nuclearindustry;
+
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
+
+public class AllCreativeTabs {
+    // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Create_NuclearIndustry.MODID);
+
+
+    public static final RegistryObject<CreativeModeTab> NUCLEAR_TAB = CREATIVE_MODE_TABS.register("nuclear_tab", () -> CreativeModeTab.builder()
+            .withTabsBefore(CreativeModeTabs.COMBAT)
+            .icon(() -> AllNuclearItems.RAW_URANIUM.get().getDefaultInstance())
+            .displayItems((parameters, output) -> {
+                output.accept(AllNuclearItems.RAW_URANIUM.get());
+                output.accept(AllNuclearItems.URANIUM_ORE.get());
+            }).build());
+
+
+
+
+    public static void init() {}
+}
