@@ -15,6 +15,9 @@ public class AllNuclearItems {
 
     // Creates a new BlockItem with the id "create_nuclearindustry:example_block", combining the namespace and path
     public static final RegistryObject<Item> URANIUM_ORE = ITEMS.register("uranium_ore", () -> new BlockItem(AllNuclearBlocks.URANIUM_ORE.get(), new Item.Properties()));
+    public static final RegistryObject<Item> BORAX_ORE = ITEMS.register("borax_ore", () -> new BlockItem(AllNuclearBlocks.BORAX_ORE.get(), new Item.Properties()));
+    public static final RegistryObject<Item> CONTROL_ROD = ITEMS.register("control_rod", () -> new BlockItem(AllNuclearBlocks.CONTROL_ROD.get(), new Item.Properties()));
+
 
 
 
@@ -22,6 +25,9 @@ public class AllNuclearItems {
 
     // Creates a new food item with the id "examplemod:example_id", nutrition 1 and saturation 2
     public static final RegistryObject<Item> RAW_URANIUM = ITEMS.register("raw_uranium", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> URANIUM_238 = ITEMS.register("uranium_238", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> URANIUM_235 = ITEMS.register("uranium_235", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> BORAX_SALT = ITEMS.register("borax_salt", () -> new Item(new Item.Properties().stacksTo(64)));
 
 
 

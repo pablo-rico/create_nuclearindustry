@@ -1,10 +1,16 @@
 {
   "item.create_nuclearindustry.raw_uranium": "Raw Uranium",
+  "item.create_nuclearindustry.uranium_238": "Uranium-238",
+  "item.create_nuclearindustry.uranium_235": "Uranium-235",
+  "item.create_nuclearindustry.borax_salt": "Borax Salt",
+
 
 
 
 
 
   "block.create_nuclearindustry.uranium_ore": "Uranium Ore",
+  "block.create_nuclearindustry.control_rod": "Control Rod",
+  "block.create_nuclearindustry.borax_ore": "Borax Ore",
   "itemGroup.create_nuclearindustry.nuclear_tab": "Create: Nuclear Industry"
 }

@@ -1,0 +1,13 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:raw_uranium"
+    }
+  ],
+  "results": [
+    {
+      "item": "create_nuclearindustry:uranium_238"
+    }
+  ]
+}

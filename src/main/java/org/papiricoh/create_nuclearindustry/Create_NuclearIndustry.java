@@ -54,6 +54,12 @@ public class Create_NuclearIndustry {
         // Register the Deferred Register to the mod event bus so tabs get registered
         AllCreativeTabs.CREATIVE_MODE_TABS.register(modEventBus);
 
+        AllNuclearEntities.init();
+        AllNuclearEntities.ENTITIES.register(modEventBus);
+
+        AllNuclearGUIs.init();
+        AllNuclearGUIs.MENUS.register(modEventBus);
+
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 

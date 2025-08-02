@@ -17,6 +17,11 @@ public class AllCreativeTabs {
             .displayItems((parameters, output) -> {
                 output.accept(AllNuclearItems.RAW_URANIUM.get());
                 output.accept(AllNuclearItems.URANIUM_ORE.get());
+                output.accept(AllNuclearItems.URANIUM_238.get());
+                output.accept(AllNuclearItems.URANIUM_235.get());
+                output.accept(AllNuclearItems.BORAX_ORE.get());
+                output.accept(AllNuclearItems.BORAX_SALT.get());
+                output.accept(AllNuclearItems.CONTROL_ROD.get());
             }).build());
 
 
