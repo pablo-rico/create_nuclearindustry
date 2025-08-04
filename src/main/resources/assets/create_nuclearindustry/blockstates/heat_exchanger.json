@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "create_nuclearindustry:block/heat_exchanger" }
+  }
+}

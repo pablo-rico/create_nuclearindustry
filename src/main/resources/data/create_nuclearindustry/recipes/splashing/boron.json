@@ -1,0 +1,14 @@
+{
+  "type": "create:splashing",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:borax_salt"
+    }
+  ],
+  "results": [
+    {
+      "chance": 0.25,
+      "item": "create_nuclearindustry:boron"
+    }
+  ]
+}

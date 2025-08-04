@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "create_nuclearindustry:block/uranium_rod" }
+  }
+}

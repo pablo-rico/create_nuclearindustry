@@ -11,6 +11,8 @@
 
   "block.create_nuclearindustry.uranium_ore": "Uranium Ore",
   "block.create_nuclearindustry.control_rod": "Control Rod",
+  "block.create_nuclearindustry.uranium_rod": "Uranium Rod",
+  "block.create_nuclearindustry.heat_exchanger": "Hear Exchanger",
   "block.create_nuclearindustry.borax_ore": "Borax Ore",
   "itemGroup.create_nuclearindustry.nuclear_tab": "Create: Nuclear Industry"
 }

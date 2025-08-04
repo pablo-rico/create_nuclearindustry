@@ -19,9 +19,12 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.URANIUM_ORE.get());
                 output.accept(AllNuclearItems.URANIUM_238.get());
                 output.accept(AllNuclearItems.URANIUM_235.get());
+                output.accept(AllNuclearItems.URANIUM_ROD.get());
                 output.accept(AllNuclearItems.BORAX_ORE.get());
                 output.accept(AllNuclearItems.BORAX_SALT.get());
+                output.accept(AllNuclearItems.BORON.get());
                 output.accept(AllNuclearItems.CONTROL_ROD.get());
+                output.accept(AllNuclearItems.HEAT_EXCHANGER.get());
             }).build());
 
 
