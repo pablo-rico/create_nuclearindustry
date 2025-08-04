@@ -25,6 +25,8 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.BORON.get());
                 output.accept(AllNuclearItems.CONTROL_ROD.get());
                 output.accept(AllNuclearItems.HEAT_EXCHANGER.get());
+                output.accept(AllNuclearItems.REACTOR_CASING.get());
+                output.accept(AllNuclearItems.REACTOR_CONTROLLER.get());
             }).build());
 
 

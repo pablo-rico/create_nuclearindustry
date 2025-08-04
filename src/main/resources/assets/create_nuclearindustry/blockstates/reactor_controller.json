@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "on=false": { "model": "create_nuclearindustry:block/reactor_controller_off" },
+    "on=true":  { "model": "create_nuclearindustry:block/reactor_controller_on"  }
+  }
+}

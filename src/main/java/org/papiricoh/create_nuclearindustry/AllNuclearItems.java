@@ -5,6 +5,7 @@ import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import org.papiricoh.create_nuclearindustry.blocks.NuclearReactorControllerBlock;
 
 public class AllNuclearItems {
 
@@ -19,6 +20,8 @@ public class AllNuclearItems {
     public static final RegistryObject<Item> CONTROL_ROD = ITEMS.register("control_rod", () -> new BlockItem(AllNuclearBlocks.CONTROL_ROD.get(), new Item.Properties()));
     public static final RegistryObject<Item> URANIUM_ROD = ITEMS.register("uranium_rod", () -> new BlockItem(AllNuclearBlocks.URANIUM_ROD.get(), new Item.Properties()));
     public static final RegistryObject<Item> HEAT_EXCHANGER = ITEMS.register("heat_exchanger", () -> new BlockItem(AllNuclearBlocks.HEAT_EXCHANGER.get(), new Item.Properties()));
+    public static final RegistryObject<Item> REACTOR_CASING = ITEMS.register("reactor_casing", () -> new BlockItem(AllNuclearBlocks.REACTOR_CASING.get(), new Item.Properties()));
+    public static final RegistryObject<Item> REACTOR_CONTROLLER = ITEMS.register("reactor_controller", () -> new BlockItem(AllNuclearBlocks.REACTOR_CONTROLLER.get(), new Item.Properties()));
 
 
 

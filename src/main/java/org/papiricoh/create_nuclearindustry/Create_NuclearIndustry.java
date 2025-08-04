@@ -60,6 +60,16 @@ public class Create_NuclearIndustry {
         AllNuclearGUIs.init();
         AllNuclearGUIs.MENUS.register(modEventBus);
 
+        AllNuclearFluids.FLUID_TYPES.register(modEventBus);
+        AllNuclearFluids.FLUIDS.register(modEventBus);
+        AllNuclearFluids.BLOCKS.register(modEventBus);
+        AllNuclearFluids.ITEMS.register(modEventBus);
+
+
+
+
+
+
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
