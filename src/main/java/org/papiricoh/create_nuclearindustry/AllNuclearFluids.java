@@ -9,12 +9,12 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.PushReaction;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.registries.RegistryObject;
 
 import java.util.function.Consumer;
 
@@ -64,12 +64,12 @@ public class AllNuclearFluids {
     // -------------------- Fluids --------------------
     public static final RegistryObject<FlowingFluid> STEAM = FLUIDS.register(
             "steam",
-            () -> new ForgeFlowingFluid.Source(steamProps())  // <- lazy
+            () -> new BaseFlowingFluid.Source(steamProps())  // <- lazy
     );
 
     public static final RegistryObject<FlowingFluid> FLOWING_STEAM = FLUIDS.register(
             "flowing_steam",
-            () -> new ForgeFlowingFluid.Flowing(steamProps()) // <- lazy
+            () -> new BaseFlowingFluid.Flowing(steamProps()) // <- lazy
     );
 
     // -------------------- Bloque y cubo (opcionales) --------------------
@@ -93,11 +93,11 @@ public class AllNuclearFluids {
     );
 
     // -------------------- Lazy properties --------------------
-    private static ForgeFlowingFluid.Properties steamProps; // no final a propósito
+    private static BaseFlowingFluid.Properties steamProps; // no final a propósito
 
-    private static ForgeFlowingFluid.Properties steamProps() {
+    private static BaseFlowingFluid.Properties steamProps() {
         if (steamProps == null) {
-            steamProps = new ForgeFlowingFluid.Properties(
+            steamProps = new BaseFlowingFluid.Properties(
                     STEAM_TYPE,     // RegistryObject<FluidType> es Supplier
                     STEAM,          // RegistryObject<FlowingFluid> es Supplier
                     FLOWING_STEAM   // RegistryObject<FlowingFluid> es Supplier
