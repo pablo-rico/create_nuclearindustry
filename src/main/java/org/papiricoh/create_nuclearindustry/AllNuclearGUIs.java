@@ -1,13 +1,13 @@
 package org.papiricoh.create_nuclearindustry;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.ForgeRegistries;
 
 public class AllNuclearGUIs {
 
     public static final DeferredRegister<MenuType<?>> MENUS =
-            DeferredRegister.create(ForgeRegistries.MENU_TYPES, Create_NuclearIndustry.MODID);
+            DeferredRegister.create(Registries.MENU, Create_NuclearIndustry.MODID);
 
 
 

@@ -1,6 +1,6 @@
 package org.papiricoh.create_nuclearindustry;
 
-import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
@@ -13,20 +13,20 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.ForgeRegistries;
-import net.neoforged.neoforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class AllNuclearFluids {
     public static final DeferredRegister<FluidType> FLUID_TYPES =
-            DeferredRegister.create(ForgeRegistries.Keys.FLUID_TYPES, Create_NuclearIndustry.MODID);
+            DeferredRegister.create(NeoForgeRegistries.Keys.FLUID_TYPES, Create_NuclearIndustry.MODID);
     public static final DeferredRegister<net.minecraft.world.level.material.Fluid> FLUIDS =
-            DeferredRegister.create(ForgeRegistries.FLUIDS, Create_NuclearIndustry.MODID);
+            DeferredRegister.create(Registries.FLUID, Create_NuclearIndustry.MODID);
     public static final DeferredRegister<Block> BLOCKS =
-            DeferredRegister.create(ForgeRegistries.BLOCKS, Create_NuclearIndustry.MODID);
+            DeferredRegister.create(Registries.BLOCK, Create_NuclearIndustry.MODID);
     public static final DeferredRegister<Item> ITEMS =
-            DeferredRegister.create(ForgeRegistries.ITEMS, Create_NuclearIndustry.MODID);
+            DeferredRegister.create(Registries.ITEM, Create_NuclearIndustry.MODID);
 
     // Helper 1.20.1-friendly (evita APIs nuevas de 1.20.6)
     private static ResourceLocation tex(String path) {
@@ -37,7 +37,7 @@ public class AllNuclearFluids {
     // --------------------------------------------------------------------------------------------
     // FluidType: Steam (gas)
     // --------------------------------------------------------------------------------------------
-    public static final RegistryObject<FluidType> STEAM_TYPE = FLUID_TYPES.register("steam", () ->
+    public static final Supplier<FluidType> STEAM_TYPE = FLUID_TYPES.register("steam", () ->
             new FluidType(FluidType.Properties.create()
                     .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".steam")
                     .density(-100)          // negativo → “gas”
@@ -62,21 +62,21 @@ public class AllNuclearFluids {
     );
 
     // -------------------- Fluids --------------------
-    public static final RegistryObject<FlowingFluid> STEAM = FLUIDS.register(
+    public static final Supplier<FlowingFluid> STEAM = FLUIDS.register(
             "steam",
             () -> new BaseFlowingFluid.Source(steamProps())  // <- lazy
     );
 
-    public static final RegistryObject<FlowingFluid> FLOWING_STEAM = FLUIDS.register(
+    public static final Supplier<FlowingFluid> FLOWING_STEAM = FLUIDS.register(
             "flowing_steam",
             () -> new BaseFlowingFluid.Flowing(steamProps()) // <- lazy
     );
 
     // -------------------- Bloque y cubo (opcionales) --------------------
-    public static final RegistryObject<LiquidBlock> STEAM_BLOCK = BLOCKS.register(
+    public static final Supplier<LiquidBlock> STEAM_BLOCK = BLOCKS.register(
             "steam",
             () -> new LiquidBlock(
-                    STEAM, // Supplier<? extends FlowingFluid>
+                    STEAM.get(),
                     BlockBehaviour.Properties.of()
                             .noCollission()
                             .noLootTable()
@@ -86,9 +86,9 @@ public class AllNuclearFluids {
             )
     );
 
-    public static final RegistryObject<Item> STEAM_BUCKET = ITEMS.register(
+    public static final Supplier<Item> STEAM_BUCKET = ITEMS.register(
             "steam_bucket",
-            () -> new BucketItem(STEAM, new Item.Properties().stacksTo(1)
+            () -> new BucketItem(STEAM.get(), new Item.Properties().stacksTo(1)
                     .craftRemainder(net.minecraft.world.item.Items.BUCKET))
     );
 
@@ -98,9 +98,9 @@ public class AllNuclearFluids {
     private static BaseFlowingFluid.Properties steamProps() {
         if (steamProps == null) {
             steamProps = new BaseFlowingFluid.Properties(
-                    STEAM_TYPE,     // RegistryObject<FluidType> es Supplier
-                    STEAM,          // RegistryObject<FlowingFluid> es Supplier
-                    FLOWING_STEAM   // RegistryObject<FlowingFluid> es Supplier
+                    STEAM_TYPE,
+                    STEAM,
+                    FLOWING_STEAM
             )
                     .slopeFindDistance(2)
                     .levelDecreasePerBlock(1)

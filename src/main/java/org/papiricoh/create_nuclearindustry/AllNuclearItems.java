@@ -2,26 +2,25 @@ package org.papiricoh.create_nuclearindustry;
 
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.ForgeRegistries;
-import net.neoforged.neoforge.registries.RegistryObject;
-import org.papiricoh.create_nuclearindustry.blocks.NuclearReactorControllerBlock;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class AllNuclearItems {
 
     // Create a Deferred Register to hold Items which will all be registered under the "create_nuclearindustry" namespace
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Create_NuclearIndustry.MODID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, Create_NuclearIndustry.MODID);
 
     //Blocks
 
     // Creates a new BlockItem with the id "create_nuclearindustry:example_block", combining the namespace and path
-    public static final RegistryObject<Item> URANIUM_ORE = ITEMS.register("uranium_ore", () -> new BlockItem(AllNuclearBlocks.URANIUM_ORE.get(), new Item.Properties()));
-    public static final RegistryObject<Item> BORAX_ORE = ITEMS.register("borax_ore", () -> new BlockItem(AllNuclearBlocks.BORAX_ORE.get(), new Item.Properties()));
-    public static final RegistryObject<Item> CONTROL_ROD = ITEMS.register("control_rod", () -> new BlockItem(AllNuclearBlocks.CONTROL_ROD.get(), new Item.Properties()));
-    public static final RegistryObject<Item> URANIUM_ROD = ITEMS.register("uranium_rod", () -> new BlockItem(AllNuclearBlocks.URANIUM_ROD.get(), new Item.Properties()));
-    public static final RegistryObject<Item> HEAT_EXCHANGER = ITEMS.register("heat_exchanger", () -> new BlockItem(AllNuclearBlocks.HEAT_EXCHANGER.get(), new Item.Properties()));
-    public static final RegistryObject<Item> REACTOR_CASING = ITEMS.register("reactor_casing", () -> new BlockItem(AllNuclearBlocks.REACTOR_CASING.get(), new Item.Properties()));
-    public static final RegistryObject<Item> REACTOR_CONTROLLER = ITEMS.register("reactor_controller", () -> new BlockItem(AllNuclearBlocks.REACTOR_CONTROLLER.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> URANIUM_ORE = ITEMS.register("uranium_ore", () -> new BlockItem(AllNuclearBlocks.URANIUM_ORE.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> BORAX_ORE = ITEMS.register("borax_ore", () -> new BlockItem(AllNuclearBlocks.BORAX_ORE.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> CONTROL_ROD = ITEMS.register("control_rod", () -> new BlockItem(AllNuclearBlocks.CONTROL_ROD.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> URANIUM_ROD = ITEMS.register("uranium_rod", () -> new BlockItem(AllNuclearBlocks.URANIUM_ROD.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> HEAT_EXCHANGER = ITEMS.register("heat_exchanger", () -> new BlockItem(AllNuclearBlocks.HEAT_EXCHANGER.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> REACTOR_CASING = ITEMS.register("reactor_casing", () -> new BlockItem(AllNuclearBlocks.REACTOR_CASING.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> REACTOR_CONTROLLER = ITEMS.register("reactor_controller", () -> new BlockItem(AllNuclearBlocks.REACTOR_CONTROLLER.value(), new Item.Properties()));
 
 
 
@@ -29,11 +28,11 @@ public class AllNuclearItems {
     //Items
 
     // Creates a new food item with the id "examplemod:example_id", nutrition 1 and saturation 2
-    public static final RegistryObject<Item> RAW_URANIUM = ITEMS.register("raw_uranium", () -> new Item(new Item.Properties().stacksTo(16)));
-    public static final RegistryObject<Item> URANIUM_238 = ITEMS.register("uranium_238", () -> new Item(new Item.Properties().stacksTo(16)));
-    public static final RegistryObject<Item> URANIUM_235 = ITEMS.register("uranium_235", () -> new Item(new Item.Properties().stacksTo(16)));
-    public static final RegistryObject<Item> BORAX_SALT = ITEMS.register("borax_salt", () -> new Item(new Item.Properties().stacksTo(64)));
-    public static final RegistryObject<Item> BORON = ITEMS.register("boron", () -> new Item(new Item.Properties().stacksTo(64)));
+    public static final DeferredHolder<Item, ? extends Item> RAW_URANIUM = ITEMS.register("raw_uranium", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> URANIUM_238 = ITEMS.register("uranium_238", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> URANIUM_235 = ITEMS.register("uranium_235", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> BORAX_SALT = ITEMS.register("borax_salt", () -> new Item(new Item.Properties().stacksTo(64)));
+    public static final DeferredHolder<Item, ? extends Item> BORON = ITEMS.register("boron", () -> new Item(new Item.Properties().stacksTo(64)));
 
 
 
