@@ -6,6 +6,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -80,6 +81,7 @@ public class NuclearReactorControllerBlock extends BaseEntityBlock {
 
             // Force BlockEntity update to sync to client immediately
             reactor.setChanged();
+            level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
 
             net.minecraft.network.chat.Component title = net.minecraft.network.chat.Component.literal("Reactor Control");
             var menuProvider = new org.papiricoh.create_nuclearindustry.gui.ReactorMenuProvider(pos, title);

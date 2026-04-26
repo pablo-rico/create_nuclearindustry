@@ -3,9 +3,11 @@ package org.papiricoh.create_nuclearindustry.blockentity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
@@ -89,7 +91,7 @@ public class ReactorBlockEntity extends BlockEntity {
 
             // Sync to clients every 20 ticks
             if (entity.syncCounter >= 20) {
-                entity.setChanged();
+                entity.markDirtyAndSync();
                 entity.syncCounter = 0;
             }
         }
@@ -97,11 +99,23 @@ public class ReactorBlockEntity extends BlockEntity {
         // Force sync if needed (multi-tick to ensure it reaches client)
         if (entity.forceSync) {
             entity.forceSyncCounter++;
-            entity.setChanged();
+            entity.markDirtyAndSync();
             if (entity.forceSyncCounter >= MULTI_SYNC_TICKS) {
                 entity.forceSync = false;
                 entity.forceSyncCounter = 0;
             }
+        }
+    }
+
+    /**
+     * Marks this block entity dirty and pushes an update packet to nearby clients.
+     */
+    private void markDirtyAndSync() {
+        setChanged();
+        Level level = getLevel();
+        if (level != null && !level.isClientSide) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(getBlockPos(), state, state, Block.UPDATE_CLIENTS);
         }
     }
 
@@ -148,7 +162,7 @@ public class ReactorBlockEntity extends BlockEntity {
 
             // Send chat message to player
             sendPlayerMessage("§2✓ Reactor Structure Valid! §8[" + structure.width + "×" + structure.height + "]");
-            setChanged();
+            markDirtyAndSync();
             forceSync = true; // Force immediate sync to ensure client receives update
         } else if (newStructure.isPresent() && isFormed) {
             System.out.println("[ReactorBlockEntity] Structure already formed, no change");
@@ -166,7 +180,7 @@ public class ReactorBlockEntity extends BlockEntity {
 
             // Send chat message to player
             sendPlayerMessage("§c✗ Reactor Structure Invalid");
-            setChanged();
+            markDirtyAndSync();
         } else if (newStructure.isEmpty() && !isFormed) {
             // Invalid structure on initial placement
             System.out.println("\n╔════════════════════════════════════════╗");
@@ -255,7 +269,7 @@ public class ReactorBlockEntity extends BlockEntity {
         isFormed = false;
         currentStructure = Optional.empty();
         physicsSimulator = new ReactorPhysicsSimulator(0);
-        setChanged();
+        markDirtyAndSync();
     }
 
     // ============= STRUCTURE REVALIDATION =============
@@ -281,7 +295,7 @@ public class ReactorBlockEntity extends BlockEntity {
     public void setControlRodPosition(float position) {
         if (isFormed) {
             physicsSimulator.setControlRodPosition(position);
-            setChanged();
+            markDirtyAndSync();
         }
     }
 
@@ -292,7 +306,7 @@ public class ReactorBlockEntity extends BlockEntity {
     public void moveControlRod(float delta) {
         if (isFormed) {
             physicsSimulator.moveControlRod(delta);
-            setChanged();
+            markDirtyAndSync();
         }
     }
 
@@ -385,6 +399,11 @@ public class ReactorBlockEntity extends BlockEntity {
             tag.put("physics", physicsTag);
         }
         return tag;
+    }
+
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
