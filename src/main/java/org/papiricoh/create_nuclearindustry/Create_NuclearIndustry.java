@@ -2,9 +2,12 @@ package org.papiricoh.create_nuclearindustry;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.api.distmarker.Dist;
+
+import java.lang.reflect.Method;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -111,6 +114,18 @@ public class Create_NuclearIndustry {
             // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+
+            // Register screens via reflection since MenuScreens.register is private
+            event.enqueueWork(() -> {
+                try {
+                    Method registerMethod = MenuScreens.class.getDeclaredMethod("register", net.minecraft.world.inventory.MenuType.class, net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor.class);
+                    registerMethod.setAccessible(true);
+                    registerMethod.invoke(null, AllNuclearGUIs.REACTOR_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.gui.ReactorControlMenu, org.papiricoh.create_nuclearindustry.gui.ReactorControlScreen>)org.papiricoh.create_nuclearindustry.gui.ReactorControlScreen::new);
+                } catch (Exception e) {
+                    LOGGER.error("Failed to register reactor control screen", e);
+                }
+            });
         }
     }
+
 }

@@ -41,7 +41,7 @@ public class ReactorPhysicsSimulator {
         this.coreTemperature = 20.0;                                // Start at room temperature
         this.neutronLevel = 0.0;
         this.fuelRemaining = 100.0;                                 // Start with 100% fuel
-        this.controlRodPosition = 1.0f;                             // Start fully withdrawn
+        this.controlRodPosition = 0.0f;                             // Start fully inserted (safe state)
         this.uraniumRodCount = uraniumRodCount;
         this.meltdownTickCounter = 0;
         this.powerOutput = 0.0;

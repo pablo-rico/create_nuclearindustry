@@ -43,6 +43,13 @@ public class ReactorBlockEntity extends BlockEntity {
     // Last error message to display to player
     private String lastError;
 
+    // Force sync to client on next update
+    private boolean forceSync = true;
+
+    // Multi-tick sync counter to ensure client receives updates
+    private int forceSyncCounter = 0;
+    private static final int MULTI_SYNC_TICKS = 5;
+
     // Constructor
     public ReactorBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.REACTOR.get(), pos, state);
@@ -68,6 +75,7 @@ public class ReactorBlockEntity extends BlockEntity {
             System.out.println("[ReactorBlockEntity] Validating structure at " + pos);
             entity.validateStructure();
             entity.pendingRevalidation = false;
+            entity.forceSync = true; // Force sync after validation
         }
 
         // Run physics simulation if reactor is formed
@@ -83,6 +91,16 @@ public class ReactorBlockEntity extends BlockEntity {
             if (entity.syncCounter >= 20) {
                 entity.setChanged();
                 entity.syncCounter = 0;
+            }
+        }
+
+        // Force sync if needed (multi-tick to ensure it reaches client)
+        if (entity.forceSync) {
+            entity.forceSyncCounter++;
+            entity.setChanged();
+            if (entity.forceSyncCounter >= MULTI_SYNC_TICKS) {
+                entity.forceSync = false;
+                entity.forceSyncCounter = 0;
             }
         }
     }
@@ -125,13 +143,18 @@ public class ReactorBlockEntity extends BlockEntity {
             System.out.println("║ Uranium Rods: " + structure.getUraniumRodCount());
             System.out.println("║ Control Rods: " + structure.getControlRodCount());
             System.out.println("║ Location: " + structure.controllerPos);
+            System.out.println("║ Setting isFormed=true and calling setChanged()");
             System.out.println("╚════════════════════════════════════════╝\n");
 
             // Send chat message to player
             sendPlayerMessage("§2✓ Reactor Structure Valid! §8[" + structure.width + "×" + structure.height + "]");
             setChanged();
+            forceSync = true; // Force immediate sync to ensure client receives update
+        } else if (newStructure.isPresent() && isFormed) {
+            System.out.println("[ReactorBlockEntity] Structure already formed, no change");
         } else if (newStructure.isEmpty() && isFormed) {
             // Reactor was broken
+            System.out.println("[ReactorBlockEntity] Structure broken");
             isFormed = false;
             currentStructure = Optional.empty();
             physicsSimulator = new ReactorPhysicsSimulator(0);
@@ -349,5 +372,29 @@ public class ReactorBlockEntity extends BlockEntity {
         }
 
         // Structure will be re-validated on next tick
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        CompoundTag tag = super.getUpdateTag(provider);
+        tag.putBoolean("isFormed", isFormed);
+
+        if (physicsSimulator != null) {
+            CompoundTag physicsTag = new CompoundTag();
+            physicsSimulator.serializeNBT(physicsTag);
+            tag.put("physics", physicsTag);
+        }
+        return tag;
+    }
+
+    @Override
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
+        super.handleUpdateTag(tag, provider);
+        this.isFormed = tag.getBoolean("isFormed");
+
+        if (tag.contains("physics")) {
+            CompoundTag physicsTag = tag.getCompound("physics");
+            physicsSimulator.deserializeNBT(physicsTag);
+        }
     }
 }
