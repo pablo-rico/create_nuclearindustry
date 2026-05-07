@@ -1,0 +1,22 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "fluid": "create_nuclearindustry:block/steam_still",
+    "particle": "create_nuclearindustry:block/steam_still"
+  },
+  "elements": [
+    {
+      "from": [6, 6, 6],
+      "to": [10, 10, 10],
+      "faces": {
+        "north": { "texture": "#fluid" },
+        "east": { "texture": "#fluid" },
+        "south": { "texture": "#fluid" },
+        "west": { "texture": "#fluid" },
+        "up": { "texture": "#fluid" },
+        "down": { "texture": "#fluid" }
+      }
+    }
+  ]
+}
+

@@ -36,12 +36,6 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     private static final int GAUGE_WIDTH = 180;
     private static final int GAUGE_HEIGHT = 12;
 
-    // Control rod slider
-    private float controlRodSliderValue = 0.5f;
-    private boolean draggingSlider = false;
-    private static final int SLIDER_Y = 200;
-    private static final int SLIDER_WIDTH = 160;
-    private static final int SLIDER_HEIGHT = 14;
 
     // Sync wait counter - waits for BlockEntity data to sync from server
     private int syncWaitCounter = 0;
@@ -183,12 +177,9 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         guiGraphics.drawString(this.font, powerText, leftPos + 20, topPos + POWER_Y, 0x0099FF);
 
         // Control rod position
-        float rodPos = reactor.getControlRodPosition();
-        String rodText = String.format("Control Rod: §r%.0f%%", rodPos * 100);
+        int controlRodCount = reactor.getPhysicsSimulator().getControlRodCount();
+        String rodText = String.format("Control Rods: §r%d§8 (physical blocks)", controlRodCount);
         guiGraphics.drawString(this.font, rodText, leftPos + 20, topPos + ROD_Y, 0xFFAA00);
-
-        // Draw slider
-        renderControlRodSlider(guiGraphics, leftPos + 20, topPos + SLIDER_Y, mouseX, mouseY);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
@@ -239,69 +230,15 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     /**
      * Renders the control rod position slider.
      */
-    private void renderControlRodSlider(GuiGraphics guiGraphics, int x, int y, int mouseX, int mouseY) {
-        var reactor = getReactor();
-        float currentPos = reactor != null ? reactor.getControlRodPosition() : 0.5f;
-
-        // Background
-        guiGraphics.fill(x, y, x + SLIDER_WIDTH, y + SLIDER_HEIGHT, 0xFF333333);
-
-        // Slider track
-        guiGraphics.fill(x + 2, y + 5, x + SLIDER_WIDTH - 2, y + 9, 0xFF666666);
-
-        // Slider button
-        int sliderX = x + 2 + (int) ((SLIDER_WIDTH - 4) * currentPos);
-        guiGraphics.fill(sliderX - 3, y, sliderX + 3, y + SLIDER_HEIGHT, draggingSlider ? 0xFFFFAA00 : 0xFFAAAAAA);
-
-        // Labels
-        guiGraphics.drawString(this.font, "Inserted", x + 5, y - 12, 0xFFFFFFFF);
-        guiGraphics.drawString(this.font, "Withdrawn", x + SLIDER_WIDTH - 60, y - 12, 0xFFFFFFFF);
-    }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Check if clicking on control rod slider
-        int sliderLeft = leftPos + 20;
-        int sliderTop = topPos + SLIDER_Y;
-
-        if (mouseX >= sliderLeft && mouseX <= sliderLeft + SLIDER_WIDTH &&
-            mouseY >= sliderTop && mouseY <= sliderTop + SLIDER_HEIGHT && button == 0) {
-            draggingSlider = true;
-            updateSliderPosition(mouseX, sliderLeft);
-            return true;
-        }
 
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0) {
-            draggingSlider = false;
-        }
-        return super.mouseReleased(mouseX, mouseY, button);
-    }
 
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (draggingSlider) {
-            int sliderLeft = leftPos + 20;
-            updateSliderPosition(mouseX, sliderLeft);
-            return true;
-        }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-    }
 
-    private void updateSliderPosition(double mouseX, int sliderLeft) {
-        float newValue = (float) ((mouseX - sliderLeft - 2) / (SLIDER_WIDTH - 4));
-        newValue = Math.max(0, Math.min(1, newValue));
-        // TODO: Send packet to server to update reactor control rod position
-        // For now, update local reactor reference if available
-        var reactor = getReactor();
-        if (reactor != null && reactor.isFormed()) {
-            reactor.setControlRodPosition(newValue);
-        }
-    }
 
     /**
      * Gets the color for temperature gauge.

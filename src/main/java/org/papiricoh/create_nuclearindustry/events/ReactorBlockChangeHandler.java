@@ -61,22 +61,11 @@ public class ReactorBlockChangeHandler {
         // Search radius: max reactor size is 11×11×15, add some buffer
         final int SEARCH_RADIUS = 15;
 
-        // Iterate through potential reactor controller positions
-        BlockPos.betweenClosed(
-                changedPos.offset(-SEARCH_RADIUS, -SEARCH_RADIUS, -SEARCH_RADIUS),
-                changedPos.offset(SEARCH_RADIUS, SEARCH_RADIUS, SEARCH_RADIUS)
-        ).forEach(checkPos -> {
-            BlockState blockState = level.getBlockState(checkPos);
-
-            // Check if this position has a reactor controller
-            if (blockState.getBlock() == AllNuclearBlocks.REACTOR_CONTROLLER.get()) {
-                // Get the block entity and trigger revalidation
-                if (level.getBlockEntity(checkPos) instanceof ReactorBlockEntity reactor) {
-                    System.out.println("[Reactor Block Change] Block changed at " + changedPos +
-                            ", checking reactor at " + checkPos);
-                    reactor.requestStructureRevalidation(player);
-                }
-            }
-        });
+        // Use ReactorManager to get only nearby reactors (O(n) where n = registered reactors nearby, not O(27000))
+        for (ReactorBlockEntity reactor : ReactorManager.getReactorsInRange(level, changedPos, SEARCH_RADIUS)) {
+            System.out.println("[Reactor Block Change] Block changed at " + changedPos +
+                    ", checking reactor at " + reactor.getBlockPos());
+            reactor.requestStructureRevalidation(player);
+        }
     }
 }

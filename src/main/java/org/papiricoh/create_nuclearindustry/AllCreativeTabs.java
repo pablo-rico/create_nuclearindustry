@@ -27,6 +27,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.HEAT_EXCHANGER.value());
                 output.accept(AllNuclearItems.REACTOR_CASING.value());
                 output.accept(AllNuclearItems.REACTOR_CONTROLLER.value());
+                output.accept(AllNuclearItems.DUAL_FLUID_PIPE.value());
             }).build());
 
 

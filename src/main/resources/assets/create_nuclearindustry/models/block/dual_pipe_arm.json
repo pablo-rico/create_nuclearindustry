@@ -1,0 +1,22 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "shell": "create_nuclearindustry:block/reactor_casing",
+    "particle": "create_nuclearindustry:block/reactor_casing"
+  },
+  "elements": [
+    {
+      "from": [6, 6, 10],
+      "to": [10, 10, 16],
+      "faces": {
+        "north": { "texture": "#shell" },
+        "east": { "texture": "#shell" },
+        "south": { "texture": "#shell" },
+        "west": { "texture": "#shell" },
+        "up": { "texture": "#shell" },
+        "down": { "texture": "#shell" }
+      }
+    }
+  ]
+}
+

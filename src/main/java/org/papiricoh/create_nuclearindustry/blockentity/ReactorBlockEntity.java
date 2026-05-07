@@ -14,6 +14,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.multiblock.ReactorStructureValidator;
 import org.papiricoh.create_nuclearindustry.physics.ReactorPhysicsSimulator;
+import org.papiricoh.create_nuclearindustry.events.ReactorManager;
 
 import java.util.Optional;
 import java.util.Set;
@@ -108,6 +109,32 @@ public class ReactorBlockEntity extends BlockEntity {
     }
 
     /**
+     * Called when the block entity is loaded into the world.
+     * Registers this reactor in the global manager for efficient lookups.
+     */
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        Level level = getLevel();
+        if (level != null && !level.isClientSide) {
+            ReactorManager.registerReactor(level, getBlockPos(), this);
+        }
+    }
+
+    /**
+     * Called when the block entity is removed from the world.
+     * Unregisters this reactor from the global manager.
+     */
+    @Override
+    public void setRemoved() {
+        Level level = getLevel();
+        if (level != null && !level.isClientSide) {
+            ReactorManager.unregisterReactor(level, getBlockPos());
+        }
+        super.setRemoved();
+    }
+
+    /**
      * Marks this block entity dirty and pushes an update packet to nearby clients.
      */
     private void markDirtyAndSync() {
@@ -147,8 +174,8 @@ public class ReactorBlockEntity extends BlockEntity {
             isFormed = true;
             currentStructure = newStructure;
 
-            // Create physics simulator with uranium rod count
-            physicsSimulator = new ReactorPhysicsSimulator(structure.getUraniumRodCount());
+            // Create physics simulator with uranium and control rod counts
+            physicsSimulator = new ReactorPhysicsSimulator(structure.getUraniumRodCount(), structure.getControlRodCount());
 
             System.out.println("\n╔════════════════════════════════════════╗");
             System.out.println("║  ✓ REACTOR STRUCTURE FORMED             ║");
@@ -164,8 +191,23 @@ public class ReactorBlockEntity extends BlockEntity {
             sendPlayerMessage("§2✓ Reactor Structure Valid! §8[" + structure.width + "×" + structure.height + "]");
             markDirtyAndSync();
             forceSync = true; // Force immediate sync to ensure client receives update
-        } else if (newStructure.isPresent() && isFormed) {
-            System.out.println("[ReactorBlockEntity] Structure already formed, no change");
+        } else if (newStructure.isPresent() && isFormed && currentStructure.isPresent()) {
+            // Structure still valid - check if rod counts changed
+            ReactorStructureValidator.ReactorStructure newStruct = newStructure.get();
+            ReactorStructureValidator.ReactorStructure oldStruct = currentStructure.get();
+
+            if (newStruct.getUraniumRodCount() != oldStruct.getUraniumRodCount() ||
+                newStruct.getControlRodCount() != oldStruct.getControlRodCount()) {
+                // Rod counts changed - update structure and simulator
+                System.out.println("[ReactorBlockEntity] Rod counts changed: U " + oldStruct.getUraniumRodCount() + "->" + newStruct.getUraniumRodCount() +
+                                   ", C " + oldStruct.getControlRodCount() + "->" + newStruct.getControlRodCount());
+                currentStructure = newStructure;
+                physicsSimulator = new ReactorPhysicsSimulator(newStruct.getUraniumRodCount(), newStruct.getControlRodCount());
+                markDirtyAndSync();
+                forceSync = true;
+            } else {
+                System.out.println("[ReactorBlockEntity] Structure already formed, no rod changes");
+            }
         } else if (newStructure.isEmpty() && isFormed) {
             // Reactor was broken
             System.out.println("[ReactorBlockEntity] Structure broken");
@@ -235,7 +277,8 @@ public class ReactorBlockEntity extends BlockEntity {
     }
 
     /**
-     * Handles meltdown event - destroys reactor and creates explosion.
+     * ============ SUPER EXPLOSION ON MELTDOWN - NUCLEAR CATASTROPHE ============
+     * Handles meltdown event - creates catastrophic nuclear explosion and destroys reactor.
      */
     private void handleMeltdown() {
         Level level = getLevel();
@@ -243,24 +286,51 @@ public class ReactorBlockEntity extends BlockEntity {
             return;
         }
 
-        System.out.println("[Reactor] MELTDOWN AT " + getBlockPos());
+        BlockPos reactorPos = getBlockPos();
+        System.out.println("\n" +
+            "╔════════════════════════════════════════╗\n" +
+            "║  ☢️  NUCLEAR MELTDOWN DETECTED  ☢️     ║\n" +
+            "║  " + reactorPos + "\n" +
+            "║  INITIATING CATASTROPHIC FAILURE      ║\n" +
+            "╚════════════════════════════════════════╝\n");
 
+        // ☢️ NUCLEAR EXPLOSION - MASSIVE DESTRUCTIVE FORCE ☢️
+
+        // Destroy ALL reactor blocks
         if (currentStructure.isPresent()) {
             ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
             Set<BlockPos> blocks = structure.blocks;
 
-            // Destroy reactor blocks
             for (BlockPos pos : blocks) {
-                BlockState state = level.getBlockState(pos);
-                if (state.getBlock() != AllNuclearBlocks.REACTOR_CONTROLLER.get()) {
-                    level.destroyBlock(pos, true); // Drop items
-                }
+                level.destroyBlock(pos, true);
             }
+        }
 
-            // Destroy reactor blocks in explosion
-            for (BlockPos destroyPos : blocks) {
-                if (!destroyPos.equals(getBlockPos())) {
-                    level.destroyBlock(destroyPos, false);
+        // Create massive chain explosion radius
+        int explosionRadius = 20; // Huge explosion radius
+        int centerX = reactorPos.getX();
+        int centerY = reactorPos.getY();
+        int centerZ = reactorPos.getZ();
+
+        // Destroy everything in a large sphere around the reactor
+        for (int x = centerX - explosionRadius; x <= centerX + explosionRadius; x++) {
+            for (int y = centerY - explosionRadius; y <= centerY + explosionRadius; y++) {
+                for (int z = centerZ - explosionRadius; z <= centerZ + explosionRadius; z++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    double distance = pos.distToCenterSqr(centerX + 0.5, centerY + 0.5, centerZ + 0.5);
+                    double maxDistSq = explosionRadius * explosionRadius;
+
+                    // Spherical explosion pattern with decreasing probability
+                    if (distance <= maxDistSq) {
+                        double probability = 1.0 - (distance / maxDistSq) * 0.7; // Stronger at center
+                        if (Math.random() < probability) {
+                            BlockState blockState = level.getBlockState(pos);
+                            // Destroy all non-air blocks
+                            if (!blockState.isAir()) {
+                                level.destroyBlock(pos, Math.random() < 0.5); // Drop items randomly
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -270,7 +340,10 @@ public class ReactorBlockEntity extends BlockEntity {
         currentStructure = Optional.empty();
         physicsSimulator = new ReactorPhysicsSimulator(0);
         markDirtyAndSync();
+
+        sendPlayerMessage("§4☢️ NUCLEAR MELTDOWN! ☢️§r Reactor destroyed at " + getBlockPos());
     }
+    // ============ END SUPER EXPLOSION CODE ============
 
     // ============= STRUCTURE REVALIDATION =============
 
@@ -346,6 +419,10 @@ public class ReactorBlockEntity extends BlockEntity {
 
     public Optional<ReactorStructureValidator.ReactorStructure> getStructure() {
         return currentStructure;
+    }
+
+    public ReactorPhysicsSimulator getPhysicsSimulator() {
+        return physicsSimulator;
     }
 
     // ============= NBT SERIALIZATION =============

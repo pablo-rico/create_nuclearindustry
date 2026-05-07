@@ -7,6 +7,7 @@ import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.blocks.ControlRodBlock;
+import org.papiricoh.create_nuclearindustry.blocks.DualFluidPipeBlock;
 import org.papiricoh.create_nuclearindustry.blocks.HeatExchangerBlock;
 import org.papiricoh.create_nuclearindustry.blocks.NuclearReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.blocks.UraniumRodBlock;
@@ -30,6 +31,7 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> URANIUM_ROD = BLOCKS.register("uranium_rod", () -> new UraniumRodBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> HEAT_EXCHANGER = BLOCKS.register("heat_exchanger", () -> new HeatExchangerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> REACTOR_CONTROLLER = BLOCKS.register("reactor_controller", () -> new NuclearReactorControllerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
+    public static final DeferredHolder<Block, ? extends Block> DUAL_FLUID_PIPE = BLOCKS.register("dual_fluid_pipe", () -> new DualFluidPipeBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f)));
 
 
 

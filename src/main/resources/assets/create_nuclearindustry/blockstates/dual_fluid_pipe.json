@@ -1,0 +1,17 @@
+{
+  "multipart": [
+    { "apply": { "model": "create_nuclearindustry:block/dual_pipe_core" } },
+
+    { "when": { "north": "true" }, "apply": { "model": "create_nuclearindustry:block/dual_pipe_arm" } },
+    { "when": { "south": "true" }, "apply": { "model": "create_nuclearindustry:block/dual_pipe_arm", "y": 180 } },
+    { "when": { "east": "true" }, "apply": { "model": "create_nuclearindustry:block/dual_pipe_arm", "y": 90 } },
+    { "when": { "west": "true" }, "apply": { "model": "create_nuclearindustry:block/dual_pipe_arm", "y": 270 } },
+    { "when": { "up": "true" }, "apply": { "model": "create_nuclearindustry:block/dual_pipe_arm", "x": 270 } },
+    { "when": { "down": "true" }, "apply": { "model": "create_nuclearindustry:block/dual_pipe_arm", "x": 90 } },
+
+    { "when": { "visual_fluid": "steam" }, "apply": { "model": "create_nuclearindustry:block/dual_pipe_overlay_steam" } },
+    { "when": { "visual_fluid": "heavy_water" }, "apply": { "model": "create_nuclearindustry:block/dual_pipe_overlay_heavy_water" } },
+    { "when": { "visual_fluid": "mixed" }, "apply": { "model": "create_nuclearindustry:block/dual_pipe_overlay_mixed" } }
+  ]
+}
+

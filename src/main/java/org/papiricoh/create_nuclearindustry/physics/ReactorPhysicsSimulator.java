@@ -31,6 +31,7 @@ public class ReactorPhysicsSimulator {
     private double fuelRemaining;                                   // Fuel units (0-100)
     private float controlRodPosition;                               // 0.0 = inserted, 1.0 = withdrawn
     private int uraniumRodCount;                                    // Number of fuel rods in reactor
+    private int controlRodCount;                                    // Number of control rods (PHYSICAL blocks)
     private int meltdownTickCounter;                                // Ticks spent above meltdown temp
 
     // Derived values for display
@@ -38,11 +39,16 @@ public class ReactorPhysicsSimulator {
     private double steamGenerationRate;                             // mB per tick
 
     public ReactorPhysicsSimulator(int uraniumRodCount) {
+        this(uraniumRodCount, 0);
+    }
+
+    public ReactorPhysicsSimulator(int uraniumRodCount, int controlRodCount) {
         this.coreTemperature = 20.0;                                // Start at room temperature
         this.neutronLevel = 0.0;
         this.fuelRemaining = 100.0;                                 // Start with 100% fuel
         this.controlRodPosition = 0.0f;                             // Start fully inserted (safe state)
         this.uraniumRodCount = uraniumRodCount;
+        this.controlRodCount = controlRodCount;
         this.meltdownTickCounter = 0;
         this.powerOutput = 0.0;
         this.steamGenerationRate = 0.0;
@@ -110,18 +116,35 @@ public class ReactorPhysicsSimulator {
 
     /**
      * Calculates neutron production based on fission reactions.
+     * Depends on the RATIO of control rods to uranium rods.
      */
     private double calculateNeutronProduction() {
         if (uraniumRodCount == 0) {
             return 0;
         }
 
-        // Control rod position affects neutron absorption
-        // At position 1.0 (fully withdrawn): minimal absorption
-        // At position 0.0 (fully inserted): maximum absorption
-        double absorptionFactor = 1.0 - (CONTROL_ROD_EFFECTIVENESS * (1.0 - controlRodPosition));
+        // If no control rods are present, there's nothing to absorb neutrons - MELTDOWN RISK
+        if (controlRodCount == 0) {
+            // With no physical control rods, neutron absorption is 0 regardless of position
+            return uraniumRodCount * BASE_FISSION_RATE;
+        }
 
-        // Base fission is multiplied by number of rods and absorption factor
+        // The ratio of control rods to uranium rods determines absorption capacity
+        // 1.0 ratio = balanced (1 control per 1 uranium)
+        // > 1.0 = overcontrolled (can stop reaction)
+        // < 1.0 = undercontrolled (reaction hard to control)
+        double rodRatio = (double) controlRodCount / uraniumRodCount;
+
+        // Maximum absorption capacity based on ratio (capped at 100%)
+        double maxAbsorption = Math.min(1.0, rodRatio * CONTROL_ROD_EFFECTIVENESS);
+
+        // Control rod position modulates the absorption
+        // At position 0.0 (fully inserted): maximum absorption
+        // At position 1.0 (fully withdrawn): no absorption
+        double actualAbsorption = maxAbsorption * (1.0 - controlRodPosition);
+        double absorptionFactor = 1.0 - actualAbsorption;
+
+        // Base fission multiplied by number of uranium rods and absorption factor
         return uraniumRodCount * BASE_FISSION_RATE * absorptionFactor;
     }
 
@@ -177,6 +200,10 @@ public class ReactorPhysicsSimulator {
         return controlRodPosition;
     }
 
+    public int getControlRodCount() {
+        return controlRodCount;
+    }
+
     public double getPowerOutput() {
         return powerOutput;
     }
@@ -225,6 +252,7 @@ public class ReactorPhysicsSimulator {
         tag.putDouble("fuelRemaining", fuelRemaining);
         tag.putFloat("controlRodPosition", controlRodPosition);
         tag.putInt("uraniumRodCount", uraniumRodCount);
+        tag.putInt("controlRodCount", controlRodCount);
         tag.putInt("meltdownTickCounter", meltdownTickCounter);
     }
 
@@ -234,6 +262,7 @@ public class ReactorPhysicsSimulator {
         this.fuelRemaining = tag.getDouble("fuelRemaining");
         this.controlRodPosition = tag.getFloat("controlRodPosition");
         this.uraniumRodCount = tag.getInt("uraniumRodCount");
+        this.controlRodCount = tag.getInt("controlRodCount");
         this.meltdownTickCounter = tag.getInt("meltdownTickCounter");
     }
 

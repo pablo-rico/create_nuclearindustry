@@ -61,6 +61,28 @@ public class AllNuclearFluids {
             }
     );
 
+    public static final Supplier<FluidType> HEAVY_WATER_TYPE = FLUID_TYPES.register("heavy_water", () ->
+            new FluidType(FluidType.Properties.create()
+                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".heavy_water")
+                    .density(1100)
+                    .viscosity(1500)
+                    .temperature(300)
+                    .lightLevel(0)
+                    .canDrown(true)
+                    .canSwim(true)
+                    .supportsBoating(false)
+            ) {
+                @Override
+                public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
+                    consumer.accept(new IClientFluidTypeExtensions() {
+                        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
+                        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
+                        @Override public int getTintColor() { return 0xFF3F67C9; }
+                    });
+                }
+            }
+    );
+
     // -------------------- Fluids --------------------
     public static final Supplier<FlowingFluid> STEAM = FLUIDS.register(
             "steam",
@@ -70,6 +92,16 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> FLOWING_STEAM = FLUIDS.register(
             "flowing_steam",
             () -> new BaseFlowingFluid.Flowing(steamProps()) // <- lazy
+    );
+
+    public static final Supplier<FlowingFluid> HEAVY_WATER = FLUIDS.register(
+            "heavy_water",
+            () -> new BaseFlowingFluid.Source(heavyWaterProps())
+    );
+
+    public static final Supplier<FlowingFluid> FLOWING_HEAVY_WATER = FLUIDS.register(
+            "flowing_heavy_water",
+            () -> new BaseFlowingFluid.Flowing(heavyWaterProps())
     );
 
     // -------------------- Bloque y cubo (opcionales) --------------------
@@ -94,6 +126,7 @@ public class AllNuclearFluids {
 
     // -------------------- Lazy properties --------------------
     private static BaseFlowingFluid.Properties steamProps; // no final a propósito
+    private static BaseFlowingFluid.Properties heavyWaterProps;
 
     private static BaseFlowingFluid.Properties steamProps() {
         if (steamProps == null) {
@@ -110,5 +143,20 @@ public class AllNuclearFluids {
                     //.bucket(STEAM_BUCKET);  // comenta si no quieres cubo
         }
         return steamProps;
+    }
+
+    private static BaseFlowingFluid.Properties heavyWaterProps() {
+        if (heavyWaterProps == null) {
+            heavyWaterProps = new BaseFlowingFluid.Properties(
+                    HEAVY_WATER_TYPE,
+                    HEAVY_WATER,
+                    FLOWING_HEAVY_WATER
+            )
+                    .slopeFindDistance(4)
+                    .levelDecreasePerBlock(1)
+                    .tickRate(5)
+                    .explosionResistance(100f);
+        }
+        return heavyWaterProps;
     }
 }
