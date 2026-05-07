@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "create_nuclearindustry:block/centrifuge" },
+    "facing=east": { "model": "create_nuclearindustry:block/centrifuge", "y": 90 },
+    "facing=south": { "model": "create_nuclearindustry:block/centrifuge", "y": 180 },
+    "facing=west": { "model": "create_nuclearindustry:block/centrifuge", "y": 270 }
+  }
+}

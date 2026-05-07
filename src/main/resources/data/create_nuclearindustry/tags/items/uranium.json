@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "create_nuclearindustry:uranium",
+    "create_nuclearindustry:uranium_235",
+    "create_nuclearindustry:uranium_238"
+  ]
+}

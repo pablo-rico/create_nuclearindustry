@@ -5,7 +5,7 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import org.papiricoh.create_nuclearindustry.gui.ReactorControlMenu;
+import org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlMenu;
 
 public class AllNuclearGUIs {
 

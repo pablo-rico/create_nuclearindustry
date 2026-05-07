@@ -16,6 +16,7 @@ public class AllCreativeTabs {
             .icon(() -> AllNuclearItems.RAW_URANIUM.value().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 output.accept(AllNuclearItems.RAW_URANIUM.value());
+                output.accept(AllNuclearItems.URANIUM.value());
                 output.accept(AllNuclearItems.URANIUM_ORE.value());
                 output.accept(AllNuclearItems.URANIUM_238.value());
                 output.accept(AllNuclearItems.URANIUM_235.value());
@@ -28,6 +29,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.REACTOR_CASING.value());
                 output.accept(AllNuclearItems.REACTOR_CONTROLLER.value());
                 output.accept(AllNuclearItems.DUAL_FLUID_PIPE.value());
+                output.accept(AllNuclearItems.CENTRIFUGE.value());
             }).build());
 
 

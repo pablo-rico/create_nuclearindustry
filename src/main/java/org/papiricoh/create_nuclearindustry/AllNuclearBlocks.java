@@ -6,11 +6,12 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import org.papiricoh.create_nuclearindustry.blocks.ControlRodBlock;
-import org.papiricoh.create_nuclearindustry.blocks.DualFluidPipeBlock;
-import org.papiricoh.create_nuclearindustry.blocks.HeatExchangerBlock;
-import org.papiricoh.create_nuclearindustry.blocks.NuclearReactorControllerBlock;
-import org.papiricoh.create_nuclearindustry.blocks.UraniumRodBlock;
+import org.papiricoh.create_nuclearindustry.enrichment.block.CentrifugeBlock;
+import org.papiricoh.create_nuclearindustry.fluids.block.DualFluidPipeBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.ControlRodBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.HeatExchangerBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.UraniumRodBlock;
 
 public class AllNuclearBlocks {
     // Create a Deferred Register to hold Blocks which will all be registered under the "create_nuclearindustry" namespace
@@ -32,6 +33,7 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> HEAT_EXCHANGER = BLOCKS.register("heat_exchanger", () -> new HeatExchangerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> REACTOR_CONTROLLER = BLOCKS.register("reactor_controller", () -> new NuclearReactorControllerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> DUAL_FLUID_PIPE = BLOCKS.register("dual_fluid_pipe", () -> new DualFluidPipeBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f)));
+    public static final DeferredHolder<Block, ? extends Block> CENTRIFUGE = BLOCKS.register("centrifuge", () -> new CentrifugeBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
 
 
 

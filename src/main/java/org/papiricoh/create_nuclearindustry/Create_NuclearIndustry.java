@@ -38,6 +38,12 @@ public class Create_NuclearIndustry {
 
         AllCreativeTabs.init();
 
+        AllNuclearDataComponents.init();
+        AllNuclearDataComponents.DATA_COMPONENTS.register(modEventBus);
+
+        AllNuclearRecipes.init();
+        AllNuclearRecipes.TYPES.register(modEventBus);
+        AllNuclearRecipes.SERIALIZERS.register(modEventBus);
 
         AllNuclearBlocks.init();
 
@@ -120,7 +126,7 @@ public class Create_NuclearIndustry {
                 try {
                     Method registerMethod = MenuScreens.class.getDeclaredMethod("register", net.minecraft.world.inventory.MenuType.class, net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor.class);
                     registerMethod.setAccessible(true);
-                    registerMethod.invoke(null, AllNuclearGUIs.REACTOR_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.gui.ReactorControlMenu, org.papiricoh.create_nuclearindustry.gui.ReactorControlScreen>)org.papiricoh.create_nuclearindustry.gui.ReactorControlScreen::new);
+                    registerMethod.invoke(null, AllNuclearGUIs.REACTOR_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlMenu, org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlScreen>)org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlScreen::new);
                 } catch (Exception e) {
                     LOGGER.error("Failed to register reactor control screen", e);
                 }

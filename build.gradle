@@ -96,6 +96,8 @@ dependencies {
         exclude group: 'cc.tweaked', module: 'cc-tweaked-1.21.1-forge'
         exclude group: 'dev.architectury', module: 'architectury-neoforge'
     }
+    compileOnly("net.createmod.ponder:ponder-neoforge:1.0.82+mc1.21.1")
+    runtimeOnly("net.createmod.ponder:ponder-neoforge:1.0.82+mc1.21.1")
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
     implementation("io.github.llamalad7:mixinextras-neoforge:0.4.1")
 

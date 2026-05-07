@@ -1,0 +1,8 @@
+{
+  "type": "create_nuclearindustry:centrifuging",
+  "ingredient": {
+    "item": "create_nuclearindustry:raw_uranium"
+  },
+  "result_enrichment": 0.7,
+  "processing_time": 120
+}
