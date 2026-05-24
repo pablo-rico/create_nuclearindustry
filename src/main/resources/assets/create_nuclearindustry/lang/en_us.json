@@ -25,5 +25,12 @@
   "block.create_nuclearindustry.borax_ore": "Borax Ore",
   "fluid.create_nuclearindustry.steam": "Steam",
   "fluid.create_nuclearindustry.heavy_water": "Heavy Water",
-  "itemGroup.create_nuclearindustry.nuclear_tab": "Create: Nuclear Industry"
+  "itemGroup.create_nuclearindustry.nuclear_tab": "Create: Nuclear Industry",
+
+  "create_nuclearindustry.ponder.centrifuge.header": "Processing uranium with a Centrifuge",
+  "create_nuclearindustry.ponder.centrifuge.text_1": "The Centrifuge is a kinetic machine for refining uranium.",
+  "create_nuclearindustry.ponder.centrifuge.text_2": "It accepts rotational power from any horizontal side.",
+  "create_nuclearindustry.ponder.centrifuge.text_3": "Right-click with Raw Uranium or Uranium to insert one item.",
+  "create_nuclearindustry.ponder.centrifuge.text_4": "At 16 RPM or faster, the Centrifuge processes the input over time.",
+  "create_nuclearindustry.ponder.centrifuge.text_5": "Extract finished uranium from the bottom, or right-click with an empty hand."
 }

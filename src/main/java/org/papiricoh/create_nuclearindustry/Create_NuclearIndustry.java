@@ -10,15 +10,19 @@ import net.neoforged.api.distmarker.Dist;
 import java.lang.reflect.Method;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.createmod.ponder.foundation.PonderIndex;
+import org.papiricoh.create_nuclearindustry.enrichment.CentrifugeCapabilities;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.NuclearPonderPlugin;
+import org.papiricoh.create_nuclearindustry.reactor.event.ReactorBlockChangeHandler;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -35,6 +39,8 @@ public class Create_NuclearIndustry {
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(Config::onLoad);
+        modEventBus.addListener(CentrifugeCapabilities::registerCapabilities);
 
         AllCreativeTabs.init();
 
@@ -75,6 +81,14 @@ public class Create_NuclearIndustry {
 
         // Register ourselves for server and other game events we are interested in
         NeoForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockBreak);
+        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockPlace);
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            PonderIndex.addPlugin(new NuclearPonderPlugin());
+            modEventBus.addListener(ClientModEvents::onClientSetup);
+            modEventBus.addListener(AllNuclearFluids::registerClientExtensions);
+        }
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
@@ -111,7 +125,6 @@ public class Create_NuclearIndustry {
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
-    @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
 
         @SubscribeEvent

@@ -10,12 +10,12 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class AllNuclearFluids {
@@ -34,6 +34,23 @@ public class AllNuclearFluids {
         return ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path);
     }
 
+    private static final IClientFluidTypeExtensions STEAM_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
+        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
+        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
+        @Override public int getTintColor() { return 0xA0FFFFFF; }
+    };
+
+    private static final IClientFluidTypeExtensions HEAVY_WATER_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
+        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
+        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
+        @Override public int getTintColor() { return 0xFF3F67C9; }
+    };
+
+    public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerFluidType(STEAM_CLIENT_EXTENSIONS, STEAM_TYPE.get());
+        event.registerFluidType(HEAVY_WATER_CLIENT_EXTENSIONS, HEAVY_WATER_TYPE.get());
+    }
+
     // --------------------------------------------------------------------------------------------
     // FluidType: Steam (gas)
     // --------------------------------------------------------------------------------------------
@@ -47,18 +64,7 @@ public class AllNuclearFluids {
                     .canDrown(false)
                     .canSwim(false)
                     .supportsBoating(false)
-
-            ) {
-
-                @Override
-                public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
-                    consumer.accept(new IClientFluidTypeExtensions() {
-                        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
-                        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
-                        @Override public int getTintColor() { return 0xA0FFFFFF; } // blanco translúcido
-                    });
-                }
-            }
+            )
     );
 
     public static final Supplier<FluidType> HEAVY_WATER_TYPE = FLUID_TYPES.register("heavy_water", () ->
@@ -71,16 +77,7 @@ public class AllNuclearFluids {
                     .canDrown(true)
                     .canSwim(true)
                     .supportsBoating(false)
-            ) {
-                @Override
-                public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
-                    consumer.accept(new IClientFluidTypeExtensions() {
-                        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
-                        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
-                        @Override public int getTintColor() { return 0xFF3F67C9; }
-                    });
-                }
-            }
+            )
     );
 
     // -------------------- Fluids --------------------

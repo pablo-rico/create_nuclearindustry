@@ -1,0 +1,8 @@
+{
+  "create_nuclearindustry.ponder.centrifuge.header": "Procesando uranio con una centrifugadora",
+  "create_nuclearindustry.ponder.centrifuge.text_1": "La centrifugadora es una maquina cinetica para refinar uranio.",
+  "create_nuclearindustry.ponder.centrifuge.text_2": "Acepta potencia rotacional desde cualquier lado horizontal.",
+  "create_nuclearindustry.ponder.centrifuge.text_3": "Haz clic derecho con uranio bruto o uranio para insertar un objeto.",
+  "create_nuclearindustry.ponder.centrifuge.text_4": "A 16 RPM o mas, la centrifugadora procesa la entrada con el tiempo.",
+  "create_nuclearindustry.ponder.centrifuge.text_5": "Extrae el uranio terminado por abajo, o con clic derecho usando la mano vacia."
+}
