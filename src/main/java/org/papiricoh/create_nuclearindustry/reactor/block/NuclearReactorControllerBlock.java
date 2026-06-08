@@ -76,6 +76,8 @@ public class NuclearReactorControllerBlock extends BaseEntityBlock {
         }
 
         if (level.getBlockEntity(pos) instanceof ReactorBlockEntity reactor) {
+            reactor.attemptFormation(player);
+
             // Store the reactor position so client can access it
             lastReactorMenuPos = pos;
 

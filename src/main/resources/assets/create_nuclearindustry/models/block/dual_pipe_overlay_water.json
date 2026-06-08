@@ -1,0 +1,7 @@
+{
+  "parent": "create_nuclearindustry:block/dual_pipe_core",
+  "textures": {
+    "shell": "minecraft:block/water_still",
+    "particle": "minecraft:block/water_still"
+  }
+}

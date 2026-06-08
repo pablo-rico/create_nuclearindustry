@@ -1,117 +1,100 @@
 package org.papiricoh.create_nuclearindustry.reactor.blockentity;
 
+import com.mojang.logging.LogUtils;
+import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
+import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
+import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
+import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodTracker;
+import org.papiricoh.create_nuclearindustry.reactor.event.ReactorManager;
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
-import org.papiricoh.create_nuclearindustry.reactor.event.ReactorManager;
+import org.slf4j.Logger;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Block entity for the nuclear reactor controller block.
- * Manages the multiblock structure, physics simulation, and state synchronization.
- */
-public class ReactorBlockEntity extends BlockEntity {
+public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation {
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final int TANK_CAPACITY = 16_000;
+    private static final int MAX_COOLANT_PER_TICK = 80;
+    private static final int MAX_STEAM_PER_TICK = 120;
+    private static final int CONTROL_ROD_SCAN_INTERVAL = 5;
 
-    // Multiblock structure state
-    private boolean isFormed;
-    private Optional<ReactorStructureValidator.ReactorStructure> currentStructure;
-
-    // Physics simulator
-    private ReactorPhysicsSimulator physicsSimulator;
-
-    // Update counter for client sync (every 20 ticks)
+    private ReactorStatus status = ReactorStatus.UNFORMED;
+    private Optional<ReactorStructureValidator.ReactorStructure> currentStructure = Optional.empty();
+    private ReactorStructureValidator.ReactorValidationResult lastValidation =
+            ReactorStructureValidator.ReactorValidationResult.invalid(List.of("Not formed"), List.of());
+    private ReactorPhysicsSimulator physicsSimulator = new ReactorPhysicsSimulator(0);
+    private boolean pendingRevalidation = true;
     private int syncCounter;
-
-    // Flag to request structure revalidation
-    private boolean pendingRevalidation;
-
-    // Player who placed the reactor (for chat messages)
-    private Optional<UUID> ownerUUID;
+    private int controlRodScanCounter;
+    private ControlRodTracker.ControlRodScan lastControlRodScan = ControlRodTracker.ControlRodScan.empty();
+    private Optional<UUID> ownerUUID = Optional.empty();
     private Player ownerPlayer;
 
-    // Last error message to display to player
-    private String lastError;
+    private final FluidTank coolantTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isCoolant) {
+        @Override
+        protected void onContentsChanged() {
+            markDirtyAndSync();
+        }
+    };
+    private final FluidTank steamTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isTurbineSteam) {
+        @Override
+        protected void onContentsChanged() {
+            markDirtyAndSync();
+        }
+    };
+    private final IFluidHandler fluidHandler = new ReactorFluidHandler();
 
-    // Force sync to client on next update
-    private boolean forceSync = true;
-
-    // Multi-tick sync counter to ensure client receives updates
-    private int forceSyncCounter = 0;
-    private static final int MULTI_SYNC_TICKS = 5;
-
-    // Constructor
     public ReactorBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.REACTOR.get(), pos, state);
-        this.isFormed = false;
-        this.currentStructure = Optional.empty();
-        this.physicsSimulator = new ReactorPhysicsSimulator(0);
-        this.syncCounter = 0;
-        this.pendingRevalidation = true; // Initial validation when block is placed
-        this.ownerUUID = Optional.empty();
-        this.lastError = "";
-        System.out.println("[ReactorBlockEntity] Created at position: " + pos);
     }
-
-    // ============= TICK =============
 
     public static void tick(Level level, BlockPos pos, BlockState state, ReactorBlockEntity entity) {
         if (level == null || level.isClientSide) {
             return;
         }
 
-        // Only validate structure if requested (block change detected or initial placement)
         if (entity.pendingRevalidation) {
-            System.out.println("[ReactorBlockEntity] Validating structure at " + pos);
-            entity.validateStructure();
-            entity.pendingRevalidation = false;
-            entity.forceSync = true; // Force sync after validation
+            entity.revalidate(false, null);
         }
 
-        // Run physics simulation if reactor is formed
-        if (entity.isFormed) {
+        if (entity.status == ReactorStatus.FORMED) {
+            entity.updateControlRodInsertion(false);
             boolean stillRunning = entity.physicsSimulator.tick();
+            entity.processCoolantLoop();
             if (!stillRunning) {
-                // Meltdown occurred
                 entity.handleMeltdown();
+                return;
             }
-            entity.syncCounter++;
-
-            // Sync to clients every 20 ticks
-            if (entity.syncCounter >= 20) {
-                entity.markDirtyAndSync();
-                entity.syncCounter = 0;
-            }
+        } else if (entity.status == ReactorStatus.SCRAMMED) {
+            entity.physicsSimulator.scramTick();
         }
 
-        // Force sync if needed (multi-tick to ensure it reaches client)
-        if (entity.forceSync) {
-            entity.forceSyncCounter++;
+        if (++entity.syncCounter >= 20) {
             entity.markDirtyAndSync();
-            if (entity.forceSyncCounter >= MULTI_SYNC_TICKS) {
-                entity.forceSync = false;
-                entity.forceSyncCounter = 0;
-            }
+            entity.syncCounter = 0;
         }
     }
 
-    /**
-     * Called when the block entity is loaded into the world.
-     * Registers this reactor in the global manager for efficient lookups.
-     */
     @Override
     public void onLoad() {
         super.onLoad();
@@ -121,10 +104,6 @@ public class ReactorBlockEntity extends BlockEntity {
         }
     }
 
-    /**
-     * Called when the block entity is removed from the world.
-     * Unregisters this reactor from the global manager.
-     */
     @Override
     public void setRemoved() {
         Level level = getLevel();
@@ -134,9 +113,138 @@ public class ReactorBlockEntity extends BlockEntity {
         super.setRemoved();
     }
 
-    /**
-     * Marks this block entity dirty and pushes an update packet to nearby clients.
-     */
+    public IFluidHandler getFluidHandler(Direction direction) {
+        return fluidHandler;
+    }
+
+    public void attemptFormation(Player player) {
+        revalidate(true, player);
+    }
+
+    public void requestStructureRevalidation(Player player) {
+        if (player != null) {
+            ownerPlayer = player;
+            ownerUUID = Optional.of(player.getUUID());
+        }
+        pendingRevalidation = true;
+    }
+
+    public boolean shouldReactToBlockChange(BlockPos changedPos) {
+        if (currentStructure.isPresent()) {
+            ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
+            return structure.contains(changedPos) && !structure.isControlArea(changedPos);
+        }
+        return changedPos.closerThan(getBlockPos(), ReactorStructureValidator.MAX_WIDTH + 2);
+    }
+
+    private void revalidate(boolean playerInitiated, Player player) {
+        if (player != null) {
+            ownerPlayer = player;
+            ownerUUID = Optional.of(player.getUUID());
+        }
+        pendingRevalidation = false;
+
+        Level level = getLevel();
+        if (level == null) {
+            return;
+        }
+
+        ReactorStatus previousStatus = status;
+        ReactorStructureValidator.ReactorValidationResult result = ReactorStructureValidator.validate(level, getBlockPos());
+        lastValidation = result;
+
+        if (result.formed() && result.structure().isPresent()) {
+            ReactorStructureValidator.ReactorStructure newStructure = result.structure().get();
+            boolean structureChanged = currentStructure.isEmpty() || !sameStructure(currentStructure.get(), newStructure);
+            boolean loadedStructureWithoutSnapshot = currentStructure.isEmpty()
+                    && (previousStatus == ReactorStatus.FORMED || previousStatus == ReactorStatus.SCRAMMED);
+            currentStructure = Optional.of(newStructure);
+            status = ReactorStatus.FORMED;
+            if (structureChanged && !loadedStructureWithoutSnapshot) {
+                physicsSimulator = new ReactorPhysicsSimulator(newStructure.getUraniumRodCount(), newStructure.getControlRodCount());
+            }
+            updateControlRodInsertion(true);
+            if (playerInitiated || previousStatus != ReactorStatus.FORMED) {
+                sendPlayerMessage("§2Reactor formed §8[" + newStructure.dimensionsText() + "]");
+            }
+            markDirtyAndSync();
+            return;
+        }
+
+        if (previousStatus == ReactorStatus.FORMED || previousStatus == ReactorStatus.SCRAMMED) {
+            status = ReactorStatus.SCRAMMED;
+            physicsSimulator.setControlRodInsertion(1.0f);
+            sendPlayerMessage("§cReactor scrammed: " + result.primaryMessage());
+        } else {
+            status = ReactorStatus.UNFORMED;
+            currentStructure = Optional.empty();
+            if (playerInitiated) {
+                sendPlayerMessage("§cReactor incomplete: " + result.primaryMessage());
+            }
+        }
+
+        markDirtyAndSync();
+    }
+
+    private boolean sameStructure(ReactorStructureValidator.ReactorStructure oldStructure, ReactorStructureValidator.ReactorStructure newStructure) {
+        return oldStructure.width == newStructure.width
+                && oldStructure.height == newStructure.height
+                && oldStructure.bottomY == newStructure.bottomY
+                && oldStructure.uraniumRodCount == newStructure.uraniumRodCount
+                && oldStructure.controlRodCount == newStructure.controlRodCount
+                && oldStructure.heatExchangerCount == newStructure.heatExchangerCount
+                && oldStructure.controlChannels.equals(newStructure.controlChannels);
+    }
+
+    private void updateControlRodInsertion(boolean force) {
+        if (getLevel() == null || currentStructure.isEmpty()) {
+            lastControlRodScan = ControlRodTracker.ControlRodScan.empty();
+            physicsSimulator.setControlRodInsertion(0.0f);
+            return;
+        }
+
+        if (!force && controlRodScanCounter++ < CONTROL_ROD_SCAN_INTERVAL) {
+            return;
+        }
+        controlRodScanCounter = 0;
+        lastControlRodScan = ControlRodTracker.scan(getLevel(), currentStructure.get());
+        physicsSimulator.setControlRodInsertion(lastControlRodScan.insertionRatio());
+    }
+
+    private void processCoolantLoop() {
+        if (physicsSimulator.getCoreTemperature() <= 100.0 || steamTank.getSpace() <= 0) {
+            return;
+        }
+
+        FluidStack coolant = coolantTank.getFluid();
+        if (coolant.isEmpty()) {
+            return;
+        }
+
+        boolean heavy = NuclearFluidHelper.isHeavyWater(coolant);
+        double heatFactor = Math.max(0.0, physicsSimulator.getCoreTemperature() - 100.0) / 4000.0;
+        int coolantToConsume = Math.max(1, Math.min(MAX_COOLANT_PER_TICK, (int) Math.ceil(MAX_COOLANT_PER_TICK * heatFactor)));
+        int steamToProduce = Math.max(1, Math.min(MAX_STEAM_PER_TICK, coolantToConsume + (int) Math.ceil(physicsSimulator.getSteamGenerationRate())));
+
+        FluidStack produced = new FluidStack(heavy ? AllNuclearFluids.HEAVY_STEAM.get() : AllNuclearFluids.STEAM.get(), steamToProduce);
+        int acceptedSteam = steamTank.fill(produced, IFluidHandler.FluidAction.SIMULATE);
+        if (acceptedSteam <= 0) {
+            return;
+        }
+
+        int steamProduced = Math.min(Math.min(steamToProduce, acceptedSteam), coolantTank.getFluidAmount() * 2);
+        int coolantNeeded = Math.max(1, Math.min(coolantToConsume, (int) Math.ceil(steamProduced / 2.0)));
+        FluidStack drained = coolantTank.drain(coolantNeeded, IFluidHandler.FluidAction.EXECUTE);
+        if (drained.isEmpty()) {
+            return;
+        }
+
+        steamTank.fill(new FluidStack(produced.getFluid(), steamProduced), IFluidHandler.FluidAction.EXECUTE);
+        double cooling = drained.getAmount() * (heavy ? 1.25 : 0.85);
+        double moderation = heavy ? drained.getAmount() * 0.015 : drained.getAmount() * 0.004;
+        physicsSimulator.applyExternalCooling(cooling, moderation);
+    }
+
     private void markDirtyAndSync() {
         setChanged();
         Level level = getLevel();
@@ -146,140 +254,25 @@ public class ReactorBlockEntity extends BlockEntity {
         }
     }
 
-    // ============= STRUCTURE VALIDATION =============
-
-    /**
-     * Validates the multiblock structure and updates internal state.
-     */
-    private void validateStructure() {
-        Level level = getLevel();
-        if (level == null) {
-            return;
-        }
-
-        // Create error handler to capture error messages
-        ReactorStructureValidator.ErrorHandler errorHandler = new ReactorStructureValidator.ErrorHandler();
-        Optional<ReactorStructureValidator.ReactorStructure> newStructure =
-                ReactorStructureValidator.findReactorStructure(level, getBlockPos(), errorHandler);
-
-        // Store error message for chat
-        if (errorHandler.hasError()) {
-            this.lastError = errorHandler.getError();
-        }
-
-        // Structure changed
-        if (newStructure.isPresent() && !isFormed) {
-            // Reactor just formed
-            ReactorStructureValidator.ReactorStructure structure = newStructure.get();
-            isFormed = true;
-            currentStructure = newStructure;
-
-            // Create physics simulator with uranium and control rod counts
-            physicsSimulator = new ReactorPhysicsSimulator(structure.getUraniumRodCount(), structure.getControlRodCount());
-
-            System.out.println("\n╔════════════════════════════════════════╗");
-            System.out.println("║  ✓ REACTOR STRUCTURE FORMED             ║");
-            System.out.println("╠════════════════════════════════════════╣");
-            System.out.println("║ Dimensions: " + structure.width + "×" + structure.height);
-            System.out.println("║ Uranium Rods: " + structure.getUraniumRodCount());
-            System.out.println("║ Control Rods: " + structure.getControlRodCount());
-            System.out.println("║ Location: " + structure.controllerPos);
-            System.out.println("║ Setting isFormed=true and calling setChanged()");
-            System.out.println("╚════════════════════════════════════════╝\n");
-
-            // Send chat message to player
-            sendPlayerMessage("§2✓ Reactor Structure Valid! §8[" + structure.width + "×" + structure.height + "]");
-            markDirtyAndSync();
-            forceSync = true; // Force immediate sync to ensure client receives update
-        } else if (newStructure.isPresent() && isFormed && currentStructure.isPresent()) {
-            // Structure still valid - check if rod counts changed
-            ReactorStructureValidator.ReactorStructure newStruct = newStructure.get();
-            ReactorStructureValidator.ReactorStructure oldStruct = currentStructure.get();
-
-            if (newStruct.getUraniumRodCount() != oldStruct.getUraniumRodCount() ||
-                newStruct.getControlRodCount() != oldStruct.getControlRodCount()) {
-                // Rod counts changed - update structure and simulator
-                System.out.println("[ReactorBlockEntity] Rod counts changed: U " + oldStruct.getUraniumRodCount() + "->" + newStruct.getUraniumRodCount() +
-                                   ", C " + oldStruct.getControlRodCount() + "->" + newStruct.getControlRodCount());
-                currentStructure = newStructure;
-                physicsSimulator = new ReactorPhysicsSimulator(newStruct.getUraniumRodCount(), newStruct.getControlRodCount());
-                markDirtyAndSync();
-                forceSync = true;
-            } else {
-                System.out.println("[ReactorBlockEntity] Structure already formed, no rod changes");
-            }
-        } else if (newStructure.isEmpty() && isFormed) {
-            // Reactor was broken
-            System.out.println("[ReactorBlockEntity] Structure broken");
-            isFormed = false;
-            currentStructure = Optional.empty();
-            physicsSimulator = new ReactorPhysicsSimulator(0);
-
-            System.out.println("\n╔════════════════════════════════════════╗");
-            System.out.println("║  ✗ REACTOR STRUCTURE BROKEN             ║");
-            System.out.println("║  Reactor will no longer function        ║");
-            System.out.println("╚════════════════════════════════════════╝\n");
-
-            // Send chat message to player
-            sendPlayerMessage("§c✗ Reactor Structure Invalid");
-            markDirtyAndSync();
-        } else if (newStructure.isEmpty() && !isFormed) {
-            // Invalid structure on initial placement
-            System.out.println("\n╔════════════════════════════════════════╗");
-            System.out.println("║  ✗ REACTOR STRUCTURE INVALID            ║");
-            System.out.println("║  Error: " + lastError);
-            System.out.println("╚════════════════════════════════════════╝\n");
-
-            // Send chat message to player
-            sendPlayerMessage("§c✗ " + lastError);
-        }
-    }
-
-    /**
-     * Counts the number of blocks of a specific type in the reactor structure.
-     */
-    private int countBlocksInStructure(Level level, ReactorStructureValidator.ReactorStructure structure, net.minecraft.world.level.block.Block blockType) {
-        int count = 0;
-        for (BlockPos pos : structure.blocks) {
-            if (level.getBlockState(pos).getBlock() == blockType) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    /**
-     * Sends a chat message to the owner player if they're online.
-     */
     private void sendPlayerMessage(String message) {
         if (getLevel() == null) {
             return;
         }
-
-        // Try to send to owner player
         if (ownerPlayer != null && ownerPlayer.isAlive()) {
             ownerPlayer.displayClientMessage(Component.literal(message), false);
             return;
         }
-
-        // Try to find player by UUID
         if (ownerUUID.isPresent()) {
             Player player = getLevel().getPlayerByUUID(ownerUUID.get());
             if (player != null && player.isAlive()) {
+                ownerPlayer = player;
                 player.displayClientMessage(Component.literal(message), false);
-                this.ownerPlayer = player;
                 return;
             }
         }
-
-        // If no player found, just log it
-        System.out.println("[Reactor Chat Message] " + message);
+        LOGGER.debug("[Reactor] {}", message);
     }
 
-    /**
-     * ============ SUPER EXPLOSION ON MELTDOWN - NUCLEAR CATASTROPHE ============
-     * Handles meltdown event - creates catastrophic nuclear explosion and destroys reactor.
-     */
     private void handleMeltdown() {
         Level level = getLevel();
         if (level == null || level.isClientSide) {
@@ -287,134 +280,85 @@ public class ReactorBlockEntity extends BlockEntity {
         }
 
         BlockPos reactorPos = getBlockPos();
-        System.out.println("\n" +
-            "╔════════════════════════════════════════╗\n" +
-            "║  ☢️  NUCLEAR MELTDOWN DETECTED  ☢️     ║\n" +
-            "║  " + reactorPos + "\n" +
-            "║  INITIATING CATASTROPHIC FAILURE      ║\n" +
-            "╚════════════════════════════════════════╝\n");
+        LOGGER.warn("Nuclear meltdown at {}", reactorPos);
 
-        // ☢️ NUCLEAR EXPLOSION - MASSIVE DESTRUCTIVE FORCE ☢️
-
-        // Destroy ALL reactor blocks
-        if (currentStructure.isPresent()) {
-            ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
-            Set<BlockPos> blocks = structure.blocks;
-
-            for (BlockPos pos : blocks) {
-                level.destroyBlock(pos, true);
-            }
+        Set<BlockPos> structureBlocks = currentStructure
+                .map(structure -> structure.allBlocks)
+                .orElse(Set.of(reactorPos));
+        for (BlockPos pos : structureBlocks) {
+            level.destroyBlock(pos, true);
         }
 
-        // Create massive chain explosion radius
-        int explosionRadius = 20; // Huge explosion radius
+        int explosionRadius = 20;
         int centerX = reactorPos.getX();
         int centerY = reactorPos.getY();
         int centerZ = reactorPos.getZ();
-
-        // Destroy everything in a large sphere around the reactor
         for (int x = centerX - explosionRadius; x <= centerX + explosionRadius; x++) {
             for (int y = centerY - explosionRadius; y <= centerY + explosionRadius; y++) {
                 for (int z = centerZ - explosionRadius; z <= centerZ + explosionRadius; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
                     double distance = pos.distToCenterSqr(centerX + 0.5, centerY + 0.5, centerZ + 0.5);
                     double maxDistSq = explosionRadius * explosionRadius;
-
-                    // Spherical explosion pattern with decreasing probability
-                    if (distance <= maxDistSq) {
-                        double probability = 1.0 - (distance / maxDistSq) * 0.7; // Stronger at center
-                        if (Math.random() < probability) {
-                            BlockState blockState = level.getBlockState(pos);
-                            // Destroy all non-air blocks
-                            if (!blockState.isAir()) {
-                                level.destroyBlock(pos, Math.random() < 0.5); // Drop items randomly
-                            }
+                    if (distance <= maxDistSq && Math.random() < 1.0 - (distance / maxDistSq) * 0.7) {
+                        BlockState blockState = level.getBlockState(pos);
+                        if (!blockState.isAir()) {
+                            level.destroyBlock(pos, Math.random() < 0.5);
                         }
                     }
                 }
             }
         }
 
-        // Disable reactor
-        isFormed = false;
+        status = ReactorStatus.MELTDOWN;
         currentStructure = Optional.empty();
         physicsSimulator = new ReactorPhysicsSimulator(0);
         markDirtyAndSync();
-
-        sendPlayerMessage("§4☢️ NUCLEAR MELTDOWN! ☢️§r Reactor destroyed at " + getBlockPos());
-    }
-    // ============ END SUPER EXPLOSION CODE ============
-
-    // ============= STRUCTURE REVALIDATION =============
-
-    /**
-     * Requests the structure to be revalidated on the next tick.
-     * Called when a nearby block changes.
-     */
-    public void requestStructureRevalidation(Player player) {
-        this.pendingRevalidation = true;
-        if (player != null) {
-            this.ownerPlayer = player;
-            this.ownerUUID = Optional.of(player.getUUID());
-        }
+        sendPlayerMessage("§4Nuclear meltdown at " + getBlockPos());
     }
 
-    // ============= CONTROL ROD INTERACTION =============
-
-    /**
-     * Sets the control rod position manually (for GUI or contraption control).
-     * Position 0 = fully inserted, 1 = fully withdrawn.
-     */
     public void setControlRodPosition(float position) {
-        if (isFormed) {
-            physicsSimulator.setControlRodPosition(position);
-            markDirtyAndSync();
-        }
+        physicsSimulator.setControlRodPosition(position);
+        markDirtyAndSync();
     }
 
-    /**
-     * Moves the control rod by a given delta (used by Create contraptions).
-     * Positive delta = withdraw (increase position), negative = insert (decrease position).
-     */
     public void moveControlRod(float delta) {
-        if (isFormed) {
-            physicsSimulator.moveControlRod(delta);
-            markDirtyAndSync();
-        }
+        physicsSimulator.moveControlRod(delta);
+        markDirtyAndSync();
     }
-
-    // ============= STATE GETTERS =============
 
     public boolean isFormed() {
-        return isFormed;
+        return status == ReactorStatus.FORMED;
     }
 
     public double getCoreTemperature() {
-        return isFormed ? physicsSimulator.getCoreTemperature() : 20.0;
+        return status == ReactorStatus.UNFORMED ? 20.0 : physicsSimulator.getCoreTemperature();
     }
 
     public double getNeutronLevel() {
-        return isFormed ? physicsSimulator.getNeutronLevel() : 0.0;
+        return status == ReactorStatus.UNFORMED ? 0.0 : physicsSimulator.getNeutronLevel();
     }
 
     public double getFuelRemaining() {
-        return isFormed ? physicsSimulator.getFuelRemaining() : 0.0;
+        return status == ReactorStatus.UNFORMED ? 0.0 : physicsSimulator.getFuelRemaining();
     }
 
     public float getControlRodPosition() {
-        return isFormed ? physicsSimulator.getControlRodPosition() : 1.0f;
+        return status == ReactorStatus.FORMED ? physicsSimulator.getControlRodPosition() : 0.0f;
     }
 
     public double getPowerOutput() {
-        return isFormed ? physicsSimulator.getPowerOutput() : 0.0;
+        return status == ReactorStatus.FORMED ? physicsSimulator.getPowerOutput() : 0.0;
     }
 
     public double getSteamGenerationRate() {
-        return isFormed ? physicsSimulator.getSteamGenerationRate() : 0.0;
+        return status == ReactorStatus.FORMED ? physicsSimulator.getSteamGenerationRate() : 0.0;
     }
 
     public ReactorPhysicsSimulator.ReactorState getReactorState() {
-        return isFormed ? physicsSimulator.getState() : ReactorPhysicsSimulator.ReactorState.IDLE;
+        if (status == ReactorStatus.SCRAMMED) {
+            return ReactorPhysicsSimulator.ReactorState.CRITICAL;
+        }
+        return status == ReactorStatus.FORMED ? physicsSimulator.getState() : ReactorPhysicsSimulator.ReactorState.IDLE;
     }
 
     public Optional<ReactorStructureValidator.ReactorStructure> getStructure() {
@@ -425,56 +369,72 @@ public class ReactorBlockEntity extends BlockEntity {
         return physicsSimulator;
     }
 
-    // ============= NBT SERIALIZATION =============
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        tooltip.add(Component.literal("Nuclear Reactor").withStyle(ChatFormatting.GOLD));
+        tooltip.add(Component.literal("  Structure: " + status.displayName)
+                .withStyle(status == ReactorStatus.FORMED ? ChatFormatting.GREEN : ChatFormatting.RED));
+        currentStructure.ifPresent(structure ->
+                tooltip.add(Component.literal("  Dimensions: " + structure.dimensionsText()).withStyle(ChatFormatting.GRAY)));
+
+        if (!lastValidation.errors().isEmpty()) {
+            tooltip.add(Component.literal("  Missing: " + lastValidation.errors().get(0)).withStyle(ChatFormatting.RED));
+        }
+        for (String warning : lastValidation.warnings()) {
+            tooltip.add(Component.literal("  Warning: " + warning).withStyle(ChatFormatting.YELLOW));
+        }
+
+        currentStructure.ifPresent(structure -> {
+            tooltip.add(Component.literal("  Uranium columns: " + structure.uraniumColumnCount).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("  Heat exchanger columns: " + structure.heatExchangerColumnCount).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("  Control rod columns: " + structure.controlRodColumnCount).withStyle(ChatFormatting.GRAY));
+        });
+        tooltip.add(Component.literal(String.format("  Control rod insertion: %.0f%%", lastControlRodScan.insertionRatio() * 100.0f)).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Static rods: " + lastControlRodScan.staticSegments()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Moving rods: " + lastControlRodScan.movingSegments()).withStyle(ChatFormatting.GRAY));
+
+        tooltip.add(Component.literal("  Coolant: " + coolantTank.getFluidAmount() + "/" + coolantTank.getCapacity() + " mB").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Steam: " + steamTank.getFluidAmount() + "/" + steamTank.getCapacity() + " mB").withStyle(ChatFormatting.GRAY));
+        if (status != ReactorStatus.UNFORMED) {
+            tooltip.add(Component.literal(String.format("  Temperature: %.0f C", physicsSimulator.getCoreTemperature())).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal(String.format("  Neutrons: %.0f", physicsSimulator.getNeutronLevel())).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal(String.format("  Fuel: %.1f%%", physicsSimulator.getFuelRemaining())).withStyle(ChatFormatting.GRAY));
+        }
+        return true;
+    }
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
-
-        tag.putBoolean("isFormed", isFormed);
-
-        if (currentStructure.isPresent()) {
-            ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
-            CompoundTag structureTag = new CompoundTag();
-            structureTag.putInt("x", structure.controllerPos.getX());
-            structureTag.putInt("y", structure.controllerPos.getY());
-            structureTag.putInt("z", structure.controllerPos.getZ());
-            structureTag.putInt("width", structure.width);
-            structureTag.putInt("height", structure.height);
-            tag.put("structure", structureTag);
-        }
-
-        if (physicsSimulator != null) {
-            CompoundTag physicsTag = new CompoundTag();
-            physicsSimulator.serializeNBT(physicsTag);
-            tag.put("physics", physicsTag);
-        }
+        tag.putString("status", status.name());
+        tag.put("physics", writePhysicsTag());
+        tag.put("coolant", coolantTank.writeToNBT(provider, new CompoundTag()));
+        tag.put("steam", steamTank.writeToNBT(provider, new CompoundTag()));
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.loadAdditional(tag, provider);
-
-        this.isFormed = tag.getBoolean("isFormed");
-
+        status = readStatus(tag.getString("status"));
         if (tag.contains("physics")) {
-            CompoundTag physicsTag = tag.getCompound("physics");
-            physicsSimulator.deserializeNBT(physicsTag);
+            physicsSimulator.deserializeNBT(tag.getCompound("physics"));
         }
-
-        // Structure will be re-validated on next tick
+        if (tag.contains("coolant")) {
+            coolantTank.readFromNBT(provider, tag.getCompound("coolant"));
+        }
+        if (tag.contains("steam")) {
+            steamTank.readFromNBT(provider, tag.getCompound("steam"));
+        }
+        pendingRevalidation = true;
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
         CompoundTag tag = super.getUpdateTag(provider);
-        tag.putBoolean("isFormed", isFormed);
-
-        if (physicsSimulator != null) {
-            CompoundTag physicsTag = new CompoundTag();
-            physicsSimulator.serializeNBT(physicsTag);
-            tag.put("physics", physicsTag);
-        }
+        tag.putString("status", status.name());
+        tag.put("physics", writePhysicsTag());
+        tag.put("coolant", coolantTank.writeToNBT(provider, new CompoundTag()));
+        tag.put("steam", steamTank.writeToNBT(provider, new CompoundTag()));
         return tag;
     }
 
@@ -486,11 +446,82 @@ public class ReactorBlockEntity extends BlockEntity {
     @Override
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
         super.handleUpdateTag(tag, provider);
-        this.isFormed = tag.getBoolean("isFormed");
-
+        status = readStatus(tag.getString("status"));
         if (tag.contains("physics")) {
-            CompoundTag physicsTag = tag.getCompound("physics");
-            physicsSimulator.deserializeNBT(physicsTag);
+            physicsSimulator.deserializeNBT(tag.getCompound("physics"));
+        }
+        if (tag.contains("coolant")) {
+            coolantTank.readFromNBT(provider, tag.getCompound("coolant"));
+        }
+        if (tag.contains("steam")) {
+            steamTank.readFromNBT(provider, tag.getCompound("steam"));
+        }
+    }
+
+    private CompoundTag writePhysicsTag() {
+        CompoundTag physicsTag = new CompoundTag();
+        physicsSimulator.serializeNBT(physicsTag);
+        return physicsTag;
+    }
+
+    private ReactorStatus readStatus(String name) {
+        if ("INVALID_HOT".equals(name)) {
+            return ReactorStatus.SCRAMMED;
+        }
+        try {
+            return ReactorStatus.valueOf(name);
+        } catch (IllegalArgumentException ignored) {
+            return ReactorStatus.UNFORMED;
+        }
+    }
+
+    private enum ReactorStatus {
+        UNFORMED("Incomplete"),
+        FORMED("Formed"),
+        SCRAMMED("Scrammed"),
+        MELTDOWN("Meltdown");
+
+        private final String displayName;
+
+        ReactorStatus(String displayName) {
+            this.displayName = displayName;
+        }
+    }
+
+    private class ReactorFluidHandler implements IFluidHandler {
+        @Override
+        public int getTanks() {
+            return 2;
+        }
+
+        @Override
+        public FluidStack getFluidInTank(int tank) {
+            return tank == 0 ? coolantTank.getFluid() : steamTank.getFluid();
+        }
+
+        @Override
+        public int getTankCapacity(int tank) {
+            return tank == 0 ? coolantTank.getCapacity() : steamTank.getCapacity();
+        }
+
+        @Override
+        public boolean isFluidValid(int tank, FluidStack stack) {
+            return tank == 0 && coolantTank.isFluidValid(stack);
+        }
+
+        @Override
+        public int fill(FluidStack resource, FluidAction action) {
+            return NuclearFluidHelper.isCoolant(resource) ? coolantTank.fill(resource, action) : 0;
+        }
+
+        @Override
+        public FluidStack drain(FluidStack resource, FluidAction action) {
+            return NuclearFluidHelper.isTurbineSteam(resource) ? steamTank.drain(resource, action) : FluidStack.EMPTY;
+        }
+
+        @Override
+        public FluidStack drain(int maxDrain, FluidAction action) {
+            return steamTank.drain(maxDrain, action);
         }
     }
 }

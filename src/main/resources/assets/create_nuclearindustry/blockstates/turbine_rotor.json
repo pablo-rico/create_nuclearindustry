@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "axis=x": { "model": "create_nuclearindustry:block/turbine_rotor", "x": 90, "y": 90 },
+    "axis=y": { "model": "create_nuclearindustry:block/turbine_rotor" },
+    "axis=z": { "model": "create_nuclearindustry:block/turbine_rotor", "x": 90 }
+  }
+}

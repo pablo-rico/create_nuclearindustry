@@ -3,6 +3,9 @@
   "values": [
     "create_nuclearindustry:uranium_ore",
     "create_nuclearindustry:borax_ore",
-    "create_nuclearindustry:centrifuge"
+    "create_nuclearindustry:centrifuge",
+    "create_nuclearindustry:turbine_casing",
+    "create_nuclearindustry:turbine_rotor",
+    "create_nuclearindustry:turbine_output"
   ]
 }

@@ -111,6 +111,7 @@ public class DualFluidPipeBlock extends BaseEntityBlock {
 
     public enum VisualFluid implements StringRepresentable {
         NONE("none"),
+        WATER("water"),
         STEAM("steam"),
         HEAVY_WATER("heavy_water"),
         MIXED("mixed");
@@ -127,4 +128,3 @@ public class DualFluidPipeBlock extends BaseEntityBlock {
         }
     }
 }
-

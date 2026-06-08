@@ -11,6 +11,9 @@ import org.papiricoh.create_nuclearindustry.fluids.block.DualFluidPipeBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ControlRodBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.HeatExchangerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.TurbineCasingBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.TurbineOutputBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.TurbineRotorBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.UraniumRodBlock;
 
 public class AllNuclearBlocks {
@@ -34,6 +37,9 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> REACTOR_CONTROLLER = BLOCKS.register("reactor_controller", () -> new NuclearReactorControllerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> DUAL_FLUID_PIPE = BLOCKS.register("dual_fluid_pipe", () -> new DualFluidPipeBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f)));
     public static final DeferredHolder<Block, ? extends Block> CENTRIFUGE = BLOCKS.register("centrifuge", () -> new CentrifugeBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> TURBINE_CASING = BLOCKS.register("turbine_casing", () -> new TurbineCasingBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f)));
+    public static final DeferredHolder<Block, ? extends Block> TURBINE_ROTOR = BLOCKS.register("turbine_rotor", () -> new TurbineRotorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> TURBINE_OUTPUT = BLOCKS.register("turbine_output", () -> new TurbineOutputBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
 
 
 

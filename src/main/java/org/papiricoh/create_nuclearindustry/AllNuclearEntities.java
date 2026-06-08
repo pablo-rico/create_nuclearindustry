@@ -7,6 +7,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.papiricoh.create_nuclearindustry.enrichment.blockentity.CentrifugeBlockEntity;
 import org.papiricoh.create_nuclearindustry.fluids.blockentity.DualFluidPipeBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
+import org.papiricoh.create_nuclearindustry.reactor.blockentity.TurbineOutputBlockEntity;
 
 public class AllNuclearEntities {
 
@@ -29,6 +30,12 @@ public class AllNuclearEntities {
             ENTITIES.register("centrifuge", () -> BlockEntityType.Builder.of(
                     CentrifugeBlockEntity::new,
                     AllNuclearBlocks.CENTRIFUGE.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TurbineOutputBlockEntity>> TURBINE_OUTPUT =
+            ENTITIES.register("turbine_output", () -> BlockEntityType.Builder.of(
+                    TurbineOutputBlockEntity::new,
+                    AllNuclearBlocks.TURBINE_OUTPUT.get()
             ).build(null));
 
     public static void init() {}

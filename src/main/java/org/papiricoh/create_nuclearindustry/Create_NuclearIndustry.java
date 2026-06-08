@@ -20,7 +20,6 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.createmod.ponder.foundation.PonderIndex;
-import org.papiricoh.create_nuclearindustry.enrichment.CentrifugeCapabilities;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.NuclearPonderPlugin;
 import org.papiricoh.create_nuclearindustry.reactor.event.ReactorBlockChangeHandler;
 import org.slf4j.Logger;
@@ -40,7 +39,7 @@ public class Create_NuclearIndustry {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(Config::onLoad);
-        modEventBus.addListener(CentrifugeCapabilities::registerCapabilities);
+        modEventBus.addListener(AllNuclearCapabilities::registerCapabilities);
 
         AllCreativeTabs.init();
 

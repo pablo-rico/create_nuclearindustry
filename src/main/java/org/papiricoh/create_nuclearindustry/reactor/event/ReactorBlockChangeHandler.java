@@ -58,9 +58,9 @@ public class ReactorBlockChangeHandler {
 
         // Use ReactorManager to get only nearby reactors (O(n) where n = registered reactors nearby, not O(27000))
         for (ReactorBlockEntity reactor : ReactorManager.getReactorsInRange(level, changedPos, SEARCH_RADIUS)) {
-            System.out.println("[Reactor Block Change] Block changed at " + changedPos +
-                    ", checking reactor at " + reactor.getBlockPos());
-            reactor.requestStructureRevalidation(player);
+            if (reactor.shouldReactToBlockChange(changedPos)) {
+                reactor.requestStructureRevalidation(player);
+            }
         }
     }
 }

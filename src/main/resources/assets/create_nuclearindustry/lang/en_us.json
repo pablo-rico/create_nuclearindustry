@@ -20,11 +20,15 @@
   "block.create_nuclearindustry.reactor_controller": "Reactor Controller",
   "block.create_nuclearindustry.dual_fluid_pipe": "Dual Fluid Pipe",
   "block.create_nuclearindustry.centrifuge": "Centrifuge",
+  "block.create_nuclearindustry.turbine_casing": "Turbine Casing",
+  "block.create_nuclearindustry.turbine_rotor": "Turbine Rotor",
+  "block.create_nuclearindustry.turbine_output": "Turbine Output",
 
 
   "block.create_nuclearindustry.borax_ore": "Borax Ore",
   "fluid.create_nuclearindustry.steam": "Steam",
   "fluid.create_nuclearindustry.heavy_water": "Heavy Water",
+  "fluid.create_nuclearindustry.heavy_steam": "Heavy Steam",
   "itemGroup.create_nuclearindustry.nuclear_tab": "Create: Nuclear Industry",
 
   "create_nuclearindustry.ponder.centrifuge.header": "Processing uranium with a Centrifuge",

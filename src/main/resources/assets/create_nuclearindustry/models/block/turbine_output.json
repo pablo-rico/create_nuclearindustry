@@ -1,0 +1,8 @@
+{
+  "parent": "block/orientable",
+  "textures": {
+    "top": "create_nuclearindustry:block/heat_exchanger_top",
+    "front": "create_nuclearindustry:block/heat_exchanger_pipes",
+    "side": "create_nuclearindustry:block/reactor_casing"
+  }
+}

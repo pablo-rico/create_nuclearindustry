@@ -30,6 +30,9 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.REACTOR_CONTROLLER.value());
                 output.accept(AllNuclearItems.DUAL_FLUID_PIPE.value());
                 output.accept(AllNuclearItems.CENTRIFUGE.value());
+                output.accept(AllNuclearItems.TURBINE_CASING.value());
+                output.accept(AllNuclearItems.TURBINE_ROTOR.value());
+                output.accept(AllNuclearItems.TURBINE_OUTPUT.value());
             }).build());
 
 

@@ -3,269 +3,327 @@ package org.papiricoh.create_nuclearindustry.reactor.multiblock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-/**
- * Validates and detects nuclear reactor multiblock structures.
- *
- * Structure Format:
- * - REACTOR_CASING forms a hollow cube (cauldron shape)
- * - REACTOR_CONTROLLER at the top center (roof)
- * - HEAT_EXCHANGER in the center column from bottom to top (minus the controller)
- * - CONTROL_ROD and URANIUM_ROD protrude from the top (inside the cube)
- * - All fuel rods extend down and touch the HEAT_EXCHANGER column
- */
 public class ReactorStructureValidator {
+    public static final int MIN_WIDTH = 3;
+    public static final int MAX_WIDTH = 9;
+    public static final int MIN_HEIGHT = 4;
+    public static final int MAX_HEIGHT = 12;
 
-    private static final int MIN_WIDTH = 5;      // Minimum width for structure
-    private static final int MIN_HEIGHT = 4;     // Minimum height for structure
-    private static final int MAX_WIDTH = 11;
-    private static final int MAX_HEIGHT = 15;
+    public static ReactorValidationResult validate(Level level, BlockPos controllerPos) {
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
 
-    /**
-     * Attempts to detect and validate a reactor structure with controller at the given position.
-     * @param level The world level
-     * @param controllerPos The position of the reactor controller block
-     * @return An optional containing the reactor structure if valid, empty otherwise
-     */
-    public static Optional<ReactorStructure> findReactorStructure(Level level, BlockPos controllerPos, ErrorHandler errorHandler) {
-        if (level == null || level.getBlockState(controllerPos).getBlock() != AllNuclearBlocks.REACTOR_CONTROLLER.get()) {
-            System.out.println("[Reactor Validator] No controller block at " + controllerPos);
-            errorHandler.setError("No controller block");
-            return Optional.empty();
+        if (level == null) {
+            errors.add("Level unavailable");
+            return ReactorValidationResult.invalid(errors, warnings);
+        }
+        if (!level.getBlockState(controllerPos).is(AllNuclearBlocks.REACTOR_CONTROLLER.get())) {
+            errors.add("Controller block missing");
+            return ReactorValidationResult.invalid(errors, warnings);
         }
 
-        System.out.println("[Reactor Validator] Checking structure starting at controller: " + controllerPos);
-
-        ReactorStructure structure = new ReactorStructure(controllerPos);
-
-        // Detect structure dimensions by scanning downward and outward
-        if (!scanStructureDimensions(level, structure, errorHandler)) {
-            System.out.println("[Reactor Validator] Failed to determine structure dimensions");
-            return Optional.empty();
+        Optional<DetectedBounds> detected = detectBounds(level, controllerPos, errors);
+        if (detected.isEmpty()) {
+            return ReactorValidationResult.invalid(errors, warnings);
         }
 
-        System.out.println("[Reactor Validator] Structure dimensions detected: " + structure.width + "×" + structure.height);
+        DetectedBounds bounds = detected.get();
+        ReactorStructure structure = new ReactorStructure(controllerPos, bounds.width(), bounds.height(), bounds.bottomY());
+        detectControlChannels(level, structure);
+        validateShell(level, structure, errors);
+        validateInterior(level, structure, errors, warnings);
 
-        if (!validateStructure(level, structure, errorHandler)) {
-            System.out.println("[Reactor Validator] ❌ Structure validation FAILED");
-            return Optional.empty();
+        if (!errors.isEmpty()) {
+            return ReactorValidationResult.invalid(errors, warnings);
         }
-
-        System.out.println("[Reactor Validator] ✓ Structure validation SUCCESS - " + structure);
-        return Optional.of(structure);
+        return ReactorValidationResult.valid(structure, warnings);
     }
 
-    // Overload for backward compatibility
-    public static Optional<ReactorStructure> findReactorStructure(Level level, BlockPos controllerPos) {
-        return findReactorStructure(level, controllerPos, new ErrorHandler());
-    }
-
-    /**
-     * Detects the dimensions of the reactor by scanning downward for the casing floor
-     * and outward for the casing walls.
-     */
-    private static boolean scanStructureDimensions(Level level, ReactorStructure structure, ErrorHandler errorHandler) {
-        int controllerY = structure.controllerPos.getY();
-        int controllerX = structure.controllerPos.getX();
-        int controllerZ = structure.controllerPos.getZ();
-
-        // Scan downward to find the bottom REACTOR_CASING
-        int height = 0;
-        System.out.println("[Reactor Validator] Scanning downward from controller at Y=" + controllerY);
-
-        for (int y = -1; y >= -MAX_HEIGHT; y--) {
-            BlockPos checkPos = structure.controllerPos.above(y);
-            Block block = level.getBlockState(checkPos).getBlock();
-
-            // Log first 10 blocks scanned
-            if (y >= -5) {
-                System.out.println("[Reactor Validator]   Y=" + checkPos.getY() + " -> " + block.getName().getString());
-            }
-
-            if (block == AllNuclearBlocks.REACTOR_CASING.get()) {
-                height = Math.abs(y) - 1;  // Height between controller and floor
-                System.out.println("[Reactor Validator] ✓ Found casing floor at Y=" + checkPos.getY() + ", height=" + height);
+    private static Optional<DetectedBounds> detectBounds(Level level, BlockPos controllerPos, List<String> errors) {
+        int bottomY = Integer.MIN_VALUE;
+        for (int y = controllerPos.getY() - 1; y >= controllerPos.getY() - MAX_HEIGHT; y--) {
+            if (level.getBlockState(new BlockPos(controllerPos.getX(), y, controllerPos.getZ())).is(AllNuclearBlocks.REACTOR_CASING.get())) {
+                bottomY = y;
                 break;
             }
         }
 
-        if (height < MIN_HEIGHT) {
-            System.out.println("[Reactor Validator] ❌ Height " + height + " is less than minimum " + MIN_HEIGHT);
-            String error = "Reactor too short (need " + MIN_HEIGHT + " high, got " + height + ")";
-            errorHandler.setError(error);
-            System.out.println("[Reactor Validator] Make sure REACTOR_CASING is directly below the controller!");
-            return false;
+        if (bottomY == Integer.MIN_VALUE) {
+            errors.add("Missing casing floor below controller");
+            return Optional.empty();
         }
 
-        structure.height = height;
+        int height = controllerPos.getY() - bottomY + 1;
+        if (height < MIN_HEIGHT || height > MAX_HEIGHT) {
+            errors.add("Height must be " + MIN_HEIGHT + "-" + MAX_HEIGHT + " blocks, got " + height);
+            return Optional.empty();
+        }
 
-        // Scan outward from center to find the width
-        int width = 1;
+        int halfWidth = 0;
         for (int offset = 1; offset <= MAX_WIDTH / 2; offset++) {
-            BlockPos[] checkPositions = {
-                    structure.controllerPos.offset(offset, 0, 0),
-                    structure.controllerPos.offset(-offset, 0, 0),
-                    structure.controllerPos.offset(0, 0, offset),
-                    structure.controllerPos.offset(0, 0, -offset)
-            };
-
-            boolean allCasing = true;
-            for (BlockPos pos : checkPositions) {
-                Block block = level.getBlockState(pos).getBlock();
-                if (block != AllNuclearBlocks.REACTOR_CASING.get()) {
-                    allCasing = false;
-                    break;
-                }
-            }
-
-            if (allCasing) {
-                width = 1 + (offset * 2);
-            } else {
+            boolean ringContinues =
+                    level.getBlockState(new BlockPos(controllerPos.getX() + offset, bottomY, controllerPos.getZ())).is(AllNuclearBlocks.REACTOR_CASING.get()) &&
+                    level.getBlockState(new BlockPos(controllerPos.getX() - offset, bottomY, controllerPos.getZ())).is(AllNuclearBlocks.REACTOR_CASING.get()) &&
+                    level.getBlockState(new BlockPos(controllerPos.getX(), bottomY, controllerPos.getZ() + offset)).is(AllNuclearBlocks.REACTOR_CASING.get()) &&
+                    level.getBlockState(new BlockPos(controllerPos.getX(), bottomY, controllerPos.getZ() - offset)).is(AllNuclearBlocks.REACTOR_CASING.get());
+            if (!ringContinues) {
                 break;
             }
+            halfWidth = offset;
         }
 
-        if (width < MIN_WIDTH) {
-            System.out.println("[Reactor Validator] Width " + width + " is less than minimum " + MIN_WIDTH);
-            String error = "Reactor too small (need " + MIN_WIDTH + "×" + MIN_WIDTH + ", got " + width + "×" + width + ")";
-            errorHandler.setError(error);
-            return false;
+        int width = halfWidth * 2 + 1;
+        if (width < MIN_WIDTH || width > MAX_WIDTH) {
+            errors.add("Width must be odd and between " + MIN_WIDTH + " and " + MAX_WIDTH + ", got " + width);
+            return Optional.empty();
         }
 
-        structure.width = width;
-        return true;
+        return Optional.of(new DetectedBounds(width, height, bottomY));
     }
 
-    /**
-     * Validates that the reactor structure meets all requirements.
-     */
-    private static boolean validateStructure(Level level, ReactorStructure structure, ErrorHandler errorHandler) {
-        int centerX = structure.controllerPos.getX();
-        int centerZ = structure.controllerPos.getZ();
-        int topY = structure.controllerPos.getY();
-        int bottomY = topY - structure.height;
-        int halfWidth = structure.width / 2;
+    private static void validateShell(Level level, ReactorStructure structure, List<String> errors) {
+        for (BlockPos pos : structure.allBlocks) {
+            boolean centerTop = pos.equals(structure.controllerPos);
+            boolean shell = structure.isShell(pos);
+            Block block = level.getBlockState(pos).getBlock();
 
-        int casingCount = 0;
-        int heatExchangerCount = 0;
-        int uraniumRodCount = 0;
-        int controlRodCount = 0;
+            if (centerTop) {
+                if (block != AllNuclearBlocks.REACTOR_CONTROLLER.get()) {
+                    errors.add("Controller must be centered on the top face");
+                }
+                continue;
+            }
 
-        // Validate structure layer by layer
-        for (int y = bottomY; y <= topY; y++) {
-            for (int x = centerX - halfWidth; x <= centerX + halfWidth; x++) {
-                for (int z = centerZ - halfWidth; z <= centerZ + halfWidth; z++) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    Block block = level.getBlockState(pos).getBlock();
+            if (shell && structure.isControlChannelTop(pos) && isAllowedControlChannelTop(block)) {
+                continue;
+            }
 
-                    // Check center column (should be HEAT_EXCHANGER or CONTROLLER)
-                    if (x == centerX && z == centerZ) {
-                        if (y == topY) {
-                            // Top center must be CONTROLLER
-                            if (block != AllNuclearBlocks.REACTOR_CONTROLLER.get()) {
-                                System.out.println("[Reactor Validator] ❌ Top center is not REACTOR_CONTROLLER at " + pos);
-                                return false;
-                            }
-                        } else {
-                            // Rest of center column must be HEAT_EXCHANGER
-                            if (block != AllNuclearBlocks.HEAT_EXCHANGER.get()) {
-                                System.out.println("[Reactor Validator] ❌ Center column missing HEAT_EXCHANGER at " + pos);
-                                return false;
-                            }
-                            heatExchangerCount++;
-                        }
-                    }
-                    // Check perimeter (walls must be CASING)
-                    else if (x == centerX - halfWidth || x == centerX + halfWidth ||
-                             z == centerZ - halfWidth || z == centerZ + halfWidth) {
-                        if (y == topY) {
-                            // Top perimeter - can be CONTROL_ROD or URANIUM_ROD (protrusions)
-                            if (block == AllNuclearBlocks.CONTROL_ROD.get()) {
-                                controlRodCount++;
-                            } else if (block == AllNuclearBlocks.URANIUM_ROD.get()) {
-                                uraniumRodCount++;
-                            } else if (block != AllNuclearBlocks.REACTOR_CASING.get()) {
-                                System.out.println("[Reactor Validator] ⚠ Unexpected block at top perimeter: " + block + " at " + pos);
-                            }
-                        } else {
-                            // Wall blocks at other heights must be CASING
-                            if (block != AllNuclearBlocks.REACTOR_CASING.get()) {
-                                System.out.println("[Reactor Validator] ❌ Wall missing REACTOR_CASING at " + pos + ", found: " + block);
-                                return false;
-                            }
-                            casingCount++;
-                        }
-                    }
-                    // Interior (non-center, non-perimeter)
-                    else {
-                        if (block == AllNuclearBlocks.URANIUM_ROD.get()) {
-                            uraniumRodCount++;
-                        } else if (block == AllNuclearBlocks.CONTROL_ROD.get()) {
-                            controlRodCount++;
-                        }
-                        // Interior can be empty (air) or have fuel rods
-                    }
+            if (shell && block != AllNuclearBlocks.REACTOR_CASING.get()) {
+                errors.add("Missing casing at " + shortPos(pos));
+                if (errors.size() >= 6) {
+                    errors.add("More casing errors omitted");
+                    return;
                 }
             }
         }
-
-        // Validation checks
-        System.out.println("[Reactor Validator] Structure composition:");
-        System.out.println("  - REACTOR_CASING blocks: " + casingCount);
-        System.out.println("  - HEAT_EXCHANGER blocks: " + heatExchangerCount);
-        System.out.println("  - URANIUM_ROD blocks: " + uraniumRodCount);
-        System.out.println("  - CONTROL_ROD blocks: " + controlRodCount);
-
-        if (casingCount < MIN_WIDTH * 2 + structure.height * 2) {
-            System.out.println("[Reactor Validator] ❌ Not enough casing blocks");
-            errorHandler.setError("Missing REACTOR_CASING blocks");
-            return false;
-        }
-
-        if (heatExchangerCount < structure.height - 1) {
-            System.out.println("[Reactor Validator] ❌ Heat exchanger column is incomplete");
-            errorHandler.setError("Heat exchanger column incomplete");
-            return false;
-        }
-
-        if (uraniumRodCount < 1) {
-            System.out.println("[Reactor Validator] ❌ No uranium rods found in reactor");
-            errorHandler.setError("Missing uranium rods");
-            return false;
-        }
-
-        if (controlRodCount < 1) {
-            System.out.println("[Reactor Validator] ⚠ Warning: No control rods found (reactor may not be controllable)");
-        }
-
-        // Store counts
-        structure.uraniumRodCount = uraniumRodCount;
-        structure.controlRodCount = controlRodCount;
-
-        return true;
     }
 
-    /**
-     * Data class representing a valid reactor structure.
-     */
+    private static void detectControlChannels(Level level, ReactorStructure structure) {
+        int halfWidth = structure.width / 2;
+        for (int x = structure.controllerPos.getX() - halfWidth + 1; x <= structure.controllerPos.getX() + halfWidth - 1; x++) {
+            for (int z = structure.controllerPos.getZ() - halfWidth + 1; z <= structure.controllerPos.getZ() + halfWidth - 1; z++) {
+                if (hasControlRodInColumnOrAbove(level, structure, x, z)) {
+                    structure.controlChannels.add(new BlockPos(x, structure.bottomY + 1, z));
+                }
+            }
+        }
+    }
+
+    private static boolean hasControlRodInColumnOrAbove(Level level, ReactorStructure structure, int x, int z) {
+        for (int y = structure.bottomY + 1; y <= structure.topY + structure.innerHeight(); y++) {
+            if (level.getBlockState(new BlockPos(x, y, z)).is(AllNuclearBlocks.CONTROL_ROD.get())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void validateInterior(Level level, ReactorStructure structure, List<String> errors, List<String> warnings) {
+        int halfWidth = structure.width / 2;
+        for (int x = structure.controllerPos.getX() - halfWidth + 1; x <= structure.controllerPos.getX() + halfWidth - 1; x++) {
+            for (int z = structure.controllerPos.getZ() - halfWidth + 1; z <= structure.controllerPos.getZ() + halfWidth - 1; z++) {
+                validateInteriorColumn(level, structure, x, z, errors);
+            }
+        }
+
+        if (structure.uraniumColumnCount < 1) {
+            errors.add("Missing uranium rod column");
+        }
+        if (structure.heatExchangerColumnCount < 1) {
+            errors.add("Missing heat exchanger column");
+        }
+        if (structure.controlRodColumnCount < 1) {
+            warnings.add("No control rod columns; reactor will be difficult to control");
+        }
+        structure.controlRodCount = structure.controlChannels.size() * structure.innerHeight();
+    }
+
+    private static void validateInteriorColumn(Level level, ReactorStructure structure, int x, int z, List<String> errors) {
+        BlockPos samplePos = new BlockPos(x, structure.bottomY + 1, z);
+        Block sample = level.getBlockState(samplePos).getBlock();
+
+        if (structure.isControlChannel(x, z)) {
+            validateControlChannel(level, structure, x, z, errors);
+            return;
+        }
+
+        if (sample == Blocks.AIR) {
+            for (int y = structure.bottomY + 1; y < structure.topY; y++) {
+                BlockPos pos = new BlockPos(x, y, z);
+                if (!level.getBlockState(pos).isAir()) {
+                    errors.add("Mixed interior column at " + shortPos(pos));
+                    return;
+                }
+            }
+            return;
+        }
+
+        if (!isAllowedInteriorColumnBlock(sample)) {
+            errors.add("Invalid interior block at " + shortPos(samplePos));
+            return;
+        }
+
+        int blockCount = 0;
+        for (int y = structure.bottomY + 1; y < structure.topY; y++) {
+            BlockPos pos = new BlockPos(x, y, z);
+            Block block = level.getBlockState(pos).getBlock();
+            if (block != sample) {
+                errors.add("Interior columns must be vertical and homogeneous at " + shortPos(pos));
+                return;
+            }
+            structure.functionalBlocks.add(pos);
+            blockCount++;
+        }
+
+        if (sample == AllNuclearBlocks.URANIUM_ROD.get()) {
+            structure.uraniumColumnCount++;
+            structure.uraniumRodCount += blockCount;
+        } else if (sample == AllNuclearBlocks.HEAT_EXCHANGER.get()) {
+            structure.heatExchangerColumnCount++;
+            structure.heatExchangerCount += blockCount;
+        }
+    }
+
+    private static void validateControlChannel(Level level, ReactorStructure structure, int x, int z, List<String> errors) {
+        int inserted = 0;
+        for (int y = structure.bottomY + 1; y < structure.topY; y++) {
+            BlockPos pos = new BlockPos(x, y, z);
+            Block block = level.getBlockState(pos).getBlock();
+            if (block == AllNuclearBlocks.CONTROL_ROD.get()) {
+                structure.functionalBlocks.add(pos);
+                inserted++;
+            } else if (block != Blocks.AIR) {
+                errors.add("Control rod channel blocked at " + shortPos(pos));
+                return;
+            }
+        }
+        structure.controlRodColumnCount++;
+        structure.controlRodCount += inserted;
+    }
+
+    private static boolean isAllowedInteriorColumnBlock(Block block) {
+        return block == AllNuclearBlocks.URANIUM_ROD.get()
+                || block == AllNuclearBlocks.HEAT_EXCHANGER.get();
+    }
+
+    private static boolean isAllowedControlChannelTop(Block block) {
+        return block == Blocks.AIR
+                || block == AllNuclearBlocks.REACTOR_CASING.get()
+                || block == AllNuclearBlocks.CONTROL_ROD.get();
+    }
+
+    private static String shortPos(BlockPos pos) {
+        return pos.getX() + "," + pos.getY() + "," + pos.getZ();
+    }
+
+    private record DetectedBounds(int width, int height, int bottomY) {}
+
+    public record ReactorValidationResult(boolean formed, Optional<ReactorStructure> structure, List<String> errors, List<String> warnings) {
+        public static ReactorValidationResult valid(ReactorStructure structure, List<String> warnings) {
+            return new ReactorValidationResult(true, Optional.of(structure), List.of(), List.copyOf(warnings));
+        }
+
+        public static ReactorValidationResult invalid(List<String> errors, List<String> warnings) {
+            return new ReactorValidationResult(false, Optional.empty(), List.copyOf(errors), List.copyOf(warnings));
+        }
+
+        public String primaryMessage() {
+            if (!errors.isEmpty()) {
+                return errors.get(0);
+            }
+            if (!warnings.isEmpty()) {
+                return warnings.get(0);
+            }
+            return formed ? "Structure formed" : "Structure incomplete";
+        }
+    }
+
     public static class ReactorStructure {
         public final BlockPos controllerPos;
-        public int width;
-        public int height;
+        public final int width;
+        public final int height;
+        public final int bottomY;
+        public final int topY;
+        public final Set<BlockPos> allBlocks = new HashSet<>();
+        public final Set<BlockPos> functionalBlocks = new HashSet<>();
+        public final Set<BlockPos> controlChannels = new HashSet<>();
         public int uraniumRodCount;
         public int controlRodCount;
-        public Set<BlockPos> blocks;
+        public int heatExchangerCount;
+        public int uraniumColumnCount;
+        public int controlRodColumnCount;
+        public int heatExchangerColumnCount;
 
-        public ReactorStructure(BlockPos controllerPos) {
+        public ReactorStructure(BlockPos controllerPos, int width, int height, int bottomY) {
             this.controllerPos = controllerPos;
-            this.blocks = new HashSet<>();
-            this.uraniumRodCount = 0;
-            this.controlRodCount = 0;
+            this.width = width;
+            this.height = height;
+            this.bottomY = bottomY;
+            this.topY = controllerPos.getY();
+            int halfWidth = width / 2;
+            for (int y = bottomY; y <= topY; y++) {
+                for (int x = controllerPos.getX() - halfWidth; x <= controllerPos.getX() + halfWidth; x++) {
+                    for (int z = controllerPos.getZ() - halfWidth; z <= controllerPos.getZ() + halfWidth; z++) {
+                        allBlocks.add(new BlockPos(x, y, z));
+                    }
+                }
+            }
+        }
+
+        public boolean contains(BlockPos pos) {
+            return allBlocks.contains(pos);
+        }
+
+        public boolean isControlArea(BlockPos pos) {
+            if (!isControlChannel(pos.getX(), pos.getZ())) {
+                return false;
+            }
+            return pos.getY() >= bottomY + 1 && pos.getY() <= topY + innerHeight();
+        }
+
+        public boolean isControlChannel(int x, int z) {
+            return controlChannels.contains(new BlockPos(x, bottomY + 1, z));
+        }
+
+        public boolean isControlChannelTop(BlockPos pos) {
+            return pos.getY() == topY && isControlChannel(pos.getX(), pos.getZ()) && !isPerimeter(pos);
+        }
+
+        public boolean isShell(BlockPos pos) {
+            return pos.getY() == bottomY
+                    || pos.getY() == topY
+                    || isPerimeter(pos);
+        }
+
+        private boolean isPerimeter(BlockPos pos) {
+            int halfWidth = width / 2;
+            return pos.getX() == controllerPos.getX() - halfWidth
+                    || pos.getX() == controllerPos.getX() + halfWidth
+                    || pos.getZ() == controllerPos.getZ() - halfWidth
+                    || pos.getZ() == controllerPos.getZ() + halfWidth;
+        }
+
+        public int innerHeight() {
+            return height - 2;
         }
 
         public int getUraniumRodCount() {
@@ -276,29 +334,8 @@ public class ReactorStructureValidator {
             return controlRodCount;
         }
 
-        @Override
-        public String toString() {
-            return String.format("ReactorStructure{%d×%d, uranium=%d, control=%d, pos=%s}",
-                    width, height, uraniumRodCount, controlRodCount, controllerPos);
-        }
-    }
-
-    /**
-     * Helper class for passing error messages back to the caller.
-     */
-    public static class ErrorHandler {
-        private String errorMessage = "";
-
-        public void setError(String message) {
-            this.errorMessage = message;
-        }
-
-        public String getError() {
-            return errorMessage;
-        }
-
-        public boolean hasError() {
-            return !errorMessage.isEmpty();
+        public String dimensionsText() {
+            return width + "x" + width + "x" + height;
         }
     }
 }

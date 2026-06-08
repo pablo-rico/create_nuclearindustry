@@ -46,9 +46,16 @@ public class AllNuclearFluids {
         @Override public int getTintColor() { return 0xFF3F67C9; }
     };
 
+    private static final IClientFluidTypeExtensions HEAVY_STEAM_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
+        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
+        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
+        @Override public int getTintColor() { return 0xB07C9CFF; }
+    };
+
     public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
         event.registerFluidType(STEAM_CLIENT_EXTENSIONS, STEAM_TYPE.get());
         event.registerFluidType(HEAVY_WATER_CLIENT_EXTENSIONS, HEAVY_WATER_TYPE.get());
+        event.registerFluidType(HEAVY_STEAM_CLIENT_EXTENSIONS, HEAVY_STEAM_TYPE.get());
     }
 
     // --------------------------------------------------------------------------------------------
@@ -80,6 +87,19 @@ public class AllNuclearFluids {
             )
     );
 
+    public static final Supplier<FluidType> HEAVY_STEAM_TYPE = FLUID_TYPES.register("heavy_steam", () ->
+            new FluidType(FluidType.Properties.create()
+                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".heavy_steam")
+                    .density(-80)
+                    .viscosity(130)
+                    .temperature(393)
+                    .lightLevel(0)
+                    .canDrown(false)
+                    .canSwim(false)
+                    .supportsBoating(false)
+            )
+    );
+
     // -------------------- Fluids --------------------
     public static final Supplier<FlowingFluid> STEAM = FLUIDS.register(
             "steam",
@@ -99,6 +119,16 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> FLOWING_HEAVY_WATER = FLUIDS.register(
             "flowing_heavy_water",
             () -> new BaseFlowingFluid.Flowing(heavyWaterProps())
+    );
+
+    public static final Supplier<FlowingFluid> HEAVY_STEAM = FLUIDS.register(
+            "heavy_steam",
+            () -> new BaseFlowingFluid.Source(heavySteamProps())
+    );
+
+    public static final Supplier<FlowingFluid> FLOWING_HEAVY_STEAM = FLUIDS.register(
+            "flowing_heavy_steam",
+            () -> new BaseFlowingFluid.Flowing(heavySteamProps())
     );
 
     // -------------------- Bloque y cubo (opcionales) --------------------
@@ -124,6 +154,7 @@ public class AllNuclearFluids {
     // -------------------- Lazy properties --------------------
     private static BaseFlowingFluid.Properties steamProps; // no final a propósito
     private static BaseFlowingFluid.Properties heavyWaterProps;
+    private static BaseFlowingFluid.Properties heavySteamProps;
 
     private static BaseFlowingFluid.Properties steamProps() {
         if (steamProps == null) {
@@ -155,5 +186,20 @@ public class AllNuclearFluids {
                     .explosionResistance(100f);
         }
         return heavyWaterProps;
+    }
+
+    private static BaseFlowingFluid.Properties heavySteamProps() {
+        if (heavySteamProps == null) {
+            heavySteamProps = new BaseFlowingFluid.Properties(
+                    HEAVY_STEAM_TYPE,
+                    HEAVY_STEAM,
+                    FLOWING_HEAVY_STEAM
+            )
+                    .slopeFindDistance(2)
+                    .levelDecreasePerBlock(1)
+                    .tickRate(5)
+                    .explosionResistance(100f);
+        }
+        return heavySteamProps;
     }
 }
