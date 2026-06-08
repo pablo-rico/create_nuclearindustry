@@ -9,6 +9,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.enrichment.block.CentrifugeBlock;
 import org.papiricoh.create_nuclearindustry.explosive.block.NuclearBombBlock;
 import org.papiricoh.create_nuclearindustry.fluids.block.DualFluidPipeBlock;
+import org.papiricoh.create_nuclearindustry.missile.block.LaunchPadBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ControlRodBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.HeatExchangerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
@@ -48,6 +49,7 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> TURBINE_OUTPUT = BLOCKS.register("turbine_output", () -> new TurbineOutputBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> TURBINE_FLUID_PORT = BLOCKS.register("turbine_fluid_port", () -> new TurbineFluidPortBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> NUCLEAR_BOMB = BLOCKS.register("nuclear_bomb", () -> new NuclearBombBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0f, 12.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> LAUNCH_PAD = BLOCKS.register("launch_pad", () -> new LaunchPadBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0f, 12.0f).noOcclusion()));
 
 
 

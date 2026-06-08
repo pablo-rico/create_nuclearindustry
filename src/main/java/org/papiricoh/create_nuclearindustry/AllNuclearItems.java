@@ -6,6 +6,7 @@ import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
 
 public class AllNuclearItems {
 
@@ -31,6 +32,7 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> TURBINE_OUTPUT = ITEMS.register("turbine_output", () -> new BlockItem(AllNuclearBlocks.TURBINE_OUTPUT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> TURBINE_FLUID_PORT = ITEMS.register("turbine_fluid_port", () -> new BlockItem(AllNuclearBlocks.TURBINE_FLUID_PORT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> NUCLEAR_BOMB = ITEMS.register("nuclear_bomb", () -> new BlockItem(AllNuclearBlocks.NUCLEAR_BOMB.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> LAUNCH_PAD = ITEMS.register("launch_pad", () -> new BlockItem(AllNuclearBlocks.LAUNCH_PAD.value(), new Item.Properties()));
 
 
 
@@ -47,6 +49,10 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> ENRICHED_URANIUM_BLEND = ITEMS.register("enriched_uranium_blend", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> BORAX_SALT = ITEMS.register("borax_salt", () -> new Item(new Item.Properties().stacksTo(64)));
     public static final DeferredHolder<Item, ? extends Item> BORON = ITEMS.register("boron", () -> new Item(new Item.Properties().stacksTo(64)));
+
+    // Sistema de misiles
+    public static final DeferredHolder<Item, ? extends Item> MISSILE = ITEMS.register("missile", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> TARGET_DESIGNATOR = ITEMS.register("target_designator", () -> new TargetDesignatorItem(new Item.Properties().stacksTo(1)));
 
 
 

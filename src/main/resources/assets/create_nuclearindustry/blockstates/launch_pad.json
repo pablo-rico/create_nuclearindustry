@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "powered=false": { "model": "create_nuclearindustry:block/launch_pad" },
+    "powered=true": { "model": "create_nuclearindustry:block/launch_pad" }
+  }
+}

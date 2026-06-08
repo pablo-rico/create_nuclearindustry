@@ -45,6 +45,9 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.TURBINE_OUTPUT.value());
                 output.accept(AllNuclearItems.TURBINE_FLUID_PORT.value());
                 output.accept(AllNuclearItems.NUCLEAR_BOMB.value());
+                output.accept(AllNuclearItems.LAUNCH_PAD.value());
+                output.accept(AllNuclearItems.MISSILE.value());
+                output.accept(AllNuclearItems.TARGET_DESIGNATOR.value());
             }).build());
 
 

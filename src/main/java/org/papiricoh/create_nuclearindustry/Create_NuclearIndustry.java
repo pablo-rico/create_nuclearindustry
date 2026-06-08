@@ -65,6 +65,7 @@ public class Create_NuclearIndustry {
 
         AllNuclearEntities.init();
         AllNuclearEntities.ENTITIES.register(modEventBus);
+        AllNuclearEntities.ENTITY_TYPES.register(modEventBus);
 
         AllNuclearGUIs.init();
         AllNuclearGUIs.MENUS.register(modEventBus);
@@ -88,6 +89,7 @@ public class Create_NuclearIndustry {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             PonderIndex.addPlugin(new NuclearPonderPlugin());
             modEventBus.addListener(ClientModEvents::onClientSetup);
+            modEventBus.addListener(ClientModEvents::onRegisterRenderers);
             modEventBus.addListener(AllNuclearFluids::registerClientExtensions);
         }
 
@@ -129,6 +131,12 @@ public class Create_NuclearIndustry {
     public static class ClientModEvents {
 
         @SubscribeEvent
+        public static void onRegisterRenderers(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
+            event.registerEntityRenderer(AllNuclearEntities.MISSILE.get(),
+                    org.papiricoh.create_nuclearindustry.missile.client.MissileRenderer::new);
+        }
+
+        @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event)
         {
             // Some client setup code
@@ -142,6 +150,7 @@ public class Create_NuclearIndustry {
                     registerMethod.setAccessible(true);
                     registerMethod.invoke(null, AllNuclearGUIs.REACTOR_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlMenu, org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlScreen>)org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlScreen::new);
                     registerMethod.invoke(null, AllNuclearGUIs.NUCLEAR_BOMB_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenu, org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombScreen>)org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombScreen::new);
+                    registerMethod.invoke(null, AllNuclearGUIs.LAUNCH_PAD_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadMenu, org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadScreen>)org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadScreen::new);
                 } catch (Exception e) {
                     LOGGER.error("Failed to register nuclear screens", e);
                 }

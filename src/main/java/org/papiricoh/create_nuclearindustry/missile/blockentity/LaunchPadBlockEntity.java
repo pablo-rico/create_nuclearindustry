@@ -1,33 +1,44 @@
-package org.papiricoh.create_nuclearindustry.explosive.blockentity;
+package org.papiricoh.create_nuclearindustry.missile.blockentity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
-import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
+import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
+import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
 
-public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
-    public static final int SLOT_COUNT = 3;
+public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
+    public static final int MISSILE_SLOT = 0;
+    public static final int DESIGNATOR_SLOT = 1;
+    public static final int FIRST_URANIUM_SLOT = 2;
+    public static final int URANIUM_SLOTS = 3;
+    public static final int SLOT_COUNT = FIRST_URANIUM_SLOT + URANIUM_SLOTS;
     public static final float REQUIRED_ENRICHMENT = WarheadStats.REQUIRED_ENRICHMENT;
-    public static final int MAX_URANIUM_UNITS = SLOT_COUNT * 16;
     private static final int COUNTDOWN_TICKS = 200;
 
     private final ItemStackHandler inventory = new ItemStackHandler(SLOT_COUNT) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return isValidUranium(stack);
+            return LaunchPadBlockEntity.this.isItemValid(slot, stack);
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return (slot == MISSILE_SLOT || slot == DESIGNATOR_SLOT) ? 1 : super.getSlotLimit(slot);
         }
 
         @Override
@@ -37,8 +48,18 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
     };
     private int countdown = -1;
 
-    public NuclearBombBlockEntity(BlockPos pos, BlockState state) {
-        super(AllNuclearEntities.NUCLEAR_BOMB.get(), pos, state);
+    public LaunchPadBlockEntity(BlockPos pos, BlockState state) {
+        super(AllNuclearEntities.LAUNCH_PAD.get(), pos, state);
+    }
+
+    public boolean isItemValid(int slot, ItemStack stack) {
+        if (slot == MISSILE_SLOT) {
+            return stack.is(AllNuclearItems.MISSILE.get());
+        }
+        if (slot == DESIGNATOR_SLOT) {
+            return stack.is(AllNuclearItems.TARGET_DESIGNATOR.get());
+        }
+        return isValidUranium(stack);
     }
 
     public void tick() {
@@ -47,16 +68,11 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         }
 
         boolean powered = level.hasNeighborSignal(getBlockPos());
-        if (!powered) {
+        if (!powered || !isReadyToLaunch()) {
             if (countdown >= 0) {
                 countdown = -1;
                 markDirtyAndSync();
             }
-            return;
-        }
-
-        if (getValidUraniumCount() <= 0) {
-            countdown = -1;
             return;
         }
 
@@ -68,10 +84,23 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
 
         countdown--;
         if (countdown <= 0) {
-            detonate();
+            launch();
         } else if (countdown % 20 == 0) {
             markDirtyAndSync();
         }
+    }
+
+    public boolean isReadyToLaunch() {
+        return hasMissile() && getValidUraniumCount() > 0 && getTarget() != null;
+    }
+
+    public boolean hasMissile() {
+        return inventory.getStackInSlot(MISSILE_SLOT).is(AllNuclearItems.MISSILE.get());
+    }
+
+    @Nullable
+    public BlockPos getTarget() {
+        return TargetDesignatorItem.getTarget(inventory.getStackInSlot(DESIGNATOR_SLOT));
     }
 
     public ItemStackHandler getInventory() {
@@ -88,7 +117,7 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
 
     public int getValidUraniumCount() {
         int count = 0;
-        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+        for (int slot = FIRST_URANIUM_SLOT; slot < SLOT_COUNT; slot++) {
             ItemStack stack = inventory.getStackInSlot(slot);
             if (isValidUranium(stack)) {
                 count += stack.getCount();
@@ -100,7 +129,7 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
     public float getAverageEnrichment() {
         int count = 0;
         float total = 0.0f;
-        for (int slot = 0; slot < SLOT_COUNT; slot++) {
+        for (int slot = FIRST_URANIUM_SLOT; slot < SLOT_COUNT; slot++) {
             ItemStack stack = inventory.getStackInSlot(slot);
             if (isValidUranium(stack)) {
                 count += stack.getCount();
@@ -126,22 +155,43 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         return stack.is(AllNuclearItems.URANIUM.get()) && UraniumItem.getEnrichment(stack) >= REQUIRED_ENRICHMENT;
     }
 
-    private void detonate() {
-        Level level = getLevel();
+    private void launch() {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
+        BlockPos target = getTarget();
+        if (target == null || !hasMissile() || getValidUraniumCount() <= 0) {
+            countdown = -1;
+            return;
+        }
 
-        BlockPos center = getBlockPos();
-        float power = getEstimatedPower();
-        int horizontalRadius = getEstimatedRadius();
-        int verticalRadius = getEstimatedVerticalRadius();
-        float intensity = WarheadStats.intensity(getAverageEnrichment());
-        clearContent();
-        level.removeBlock(center, false);
-        level.explode(null, center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5,
-                Math.min(64.0f, power * 0.35f), Level.ExplosionInteraction.BLOCK);
-        NuclearBlastManager.start(serverLevel, center, horizontalRadius, verticalRadius, intensity);
+        int units = getValidUraniumCount();
+        float avgEnrichment = getAverageEnrichment();
+        float power = WarheadStats.power(units, avgEnrichment);
+        int horizontalRadius = WarheadStats.horizontalRadius(units, avgEnrichment);
+        int verticalRadius = WarheadStats.verticalRadius(units, avgEnrichment);
+        float intensity = WarheadStats.intensity(avgEnrichment);
+
+        consumeFuel();
+        markDirtyAndSync();
+
+        BlockPos pos = getBlockPos();
+        Vec3 start = new Vec3(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5);
+        Vec3 targetVec = new Vec3(target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
+
+        MissileEntity missile = new MissileEntity(AllNuclearEntities.MISSILE.get(), serverLevel);
+        missile.setPos(start.x, start.y, start.z);
+        missile.configure(start, targetVec, power, horizontalRadius, verticalRadius, intensity);
+        serverLevel.addFreshEntity(missile);
+    }
+
+    private void consumeFuel() {
+        // Consume el cohete y todo el uranio cargado; el designador es reutilizable y se conserva.
+        inventory.extractItem(MISSILE_SLOT, 1, false);
+        for (int slot = FIRST_URANIUM_SLOT; slot < SLOT_COUNT; slot++) {
+            inventory.setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        countdown = -1;
     }
 
     private void markDirtyAndSync() {

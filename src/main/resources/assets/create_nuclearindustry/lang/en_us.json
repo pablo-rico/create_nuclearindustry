@@ -28,6 +28,13 @@
   "block.create_nuclearindustry.turbine_output": "Turbine Output",
   "block.create_nuclearindustry.turbine_fluid_port": "Turbine Fluid Port",
   "block.create_nuclearindustry.nuclear_bomb": "Nuclear Bomb",
+  "block.create_nuclearindustry.launch_pad": "Missile Launch Pad",
+  "item.create_nuclearindustry.missile": "Nuclear Missile",
+  "item.create_nuclearindustry.target_designator": "Target Designator",
+  "item.create_nuclearindustry.target_designator.set": "Target set to %s, %s, %s",
+  "item.create_nuclearindustry.target_designator.target": "Target: %s, %s, %s",
+  "item.create_nuclearindustry.target_designator.empty": "No target set (right-click a block)",
+  "entity.create_nuclearindustry.missile": "Nuclear Missile",
 
 
   "block.create_nuclearindustry.borax_ore": "Borax Ore",
