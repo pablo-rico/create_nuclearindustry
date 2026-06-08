@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CPC",
+    "PRP",
+    "CPC"
+  ],
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "P": {
+      "item": "create:fluid_pipe"
+    },
+    "R": {
+      "item": "create_nuclearindustry:reactor_casing"
+    }
+  },
+  "result": {
+    "count": 2,
+    "id": "create_nuclearindustry:heat_exchanger"
+  }
+}

@@ -5,6 +5,7 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenu;
 import org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlMenu;
 
 public class AllNuclearGUIs {
@@ -14,6 +15,9 @@ public class AllNuclearGUIs {
 
     public static final DeferredHolder<MenuType<?>, MenuType<ReactorControlMenu>> REACTOR_MENU =
             MENUS.register("reactor_control", () -> new MenuType<ReactorControlMenu>((containerId, inventory) -> new ReactorControlMenu(containerId, inventory, null), FeatureFlags.DEFAULT_FLAGS));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<NuclearBombMenu>> NUCLEAR_BOMB_MENU =
+            MENUS.register("nuclear_bomb", () -> new MenuType<NuclearBombMenu>((containerId, inventory) -> new NuclearBombMenu(containerId, inventory, null), FeatureFlags.DEFAULT_FLAGS));
 
     public static void init() {}
 }

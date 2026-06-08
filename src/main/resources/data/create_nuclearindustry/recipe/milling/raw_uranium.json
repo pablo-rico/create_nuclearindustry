@@ -1,13 +1,14 @@
 {
-  "type": "create:mixing",
+  "type": "create:milling",
   "ingredients": [
     {
       "item": "create_nuclearindustry:raw_uranium"
     }
   ],
+  "processing_time": 300,
   "results": [
     {
-      "item": "create_nuclearindustry:uranium_238"
+      "id": "create_nuclearindustry:uranium"
     }
   ]
 }

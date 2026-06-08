@@ -8,7 +8,9 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.items.SlotItemHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
+import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 
 /**
@@ -50,8 +52,31 @@ public class ReactorControlMenu extends AbstractContainerMenu {
 
         System.out.println("[ReactorControlMenu] Constructor: reactor=" + (reactor != null ? "not null" : "null") + ", reactorPos=" + reactorPos);
 
-        // Don't add slots - reactor doesn't have inventory
-        // Data will be fetched live from the BlockEntity
+        if (this.reactor != null) {
+            addReactorFuelSlots(this.reactor);
+        }
+        addPlayerInventorySlots(playerInventory);
+    }
+
+    private void addReactorFuelSlots(ReactorBlockEntity reactor) {
+        for (int slot = 0; slot < ReactorBlockEntity.FUEL_INPUT_SLOTS; slot++) {
+            addSlot(new FuelSlot(reactor, slot, 20 + slot * 18, 180, true));
+        }
+        for (int slot = 0; slot < ReactorBlockEntity.FUEL_OUTPUT_SLOTS; slot++) {
+            addSlot(new FuelSlot(reactor, ReactorBlockEntity.FUEL_INPUT_SLOTS + slot, 164 + slot * 18, 180, false));
+        }
+    }
+
+    private void addPlayerInventorySlots(Inventory playerInventory) {
+        int startY = 222;
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                addSlot(new Slot(playerInventory, col + row * 9 + 9, 48 + col * 18, startY + row * 18));
+            }
+        }
+        for (int col = 0; col < 9; col++) {
+            addSlot(new Slot(playerInventory, col, 48 + col * 18, startY + 58));
+        }
     }
 
     /**
@@ -73,14 +98,37 @@ public class ReactorControlMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        // No inventory to move items in
-        return ItemStack.EMPTY;
+        Slot slot = slots.get(index);
+        if (slot == null || !slot.hasItem()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack stack = slot.getItem();
+        ItemStack copy = stack.copy();
+        int reactorSlots = reactor != null ? ReactorBlockEntity.FUEL_SLOT_COUNT : 0;
+
+        if (index < reactorSlots) {
+            if (!moveItemStackTo(stack, reactorSlots, slots.size(), true)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get())) {
+            if (!moveItemStackTo(stack, 0, ReactorBlockEntity.FUEL_INPUT_SLOTS, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else {
+            return ItemStack.EMPTY;
+        }
+
+        if (stack.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+        return copy;
     }
 
     @Override
     public boolean stillValid(Player player) {
-        // Always valid for now
-        return true;
+        return reactorPos != null && player.blockPosition().closerThan(reactorPos, 8.0);
     }
 
     /**
@@ -211,5 +259,19 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     public float getCachedRodPosition() {
         var liveReactor = getLiveReactor();
         return liveReactor != null ? liveReactor.getControlRodPosition() : 0.0f;
+    }
+
+    private static class FuelSlot extends SlotItemHandler {
+        private final boolean input;
+
+        private FuelSlot(ReactorBlockEntity reactor, int slot, int x, int y, boolean input) {
+            super(reactor.getFuelInventory(), slot, x, y);
+            this.input = input;
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return input && stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get());
+        }
     }
 }

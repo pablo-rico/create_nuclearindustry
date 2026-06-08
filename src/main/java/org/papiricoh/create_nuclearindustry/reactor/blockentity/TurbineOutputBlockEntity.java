@@ -23,7 +23,7 @@ import java.util.List;
 public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
     private static final int TANK_CAPACITY = 16_000;
     private static final int MAX_STEAM_PER_TICK = 80;
-    private static final float MAX_RPM = 64.0f;
+    private static final float ACTIVE_RPM = 32.0f;
     private static final float MAX_STRESS_CAPACITY = 512.0f;
 
     private final FluidTank steamTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isTurbineSteam) {
@@ -38,13 +38,15 @@ public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
             setChanged();
         }
     };
-    private final IFluidHandler fluidHandler = new TurbineFluidHandler();
 
     private boolean formed;
     private int validationCooldown;
+    private int currentSteamUse;
     private int recentSteamUse;
     private float generatedSpeed;
     private float generatedCapacity;
+    private int steamInputPortCount;
+    private int condensateOutputPortCount;
 
     public TurbineOutputBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.TURBINE_OUTPUT.get(), pos, state);
@@ -63,22 +65,21 @@ public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
         }
 
         int consumed = formed ? processSteam() : 0;
+        currentSteamUse = consumed;
         recentSteamUse = (recentSteamUse * 7 + consumed) / 8;
 
         float oldSpeed = generatedSpeed;
         float oldCapacity = generatedCapacity;
         float targetRatio = Math.min(1.0f, recentSteamUse / (float) MAX_STEAM_PER_TICK);
-        generatedSpeed = getSignedSpeed(MAX_RPM * targetRatio);
+        generatedSpeed = consumed > 0 ? getSignedSpeed(ACTIVE_RPM) : 0.0f;
         generatedCapacity = MAX_STRESS_CAPACITY * targetRatio;
 
         if (Math.abs(oldSpeed - generatedSpeed) > 0.25f || Math.abs(oldCapacity - generatedCapacity) > 1.0f) {
             updateGeneratedRotation();
-            notifyStressCapacityChange(generatedCapacity);
+            if (hasNetwork()) {
+                notifyStressCapacityChange(generatedCapacity);
+            }
         }
-    }
-
-    public IFluidHandler getFluidHandler(Direction direction) {
-        return fluidHandler;
     }
 
     private boolean validateStructure() {
@@ -88,9 +89,53 @@ public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
         BlockState rotor = level.getBlockState(rotorPos);
         BlockState casing = level.getBlockState(casingPos);
 
-        return rotor.is(AllNuclearBlocks.TURBINE_ROTOR.get())
+        boolean baseFormed = rotor.is(AllNuclearBlocks.TURBINE_ROTOR.get())
                 && rotor.getValue(net.minecraft.world.level.block.RotatedPillarBlock.AXIS) == facing.getAxis()
                 && casing.is(AllNuclearBlocks.TURBINE_CASING.get());
+        countLinkedPorts();
+        return baseFormed && steamInputPortCount > 0 && condensateOutputPortCount > 0;
+    }
+
+    private void countLinkedPorts() {
+        steamInputPortCount = 0;
+        condensateOutputPortCount = 0;
+        if (level == null) {
+            return;
+        }
+        for (BlockPos turbineBlock : getStructureBlocks()) {
+            for (Direction direction : Direction.values()) {
+                BlockPos portPos = turbineBlock.relative(direction);
+                BlockState portState = level.getBlockState(portPos);
+                if (!portState.is(AllNuclearBlocks.TURBINE_FLUID_PORT.get())) {
+                    continue;
+                }
+                if (portState.getValue(org.papiricoh.create_nuclearindustry.reactor.block.TurbineFluidPortBlock.MODE)
+                        == org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode.INPUT) {
+                    steamInputPortCount++;
+                } else {
+                    condensateOutputPortCount++;
+                }
+            }
+        }
+    }
+
+    private List<BlockPos> getStructureBlocks() {
+        Direction facing = getBlockState().getValue(TurbineOutputBlock.FACING);
+        BlockPos rotorPos = getBlockPos().relative(facing.getOpposite());
+        BlockPos casingPos = rotorPos.relative(facing.getOpposite());
+        return List.of(getBlockPos(), rotorPos, casingPos);
+    }
+
+    public boolean isPortAttached(BlockPos portPos) {
+        if (level == null) {
+            return false;
+        }
+        for (BlockPos turbineBlock : getStructureBlocks()) {
+            if (portPos.distManhattan(turbineBlock) == 1) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int processSteam() {
@@ -137,11 +182,19 @@ public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
         tooltip.add(Component.literal("Steam Turbine").withStyle(ChatFormatting.GOLD));
         tooltip.add(Component.literal("  Structure: " + (formed ? "Formed" : "Incomplete"))
                 .withStyle(formed ? ChatFormatting.GREEN : ChatFormatting.RED));
+        tooltip.add(Component.literal("  Steam input ports: " + steamInputPortCount)
+                .withStyle(steamInputPortCount > 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
+        tooltip.add(Component.literal("  Condensate output ports: " + condensateOutputPortCount)
+                .withStyle(condensateOutputPortCount > 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
         tooltip.add(Component.literal("  Steam: " + steamTank.getFluidAmount() + "/" + steamTank.getCapacity() + " mB")
                 .withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Condensate: " + condensateTank.getFluidAmount() + "/" + condensateTank.getCapacity() + " mB")
                 .withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal(String.format("  Generated: %.1f RPM", Math.abs(generatedSpeed)))
+                .withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Steam use: " + currentSteamUse + "/" + MAX_STEAM_PER_TICK + " mB/t")
+                .withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal(String.format("  Stress capacity: %.0f SU", generatedCapacity))
                 .withStyle(ChatFormatting.GRAY));
         return true;
     }
@@ -152,9 +205,12 @@ public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
         tag.put("steam", steamTank.writeToNBT(registries, new CompoundTag()));
         tag.put("condensate", condensateTank.writeToNBT(registries, new CompoundTag()));
         tag.putBoolean("formed", formed);
+        tag.putInt("currentSteamUse", currentSteamUse);
         tag.putInt("recentSteamUse", recentSteamUse);
         tag.putFloat("generatedSpeed", generatedSpeed);
         tag.putFloat("generatedCapacity", generatedCapacity);
+        tag.putInt("steamInputPortCount", steamInputPortCount);
+        tag.putInt("condensateOutputPortCount", condensateOutputPortCount);
     }
 
     @Override
@@ -167,45 +223,43 @@ public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
             condensateTank.readFromNBT(registries, tag.getCompound("condensate"));
         }
         formed = tag.getBoolean("formed");
+        currentSteamUse = tag.getInt("currentSteamUse");
         recentSteamUse = tag.getInt("recentSteamUse");
         generatedSpeed = tag.getFloat("generatedSpeed");
         generatedCapacity = tag.getFloat("generatedCapacity");
+        steamInputPortCount = tag.getInt("steamInputPortCount");
+        condensateOutputPortCount = tag.getInt("condensateOutputPortCount");
     }
 
-    private class TurbineFluidHandler implements IFluidHandler {
-        @Override
-        public int getTanks() {
-            return 2;
-        }
+    public int getTankCapacity() {
+        return TANK_CAPACITY;
+    }
 
-        @Override
-        public FluidStack getFluidInTank(int tank) {
-            return tank == 0 ? steamTank.getFluid() : condensateTank.getFluid();
-        }
+    public int getSteamAmount() {
+        return steamTank.getFluidAmount();
+    }
 
-        @Override
-        public int getTankCapacity(int tank) {
-            return tank == 0 ? steamTank.getCapacity() : condensateTank.getCapacity();
-        }
+    public int getCondensateAmount() {
+        return condensateTank.getFluidAmount();
+    }
 
-        @Override
-        public boolean isFluidValid(int tank, FluidStack stack) {
-            return tank == 0 && steamTank.isFluidValid(stack);
-        }
+    public FluidStack getSteamFluid() {
+        return steamTank.getFluid().copy();
+    }
 
-        @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            return NuclearFluidHelper.isTurbineSteam(resource) ? steamTank.fill(resource, action) : 0;
-        }
+    public FluidStack getCondensateFluid() {
+        return condensateTank.getFluid().copy();
+    }
 
-        @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            return NuclearFluidHelper.isCoolant(resource) ? condensateTank.drain(resource, action) : FluidStack.EMPTY;
-        }
+    public int fillSteam(FluidStack resource, IFluidHandler.FluidAction action) {
+        return NuclearFluidHelper.isTurbineSteam(resource) ? steamTank.fill(resource, action) : 0;
+    }
 
-        @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            return condensateTank.drain(maxDrain, action);
-        }
+    public FluidStack drainCondensate(FluidStack resource, IFluidHandler.FluidAction action) {
+        return NuclearFluidHelper.isCoolant(resource) ? condensateTank.drain(resource, action) : FluidStack.EMPTY;
+    }
+
+    public FluidStack drainCondensate(int maxDrain, IFluidHandler.FluidAction action) {
+        return condensateTank.drain(maxDrain, action);
     }
 }

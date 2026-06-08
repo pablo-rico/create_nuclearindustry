@@ -21,14 +21,20 @@ public class AllNuclearCapabilities {
 
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
-                AllNuclearEntities.REACTOR.get(),
-                (reactor, direction) -> reactor.getFluidHandler(direction)
+                AllNuclearEntities.REACTOR_FLUID_PORT.get(),
+                (port, direction) -> port.getFluidHandler(direction)
+        );
+
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                AllNuclearEntities.REACTOR_FUEL_PORT.get(),
+                (port, direction) -> port.getItemHandler(direction)
         );
 
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
-                AllNuclearEntities.TURBINE_OUTPUT.get(),
-                (turbine, direction) -> turbine.getFluidHandler(direction)
+                AllNuclearEntities.TURBINE_FLUID_PORT.get(),
+                (port, direction) -> port.getFluidHandler(direction)
         );
     }
 }

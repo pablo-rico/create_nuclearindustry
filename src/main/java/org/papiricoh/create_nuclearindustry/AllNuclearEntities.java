@@ -5,8 +5,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.papiricoh.create_nuclearindustry.enrichment.blockentity.CentrifugeBlockEntity;
+import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
 import org.papiricoh.create_nuclearindustry.fluids.blockentity.DualFluidPipeBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
+import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFuelPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFluidPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.reactor.blockentity.TurbineFluidPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.TurbineOutputBlockEntity;
 
 public class AllNuclearEntities {
@@ -18,6 +22,18 @@ public class AllNuclearEntities {
             ENTITIES.register("reactor_controller", () -> BlockEntityType.Builder.of(
                     ReactorBlockEntity::new,
                     AllNuclearBlocks.REACTOR_CONTROLLER.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ReactorFluidPortBlockEntity>> REACTOR_FLUID_PORT =
+            ENTITIES.register("reactor_fluid_port", () -> BlockEntityType.Builder.of(
+                    ReactorFluidPortBlockEntity::new,
+                    AllNuclearBlocks.REACTOR_FLUID_PORT.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ReactorFuelPortBlockEntity>> REACTOR_FUEL_PORT =
+            ENTITIES.register("reactor_fuel_port", () -> BlockEntityType.Builder.of(
+                    ReactorFuelPortBlockEntity::new,
+                    AllNuclearBlocks.REACTOR_FUEL_PORT.get()
             ).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DualFluidPipeBlockEntity>> DUAL_PIPE =
@@ -36,6 +52,18 @@ public class AllNuclearEntities {
             ENTITIES.register("turbine_output", () -> BlockEntityType.Builder.of(
                     TurbineOutputBlockEntity::new,
                     AllNuclearBlocks.TURBINE_OUTPUT.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TurbineFluidPortBlockEntity>> TURBINE_FLUID_PORT =
+            ENTITIES.register("turbine_fluid_port", () -> BlockEntityType.Builder.of(
+                    TurbineFluidPortBlockEntity::new,
+                    AllNuclearBlocks.TURBINE_FLUID_PORT.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NuclearBombBlockEntity>> NUCLEAR_BOMB =
+            ENTITIES.register("nuclear_bomb", () -> BlockEntityType.Builder.of(
+                    NuclearBombBlockEntity::new,
+                    AllNuclearBlocks.NUCLEAR_BOMB.get()
             ).build(null));
 
     public static void init() {}

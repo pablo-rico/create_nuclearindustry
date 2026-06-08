@@ -5,6 +5,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFuelPortBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -107,6 +110,27 @@ public class ReactorStructureValidator {
                 continue;
             }
 
+            if (shell && block == AllNuclearBlocks.REACTOR_FLUID_PORT.get()) {
+                structure.fluidPorts.add(pos);
+                if (level.getBlockState(pos).getValue(ReactorFluidPortBlock.MODE) == ReactorFluidPortMode.INPUT) {
+                    structure.coolantInputPortCount++;
+                } else {
+                    structure.steamOutputPortCount++;
+                }
+                continue;
+            }
+
+            if (shell && block == AllNuclearBlocks.REACTOR_FUEL_PORT.get()) {
+                structure.fuelPorts.add(pos);
+                if (level.getBlockState(pos).getValue(ReactorFuelPortBlock.MODE) == ReactorFluidPortMode.INPUT) {
+                    structure.fuelInputPortCount++;
+                } else {
+                    structure.fuelOutputPortCount++;
+                }
+                structure.fuelPortCount++;
+                continue;
+            }
+
             if (shell && block != AllNuclearBlocks.REACTOR_CASING.get()) {
                 errors.add("Missing casing at " + shortPos(pos));
                 if (errors.size() >= 6) {
@@ -150,6 +174,12 @@ public class ReactorStructureValidator {
         }
         if (structure.heatExchangerColumnCount < 1) {
             errors.add("Missing heat exchanger column");
+        }
+        if (structure.coolantInputPortCount < 1) {
+            errors.add("Missing coolant input port");
+        }
+        if (structure.steamOutputPortCount < 1) {
+            errors.add("Missing steam output port");
         }
         if (structure.controlRodColumnCount < 1) {
             warnings.add("No control rod columns; reactor will be difficult to control");
@@ -266,12 +296,19 @@ public class ReactorStructureValidator {
         public final Set<BlockPos> allBlocks = new HashSet<>();
         public final Set<BlockPos> functionalBlocks = new HashSet<>();
         public final Set<BlockPos> controlChannels = new HashSet<>();
+        public final Set<BlockPos> fluidPorts = new HashSet<>();
+        public final Set<BlockPos> fuelPorts = new HashSet<>();
         public int uraniumRodCount;
         public int controlRodCount;
         public int heatExchangerCount;
         public int uraniumColumnCount;
         public int controlRodColumnCount;
         public int heatExchangerColumnCount;
+        public int coolantInputPortCount;
+        public int steamOutputPortCount;
+        public int fuelPortCount;
+        public int fuelInputPortCount;
+        public int fuelOutputPortCount;
 
         public ReactorStructure(BlockPos controllerPos, int width, int height, int bottomY) {
             this.controllerPos = controllerPos;

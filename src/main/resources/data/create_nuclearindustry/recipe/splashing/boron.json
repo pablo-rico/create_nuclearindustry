@@ -7,8 +7,8 @@
   ],
   "results": [
     {
-      "chance": 0.25,
-      "item": "create_nuclearindustry:boron"
+      "chance": 0.5,
+      "id": "create_nuclearindustry:boron"
     }
   ]
 }

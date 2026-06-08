@@ -9,11 +9,11 @@ import net.minecraft.nbt.CompoundTag;
 public class ReactorPhysicsSimulator {
 
     // Physics constants
-    private static final double BASE_FISSION_RATE = 10.0;           // neutrons per uranium rod per tick
-    private static final double HEAT_GENERATION_RATE = 0.15;        // °C per neutron
-    private static final double PASSIVE_HEAT_DISSIPATION = 0.5;     // °C per tick (baseline)
-    private static final double CONTROL_ROD_EFFECTIVENESS = 0.85;   // neutron absorption rate (0-1)
-    private static final double FUEL_CONSUMPTION_RATE = 0.01;       // fuel units consumed per neutron
+    private static final double BASE_FISSION_RATE = 4.0;            // neutrons per uranium rod per tick
+    private static final double HEAT_GENERATION_RATE = 0.035;       // °C per neutron
+    private static final double PASSIVE_HEAT_DISSIPATION = 0.8;     // °C per tick (baseline)
+    private static final double CONTROL_ROD_EFFECTIVENESS = 1.15;   // neutron absorption rate (0-1)
+    private static final double FUEL_CONSUMPTION_RATE = 0.002;      // fuel units consumed per neutron
 
     // Temperature thresholds
     private static final double SAFE_TEMP = 500.0;                  // Below this = safe operation
@@ -45,7 +45,7 @@ public class ReactorPhysicsSimulator {
     public ReactorPhysicsSimulator(int uraniumRodCount, int controlRodCount) {
         this.coreTemperature = 20.0;                                // Start at room temperature
         this.neutronLevel = 0.0;
-        this.fuelRemaining = 100.0;                                 // Start with 100% fuel
+        this.fuelRemaining = 0.0;                                   // Fuel must be loaded through reactor refuel inventory
         this.controlRodInsertion = 1.0f;                            // Start fully inserted (safe state)
         this.uraniumRodCount = uraniumRodCount;
         this.controlRodCount = controlRodCount;
@@ -61,8 +61,10 @@ public class ReactorPhysicsSimulator {
     public boolean tick() {
         if (fuelRemaining <= 0) {
             // No fuel, shut down
-            neutronLevel = Math.max(0, neutronLevel - 5.0);
-            coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 2);
+            neutronLevel = Math.max(0, neutronLevel - 8.0);
+            coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 2.5);
+            powerOutput = 0.0;
+            steamGenerationRate = 0.0;
             return true;
         }
 
@@ -95,7 +97,7 @@ public class ReactorPhysicsSimulator {
 
         // Calculate steam generation (temperature must be above 373K/100°C)
         if (coreTemperature > 100.0) {
-            steamGenerationRate = (coreTemperature - 100.0) * 0.1; // mB per tick
+            steamGenerationRate = Math.min(80.0, (coreTemperature - 100.0) * 0.04); // mB per tick
         } else {
             steamGenerationRate = 0.0;
         }
@@ -186,8 +188,8 @@ public class ReactorPhysicsSimulator {
 
     public void scramTick() {
         controlRodInsertion = 1.0f;
-        neutronLevel = Math.max(0.0, neutronLevel - 40.0);
-        coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 3.0);
+        neutronLevel = Math.max(0.0, neutronLevel - 60.0);
+        coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 4.0);
         powerOutput = 0.0;
         steamGenerationRate = 0.0;
     }
@@ -199,6 +201,27 @@ public class ReactorPhysicsSimulator {
 
     public void applyExternalHeat(double heat) {
         coreTemperature = Math.max(20.0, coreTemperature + Math.max(0.0, heat));
+    }
+
+    public boolean hasFuel() {
+        return fuelRemaining > 0.0;
+    }
+
+    public void loadFuelAssembly() {
+        fuelRemaining = 100.0;
+    }
+
+    public void clearFuel() {
+        fuelRemaining = 0.0;
+    }
+
+    public void forceScramForLoad() {
+        controlRodInsertion = 1.0f;
+        neutronLevel = Math.min(neutronLevel, 50.0);
+        coreTemperature = Math.min(coreTemperature, DANGER_TEMP);
+        meltdownTickCounter = 0;
+        powerOutput = 0.0;
+        steamGenerationRate = 0.0;
     }
 
     // Getters for display and monitoring
@@ -279,15 +302,20 @@ public class ReactorPhysicsSimulator {
     }
 
     public void deserializeNBT(CompoundTag tag) {
-        this.coreTemperature = tag.getDouble("coreTemperature");
-        this.neutronLevel = tag.getDouble("neutronLevel");
-        this.fuelRemaining = tag.getDouble("fuelRemaining");
+        this.coreTemperature = clamp(tag.getDouble("coreTemperature"), 20.0, MELTDOWN_TEMP - 1.0);
+        this.neutronLevel = clamp(tag.getDouble("neutronLevel"), MIN_NEUTRON_LEVEL, MAX_NEUTRON_LEVEL);
+        this.fuelRemaining = clamp(tag.getDouble("fuelRemaining"), 0.0, 100.0);
         this.controlRodInsertion = tag.contains("controlRodInsertion")
                 ? tag.getFloat("controlRodInsertion")
                 : 1.0f - tag.getFloat("controlRodPosition");
-        this.uraniumRodCount = tag.getInt("uraniumRodCount");
-        this.controlRodCount = tag.getInt("controlRodCount");
-        this.meltdownTickCounter = tag.getInt("meltdownTickCounter");
+        this.controlRodInsertion = Math.max(0.0f, Math.min(1.0f, controlRodInsertion));
+        this.uraniumRodCount = Math.max(0, tag.getInt("uraniumRodCount"));
+        this.controlRodCount = Math.max(0, tag.getInt("controlRodCount"));
+        this.meltdownTickCounter = Math.max(0, Math.min(100, tag.getInt("meltdownTickCounter")));
+    }
+
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     /**

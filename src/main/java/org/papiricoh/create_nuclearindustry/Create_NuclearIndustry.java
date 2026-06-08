@@ -20,6 +20,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.createmod.ponder.foundation.PonderIndex;
+import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.NuclearPonderPlugin;
 import org.papiricoh.create_nuclearindustry.reactor.event.ReactorBlockChangeHandler;
 import org.slf4j.Logger;
@@ -82,6 +83,7 @@ public class Create_NuclearIndustry {
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockBreak);
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockPlace);
+        NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onLevelTick);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             PonderIndex.addPlugin(new NuclearPonderPlugin());
@@ -139,8 +141,9 @@ public class Create_NuclearIndustry {
                     Method registerMethod = MenuScreens.class.getDeclaredMethod("register", net.minecraft.world.inventory.MenuType.class, net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor.class);
                     registerMethod.setAccessible(true);
                     registerMethod.invoke(null, AllNuclearGUIs.REACTOR_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlMenu, org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlScreen>)org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlScreen::new);
+                    registerMethod.invoke(null, AllNuclearGUIs.NUCLEAR_BOMB_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenu, org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombScreen>)org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombScreen::new);
                 } catch (Exception e) {
-                    LOGGER.error("Failed to register reactor control screen", e);
+                    LOGGER.error("Failed to register nuclear screens", e);
                 }
             });
         }

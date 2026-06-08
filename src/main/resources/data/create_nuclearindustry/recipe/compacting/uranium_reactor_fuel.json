@@ -1,0 +1,27 @@
+{
+  "type": "create:compacting",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:enriched_uranium_blend"
+    },
+    {
+      "item": "create_nuclearindustry:enriched_uranium_blend"
+    },
+    {
+      "item": "create_nuclearindustry:reactor_casing"
+    },
+    {
+      "item": "create:precision_mechanism"
+    },
+    {
+      "item": "create:copper_sheet"
+    }
+  ],
+  "processing_time": 600,
+  "results": [
+    {
+      "id": "create_nuclearindustry:uranium_reactor_fuel"
+    }
+  ]
+}

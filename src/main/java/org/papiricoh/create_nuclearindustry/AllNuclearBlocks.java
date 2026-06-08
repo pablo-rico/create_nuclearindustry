@@ -7,11 +7,15 @@ import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.enrichment.block.CentrifugeBlock;
+import org.papiricoh.create_nuclearindustry.explosive.block.NuclearBombBlock;
 import org.papiricoh.create_nuclearindustry.fluids.block.DualFluidPipeBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ControlRodBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.HeatExchangerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFuelPortBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.TurbineCasingBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.TurbineFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.TurbineOutputBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.TurbineRotorBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.UraniumRodBlock;
@@ -35,11 +39,15 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> URANIUM_ROD = BLOCKS.register("uranium_rod", () -> new UraniumRodBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> HEAT_EXCHANGER = BLOCKS.register("heat_exchanger", () -> new HeatExchangerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> REACTOR_CONTROLLER = BLOCKS.register("reactor_controller", () -> new NuclearReactorControllerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
+    public static final DeferredHolder<Block, ? extends Block> REACTOR_FLUID_PORT = BLOCKS.register("reactor_fluid_port", () -> new ReactorFluidPortBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
+    public static final DeferredHolder<Block, ? extends Block> REACTOR_FUEL_PORT = BLOCKS.register("reactor_fuel_port", () -> new ReactorFuelPortBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> DUAL_FLUID_PIPE = BLOCKS.register("dual_fluid_pipe", () -> new DualFluidPipeBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f)));
     public static final DeferredHolder<Block, ? extends Block> CENTRIFUGE = BLOCKS.register("centrifuge", () -> new CentrifugeBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> TURBINE_CASING = BLOCKS.register("turbine_casing", () -> new TurbineCasingBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f)));
     public static final DeferredHolder<Block, ? extends Block> TURBINE_ROTOR = BLOCKS.register("turbine_rotor", () -> new TurbineRotorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> TURBINE_OUTPUT = BLOCKS.register("turbine_output", () -> new TurbineOutputBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> TURBINE_FLUID_PORT = BLOCKS.register("turbine_fluid_port", () -> new TurbineFluidPortBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> NUCLEAR_BOMB = BLOCKS.register("nuclear_bomb", () -> new NuclearBombBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0f, 12.0f).noOcclusion()));
 
 
 

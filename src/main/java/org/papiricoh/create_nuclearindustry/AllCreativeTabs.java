@@ -1,10 +1,13 @@
 package org.papiricoh.create_nuclearindustry;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 
 public class AllCreativeTabs {
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
@@ -13,13 +16,18 @@ public class AllCreativeTabs {
 
     public static final DeferredHolder<CreativeModeTab, ? extends CreativeModeTab> NUCLEAR_TAB = CREATIVE_MODE_TABS.register("nuclear_tab", () -> CreativeModeTab.builder()
             .withTabsBefore(CreativeModeTabs.COMBAT)
+            .title(Component.translatable("itemGroup.create_nuclearindustry.nuclear_tab"))
             .icon(() -> AllNuclearItems.RAW_URANIUM.value().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 output.accept(AllNuclearItems.RAW_URANIUM.value());
                 output.accept(AllNuclearItems.URANIUM.value());
+                ItemStack weaponsGradeUranium = new ItemStack(AllNuclearItems.URANIUM.value());
+                UraniumItem.setEnrichment(weaponsGradeUranium, 90.0f);
+                output.accept(weaponsGradeUranium);
                 output.accept(AllNuclearItems.URANIUM_ORE.value());
-                output.accept(AllNuclearItems.URANIUM_238.value());
-                output.accept(AllNuclearItems.URANIUM_235.value());
+                output.accept(AllNuclearItems.URANIUM_REACTOR_FUEL.value());
+                output.accept(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.value());
+                output.accept(AllNuclearItems.ENRICHED_URANIUM_BLEND.value());
                 output.accept(AllNuclearItems.URANIUM_ROD.value());
                 output.accept(AllNuclearItems.BORAX_ORE.value());
                 output.accept(AllNuclearItems.BORAX_SALT.value());
@@ -28,11 +36,15 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.HEAT_EXCHANGER.value());
                 output.accept(AllNuclearItems.REACTOR_CASING.value());
                 output.accept(AllNuclearItems.REACTOR_CONTROLLER.value());
+                output.accept(AllNuclearItems.REACTOR_FLUID_PORT.value());
+                output.accept(AllNuclearItems.REACTOR_FUEL_PORT.value());
                 output.accept(AllNuclearItems.DUAL_FLUID_PIPE.value());
                 output.accept(AllNuclearItems.CENTRIFUGE.value());
                 output.accept(AllNuclearItems.TURBINE_CASING.value());
                 output.accept(AllNuclearItems.TURBINE_ROTOR.value());
                 output.accept(AllNuclearItems.TURBINE_OUTPUT.value());
+                output.accept(AllNuclearItems.TURBINE_FLUID_PORT.value());
+                output.accept(AllNuclearItems.NUCLEAR_BOMB.value());
             }).build());
 
 

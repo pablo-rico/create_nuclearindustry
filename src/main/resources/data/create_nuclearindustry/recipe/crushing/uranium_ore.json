@@ -1,0 +1,19 @@
+{
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:uranium_ore"
+    }
+  ],
+  "processing_time": 350,
+  "results": [
+    {
+      "count": 2,
+      "id": "create_nuclearindustry:raw_uranium"
+    },
+    {
+      "chance": 0.35,
+      "id": "create_nuclearindustry:raw_uranium"
+    }
+  ]
+}

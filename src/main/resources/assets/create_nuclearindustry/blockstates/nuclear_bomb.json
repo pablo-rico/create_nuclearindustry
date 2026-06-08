@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "powered=false": { "model": "create_nuclearindustry:block/nuclear_bomb" },
+    "powered=true": { "model": "create_nuclearindustry:block/nuclear_bomb" }
+  }
+}

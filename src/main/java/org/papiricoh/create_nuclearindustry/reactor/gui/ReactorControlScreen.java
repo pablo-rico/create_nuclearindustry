@@ -21,7 +21,7 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
 
     // GUI dimensions
     private static final int GUI_WIDTH = 256;
-    private static final int GUI_HEIGHT = 220;
+    private static final int GUI_HEIGHT = 304;
 
     // Display positions
     private static final int TITLE_Y = 10;
@@ -180,6 +180,8 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         int controlRodCount = reactor.getPhysicsSimulator().getControlRodCount();
         String rodText = String.format("Control Rods: §r%d§8 (physical blocks)", controlRodCount);
         guiGraphics.drawString(this.font, rodText, leftPos + 20, topPos + ROD_Y, 0xFFAA00);
+        guiGraphics.drawString(this.font, "Fuel In", leftPos + 20, topPos + 168, 0xCCCCCC);
+        guiGraphics.drawString(this.font, "Spent", leftPos + 164, topPos + 168, 0xCCCCCC);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
