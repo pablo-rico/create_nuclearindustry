@@ -22,7 +22,7 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
     public static final float REQUIRED_ENRICHMENT = 90.0f;
     public static final int MAX_URANIUM_UNITS = SLOT_COUNT * 16;
     private static final int COUNTDOWN_TICKS = 200;
-    private static final int MAX_HORIZONTAL_RADIUS = 500;
+    private static final int MAX_HORIZONTAL_RADIUS = 250;
     private static final int MIN_HORIZONTAL_RADIUS = 80;
 
     private final ItemStackHandler inventory = new ItemStackHandler(SLOT_COUNT) {

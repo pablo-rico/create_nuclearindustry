@@ -13,6 +13,8 @@ import java.util.List;
 public class NuclearBlastManager {
     private static final int COLUMNS_PER_TICK = 600;
     private static final int BLOCKS_PER_TICK = 3_500;
+    // Amplitud del ondulado del borde del crater, como fraccion del radio (0 = borde perfectamente liso).
+    private static final double RIM_NOISE_AMPLITUDE = 0.05;
     private static final List<BlastJob> JOBS = new ArrayList<>();
 
     public static void start(ServerLevel level, BlockPos center, int horizontalRadius, int verticalRadius, float intensity) {
@@ -49,6 +51,9 @@ public class NuclearBlastManager {
         // Cursor de anillo cuadrado (distancia de Chebyshev) para barrer del centro hacia afuera.
         private int ring;
         private int idx;
+        // Cache del ultimo chunk forzado a cargar, para no repetir la llamada por cada columna.
+        private int lastChunkX = Integer.MIN_VALUE;
+        private int lastChunkZ = Integer.MIN_VALUE;
 
         private BlastJob(ServerLevel level, BlockPos center, int horizontalRadius, int verticalRadius, float intensity) {
             this.level = level;
@@ -73,7 +78,10 @@ public class NuclearBlastManager {
                     // Esquina del anillo cuadrado fuera del disco: descartar sin tocar el mundo.
                     continue;
                 }
-                changedBlocks += destroyColumn(column.x, column.z, horizontalNorm, BLOCKS_PER_TICK - changedBlocks);
+                // Cada columna se vacia entera (nunca a medias). El presupuesto por tick se controla
+                // a nivel de bucle: una vez superado, no se empiezan columnas nuevas. El sobrepaso
+                // queda acotado a una sola columna, evitando los munones que dejaba el corte previo.
+                changedBlocks += destroyColumn(column.x, column.z, horizontalNorm);
                 processedColumns++;
             }
             return ring > horizontalRadius;
@@ -115,41 +123,83 @@ public class NuclearBlastManager {
             return new Column(-r, r - i);                // borde izquierdo: z de r a -r+1
         }
 
-        private int destroyColumn(int offsetX, int offsetZ, double horizontalNorm, int budget) {
+        private int destroyColumn(int offsetX, int offsetZ, double horizontalNorm) {
+            // Factor del semieje vertical del elipsoide para esta columna (1 en el centro, 0 en el borde).
+            double vertFactor = Math.sqrt(Math.max(0.0, 1.0 - horizontalNorm));
+            if (vertFactor <= 0.0) {
+                return 0;
+            }
+
+            // Ruido suave de baja frecuencia aplicado UNA vez por columna (nunca por bloque),
+            // para que el borde del cráter ondule de forma natural sin dejar picos ni huecos.
+            double rim = 1.0 + RIM_NOISE_AMPLITUDE * columnNoise(offsetX, offsetZ);
+
+            int topY = (int) Math.round(verticalRadius * vertFactor * rim);
+            int bottomY = (int) Math.round(craterRadius * vertFactor * rim);
+
+            // Fuerza la carga/generacion del chunk de esta columna para que la explosion se complete
+            // tambien en chunks descargados (si no, quedaban filas/paredes enteras sin volar).
+            ensureChunkLoaded(center.getX() + offsetX, center.getZ() + offsetZ);
+
             int changed = 0;
-            for (int y = -craterRadius; y <= verticalRadius && changed < budget; y++) {
-                int vRad = (y >= 0) ? verticalRadius : craterRadius;
-                double verticalNorm = ((double) y * y) / ((double) vRad * vRad);
-                double ellipsoidNorm = horizontalNorm + verticalNorm;
-                if (ellipsoidNorm > 1.0) {
-                    continue;
-                }
-
+            // Vaciado determinista y contiguo de toda la columna: cuenco liso, sin bloques sueltos.
+            for (int y = topY; y >= -bottomY; y--) {
                 BlockPos pos = center.offset(offsetX, y, offsetZ);
-                if (!level.isLoaded(pos)) {
-                    continue;
-                }
-
                 BlockState state = level.getBlockState(pos);
                 if (state.isAir() || state.is(Blocks.BEDROCK) || state.is(Blocks.END_PORTAL_FRAME)) {
                     continue;
                 }
 
-                float resistance = state.getBlock().getExplosionResistance();
-                if (resistance > 1200.0f) {
+                // Solo se respetan los bloques prácticamente indestructibles (p. ej. obsidiana reforzada).
+                if (state.getBlock().getExplosionResistance() > 1200.0f) {
                     continue;
                 }
 
-                double centerPressure = 1.0 - ellipsoidNorm;
-                double shockPressure = 0.22 + centerPressure * 1.25 * intensity;
-                double resistanceFactor = Math.min(0.92, resistance / 180.0);
-                double chance = Math.max(0.03, Math.min(0.99, shockPressure - resistanceFactor));
-                if (centerPressure > 0.62 || level.random.nextDouble() < chance) {
-                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
-                    changed++;
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                changed++;
+            }
+
+            // Drenado de liquidos (agua source y corriente, lava) que queden justo encima del cuenco,
+            // para que el crater no se rellene ni deje charcos artificiales. Drenaje contiguo hacia
+            // arriba: se detiene en cuanto encuentra aire o un bloque solido, asi queda acotado.
+            for (int y = topY + 1; ; y++) {
+                BlockPos pos = center.offset(offsetX, y, offsetZ);
+                BlockState state = level.getBlockState(pos);
+                if (state.getFluidState().isEmpty()) {
+                    break;
                 }
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                changed++;
             }
             return changed;
+        }
+
+        /** Carga (generando si hace falta) el chunk que contiene la coordenada de mundo dada. */
+        private void ensureChunkLoaded(int worldX, int worldZ) {
+            int chunkX = worldX >> 4;
+            int chunkZ = worldZ >> 4;
+            if (chunkX == lastChunkX && chunkZ == lastChunkZ) {
+                return;
+            }
+            lastChunkX = chunkX;
+            lastChunkZ = chunkZ;
+            // getChunk(x, z) carga/genera el chunk de forma sincrona y lo deja editable;
+            // las modificaciones quedan marcadas para guardarse y el chunk se descarga solo despues.
+            level.getChunk(chunkX, chunkZ);
+        }
+
+        /**
+         * Ruido determinista y suave en funcion del angulo y la distancia, en ~[-1, 1].
+         * Suma de senos de distintas frecuencias: produce un contorno ondulado y organico
+         * sin discontinuidades, evitando un borde perfectamente circular.
+         */
+        private double columnNoise(int offsetX, int offsetZ) {
+            double angle = Math.atan2(offsetZ, offsetX);
+            double dist = Math.sqrt((double) offsetX * offsetX + (double) offsetZ * offsetZ);
+            double n = 0.55 * Math.sin(angle * 5.0 + dist * 0.06)
+                     + 0.30 * Math.sin(angle * 11.0 - dist * 0.03 + 1.7)
+                     + 0.15 * Math.sin(angle * 23.0 + 3.1);
+            return Math.max(-1.0, Math.min(1.0, n * intensity));
         }
 
         private record Column(int x, int z) {}
