@@ -1,5 +1,7 @@
 package org.papiricoh.create_nuclearindustry.reactor.blockentity;
 
+import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -14,9 +16,10 @@ import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import org.papiricoh.create_nuclearindustry.reactor.event.ReactorManager;
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
 
+import java.util.List;
 import java.util.Optional;
 
-public class ReactorFuelPortBlockEntity extends BlockEntity {
+public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGoggleInformation {
     private Optional<BlockPos> linkedReactor = Optional.empty();
     private int relinkCooldown;
 
@@ -73,5 +76,49 @@ public class ReactorFuelPortBlockEntity extends BlockEntity {
                         .orElse(false))
                 .map(ReactorBlockEntity::getBlockPos)
                 .findFirst();
+    }
+
+    private ReactorFluidPortMode getMode() {
+        return getBlockState().getValue(ReactorFuelPortBlock.MODE);
+    }
+
+    private String linkStatus() {
+        ReactorBlockEntity reactor = getLinkedReactor();
+        if (reactor != null) {
+            return "Linked";
+        }
+        if (linkedReactor.isPresent()) {
+            return "Structure incomplete";
+        }
+        return "No reactor";
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        ReactorFluidPortMode mode = getMode();
+        ReactorBlockEntity reactor = getLinkedReactor();
+        tooltip.add(Component.literal("Reactor Fuel Port").withStyle(ChatFormatting.GOLD));
+        tooltip.add(Component.literal("  Mode: " + mode.displayName())
+                .withStyle(mode == ReactorFluidPortMode.INPUT ? ChatFormatting.AQUA : ChatFormatting.YELLOW));
+        tooltip.add(Component.literal("  Connect inventory on: " + getBlockState().getValue(ReactorFuelPortBlock.FACING).getName().toUpperCase())
+                .withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Status: " + linkStatus())
+                .withStyle(reactor != null ? ChatFormatting.GREEN : ChatFormatting.RED));
+
+        if (reactor != null) {
+            tooltip.add(Component.literal(String.format("  Fuel: %.1f / %.1f units", reactor.getFuelRemaining(), reactor.getFuelCapacity()))
+                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("  Accepted enrichment: > " + ReactorBlockEntity.MIN_FUEL_ENRICHMENT + "%")
+                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("  Fuel input: " + reactor.getInputFuelCount() + " assemblies")
+                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("  Depleted fuel: " + reactor.getOutputFuelCount() + " assemblies")
+                    .withStyle(ChatFormatting.GRAY));
+            if (reactor.getPendingDepletedFuel() > 0) {
+                tooltip.add(Component.literal("  Depleted output blocked: " + reactor.getPendingDepletedFuel())
+                        .withStyle(ChatFormatting.RED));
+            }
+        }
+        return true;
     }
 }

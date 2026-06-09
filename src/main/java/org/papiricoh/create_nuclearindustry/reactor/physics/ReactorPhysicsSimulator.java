@@ -24,11 +24,12 @@ public class ReactorPhysicsSimulator {
     // Limits
     private static final double MAX_NEUTRON_LEVEL = 1000.0;
     private static final double MIN_NEUTRON_LEVEL = 0.0;
+    private static final double FUEL_PER_ASSEMBLY = 100.0;
 
     // State variables
     private double coreTemperature;                                 // Celsius (0-4000)
     private double neutronLevel;                                    // 0-1000
-    private double fuelRemaining;                                   // Fuel units (0-100)
+    private double fuelRemaining;                                   // Fuel units (0-capacity)
     private float controlRodInsertion;                              // 0.0 = withdrawn, 1.0 = fully inserted
     private int uraniumRodCount;                                    // Number of fuel rods in reactor
     private int controlRodCount;                                    // Number of control rods (PHYSICAL blocks)
@@ -207,12 +208,24 @@ public class ReactorPhysicsSimulator {
         return fuelRemaining > 0.0;
     }
 
-    public void loadFuelAssembly() {
-        fuelRemaining = 100.0;
+    public boolean canLoadFuelAssembly() {
+        return getFuelCapacity() - fuelRemaining >= FUEL_PER_ASSEMBLY;
+    }
+
+    public boolean loadFuelAssembly() {
+        if (!canLoadFuelAssembly()) {
+            return false;
+        }
+        fuelRemaining = Math.min(getFuelCapacity(), fuelRemaining + FUEL_PER_ASSEMBLY);
+        return true;
     }
 
     public void clearFuel() {
         fuelRemaining = 0.0;
+    }
+
+    public double getFuelCapacity() {
+        return uraniumRodCount * FUEL_PER_ASSEMBLY;
     }
 
     public void forceScramForLoad() {
@@ -247,6 +260,10 @@ public class ReactorPhysicsSimulator {
 
     public int getControlRodCount() {
         return controlRodCount;
+    }
+
+    public int getUraniumRodCount() {
+        return uraniumRodCount;
     }
 
     public double getPowerOutput() {
@@ -304,13 +321,13 @@ public class ReactorPhysicsSimulator {
     public void deserializeNBT(CompoundTag tag) {
         this.coreTemperature = clamp(tag.getDouble("coreTemperature"), 20.0, MELTDOWN_TEMP - 1.0);
         this.neutronLevel = clamp(tag.getDouble("neutronLevel"), MIN_NEUTRON_LEVEL, MAX_NEUTRON_LEVEL);
-        this.fuelRemaining = clamp(tag.getDouble("fuelRemaining"), 0.0, 100.0);
         this.controlRodInsertion = tag.contains("controlRodInsertion")
                 ? tag.getFloat("controlRodInsertion")
                 : 1.0f - tag.getFloat("controlRodPosition");
         this.controlRodInsertion = Math.max(0.0f, Math.min(1.0f, controlRodInsertion));
         this.uraniumRodCount = Math.max(0, tag.getInt("uraniumRodCount"));
         this.controlRodCount = Math.max(0, tag.getInt("controlRodCount"));
+        this.fuelRemaining = clamp(tag.getDouble("fuelRemaining"), 0.0, getFuelCapacity());
         this.meltdownTickCounter = Math.max(0, Math.min(100, tag.getInt("meltdownTickCounter")));
     }
 
@@ -323,6 +340,8 @@ public class ReactorPhysicsSimulator {
      */
     public enum ReactorState {
         IDLE("Idle"),
+        FUELING("Fuel queued"),
+        SUPPRESSED("Suppressed"),
         RUNNING("Running"),
         WARNING("Warning"),
         CRITICAL("Critical"),

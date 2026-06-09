@@ -1,9 +1,14 @@
 package org.papiricoh.create_nuclearindustry.reactor.multiblock;
 
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.Contraption;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFuelPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
@@ -12,6 +17,7 @@ import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -158,7 +164,50 @@ public class ReactorStructureValidator {
                 return true;
             }
         }
+        return hasMovingControlRodInColumn(level, structure, x, z);
+    }
+
+    private static boolean hasMovingControlRodInColumn(Level level, ReactorStructure structure, int x, int z) {
+        AABB searchBox = createControlRodSearchBox(structure);
+        for (AbstractContraptionEntity entity : level.getEntitiesOfClass(AbstractContraptionEntity.class, searchBox)) {
+            Contraption contraption = entity.getContraption();
+            if (contraption == null) {
+                continue;
+            }
+            for (Map.Entry<BlockPos, StructureTemplate.StructureBlockInfo> entry : contraption.getBlocks().entrySet()) {
+                StructureTemplate.StructureBlockInfo info = entry.getValue();
+                if (!info.state().is(AllNuclearBlocks.CONTROL_ROD.get())) {
+                    continue;
+                }
+                Vec3 global = entity.toGlobalVector(Vec3.atCenterOf(entry.getKey()), 1.0f);
+                BlockPos globalPos = BlockPos.containing(global);
+                if (globalPos.getX() == x
+                        && globalPos.getZ() == z
+                        && globalPos.getY() >= structure.bottomY + 1
+                        && globalPos.getY() <= structure.topY + structure.innerHeight()) {
+                    return true;
+                }
+            }
+        }
         return false;
+    }
+
+    private static AABB createControlRodSearchBox(ReactorStructure structure) {
+        int halfWidth = structure.width / 2;
+        BlockPos min = new BlockPos(
+                structure.controllerPos.getX() - halfWidth - 2,
+                structure.bottomY,
+                structure.controllerPos.getZ() - halfWidth - 2
+        );
+        BlockPos max = new BlockPos(
+                structure.controllerPos.getX() + halfWidth + 2,
+                structure.topY + structure.innerHeight() + 2,
+                structure.controllerPos.getZ() + halfWidth + 2
+        );
+        return new AABB(
+                min.getX(), min.getY(), min.getZ(),
+                max.getX() + 1.0, max.getY() + 1.0, max.getZ() + 1.0
+        );
     }
 
     private static void validateInterior(Level level, ReactorStructure structure, List<String> errors, List<String> warnings) {

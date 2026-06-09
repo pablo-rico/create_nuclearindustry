@@ -10,7 +10,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
-import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 
 /**
@@ -49,8 +48,6 @@ public class ReactorControlMenu extends AbstractContainerMenu {
 
         this.reactor = reactor;
         this.reactorPos = reactorPos;
-
-        System.out.println("[ReactorControlMenu] Constructor: reactor=" + (reactor != null ? "not null" : "null") + ", reactorPos=" + reactorPos);
 
         if (this.reactor != null) {
             addReactorFuelSlots(this.reactor);
@@ -110,7 +107,7 @@ public class ReactorControlMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, reactorSlots, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get())) {
+        } else if (reactor != null && reactor.isFreshFuel(stack)) {
             if (!moveItemStackTo(stack, 0, ReactorBlockEntity.FUEL_INPUT_SLOTS, false)) {
                 return ItemStack.EMPTY;
             }
@@ -214,7 +211,6 @@ public class ReactorControlMenu extends AbstractContainerMenu {
 
     private ReactorBlockEntity getLiveReactor() {
         if (reactor != null) {
-            System.out.println("[ReactorControlMenu.getLiveReactor] Got reactor from field: isFormed=" + reactor.isFormed());
             return reactor;
         }
 
@@ -222,13 +218,8 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         if (reactorPos != null && net.minecraft.client.Minecraft.getInstance().level != null) {
             var be = net.minecraft.client.Minecraft.getInstance().level.getBlockEntity(reactorPos);
             if (be instanceof ReactorBlockEntity reactorBE) {
-                System.out.println("[ReactorControlMenu.getLiveReactor] Got reactor from level: isFormed=" + reactorBE.isFormed());
                 return reactorBE;
-            } else {
-                System.out.println("[ReactorControlMenu.getLiveReactor] BlockEntity at " + reactorPos + " is: " + (be != null ? be.getClass().getSimpleName() : "null"));
             }
-        } else {
-            System.out.println("[ReactorControlMenu.getLiveReactor] reactorPos=" + reactorPos + ", level=" + (net.minecraft.client.Minecraft.getInstance().level != null ? "not null" : "null"));
         }
         return null;
     }
@@ -262,16 +253,18 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     }
 
     private static class FuelSlot extends SlotItemHandler {
+        private final ReactorBlockEntity reactor;
         private final boolean input;
 
         private FuelSlot(ReactorBlockEntity reactor, int slot, int x, int y, boolean input) {
             super(reactor.getFuelInventory(), slot, x, y);
+            this.reactor = reactor;
             this.input = input;
         }
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return input && stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get());
+            return input && reactor.isFreshFuel(stack);
         }
     }
 }

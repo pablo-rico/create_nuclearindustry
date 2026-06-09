@@ -22,10 +22,14 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import org.papiricoh.create_nuclearindustry.AllNuclearDataComponents;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.enrichment.recipe.EnrichedUraniumBlendRecipe;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
+import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodTracker;
 import org.papiricoh.create_nuclearindustry.reactor.event.ReactorManager;
@@ -50,6 +54,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     public static final int FUEL_INPUT_SLOTS = 4;
     public static final int FUEL_OUTPUT_SLOTS = 2;
     public static final int FUEL_SLOT_COUNT = FUEL_INPUT_SLOTS + FUEL_OUTPUT_SLOTS;
+    public static final float MIN_FUEL_ENRICHMENT = 3.0f;
 
     private ReactorStatus status = ReactorStatus.UNFORMED;
     private Optional<ReactorStructureValidator.ReactorStructure> currentStructure = Optional.empty();
@@ -116,6 +121,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             boolean stillRunning = entity.physicsSimulator.tick();
             entity.recordSpentFuel(previousFuel);
             entity.processCoolantLoop();
+            entity.updateControllerRunningState();
             if (!stillRunning) {
                 if (entity.canTriggerMeltdown()) {
                     entity.handleMeltdown();
@@ -129,6 +135,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             }
         } else if (entity.status == ReactorStatus.SCRAMMED || entity.status == ReactorStatus.SCRAMMED_HOT) {
             entity.physicsSimulator.scramTick();
+            entity.updateControllerRunningState();
         }
 
         if (++entity.syncCounter >= 20) {
@@ -144,10 +151,6 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (level != null && !level.isClientSide) {
             ReactorManager.registerReactor(level, getBlockPos(), this);
             ticksSinceLoad = 0;
-            if (status == ReactorStatus.FORMED || status == ReactorStatus.MELTDOWN) {
-                status = ReactorStatus.SCRAMMED_HOT;
-                physicsSimulator.forceScramForLoad();
-            }
         }
     }
 
@@ -297,23 +300,42 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     private void tryLoadFuelAssembly() {
-        if (physicsSimulator.hasFuel() || pendingDepletedFuel > 0) {
+        if (pendingDepletedFuel > 0) {
             return;
         }
-        for (int slot = 0; slot < FUEL_INPUT_SLOTS; slot++) {
-            ItemStack extracted = fuelInventory.extractItem(slot, 1, false);
-            if (!extracted.isEmpty()) {
-                physicsSimulator.loadFuelAssembly();
+        while (physicsSimulator.canLoadFuelAssembly()) {
+            boolean loaded = false;
+            for (int slot = 0; slot < FUEL_INPUT_SLOTS; slot++) {
+                if (!isFreshFuel(fuelInventory.getStackInSlot(slot))) {
+                    continue;
+                }
+                ItemStack extracted = fuelInventory.extractItem(slot, 1, false);
+                if (!extracted.isEmpty()) {
+                    if (physicsSimulator.loadFuelAssembly()) {
+                        loaded = true;
+                    } else {
+                        fuelInventory.insertItem(slot, extracted, false);
+                    }
+                    break;
+                }
+            }
+            if (!loaded) {
                 return;
             }
         }
     }
 
     private void recordSpentFuel(double previousFuel) {
-        if (previousFuel > 0.0 && physicsSimulator.getFuelRemaining() <= 0.0) {
-            pendingDepletedFuel++;
+        int previousAssemblies = assembliesRemaining(previousFuel);
+        int currentAssemblies = assembliesRemaining(physicsSimulator.getFuelRemaining());
+        if (currentAssemblies < previousAssemblies) {
+            pendingDepletedFuel += previousAssemblies - currentAssemblies;
             tryStorePendingDepletedFuel();
         }
+    }
+
+    private int assembliesRemaining(double fuelAmount) {
+        return fuelAmount <= 0.0 ? 0 : (int) Math.ceil(fuelAmount / 100.0);
     }
 
     private void tryStorePendingDepletedFuel() {
@@ -339,6 +361,21 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return status == ReactorStatus.FORMED
                 && ticksSinceLoad >= LOAD_MELTDOWN_GRACE_TICKS
                 && physicsSimulator.getMeltdownTickCounter() >= MELTDOWN_CONFIRM_TICKS;
+    }
+
+    private void updateControllerRunningState() {
+        Level level = getLevel();
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        BlockState state = getBlockState();
+        if (!state.hasProperty(NuclearReactorControllerBlock.ON)) {
+            return;
+        }
+        boolean running = status == ReactorStatus.FORMED && physicsSimulator.isRunning();
+        if (state.getValue(NuclearReactorControllerBlock.ON) != running) {
+            level.setBlock(getBlockPos(), state.setValue(NuclearReactorControllerBlock.ON, running), Block.UPDATE_CLIENTS);
+        }
     }
 
     private void markDirtyAndSync() {
@@ -413,6 +450,46 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return status == ReactorStatus.UNFORMED ? 0.0 : physicsSimulator.getFuelRemaining();
     }
 
+    public double getFuelCapacity() {
+        return status == ReactorStatus.UNFORMED ? 0.0 : physicsSimulator.getFuelCapacity();
+    }
+
+    public int getInputFuelCount() {
+        return countInputFuel();
+    }
+
+    public int getOutputFuelCount() {
+        return countOutputFuel();
+    }
+
+    public int getPendingDepletedFuel() {
+        return pendingDepletedFuel;
+    }
+
+    public ControlRodTracker.ControlRodScan getControlRodScan() {
+        return lastControlRodScan;
+    }
+
+    public int getStaticControlRodSegments() {
+        return lastControlRodScan.staticSegments();
+    }
+
+    public int getMovingControlRodSegments() {
+        return lastControlRodScan.movingSegments();
+    }
+
+    public int getInsertedControlRodSegments() {
+        return lastControlRodScan.insertedSegments();
+    }
+
+    public int getExpectedControlRodSegments() {
+        return lastControlRodScan.expectedSegments();
+    }
+
+    public float getControlRodInsertionRatio() {
+        return lastControlRodScan.insertionRatio();
+    }
+
     public float getControlRodPosition() {
         return status == ReactorStatus.FORMED ? physicsSimulator.getControlRodPosition() : 0.0f;
     }
@@ -429,7 +506,18 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (status == ReactorStatus.SCRAMMED) {
             return ReactorPhysicsSimulator.ReactorState.CRITICAL;
         }
-        return status == ReactorStatus.FORMED ? physicsSimulator.getState() : ReactorPhysicsSimulator.ReactorState.IDLE;
+        if (status != ReactorStatus.FORMED) {
+            return ReactorPhysicsSimulator.ReactorState.IDLE;
+        }
+        if (physicsSimulator.getFuelRemaining() > 0.0
+                && physicsSimulator.getNeutronLevel() <= 1.0
+                && lastControlRodScan.insertionRatio() >= 0.99f) {
+            return ReactorPhysicsSimulator.ReactorState.SUPPRESSED;
+        }
+        if (physicsSimulator.getFuelRemaining() <= 0.0 && countInputFuel() > 0) {
+            return ReactorPhysicsSimulator.ReactorState.FUELING;
+        }
+        return physicsSimulator.getState();
     }
 
     public Optional<ReactorStructureValidator.ReactorStructure> getStructure() {
@@ -481,28 +569,47 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     public boolean isFreshFuel(ItemStack stack) {
-        return stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get());
+        return (stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get()) || stack.is(AllNuclearItems.URANIUM.get()))
+                && getFuelEnrichment(stack) > MIN_FUEL_ENRICHMENT;
+    }
+
+    public static float getFuelEnrichment(ItemStack stack) {
+        if (stack.is(AllNuclearItems.URANIUM.get())) {
+            return UraniumItem.getEnrichment(stack);
+        }
+        if (stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get())) {
+            return stack.has(AllNuclearDataComponents.ENRICHMENT.get())
+                    ? UraniumItem.getEnrichment(stack)
+                    : EnrichedUraniumBlendRecipe.REQUIRED_ENRICHMENT;
+        }
+        return 0.0f;
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        ReactorPhysicsSimulator.ReactorState reactorState = getReactorState();
         tooltip.add(Component.literal("Nuclear Reactor").withStyle(ChatFormatting.GOLD));
         tooltip.add(Component.literal("  Structure: " + status.displayName)
                 .withStyle(status == ReactorStatus.FORMED ? ChatFormatting.GREEN : ChatFormatting.RED));
+        tooltip.add(Component.literal("  State: " + reactorState.getDisplayName())
+                .withStyle(getReactorStateColor(reactorState)));
         currentStructure.ifPresent(structure ->
                 tooltip.add(Component.literal("  Dimensions: " + structure.dimensionsText()).withStyle(ChatFormatting.GRAY)));
 
-        if (!lastValidation.errors().isEmpty()) {
+        if (status != ReactorStatus.FORMED && !lastValidation.errors().isEmpty()) {
             tooltip.add(Component.literal("  Missing: " + lastValidation.errors().get(0)).withStyle(ChatFormatting.RED));
         }
-        for (String warning : lastValidation.warnings()) {
-            tooltip.add(Component.literal("  Warning: " + warning).withStyle(ChatFormatting.YELLOW));
+        if (status != ReactorStatus.FORMED) {
+            for (String warning : lastValidation.warnings()) {
+                tooltip.add(Component.literal("  Warning: " + warning).withStyle(ChatFormatting.YELLOW));
+            }
         }
 
         currentStructure.ifPresent(structure -> {
             tooltip.add(Component.literal("  Uranium columns: " + structure.uraniumColumnCount).withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Heat exchanger columns: " + structure.heatExchangerColumnCount).withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Control rod columns: " + structure.controlRodColumnCount).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("  Control rod segments: " + lastControlRodScan.insertedSegments() + "/" + lastControlRodScan.expectedSegments()).withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Coolant input ports: " + structure.coolantInputPortCount).withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Steam output ports: " + structure.steamOutputPortCount).withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Fuel ports: " + structure.fuelPortCount).withStyle(ChatFormatting.GRAY));
@@ -514,16 +621,42 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tooltip.add(Component.literal("  Coolant: " + coolantTank.getFluidAmount() + "/" + coolantTank.getCapacity() + " mB").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Steam: " + steamTank.getFluidAmount() + "/" + steamTank.getCapacity() + " mB").withStyle(ChatFormatting.GRAY));
         if (status != ReactorStatus.UNFORMED) {
-            tooltip.add(Component.literal(String.format("  Temperature: %.0f C", physicsSimulator.getCoreTemperature())).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal(String.format("  Temperature: %.0f C", physicsSimulator.getCoreTemperature()))
+                    .withStyle(getTemperatureColor(physicsSimulator.getCoreTemperature())));
             tooltip.add(Component.literal(String.format("  Neutrons: %.0f", physicsSimulator.getNeutronLevel())).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal(String.format("  Fuel: %.1f%%", physicsSimulator.getFuelRemaining())).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal(String.format("  Fuel: %.1f / %.1f units", physicsSimulator.getFuelRemaining(), physicsSimulator.getFuelCapacity())).withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Fuel input: " + countInputFuel() + " assemblies").withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Depleted fuel: " + countOutputFuel() + " assemblies").withStyle(ChatFormatting.GRAY));
+            if (physicsSimulator.getFuelRemaining() > 0.0 && physicsSimulator.getNeutronLevel() <= 1.0 && lastControlRodScan.insertionRatio() >= 0.99f) {
+                tooltip.add(Component.literal("  Status: loaded, control rods suppressing reaction").withStyle(ChatFormatting.YELLOW));
+            }
             if (pendingDepletedFuel > 0) {
                 tooltip.add(Component.literal("  Depleted output blocked: " + pendingDepletedFuel).withStyle(ChatFormatting.RED));
             }
         }
         return true;
+    }
+
+    private ChatFormatting getTemperatureColor(double temperature) {
+        if (temperature >= 3500.0) {
+            return ChatFormatting.RED;
+        }
+        if (temperature >= 2000.0) {
+            return ChatFormatting.GOLD;
+        }
+        if (temperature >= 500.0) {
+            return ChatFormatting.YELLOW;
+        }
+        return ChatFormatting.GREEN;
+    }
+
+    private ChatFormatting getReactorStateColor(ReactorPhysicsSimulator.ReactorState state) {
+        return switch (state) {
+            case RUNNING -> ChatFormatting.GREEN;
+            case FUELING, SUPPRESSED, WARNING -> ChatFormatting.YELLOW;
+            case CRITICAL, MELTING -> ChatFormatting.RED;
+            case IDLE -> ChatFormatting.GRAY;
+        };
     }
 
     @Override
@@ -629,7 +762,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private int countInputFuel() {
         int count = 0;
         for (int slot = 0; slot < FUEL_INPUT_SLOTS; slot++) {
-            count += fuelInventory.getStackInSlot(slot).getCount();
+            ItemStack stack = fuelInventory.getStackInSlot(slot);
+            if (isFreshFuel(stack)) {
+                count += stack.getCount();
+            }
         }
         return count;
     }

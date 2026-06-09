@@ -72,7 +72,7 @@ public final class ControlRodTracker {
     private static boolean isAlignedWithControlArea(ReactorStructureValidator.ReactorStructure structure, BlockPos pos) {
         return structure.isControlChannel(pos.getX(), pos.getZ())
                 && pos.getY() >= structure.bottomY + 1
-                && pos.getY() <= structure.topY + structure.innerHeight();
+                && pos.getY() < structure.topY;
     }
 
     private static AABB createSearchBox(ReactorStructureValidator.ReactorStructure structure) {

@@ -6,6 +6,7 @@ import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.enrichment.recipe.EnrichedUraniumBlendRecipe;
 import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
 
 public class AllNuclearItems {
@@ -44,7 +45,9 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> URANIUM = ITEMS.register("uranium", () -> new UraniumItem(new Item.Properties()
             .stacksTo(16)
             .component(AllNuclearDataComponents.ENRICHMENT.get(), UraniumItem.NATURAL_ENRICHMENT)));
-    public static final DeferredHolder<Item, ? extends Item> URANIUM_REACTOR_FUEL = ITEMS.register("uranium_reactor_fuel", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> URANIUM_REACTOR_FUEL = ITEMS.register("uranium_reactor_fuel", () -> new Item(new Item.Properties()
+            .stacksTo(16)
+            .component(AllNuclearDataComponents.ENRICHMENT.get(), EnrichedUraniumBlendRecipe.REQUIRED_ENRICHMENT)));
     public static final DeferredHolder<Item, ? extends Item> DEPLETED_URANIUM_REACTOR_FUEL = ITEMS.register("depleted_uranium_reactor_fuel", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> ENRICHED_URANIUM_BLEND = ITEMS.register("enriched_uranium_blend", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> BORAX_SALT = ITEMS.register("borax_salt", () -> new Item(new Item.Properties().stacksTo(64)));

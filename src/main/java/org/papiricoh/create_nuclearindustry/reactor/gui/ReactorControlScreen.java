@@ -3,12 +3,8 @@ package org.papiricoh.create_nuclearindustry.reactor.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.level.Level;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
-import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
 
 /**
  * GUI screen for reactor control panel.
@@ -25,12 +21,12 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
 
     // Display positions
     private static final int TITLE_Y = 10;
-    private static final int TEMP_Y = 40;
-    private static final int NEUTRON_Y = 70;
-    private static final int FUEL_Y = 100;
-    private static final int POWER_Y = 130;
-    private static final int STATE_Y = 160;
-    private static final int ROD_Y = 190;
+    private static final int TEMP_Y = 34;
+    private static final int NEUTRON_Y = 58;
+    private static final int FUEL_Y = 82;
+    private static final int POWER_Y = 106;
+    private static final int STATE_Y = 130;
+    private static final int ROD_Y = 144;
 
     // Gauge bar width
     private static final int GAUGE_WIDTH = 180;
@@ -50,7 +46,6 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     private ReactorBlockEntity getReactor() {
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
-            System.out.println("[ReactorControlScreen.getReactor] Level is null");
             return null;
         }
 
@@ -60,10 +55,7 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
             var be = minecraft.level.getBlockEntity(pos);
 
             if (be instanceof ReactorBlockEntity reactor) {
-                System.out.println("[ReactorControlScreen.getReactor] Found reactor at " + pos + ", isFormed=" + reactor.isFormed());
                 return reactor;
-            } else {
-                System.out.println("[ReactorControlScreen.getReactor] BlockEntity at " + pos + " is " + (be != null ? be.getClass().getSimpleName() : "null"));
             }
         }
 
@@ -72,7 +64,6 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         if (storedPos != null) {
             var be = minecraft.level.getBlockEntity(storedPos);
             if (be instanceof ReactorBlockEntity reactor) {
-                System.out.println("[ReactorControlScreen.getReactor] Found reactor at stored pos " + storedPos + ", isFormed=" + reactor.isFormed());
                 return reactor;
             }
         }
@@ -89,7 +80,6 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
                             var pos = playerPos.offset(x, y, z);
                             var be = minecraft.level.getBlockEntity(pos);
                             if (be instanceof ReactorBlockEntity reactor) {
-                                System.out.println("[ReactorControlScreen.getReactor] Found reactor at fallback search " + pos + ", isFormed=" + reactor.isFormed());
                                 return reactor;
                             }
                         }
@@ -97,7 +87,6 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
                 }
             }
         }
-        System.out.println("[ReactorControlScreen.getReactor] No reactor found!");
         return null;
     }
 
@@ -131,13 +120,11 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
 
         // If reactor not formed, wait a moment for sync before showing error
         if (!reactor.isFormed()) {
-            System.out.println("[ReactorControlScreen] Reactor not formed yet, syncWaitCounter=" + syncWaitCounter);
             if (syncWaitCounter < SYNC_WAIT_TICKS) {
                 guiGraphics.drawCenteredString(this.font, "§eLoading... (" + syncWaitCounter + "/" + SYNC_WAIT_TICKS + ")", leftPos + GUI_WIDTH / 2, topPos + 90, 0xFFFFFF);
                 super.render(guiGraphics, mouseX, mouseY, partialTick);
                 return;
             } else {
-                System.out.println("[ReactorControlScreen] Waited " + SYNC_WAIT_TICKS + " ticks, reactor still not formed");
                 guiGraphics.drawCenteredString(this.font, "§cReactor Not Formed", leftPos + GUI_WIDTH / 2, topPos + 90, 0xFF0000);
                 super.render(guiGraphics, mouseX, mouseY, partialTick);
                 return;
@@ -167,19 +154,28 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
 
         // Fuel remaining (get fresh data)
         double fuel = reactor.getFuelRemaining();
-        String fuelText = String.format("Fuel: §r%.1f%%", fuel);
+        double fuelCapacity = reactor.getFuelCapacity();
+        float fuelPercent = fuelCapacity <= 0.0 ? 0.0f : (float) (fuel / fuelCapacity);
+        String fuelText = String.format("Fuel: §r%.1f / %.1f units", fuel, fuelCapacity);
         guiGraphics.drawString(this.font, fuelText, leftPos + 20, topPos + FUEL_Y, 0x00FF00);
-        renderGaugeBar(guiGraphics, leftPos + 20, topPos + FUEL_Y + 12, (float) (fuel / 100.0));
+        renderGaugeBar(guiGraphics, leftPos + 20, topPos + FUEL_Y + 12, fuelPercent);
 
         // Power output
         double power = reactor.getPowerOutput();
-        String powerText = String.format("Power: §r%.1f MW", power);
+        String powerText = String.format("Power: §r%.1f MW  Steam: %.1f mB/t", power, reactor.getSteamGenerationRate());
         guiGraphics.drawString(this.font, powerText, leftPos + 20, topPos + POWER_Y, 0x0099FF);
 
-        // Control rod position
-        int controlRodCount = reactor.getPhysicsSimulator().getControlRodCount();
-        String rodText = String.format("Control Rods: §r%d§8 (physical blocks)", controlRodCount);
+        String rodText = String.format("Rods: §r%d/%d inserted §8(static %d, moving %d)",
+                reactor.getInsertedControlRodSegments(),
+                reactor.getExpectedControlRodSegments(),
+                reactor.getStaticControlRodSegments(),
+                reactor.getMovingControlRodSegments());
         guiGraphics.drawString(this.font, rodText, leftPos + 20, topPos + ROD_Y, 0xFFAA00);
+        guiGraphics.drawString(this.font, String.format("Rod insertion: %.0f%%", reactor.getControlRodInsertionRatio() * 100.0f),
+                leftPos + 20, topPos + ROD_Y + 12, 0xFFAA00);
+        if (fuel > 0.0 && neutrons <= 1.0 && reactor.getControlRodInsertionRatio() >= 0.99f) {
+            guiGraphics.drawString(this.font, "Loaded: rods suppressing reaction", leftPos + 20, topPos + ROD_Y + 24, 0xFFFFAA00);
+        }
         guiGraphics.drawString(this.font, "Fuel In", leftPos + 20, topPos + 168, 0xCCCCCC);
         guiGraphics.drawString(this.font, "Spent", leftPos + 164, topPos + 168, 0xCCCCCC);
 
@@ -195,6 +191,11 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     public void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         // Draw background panel
         guiGraphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF1a1a1a);
+
+        // Draw dark gray item slot areas
+        guiGraphics.fill(leftPos + 12, topPos + 158, leftPos + 116, topPos + 206, 0xFF2B2B2B);
+        guiGraphics.fill(leftPos + 156, topPos + 158, leftPos + 216, topPos + 206, 0xFF2B2B2B);
+        guiGraphics.fill(leftPos + 40, topPos + 214, leftPos + 218, topPos + 294, 0xFF2B2B2B);
 
         // Draw border
         guiGraphics.fill(leftPos - 1, topPos - 1, leftPos + imageWidth + 1, topPos + 1, 0xFFAAAAAA);
@@ -257,10 +258,12 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
      */
     private int getStateColor(String state) {
         return switch (state) {
-            case "IDLE" -> 0xFF00CCFF;          // Cyan
-            case "RUNNING" -> 0xFF00FF00;       // Green
-            case "WARNING" -> 0xFFFFAA00;       // Orange
-            case "CRITICAL" -> 0xFFFF0000;      // Red
+            case "Idle" -> 0xFF00CCFF;          // Cyan
+            case "Fuel queued" -> 0xFFFFFF66;   // Yellow
+            case "Suppressed" -> 0xFFFFAA00;    // Orange
+            case "Running" -> 0xFF00FF00;       // Green
+            case "Warning" -> 0xFFFFAA00;       // Orange
+            case "Critical" -> 0xFFFF0000;      // Red
             case "MELTING" -> 0xFFFF00FF;       // Magenta
             default -> 0xFFCCCCCC;              // Gray
         };
