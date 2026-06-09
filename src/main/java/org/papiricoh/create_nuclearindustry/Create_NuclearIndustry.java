@@ -21,6 +21,7 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.createmod.ponder.foundation.PonderIndex;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
+import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.NuclearPonderPlugin;
 import org.papiricoh.create_nuclearindustry.reactor.event.ReactorBlockChangeHandler;
 import org.slf4j.Logger;
@@ -70,6 +71,9 @@ public class Create_NuclearIndustry {
         AllNuclearGUIs.init();
         AllNuclearGUIs.MENUS.register(modEventBus);
 
+        AllNuclearSounds.init();
+        AllNuclearSounds.SOUNDS.register(modEventBus);
+
         AllNuclearFluids.FLUID_TYPES.register(modEventBus);
         AllNuclearFluids.FLUIDS.register(modEventBus);
         AllNuclearFluids.BLOCKS.register(modEventBus);
@@ -85,6 +89,7 @@ public class Create_NuclearIndustry {
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockBreak);
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockPlace);
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onLevelTick);
+        NeoForge.EVENT_BUS.addListener(NuclearExplosionSoundManager::onLevelTick);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             PonderIndex.addPlugin(new NuclearPonderPlugin());

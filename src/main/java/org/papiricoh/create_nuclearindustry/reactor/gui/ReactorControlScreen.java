@@ -26,7 +26,8 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     private static final int FUEL_Y = 82;
     private static final int POWER_Y = 106;
     private static final int STATE_Y = 130;
-    private static final int ROD_Y = 144;
+    private static final int STRESS_Y = 142;
+    private static final int ROD_Y = 154;
 
     // Gauge bar width
     private static final int GAUGE_WIDTH = 180;
@@ -139,6 +140,13 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         int stateColor = getStateColor(state);
         guiGraphics.drawString(this.font, "State: §r" + state, leftPos + 20, topPos + STATE_Y, stateColor);
 
+        double stress = reactor.getThermalStress();
+        String stressText = String.format("Thermal stress: §r%.0f%%", stress);
+        if (reactor.isThermalExcursionActive()) {
+            stressText += " §cEXCURSION";
+        }
+        guiGraphics.drawString(this.font, stressText, leftPos + 20, topPos + STRESS_Y, getStressColor((float) stress));
+
         // Temperature (get fresh data)
         double temp = reactor.getCoreTemperature();
         String tempText = String.format("Temperature: §r%.0f°C", temp);
@@ -174,7 +182,7 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         guiGraphics.drawString(this.font, String.format("Rod insertion: %.0f%%", reactor.getControlRodInsertionRatio() * 100.0f),
                 leftPos + 20, topPos + ROD_Y + 12, 0xFFAA00);
         if (fuel > 0.0 && neutrons <= 1.0 && reactor.getControlRodInsertionRatio() >= 0.99f) {
-            guiGraphics.drawString(this.font, "Loaded: rods suppressing reaction", leftPos + 20, topPos + ROD_Y + 24, 0xFFFFAA00);
+            guiGraphics.drawString(this.font, "Loaded: rods suppressing reaction", leftPos + 20, topPos + 176, 0xFFFFAA00);
         }
         guiGraphics.drawString(this.font, "Fuel In", leftPos + 20, topPos + 168, 0xCCCCCC);
         guiGraphics.drawString(this.font, "Spent", leftPos + 164, topPos + 168, 0xCCCCCC);
@@ -251,6 +259,13 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         if (temp < 2000) return 0xFFFFAA00;     // Orange
         if (temp < 3500) return 0xFFFF5500;     // Red-orange
         return 0xFFFF0000;                      // Red
+    }
+
+    private int getStressColor(float stress) {
+        if (stress < 35) return 0xFF00FF00;      // Green
+        if (stress < 65) return 0xFFFFFF00;      // Yellow
+        if (stress < 90) return 0xFFFFAA00;      // Orange
+        return 0xFFFF0000;                       // Red
     }
 
     /**

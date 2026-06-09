@@ -35,6 +35,7 @@
   "item.create_nuclearindustry.target_designator.target": "Target: %s, %s, %s",
   "item.create_nuclearindustry.target_designator.empty": "No target set (right-click a block)",
   "entity.create_nuclearindustry.missile": "Nuclear Missile",
+  "subtitle.create_nuclearindustry.nuclear_explosion": "Nuclear explosion",
 
 
   "block.create_nuclearindustry.borax_ore": "Borax Ore",

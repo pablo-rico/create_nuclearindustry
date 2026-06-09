@@ -30,6 +30,7 @@
   "item.create_nuclearindustry.target_designator.target": "Objetivo: %s, %s, %s",
   "item.create_nuclearindustry.target_designator.empty": "Sin objetivo (click derecho en un bloque)",
   "entity.create_nuclearindustry.missile": "Misil nuclear",
+  "subtitle.create_nuclearindustry.nuclear_explosion": "Explosion nuclear",
   "fluid.create_nuclearindustry.steam": "Vapor",
   "fluid.create_nuclearindustry.heavy_water": "Agua pesada",
   "fluid.create_nuclearindustry.heavy_steam": "Vapor pesado",

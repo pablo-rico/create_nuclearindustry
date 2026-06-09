@@ -1,0 +1,13 @@
+{
+  "nuclear_explosion": {
+    "subtitle": "subtitle.create_nuclearindustry.nuclear_explosion",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:nuclear_explosion",
+        "stream": true,
+        "volume": 1.0,
+        "pitch": 1.0
+      }
+    ]
+  }
+}

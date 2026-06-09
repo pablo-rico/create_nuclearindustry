@@ -277,9 +277,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
 
         boolean heavy = NuclearFluidHelper.isHeavyWater(coolant);
-        double heatFactor = Math.max(0.0, physicsSimulator.getCoreTemperature() - 100.0) / 4000.0;
-        int coolantToConsume = Math.max(1, Math.min(MAX_COOLANT_PER_TICK, (int) Math.ceil(MAX_COOLANT_PER_TICK * heatFactor)));
-        int steamToProduce = Math.max(1, Math.min(MAX_STEAM_PER_TICK, Math.max(coolantToConsume, (int) Math.ceil(physicsSimulator.getSteamGenerationRate()))));
+        int steamToProduce = Math.max(0, Math.min(MAX_STEAM_PER_TICK, (int) Math.ceil(physicsSimulator.getSteamGenerationRate())));
+        if (steamToProduce <= 0) {
+            return;
+        }
 
         FluidStack produced = new FluidStack(heavy ? AllNuclearFluids.HEAVY_STEAM.get() : AllNuclearFluids.STEAM.get(), steamToProduce);
         int acceptedSteam = steamTank.fill(produced, IFluidHandler.FluidAction.SIMULATE);
@@ -294,8 +295,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
 
         steamTank.fill(new FluidStack(produced.getFluid(), drained.getAmount()), IFluidHandler.FluidAction.EXECUTE);
-        double cooling = drained.getAmount() * (heavy ? 1.25 : 0.85);
-        double moderation = heavy ? drained.getAmount() * 0.015 : drained.getAmount() * 0.004;
+        double cooling = drained.getAmount() * (heavy ? 0.70 : 0.45);
+        double moderation = heavy ? drained.getAmount() * 0.003 : drained.getAmount() * 0.001;
         physicsSimulator.applyExternalCooling(cooling, moderation);
     }
 
@@ -502,6 +503,14 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return status == ReactorStatus.FORMED ? physicsSimulator.getSteamGenerationRate() : 0.0;
     }
 
+    public double getThermalStress() {
+        return status == ReactorStatus.FORMED ? physicsSimulator.getThermalStress() : 0.0;
+    }
+
+    public boolean isThermalExcursionActive() {
+        return status == ReactorStatus.FORMED && physicsSimulator.isThermalExcursionActive();
+    }
+
     public ReactorPhysicsSimulator.ReactorState getReactorState() {
         if (status == ReactorStatus.SCRAMMED) {
             return ReactorPhysicsSimulator.ReactorState.CRITICAL;
@@ -624,6 +633,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             tooltip.add(Component.literal(String.format("  Temperature: %.0f C", physicsSimulator.getCoreTemperature()))
                     .withStyle(getTemperatureColor(physicsSimulator.getCoreTemperature())));
             tooltip.add(Component.literal(String.format("  Neutrons: %.0f", physicsSimulator.getNeutronLevel())).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal(String.format("  Thermal stress: %.0f%%", physicsSimulator.getThermalStress()))
+                    .withStyle(getThermalStressColor(physicsSimulator.getThermalStress())));
+            if (physicsSimulator.isThermalExcursionActive()) {
+                tooltip.add(Component.literal("  Thermal excursion: insert control rods").withStyle(ChatFormatting.RED));
+            }
             tooltip.add(Component.literal(String.format("  Fuel: %.1f / %.1f units", physicsSimulator.getFuelRemaining(), physicsSimulator.getFuelCapacity())).withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Fuel input: " + countInputFuel() + " assemblies").withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Depleted fuel: " + countOutputFuel() + " assemblies").withStyle(ChatFormatting.GRAY));
@@ -645,6 +659,19 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             return ChatFormatting.GOLD;
         }
         if (temperature >= 500.0) {
+            return ChatFormatting.YELLOW;
+        }
+        return ChatFormatting.GREEN;
+    }
+
+    private ChatFormatting getThermalStressColor(double stress) {
+        if (stress >= 90.0) {
+            return ChatFormatting.RED;
+        }
+        if (stress >= 65.0) {
+            return ChatFormatting.GOLD;
+        }
+        if (stress >= 35.0) {
             return ChatFormatting.YELLOW;
         }
         return ChatFormatting.GREEN;

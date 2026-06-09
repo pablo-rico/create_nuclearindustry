@@ -14,6 +14,8 @@ public class ReactorPhysicsSimulator {
     private static final double PASSIVE_HEAT_DISSIPATION = 0.8;     // °C per tick (baseline)
     private static final double CONTROL_ROD_EFFECTIVENESS = 1.15;   // neutron absorption rate (0-1)
     private static final double FUEL_CONSUMPTION_RATE = 0.002;      // fuel units consumed per neutron
+    private static final double STEAM_TEMPERATURE_FACTOR = 0.025;   // mB/t from temperature above boiling
+    private static final double STEAM_NEUTRON_FACTOR = 0.055;       // mB/t from neutron activity
 
     // Temperature thresholds
     private static final double SAFE_TEMP = 500.0;                  // Below this = safe operation
@@ -25,6 +27,9 @@ public class ReactorPhysicsSimulator {
     private static final double MAX_NEUTRON_LEVEL = 1000.0;
     private static final double MIN_NEUTRON_LEVEL = 0.0;
     private static final double FUEL_PER_ASSEMBLY = 100.0;
+    private static final double MAX_THERMAL_STRESS = 100.0;
+    private static final double STRESS_START_TEMP = 2500.0;
+    private static final double STRESS_RECOVERY_TEMP = 2200.0;
 
     // State variables
     private double coreTemperature;                                 // Celsius (0-4000)
@@ -34,6 +39,8 @@ public class ReactorPhysicsSimulator {
     private int uraniumRodCount;                                    // Number of fuel rods in reactor
     private int controlRodCount;                                    // Number of control rods (PHYSICAL blocks)
     private int meltdownTickCounter;                                // Ticks spent above meltdown temp
+    private double thermalStress;                                   // 0-100, sustained high power precursor
+    private boolean thermalExcursionActive;                         // True while stress is forcing a power excursion
 
     // Derived values for display
     private double powerOutput;                                     // MW equivalent
@@ -51,6 +58,8 @@ public class ReactorPhysicsSimulator {
         this.uraniumRodCount = uraniumRodCount;
         this.controlRodCount = controlRodCount;
         this.meltdownTickCounter = 0;
+        this.thermalStress = 0.0;
+        this.thermalExcursionActive = false;
         this.powerOutput = 0.0;
         this.steamGenerationRate = 0.0;
     }
@@ -64,6 +73,8 @@ public class ReactorPhysicsSimulator {
             // No fuel, shut down
             neutronLevel = Math.max(0, neutronLevel - 8.0);
             coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 2.5);
+            thermalExcursionActive = false;
+            thermalStress = Math.max(0.0, thermalStress - 0.2);
             powerOutput = 0.0;
             steamGenerationRate = 0.0;
             return true;
@@ -87,6 +98,9 @@ public class ReactorPhysicsSimulator {
         coreTemperature += (heatGeneration - heatDissipation);
         coreTemperature = Math.max(0, coreTemperature);
 
+        updateThermalStress();
+        applyThermalExcursion();
+
         // Consume fuel based on operation
         if (neutronLevel > 0) {
             fuelRemaining -= FUEL_CONSUMPTION_RATE * (neutronLevel / 100.0);
@@ -96,12 +110,7 @@ public class ReactorPhysicsSimulator {
         // Calculate power output
         powerOutput = neutronLevel * 0.5; // 0.5 MW per neutron level unit
 
-        // Calculate steam generation (temperature must be above 373K/100°C)
-        if (coreTemperature > 100.0) {
-            steamGenerationRate = Math.min(80.0, (coreTemperature - 100.0) * 0.04); // mB per tick
-        } else {
-            steamGenerationRate = 0.0;
-        }
+        steamGenerationRate = calculateSteamGenerationRate();
 
         // Check for meltdown
         if (coreTemperature > MELTDOWN_TEMP) {
@@ -167,6 +176,49 @@ public class ReactorPhysicsSimulator {
         return passiveDissipation;
     }
 
+    private void updateThermalStress() {
+        if (coreTemperature >= STRESS_START_TEMP) {
+            double tempFactor = clamp((coreTemperature - STRESS_START_TEMP) / (MELTDOWN_TEMP - STRESS_START_TEMP), 0.0, 1.5);
+            double neutronFactor = neutronLevel / MAX_NEUTRON_LEVEL;
+            double rodRiskFactor = 1.0 + (1.0 - controlRodInsertion) * 0.75;
+            thermalStress += (0.02 + tempFactor * 0.12 + neutronFactor * 0.08) * rodRiskFactor;
+        } else if (coreTemperature <= STRESS_RECOVERY_TEMP) {
+            double coolFactor = clamp((STRESS_RECOVERY_TEMP - coreTemperature) / STRESS_RECOVERY_TEMP, 0.0, 1.0);
+            thermalStress -= 0.08 + controlRodInsertion * 0.15 + coolFactor * 0.05;
+        }
+
+        thermalStress = clamp(thermalStress, 0.0, MAX_THERMAL_STRESS);
+        if (thermalStress >= MAX_THERMAL_STRESS) {
+            thermalExcursionActive = true;
+        }
+    }
+
+    private void applyThermalExcursion() {
+        if (!thermalExcursionActive || fuelRemaining <= 0) {
+            return;
+        }
+
+        if (controlRodInsertion >= 0.95f) {
+            thermalExcursionActive = false;
+            thermalStress = Math.min(thermalStress, 95.0);
+            return;
+        }
+
+        double withdrawn = 1.0 - controlRodInsertion;
+        neutronLevel = Math.min(MAX_NEUTRON_LEVEL, neutronLevel + 12.0 + withdrawn * 38.0);
+        coreTemperature += 8.0 + withdrawn * 42.0;
+    }
+
+    private double calculateSteamGenerationRate() {
+        if (coreTemperature <= 100.0) {
+            return 0.0;
+        }
+
+        double temperatureSteam = (coreTemperature - 100.0) * STEAM_TEMPERATURE_FACTOR;
+        double neutronSteam = neutronLevel * STEAM_NEUTRON_FACTOR;
+        return Math.min(80.0, temperatureSteam + neutronSteam);
+    }
+
     /**
      * Sets the control rod position.
      * @param position 0.0 = fully inserted (maximum neutron absorption), 1.0 = fully withdrawn
@@ -191,6 +243,8 @@ public class ReactorPhysicsSimulator {
         controlRodInsertion = 1.0f;
         neutronLevel = Math.max(0.0, neutronLevel - 60.0);
         coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 4.0);
+        thermalExcursionActive = false;
+        thermalStress = Math.max(0.0, thermalStress - 0.35);
         powerOutput = 0.0;
         steamGenerationRate = 0.0;
     }
@@ -233,6 +287,8 @@ public class ReactorPhysicsSimulator {
         neutronLevel = Math.min(neutronLevel, 50.0);
         coreTemperature = Math.min(coreTemperature, DANGER_TEMP);
         meltdownTickCounter = 0;
+        thermalExcursionActive = false;
+        thermalStress = Math.min(thermalStress, 70.0);
         powerOutput = 0.0;
         steamGenerationRate = 0.0;
     }
@@ -278,6 +334,14 @@ public class ReactorPhysicsSimulator {
         return meltdownTickCounter;
     }
 
+    public double getThermalStress() {
+        return thermalStress;
+    }
+
+    public boolean isThermalExcursionActive() {
+        return thermalExcursionActive;
+    }
+
     public boolean isMeltingDown() {
         return coreTemperature > MELTDOWN_TEMP;
     }
@@ -316,6 +380,8 @@ public class ReactorPhysicsSimulator {
         tag.putInt("uraniumRodCount", uraniumRodCount);
         tag.putInt("controlRodCount", controlRodCount);
         tag.putInt("meltdownTickCounter", meltdownTickCounter);
+        tag.putDouble("thermalStress", thermalStress);
+        tag.putBoolean("thermalExcursionActive", thermalExcursionActive);
     }
 
     public void deserializeNBT(CompoundTag tag) {
@@ -329,6 +395,10 @@ public class ReactorPhysicsSimulator {
         this.controlRodCount = Math.max(0, tag.getInt("controlRodCount"));
         this.fuelRemaining = clamp(tag.getDouble("fuelRemaining"), 0.0, getFuelCapacity());
         this.meltdownTickCounter = Math.max(0, Math.min(100, tag.getInt("meltdownTickCounter")));
+        this.thermalStress = tag.contains("thermalStress")
+                ? clamp(tag.getDouble("thermalStress"), 0.0, MAX_THERMAL_STRESS)
+                : 0.0;
+        this.thermalExcursionActive = tag.getBoolean("thermalExcursionActive");
     }
 
     private static double clamp(double value, double min, double max) {

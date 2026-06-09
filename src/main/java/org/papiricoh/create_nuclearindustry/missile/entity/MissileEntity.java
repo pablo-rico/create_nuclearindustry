@@ -11,6 +11,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
+import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
 
 /**
  * Misil ICBM: vuela del punto de lanzamiento al objetivo describiendo un arco balistico
@@ -139,6 +140,8 @@ public class MissileEntity extends Entity {
             return;
         }
         releaseForcedChunk(serverLevel);
+        Vec3 impact = new Vec3(targetX, targetY, targetZ);
+        NuclearExplosionSoundManager.playDelayedForWorld(serverLevel, impact);
         serverLevel.explode(null, targetX, targetY, targetZ,
                 Math.min(64.0f, power * 0.35f), Level.ExplosionInteraction.BLOCK);
         NuclearBlastManager.start(serverLevel, BlockPos.containing(targetX, targetY, targetZ), hRadius, vRadius, intensity);
