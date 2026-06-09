@@ -1,9 +1,9 @@
 {
   "parent": "block/block",
   "textures": {
-    "metal": "create_nuclearindustry:block/reactor_casing",
-    "blade": "create_nuclearindustry:block/heat_exchanger_pipes",
-    "particle": "create_nuclearindustry:block/reactor_casing"
+    "metal": "create_nuclearindustry:block/turbine_rotor_core",
+    "blade": "create_nuclearindustry:block/turbine_blade",
+    "particle": "create_nuclearindustry:block/turbine_rotor_core"
   },
   "elements": [
     {

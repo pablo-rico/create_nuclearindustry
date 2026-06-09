@@ -5,6 +5,7 @@
   "item.create_nuclearindustry.uranium_reactor_fuel": "Uranium Reactor Fuel",
   "item.create_nuclearindustry.depleted_uranium_reactor_fuel": "Depleted Uranium Reactor Fuel",
   "item.create_nuclearindustry.enriched_uranium_blend": "Enriched Uranium Blend",
+  "item.create_nuclearindustry.weapons_grade_uranium_core": "Weapons-Grade Uranium Core",
   "item.create_nuclearindustry.borax_salt": "Borax Salt",
   "item.create_nuclearindustry.boron": "Boron",
 
@@ -29,6 +30,8 @@
   "block.create_nuclearindustry.turbine_fluid_port": "Turbine Fluid Port",
   "block.create_nuclearindustry.nuclear_bomb": "Nuclear Bomb",
   "block.create_nuclearindustry.launch_pad": "Missile Launch Pad",
+  "block.create_nuclearindustry.nuclear_cannon_shell": "Nuclear Cannon Shell",
+  "item.create_nuclearindustry.nuclear_cannon_shell": "Nuclear Cannon Shell",
   "item.create_nuclearindustry.missile": "Nuclear Missile",
   "item.create_nuclearindustry.target_designator": "Target Designator",
   "item.create_nuclearindustry.target_designator.set": "Target set to %s, %s, %s",

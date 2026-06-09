@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/nuclear_cannon_shell"
+      }
+    }
+  ]
+}

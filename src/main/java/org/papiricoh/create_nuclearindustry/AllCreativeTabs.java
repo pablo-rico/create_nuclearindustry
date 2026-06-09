@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.integration.cbc.CBCNuclearIntegration;
 
 public class AllCreativeTabs {
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
@@ -28,6 +29,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.URANIUM_REACTOR_FUEL.value());
                 output.accept(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.value());
                 output.accept(AllNuclearItems.ENRICHED_URANIUM_BLEND.value());
+                output.accept(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.value());
                 output.accept(AllNuclearItems.URANIUM_ROD.value());
                 output.accept(AllNuclearItems.BORAX_ORE.value());
                 output.accept(AllNuclearItems.BORAX_SALT.value());
@@ -48,6 +50,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.LAUNCH_PAD.value());
                 output.accept(AllNuclearItems.MISSILE.value());
                 output.accept(AllNuclearItems.TARGET_DESIGNATOR.value());
+                CBCNuclearIntegration.addCreativeItems(output);
             }).build());
 
 

@@ -23,6 +23,7 @@ import net.createmod.ponder.foundation.PonderIndex;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.NuclearPonderPlugin;
+import org.papiricoh.create_nuclearindustry.integration.cbc.CBCNuclearIntegration;
 import org.papiricoh.create_nuclearindustry.reactor.event.ReactorBlockChangeHandler;
 import org.slf4j.Logger;
 
@@ -73,6 +74,8 @@ public class Create_NuclearIndustry {
 
         AllNuclearSounds.init();
         AllNuclearSounds.SOUNDS.register(modEventBus);
+
+        CBCNuclearIntegration.init(modEventBus);
 
         AllNuclearFluids.FLUID_TYPES.register(modEventBus);
         AllNuclearFluids.FLUIDS.register(modEventBus);
