@@ -40,6 +40,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.REACTOR_CONTROLLER.value());
                 output.accept(AllNuclearItems.REACTOR_FLUID_PORT.value());
                 output.accept(AllNuclearItems.REACTOR_FUEL_PORT.value());
+                output.accept(AllNuclearItems.REACTOR_TEMPERATURE_SENSOR.value());
                 output.accept(AllNuclearItems.DUAL_FLUID_PIPE.value());
                 output.accept(AllNuclearItems.CENTRIFUGE.value());
                 output.accept(AllNuclearItems.TURBINE_CASING.value());

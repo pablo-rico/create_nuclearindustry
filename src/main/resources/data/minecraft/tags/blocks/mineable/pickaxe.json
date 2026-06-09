@@ -5,6 +5,7 @@
     "create_nuclearindustry:borax_ore",
     "create_nuclearindustry:centrifuge",
     "create_nuclearindustry:reactor_fluid_port",
+    "create_nuclearindustry:reactor_temperature_sensor",
     "create_nuclearindustry:turbine_casing",
     "create_nuclearindustry:turbine_rotor",
     "create_nuclearindustry:turbine_output",

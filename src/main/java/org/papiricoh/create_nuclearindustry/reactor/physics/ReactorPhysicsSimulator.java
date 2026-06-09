@@ -12,7 +12,7 @@ public class ReactorPhysicsSimulator {
     private static final double BASE_FISSION_RATE = 4.0;            // neutrons per uranium rod per tick
     private static final double HEAT_GENERATION_RATE = 0.035;       // °C per neutron
     private static final double PASSIVE_HEAT_DISSIPATION = 0.8;     // °C per tick (baseline)
-    private static final double CONTROL_ROD_EFFECTIVENESS = 1.15;   // neutron absorption rate (0-1)
+    private static final double CONTROL_ROD_EFFECTIVENESS = 1.50;   // shutdown authority from inserted control rods
     private static final double FUEL_CONSUMPTION_RATE = 0.002;      // fuel units consumed per neutron
     private static final double STEAM_TEMPERATURE_FACTOR = 0.025;   // mB/t from temperature above boiling
     private static final double STEAM_NEUTRON_FACTOR = 0.055;       // mB/t from neutron activity
@@ -29,7 +29,8 @@ public class ReactorPhysicsSimulator {
     private static final double FUEL_PER_ASSEMBLY = 100.0;
     private static final double MAX_THERMAL_STRESS = 100.0;
     private static final double STRESS_START_TEMP = 2500.0;
-    private static final double STRESS_RECOVERY_TEMP = 2200.0;
+    private static final double STRESS_MAX_TEMP = 3000.0;
+    private static final double STRESS_LOG_CURVE = 9.0;
 
     // State variables
     private double coreTemperature;                                 // Celsius (0-4000)
@@ -39,7 +40,7 @@ public class ReactorPhysicsSimulator {
     private int uraniumRodCount;                                    // Number of fuel rods in reactor
     private int controlRodCount;                                    // Number of control rods (PHYSICAL blocks)
     private int meltdownTickCounter;                                // Ticks spent above meltdown temp
-    private double thermalStress;                                   // 0-100, sustained high power precursor
+    private double thermalStress;                                   // 0-100, logarithmic heat stress
     private boolean thermalExcursionActive;                         // True while stress is forcing a power excursion
 
     // Derived values for display
@@ -74,7 +75,7 @@ public class ReactorPhysicsSimulator {
             neutronLevel = Math.max(0, neutronLevel - 8.0);
             coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 2.5);
             thermalExcursionActive = false;
-            thermalStress = Math.max(0.0, thermalStress - 0.2);
+            thermalStress = calculateThermalStress();
             powerOutput = 0.0;
             steamGenerationRate = 0.0;
             return true;
@@ -177,20 +178,26 @@ public class ReactorPhysicsSimulator {
     }
 
     private void updateThermalStress() {
-        if (coreTemperature >= STRESS_START_TEMP) {
-            double tempFactor = clamp((coreTemperature - STRESS_START_TEMP) / (MELTDOWN_TEMP - STRESS_START_TEMP), 0.0, 1.5);
-            double neutronFactor = neutronLevel / MAX_NEUTRON_LEVEL;
-            double rodRiskFactor = 1.0 + (1.0 - controlRodInsertion) * 0.75;
-            thermalStress += (0.02 + tempFactor * 0.12 + neutronFactor * 0.08) * rodRiskFactor;
-        } else if (coreTemperature <= STRESS_RECOVERY_TEMP) {
-            double coolFactor = clamp((STRESS_RECOVERY_TEMP - coreTemperature) / STRESS_RECOVERY_TEMP, 0.0, 1.0);
-            thermalStress -= 0.08 + controlRodInsertion * 0.15 + coolFactor * 0.05;
-        }
-
-        thermalStress = clamp(thermalStress, 0.0, MAX_THERMAL_STRESS);
+        thermalStress = calculateThermalStress();
         if (thermalStress >= MAX_THERMAL_STRESS) {
             thermalExcursionActive = true;
         }
+    }
+
+    private double calculateThermalStress() {
+        if (coreTemperature <= STRESS_START_TEMP) {
+            return 0.0;
+        }
+        if (coreTemperature > STRESS_MAX_TEMP) {
+            return MAX_THERMAL_STRESS;
+        }
+
+        double tempFactor = Math.min(
+                (coreTemperature - STRESS_START_TEMP) / (STRESS_MAX_TEMP - STRESS_START_TEMP),
+                Math.nextDown(1.0)
+        );
+        double logarithmicFactor = Math.log1p(tempFactor * STRESS_LOG_CURVE) / Math.log1p(STRESS_LOG_CURVE);
+        return clamp(logarithmicFactor * MAX_THERMAL_STRESS, 0.0, MAX_THERMAL_STRESS);
     }
 
     private void applyThermalExcursion() {
@@ -200,7 +207,6 @@ public class ReactorPhysicsSimulator {
 
         if (controlRodInsertion >= 0.95f) {
             thermalExcursionActive = false;
-            thermalStress = Math.min(thermalStress, 95.0);
             return;
         }
 
@@ -244,7 +250,7 @@ public class ReactorPhysicsSimulator {
         neutronLevel = Math.max(0.0, neutronLevel - 60.0);
         coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 4.0);
         thermalExcursionActive = false;
-        thermalStress = Math.max(0.0, thermalStress - 0.35);
+        thermalStress = calculateThermalStress();
         powerOutput = 0.0;
         steamGenerationRate = 0.0;
     }
@@ -288,7 +294,7 @@ public class ReactorPhysicsSimulator {
         coreTemperature = Math.min(coreTemperature, DANGER_TEMP);
         meltdownTickCounter = 0;
         thermalExcursionActive = false;
-        thermalStress = Math.min(thermalStress, 70.0);
+        thermalStress = calculateThermalStress();
         powerOutput = 0.0;
         steamGenerationRate = 0.0;
     }
@@ -395,10 +401,8 @@ public class ReactorPhysicsSimulator {
         this.controlRodCount = Math.max(0, tag.getInt("controlRodCount"));
         this.fuelRemaining = clamp(tag.getDouble("fuelRemaining"), 0.0, getFuelCapacity());
         this.meltdownTickCounter = Math.max(0, Math.min(100, tag.getInt("meltdownTickCounter")));
-        this.thermalStress = tag.contains("thermalStress")
-                ? clamp(tag.getDouble("thermalStress"), 0.0, MAX_THERMAL_STRESS)
-                : 0.0;
-        this.thermalExcursionActive = tag.getBoolean("thermalExcursionActive");
+        this.thermalStress = calculateThermalStress();
+        this.thermalExcursionActive = tag.getBoolean("thermalExcursionActive") && thermalStress >= MAX_THERMAL_STRESS;
     }
 
     private static double clamp(double value, double min, double max) {

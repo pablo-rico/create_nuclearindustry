@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " R ",
+    "ECE",
+    " R "
+  ],
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:reactor_casing"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:reactor_temperature_sensor"
+  }
+}

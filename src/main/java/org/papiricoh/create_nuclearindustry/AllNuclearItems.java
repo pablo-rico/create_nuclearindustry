@@ -26,6 +26,7 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> REACTOR_CONTROLLER = ITEMS.register("reactor_controller", () -> new BlockItem(AllNuclearBlocks.REACTOR_CONTROLLER.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> REACTOR_FLUID_PORT = ITEMS.register("reactor_fluid_port", () -> new BlockItem(AllNuclearBlocks.REACTOR_FLUID_PORT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> REACTOR_FUEL_PORT = ITEMS.register("reactor_fuel_port", () -> new BlockItem(AllNuclearBlocks.REACTOR_FUEL_PORT.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> REACTOR_TEMPERATURE_SENSOR = ITEMS.register("reactor_temperature_sensor", () -> new BlockItem(AllNuclearBlocks.REACTOR_TEMPERATURE_SENSOR.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> DUAL_FLUID_PIPE = ITEMS.register("dual_fluid_pipe", () -> new BlockItem(AllNuclearBlocks.DUAL_FLUID_PIPE.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> CENTRIFUGE = ITEMS.register("centrifuge", () -> new BlockItem(AllNuclearBlocks.CENTRIFUGE.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> TURBINE_CASING = ITEMS.register("turbine_casing", () -> new BlockItem(AllNuclearBlocks.TURBINE_CASING.value(), new Item.Properties()));

@@ -15,6 +15,7 @@ import org.papiricoh.create_nuclearindustry.reactor.block.HeatExchangerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFuelPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.ReactorTemperatureSensorBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.TurbineCasingBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.TurbineFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.TurbineOutputBlock;
@@ -42,6 +43,7 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> REACTOR_CONTROLLER = BLOCKS.register("reactor_controller", () -> new NuclearReactorControllerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> REACTOR_FLUID_PORT = BLOCKS.register("reactor_fluid_port", () -> new ReactorFluidPortBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> REACTOR_FUEL_PORT = BLOCKS.register("reactor_fuel_port", () -> new ReactorFuelPortBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
+    public static final DeferredHolder<Block, ? extends Block> REACTOR_TEMPERATURE_SENSOR = BLOCKS.register("reactor_temperature_sensor", () -> new ReactorTemperatureSensorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> DUAL_FLUID_PIPE = BLOCKS.register("dual_fluid_pipe", () -> new DualFluidPipeBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f)));
     public static final DeferredHolder<Block, ? extends Block> CENTRIFUGE = BLOCKS.register("centrifuge", () -> new CentrifugeBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> TURBINE_CASING = BLOCKS.register("turbine_casing", () -> new TurbineCasingBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f)));

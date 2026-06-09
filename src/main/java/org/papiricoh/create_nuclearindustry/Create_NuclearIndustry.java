@@ -69,6 +69,8 @@ public class Create_NuclearIndustry {
         AllNuclearEntities.ENTITIES.register(modEventBus);
         AllNuclearEntities.ENTITY_TYPES.register(modEventBus);
 
+        AllNuclearDisplaySources.register(modEventBus);
+
         AllNuclearGUIs.init();
         AllNuclearGUIs.MENUS.register(modEventBus);
 

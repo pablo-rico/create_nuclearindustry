@@ -137,6 +137,10 @@ public class ReactorStructureValidator {
                 continue;
             }
 
+            if (shell && block == AllNuclearBlocks.REACTOR_TEMPERATURE_SENSOR.get()) {
+                continue;
+            }
+
             if (shell && block != AllNuclearBlocks.REACTOR_CASING.get()) {
                 errors.add("Missing casing at " + shortPos(pos));
                 if (errors.size() >= 6) {

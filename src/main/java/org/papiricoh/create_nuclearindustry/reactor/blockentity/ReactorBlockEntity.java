@@ -47,6 +47,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private static final int TANK_CAPACITY = 16_000;
     private static final int MAX_COOLANT_PER_TICK = 80;
     private static final int MAX_STEAM_PER_TICK = 80;
+    // Balance parameters for external coolant heat removal.
+    private static final double WATER_COOLING_PER_MB = 0.225;
+    private static final double HEAVY_WATER_COOLING_PER_MB = 0.35;
+    private static final double WATER_MODERATION_PER_MB = 0.001;
+    private static final double HEAVY_WATER_MODERATION_PER_MB = 0.003;
     private static final int CONTROL_ROD_SCAN_INTERVAL = 5;
     private static final int LOAD_MELTDOWN_GRACE_TICKS = 200;
     private static final int MELTDOWN_CONFIRM_TICKS = 200;
@@ -295,8 +300,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
 
         steamTank.fill(new FluidStack(produced.getFluid(), drained.getAmount()), IFluidHandler.FluidAction.EXECUTE);
-        double cooling = drained.getAmount() * (heavy ? 0.70 : 0.45);
-        double moderation = heavy ? drained.getAmount() * 0.003 : drained.getAmount() * 0.001;
+        double cooling = drained.getAmount() * (heavy ? HEAVY_WATER_COOLING_PER_MB : WATER_COOLING_PER_MB);
+        double moderation = drained.getAmount() * (heavy ? HEAVY_WATER_MODERATION_PER_MB : WATER_MODERATION_PER_MB);
         physicsSimulator.applyExternalCooling(cooling, moderation);
     }
 
