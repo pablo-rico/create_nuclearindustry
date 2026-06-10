@@ -1,6 +1,104 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "credit": "Create: Nuclear Industry",
+  "parent": "minecraft:block/block",
   "textures": {
-    "all": "create_nuclearindustry:block/reactor_casing"
-  }
+    "body": "create_nuclearindustry:block/nuclear_bomb_body",
+    "top": "create_nuclearindustry:block/nuclear_bomb_top",
+    "panel": "create_nuclearindustry:block/nuclear_bomb_panel",
+    "particle": "create_nuclearindustry:block/nuclear_bomb_body"
+  },
+  "elements": [
+    {
+      "from": [2, 1, 2],
+      "to": [14, 13, 14],
+      "faces": {
+        "north": { "uv": [2, 3, 14, 15], "texture": "#body" },
+        "east": { "uv": [2, 3, 14, 15], "texture": "#body" },
+        "south": { "uv": [2, 3, 14, 15], "texture": "#body" },
+        "west": { "uv": [2, 3, 14, 15], "texture": "#body" },
+        "up": { "uv": [2, 2, 14, 14], "texture": "#top" },
+        "down": { "uv": [2, 2, 14, 14], "texture": "#body" }
+      }
+    },
+    {
+      "from": [3, 13, 3],
+      "to": [13, 15, 13],
+      "faces": {
+        "north": { "uv": [3, 1, 13, 3], "texture": "#body" },
+        "east": { "uv": [3, 1, 13, 3], "texture": "#body" },
+        "south": { "uv": [3, 1, 13, 3], "texture": "#body" },
+        "west": { "uv": [3, 1, 13, 3], "texture": "#body" },
+        "up": { "uv": [3, 3, 13, 13], "texture": "#top" },
+        "down": { "uv": [3, 3, 13, 13], "texture": "#top" }
+      }
+    },
+    {
+      "from": [5, 15, 5],
+      "to": [11, 16, 11],
+      "faces": {
+        "north": { "uv": [5, 0, 11, 1], "texture": "#top" },
+        "east": { "uv": [5, 0, 11, 1], "texture": "#top" },
+        "south": { "uv": [5, 0, 11, 1], "texture": "#top" },
+        "west": { "uv": [5, 0, 11, 1], "texture": "#top" },
+        "up": { "uv": [5, 5, 11, 11], "texture": "#top" },
+        "down": { "uv": [5, 5, 11, 11], "texture": "#top" }
+      }
+    },
+    {
+      "from": [4, 4, 1],
+      "to": [12, 10, 2],
+      "faces": {
+        "north": { "uv": [4, 4, 12, 10], "texture": "#panel" },
+        "east": { "uv": [0, 4, 1, 10], "texture": "#panel" },
+        "south": { "uv": [4, 4, 12, 10], "texture": "#panel" },
+        "west": { "uv": [15, 4, 16, 10], "texture": "#panel" },
+        "up": { "uv": [4, 0, 12, 1], "texture": "#panel" },
+        "down": { "uv": [4, 15, 12, 16], "texture": "#panel" }
+      }
+    },
+    {
+      "from": [3, 0, 3],
+      "to": [5, 1, 5],
+      "faces": {
+        "north": { "uv": [3, 14, 5, 15], "texture": "#body" },
+        "east": { "uv": [3, 14, 5, 15], "texture": "#body" },
+        "south": { "uv": [3, 14, 5, 15], "texture": "#body" },
+        "west": { "uv": [3, 14, 5, 15], "texture": "#body" },
+        "down": { "uv": [3, 3, 5, 5], "texture": "#body" }
+      }
+    },
+    {
+      "from": [11, 0, 3],
+      "to": [13, 1, 5],
+      "faces": {
+        "north": { "uv": [11, 14, 13, 15], "texture": "#body" },
+        "east": { "uv": [11, 14, 13, 15], "texture": "#body" },
+        "south": { "uv": [11, 14, 13, 15], "texture": "#body" },
+        "west": { "uv": [11, 14, 13, 15], "texture": "#body" },
+        "down": { "uv": [11, 3, 13, 5], "texture": "#body" }
+      }
+    },
+    {
+      "from": [3, 0, 11],
+      "to": [5, 1, 13],
+      "faces": {
+        "north": { "uv": [3, 14, 5, 15], "texture": "#body" },
+        "east": { "uv": [3, 14, 5, 15], "texture": "#body" },
+        "south": { "uv": [3, 14, 5, 15], "texture": "#body" },
+        "west": { "uv": [3, 14, 5, 15], "texture": "#body" },
+        "down": { "uv": [3, 11, 5, 13], "texture": "#body" }
+      }
+    },
+    {
+      "from": [11, 0, 11],
+      "to": [13, 1, 13],
+      "faces": {
+        "north": { "uv": [11, 14, 13, 15], "texture": "#body" },
+        "east": { "uv": [11, 14, 13, 15], "texture": "#body" },
+        "south": { "uv": [11, 14, 13, 15], "texture": "#body" },
+        "west": { "uv": [11, 14, 13, 15], "texture": "#body" },
+        "down": { "uv": [11, 11, 13, 13], "texture": "#body" }
+      }
+    }
+  ]
 }

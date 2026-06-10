@@ -149,13 +149,15 @@ tasks.named('processResources', ProcessResources).configure {
 
 // Example for how to get properties into the manifest for reading at runtime.
 tasks.named('jar', Jar).configure {
+    archiveFileName = "${mod_id}_${minecraft_version}_${mod_version}.jar"
+
     manifest {
         attributes([
                 "Specification-Title": mod_id,
                 "Specification-Vendor": mod_authors,
-                "Specification-Version": "1", // We are version 1 of ourselves
+                "Specification-Version": mod_version,
                 "Implementation-Title": project.name,
-                "Implementation-Version": project.jar.archiveVersion,
+                "Implementation-Version": mod_version,
                 "Implementation-Vendor": mod_authors,
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])

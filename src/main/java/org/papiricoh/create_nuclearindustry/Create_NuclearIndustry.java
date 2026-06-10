@@ -144,6 +144,8 @@ public class Create_NuclearIndustry {
         public static void onRegisterRenderers(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
             event.registerEntityRenderer(AllNuclearEntities.MISSILE.get(),
                     org.papiricoh.create_nuclearindustry.missile.client.MissileRenderer::new);
+            event.registerBlockEntityRenderer(AllNuclearEntities.LAUNCH_PAD.get(),
+                    org.papiricoh.create_nuclearindustry.missile.client.LaunchPadRenderer::new);
         }
 
         @SubscribeEvent

@@ -3,7 +3,6 @@ package org.papiricoh.create_nuclearindustry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -16,7 +15,6 @@ public class AllCreativeTabs {
 
 
     public static final DeferredHolder<CreativeModeTab, ? extends CreativeModeTab> NUCLEAR_TAB = CREATIVE_MODE_TABS.register("nuclear_tab", () -> CreativeModeTab.builder()
-            .withTabsBefore(CreativeModeTabs.COMBAT)
             .title(Component.translatable("itemGroup.create_nuclearindustry.nuclear_tab"))
             .icon(() -> AllNuclearItems.RAW_URANIUM.value().getDefaultInstance())
             .displayItems((parameters, output) -> {
