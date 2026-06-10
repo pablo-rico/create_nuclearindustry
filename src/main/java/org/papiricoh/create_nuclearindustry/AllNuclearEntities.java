@@ -11,6 +11,11 @@ import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlo
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 import org.papiricoh.create_nuclearindustry.fluids.blockentity.DualFluidPipeBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFluidPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFuelInjectorBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionMagnetInputBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionPlasmaTurbineBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFuelPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFluidPortBlockEntity;
@@ -81,6 +86,37 @@ public class AllNuclearEntities {
             ENTITIES.register("launch_pad", () -> BlockEntityType.Builder.of(
                     LaunchPadBlockEntity::new,
                     AllNuclearBlocks.LAUNCH_PAD.get()
+            ).build(null));
+
+    // ---- Fusion reactor block entities ----
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FusionReactorBlockEntity>> FUSION_CONTROLLER =
+            ENTITIES.register("fusion_controller", () -> BlockEntityType.Builder.of(
+                    FusionReactorBlockEntity::new,
+                    AllNuclearBlocks.FUSION_CONTROLLER.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FusionFluidPortBlockEntity>> FUSION_FLUID_PORT =
+            ENTITIES.register("fusion_fluid_port", () -> BlockEntityType.Builder.of(
+                    FusionFluidPortBlockEntity::new,
+                    AllNuclearBlocks.FUSION_FLUID_PORT.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FusionFuelInjectorBlockEntity>> FUSION_FUEL_INJECTOR =
+            ENTITIES.register("fusion_fuel_injector", () -> BlockEntityType.Builder.of(
+                    FusionFuelInjectorBlockEntity::new,
+                    AllNuclearBlocks.FUSION_FUEL_INJECTOR.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FusionMagnetInputBlockEntity>> FUSION_MAGNET_INPUT =
+            ENTITIES.register("fusion_magnet_input", () -> BlockEntityType.Builder.of(
+                    FusionMagnetInputBlockEntity::new,
+                    AllNuclearBlocks.FUSION_MAGNET_INPUT.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FusionPlasmaTurbineBlockEntity>> FUSION_PLASMA_TURBINE =
+            ENTITIES.register("fusion_plasma_turbine", () -> BlockEntityType.Builder.of(
+                    FusionPlasmaTurbineBlockEntity::new,
+                    AllNuclearBlocks.FUSION_PLASMA_TURBINE.get()
             ).build(null));
 
     // Entidades (no block-entities): el misil ICBM volador.

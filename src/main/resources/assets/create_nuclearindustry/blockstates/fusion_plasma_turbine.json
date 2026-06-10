@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_nuclearindustry:block/fusion_plasma_turbine"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/fusion_plasma_turbine",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "create_nuclearindustry:block/fusion_plasma_turbine",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/fusion_plasma_turbine",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "create_nuclearindustry:block/fusion_plasma_turbine",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "create_nuclearindustry:block/fusion_plasma_turbine",
+      "x": 90
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CSC",
+    "SIS",
+    "CSC"
+  ],
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "S": {
+      "item": "create:andesite_alloy"
+    },
+    "I": {
+      "item": "create_nuclearindustry:reactor_casing"
+    }
+  },
+  "result": {
+    "id": "create_nuclearindustry:fusion_accelerator_segment",
+    "count": 2
+  }
+}

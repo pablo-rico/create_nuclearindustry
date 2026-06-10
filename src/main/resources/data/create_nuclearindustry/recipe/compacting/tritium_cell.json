@@ -1,0 +1,22 @@
+{
+  "type": "create:compacting",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:lithium_6_breeder_assembly"
+    },
+    {
+      "item": "create_nuclearindustry:depleted_uranium_reactor_fuel"
+    },
+    {
+      "item": "create:copper_sheet"
+    }
+  ],
+  "processing_time": 1000,
+  "results": [
+    {
+      "id": "create_nuclearindustry:tritium_cell",
+      "count": 1
+    }
+  ]
+}

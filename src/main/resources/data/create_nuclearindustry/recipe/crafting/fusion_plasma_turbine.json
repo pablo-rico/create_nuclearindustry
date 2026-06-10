@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BTB",
+    "TST",
+    "BRB"
+  ],
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "T": {
+      "item": "create_nuclearindustry:turbine_rotor"
+    },
+    "S": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    },
+    "R": {
+      "item": "create_nuclearindustry:turbine_output"
+    }
+  },
+  "result": {
+    "id": "create_nuclearindustry:fusion_plasma_turbine",
+    "count": 1
+  }
+}

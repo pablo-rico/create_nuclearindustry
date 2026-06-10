@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "ISI",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "S": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    }
+  },
+  "result": {
+    "id": "create_nuclearindustry:fusion_cryostat_casing",
+    "count": 2
+  }
+}

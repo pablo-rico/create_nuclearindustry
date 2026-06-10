@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:boron"
+    },
+    {
+      "item": "create_nuclearindustry:boron"
+    },
+    {
+      "item": "create:copper_sheet"
+    }
+  ],
+  "result": {
+    "id": "create_nuclearindustry:beryllium",
+    "count": 1
+  }
+}

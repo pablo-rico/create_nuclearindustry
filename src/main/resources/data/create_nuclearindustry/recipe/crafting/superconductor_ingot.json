@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " B ",
+    "ECE",
+    " B "
+  ],
+  "key": {
+    "B": {
+      "item": "create_nuclearindustry:beryllium"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "C": {
+      "item": "create:copper_sheet"
+    }
+  },
+  "result": {
+    "id": "create_nuclearindustry:superconductor_ingot",
+    "count": 1
+  }
+}

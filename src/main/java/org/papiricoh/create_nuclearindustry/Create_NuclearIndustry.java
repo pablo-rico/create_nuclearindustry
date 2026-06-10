@@ -25,6 +25,7 @@ import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManag
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.NuclearPonderPlugin;
 import org.papiricoh.create_nuclearindustry.integration.cbc.CBCNuclearIntegration;
 import org.papiricoh.create_nuclearindustry.reactor.event.ReactorBlockChangeHandler;
+import org.papiricoh.create_nuclearindustry.fusion.event.FusionBlockChangeHandler;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -99,6 +100,13 @@ public class Create_NuclearIndustry {
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockToolModification);
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onExplosionDetonate);
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onChunkUnload);
+        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onBlockBreak);
+        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onBlockPlace);
+        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onBlockMultiPlace);
+        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onNeighborNotify);
+        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onFluidPlaceBlock);
+        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onExplosionDetonate);
+        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onChunkUnload);
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onLevelTick);
         NeoForge.EVENT_BUS.addListener(NuclearExplosionSoundManager::onLevelTick);
 

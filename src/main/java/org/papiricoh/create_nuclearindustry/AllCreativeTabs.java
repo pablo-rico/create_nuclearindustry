@@ -49,6 +49,25 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.LAUNCH_PAD.value());
                 output.accept(AllNuclearItems.MISSILE.value());
                 output.accept(AllNuclearItems.TARGET_DESIGNATOR.value());
+                // Fusion reactor
+                output.accept(AllNuclearItems.FUSION_CONTROLLER.value());
+                output.accept(AllNuclearItems.FUSION_ACCELERATOR_SEGMENT.value());
+                output.accept(AllNuclearItems.FUSION_ACCELERATOR_CORNER.value());
+                output.accept(AllNuclearItems.FUSION_ELECTROMAGNET.value());
+                output.accept(AllNuclearItems.FUSION_CRYOSTAT_CASING.value());
+                output.accept(AllNuclearItems.FUSION_MAGNET_INPUT.value());
+                output.accept(AllNuclearItems.FUSION_FLUID_PORT.value());
+                output.accept(AllNuclearItems.FUSION_FUEL_INJECTOR.value());
+                output.accept(AllNuclearItems.FUSION_PLASMA_TURBINE.value());
+                output.accept(AllNuclearItems.LITHIUM.value());
+                output.accept(AllNuclearItems.LITHIUM_6.value());
+                output.accept(AllNuclearItems.BERYLLIUM.value());
+                output.accept(AllNuclearItems.SUPERCONDUCTOR_INGOT.value());
+                output.accept(AllNuclearItems.LITHIUM_6_BREEDER_ASSEMBLY.value());
+                output.accept(AllNuclearItems.DEUTERIUM_CELL.value());
+                output.accept(AllNuclearItems.TRITIUM_CELL.value());
+                output.accept(AllNuclearItems.DT_FUEL_PELLET.value());
+                output.accept(AllNuclearItems.SPENT_DT_PELLET.value());
                 CBCNuclearIntegration.addCreativeItems(output);
             }).build());
 

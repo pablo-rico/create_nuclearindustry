@@ -8,6 +8,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.enrichment.block.CentrifugeBlock;
 import org.papiricoh.create_nuclearindustry.explosive.block.NuclearBombBlock;
+import org.papiricoh.create_nuclearindustry.fusion.block.FusionFluidPortBlock;
+import org.papiricoh.create_nuclearindustry.fusion.block.FusionFuelInjectorBlock;
+import org.papiricoh.create_nuclearindustry.fusion.block.FusionMagnetInputBlock;
+import org.papiricoh.create_nuclearindustry.fusion.block.FusionPlasmaTurbineBlock;
+import org.papiricoh.create_nuclearindustry.fusion.block.FusionReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.fluids.block.DualFluidPipeBlock;
 import org.papiricoh.create_nuclearindustry.missile.block.LaunchPadBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ControlRodBlock;
@@ -53,7 +58,16 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> NUCLEAR_BOMB = BLOCKS.register("nuclear_bomb", () -> new NuclearBombBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0f, 12.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> LAUNCH_PAD = BLOCKS.register("launch_pad", () -> new LaunchPadBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0f, 12.0f).noOcclusion()));
 
-
+    // ---- Fusion reactor (independent ring multiblock) ----
+    public static final DeferredHolder<Block, ? extends Block> FUSION_CONTROLLER = BLOCKS.register("fusion_controller", () -> new FusionReactorControllerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_BLUE).strength(4.0f, 8.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_ACCELERATOR_SEGMENT = BLOCKS.register("fusion_accelerator_segment", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f)));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_ACCELERATOR_CORNER = BLOCKS.register("fusion_accelerator_corner", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f)));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_ELECTROMAGNET = BLOCKS.register("fusion_electromagnet", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLUE).strength(3.0f, 6.0f)));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_CRYOSTAT_CASING = BLOCKS.register("fusion_cryostat_casing", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.SNOW).strength(3.0f, 6.0f)));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_MAGNET_INPUT = BLOCKS.register("fusion_magnet_input", () -> new FusionMagnetInputBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLUE).strength(3.0f, 6.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_FLUID_PORT = BLOCKS.register("fusion_fluid_port", () -> new FusionFluidPortBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_FUEL_INJECTOR = BLOCKS.register("fusion_fuel_injector", () -> new FusionFuelInjectorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_PLASMA_TURBINE = BLOCKS.register("fusion_plasma_turbine", () -> new FusionPlasmaTurbineBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
 
 
     public static void init() {}

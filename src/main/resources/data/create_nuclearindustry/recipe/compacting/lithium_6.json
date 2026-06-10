@@ -1,0 +1,28 @@
+{
+  "type": "create:compacting",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create:precision_mechanism"
+    }
+  ],
+  "processing_time": 1200,
+  "results": [
+    {
+      "id": "create_nuclearindustry:lithium_6",
+      "count": 1
+    }
+  ]
+}

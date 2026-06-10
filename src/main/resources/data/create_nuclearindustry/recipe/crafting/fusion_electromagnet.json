@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SCS",
+    "CIC",
+    "SCS"
+  ],
+  "key": {
+    "S": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    },
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "I": {
+      "item": "create_nuclearindustry:fusion_accelerator_segment"
+    }
+  },
+  "result": {
+    "id": "create_nuclearindustry:fusion_electromagnet",
+    "count": 1
+  }
+}

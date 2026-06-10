@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    "CEC",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "E": {
+      "item": "create_nuclearindustry:beryllium"
+    }
+  },
+  "result": {
+    "id": "create_nuclearindustry:deuterium_cell",
+    "count": 1
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:borax_salt"
+    },
+    {
+      "item": "create_nuclearindustry:borax_salt"
+    },
+    {
+      "item": "create_nuclearindustry:borax_salt"
+    }
+  ],
+  "result": {
+    "id": "create_nuclearindustry:lithium",
+    "count": 1
+  }
+}

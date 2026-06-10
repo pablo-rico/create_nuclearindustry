@@ -52,10 +52,31 @@ public class AllNuclearFluids {
         @Override public int getTintColor() { return 0xB07C9CFF; }
     };
 
+    private static final IClientFluidTypeExtensions DEUTERIUM_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
+        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
+        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
+        @Override public int getTintColor() { return 0xB05CD6FF; }
+    };
+
+    private static final IClientFluidTypeExtensions TRITIUM_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
+        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
+        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
+        @Override public int getTintColor() { return 0xB0FF66AA; }
+    };
+
+    private static final IClientFluidTypeExtensions PLASMA_STEAM_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
+        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
+        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
+        @Override public int getTintColor() { return 0xC0FFD27C; }
+    };
+
     public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
         event.registerFluidType(STEAM_CLIENT_EXTENSIONS, STEAM_TYPE.get());
         event.registerFluidType(HEAVY_WATER_CLIENT_EXTENSIONS, HEAVY_WATER_TYPE.get());
         event.registerFluidType(HEAVY_STEAM_CLIENT_EXTENSIONS, HEAVY_STEAM_TYPE.get());
+        event.registerFluidType(DEUTERIUM_CLIENT_EXTENSIONS, DEUTERIUM_TYPE.get());
+        event.registerFluidType(TRITIUM_CLIENT_EXTENSIONS, TRITIUM_TYPE.get());
+        event.registerFluidType(PLASMA_STEAM_CLIENT_EXTENSIONS, PLASMA_STEAM_TYPE.get());
     }
 
     // --------------------------------------------------------------------------------------------
@@ -100,6 +121,45 @@ public class AllNuclearFluids {
             )
     );
 
+    public static final Supplier<FluidType> DEUTERIUM_TYPE = FLUID_TYPES.register("deuterium", () ->
+            new FluidType(FluidType.Properties.create()
+                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".deuterium")
+                    .density(-90)
+                    .viscosity(80)
+                    .temperature(300)
+                    .lightLevel(0)
+                    .canDrown(false)
+                    .canSwim(false)
+                    .supportsBoating(false)
+            )
+    );
+
+    public static final Supplier<FluidType> TRITIUM_TYPE = FLUID_TYPES.register("tritium", () ->
+            new FluidType(FluidType.Properties.create()
+                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".tritium")
+                    .density(-85)
+                    .viscosity(80)
+                    .temperature(300)
+                    .lightLevel(2)
+                    .canDrown(false)
+                    .canSwim(false)
+                    .supportsBoating(false)
+            )
+    );
+
+    public static final Supplier<FluidType> PLASMA_STEAM_TYPE = FLUID_TYPES.register("plasma_steam", () ->
+            new FluidType(FluidType.Properties.create()
+                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".plasma_steam")
+                    .density(-70)
+                    .viscosity(120)
+                    .temperature(500)
+                    .lightLevel(6)
+                    .canDrown(false)
+                    .canSwim(false)
+                    .supportsBoating(false)
+            )
+    );
+
     // -------------------- Fluids --------------------
     public static final Supplier<FlowingFluid> STEAM = FLUIDS.register(
             "steam",
@@ -131,6 +191,33 @@ public class AllNuclearFluids {
             () -> new BaseFlowingFluid.Flowing(heavySteamProps())
     );
 
+    public static final Supplier<FlowingFluid> DEUTERIUM = FLUIDS.register(
+            "deuterium",
+            () -> new BaseFlowingFluid.Source(deuteriumProps())
+    );
+    public static final Supplier<FlowingFluid> FLOWING_DEUTERIUM = FLUIDS.register(
+            "flowing_deuterium",
+            () -> new BaseFlowingFluid.Flowing(deuteriumProps())
+    );
+
+    public static final Supplier<FlowingFluid> TRITIUM = FLUIDS.register(
+            "tritium",
+            () -> new BaseFlowingFluid.Source(tritiumProps())
+    );
+    public static final Supplier<FlowingFluid> FLOWING_TRITIUM = FLUIDS.register(
+            "flowing_tritium",
+            () -> new BaseFlowingFluid.Flowing(tritiumProps())
+    );
+
+    public static final Supplier<FlowingFluid> PLASMA_STEAM = FLUIDS.register(
+            "plasma_steam",
+            () -> new BaseFlowingFluid.Source(plasmaSteamProps())
+    );
+    public static final Supplier<FlowingFluid> FLOWING_PLASMA_STEAM = FLUIDS.register(
+            "flowing_plasma_steam",
+            () -> new BaseFlowingFluid.Flowing(plasmaSteamProps())
+    );
+
     // -------------------- Bloque y cubo (opcionales) --------------------
     public static final Supplier<LiquidBlock> STEAM_BLOCK = BLOCKS.register(
             "steam",
@@ -155,6 +242,42 @@ public class AllNuclearFluids {
     private static BaseFlowingFluid.Properties steamProps; // no final a propósito
     private static BaseFlowingFluid.Properties heavyWaterProps;
     private static BaseFlowingFluid.Properties heavySteamProps;
+    private static BaseFlowingFluid.Properties deuteriumProps;
+    private static BaseFlowingFluid.Properties tritiumProps;
+    private static BaseFlowingFluid.Properties plasmaSteamProps;
+
+    private static BaseFlowingFluid.Properties deuteriumProps() {
+        if (deuteriumProps == null) {
+            deuteriumProps = new BaseFlowingFluid.Properties(DEUTERIUM_TYPE, DEUTERIUM, FLOWING_DEUTERIUM)
+                    .slopeFindDistance(2)
+                    .levelDecreasePerBlock(1)
+                    .tickRate(5)
+                    .explosionResistance(100f);
+        }
+        return deuteriumProps;
+    }
+
+    private static BaseFlowingFluid.Properties tritiumProps() {
+        if (tritiumProps == null) {
+            tritiumProps = new BaseFlowingFluid.Properties(TRITIUM_TYPE, TRITIUM, FLOWING_TRITIUM)
+                    .slopeFindDistance(2)
+                    .levelDecreasePerBlock(1)
+                    .tickRate(5)
+                    .explosionResistance(100f);
+        }
+        return tritiumProps;
+    }
+
+    private static BaseFlowingFluid.Properties plasmaSteamProps() {
+        if (plasmaSteamProps == null) {
+            plasmaSteamProps = new BaseFlowingFluid.Properties(PLASMA_STEAM_TYPE, PLASMA_STEAM, FLOWING_PLASMA_STEAM)
+                    .slopeFindDistance(2)
+                    .levelDecreasePerBlock(1)
+                    .tickRate(5)
+                    .explosionResistance(100f);
+        }
+        return plasmaSteamProps;
+    }
 
     private static BaseFlowingFluid.Properties steamProps() {
         if (steamProps == null) {

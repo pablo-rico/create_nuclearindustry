@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CPC",
+    "P P",
+    "CPC"
+  ],
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "P": {
+      "item": "create_nuclearindustry:fusion_accelerator_segment"
+    }
+  },
+  "result": {
+    "id": "create_nuclearindustry:fusion_fluid_port",
+    "count": 1
+  }
+}

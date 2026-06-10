@@ -30,4 +30,21 @@ public final class NuclearFluidHelper {
     public static boolean isTurbineSteam(FluidStack stack) {
         return isSteam(stack) || isHeavySteam(stack);
     }
+
+    public static boolean isDeuterium(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.DEUTERIUM.get();
+    }
+
+    public static boolean isTritium(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.TRITIUM.get();
+    }
+
+    public static boolean isPlasmaSteam(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.PLASMA_STEAM.get();
+    }
+
+    /** Working fluid accepted by the fusion plasma turbine. */
+    public static boolean isPlasmaTurbineFluid(FluidStack stack) {
+        return isPlasmaSteam(stack);
+    }
 }

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "on=true,ignited=true": {
+      "model": "create_nuclearindustry:block/fusion_controller_ignited"
+    },
+    "on=true,ignited=false": {
+      "model": "create_nuclearindustry:block/fusion_controller_on"
+    },
+    "on=false,ignited=true": {
+      "model": "create_nuclearindustry:block/fusion_controller_ignited"
+    },
+    "on=false,ignited=false": {
+      "model": "create_nuclearindustry:block/fusion_controller_off"
+    }
+  }
+}

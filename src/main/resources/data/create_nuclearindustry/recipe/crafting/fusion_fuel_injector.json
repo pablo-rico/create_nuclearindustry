@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IPI",
+    "PMP",
+    "IPI"
+  ],
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "P": {
+      "item": "create_nuclearindustry:fusion_accelerator_segment"
+    },
+    "M": {
+      "item": "create:mechanical_piston"
+    }
+  },
+  "result": {
+    "id": "create_nuclearindustry:fusion_fuel_injector",
+    "count": 1
+  }
+}

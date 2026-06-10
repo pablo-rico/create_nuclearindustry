@@ -1,0 +1,22 @@
+{
+  "type": "create:compacting",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:deuterium_cell"
+    },
+    {
+      "item": "create_nuclearindustry:tritium_cell"
+    },
+    {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    }
+  ],
+  "processing_time": 1200,
+  "results": [
+    {
+      "id": "create_nuclearindustry:dt_fuel_pellet",
+      "count": 1
+    }
+  ]
+}

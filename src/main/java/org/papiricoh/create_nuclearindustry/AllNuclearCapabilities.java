@@ -36,5 +36,24 @@ public class AllNuclearCapabilities {
                 AllNuclearEntities.TURBINE_FLUID_PORT.get(),
                 (port, direction) -> port.getFluidHandler(direction)
         );
+
+        // ---- Fusion reactor ----
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                AllNuclearEntities.FUSION_FLUID_PORT.get(),
+                (port, direction) -> port.getFluidHandler(direction)
+        );
+
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                AllNuclearEntities.FUSION_FUEL_INJECTOR.get(),
+                (port, direction) -> port.getItemHandler(direction)
+        );
+
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                AllNuclearEntities.FUSION_PLASMA_TURBINE.get(),
+                (turbine, direction) -> turbine.getFluidHandler(direction)
+        );
     }
 }

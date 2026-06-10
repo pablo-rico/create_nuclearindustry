@@ -1,0 +1,25 @@
+{
+  "type": "create:compacting",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:lithium_6"
+    },
+    {
+      "item": "create_nuclearindustry:lithium_6"
+    },
+    {
+      "item": "create_nuclearindustry:beryllium"
+    },
+    {
+      "item": "create_nuclearindustry:reactor_casing"
+    }
+  ],
+  "processing_time": 800,
+  "results": [
+    {
+      "id": "create_nuclearindustry:lithium_6_breeder_assembly",
+      "count": 1
+    }
+  ]
+}

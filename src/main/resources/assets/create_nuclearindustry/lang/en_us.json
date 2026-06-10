@@ -8,12 +8,6 @@
   "item.create_nuclearindustry.weapons_grade_uranium_core": "Weapons-Grade Uranium Core",
   "item.create_nuclearindustry.borax_salt": "Borax Salt",
   "item.create_nuclearindustry.boron": "Boron",
-
-
-
-
-
-
   "block.create_nuclearindustry.uranium_ore": "Uranium Ore",
   "block.create_nuclearindustry.control_rod": "Control Rod",
   "block.create_nuclearindustry.uranium_rod": "Uranium Rod",
@@ -40,8 +34,6 @@
   "item.create_nuclearindustry.target_designator.empty": "No target set (right-click a block)",
   "entity.create_nuclearindustry.missile": "Nuclear Missile",
   "subtitle.create_nuclearindustry.nuclear_explosion": "Nuclear explosion",
-
-
   "block.create_nuclearindustry.borax_ore": "Borax Ore",
   "fluid.create_nuclearindustry.steam": "Steam",
   "fluid.create_nuclearindustry.heavy_water": "Heavy Water",
@@ -52,7 +44,6 @@
   "jei.create_nuclearindustry.centrifuging.enrichment": "Output enrichment: %s%%",
   "jei.create_nuclearindustry.centrifuging.required": "Use the Centrifuge to enrich Uranium. Reactor fuel blend requires Uranium at 20%% or higher.",
   "jei.create_nuclearindustry.enriched_blend.info": "Crafted from 4 Uranium stacks enriched to 20%% or higher plus 1 Boron. Enriched Uranium is produced in the Centrifuge.",
-
   "create_nuclearindustry.ponder.centrifuge.header": "Processing uranium with a Centrifuge",
   "create_nuclearindustry.ponder.centrifuge.text_1": "The Centrifuge is a kinetic machine for refining uranium.",
   "create_nuclearindustry.ponder.centrifuge.text_2": "It accepts rotational power from any horizontal side.",
@@ -70,11 +61,43 @@
   "create_nuclearindustry.ponder.reactor_controller.text_8": "A Reactor Fuel Port loads uranium fuel and ejects depleted fuel.",
   "create_nuclearindustry.ponder.reactor_controller.text_9": "Cap the reactor and place the Reactor Controller at the centre of the top face.",
   "create_nuclearindustry.ponder.reactor_controller.text_10": "Right-click the controller to form the reactor.",
+  "create_nuclearindustry.ponder.fusion_controller.header": "Assembling a Fusion Reactor",
+  "create_nuclearindustry.ponder.fusion_controller.text_1": "Place the Fusion Reactor Core at the centre.",
+  "create_nuclearindustry.ponder.fusion_controller.text_2": "Use Accelerator Corners on all four corners.",
+  "create_nuclearindustry.ponder.fusion_controller.text_3": "Build an odd square ring: 5x5 to 11x11.",
+  "create_nuclearindustry.ponder.fusion_controller.text_4": "Keep the plasma chamber around the core empty.",
+  "create_nuclearindustry.ponder.fusion_controller.text_5": "More Electromagnets improve field stability.",
+  "create_nuclearindustry.ponder.fusion_controller.text_6": "Power a Magnet Drive with Create rotation.",
+  "create_nuclearindustry.ponder.fusion_controller.text_7": "Add an INPUT Fusion Fluid Port for coolant.",
+  "create_nuclearindustry.ponder.fusion_controller.text_8": "Add an OUTPUT Fusion Fluid Port for plasma steam.",
+  "create_nuclearindustry.ponder.fusion_controller.text_9": "The Fuel Injector loads D-T Fuel Pellets.",
+  "create_nuclearindustry.ponder.fusion_controller.text_10": "Right-click the core to form the reactor.",
   "create_nuclearindustry.ponder.turbine.header": "Assembling a Steam Turbine",
   "create_nuclearindustry.ponder.turbine.text_1": "The Steam Turbine turns steam into rotational power. Start with a Turbine Casing.",
   "create_nuclearindustry.ponder.turbine.text_2": "Place a Turbine Rotor in front of the casing, its axis along the line.",
   "create_nuclearindustry.ponder.turbine.text_3": "Cap the line with a Turbine Output facing outward: it generates the rotation for your machines.",
   "create_nuclearindustry.ponder.turbine.text_4": "Feed steam through a Turbine Fluid Port set to INPUT...",
   "create_nuclearindustry.ponder.turbine.text_5": "...and drain the condensate through another set to OUTPUT.",
-  "create_nuclearindustry.ponder.turbine.text_6": "With steam flowing, the turbine forms on its own and the output shaft powers your contraptions."
+  "create_nuclearindustry.ponder.turbine.text_6": "With steam flowing, the turbine forms on its own and the output shaft powers your contraptions.",
+  "block.create_nuclearindustry.fusion_controller": "Fusion Reactor Core",
+  "block.create_nuclearindustry.fusion_accelerator_segment": "Accelerator Segment",
+  "block.create_nuclearindustry.fusion_accelerator_corner": "Accelerator Corner",
+  "block.create_nuclearindustry.fusion_electromagnet": "Confinement Electromagnet",
+  "block.create_nuclearindustry.fusion_cryostat_casing": "Cryostat Casing",
+  "block.create_nuclearindustry.fusion_magnet_input": "Confinement Magnet Drive",
+  "block.create_nuclearindustry.fusion_fluid_port": "Fusion Fluid Port",
+  "block.create_nuclearindustry.fusion_fuel_injector": "Fusion Fuel Injector",
+  "block.create_nuclearindustry.fusion_plasma_turbine": "Plasma Turbine",
+  "item.create_nuclearindustry.lithium": "Lithium",
+  "item.create_nuclearindustry.lithium_6": "Lithium-6",
+  "item.create_nuclearindustry.beryllium": "Beryllium",
+  "item.create_nuclearindustry.superconductor_ingot": "Superconductor Ingot",
+  "item.create_nuclearindustry.lithium_6_breeder_assembly": "Lithium-6 Breeder Assembly",
+  "item.create_nuclearindustry.deuterium_cell": "Deuterium Cell",
+  "item.create_nuclearindustry.tritium_cell": "Tritium Cell",
+  "item.create_nuclearindustry.dt_fuel_pellet": "D-T Fuel Pellet",
+  "item.create_nuclearindustry.spent_dt_pellet": "Spent D-T Pellet",
+  "fluid.create_nuclearindustry.deuterium": "Deuterium",
+  "fluid.create_nuclearindustry.tritium": "Tritium",
+  "fluid.create_nuclearindustry.plasma_steam": "Plasma Steam"
 }

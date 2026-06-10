@@ -36,6 +36,28 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> NUCLEAR_BOMB = ITEMS.register("nuclear_bomb", () -> new BlockItem(AllNuclearBlocks.NUCLEAR_BOMB.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> LAUNCH_PAD = ITEMS.register("launch_pad", () -> new BlockItem(AllNuclearBlocks.LAUNCH_PAD.value(), new Item.Properties()));
 
+    // Fusion reactor blocks
+    public static final DeferredHolder<Item, ? extends Item> FUSION_CONTROLLER = ITEMS.register("fusion_controller", () -> new BlockItem(AllNuclearBlocks.FUSION_CONTROLLER.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_ACCELERATOR_SEGMENT = ITEMS.register("fusion_accelerator_segment", () -> new BlockItem(AllNuclearBlocks.FUSION_ACCELERATOR_SEGMENT.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_ACCELERATOR_CORNER = ITEMS.register("fusion_accelerator_corner", () -> new BlockItem(AllNuclearBlocks.FUSION_ACCELERATOR_CORNER.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_ELECTROMAGNET = ITEMS.register("fusion_electromagnet", () -> new BlockItem(AllNuclearBlocks.FUSION_ELECTROMAGNET.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_CRYOSTAT_CASING = ITEMS.register("fusion_cryostat_casing", () -> new BlockItem(AllNuclearBlocks.FUSION_CRYOSTAT_CASING.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_MAGNET_INPUT = ITEMS.register("fusion_magnet_input", () -> new BlockItem(AllNuclearBlocks.FUSION_MAGNET_INPUT.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_FLUID_PORT = ITEMS.register("fusion_fluid_port", () -> new BlockItem(AllNuclearBlocks.FUSION_FLUID_PORT.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_FUEL_INJECTOR = ITEMS.register("fusion_fuel_injector", () -> new BlockItem(AllNuclearBlocks.FUSION_FUEL_INJECTOR.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_PLASMA_TURBINE = ITEMS.register("fusion_plasma_turbine", () -> new BlockItem(AllNuclearBlocks.FUSION_PLASMA_TURBINE.value(), new Item.Properties()));
+
+    // Deuterium/Tritium crafting chain (very-late-game)
+    public static final DeferredHolder<Item, ? extends Item> LITHIUM = ITEMS.register("lithium", () -> new Item(new Item.Properties().stacksTo(64)));
+    public static final DeferredHolder<Item, ? extends Item> LITHIUM_6 = ITEMS.register("lithium_6", () -> new Item(new Item.Properties().stacksTo(64)));
+    public static final DeferredHolder<Item, ? extends Item> BERYLLIUM = ITEMS.register("beryllium", () -> new Item(new Item.Properties().stacksTo(64)));
+    public static final DeferredHolder<Item, ? extends Item> SUPERCONDUCTOR_INGOT = ITEMS.register("superconductor_ingot", () -> new Item(new Item.Properties().stacksTo(64)));
+    public static final DeferredHolder<Item, ? extends Item> LITHIUM_6_BREEDER_ASSEMBLY = ITEMS.register("lithium_6_breeder_assembly", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> DEUTERIUM_CELL = ITEMS.register("deuterium_cell", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> TRITIUM_CELL = ITEMS.register("tritium_cell", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> DT_FUEL_PELLET = ITEMS.register("dt_fuel_pellet", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> SPENT_DT_PELLET = ITEMS.register("spent_dt_pellet", () -> new Item(new Item.Properties().stacksTo(16)));
+
 
 
 

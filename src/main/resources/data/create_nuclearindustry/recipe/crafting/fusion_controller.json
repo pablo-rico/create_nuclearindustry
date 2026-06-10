@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EPE",
+    "SMS",
+    "ECE"
+  ],
+  "key": {
+    "E": {
+      "item": "create_nuclearindustry:fusion_electromagnet"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    },
+    "M": {
+      "item": "create_nuclearindustry:reactor_controller"
+    },
+    "C": {
+      "item": "create:copper_sheet"
+    }
+  },
+  "result": {
+    "id": "create_nuclearindustry:fusion_controller",
+    "count": 1
+  }
+}

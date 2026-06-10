@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " H ",
+    "SES",
+    " H "
+  ],
+  "key": {
+    "H": {
+      "item": "create:shaft"
+    },
+    "S": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    },
+    "E": {
+      "item": "create_nuclearindustry:fusion_electromagnet"
+    }
+  },
+  "result": {
+    "id": "create_nuclearindustry:fusion_magnet_input",
+    "count": 1
+  }
+}

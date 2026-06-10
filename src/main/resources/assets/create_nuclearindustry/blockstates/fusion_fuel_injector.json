@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_nuclearindustry:block/fusion_fuel_injector"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/fusion_fuel_injector",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "create_nuclearindustry:block/fusion_fuel_injector",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/fusion_fuel_injector",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "create_nuclearindustry:block/fusion_fuel_injector",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "create_nuclearindustry:block/fusion_fuel_injector",
+      "x": 90
+    }
+  }
+}

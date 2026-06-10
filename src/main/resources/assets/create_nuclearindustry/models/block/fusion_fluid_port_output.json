@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "create_nuclearindustry:block/fusion_fluid_port_output"
+  }
+}
