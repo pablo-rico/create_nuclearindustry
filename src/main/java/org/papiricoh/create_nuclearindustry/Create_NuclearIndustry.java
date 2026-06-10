@@ -93,6 +93,12 @@ public class Create_NuclearIndustry {
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockBreak);
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockPlace);
+        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockMultiPlace);
+        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onNeighborNotify);
+        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onFluidPlaceBlock);
+        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockToolModification);
+        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onExplosionDetonate);
+        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onChunkUnload);
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onLevelTick);
         NeoForge.EVENT_BUS.addListener(NuclearExplosionSoundManager::onLevelTick);
 

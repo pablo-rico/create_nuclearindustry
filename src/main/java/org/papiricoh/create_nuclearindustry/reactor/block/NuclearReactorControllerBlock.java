@@ -24,9 +24,6 @@ public class NuclearReactorControllerBlock extends BaseEntityBlock {
     public static final BooleanProperty ON = BooleanProperty.create("on");
     public static final MapCodec<NuclearReactorControllerBlock> CODEC = simpleCodec(NuclearReactorControllerBlock::new);
 
-    // Temporary storage for menu opening (used to pass data to client)
-    public static BlockPos lastReactorMenuPos = null;
-
     public NuclearReactorControllerBlock(Properties props) {
         super(props);
         this.registerDefaultState(this.stateDefinition.any().setValue(ON, false));
@@ -78,16 +75,17 @@ public class NuclearReactorControllerBlock extends BaseEntityBlock {
         if (level.getBlockEntity(pos) instanceof ReactorBlockEntity reactor) {
             reactor.attemptFormation(player);
 
-            // Store the reactor position so client can access it
-            lastReactorMenuPos = pos;
-
             // Force BlockEntity update to sync to client immediately
             reactor.setChanged();
             level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
 
             net.minecraft.network.chat.Component title = net.minecraft.network.chat.Component.literal("Reactor Control");
             var menuProvider = new org.papiricoh.create_nuclearindustry.reactor.gui.ReactorMenuProvider(pos, title);
-            player.openMenu(new net.minecraft.world.SimpleMenuProvider(menuProvider::createMenu, title));
+            player.openMenu(new net.minecraft.world.SimpleMenuProvider(menuProvider::createMenu, title),
+                    buf -> {
+                        buf.writeBlockPos(pos);
+                        org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlMenu.writeInitialData(buf, reactor);
+                    });
             return net.minecraft.world.InteractionResult.CONSUME;
         }
 

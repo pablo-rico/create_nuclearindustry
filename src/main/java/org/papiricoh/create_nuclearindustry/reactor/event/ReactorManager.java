@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.reactor.event;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 
@@ -34,6 +35,16 @@ public class ReactorManager {
     }
 
     /**
+     * Unregister all reactors from an unloading chunk.
+     */
+    public static void unregisterReactorsInChunk(Level level, ChunkPos chunkPos) {
+        if (level.isClientSide) return;
+        Map<BlockPos, ReactorBlockEntity> reactors = reactorsByLevel.get(level);
+        if (reactors == null) return;
+        reactors.entrySet().removeIf(entry -> new ChunkPos(entry.getKey()).equals(chunkPos));
+    }
+
+    /**
      * Get all reactors within range of a position (only checks registered reactors).
      */
     public static List<ReactorBlockEntity> getReactorsInRange(Level level, BlockPos center, int range) {
@@ -43,9 +54,19 @@ public class ReactorManager {
         Map<BlockPos, ReactorBlockEntity> reactors = reactorsByLevel.get(level);
         if (reactors == null) return result;
 
-        for (Map.Entry<BlockPos, ReactorBlockEntity> entry : reactors.entrySet()) {
+        Iterator<Map.Entry<BlockPos, ReactorBlockEntity>> iterator = reactors.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<BlockPos, ReactorBlockEntity> entry = iterator.next();
+            ReactorBlockEntity reactor = entry.getValue();
+            if (reactor == null
+                    || reactor.isRemoved()
+                    || reactor.getLevel() != level
+                    || level.getBlockEntity(entry.getKey()) != reactor) {
+                iterator.remove();
+                continue;
+            }
             if (entry.getKey().closerThan(center, range)) {
-                result.add(entry.getValue());
+                result.add(reactor);
             }
         }
         return result;

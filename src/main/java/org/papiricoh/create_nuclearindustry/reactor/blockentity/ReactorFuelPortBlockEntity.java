@@ -16,6 +16,7 @@ import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import org.papiricoh.create_nuclearindustry.reactor.event.ReactorManager;
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,12 +48,29 @@ public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGogg
     }
 
     public void notifyLinkedReactorChanged(Player player) {
+        Optional<BlockPos> previousLink = linkedReactor;
         linkedReactor = findLinkedReactor();
         ReactorBlockEntity reactor = getLinkedReactor();
         if (reactor != null) {
             reactor.requestStructureRevalidation(player);
+        } else if (previousLink.isPresent()
+                && level != null
+                && level.getBlockEntity(previousLink.get()) instanceof ReactorBlockEntity previousReactor) {
+            previousReactor.requestStructureRevalidation(player);
         } else if (player != null) {
             player.displayClientMessage(Component.literal("§cFuel port is not attached to a formed reactor shell"), false);
+        }
+    }
+
+    public void setLinkedController(BlockPos controllerPos) {
+        linkedReactor = Optional.of(controllerPos);
+        setChanged();
+    }
+
+    public void clearLinkedController(BlockPos controllerPos) {
+        if (linkedReactor.map(controllerPos::equals).orElse(false)) {
+            linkedReactor = Optional.empty();
+            setChanged();
         }
     }
 
@@ -62,18 +80,28 @@ public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGogg
             return null;
         }
         BlockEntity blockEntity = level.getBlockEntity(linkedReactor.get());
-        return blockEntity instanceof ReactorBlockEntity reactor ? reactor : null;
+        if (blockEntity instanceof ReactorBlockEntity reactor
+                && reactor.getStructure().map(structure -> structure.containsFuelPort(getBlockPos())).orElse(false)) {
+            return reactor;
+        }
+        linkedReactor = Optional.empty();
+        return null;
     }
 
     private Optional<BlockPos> findLinkedReactor() {
         if (level == null) {
             return Optional.empty();
         }
+        ReactorBlockEntity cached = getLinkedReactor();
+        if (cached != null) {
+            return Optional.of(cached.getBlockPos());
+        }
         return ReactorManager.getReactorsInRange(level, getBlockPos(), ReactorStructureValidator.MAX_WIDTH + ReactorStructureValidator.MAX_HEIGHT)
                 .stream()
                 .filter(reactor -> reactor.getStructure()
-                        .map(structure -> structure.fuelPorts.contains(getBlockPos()))
+                        .map(structure -> structure.containsFuelPort(getBlockPos()))
                         .orElse(false))
+                .sorted(Comparator.comparingLong(reactor -> reactor.getBlockPos().asLong()))
                 .map(ReactorBlockEntity::getBlockPos)
                 .findFirst();
     }

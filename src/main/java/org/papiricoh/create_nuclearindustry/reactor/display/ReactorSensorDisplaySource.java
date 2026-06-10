@@ -24,13 +24,20 @@ public class ReactorSensorDisplaySource extends DisplaySource {
         }
 
         ReactorBlockEntity linked = reactor.get();
+        ReactorBlockEntity.ReactorDisplaySnapshot snapshot = linked.getDisplaySnapshot();
+        if (!snapshot.formed()) {
+            return List.of(
+                    Component.literal("State: " + snapshot.statusDisplayName()),
+                    Component.literal("Missing: " + snapshot.validationMessage())
+            );
+        }
         return List.of(
-                Component.literal(String.format("Temp: %.0f C", linked.getCoreTemperature())),
-                Component.literal("Coolant: " + linked.getCoolantAmount() + "/" + linked.getTankCapacity() + " mB"),
-                Component.literal("Steam: " + linked.getSteamAmount() + "/" + linked.getTankCapacity() + " mB"),
-                Component.literal("State: " + linked.getReactorState().getDisplayName()),
-                Component.literal(String.format("Stress: %.0f%%", linked.getThermalStress())),
-                Component.literal("Rods: " + linked.getInsertedControlRodSegments() + "/" + linked.getExpectedControlRodSegments())
+                Component.literal(String.format("Temp: %.0f C", snapshot.coreTemperature())),
+                Component.literal("Coolant: " + snapshot.coolantAmount() + "/" + snapshot.tankCapacity() + " mB"),
+                Component.literal("Steam: " + snapshot.steamAmount() + "/" + snapshot.tankCapacity() + " mB"),
+                Component.literal("State: " + snapshot.state().getDisplayName()),
+                Component.literal(String.format("Stress: %.0f%%", snapshot.thermalStress())),
+                Component.literal("Rods: " + snapshot.insertedControlRodSegments() + "/" + snapshot.expectedControlRodSegments())
         );
     }
 

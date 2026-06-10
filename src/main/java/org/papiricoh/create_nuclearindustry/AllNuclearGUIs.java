@@ -3,6 +3,7 @@ package org.papiricoh.create_nuclearindustry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenu;
@@ -15,7 +16,12 @@ public class AllNuclearGUIs {
             DeferredRegister.create(Registries.MENU, Create_NuclearIndustry.MODID);
 
     public static final DeferredHolder<MenuType<?>, MenuType<ReactorControlMenu>> REACTOR_MENU =
-            MENUS.register("reactor_control", () -> new MenuType<ReactorControlMenu>((containerId, inventory) -> new ReactorControlMenu(containerId, inventory, null), FeatureFlags.DEFAULT_FLAGS));
+            MENUS.register("reactor_control", () -> IMenuTypeExtension.create(
+                    (containerId, inventory, buf) -> new ReactorControlMenu(
+                            containerId,
+                            inventory,
+                            buf.readBlockPos(),
+                            ReactorControlMenu.readInitialData(buf))));
 
     public static final DeferredHolder<MenuType<?>, MenuType<NuclearBombMenu>> NUCLEAR_BOMB_MENU =
             MENUS.register("nuclear_bomb", () -> new MenuType<NuclearBombMenu>((containerId, inventory) -> new NuclearBombMenu(containerId, inventory, null), FeatureFlags.DEFAULT_FLAGS));

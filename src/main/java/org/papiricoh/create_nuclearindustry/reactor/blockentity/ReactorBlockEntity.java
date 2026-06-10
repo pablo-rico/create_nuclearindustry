@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Clearable;
@@ -53,6 +54,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private static final double WATER_MODERATION_PER_MB = 0.001;
     private static final double HEAVY_WATER_MODERATION_PER_MB = 0.003;
     private static final int CONTROL_ROD_SCAN_INTERVAL = 5;
+    private static final int SCRAM_RECOVERY_SCAN_INTERVAL = 20;
+    private static final int AUTOMATIC_MESSAGE_COOLDOWN_TICKS = 100;
     private static final int LOAD_MELTDOWN_GRACE_TICKS = 200;
     private static final int MELTDOWN_CONFIRM_TICKS = 200;
     private static final float MELTDOWN_EXPLOSION_POWER = 80.0f;
@@ -69,11 +72,16 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private boolean pendingRevalidation = true;
     private int syncCounter;
     private int controlRodScanCounter;
+    private int scramRecoveryScanCounter;
     private int ticksSinceLoad;
     private int pendingDepletedFuel;
     private ControlRodTracker.ControlRodScan lastControlRodScan = ControlRodTracker.ControlRodScan.empty();
+    private ReactorDisplaySnapshot displaySnapshot = ReactorDisplaySnapshot.empty();
+    private boolean hasDisplaySnapshot;
     private Optional<UUID> ownerUUID = Optional.empty();
     private Player ownerPlayer;
+    private String lastAutomaticMessage = "";
+    private long lastAutomaticMessageGameTime = Long.MIN_VALUE;
 
     private final FluidTank coolantTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isCoolant) {
         @Override
@@ -133,13 +141,20 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 } else {
                     entity.status = ReactorStatus.SCRAMMED_HOT;
                     entity.physicsSimulator.forceScramForLoad();
-                    entity.sendPlayerMessage("§cReactor scrammed hot: meltdown protection active after load");
+                    entity.sendPlayerMessage("§cReactor scrammed hot: meltdown protection active after load", false);
                     entity.markDirtyAndSync();
                 }
                 return;
             }
         } else if (entity.status == ReactorStatus.SCRAMMED || entity.status == ReactorStatus.SCRAMMED_HOT) {
             entity.physicsSimulator.scramTick();
+            if (entity.currentStructure.isPresent() && entity.status == ReactorStatus.SCRAMMED_HOT && !entity.physicsSimulator.isMeltingDown()) {
+                entity.status = ReactorStatus.FORMED;
+                entity.markDirtyAndSync();
+            } else if (entity.currentStructure.isEmpty() && ++entity.scramRecoveryScanCounter >= SCRAM_RECOVERY_SCAN_INTERVAL) {
+                entity.scramRecoveryScanCounter = 0;
+                entity.revalidate(false, null);
+            }
             entity.updateControllerRunningState();
         }
 
@@ -201,10 +216,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
 
         ReactorStatus previousStatus = status;
-        ReactorStructureValidator.ReactorValidationResult result = ReactorStructureValidator.validate(level, getBlockPos());
+        ReactorStructureValidator.ReactorValidationResult result = ReactorStructureValidator.validate(level, getBlockPos(), currentStructure);
         lastValidation = result;
 
         if (result.formed() && result.structure().isPresent()) {
+            scramRecoveryScanCounter = 0;
             ReactorStructureValidator.ReactorStructure newStructure = result.structure().get();
             boolean structureChanged = currentStructure.isEmpty() || !sameStructure(currentStructure.get(), newStructure);
             boolean loadedStructureWithoutSnapshot = currentStructure.isEmpty()
@@ -217,28 +233,49 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 physicsSimulator = new ReactorPhysicsSimulator(newStructure.getUraniumRodCount(), newStructure.getControlRodCount());
             }
             updateControlRodInsertion(true);
+            linkStructureParts(newStructure);
             if (playerInitiated || previousStatus != ReactorStatus.FORMED) {
                 sendPlayerMessage(status == ReactorStatus.FORMED
                         ? "§2Reactor formed §8[" + newStructure.dimensionsText() + "]"
-                        : "§eReactor structure valid, scrammed hot after load");
+                        : "§eReactor structure valid, scrammed hot after load", playerInitiated);
+            }
+            markDirtyAndSync();
+            return;
+        }
+
+        if (isDynamicControlChannelFailure(result) && currentStructure.isPresent()) {
+            status = previousStatus == ReactorStatus.SCRAMMED_HOT ? ReactorStatus.SCRAMMED_HOT : ReactorStatus.FORMED;
+            updateControlRodInsertion(true);
+            linkStructureParts(currentStructure.get());
+            if (playerInitiated) {
+                sendPlayerMessage("§eReactor formed; control rod channel is occupied by moving rods", true);
             }
             markDirtyAndSync();
             return;
         }
 
         if (previousStatus == ReactorStatus.FORMED || previousStatus == ReactorStatus.SCRAMMED || previousStatus == ReactorStatus.SCRAMMED_HOT) {
+            currentStructure.ifPresent(this::clearStructureParts);
+            currentStructure = Optional.empty();
             status = ReactorStatus.SCRAMMED;
             physicsSimulator.setControlRodInsertion(1.0f);
-            sendPlayerMessage("§cReactor scrammed: " + result.primaryMessage());
+            if (playerInitiated || previousStatus != ReactorStatus.SCRAMMED) {
+                sendPlayerMessage("§cReactor scrammed: " + result.primaryMessage(), playerInitiated);
+            }
         } else {
             status = ReactorStatus.UNFORMED;
             currentStructure = Optional.empty();
             if (playerInitiated) {
-                sendPlayerMessage("§cReactor incomplete: " + result.primaryMessage());
+                sendPlayerMessage("§cReactor incomplete: " + result.primaryMessage(), true);
             }
         }
 
         markDirtyAndSync();
+    }
+
+    private boolean isDynamicControlChannelFailure(ReactorStructureValidator.ReactorValidationResult result) {
+        return !result.errors().isEmpty()
+                && result.errors().stream().allMatch(error -> error.startsWith("Control rod channel blocked at "));
     }
 
     private boolean sameStructure(ReactorStructureValidator.ReactorStructure oldStructure, ReactorStructureValidator.ReactorStructure newStructure) {
@@ -253,7 +290,52 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 && oldStructure.fuelPortCount == newStructure.fuelPortCount
                 && oldStructure.controlChannels.equals(newStructure.controlChannels)
                 && oldStructure.fluidPorts.equals(newStructure.fluidPorts)
-                && oldStructure.fuelPorts.equals(newStructure.fuelPorts);
+                && oldStructure.fuelPorts.equals(newStructure.fuelPorts)
+                && oldStructure.temperatureSensors.equals(newStructure.temperatureSensors);
+    }
+
+    private void linkStructureParts(ReactorStructureValidator.ReactorStructure structure) {
+        Level level = getLevel();
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        for (BlockPos portPos : structure.fluidPorts) {
+            if (level.getBlockEntity(portPos) instanceof ReactorFluidPortBlockEntity port) {
+                port.setLinkedController(getBlockPos());
+            }
+        }
+        for (BlockPos portPos : structure.fuelPorts) {
+            if (level.getBlockEntity(portPos) instanceof ReactorFuelPortBlockEntity port) {
+                port.setLinkedController(getBlockPos());
+            }
+        }
+        for (BlockPos sensorPos : structure.temperatureSensors) {
+            if (level.getBlockEntity(sensorPos) instanceof ReactorTemperatureSensorBlockEntity sensor) {
+                sensor.setLinkedController(getBlockPos());
+            }
+        }
+    }
+
+    private void clearStructureParts(ReactorStructureValidator.ReactorStructure structure) {
+        Level level = getLevel();
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        for (BlockPos portPos : structure.fluidPorts) {
+            if (level.getBlockEntity(portPos) instanceof ReactorFluidPortBlockEntity port) {
+                port.clearLinkedController(getBlockPos());
+            }
+        }
+        for (BlockPos portPos : structure.fuelPorts) {
+            if (level.getBlockEntity(portPos) instanceof ReactorFuelPortBlockEntity port) {
+                port.clearLinkedController(getBlockPos());
+            }
+        }
+        for (BlockPos sensorPos : structure.temperatureSensors) {
+            if (level.getBlockEntity(sensorPos) instanceof ReactorTemperatureSensorBlockEntity sensor) {
+                sensor.clearLinkedController(getBlockPos());
+            }
+        }
     }
 
     private void updateControlRodInsertion(boolean force) {
@@ -393,8 +475,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
     }
 
-    private void sendPlayerMessage(String message) {
+    private void sendPlayerMessage(String message, boolean force) {
         if (getLevel() == null) {
+            return;
+        }
+        if (!force && !shouldSendAutomaticMessage(message)) {
             return;
         }
         if (ownerPlayer != null && ownerPlayer.isAlive()) {
@@ -412,6 +497,17 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         LOGGER.debug("[Reactor] {}", message);
     }
 
+    private boolean shouldSendAutomaticMessage(String message) {
+        long gameTime = getLevel().getGameTime();
+        if (message.equals(lastAutomaticMessage)
+                && gameTime - lastAutomaticMessageGameTime < AUTOMATIC_MESSAGE_COOLDOWN_TICKS) {
+            return false;
+        }
+        lastAutomaticMessage = message;
+        lastAutomaticMessageGameTime = gameTime;
+        return true;
+    }
+
     private void handleMeltdown() {
         Level level = getLevel();
         if (level == null || level.isClientSide) {
@@ -422,10 +518,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         LOGGER.warn("Nuclear meltdown at {}", reactorPos);
 
         status = ReactorStatus.MELTDOWN;
+        currentStructure.ifPresent(this::clearStructureParts);
         currentStructure = Optional.empty();
         physicsSimulator = new ReactorPhysicsSimulator(0);
         markDirtyAndSync();
-        sendPlayerMessage("§4Nuclear meltdown at " + getBlockPos());
+        sendPlayerMessage("§4Nuclear meltdown at " + getBlockPos(), false);
         level.explode(null, reactorPos.getX() + 0.5, reactorPos.getY() + 0.5, reactorPos.getZ() + 0.5,
                 MELTDOWN_EXPLOSION_POWER, Level.ExplosionInteraction.BLOCK);
     }
@@ -441,7 +538,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     public boolean isFormed() {
-        return status == ReactorStatus.FORMED;
+        return currentStructure.isPresent() && status != ReactorStatus.UNFORMED && status != ReactorStatus.MELTDOWN;
     }
 
     public double getCoreTemperature() {
@@ -497,30 +594,30 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     public float getControlRodPosition() {
-        return status == ReactorStatus.FORMED ? physicsSimulator.getControlRodPosition() : 0.0f;
+        return isFormed() ? physicsSimulator.getControlRodPosition() : 0.0f;
     }
 
     public double getPowerOutput() {
-        return status == ReactorStatus.FORMED ? physicsSimulator.getPowerOutput() : 0.0;
+        return isFormed() ? physicsSimulator.getPowerOutput() : 0.0;
     }
 
     public double getSteamGenerationRate() {
-        return status == ReactorStatus.FORMED ? physicsSimulator.getSteamGenerationRate() : 0.0;
+        return isFormed() ? physicsSimulator.getSteamGenerationRate() : 0.0;
     }
 
     public double getThermalStress() {
-        return status == ReactorStatus.FORMED ? physicsSimulator.getThermalStress() : 0.0;
+        return isFormed() ? physicsSimulator.getThermalStress() : 0.0;
     }
 
     public boolean isThermalExcursionActive() {
-        return status == ReactorStatus.FORMED && physicsSimulator.isThermalExcursionActive();
+        return isFormed() && physicsSimulator.isThermalExcursionActive();
     }
 
     public ReactorPhysicsSimulator.ReactorState getReactorState() {
-        if (status == ReactorStatus.SCRAMMED) {
+        if (status == ReactorStatus.SCRAMMED && currentStructure.isEmpty()) {
             return ReactorPhysicsSimulator.ReactorState.CRITICAL;
         }
-        if (status != ReactorStatus.FORMED) {
+        if (!isFormed()) {
             return ReactorPhysicsSimulator.ReactorState.IDLE;
         }
         if (physicsSimulator.getFuelRemaining() > 0.0
@@ -540,6 +637,13 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     public ReactorPhysicsSimulator getPhysicsSimulator() {
         return physicsSimulator;
+    }
+
+    public ReactorDisplaySnapshot getDisplaySnapshot() {
+        if (getLevel() != null && getLevel().isClientSide) {
+            return hasUsableDisplaySnapshot() ? displaySnapshot : ReactorDisplaySnapshot.unsynced();
+        }
+        return createDisplaySnapshot();
     }
 
     public int getTankCapacity() {
@@ -601,59 +705,62 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        ReactorPhysicsSimulator.ReactorState reactorState = getReactorState();
+        ReactorDisplaySnapshot snapshot = getDisplaySnapshot();
         tooltip.add(Component.literal("Nuclear Reactor").withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.literal("  Structure: " + status.displayName)
-                .withStyle(status == ReactorStatus.FORMED ? ChatFormatting.GREEN : ChatFormatting.RED));
-        tooltip.add(Component.literal("  State: " + reactorState.getDisplayName())
-                .withStyle(getReactorStateColor(reactorState)));
-        currentStructure.ifPresent(structure ->
-                tooltip.add(Component.literal("  Dimensions: " + structure.dimensionsText()).withStyle(ChatFormatting.GRAY)));
-
-        if (status != ReactorStatus.FORMED && !lastValidation.errors().isEmpty()) {
-            tooltip.add(Component.literal("  Missing: " + lastValidation.errors().get(0)).withStyle(ChatFormatting.RED));
-        }
-        if (status != ReactorStatus.FORMED) {
-            for (String warning : lastValidation.warnings()) {
-                tooltip.add(Component.literal("  Warning: " + warning).withStyle(ChatFormatting.YELLOW));
-            }
+        tooltip.add(Component.literal("  Structure: " + (snapshot.formed() ? "Formed" : getStructureDisplayName(snapshot)))
+                .withStyle(snapshot.formed() ? ChatFormatting.GREEN : ChatFormatting.RED));
+        tooltip.add(Component.literal("  State: " + snapshot.state().getDisplayName())
+                .withStyle(getReactorStateColor(snapshot.state())));
+        if (!snapshot.dimensions().isEmpty()) {
+            tooltip.add(Component.literal("  Dimensions: " + snapshot.dimensions()).withStyle(ChatFormatting.GRAY));
         }
 
-        currentStructure.ifPresent(structure -> {
-            tooltip.add(Component.literal("  Uranium columns: " + structure.uraniumColumnCount).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Heat exchanger columns: " + structure.heatExchangerColumnCount).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Control rod columns: " + structure.controlRodColumnCount).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Control rod segments: " + lastControlRodScan.insertedSegments() + "/" + lastControlRodScan.expectedSegments()).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Coolant input ports: " + structure.coolantInputPortCount).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Steam output ports: " + structure.steamOutputPortCount).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Fuel ports: " + structure.fuelPortCount).withStyle(ChatFormatting.GRAY));
-        });
-        tooltip.add(Component.literal(String.format("  Control rod insertion: %.0f%%", lastControlRodScan.insertionRatio() * 100.0f)).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Static rods: " + lastControlRodScan.staticSegments()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Moving rods: " + lastControlRodScan.movingSegments()).withStyle(ChatFormatting.GRAY));
+        if (!snapshot.formed()) {
+            tooltip.add(Component.literal("  Missing: " + snapshot.validationMessage()).withStyle(ChatFormatting.RED));
+            return true;
+        }
 
-        tooltip.add(Component.literal("  Coolant: " + coolantTank.getFluidAmount() + "/" + coolantTank.getCapacity() + " mB").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Steam: " + steamTank.getFluidAmount() + "/" + steamTank.getCapacity() + " mB").withStyle(ChatFormatting.GRAY));
-        if (status != ReactorStatus.UNFORMED) {
-            tooltip.add(Component.literal(String.format("  Temperature: %.0f C", physicsSimulator.getCoreTemperature()))
-                    .withStyle(getTemperatureColor(physicsSimulator.getCoreTemperature())));
-            tooltip.add(Component.literal(String.format("  Neutrons: %.0f", physicsSimulator.getNeutronLevel())).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal(String.format("  Thermal stress: %.0f%%", physicsSimulator.getThermalStress()))
-                    .withStyle(getThermalStressColor(physicsSimulator.getThermalStress())));
-            if (physicsSimulator.isThermalExcursionActive()) {
-                tooltip.add(Component.literal("  Thermal excursion: insert control rods").withStyle(ChatFormatting.RED));
-            }
-            tooltip.add(Component.literal(String.format("  Fuel: %.1f / %.1f units", physicsSimulator.getFuelRemaining(), physicsSimulator.getFuelCapacity())).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Fuel input: " + countInputFuel() + " assemblies").withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Depleted fuel: " + countOutputFuel() + " assemblies").withStyle(ChatFormatting.GRAY));
-            if (physicsSimulator.getFuelRemaining() > 0.0 && physicsSimulator.getNeutronLevel() <= 1.0 && lastControlRodScan.insertionRatio() >= 0.99f) {
-                tooltip.add(Component.literal("  Status: loaded, control rods suppressing reaction").withStyle(ChatFormatting.YELLOW));
-            }
-            if (pendingDepletedFuel > 0) {
-                tooltip.add(Component.literal("  Depleted output blocked: " + pendingDepletedFuel).withStyle(ChatFormatting.RED));
-            }
+        tooltip.add(Component.literal("  Uranium columns: " + snapshot.uraniumColumnCount()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Heat exchanger columns: " + snapshot.heatExchangerColumnCount()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Control rod columns: " + snapshot.controlRodColumnCount()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Control rod segments: " + snapshot.insertedControlRodSegments() + "/" + snapshot.expectedControlRodSegments()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Coolant input ports: " + snapshot.coolantInputPortCount()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Steam output ports: " + snapshot.steamOutputPortCount()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Fuel ports: " + snapshot.fuelPortCount()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal(String.format("  Control rod insertion: %.0f%%", snapshot.controlRodInsertionRatio() * 100.0f)).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Static rods: " + snapshot.staticControlRodSegments()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Moving rods: " + snapshot.movingControlRodSegments()).withStyle(ChatFormatting.GRAY));
+
+        tooltip.add(Component.literal("  Coolant: " + snapshot.coolantAmount() + "/" + snapshot.tankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Steam: " + snapshot.steamAmount() + "/" + snapshot.tankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal(String.format("  Temperature: %.0f C", snapshot.coreTemperature()))
+                .withStyle(getTemperatureColor(snapshot.coreTemperature())));
+        tooltip.add(Component.literal(String.format("  Neutrons: %.0f", snapshot.neutronLevel())).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal(String.format("  Thermal stress: %.0f%%", snapshot.thermalStress()))
+                .withStyle(getThermalStressColor(snapshot.thermalStress())));
+        if (snapshot.thermalExcursionActive()) {
+            tooltip.add(Component.literal("  Thermal excursion: insert control rods").withStyle(ChatFormatting.RED));
+        }
+        tooltip.add(Component.literal(String.format("  Fuel: %.1f / %.1f units", snapshot.fuelRemaining(), snapshot.fuelCapacity())).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Fuel input: " + snapshot.inputFuelCount() + " assemblies").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Depleted fuel: " + snapshot.outputFuelCount() + " assemblies").withStyle(ChatFormatting.GRAY));
+        if (snapshot.fuelRemaining() > 0.0 && snapshot.neutronLevel() <= 1.0 && snapshot.controlRodInsertionRatio() >= 0.99f) {
+            tooltip.add(Component.literal("  Status: loaded, control rods suppressing reaction").withStyle(ChatFormatting.YELLOW));
+        }
+        if (snapshot.pendingDepletedFuel() > 0) {
+            tooltip.add(Component.literal("  Depleted output blocked: " + snapshot.pendingDepletedFuel()).withStyle(ChatFormatting.RED));
         }
         return true;
+    }
+
+    private String getStructureDisplayName(ReactorDisplaySnapshot snapshot) {
+        if (snapshot.formed()) {
+            return "Formed";
+        }
+        if (!snapshot.statusDisplayName().isEmpty()) {
+            return snapshot.statusDisplayName();
+        }
+        return "Incomplete";
     }
 
     private ChatFormatting getTemperatureColor(double temperature) {
@@ -733,12 +840,23 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.put("steam", steamTank.writeToNBT(provider, new CompoundTag()));
         tag.put("fuelInventory", fuelInventory.serializeNBT(provider));
         tag.putInt("pendingDepletedFuel", pendingDepletedFuel);
+        currentStructure.ifPresent(structure -> {
+            tag.put("structure", writeStructureTag(structure));
+            tag.put("controlRodScan", writeControlRodScanTag(lastControlRodScan));
+        });
+        tag.put("validation", writeValidationTag(lastValidation));
+        tag.put("displaySnapshot", writeDisplaySnapshot(createDisplaySnapshot()));
         return tag;
     }
 
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider provider) {
+        handleUpdateTag(pkt.getTag(), provider);
     }
 
     @Override
@@ -758,12 +876,282 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             fuelInventory.deserializeNBT(provider, tag.getCompound("fuelInventory"));
         }
         pendingDepletedFuel = Math.max(0, tag.getInt("pendingDepletedFuel"));
+        currentStructure = tag.contains("structure")
+                ? readStructureTag(tag.getCompound("structure"))
+                : Optional.empty();
+        lastControlRodScan = currentStructure.isPresent() && tag.contains("controlRodScan")
+                ? readControlRodScanTag(tag.getCompound("controlRodScan"))
+                : ControlRodTracker.ControlRodScan.empty();
+        lastValidation = tag.contains("validation")
+                ? readValidationTag(tag.getCompound("validation"))
+                : ReactorStructureValidator.ReactorValidationResult.invalid(List.of("Not formed"), List.of());
+        displaySnapshot = tag.contains("displaySnapshot")
+                ? readDisplaySnapshot(tag.getCompound("displaySnapshot"))
+                : ReactorDisplaySnapshot.unsynced();
+        hasDisplaySnapshot = tag.contains("displaySnapshot");
+    }
+
+    private ReactorDisplaySnapshot createDisplaySnapshot() {
+        if (!isFormed() || currentStructure.isEmpty()) {
+            return ReactorDisplaySnapshot.empty(status.displayName, getReactorState(), lastValidation.primaryMessage());
+        }
+
+        ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
+        return new ReactorDisplaySnapshot(
+                true,
+                status.displayName,
+                getReactorState(),
+                lastValidation.primaryMessage(),
+                structure.dimensionsText(),
+                structure.uraniumRodCount,
+                structure.controlRodCount,
+                structure.heatExchangerCount,
+                structure.uraniumColumnCount,
+                structure.controlRodColumnCount,
+                structure.heatExchangerColumnCount,
+                structure.coolantInputPortCount,
+                structure.steamOutputPortCount,
+                structure.fuelPortCount,
+                structure.fuelInputPortCount,
+                structure.fuelOutputPortCount,
+                coolantTank.getFluidAmount(),
+                steamTank.getFluidAmount(),
+                coolantTank.getCapacity(),
+                physicsSimulator.getCoreTemperature(),
+                physicsSimulator.getNeutronLevel(),
+                physicsSimulator.getFuelRemaining(),
+                physicsSimulator.getFuelCapacity(),
+                physicsSimulator.getControlRodPosition(),
+                physicsSimulator.getPowerOutput(),
+                physicsSimulator.getSteamGenerationRate(),
+                physicsSimulator.getThermalStress(),
+                physicsSimulator.isThermalExcursionActive(),
+                lastControlRodScan.insertionRatio(),
+                lastControlRodScan.staticSegments(),
+                lastControlRodScan.movingSegments(),
+                lastControlRodScan.insertedSegments(),
+                lastControlRodScan.expectedSegments(),
+                countInputFuel(),
+                countOutputFuel(),
+                pendingDepletedFuel
+        );
+    }
+
+    private boolean hasUsableDisplaySnapshot() {
+        return hasDisplaySnapshot && displaySnapshot != null;
+    }
+
+    private CompoundTag writeDisplaySnapshot(ReactorDisplaySnapshot snapshot) {
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean("formed", snapshot.formed());
+        tag.putString("statusDisplayName", snapshot.statusDisplayName());
+        tag.putString("state", snapshot.state().name());
+        tag.putString("validationMessage", snapshot.validationMessage());
+        tag.putString("dimensions", snapshot.dimensions());
+        tag.putInt("uraniumRodCount", snapshot.uraniumRodCount());
+        tag.putInt("controlRodCount", snapshot.controlRodCount());
+        tag.putInt("heatExchangerCount", snapshot.heatExchangerCount());
+        tag.putInt("uraniumColumnCount", snapshot.uraniumColumnCount());
+        tag.putInt("controlRodColumnCount", snapshot.controlRodColumnCount());
+        tag.putInt("heatExchangerColumnCount", snapshot.heatExchangerColumnCount());
+        tag.putInt("coolantInputPortCount", snapshot.coolantInputPortCount());
+        tag.putInt("steamOutputPortCount", snapshot.steamOutputPortCount());
+        tag.putInt("fuelPortCount", snapshot.fuelPortCount());
+        tag.putInt("fuelInputPortCount", snapshot.fuelInputPortCount());
+        tag.putInt("fuelOutputPortCount", snapshot.fuelOutputPortCount());
+        tag.putInt("coolantAmount", snapshot.coolantAmount());
+        tag.putInt("steamAmount", snapshot.steamAmount());
+        tag.putInt("tankCapacity", snapshot.tankCapacity());
+        tag.putDouble("coreTemperature", snapshot.coreTemperature());
+        tag.putDouble("neutronLevel", snapshot.neutronLevel());
+        tag.putDouble("fuelRemaining", snapshot.fuelRemaining());
+        tag.putDouble("fuelCapacity", snapshot.fuelCapacity());
+        tag.putFloat("controlRodPosition", snapshot.controlRodPosition());
+        tag.putDouble("powerOutput", snapshot.powerOutput());
+        tag.putDouble("steamGenerationRate", snapshot.steamGenerationRate());
+        tag.putDouble("thermalStress", snapshot.thermalStress());
+        tag.putBoolean("thermalExcursionActive", snapshot.thermalExcursionActive());
+        tag.putFloat("controlRodInsertionRatio", snapshot.controlRodInsertionRatio());
+        tag.putInt("staticControlRodSegments", snapshot.staticControlRodSegments());
+        tag.putInt("movingControlRodSegments", snapshot.movingControlRodSegments());
+        tag.putInt("insertedControlRodSegments", snapshot.insertedControlRodSegments());
+        tag.putInt("expectedControlRodSegments", snapshot.expectedControlRodSegments());
+        tag.putInt("inputFuelCount", snapshot.inputFuelCount());
+        tag.putInt("outputFuelCount", snapshot.outputFuelCount());
+        tag.putInt("pendingDepletedFuel", snapshot.pendingDepletedFuel());
+        return tag;
+    }
+
+    private ReactorDisplaySnapshot readDisplaySnapshot(CompoundTag tag) {
+        return new ReactorDisplaySnapshot(
+                tag.getBoolean("formed"),
+                tag.getString("statusDisplayName"),
+                readReactorState(tag.getString("state")),
+                defaultString(tag.getString("validationMessage"), "Not formed"),
+                tag.getString("dimensions"),
+                Math.max(0, tag.getInt("uraniumRodCount")),
+                Math.max(0, tag.getInt("controlRodCount")),
+                Math.max(0, tag.getInt("heatExchangerCount")),
+                Math.max(0, tag.getInt("uraniumColumnCount")),
+                Math.max(0, tag.getInt("controlRodColumnCount")),
+                Math.max(0, tag.getInt("heatExchangerColumnCount")),
+                Math.max(0, tag.getInt("coolantInputPortCount")),
+                Math.max(0, tag.getInt("steamOutputPortCount")),
+                Math.max(0, tag.getInt("fuelPortCount")),
+                Math.max(0, tag.getInt("fuelInputPortCount")),
+                Math.max(0, tag.getInt("fuelOutputPortCount")),
+                Math.max(0, tag.getInt("coolantAmount")),
+                Math.max(0, tag.getInt("steamAmount")),
+                Math.max(1, tag.getInt("tankCapacity")),
+                Math.max(20.0, tag.getDouble("coreTemperature")),
+                Math.max(0.0, tag.getDouble("neutronLevel")),
+                Math.max(0.0, tag.getDouble("fuelRemaining")),
+                Math.max(0.0, tag.getDouble("fuelCapacity")),
+                Math.max(0.0f, Math.min(1.0f, tag.getFloat("controlRodPosition"))),
+                Math.max(0.0, tag.getDouble("powerOutput")),
+                Math.max(0.0, tag.getDouble("steamGenerationRate")),
+                Math.max(0.0, Math.min(100.0, tag.getDouble("thermalStress"))),
+                tag.getBoolean("thermalExcursionActive"),
+                Math.max(0.0f, Math.min(1.0f, tag.getFloat("controlRodInsertionRatio"))),
+                Math.max(0, tag.getInt("staticControlRodSegments")),
+                Math.max(0, tag.getInt("movingControlRodSegments")),
+                Math.max(0, tag.getInt("insertedControlRodSegments")),
+                Math.max(0, tag.getInt("expectedControlRodSegments")),
+                Math.max(0, tag.getInt("inputFuelCount")),
+                Math.max(0, tag.getInt("outputFuelCount")),
+                Math.max(0, tag.getInt("pendingDepletedFuel"))
+        );
     }
 
     private CompoundTag writePhysicsTag() {
         CompoundTag physicsTag = new CompoundTag();
         physicsSimulator.serializeNBT(physicsTag);
         return physicsTag;
+    }
+
+    private CompoundTag writeStructureTag(ReactorStructureValidator.ReactorStructure structure) {
+        CompoundTag structureTag = new CompoundTag();
+        structureTag.putInt("width", structure.width);
+        structureTag.putInt("height", structure.height);
+        structureTag.putInt("bottomY", structure.bottomY);
+        structureTag.putInt("uraniumRodCount", structure.uraniumRodCount);
+        structureTag.putInt("controlRodCount", structure.controlRodCount);
+        structureTag.putInt("heatExchangerCount", structure.heatExchangerCount);
+        structureTag.putInt("uraniumColumnCount", structure.uraniumColumnCount);
+        structureTag.putInt("controlRodColumnCount", structure.controlRodColumnCount);
+        structureTag.putInt("heatExchangerColumnCount", structure.heatExchangerColumnCount);
+        structureTag.putInt("coolantInputPortCount", structure.coolantInputPortCount);
+        structureTag.putInt("steamOutputPortCount", structure.steamOutputPortCount);
+        structureTag.putInt("fuelPortCount", structure.fuelPortCount);
+        structureTag.putInt("fuelInputPortCount", structure.fuelInputPortCount);
+        structureTag.putInt("fuelOutputPortCount", structure.fuelOutputPortCount);
+        structureTag.putLongArray("controlChannels", writePositions(structure.controlChannels));
+        structureTag.putLongArray("fluidPorts", writePositions(structure.fluidPorts));
+        structureTag.putLongArray("fuelPorts", writePositions(structure.fuelPorts));
+        structureTag.putLongArray("temperatureSensors", writePositions(structure.temperatureSensors));
+        return structureTag;
+    }
+
+    private Optional<ReactorStructureValidator.ReactorStructure> readStructureTag(CompoundTag structureTag) {
+        int width = structureTag.getInt("width");
+        int height = structureTag.getInt("height");
+        if (width < ReactorStructureValidator.MIN_WIDTH || width > ReactorStructureValidator.MAX_WIDTH
+                || height < ReactorStructureValidator.MIN_HEIGHT || height > ReactorStructureValidator.MAX_HEIGHT
+                || width % 2 == 0) {
+            return Optional.empty();
+        }
+
+        ReactorStructureValidator.ReactorStructure structure =
+                new ReactorStructureValidator.ReactorStructure(getBlockPos(), width, height, structureTag.getInt("bottomY"));
+        structure.uraniumRodCount = Math.max(0, structureTag.getInt("uraniumRodCount"));
+        structure.controlRodCount = Math.max(0, structureTag.getInt("controlRodCount"));
+        structure.heatExchangerCount = Math.max(0, structureTag.getInt("heatExchangerCount"));
+        structure.uraniumColumnCount = Math.max(0, structureTag.getInt("uraniumColumnCount"));
+        structure.controlRodColumnCount = Math.max(0, structureTag.getInt("controlRodColumnCount"));
+        structure.heatExchangerColumnCount = Math.max(0, structureTag.getInt("heatExchangerColumnCount"));
+        structure.coolantInputPortCount = Math.max(0, structureTag.getInt("coolantInputPortCount"));
+        structure.steamOutputPortCount = Math.max(0, structureTag.getInt("steamOutputPortCount"));
+        structure.fuelPortCount = Math.max(0, structureTag.getInt("fuelPortCount"));
+        structure.fuelInputPortCount = Math.max(0, structureTag.getInt("fuelInputPortCount"));
+        structure.fuelOutputPortCount = Math.max(0, structureTag.getInt("fuelOutputPortCount"));
+        readPositions(structureTag.getLongArray("controlChannels"), structure.controlChannels);
+        readPositions(structureTag.getLongArray("fluidPorts"), structure.fluidPorts);
+        readPositions(structureTag.getLongArray("fuelPorts"), structure.fuelPorts);
+        readPositions(structureTag.getLongArray("temperatureSensors"), structure.temperatureSensors);
+        return Optional.of(structure);
+    }
+
+    private long[] writePositions(Set<BlockPos> positions) {
+        long[] packed = new long[positions.size()];
+        int index = 0;
+        for (BlockPos pos : positions) {
+            packed[index++] = pos.asLong();
+        }
+        return packed;
+    }
+
+    private void readPositions(long[] packed, Set<BlockPos> positions) {
+        positions.clear();
+        for (long value : packed) {
+            positions.add(BlockPos.of(value));
+        }
+    }
+
+    private CompoundTag writeControlRodScanTag(ControlRodTracker.ControlRodScan scan) {
+        CompoundTag scanTag = new CompoundTag();
+        scanTag.putFloat("insertionRatio", scan.insertionRatio());
+        scanTag.putInt("staticSegments", scan.staticSegments());
+        scanTag.putInt("movingSegments", scan.movingSegments());
+        scanTag.putInt("insertedSegments", scan.insertedSegments());
+        scanTag.putInt("expectedSegments", scan.expectedSegments());
+        return scanTag;
+    }
+
+    private ControlRodTracker.ControlRodScan readControlRodScanTag(CompoundTag scanTag) {
+        int expectedSegments = Math.max(0, scanTag.getInt("expectedSegments"));
+        int insertedSegments = Math.max(0, scanTag.getInt("insertedSegments"));
+        int staticSegments = Math.max(0, scanTag.getInt("staticSegments"));
+        int movingSegments = Math.max(0, scanTag.getInt("movingSegments"));
+        float insertionRatio = Math.max(0.0f, Math.min(1.0f, scanTag.getFloat("insertionRatio")));
+        return new ControlRodTracker.ControlRodScan(insertionRatio, staticSegments, movingSegments, insertedSegments, expectedSegments);
+    }
+
+    private CompoundTag writeValidationTag(ReactorStructureValidator.ReactorValidationResult validation) {
+        CompoundTag validationTag = new CompoundTag();
+        validationTag.putBoolean("formed", validation.formed());
+        validationTag.putString("errors", String.join("\n", validation.errors()));
+        validationTag.putString("warnings", String.join("\n", validation.warnings()));
+        return validationTag;
+    }
+
+    private ReactorStructureValidator.ReactorValidationResult readValidationTag(CompoundTag validationTag) {
+        List<String> errors = readStringList(validationTag.getString("errors"));
+        List<String> warnings = readStringList(validationTag.getString("warnings"));
+        if (validationTag.getBoolean("formed") && currentStructure.isPresent()) {
+            return ReactorStructureValidator.ReactorValidationResult.valid(currentStructure.get(), warnings);
+        }
+        return ReactorStructureValidator.ReactorValidationResult.invalid(
+                errors.isEmpty() ? List.of("Not formed") : errors,
+                warnings);
+    }
+
+    private List<String> readStringList(String value) {
+        if (value == null || value.isEmpty()) {
+            return List.of();
+        }
+        return List.of(value.split("\n"));
+    }
+
+    private ReactorPhysicsSimulator.ReactorState readReactorState(String name) {
+        try {
+            return ReactorPhysicsSimulator.ReactorState.valueOf(name);
+        } catch (IllegalArgumentException ignored) {
+            return ReactorPhysicsSimulator.ReactorState.IDLE;
+        }
+    }
+
+    private String defaultString(String value, String fallback) {
+        return value == null || value.isEmpty() ? fallback : value;
     }
 
     private ReactorStatus readStatus(String name) {
@@ -774,6 +1162,94 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             return ReactorStatus.valueOf(name);
         } catch (IllegalArgumentException ignored) {
             return ReactorStatus.UNFORMED;
+        }
+    }
+
+    public record ReactorDisplaySnapshot(
+            boolean formed,
+            String statusDisplayName,
+            ReactorPhysicsSimulator.ReactorState state,
+            String validationMessage,
+            String dimensions,
+            int uraniumRodCount,
+            int controlRodCount,
+            int heatExchangerCount,
+            int uraniumColumnCount,
+            int controlRodColumnCount,
+            int heatExchangerColumnCount,
+            int coolantInputPortCount,
+            int steamOutputPortCount,
+            int fuelPortCount,
+            int fuelInputPortCount,
+            int fuelOutputPortCount,
+            int coolantAmount,
+            int steamAmount,
+            int tankCapacity,
+            double coreTemperature,
+            double neutronLevel,
+            double fuelRemaining,
+            double fuelCapacity,
+            float controlRodPosition,
+            double powerOutput,
+            double steamGenerationRate,
+            double thermalStress,
+            boolean thermalExcursionActive,
+            float controlRodInsertionRatio,
+            int staticControlRodSegments,
+            int movingControlRodSegments,
+            int insertedControlRodSegments,
+            int expectedControlRodSegments,
+            int inputFuelCount,
+            int outputFuelCount,
+            int pendingDepletedFuel
+    ) {
+        public static ReactorDisplaySnapshot empty() {
+            return empty("Incomplete", ReactorPhysicsSimulator.ReactorState.IDLE, "Not formed");
+        }
+
+        public static ReactorDisplaySnapshot unsynced() {
+            return empty("Syncing", ReactorPhysicsSimulator.ReactorState.IDLE, "Waiting for server sync");
+        }
+
+        public static ReactorDisplaySnapshot empty(String statusDisplayName, ReactorPhysicsSimulator.ReactorState state, String validationMessage) {
+            return new ReactorDisplaySnapshot(
+                    false,
+                    statusDisplayName == null || statusDisplayName.isEmpty() ? "Incomplete" : statusDisplayName,
+                    state == null ? ReactorPhysicsSimulator.ReactorState.IDLE : state,
+                    validationMessage == null || validationMessage.isEmpty() ? "Not formed" : validationMessage,
+                    "",
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    TANK_CAPACITY,
+                    20.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0f,
+                    0.0,
+                    0.0,
+                    0.0,
+                    false,
+                    0.0f,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+            );
         }
     }
 

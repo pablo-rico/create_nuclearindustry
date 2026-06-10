@@ -3,6 +3,7 @@ package org.papiricoh.create_nuclearindustry.reactor.multiblock;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.Contraption;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -28,6 +29,10 @@ public class ReactorStructureValidator {
     public static final int MAX_HEIGHT = 12;
 
     public static ReactorValidationResult validate(Level level, BlockPos controllerPos) {
+        return validate(level, controllerPos, Optional.empty());
+    }
+
+    public static ReactorValidationResult validate(Level level, BlockPos controllerPos, Optional<ReactorStructure> previousStructure) {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
@@ -47,7 +52,11 @@ public class ReactorStructureValidator {
 
         DetectedBounds bounds = detected.get();
         ReactorStructure structure = new ReactorStructure(controllerPos, bounds.width(), bounds.height(), bounds.bottomY());
-        detectControlChannels(level, structure);
+        if (previousStructure.isPresent() && sameBounds(previousStructure.get(), structure)) {
+            structure.controlChannels.addAll(previousStructure.get().controlChannels);
+        } else {
+            detectControlChannels(level, structure);
+        }
         validateShell(level, structure, errors);
         validateInterior(level, structure, errors, warnings);
 
@@ -55,6 +64,13 @@ public class ReactorStructureValidator {
             return ReactorValidationResult.invalid(errors, warnings);
         }
         return ReactorValidationResult.valid(structure, warnings);
+    }
+
+    private static boolean sameBounds(ReactorStructure oldStructure, ReactorStructure newStructure) {
+        return oldStructure.controllerPos.equals(newStructure.controllerPos)
+                && oldStructure.width == newStructure.width
+                && oldStructure.height == newStructure.height
+                && oldStructure.bottomY == newStructure.bottomY;
     }
 
     private static Optional<DetectedBounds> detectBounds(Level level, BlockPos controllerPos, List<String> errors) {
@@ -138,6 +154,7 @@ public class ReactorStructureValidator {
             }
 
             if (shell && block == AllNuclearBlocks.REACTOR_TEMPERATURE_SENSOR.get()) {
+                structure.temperatureSensors.add(pos);
                 continue;
             }
 
@@ -281,7 +298,9 @@ public class ReactorStructureValidator {
             if (block == AllNuclearBlocks.CONTROL_ROD.get()) {
                 structure.functionalBlocks.add(pos);
                 inserted++;
-            } else if (block != Blocks.AIR) {
+            } else if (block == Blocks.AIR || isAllowedControlChannelMechanism(block)) {
+                continue;
+            } else {
                 errors.add("Control rod channel blocked at " + shortPos(pos));
                 return;
             }
@@ -298,7 +317,16 @@ public class ReactorStructureValidator {
     private static boolean isAllowedControlChannelTop(Block block) {
         return block == Blocks.AIR
                 || block == AllNuclearBlocks.REACTOR_CASING.get()
-                || block == AllNuclearBlocks.CONTROL_ROD.get();
+                || block == AllNuclearBlocks.CONTROL_ROD.get()
+                || isAllowedControlChannelMechanism(block);
+    }
+
+    private static boolean isAllowedControlChannelMechanism(Block block) {
+        String blockId = BuiltInRegistries.BLOCK.getKey(block).toString();
+        return block == Blocks.PISTON_HEAD
+                || block == Blocks.MOVING_PISTON
+                || "create:mechanical_piston_head".equals(blockId)
+                || "create:piston_extension_pole".equals(blockId);
     }
 
     private static String shortPos(BlockPos pos) {
@@ -338,6 +366,7 @@ public class ReactorStructureValidator {
         public final Set<BlockPos> controlChannels = new HashSet<>();
         public final Set<BlockPos> fluidPorts = new HashSet<>();
         public final Set<BlockPos> fuelPorts = new HashSet<>();
+        public final Set<BlockPos> temperatureSensors = new HashSet<>();
         public int uraniumRodCount;
         public int controlRodCount;
         public int heatExchangerCount;
@@ -368,6 +397,18 @@ public class ReactorStructureValidator {
 
         public boolean contains(BlockPos pos) {
             return allBlocks.contains(pos);
+        }
+
+        public boolean containsFluidPort(BlockPos pos) {
+            return fluidPorts.contains(pos);
+        }
+
+        public boolean containsFuelPort(BlockPos pos) {
+            return fuelPorts.contains(pos);
+        }
+
+        public boolean containsTemperatureSensor(BlockPos pos) {
+            return temperatureSensors.contains(pos);
         }
 
         public boolean isControlArea(BlockPos pos) {
