@@ -46,8 +46,8 @@ import java.util.UUID;
 public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int TANK_CAPACITY = 16_000;
-    private static final int MAX_COOLANT_PER_TICK = 80;
-    private static final int MAX_STEAM_PER_TICK = 80;
+    private static final int HEAT_EXCHANGER_STEAM_PER_TICK = 40;
+    private static final int FLUID_PORT_STEAM_PER_TICK = 160;
     // Balance parameters for external coolant heat removal.
     private static final double WATER_COOLING_PER_MB = 0.225;
     private static final double HEAVY_WATER_COOLING_PER_MB = 0.35;
@@ -363,8 +363,13 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             return;
         }
 
+        int throughput = getSteamThroughputLimit();
+        if (throughput <= 0) {
+            return;
+        }
+
         boolean heavy = NuclearFluidHelper.isHeavyWater(coolant);
-        int steamToProduce = Math.max(0, Math.min(MAX_STEAM_PER_TICK, (int) Math.ceil(physicsSimulator.getSteamGenerationRate())));
+        int steamToProduce = Math.max(0, Math.min(throughput, (int) Math.ceil(physicsSimulator.getSteamGenerationRate())));
         if (steamToProduce <= 0) {
             return;
         }
@@ -385,6 +390,17 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         double cooling = drained.getAmount() * (heavy ? HEAVY_WATER_COOLING_PER_MB : WATER_COOLING_PER_MB);
         double moderation = drained.getAmount() * (heavy ? HEAVY_WATER_MODERATION_PER_MB : WATER_MODERATION_PER_MB);
         physicsSimulator.applyExternalCooling(cooling, moderation);
+    }
+
+    private int getSteamThroughputLimit() {
+        if (currentStructure.isEmpty()) {
+            return 0;
+        }
+        ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
+        int exchangerLimit = structure.heatExchangerCount * HEAT_EXCHANGER_STEAM_PER_TICK;
+        int coolantPortLimit = structure.coolantInputPortCount * FLUID_PORT_STEAM_PER_TICK;
+        int steamPortLimit = structure.steamOutputPortCount * FLUID_PORT_STEAM_PER_TICK;
+        return Math.min(exchangerLimit, Math.min(coolantPortLimit, steamPortLimit));
     }
 
     private void tryLoadFuelAssembly() {

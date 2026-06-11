@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
@@ -19,7 +20,7 @@ public class DualFluidPipeBlockEntity extends BlockEntity {
     private static final int CHANNEL_CAPACITY = 8_000;
     private static final int PUSH_PER_TICK = 40;
 
-    private final FluidTank steamTank = new FluidTank(CHANNEL_CAPACITY, NuclearFluidHelper::isTurbineSteam) {
+    private final FluidTank steamTank = new FluidTank(CHANNEL_CAPACITY, DualFluidPipeBlockEntity::isSteamChannelFluid) {
         @Override
         protected void onContentsChanged() {
             setChanged();
@@ -50,21 +51,34 @@ public class DualFluidPipeBlockEntity extends BlockEntity {
         return fluidHandler;
     }
 
+    private static boolean isSteamChannelFluid(FluidStack stack) {
+        return NuclearFluidHelper.isTurbineSteam(stack) || NuclearFluidHelper.isPlasmaSteam(stack);
+    }
+
     private void pushToNeighbors(Level level, BlockPos pos) {
         boolean changed = false;
         for (Direction direction : Direction.values()) {
-            BlockEntity neighborEntity = level.getBlockEntity(pos.relative(direction));
-            if (!(neighborEntity instanceof DualFluidPipeBlockEntity neighborPipe)) {
+            BlockPos neighborPos = pos.relative(direction);
+            IFluidHandler target = getNeighborFluidHandler(level, neighborPos, direction.getOpposite());
+            if (target == null) {
                 continue;
             }
 
-            changed |= pushTank(steamTank, neighborPipe.fluidHandler);
-            changed |= pushTank(coolantTank, neighborPipe.fluidHandler);
+            changed |= pushTank(steamTank, target);
+            changed |= pushTank(coolantTank, target);
         }
 
         if (changed) {
             setChanged();
         }
+    }
+
+    private IFluidHandler getNeighborFluidHandler(Level level, BlockPos neighborPos, Direction side) {
+        BlockEntity neighborEntity = level.getBlockEntity(neighborPos);
+        if (neighborEntity instanceof DualFluidPipeBlockEntity neighborPipe) {
+            return neighborPipe.fluidHandler;
+        }
+        return level.getCapability(Capabilities.FluidHandler.BLOCK, neighborPos, side);
     }
 
     private boolean pushTank(FluidTank tank, IFluidHandler target) {
@@ -73,12 +87,20 @@ public class DualFluidPipeBlockEntity extends BlockEntity {
             return false;
         }
 
-        int accepted = target.fill(available, IFluidHandler.FluidAction.EXECUTE);
+        int accepted = target.fill(available, IFluidHandler.FluidAction.SIMULATE);
         if (accepted <= 0) {
             return false;
         }
 
-        tank.drain(accepted, IFluidHandler.FluidAction.EXECUTE);
+        accepted = Math.min(accepted, available.getAmount());
+        FluidStack transfer = available.copyWithAmount(accepted);
+        int inserted = target.fill(transfer, IFluidHandler.FluidAction.EXECUTE);
+        if (inserted <= 0) {
+            return false;
+        }
+
+        inserted = Math.min(inserted, accepted);
+        tank.drain(inserted, IFluidHandler.FluidAction.EXECUTE);
         return true;
     }
 
@@ -162,7 +184,7 @@ public class DualFluidPipeBlockEntity extends BlockEntity {
 
         @Override
         public int fill(FluidStack resource, FluidAction action) {
-            if (NuclearFluidHelper.isTurbineSteam(resource)) {
+            if (isSteamChannelFluid(resource)) {
                 return steamTank.fill(resource, action);
             }
             if (NuclearFluidHelper.isCoolant(resource)) {
@@ -173,7 +195,7 @@ public class DualFluidPipeBlockEntity extends BlockEntity {
 
         @Override
         public FluidStack drain(FluidStack resource, FluidAction action) {
-            if (NuclearFluidHelper.isTurbineSteam(resource)) {
+            if (isSteamChannelFluid(resource)) {
                 return steamTank.drain(resource, action);
             }
             if (NuclearFluidHelper.isCoolant(resource)) {

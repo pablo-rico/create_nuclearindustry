@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_nuclearindustry:block/fusion_turbine_casing"
+    }
+  }
+}

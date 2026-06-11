@@ -78,18 +78,29 @@ public class FusionStructureValidator {
 
     private static Optional<Integer> detectHalfSize(Level level, BlockPos c, List<String> errors) {
         int y = c.getY();
-        for (int offset = MIN_SIZE / 2; offset <= MAX_SIZE / 2; offset++) {
-            boolean ring = isRingBlock(level, new BlockPos(c.getX() + offset, y, c.getZ()))
+        // Probe from the largest possible ring inwards. The interior is filled with cryostat
+        // casing (also a "ring block"), so cardinal probes alone are ambiguous; the perimeter is
+        // uniquely identified by accelerator corners at its four diagonal positions.
+        for (int offset = MAX_SIZE / 2; offset >= MIN_SIZE / 2; offset--) {
+            boolean cardinals = isRingBlock(level, new BlockPos(c.getX() + offset, y, c.getZ()))
                     && isRingBlock(level, new BlockPos(c.getX() - offset, y, c.getZ()))
                     && isRingBlock(level, new BlockPos(c.getX(), y, c.getZ() + offset))
                     && isRingBlock(level, new BlockPos(c.getX(), y, c.getZ() - offset));
-            if (ring) {
+            boolean corners = isCorner(level, new BlockPos(c.getX() + offset, y, c.getZ() + offset))
+                    && isCorner(level, new BlockPos(c.getX() + offset, y, c.getZ() - offset))
+                    && isCorner(level, new BlockPos(c.getX() - offset, y, c.getZ() + offset))
+                    && isCorner(level, new BlockPos(c.getX() - offset, y, c.getZ() - offset));
+            if (cardinals && corners) {
                 return Optional.of(offset);
             }
         }
         errors.add("No accelerator ring found around controller (build a " + MIN_SIZE + "x" + MIN_SIZE
-                + " to " + MAX_SIZE + "x" + MAX_SIZE + " square ring)");
+                + " to " + MAX_SIZE + "x" + MAX_SIZE + " square ring with accelerator corners)");
         return Optional.empty();
+    }
+
+    private static boolean isCorner(Level level, BlockPos pos) {
+        return level.getBlockState(pos).getBlock() == AllNuclearBlocks.FUSION_ACCELERATOR_CORNER.get();
     }
 
     private static void validateRing(Level level, FusionStructure structure, int halfSize, List<String> errors) {
@@ -153,8 +164,8 @@ public class FusionStructureValidator {
                     continue; // controller
                 }
                 BlockPos pos = new BlockPos(c.getX() + dx, y, c.getZ() + dz);
-                if (!level.getBlockState(pos).isAir()) {
-                    addError(errors, "Plasma chamber obstructed at " + shortPos(pos));
+                if (level.getBlockState(pos).getBlock() != AllNuclearBlocks.FUSION_CRYOSTAT_CASING.get()) {
+                    addError(errors, "Fusion casing missing in core at " + shortPos(pos));
                 }
             }
         }

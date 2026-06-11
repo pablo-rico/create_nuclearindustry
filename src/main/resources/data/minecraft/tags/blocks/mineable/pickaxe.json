@@ -10,6 +10,10 @@
     "create_nuclearindustry:turbine_rotor",
     "create_nuclearindustry:turbine_output",
     "create_nuclearindustry:turbine_fluid_port",
+    "create_nuclearindustry:fusion_turbine_casing",
+    "create_nuclearindustry:fusion_turbine_rotor",
+    "create_nuclearindustry:fusion_turbine_fluid_port",
+    "create_nuclearindustry:fusion_plasma_turbine",
     "create_nuclearindustry:nuclear_bomb"
   ]
 }

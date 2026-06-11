@@ -58,6 +58,9 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.FUSION_MAGNET_INPUT.value());
                 output.accept(AllNuclearItems.FUSION_FLUID_PORT.value());
                 output.accept(AllNuclearItems.FUSION_FUEL_INJECTOR.value());
+                output.accept(AllNuclearItems.FUSION_TURBINE_CASING.value());
+                output.accept(AllNuclearItems.FUSION_TURBINE_ROTOR.value());
+                output.accept(AllNuclearItems.FUSION_TURBINE_FLUID_PORT.value());
                 output.accept(AllNuclearItems.FUSION_PLASMA_TURBINE.value());
                 output.accept(AllNuclearItems.LITHIUM.value());
                 output.accept(AllNuclearItems.LITHIUM_6.value());

@@ -111,6 +111,7 @@ dependencies {
     }
     compileOnly("net.createmod.ponder:ponder-neoforge:1.0.82+mc1.21.1")
     runtimeOnly("net.createmod.ponder:ponder-neoforge:1.0.82+mc1.21.1")
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
     implementation("io.github.llamalad7:mixinextras-neoforge:0.4.1")
 

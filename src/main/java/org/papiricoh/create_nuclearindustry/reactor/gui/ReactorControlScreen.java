@@ -3,6 +3,7 @@ package org.papiricoh.create_nuclearindustry.reactor.gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.entity.player.Inventory;
+import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
 
 /**
  * GUI screen for reactor control panel.
@@ -87,9 +88,10 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
 
         // Neutron level (get fresh data)
         double neutrons = menu.getNeutronLevel();
-        String neutronText = String.format("Neutrons: §r%.0f / 1000", neutrons);
+        double maxNeutrons = ReactorPhysicsSimulator.getMaxNeutronLevel();
+        String neutronText = String.format("Neutrons: §r%.0f / %.0f", neutrons, maxNeutrons);
         guiGraphics.drawString(this.font, neutronText, leftPos + 20, topPos + NEUTRON_Y, 0xFFFF00);
-        renderGaugeBar(guiGraphics, leftPos + 20, topPos + NEUTRON_Y + 12, (float) (neutrons / 1000.0));
+        renderGaugeBar(guiGraphics, leftPos + 20, topPos + NEUTRON_Y + 12, (float) (neutrons / maxNeutrons));
 
         // Fuel remaining (get fresh data)
         double fuel = menu.getFuelRemaining();

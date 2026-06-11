@@ -16,6 +16,7 @@ import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFuelInjecto
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionMagnetInputBlockEntity;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionPlasmaTurbineBlockEntity;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionTurbineFluidPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFuelPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFluidPortBlockEntity;
@@ -117,6 +118,12 @@ public class AllNuclearEntities {
             ENTITIES.register("fusion_plasma_turbine", () -> BlockEntityType.Builder.of(
                     FusionPlasmaTurbineBlockEntity::new,
                     AllNuclearBlocks.FUSION_PLASMA_TURBINE.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FusionTurbineFluidPortBlockEntity>> FUSION_TURBINE_FLUID_PORT =
+            ENTITIES.register("fusion_turbine_fluid_port", () -> BlockEntityType.Builder.of(
+                    FusionTurbineFluidPortBlockEntity::new,
+                    AllNuclearBlocks.FUSION_TURBINE_FLUID_PORT.get()
             ).build(null));
 
     // Entidades (no block-entities): el misil ICBM volador.

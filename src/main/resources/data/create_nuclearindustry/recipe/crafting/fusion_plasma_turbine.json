@@ -10,13 +10,13 @@
       "item": "create:brass_sheet"
     },
     "T": {
-      "item": "create_nuclearindustry:turbine_rotor"
+      "item": "create_nuclearindustry:fusion_turbine_rotor"
     },
     "S": {
       "item": "create_nuclearindustry:superconductor_ingot"
     },
     "R": {
-      "item": "create_nuclearindustry:turbine_output"
+      "item": "create_nuclearindustry:fusion_turbine_casing"
     }
   },
   "result": {

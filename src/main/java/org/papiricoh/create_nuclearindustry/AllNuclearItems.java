@@ -45,6 +45,9 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> FUSION_MAGNET_INPUT = ITEMS.register("fusion_magnet_input", () -> new BlockItem(AllNuclearBlocks.FUSION_MAGNET_INPUT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> FUSION_FLUID_PORT = ITEMS.register("fusion_fluid_port", () -> new BlockItem(AllNuclearBlocks.FUSION_FLUID_PORT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> FUSION_FUEL_INJECTOR = ITEMS.register("fusion_fuel_injector", () -> new BlockItem(AllNuclearBlocks.FUSION_FUEL_INJECTOR.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_TURBINE_CASING = ITEMS.register("fusion_turbine_casing", () -> new BlockItem(AllNuclearBlocks.FUSION_TURBINE_CASING.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_TURBINE_ROTOR = ITEMS.register("fusion_turbine_rotor", () -> new BlockItem(AllNuclearBlocks.FUSION_TURBINE_ROTOR.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> FUSION_TURBINE_FLUID_PORT = ITEMS.register("fusion_turbine_fluid_port", () -> new BlockItem(AllNuclearBlocks.FUSION_TURBINE_FLUID_PORT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> FUSION_PLASMA_TURBINE = ITEMS.register("fusion_plasma_turbine", () -> new BlockItem(AllNuclearBlocks.FUSION_PLASMA_TURBINE.value(), new Item.Properties()));
 
     // Deuterium/Tritium crafting chain (very-late-game)

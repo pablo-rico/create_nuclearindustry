@@ -52,8 +52,8 @@ public class AllNuclearCapabilities {
 
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
-                AllNuclearEntities.FUSION_PLASMA_TURBINE.get(),
-                (turbine, direction) -> turbine.getFluidHandler(direction)
+                AllNuclearEntities.FUSION_TURBINE_FLUID_PORT.get(),
+                (port, direction) -> port.getFluidHandler(direction)
         );
     }
 }

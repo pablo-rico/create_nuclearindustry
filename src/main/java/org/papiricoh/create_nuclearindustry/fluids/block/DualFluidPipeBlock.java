@@ -16,10 +16,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fluids.blockentity.DualFluidPipeBlockEntity;
-import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 
 public class DualFluidPipeBlock extends BaseEntityBlock {
     public static final MapCodec<DualFluidPipeBlock> CODEC = simpleCodec(DualFluidPipeBlock::new);
@@ -78,8 +78,8 @@ public class DualFluidPipeBlock extends BaseEntityBlock {
             return true;
         }
 
-        BlockEntity targetEntity = level.getBlockEntity(targetPos);
-        return targetEntity instanceof ReactorBlockEntity;
+        return level instanceof Level world
+                && world.getCapability(Capabilities.FluidHandler.BLOCK, targetPos, direction.getOpposite()) != null;
     }
 
     @Nullable

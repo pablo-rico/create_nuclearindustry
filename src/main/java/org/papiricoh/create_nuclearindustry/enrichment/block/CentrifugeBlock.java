@@ -52,12 +52,12 @@ public class CentrifugeBlock extends KineticBlock implements EntityBlock {
 
     @Override
     public boolean hasShaftTowards(LevelReader level, BlockPos pos, BlockState state, Direction face) {
-        return face.getAxis().isHorizontal();
+        return face == state.getValue(FACING).getOpposite();
     }
 
     @Override
     public Direction.Axis getRotationAxis(BlockState state) {
-        return Direction.Axis.X;
+        return state.getValue(FACING).getAxis();
     }
 
     @Nullable

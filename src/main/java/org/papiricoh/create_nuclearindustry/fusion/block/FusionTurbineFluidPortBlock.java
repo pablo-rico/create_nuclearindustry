@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
@@ -15,7 +14,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -28,20 +26,16 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
-import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFluidPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionTurbineFluidPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
-/**
- * Fusion fluid port: INPUT accepts coolant, OUTPUT provides plasma steam. Reuses the generic
- * {@link ReactorFluidPortMode} enum. Wrench toggles mode; shift+wrench rotates facing.
- */
-public class FusionFluidPortBlock extends BaseEntityBlock {
+public class FusionTurbineFluidPortBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final EnumProperty<ReactorFluidPortMode> MODE = EnumProperty.create("mode", ReactorFluidPortMode.class);
-    public static final MapCodec<FusionFluidPortBlock> CODEC = simpleCodec(FusionFluidPortBlock::new);
+    public static final MapCodec<FusionTurbineFluidPortBlock> CODEC = simpleCodec(FusionTurbineFluidPortBlock::new);
     private static final TagKey<Item> WRENCHES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "tools/wrench"));
 
-    public FusionFluidPortBlock(Properties properties) {
+    public FusionTurbineFluidPortBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
@@ -54,7 +48,7 @@ public class FusionFluidPortBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
         builder.add(FACING, MODE);
     }
 
@@ -69,35 +63,20 @@ public class FusionFluidPortBlock extends BaseEntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                               InteractionHand hand, BlockHitResult hitResult) {
-        if (!isWrench(stack)) {
-            boolean fluidContainer = !stack.isEmpty()
-                    && stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM) != null;
-            if (fluidContainer && !level.isClientSide
-                    && level.getBlockEntity(pos) instanceof FusionFluidPortBlockEntity port) {
-                if (!port.hasLinkedReactor()) {
-                    player.displayClientMessage(Component.literal("§cPort not linked to a formed reactor"), true);
-                    return ItemInteractionResult.SUCCESS;
-                }
-                if (port.tryBucketInteraction(player, hand)) {
-                    return ItemInteractionResult.SUCCESS;
-                }
-            }
+        if (!stack.is(WRENCHES)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
+
         if (!level.isClientSide) {
             BlockState updated = player.isShiftKeyDown()
                     ? state.setValue(FACING, nextDirection(state.getValue(FACING)))
                     : state.setValue(MODE, state.getValue(MODE).next());
             level.setBlock(pos, updated, UPDATE_ALL);
-            if (level.getBlockEntity(pos) instanceof FusionFluidPortBlockEntity port) {
-                port.notifyLinkedReactorChanged(player);
+            if (level.getBlockEntity(pos) instanceof FusionTurbineFluidPortBlockEntity port) {
+                port.refreshLink();
             }
         }
         return ItemInteractionResult.sidedSuccess(level.isClientSide);
-    }
-
-    private static boolean isWrench(ItemStack stack) {
-        return stack.is(WRENCHES);
     }
 
     private static Direction nextDirection(Direction direction) {
@@ -114,15 +93,15 @@ public class FusionFluidPortBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new FusionFluidPortBlockEntity(pos, state);
+        return new FusionTurbineFluidPortBlockEntity(pos, state);
     }
 
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return type == AllNuclearEntities.FUSION_FLUID_PORT.get()
+        return type == AllNuclearEntities.FUSION_TURBINE_FLUID_PORT.get()
                 ? (lvl, pos, blockState, blockEntity) -> {
-                    if (blockEntity instanceof FusionFluidPortBlockEntity port) {
+                    if (blockEntity instanceof FusionTurbineFluidPortBlockEntity port) {
                         port.tick();
                     }
                 }

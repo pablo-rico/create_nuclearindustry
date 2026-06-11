@@ -12,9 +12,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
 import org.papiricoh.create_nuclearindustry.fusion.block.FusionPlasmaTurbineBlock;
+import org.papiricoh.create_nuclearindustry.fusion.block.FusionTurbineFluidPortBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
 import java.util.List;
 
@@ -24,9 +27,9 @@ import java.util.List;
  */
 public class FusionPlasmaTurbineBlockEntity extends GeneratingKineticBlockEntity {
     private static final int TANK_CAPACITY = 32_000;
-    private static final int MAX_STEAM_PER_TICK = 160;
+    private static final int STEAM_PER_PORT_PER_TICK = 160;
     private static final float ACTIVE_RPM = 64.0f;
-    private static final float MAX_STRESS_CAPACITY = 4096.0f;
+    private static final float STRESS_CAPACITY_PER_PORT = 4096.0f;
 
     private final FluidTank plasmaSteamTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isPlasmaTurbineFluid) {
         @Override
@@ -41,10 +44,14 @@ public class FusionPlasmaTurbineBlockEntity extends GeneratingKineticBlockEntity
         }
     };
 
+    private boolean formed;
+    private int validationCooldown;
     private int currentSteamUse;
     private int recentSteamUse;
     private float generatedSpeed;
     private float generatedCapacity;
+    private int plasmaInputPortCount;
+    private int condensateOutputPortCount;
 
     public FusionPlasmaTurbineBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.FUSION_PLASMA_TURBINE.get(), pos, state);
@@ -56,15 +63,19 @@ public class FusionPlasmaTurbineBlockEntity extends GeneratingKineticBlockEntity
             return;
         }
 
-        int consumed = processSteam();
+        if (validationCooldown-- <= 0) {
+            validationCooldown = 20;
+            formed = validateStructure();
+        }
+
+        int consumed = formed ? processSteam() : 0;
         currentSteamUse = consumed;
         recentSteamUse = (recentSteamUse * 7 + consumed) / 8;
 
         float oldSpeed = generatedSpeed;
         float oldCapacity = generatedCapacity;
-        float targetRatio = Math.min(1.0f, recentSteamUse / (float) MAX_STEAM_PER_TICK);
         generatedSpeed = consumed > 0 ? getSignedSpeed(ACTIVE_RPM) : 0.0f;
-        generatedCapacity = MAX_STRESS_CAPACITY * targetRatio;
+        generatedCapacity = STRESS_CAPACITY_PER_PORT * recentSteamUse / (float) STEAM_PER_PORT_PER_TICK;
 
         if (Math.abs(oldSpeed - generatedSpeed) > 0.25f || Math.abs(oldCapacity - generatedCapacity) > 1.0f) {
             updateGeneratedRotation();
@@ -74,22 +85,87 @@ public class FusionPlasmaTurbineBlockEntity extends GeneratingKineticBlockEntity
         }
     }
 
+    private boolean validateStructure() {
+        Direction facing = getBlockState().getValue(FusionPlasmaTurbineBlock.FACING);
+        BlockPos rotorPos = getBlockPos().relative(facing.getOpposite());
+        BlockPos casingPos = rotorPos.relative(facing.getOpposite());
+        BlockState rotor = level.getBlockState(rotorPos);
+        BlockState casing = level.getBlockState(casingPos);
+
+        boolean baseFormed = rotor.is(AllNuclearBlocks.FUSION_TURBINE_ROTOR.get())
+                && rotor.getValue(net.minecraft.world.level.block.RotatedPillarBlock.AXIS) == facing.getAxis()
+                && casing.is(AllNuclearBlocks.FUSION_TURBINE_CASING.get());
+        countLinkedPorts();
+        return baseFormed && plasmaInputPortCount > 0 && condensateOutputPortCount > 0;
+    }
+
+    private void countLinkedPorts() {
+        plasmaInputPortCount = 0;
+        condensateOutputPortCount = 0;
+        if (level == null) {
+            return;
+        }
+        for (BlockPos turbineBlock : getStructureBlocks()) {
+            for (Direction direction : Direction.values()) {
+                BlockPos portPos = turbineBlock.relative(direction);
+                BlockState portState = level.getBlockState(portPos);
+                if (!portState.is(AllNuclearBlocks.FUSION_TURBINE_FLUID_PORT.get())) {
+                    continue;
+                }
+                if (portState.getValue(FusionTurbineFluidPortBlock.MODE) == ReactorFluidPortMode.INPUT) {
+                    plasmaInputPortCount++;
+                } else {
+                    condensateOutputPortCount++;
+                }
+            }
+        }
+    }
+
+    private List<BlockPos> getStructureBlocks() {
+        Direction facing = getBlockState().getValue(FusionPlasmaTurbineBlock.FACING);
+        BlockPos rotorPos = getBlockPos().relative(facing.getOpposite());
+        BlockPos casingPos = rotorPos.relative(facing.getOpposite());
+        return List.of(getBlockPos(), rotorPos, casingPos);
+    }
+
+    public boolean isPortAttached(BlockPos portPos) {
+        if (level == null) {
+            return false;
+        }
+        for (BlockPos turbineBlock : getStructureBlocks()) {
+            if (portPos.distManhattan(turbineBlock) == 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private int processSteam() {
         if (plasmaSteamTank.isEmpty() || condensateTank.getSpace() <= 0) {
             return 0;
         }
-        FluidStack condensate = new FluidStack(Fluids.WATER, MAX_STEAM_PER_TICK);
+
+        int throughput = getSteamThroughputLimit();
+        if (throughput <= 0) {
+            return 0;
+        }
+
+        FluidStack condensate = new FluidStack(Fluids.WATER, throughput);
         int outputSpace = condensateTank.fill(condensate, IFluidHandler.FluidAction.SIMULATE);
         if (outputSpace <= 0) {
             return 0;
         }
-        int amount = Math.min(MAX_STEAM_PER_TICK, outputSpace);
+        int amount = Math.min(throughput, outputSpace);
         FluidStack drained = plasmaSteamTank.drain(amount, IFluidHandler.FluidAction.EXECUTE);
         if (drained.isEmpty()) {
             return 0;
         }
         condensateTank.fill(new FluidStack(Fluids.WATER, drained.getAmount()), IFluidHandler.FluidAction.EXECUTE);
         return drained.getAmount();
+    }
+
+    private int getSteamThroughputLimit() {
+        return Math.min(plasmaInputPortCount, condensateOutputPortCount) * STEAM_PER_PORT_PER_TICK;
     }
 
     private float getSignedSpeed(float speed) {
@@ -107,47 +183,22 @@ public class FusionPlasmaTurbineBlockEntity extends GeneratingKineticBlockEntity
         return generatedCapacity;
     }
 
-    public IFluidHandler getFluidHandler(Direction direction) {
-        if (direction == getBlockState().getValue(FusionPlasmaTurbineBlock.FACING)) {
-            return null; // shaft side
-        }
-        return new IFluidHandler() {
-            @Override public int getTanks() { return 2; }
-
-            @Override public FluidStack getFluidInTank(int tank) {
-                return tank == 0 ? plasmaSteamTank.getFluid().copy() : condensateTank.getFluid().copy();
-            }
-
-            @Override public int getTankCapacity(int tank) { return TANK_CAPACITY; }
-
-            @Override public boolean isFluidValid(int tank, FluidStack stack) {
-                return tank == 0 && NuclearFluidHelper.isPlasmaTurbineFluid(stack);
-            }
-
-            @Override public int fill(FluidStack resource, FluidAction action) {
-                return NuclearFluidHelper.isPlasmaTurbineFluid(resource) ? plasmaSteamTank.fill(resource, action) : 0;
-            }
-
-            @Override public FluidStack drain(FluidStack resource, FluidAction action) {
-                return NuclearFluidHelper.isCoolant(resource) ? condensateTank.drain(resource, action) : FluidStack.EMPTY;
-            }
-
-            @Override public FluidStack drain(int maxDrain, FluidAction action) {
-                return condensateTank.drain(maxDrain, action);
-            }
-        };
-    }
-
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
-        tooltip.add(Component.literal("Plasma Turbine").withStyle(ChatFormatting.GOLD));
+        tooltip.add(Component.literal("Fusion Plasma Turbine").withStyle(ChatFormatting.GOLD));
+        tooltip.add(Component.literal("  Structure: " + (formed ? "Formed" : "Incomplete"))
+                .withStyle(formed ? ChatFormatting.GREEN : ChatFormatting.RED));
+        tooltip.add(Component.literal("  Plasma input ports: " + plasmaInputPortCount)
+                .withStyle(plasmaInputPortCount > 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
+        tooltip.add(Component.literal("  Condensate output ports: " + condensateOutputPortCount)
+                .withStyle(condensateOutputPortCount > 0 ? ChatFormatting.GREEN : ChatFormatting.RED));
         tooltip.add(Component.literal("  Plasma steam: " + plasmaSteamTank.getFluidAmount() + "/" + TANK_CAPACITY + " mB")
                 .withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Condensate: " + condensateTank.getFluidAmount() + "/" + TANK_CAPACITY + " mB")
                 .withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal(String.format("  Generated: %.1f RPM", Math.abs(generatedSpeed))).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Steam use: " + currentSteamUse + "/" + MAX_STEAM_PER_TICK + " mB/t").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  Steam use: " + currentSteamUse + "/" + getSteamThroughputLimit() + " mB/t").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal(String.format("  Stress capacity: %.0f SU", generatedCapacity)).withStyle(ChatFormatting.GRAY));
         return true;
     }
@@ -157,10 +208,13 @@ public class FusionPlasmaTurbineBlockEntity extends GeneratingKineticBlockEntity
         super.write(tag, registries, clientPacket);
         tag.put("plasmaSteam", plasmaSteamTank.writeToNBT(registries, new CompoundTag()));
         tag.put("condensate", condensateTank.writeToNBT(registries, new CompoundTag()));
+        tag.putBoolean("formed", formed);
         tag.putInt("currentSteamUse", currentSteamUse);
         tag.putInt("recentSteamUse", recentSteamUse);
         tag.putFloat("generatedSpeed", generatedSpeed);
         tag.putFloat("generatedCapacity", generatedCapacity);
+        tag.putInt("plasmaInputPortCount", plasmaInputPortCount);
+        tag.putInt("condensateOutputPortCount", condensateOutputPortCount);
     }
 
     @Override
@@ -172,9 +226,44 @@ public class FusionPlasmaTurbineBlockEntity extends GeneratingKineticBlockEntity
         if (tag.contains("condensate")) {
             condensateTank.readFromNBT(registries, tag.getCompound("condensate"));
         }
+        formed = tag.getBoolean("formed");
         currentSteamUse = tag.getInt("currentSteamUse");
         recentSteamUse = tag.getInt("recentSteamUse");
         generatedSpeed = tag.getFloat("generatedSpeed");
         generatedCapacity = tag.getFloat("generatedCapacity");
+        plasmaInputPortCount = tag.getInt("plasmaInputPortCount");
+        condensateOutputPortCount = tag.getInt("condensateOutputPortCount");
+    }
+
+    public int getTankCapacity() {
+        return TANK_CAPACITY;
+    }
+
+    public int getPlasmaSteamAmount() {
+        return plasmaSteamTank.getFluidAmount();
+    }
+
+    public int getCondensateAmount() {
+        return condensateTank.getFluidAmount();
+    }
+
+    public FluidStack getPlasmaSteamFluid() {
+        return plasmaSteamTank.getFluid().copy();
+    }
+
+    public FluidStack getCondensateFluid() {
+        return condensateTank.getFluid().copy();
+    }
+
+    public int fillPlasmaSteam(FluidStack resource, IFluidHandler.FluidAction action) {
+        return NuclearFluidHelper.isPlasmaTurbineFluid(resource) ? plasmaSteamTank.fill(resource, action) : 0;
+    }
+
+    public FluidStack drainCondensate(FluidStack resource, IFluidHandler.FluidAction action) {
+        return NuclearFluidHelper.isCoolant(resource) ? condensateTank.drain(resource, action) : FluidStack.EMPTY;
+    }
+
+    public FluidStack drainCondensate(int maxDrain, IFluidHandler.FluidAction action) {
+        return condensateTank.drain(maxDrain, action);
     }
 }

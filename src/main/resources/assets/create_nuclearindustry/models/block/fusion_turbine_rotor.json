@@ -1,0 +1,8 @@
+{
+  "parent": "create_nuclearindustry:block/turbine_rotor",
+  "textures": {
+    "metal": "create_nuclearindustry:block/fusion_electromagnet",
+    "blade": "create_nuclearindustry:block/fusion_plasma_turbine",
+    "particle": "create_nuclearindustry:block/fusion_electromagnet"
+  }
+}

@@ -160,6 +160,8 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.missile.client.MissileRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.LAUNCH_PAD.get(),
                     org.papiricoh.create_nuclearindustry.missile.client.LaunchPadRenderer::new);
+            event.registerBlockEntityRenderer(AllNuclearEntities.CENTRIFUGE.get(),
+                    org.papiricoh.create_nuclearindustry.enrichment.client.CentrifugeRenderer::new);
         }
 
         @SubscribeEvent

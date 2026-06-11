@@ -13,6 +13,7 @@ import org.papiricoh.create_nuclearindustry.fusion.block.FusionFuelInjectorBlock
 import org.papiricoh.create_nuclearindustry.fusion.block.FusionMagnetInputBlock;
 import org.papiricoh.create_nuclearindustry.fusion.block.FusionPlasmaTurbineBlock;
 import org.papiricoh.create_nuclearindustry.fusion.block.FusionReactorControllerBlock;
+import org.papiricoh.create_nuclearindustry.fusion.block.FusionTurbineFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.fluids.block.DualFluidPipeBlock;
 import org.papiricoh.create_nuclearindustry.missile.block.LaunchPadBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ControlRodBlock;
@@ -67,6 +68,9 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> FUSION_MAGNET_INPUT = BLOCKS.register("fusion_magnet_input", () -> new FusionMagnetInputBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLUE).strength(3.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> FUSION_FLUID_PORT = BLOCKS.register("fusion_fluid_port", () -> new FusionFluidPortBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> FUSION_FUEL_INJECTOR = BLOCKS.register("fusion_fuel_injector", () -> new FusionFuelInjectorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_TURBINE_CASING = BLOCKS.register("fusion_turbine_casing", () -> new TurbineCasingBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f)));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_TURBINE_ROTOR = BLOCKS.register("fusion_turbine_rotor", () -> new TurbineRotorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f).noOcclusion()));
+    public static final DeferredHolder<Block, ? extends Block> FUSION_TURBINE_FLUID_PORT = BLOCKS.register("fusion_turbine_fluid_port", () -> new FusionTurbineFluidPortBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> FUSION_PLASMA_TURBINE = BLOCKS.register("fusion_plasma_turbine", () -> new FusionPlasmaTurbineBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
 
 

@@ -24,7 +24,7 @@ public class ReactorPhysicsSimulator {
     private static final double MELTDOWN_TEMP = 4000.0;             // Absolute limit
 
     // Limits
-    private static final double MAX_NEUTRON_LEVEL = 1000.0;
+    private static final double MAX_NEUTRON_LEVEL = 2000.0;
     private static final double MIN_NEUTRON_LEVEL = 0.0;
     private static final double FUEL_PER_ASSEMBLY = 100.0;
     private static final double MAX_THERMAL_STRESS = 100.0;
@@ -34,7 +34,7 @@ public class ReactorPhysicsSimulator {
 
     // State variables
     private double coreTemperature;                                 // Celsius (0-4000)
-    private double neutronLevel;                                    // 0-1000
+    private double neutronLevel;                                    // 0-MAX_NEUTRON_LEVEL
     private double fuelRemaining;                                   // Fuel units (0-capacity)
     private float controlRodInsertion;                              // 0.0 = withdrawn, 1.0 = fully inserted
     private int uraniumRodCount;                                    // Number of fuel rods in reactor
@@ -222,7 +222,7 @@ public class ReactorPhysicsSimulator {
 
         double temperatureSteam = (coreTemperature - 100.0) * STEAM_TEMPERATURE_FACTOR;
         double neutronSteam = neutronLevel * STEAM_NEUTRON_FACTOR;
-        return Math.min(80.0, temperatureSteam + neutronSteam);
+        return temperatureSteam + neutronSteam;
     }
 
     /**
@@ -306,6 +306,10 @@ public class ReactorPhysicsSimulator {
 
     public double getNeutronLevel() {
         return neutronLevel;
+    }
+
+    public static double getMaxNeutronLevel() {
+        return MAX_NEUTRON_LEVEL;
     }
 
     public double getFuelRemaining() {

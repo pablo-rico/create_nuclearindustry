@@ -22,9 +22,9 @@ import java.util.List;
 
 public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
     private static final int TANK_CAPACITY = 16_000;
-    private static final int MAX_STEAM_PER_TICK = 80;
+    private static final int STEAM_PER_PORT_PER_TICK = 80;
     private static final float ACTIVE_RPM = 32.0f;
-    private static final float MAX_STRESS_CAPACITY = 512.0f;
+    private static final float STRESS_CAPACITY_PER_PORT = 512.0f;
 
     private final FluidTank steamTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isTurbineSteam) {
         @Override
@@ -70,9 +70,8 @@ public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
 
         float oldSpeed = generatedSpeed;
         float oldCapacity = generatedCapacity;
-        float targetRatio = Math.min(1.0f, recentSteamUse / (float) MAX_STEAM_PER_TICK);
         generatedSpeed = consumed > 0 ? getSignedSpeed(ACTIVE_RPM) : 0.0f;
-        generatedCapacity = MAX_STRESS_CAPACITY * targetRatio;
+        generatedCapacity = STRESS_CAPACITY_PER_PORT * recentSteamUse / (float) STEAM_PER_PORT_PER_TICK;
 
         if (Math.abs(oldSpeed - generatedSpeed) > 0.25f || Math.abs(oldCapacity - generatedCapacity) > 1.0f) {
             updateGeneratedRotation();
@@ -143,15 +142,20 @@ public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
             return 0;
         }
 
+        int throughput = getSteamThroughputLimit();
+        if (throughput <= 0) {
+            return 0;
+        }
+
         FluidStack steam = steamTank.getFluid();
         boolean heavy = NuclearFluidHelper.isHeavySteam(steam);
-        FluidStack condensate = new FluidStack(heavy ? AllNuclearFluids.HEAVY_WATER.get() : Fluids.WATER, MAX_STEAM_PER_TICK);
+        FluidStack condensate = new FluidStack(heavy ? AllNuclearFluids.HEAVY_WATER.get() : Fluids.WATER, throughput);
         int outputSpace = condensateTank.fill(condensate, IFluidHandler.FluidAction.SIMULATE);
         if (outputSpace <= 0) {
             return 0;
         }
 
-        int amount = Math.min(MAX_STEAM_PER_TICK, outputSpace);
+        int amount = Math.min(throughput, outputSpace);
         FluidStack drained = steamTank.drain(amount, IFluidHandler.FluidAction.EXECUTE);
         if (drained.isEmpty()) {
             return 0;
@@ -159,6 +163,10 @@ public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
 
         condensateTank.fill(new FluidStack(condensate.getFluid(), drained.getAmount()), IFluidHandler.FluidAction.EXECUTE);
         return drained.getAmount();
+    }
+
+    private int getSteamThroughputLimit() {
+        return Math.min(steamInputPortCount, condensateOutputPortCount) * STEAM_PER_PORT_PER_TICK;
     }
 
     private float getSignedSpeed(float speed) {
@@ -192,7 +200,7 @@ public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
                 .withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal(String.format("  Generated: %.1f RPM", Math.abs(generatedSpeed)))
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Steam use: " + currentSteamUse + "/" + MAX_STEAM_PER_TICK + " mB/t")
+        tooltip.add(Component.literal("  Steam use: " + currentSteamUse + "/" + getSteamThroughputLimit() + " mB/t")
                 .withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal(String.format("  Stress capacity: %.0f SU", generatedCapacity))
                 .withStyle(ChatFormatting.GRAY));

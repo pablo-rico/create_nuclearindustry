@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CSC",
+    "SAS",
+    "CSC"
+  ],
+  "key": {
+    "A": {
+      "item": "create_nuclearindustry:fusion_cryostat_casing"
+    },
+    "C": {
+      "item": "create:brass_sheet"
+    },
+    "S": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:fusion_turbine_casing"
+  }
+}

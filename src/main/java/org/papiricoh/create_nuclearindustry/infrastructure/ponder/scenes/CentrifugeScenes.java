@@ -26,8 +26,8 @@ public class CentrifugeScenes {
         scene.setSceneOffsetY(-1.0f);
 
         BlockPos centrifuge = util.grid().at(2, 1, 2);
-        BlockPos shaft = util.grid().at(3, 1, 2);
-        BlockPos cogwheel = util.grid().at(4, 1, 2);
+        BlockPos shaft = util.grid().at(2, 1, 3);
+        BlockPos cogwheel = util.grid().at(2, 1, 4);
 
         scene.world().setBlocks(
                 util.select().fromTo(0, 0, 0, 4, 0, 4),
@@ -41,18 +41,18 @@ public class CentrifugeScenes {
         );
         scene.world().setBlock(
                 shaft,
-                block("create", "shaft").defaultBlockState().setValue(RotatedPillarKineticBlock.AXIS, Direction.Axis.X),
+                block("create", "shaft").defaultBlockState().setValue(RotatedPillarKineticBlock.AXIS, Direction.Axis.Z),
                 false
         );
         scene.world().setBlock(
                 cogwheel,
-                block("create", "cogwheel").defaultBlockState().setValue(RotatedPillarKineticBlock.AXIS, Direction.Axis.X),
+                block("create", "cogwheel").defaultBlockState().setValue(RotatedPillarKineticBlock.AXIS, Direction.Axis.Z),
                 false
         );
 
         scene.showBasePlate();
         scene.idle(5);
-        scene.world().showSection(util.select().fromTo(2, 1, 2, 4, 1, 2), Direction.DOWN);
+        scene.world().showSection(util.select().fromTo(2, 1, 2, 2, 1, 4), Direction.DOWN);
         scene.idle(20);
 
         scene.overlay().showText(70)
@@ -62,10 +62,10 @@ public class CentrifugeScenes {
         scene.idle(80);
 
         scene.overlay().showText(70)
-                .text("It accepts rotational power from any horizontal side.")
+                .text("It accepts rotational power through the rear shaft.")
                 .pointAt(util.vector().centerOf(shaft))
                 .placeNearTarget();
-        scene.world().setKineticSpeed(util.select().fromTo(2, 1, 2, 4, 1, 2), 32);
+        scene.world().setKineticSpeed(util.select().fromTo(2, 1, 2, 2, 1, 4), 32);
         scene.idle(80);
 
         scene.overlay().showControls(util.vector().blockSurface(centrifuge, Direction.WEST), Pointing.RIGHT, 50)
