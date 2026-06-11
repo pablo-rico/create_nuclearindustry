@@ -13,7 +13,8 @@ import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 
 /**
  * Escena Ponder para el reactor de fusion. La implementacion real valida un anillo cuadrado
- * horizontal, con el controlador en el centro y una camara de plasma vacia.
+ * horizontal, con el controlador en el centro y la camara interior rellena de carcasa de
+ * criostato (fusion_cryostat_casing).
  *
  * <p>Toda la geometria vive en {@code ponder/fusion_controller.nbt}; esta escena solo revela
  * secciones. Eso evita que Ponder dependa de bloques construidos con setBlock sobre un schematic
@@ -67,6 +68,11 @@ public class FusionReactorScenes {
                 .placeNearTarget();
         scene.idle(95);
 
+        // Camara interior: anillo relleno de carcasa de criostato (requisito del validador)
+        showPositions(scene, util, Direction.DOWN, new int[][]{
+                {3, 1, 3}, {3, 1, 4}, {3, 1, 5}, {4, 1, 3}, {4, 1, 5}, {5, 1, 3}, {5, 1, 4}, {5, 1, 5}
+        });
+        scene.idle(15);
         scene.overlay().showText(80)
                 .text(tr(4))
                 .colored(PonderPalette.BLUE)

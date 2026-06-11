@@ -2,7 +2,7 @@
   "parent": "block/orientable",
   "textures": {
     "top": "create_nuclearindustry:block/reactor_casing",
-    "front": "create_nuclearindustry:block/reactor_controller_on",
+    "front": "create_nuclearindustry:block/reactor_temperature_sensor",
     "side": "create_nuclearindustry:block/reactor_casing"
   }
 }

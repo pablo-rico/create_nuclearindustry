@@ -29,6 +29,8 @@ import java.util.Optional;
 
 public class FusionFluidPortBlockEntity extends BlockEntity implements IHaveGoggleInformation {
     private static final int LINK_SCAN_INTERVAL = 20;
+    // Matches the reactor's max plasma steam production so a single port can keep up.
+    private static final int ADJACENT_TRANSFER_PER_TICK = 160;
 
     private final IFluidHandler inputHandler = new PortFluidHandler(ReactorFluidPortMode.INPUT);
     private final IFluidHandler outputHandler = new PortFluidHandler(ReactorFluidPortMode.OUTPUT);
@@ -47,6 +49,33 @@ public class FusionFluidPortBlockEntity extends BlockEntity implements IHaveGogg
         if (++linkScanCounter >= LINK_SCAN_INTERVAL) {
             linkScanCounter = 0;
             rescanLinkedReactor();
+        }
+        exchangeWithNeighbours();
+    }
+
+    /**
+     * Actively trades fluid with handlers touching the port (fluid tanks, turbine ports, ...).
+     * Create pumps only push flows through 16 pipe segments, and the ring geometry often forces
+     * longer runs; letting the port pull/push directly from an adjacent buffer sidesteps that.
+     * Pipes are unaffected: they expose no fluid handler and keep working through the capability.
+     */
+    private void exchangeWithNeighbours() {
+        if (getCachedLinkedReactor().isEmpty()) {
+            return;
+        }
+        boolean input = getMode() == ReactorFluidPortMode.INPUT;
+        for (Direction side : Direction.values()) {
+            IFluidHandler neighbour = level.getCapability(
+                    net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK,
+                    getBlockPos().relative(side), side.getOpposite());
+            if (neighbour == null) {
+                continue;
+            }
+            if (input) {
+                net.neoforged.neoforge.fluids.FluidUtil.tryFluidTransfer(inputHandler, neighbour, ADJACENT_TRANSFER_PER_TICK, true);
+            } else {
+                net.neoforged.neoforge.fluids.FluidUtil.tryFluidTransfer(neighbour, outputHandler, ADJACENT_TRANSFER_PER_TICK, true);
+            }
         }
     }
 
@@ -184,8 +213,12 @@ public class FusionFluidPortBlockEntity extends BlockEntity implements IHaveGogg
         tooltip.add(Component.literal("Fusion Fluid Port").withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.literal("  Mode: " + (mode == ReactorFluidPortMode.INPUT ? "Coolant input" : "Plasma steam output"))
                 .withStyle(mode == ReactorFluidPortMode.INPUT ? ChatFormatting.AQUA : ChatFormatting.GOLD));
-        tooltip.add(Component.literal("  Connect pipes to any side")
+        tooltip.add(Component.literal("  Connect pipes or tanks to any side")
                 .withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal(mode == ReactorFluidPortMode.INPUT
+                        ? "  Auto-drains adjacent tanks (pumps reach 16 pipes)"
+                        : "  Auto-fills adjacent tanks (pumps reach 16 pipes)")
+                .withStyle(ChatFormatting.DARK_GRAY));
         boolean activeLink = level != null && level.isClientSide ? linked : findLinkedReactor().isPresent();
         tooltip.add(Component.literal("  Status: " + linkStatus(activeLink))
                 .withStyle(activeLink ? ChatFormatting.GREEN : ChatFormatting.RED));

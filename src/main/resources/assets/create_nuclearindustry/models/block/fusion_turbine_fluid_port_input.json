@@ -2,7 +2,7 @@
   "parent": "block/orientable",
   "textures": {
     "top": "create_nuclearindustry:block/fusion_cryostat_casing",
-    "front": "create_nuclearindustry:block/fusion_fluid_port_output",
+    "front": "create_nuclearindustry:block/fusion_turbine_fluid_port_input",
     "side": "create_nuclearindustry:block/fusion_cryostat_casing"
   }
 }

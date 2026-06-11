@@ -20,6 +20,8 @@ import java.util.Optional;
 public class FusionTurbineFluidPortBlockEntity extends BlockEntity implements IHaveGoggleInformation {
     private static final int LINK_SCAN_INTERVAL = 20;
     private static final int SEARCH_RADIUS = 4;
+    // Matches the turbine's max steam consumption per port.
+    private static final int ADJACENT_TRANSFER_PER_TICK = 160;
 
     private final IFluidHandler inputHandler = new PortFluidHandler(ReactorFluidPortMode.INPUT);
     private final IFluidHandler outputHandler = new PortFluidHandler(ReactorFluidPortMode.OUTPUT);
@@ -38,6 +40,44 @@ public class FusionTurbineFluidPortBlockEntity extends BlockEntity implements IH
             linkScanCounter = 0;
             refreshLink();
         }
+        exchangeWithNeighbours();
+    }
+
+    /**
+     * Actively trades fluid with handlers touching the port (tanks, reactor fluid ports, ...),
+     * mirroring {@link FusionFluidPortBlockEntity}: Create pumps only push flows through 16 pipe
+     * segments, so adjacent buffers let players bridge longer runs.
+     */
+    private void exchangeWithNeighbours() {
+        if (cachedLinkedTurbine().isEmpty()) {
+            return;
+        }
+        boolean input = getMode() == ReactorFluidPortMode.INPUT;
+        for (Direction side : Direction.values()) {
+            IFluidHandler neighbour = level.getCapability(
+                    net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK,
+                    getBlockPos().relative(side), side.getOpposite());
+            if (neighbour == null) {
+                continue;
+            }
+            if (input) {
+                net.neoforged.neoforge.fluids.FluidUtil.tryFluidTransfer(inputHandler, neighbour, ADJACENT_TRANSFER_PER_TICK, true);
+            } else {
+                net.neoforged.neoforge.fluids.FluidUtil.tryFluidTransfer(neighbour, outputHandler, ADJACENT_TRANSFER_PER_TICK, true);
+            }
+        }
+    }
+
+    /** Cheap link check for the per-tick exchange: trusts the cached turbine, refreshed every second. */
+    private java.util.Optional<FusionPlasmaTurbineBlockEntity> cachedLinkedTurbine() {
+        if (level == null || linkedTurbine.isEmpty()) {
+            return java.util.Optional.empty();
+        }
+        if (level.getBlockEntity(linkedTurbine.get()) instanceof FusionPlasmaTurbineBlockEntity turbine
+                && turbine.isPortAttached(getBlockPos())) {
+            return java.util.Optional.of(turbine);
+        }
+        return java.util.Optional.empty();
     }
 
     public void refreshLink() {
@@ -97,8 +137,12 @@ public class FusionTurbineFluidPortBlockEntity extends BlockEntity implements IH
         tooltip.add(Component.literal("Fusion Turbine Fluid Port").withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.literal("  Mode: " + (mode == ReactorFluidPortMode.INPUT ? "Plasma steam input" : "Condensate output"))
                 .withStyle(mode == ReactorFluidPortMode.INPUT ? ChatFormatting.GOLD : ChatFormatting.AQUA));
-        tooltip.add(Component.literal("  Connect pipes to any side")
+        tooltip.add(Component.literal("  Connect pipes or tanks to any side")
                 .withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal(mode == ReactorFluidPortMode.INPUT
+                        ? "  Auto-drains adjacent tanks (pumps reach 16 pipes)"
+                        : "  Auto-fills adjacent tanks (pumps reach 16 pipes)")
+                .withStyle(ChatFormatting.DARK_GRAY));
         tooltip.add(Component.literal("  Status: " + linkStatus())
                 .withStyle(findLinkedTurbine().isPresent() ? ChatFormatting.GREEN : ChatFormatting.RED));
         findLinkedTurbine().ifPresent(turbine -> {
