@@ -28,7 +28,6 @@ import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
-import org.papiricoh.create_nuclearindustry.enrichment.recipe.EnrichedUraniumBlendRecipe;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
@@ -714,7 +713,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get())) {
             return stack.has(AllNuclearDataComponents.ENRICHMENT.get())
                     ? UraniumItem.getEnrichment(stack)
-                    : EnrichedUraniumBlendRecipe.REQUIRED_ENRICHMENT;
+                    : UraniumItem.REACTOR_FUEL_ENRICHMENT;
         }
         return 0.0f;
     }

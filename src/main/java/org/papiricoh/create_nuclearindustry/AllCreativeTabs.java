@@ -26,7 +26,6 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.URANIUM_ORE.value());
                 output.accept(AllNuclearItems.URANIUM_REACTOR_FUEL.value());
                 output.accept(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.value());
-                output.accept(AllNuclearItems.ENRICHED_URANIUM_BLEND.value());
                 output.accept(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.value());
                 output.accept(AllNuclearItems.URANIUM_ROD.value());
                 output.accept(AllNuclearItems.BORAX_ORE.value());

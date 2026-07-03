@@ -1,0 +1,28 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:uranium"
+      },
+      "min_enrichment": 20.0
+    },
+    {
+      "item": "create_nuclearindustry:boron"
+    },
+    {
+      "item": "create:copper_sheet"
+    }
+  ],
+  "processing_time": 400,
+  "results": [
+    {
+      "id": "create_nuclearindustry:uranium_reactor_fuel",
+      "components": {
+        "create_nuclearindustry:enrichment": 20.0
+      }
+    }
+  ]
+}

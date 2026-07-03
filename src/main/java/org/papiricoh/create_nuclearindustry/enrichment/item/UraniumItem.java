@@ -11,6 +11,7 @@ import java.util.List;
 
 public class UraniumItem extends Item {
     public static final float NATURAL_ENRICHMENT = 0.7f;
+    public static final float REACTOR_FUEL_ENRICHMENT = 20.0f;
 
     public UraniumItem(Properties properties) {
         super(properties);

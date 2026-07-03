@@ -51,8 +51,10 @@ public class Create_NuclearIndustry {
         AllNuclearDataComponents.DATA_COMPONENTS.register(modEventBus);
 
         AllNuclearRecipes.init();
-        AllNuclearRecipes.TYPES.register(modEventBus);
         AllNuclearRecipes.SERIALIZERS.register(modEventBus);
+
+        AllNuclearIngredients.init();
+        AllNuclearIngredients.INGREDIENT_TYPES.register(modEventBus);
 
         AllNuclearBlocks.init();
 

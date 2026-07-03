@@ -1,6 +1,10 @@
 package org.papiricoh.create_nuclearindustry.enrichment.blockentity;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
+import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -12,31 +16,28 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
-import org.papiricoh.create_nuclearindustry.AllNuclearRecipes;
+import org.papiricoh.create_nuclearindustry.enrichment.block.CentrifugeBlock;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
-import org.papiricoh.create_nuclearindustry.enrichment.recipe.CentrifugingRecipe;
 
 import java.util.List;
-import java.util.Optional;
 
 public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearable {
     private static final int INPUT_SLOT = 0;
     private static final int OUTPUT_SLOT = 1;
     private static final float MIN_SPEED = 16.0f;
-    private static final float NATURAL_OUTPUT = 0.7f;
-    private static final float ENRICHMENT_STEP = 0.2f;
-    private static final float MAX_ENRICHMENT = 98.0f;
     private static final int RAW_PROCESSING_TIME = 120;
-    private static final int ENRICHING_PROCESSING_TIME = 3000;
+    private static final int TICKS_PER_PERCENT = 150;
+    private static final float ENRICHMENT_STEP = 1.0f;
+    private static final int TARGET_UNIT = 5;
+    private static final int DEFAULT_TARGET_UNITS = 4; // 20%
 
     private final ItemStackHandler inventory = new ItemStackHandler(2) {
         @Override
@@ -56,8 +57,10 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
     private final IItemHandler inputHandler = new SlotView(INPUT_SLOT, true, false);
     private final IItemHandler outputHandler = new SlotView(OUTPUT_SLOT, false, true);
 
+    public ScrollValueBehaviour targetEnrichment;
+
+    private ItemStack processingStack = ItemStack.EMPTY;
     private int progress;
-    private int processingTime;
     private int syncCooldown;
 
     public CentrifugeBlockEntity(BlockPos pos, BlockState state) {
@@ -69,14 +72,41 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
     }
 
     @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+        super.addBehaviours(behaviours);
+        targetEnrichment = new ScrollValueBehaviour(
+                Component.translatable("create_nuclearindustry.centrifuge.target_enrichment"),
+                this, new CentrifugeValueBox())
+                .between(1, 95 / TARGET_UNIT)
+                .withFormatter(units -> (units * TARGET_UNIT) + "%")
+                .withCallback(units -> notifyUpdate());
+        targetEnrichment.setValue(DEFAULT_TARGET_UNITS);
+        behaviours.add(targetEnrichment);
+    }
+
+    public float getTargetEnrichment() {
+        return targetEnrichment.getValue() * (float) TARGET_UNIT;
+    }
+
+    @Override
     public void tick() {
         super.tick();
         if (level == null || level.isClientSide) {
             return;
         }
 
-        Optional<ProcessingPlan> plan = getCurrentPlan();
-        if (Math.abs(getSpeed()) < MIN_SPEED || plan.isEmpty() || !canOutput(plan.get())) {
+        boolean changed = false;
+
+        if (processingStack.isEmpty()) {
+            ItemStack extracted = inventory.extractItem(INPUT_SLOT, 1, false);
+            if (!extracted.isEmpty()) {
+                processingStack = extracted;
+                progress = 0;
+                changed = true;
+            }
+        }
+
+        if (processingStack.isEmpty()) {
             if (progress != 0) {
                 progress = 0;
                 notifyUpdate();
@@ -84,11 +114,21 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
             return;
         }
 
-        processingTime = Math.max(1, plan.get().processingTime());
-        progress += getProcessingSpeed();
-        if (progress >= processingTime) {
-            process(plan.get());
+        if (isProcessingDone()) {
+            ItemStack remainder = inventory.insertItem(OUTPUT_SLOT, processingStack, false);
+            if (remainder.getCount() != processingStack.getCount()) {
+                changed = true;
+            }
+            processingStack = remainder;
             progress = 0;
+        } else if (Math.abs(getSpeed()) >= MIN_SPEED) {
+            progress += getProcessingSpeed();
+            changed |= advanceProcessing();
+            changed = true;
+        }
+
+        if (!changed) {
+            return;
         }
         syncCooldown++;
         if (syncCooldown >= 10) {
@@ -97,6 +137,38 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
         } else {
             setChanged();
         }
+    }
+
+    private boolean isProcessingDone() {
+        return processingStack.is(AllNuclearItems.URANIUM.get())
+                && UraniumItem.getEnrichment(processingStack) >= getTargetEnrichment();
+    }
+
+    private boolean advanceProcessing() {
+        boolean changed = false;
+        if (processingStack.is(AllNuclearItems.RAW_URANIUM.get())) {
+            if (progress < RAW_PROCESSING_TIME) {
+                return false;
+            }
+            progress -= RAW_PROCESSING_TIME;
+            ItemStack refined = new ItemStack(AllNuclearItems.URANIUM.get());
+            UraniumItem.setEnrichment(refined, UraniumItem.NATURAL_ENRICHMENT);
+            processingStack = refined;
+            changed = true;
+        }
+
+        if (!processingStack.is(AllNuclearItems.URANIUM.get())) {
+            return changed;
+        }
+
+        float target = getTargetEnrichment();
+        while (progress >= TICKS_PER_PERCENT && UraniumItem.getEnrichment(processingStack) < target) {
+            progress -= TICKS_PER_PERCENT;
+            float next = Math.min(target, UraniumItem.getEnrichment(processingStack) + ENRICHMENT_STEP);
+            UraniumItem.setEnrichment(processingStack, next);
+            changed = true;
+        }
+        return changed;
     }
 
     public ItemInteractionResult useItem(Player player, InteractionHand hand, ItemStack heldStack) {
@@ -119,10 +191,18 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
             ItemStack extracted = inventory.extractItem(OUTPUT_SLOT, 64, level.isClientSide);
             if (extracted.isEmpty() && player.isShiftKeyDown()) {
                 extracted = inventory.extractItem(INPUT_SLOT, 64, level.isClientSide);
+                if (extracted.isEmpty() && !processingStack.isEmpty()) {
+                    extracted = level.isClientSide ? processingStack.copy() : processingStack;
+                    if (!level.isClientSide) {
+                        processingStack = ItemStack.EMPTY;
+                        progress = 0;
+                    }
+                }
             }
             if (!extracted.isEmpty()) {
                 if (!level.isClientSide) {
                     player.setItemInHand(hand, extracted);
+                    notifyUpdate();
                 }
                 return ItemInteractionResult.sidedSuccess(level.isClientSide);
             }
@@ -149,110 +229,42 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
 
     private void addCentrifugeTooltip(List<Component> tooltip) {
         tooltip.add(Component.literal("Centrifuge").withStyle(ChatFormatting.GOLD));
+        boolean hasWork = !processingStack.isEmpty() || !inventory.getStackInSlot(INPUT_SLOT).isEmpty();
         if (Math.abs(getSpeed()) < MIN_SPEED) {
             tooltip.add(Component.literal("  Status: Waiting for speed").withStyle(ChatFormatting.RED));
             tooltip.add(Component.literal("  Required: " + (int) MIN_SPEED + " RPM").withStyle(ChatFormatting.DARK_GRAY));
-        } else if (getCurrentPlan().isEmpty()) {
-            tooltip.add(Component.literal("  Status: Missing valid uranium").withStyle(ChatFormatting.YELLOW));
-        } else if (!canOutput(getCurrentPlan().get())) {
+        } else if (!hasWork) {
+            tooltip.add(Component.literal("  Status: Missing uranium").withStyle(ChatFormatting.YELLOW));
+        } else if (isProcessingDone()) {
             tooltip.add(Component.literal("  Status: Output blocked").withStyle(ChatFormatting.RED));
         } else {
             tooltip.add(Component.literal("  Status: Enriching").withStyle(ChatFormatting.GREEN));
         }
         tooltip.add(Component.literal(String.format("  Speed: %.1f RPM", Math.abs(getSpeed()))).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal(String.format("  Target: %.0f%%", getTargetEnrichment())).withStyle(ChatFormatting.AQUA));
 
-        int percent = Math.round(getProgressPercent() * 100.0f);
-        tooltip.add(Component.literal("  Progress: " + makeProgressBar(percent) + " " + percent + "%").withStyle(ChatFormatting.GRAY));
+        if (!processingStack.isEmpty()) {
+            tooltip.add(Component.literal("  Processing: ").withStyle(ChatFormatting.GRAY)
+                    .append(processingStack.getHoverName().copy().withStyle(ChatFormatting.WHITE)));
+            if (processingStack.is(AllNuclearItems.URANIUM.get())) {
+                float current = UraniumItem.getEnrichment(processingStack);
+                int percent = Math.round(Math.min(1.0f, current / getTargetEnrichment()) * 100.0f);
+                tooltip.add(Component.literal(String.format("  Enrichment: %.2f%%", current)).withStyle(ChatFormatting.GRAY));
+                tooltip.add(Component.literal("  Progress: " + makeProgressBar(percent) + " " + percent + "%").withStyle(ChatFormatting.GRAY));
+            }
+        }
 
         ItemStack input = inventory.getStackInSlot(INPUT_SLOT);
         if (!input.isEmpty()) {
-            tooltip.add(Component.literal("  Input: ").withStyle(ChatFormatting.GRAY)
+            tooltip.add(Component.literal("  Queued: " + input.getCount() + "x ").withStyle(ChatFormatting.GRAY)
                     .append(input.getHoverName().copy().withStyle(ChatFormatting.WHITE)));
-            if (input.is(AllNuclearItems.URANIUM.get())) {
-                tooltip.add(Component.literal(String.format("  Input enrichment: %.2f%%", UraniumItem.getEnrichment(input))).withStyle(ChatFormatting.GRAY));
-            }
         }
 
         ItemStack output = inventory.getStackInSlot(OUTPUT_SLOT);
         if (!output.isEmpty()) {
-            tooltip.add(Component.literal("  Output: ").withStyle(ChatFormatting.GRAY)
+            tooltip.add(Component.literal("  Output: " + output.getCount() + "x ").withStyle(ChatFormatting.GRAY)
                     .append(output.getHoverName().copy().withStyle(ChatFormatting.WHITE)));
             tooltip.add(Component.literal(String.format("  Output enrichment: %.2f%%", UraniumItem.getEnrichment(output))).withStyle(ChatFormatting.GRAY));
-        }
-    }
-
-    private Optional<ProcessingPlan> getCurrentPlan() {
-        ItemStack input = inventory.getStackInSlot(INPUT_SLOT);
-        if (input.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Optional<CentrifugingRecipe> dataRecipe = getCurrentRecipe().map(RecipeHolder::value);
-        if (dataRecipe.isPresent()) {
-            CentrifugingRecipe recipe = dataRecipe.get();
-            return Optional.of(new ProcessingPlan(recipe.assemble(new SingleRecipeInput(input), level.registryAccess()), recipe.processingTime()));
-        }
-
-        if (input.is(AllNuclearItems.RAW_URANIUM.get())) {
-            ItemStack output = new ItemStack(AllNuclearItems.URANIUM.get());
-            UraniumItem.setEnrichment(output, NATURAL_OUTPUT);
-            return Optional.of(new ProcessingPlan(output, RAW_PROCESSING_TIME));
-        }
-
-        if (input.is(AllNuclearItems.URANIUM.get())) {
-            float current = UraniumItem.getEnrichment(input);
-            if (current >= MAX_ENRICHMENT) {
-                return Optional.empty();
-            }
-            ItemStack output = new ItemStack(AllNuclearItems.URANIUM.get());
-            UraniumItem.setEnrichment(output, Math.min(MAX_ENRICHMENT, current + ENRICHMENT_STEP));
-            return Optional.of(new ProcessingPlan(output, ENRICHING_PROCESSING_TIME));
-        }
-
-        return Optional.empty();
-    }
-
-    private Optional<RecipeHolder<CentrifugingRecipe>> getCurrentRecipe() {
-        if (level == null) {
-            return Optional.empty();
-        }
-        ItemStack input = inventory.getStackInSlot(INPUT_SLOT);
-        if (input.isEmpty()) {
-            return Optional.empty();
-        }
-        return level.getRecipeManager().getRecipeFor(
-                AllNuclearRecipes.CENTRIFUGING_TYPE.get(),
-                new SingleRecipeInput(input),
-                level
-        );
-    }
-
-    private boolean canOutput(ProcessingPlan plan) {
-        ItemStack output = plan.output();
-        ItemStack currentOutput = inventory.getStackInSlot(OUTPUT_SLOT);
-        if (output.isEmpty()) {
-            return false;
-        }
-        if (currentOutput.isEmpty()) {
-            return true;
-        }
-        return ItemStack.isSameItemSameComponents(currentOutput, output)
-                && currentOutput.getCount() < currentOutput.getMaxStackSize();
-    }
-
-    private void process(ProcessingPlan plan) {
-        ItemStack input = inventory.extractItem(INPUT_SLOT, 1, false);
-        if (input.isEmpty()) {
-            return;
-        }
-
-        ItemStack output = plan.output().copy();
-        output.setCount(1);
-        ItemStack remainder = inventory.insertItem(OUTPUT_SLOT, output, false);
-        if (!remainder.isEmpty()) {
-            inventory.insertItem(INPUT_SLOT, input, false);
-        } else {
-            notifyUpdate();
         }
     }
 
@@ -264,14 +276,18 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
     public void clearContent() {
         inventory.setStackInSlot(INPUT_SLOT, ItemStack.EMPTY);
         inventory.setStackInSlot(OUTPUT_SLOT, ItemStack.EMPTY);
+        processingStack = ItemStack.EMPTY;
+        progress = 0;
     }
 
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
         tag.put("inventory", inventory.serializeNBT(registries));
+        if (!processingStack.isEmpty()) {
+            tag.put("processing", processingStack.save(registries));
+        }
         tag.putInt("progress", progress);
-        tag.putInt("processing_time", processingTime);
     }
 
     @Override
@@ -280,12 +296,10 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
         if (tag.contains("inventory")) {
             inventory.deserializeNBT(registries, tag.getCompound("inventory"));
         }
+        processingStack = tag.contains("processing")
+                ? ItemStack.parseOptional(registries, tag.getCompound("processing"))
+                : ItemStack.EMPTY;
         progress = tag.getInt("progress");
-        processingTime = tag.getInt("processing_time");
-    }
-
-    public float getProgressPercent() {
-        return processingTime <= 0 ? 0.0f : Math.min(1.0f, (float) progress / processingTime);
     }
 
     private String makeProgressBar(int percent) {
@@ -294,7 +308,18 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
         return "[" + "|".repeat(filled) + ".".repeat(bars - filled) + "]";
     }
 
-    private record ProcessingPlan(ItemStack output, int processingTime) {}
+    private static class CentrifugeValueBox extends ValueBoxTransform.Sided {
+        @Override
+        protected Vec3 getSouthLocation() {
+            return VecHelper.voxelSpace(8, 8, 15.5);
+        }
+
+        @Override
+        protected boolean isSideActive(BlockState state, Direction direction) {
+            Direction facing = state.getValue(CentrifugeBlock.FACING);
+            return direction.getAxis() != facing.getAxis() || direction == facing;
+        }
+    }
 
     private class SlotView implements IItemHandlerModifiable {
         private final int slot;

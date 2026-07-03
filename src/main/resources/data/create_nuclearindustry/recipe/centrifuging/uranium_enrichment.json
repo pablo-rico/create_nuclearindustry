@@ -1,9 +1,0 @@
-{
-  "type": "create_nuclearindustry:centrifuging",
-  "ingredient": {
-    "item": "create_nuclearindustry:uranium"
-  },
-  "increment": 0.2,
-  "max_enrichment": 98.0,
-  "processing_time": 3000
-}

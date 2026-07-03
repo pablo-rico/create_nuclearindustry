@@ -9,16 +9,12 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
-import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
-import org.papiricoh.create_nuclearindustry.enrichment.recipe.CentrifugingRecipe;
 
-import java.util.Arrays;
 import java.util.List;
 
-public class CentrifugingJeiCategory implements IRecipeCategory<CentrifugingRecipe> {
+public class CentrifugingJeiCategory implements IRecipeCategory<CentrifugingDisplay> {
     private final IDrawable background;
     private final IDrawable icon;
 
@@ -28,7 +24,7 @@ public class CentrifugingJeiCategory implements IRecipeCategory<CentrifugingReci
     }
 
     @Override
-    public RecipeType<CentrifugingRecipe> getRecipeType() {
+    public RecipeType<CentrifugingDisplay> getRecipeType() {
         return NuclearJeiPlugin.CENTRIFUGING;
     }
 
@@ -48,35 +44,21 @@ public class CentrifugingJeiCategory implements IRecipeCategory<CentrifugingReci
     }
 
     @Override
-    public void setRecipe(IRecipeLayoutBuilder builder, CentrifugingRecipe recipe, IFocusGroup focuses) {
-        List<ItemStack> inputs = Arrays.stream(recipe.ingredient().getItems())
-                .map(ItemStack::copy)
-                .toList();
-        ItemStack output = makeOutput(recipe, inputs);
-
+    public void setRecipe(IRecipeLayoutBuilder builder, CentrifugingDisplay display, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.INPUT, 18, 14)
                 .setStandardSlotBackground()
-                .addItemStacks(inputs);
+                .addItemStack(display.input());
         builder.addSlot(RecipeIngredientRole.OUTPUT, 86, 14)
                 .setOutputSlotBackground()
-                .addItemStack(output)
+                .addItemStack(display.output())
                 .addTooltipCallback((slot, tooltip) -> tooltip.add(Component.translatable(
                         "jei.create_nuclearindustry.centrifuging.enrichment",
-                        String.format("%.2f", UraniumItem.getEnrichment(output))
+                        String.format("%.2f", UraniumItem.getEnrichment(display.output()))
                 ).withStyle(ChatFormatting.GRAY)));
     }
 
     @Override
-    public List<Component> getTooltipStrings(CentrifugingRecipe recipe, mezz.jei.api.gui.ingredient.IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
-        return List.of(Component.translatable("jei.create_nuclearindustry.centrifuging.required").withStyle(ChatFormatting.GRAY));
-    }
-
-    private static ItemStack makeOutput(CentrifugingRecipe recipe, List<ItemStack> inputs) {
-        ItemStack input = inputs.isEmpty() ? new ItemStack(AllNuclearItems.URANIUM.get()) : inputs.get(0).copy();
-        ItemStack output = new ItemStack(AllNuclearItems.URANIUM.get());
-        float enrichment = recipe.resultEnrichment()
-                .orElseGet(() -> Math.min(recipe.maxEnrichment(), UraniumItem.getEnrichment(input) + recipe.increment()));
-        UraniumItem.setEnrichment(output, enrichment);
-        return output;
+    public List<Component> getTooltipStrings(CentrifugingDisplay display, mezz.jei.api.gui.ingredient.IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+        return List.of(display.description().copy().withStyle(ChatFormatting.GRAY));
     }
 }
