@@ -47,7 +47,7 @@ public class CentrifugingJeiCategory implements IRecipeCategory<CentrifugingDisp
     public void setRecipe(IRecipeLayoutBuilder builder, CentrifugingDisplay display, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.INPUT, 18, 14)
                 .setStandardSlotBackground()
-                .addItemStack(display.input());
+                .addItemStacks(display.inputs());
         builder.addSlot(RecipeIngredientRole.OUTPUT, 86, 14)
                 .setOutputSlotBackground()
                 .addItemStack(display.output())

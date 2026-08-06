@@ -22,9 +22,9 @@ import java.util.List;
 
 public class TurbineOutputBlockEntity extends GeneratingKineticBlockEntity {
     private static final int TANK_CAPACITY = 16_000;
-    private static final int STEAM_PER_PORT_PER_TICK = 80;
-    private static final float ACTIVE_RPM = 32.0f;
-    private static final float STRESS_CAPACITY_PER_PORT = 512.0f;
+    private static final int STEAM_PER_PORT_PER_TICK = 320;
+    private static final float ACTIVE_RPM = 64.0f;
+    private static final float STRESS_CAPACITY_PER_PORT = 32768.0f;
 
     private final FluidTank steamTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isTurbineSteam) {
         @Override

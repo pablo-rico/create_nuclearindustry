@@ -7,15 +7,18 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JeiPlugin
@@ -44,7 +47,7 @@ public class NuclearJeiPlugin implements IModPlugin {
     public void registerRecipes(IRecipeRegistration registration) {
         registration.addRecipes(CENTRIFUGING, List.of(
                 new CentrifugingDisplay(
-                        new ItemStack(AllNuclearItems.RAW_URANIUM.get()),
+                        rawUraniumVariants(),
                         uranium(UraniumItem.NATURAL_ENRICHMENT),
                         Component.translatable("jei.create_nuclearindustry.centrifuging.raw")),
                 new CentrifugingDisplay(
@@ -61,6 +64,17 @@ public class NuclearJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(AllNuclearBlocks.CENTRIFUGE.get(), CENTRIFUGING);
+    }
+
+    /** Every raw uranium accepted by the centrifuge, this mod's and any other's. */
+    private static List<ItemStack> rawUraniumVariants() {
+        List<ItemStack> stacks = new ArrayList<>();
+        BuiltInRegistries.ITEM.getTag(AllNuclearTags.Items.RAW_URANIUM)
+                .ifPresent(holders -> holders.forEach(holder -> stacks.add(new ItemStack(holder))));
+        if (stacks.isEmpty()) {
+            stacks.add(new ItemStack(AllNuclearItems.RAW_URANIUM.get()));
+        }
+        return stacks;
     }
 
     private static ItemStack uranium(float enrichment) {

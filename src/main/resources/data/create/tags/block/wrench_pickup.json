@@ -1,0 +1,37 @@
+{
+  "replace": false,
+  "values": [
+    "create_nuclearindustry:reactor_casing",
+    "create_nuclearindustry:control_rod",
+    "create_nuclearindustry:uranium_rod",
+    "create_nuclearindustry:heat_exchanger",
+    "create_nuclearindustry:reactor_controller",
+    "create_nuclearindustry:reactor_fluid_port",
+    "create_nuclearindustry:reactor_fuel_port",
+    "create_nuclearindustry:reactor_temperature_sensor",
+    "create_nuclearindustry:dual_fluid_pipe",
+    "create_nuclearindustry:centrifuge",
+    "create_nuclearindustry:turbine_casing",
+    "create_nuclearindustry:turbine_rotor",
+    "create_nuclearindustry:turbine_output",
+    "create_nuclearindustry:turbine_fluid_port",
+    "create_nuclearindustry:nuclear_bomb",
+    "create_nuclearindustry:launch_pad",
+    "create_nuclearindustry:fusion_controller",
+    "create_nuclearindustry:fusion_accelerator_segment",
+    "create_nuclearindustry:fusion_accelerator_corner",
+    "create_nuclearindustry:fusion_electromagnet",
+    "create_nuclearindustry:fusion_cryostat_casing",
+    "create_nuclearindustry:fusion_magnet_input",
+    "create_nuclearindustry:fusion_fluid_port",
+    "create_nuclearindustry:fusion_fuel_injector",
+    "create_nuclearindustry:fusion_turbine_casing",
+    "create_nuclearindustry:fusion_turbine_rotor",
+    "create_nuclearindustry:fusion_turbine_fluid_port",
+    "create_nuclearindustry:fusion_plasma_turbine",
+    {
+      "id": "create_nuclearindustry:nuclear_cannon_shell",
+      "required": false
+    }
+  ]
+}

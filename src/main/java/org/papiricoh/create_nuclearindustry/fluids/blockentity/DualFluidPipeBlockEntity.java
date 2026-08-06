@@ -18,7 +18,7 @@ import org.papiricoh.create_nuclearindustry.fluids.block.DualFluidPipeBlock;
 public class DualFluidPipeBlockEntity extends BlockEntity {
 
     private static final int CHANNEL_CAPACITY = 8_000;
-    private static final int PUSH_PER_TICK = 40;
+    private static final int PUSH_PER_TICK = 320;
 
     private final FluidTank steamTank = new FluidTank(CHANNEL_CAPACITY, DualFluidPipeBlockEntity::isSteamChannelFluid) {
         @Override

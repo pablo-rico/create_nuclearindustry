@@ -24,6 +24,7 @@ import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.enrichment.block.CentrifugeBlock;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 
@@ -43,7 +44,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             return switch (slot) {
-                case INPUT_SLOT -> stack.is(AllNuclearItems.URANIUM.get()) || stack.is(AllNuclearItems.RAW_URANIUM.get());
+                case INPUT_SLOT -> stack.is(AllNuclearItems.URANIUM.get()) || isRawUranium(stack);
                 case OUTPUT_SLOT -> stack.is(AllNuclearItems.URANIUM.get());
                 default -> false;
             };
@@ -86,6 +87,15 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
 
     public float getTargetEnrichment() {
         return targetEnrichment.getValue() * (float) TARGET_UNIT;
+    }
+
+    /**
+     * Raw uranium from this mod or any other one: the tag pulls in the common
+     * {@code c:raw_materials/uranium} conventions. Whatever goes in, the centrifuge
+     * always outputs this mod's uranium.
+     */
+    public static boolean isRawUranium(ItemStack stack) {
+        return stack.is(AllNuclearTags.Items.RAW_URANIUM);
     }
 
     @Override
@@ -146,7 +156,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
 
     private boolean advanceProcessing() {
         boolean changed = false;
-        if (processingStack.is(AllNuclearItems.RAW_URANIUM.get())) {
+        if (isRawUranium(processingStack)) {
             if (progress < RAW_PROCESSING_TIME) {
                 return false;
             }
@@ -176,7 +186,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        if (!heldStack.isEmpty() && (heldStack.is(AllNuclearItems.URANIUM.get()) || heldStack.is(AllNuclearItems.RAW_URANIUM.get()))) {
+        if (!heldStack.isEmpty() && (heldStack.is(AllNuclearItems.URANIUM.get()) || isRawUranium(heldStack))) {
             ItemStack single = heldStack.copyWithCount(1);
             ItemStack remainder = inventory.insertItem(INPUT_SLOT, single, level.isClientSide);
             if (remainder.isEmpty()) {

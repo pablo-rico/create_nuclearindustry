@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "create_nuclearindustry:raw_uranium",
+    { "id": "#c:raw_materials/uranium", "required": false },
+    { "id": "#c:raw_ores/uranium", "required": false },
+    { "id": "#forge:raw_materials/uranium", "required": false },
+    { "id": "#forge:raw_ores/uranium", "required": false }
+  ]
+}

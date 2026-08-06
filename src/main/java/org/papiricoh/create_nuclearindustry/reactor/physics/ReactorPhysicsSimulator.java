@@ -14,8 +14,10 @@ public class ReactorPhysicsSimulator {
     private static final double PASSIVE_HEAT_DISSIPATION = 0.8;     // °C per tick (baseline)
     private static final double CONTROL_ROD_EFFECTIVENESS = 1.50;   // shutdown authority from inserted control rods
     private static final double FUEL_CONSUMPTION_RATE = 0.002;      // fuel units consumed per neutron
+    private static final double FUEL_BURN_PER_NEUTRON = 0.0000045;  // fuel units burned per neutron level per tick (~15 min per assembly at N=1200)
     private static final double STEAM_TEMPERATURE_FACTOR = 0.025;   // mB/t from temperature above boiling
     private static final double STEAM_NEUTRON_FACTOR = 0.055;       // mB/t from neutron activity
+    private static final double STEAM_PER_ROD_MULTIPLIER = 0.5;     // steam output scales with uranium rod count
 
     // Temperature thresholds
     private static final double SAFE_TEMP = 500.0;                  // Below this = safe operation
@@ -104,7 +106,7 @@ public class ReactorPhysicsSimulator {
 
         // Consume fuel based on operation
         if (neutronLevel > 0) {
-            fuelRemaining -= FUEL_CONSUMPTION_RATE * (neutronLevel / 100.0);
+            fuelRemaining -= FUEL_BURN_PER_NEUTRON * neutronLevel;
             fuelRemaining = Math.max(0, fuelRemaining);
         }
 
@@ -222,7 +224,15 @@ public class ReactorPhysicsSimulator {
 
         double temperatureSteam = (coreTemperature - 100.0) * STEAM_TEMPERATURE_FACTOR;
         double neutronSteam = neutronLevel * STEAM_NEUTRON_FACTOR;
-        return temperatureSteam + neutronSteam;
+        return (temperatureSteam + neutronSteam) * getSteamRodMultiplier();
+    }
+
+    /**
+     * Steam output scales with reactor size. Cooling from the coolant loop is
+     * normalized by this same factor so core thermodynamics stay size-independent.
+     */
+    public double getSteamRodMultiplier() {
+        return Math.max(1.0, uraniumRodCount * STEAM_PER_ROD_MULTIPLIER);
     }
 
     /**

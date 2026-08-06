@@ -45,7 +45,7 @@ import java.util.UUID;
 public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int TANK_CAPACITY = 16_000;
-    private static final int HEAT_EXCHANGER_STEAM_PER_TICK = 40;
+    private static final int HEAT_EXCHANGER_STEAM_PER_TICK = 80;
     private static final int FLUID_PORT_STEAM_PER_TICK = 160;
     // Balance parameters for external coolant heat removal.
     private static final double WATER_COOLING_PER_MB = 0.225;
@@ -386,8 +386,12 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
 
         steamTank.fill(new FluidStack(produced.getFluid(), drained.getAmount()), IFluidHandler.FluidAction.EXECUTE);
-        double cooling = drained.getAmount() * (heavy ? HEAVY_WATER_COOLING_PER_MB : WATER_COOLING_PER_MB);
-        double moderation = drained.getAmount() * (heavy ? HEAVY_WATER_MODERATION_PER_MB : WATER_MODERATION_PER_MB);
+        // Normalize by the rod multiplier: larger cores produce proportionally more
+        // steam, but each mB removes proportionally less core heat, keeping the
+        // thermal simulation size-independent.
+        double normalizedDrain = drained.getAmount() / physicsSimulator.getSteamRodMultiplier();
+        double cooling = normalizedDrain * (heavy ? HEAVY_WATER_COOLING_PER_MB : WATER_COOLING_PER_MB);
+        double moderation = normalizedDrain * (heavy ? HEAVY_WATER_MODERATION_PER_MB : WATER_MODERATION_PER_MB);
         physicsSimulator.applyExternalCooling(cooling, moderation);
     }
 
