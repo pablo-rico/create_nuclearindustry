@@ -1,7 +1,7 @@
 {
   "pack": {
-    "description": "create_nuclearindustry resources",
-    "pack_format": 15,
-    "forge:server_data_pack_format": 12
+    "description": "${mod_name} ${mod_version} resources and data",
+    "pack_format": 34,
+    "supported_formats": [34, 48]
   }
 }

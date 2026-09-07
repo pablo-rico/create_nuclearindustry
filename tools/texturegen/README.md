@@ -18,7 +18,7 @@ the current mod textures.
 
 ```bash
 python3.12 tools/texturegen/generate.py --sheet docs/textures-preview.png
-python3.12 tools/texturegen/validate.py --jar build/libs/create_nuclearindustry_1.21.1_1.0.0.jar
+python3.12 tools/texturegen/validate.py --jar build/libs/create_nuclearindustry_1.21.1_1.1.0.jar
 ```
 
 The redesign uses Create 6.0.10's andesite, brass and copper casings, fluid tank
