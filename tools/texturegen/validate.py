@@ -6,6 +6,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 from PIL import Image
+from reactor_materials import REFERENCE
 import blocks
 import fluids
 import items
@@ -45,6 +46,12 @@ def main():
         for ref in json.loads(model.read_text()).get("textures", {}).values():
             if ref.startswith("create_nuclearindustry:"):
                 assert ref.split(":", 1)[1] + ".png" in expected, (model, ref)
+    for name, host in (("uranium_ore", "deepslate"), ("borax_ore", "stone"), ("thorium_ore", "stone")):
+        with Image.open(REFERENCE / (host + ".png")) as source:
+            original = source.convert("RGBA").tobytes()
+        ore = expected[f"block/{name}.png"].tobytes()
+        unchanged = sum(original[i:i + 4] == ore[i:i + 4] for i in range(0, len(ore), 4))
+        assert unchanged >= 200, "Vanilla rock modified outside mineral inclusions: " + name
     if args.jar:
         with ZipFile(args.jar) as archive:
             for file in textures.rglob("*"):

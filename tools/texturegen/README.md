@@ -51,3 +51,15 @@ Some textures are constrained by their block model - notably
 `heat_exchanger_pipes`, whose 2px vertical shading period exists because
 `models/block/heat_exchanger.json` samples arbitrary 2px-wide columns for the tube
 faces. Check the model before redesigning those.
+
+## Reactor steel revision
+
+`reactor_materials.py` defines the neutral rolled-steel plate shared by the reactor
+casing, damaged casing, hatches, instrumentation, fluid and fuel ports. Fusion
+attachments use the same structural steel under their functional components.
+This palette is local to reactor blocks: item artwork is unchanged.
+
+Ore substrates are original vanilla assets under `reference/`: uranium overlays
+deepslate to match its world generation, while borax and thorium overlay stone.
+Only pixels in the small mineral masks are replaced; no tint or generated noise
+is applied to the host rock.

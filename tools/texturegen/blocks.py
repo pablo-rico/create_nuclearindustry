@@ -1,6 +1,7 @@
 """Block texture definitions."""
 
 import math
+from reactor_materials import steel_panel, steel_port, mineral, STEEL as REACTOR_STEEL
 
 from common import (bar_readout, bezel, bolt, casing, cracks, flange, ore,
                     panel_screen, port_face, trefoil)
@@ -26,16 +27,12 @@ def block(name):
 
 @block("uranium_ore")
 def uranium_ore():
-    return ore(101, STONE, URANIUM,
-               [(4.5, 4.5, 3.0), (11.5, 9.0, 3.4), (5.0, 12.0, 2.2)],
-               glow_color=RADIUM[6])
+    return mineral("deepslate", URANIUM)
 
 
 @block("thorium_ore")
 def thorium_ore():
-    return ore(202, STONE, CRYO,
-               [(5.0, 5.5, 3.2), (11.0, 11.0, 3.0), (12.0, 4.0, 2.0)],
-               glow_color=CRYO[6])
+    return mineral("stone", CRYO, offset=2)
 
 
 @block("borax_ore")
@@ -43,9 +40,7 @@ def borax_ore():
     pale = URANIUM.tinted(WHITE, 0.0)
     from pixelkit import Ramp
     borax = Ramp("#2a2b25", "#4d4f43", "#7b7d6c", "#a8aa94", "#cdcfba", "#e7e8dc", "#ffffff")
-    return ore(303, STONE, borax,
-               [(4.0, 6.0, 2.8), (11.0, 5.0, 2.4), (9.0, 12.0, 3.0)],
-               glow_color=None)
+    return mineral("stone", borax, offset=1)
 
 
 # ======================================================================================
@@ -54,25 +49,12 @@ def borax_ore():
 
 @block("reactor_casing")
 def reactor_casing():
-    t = Tex(seed=11)
-    casing(t, STEEL, seed=11, seam=False)
-    # Graphite shielding plates secured by two vertical steel straps.
-    t.rect(3, 3, 12, 12, LEAD[2])
-    for y in (3, 6, 9):
-        t.hline(3, 12, y, LEAD[4])
-        t.hline(3, 12, y + 1, LEAD[3])
-        t.hline(3, 12, y + 2, LEAD[1])
-    for x in (5, 10):
-        t.vline(x, 3, 12, STEEL[4])
-        t.vline(x + 1, 3, 12, STEEL[1])
-    t.rect(6, 6, 9, 9, BRASS[2])
-    t.hline(6, 9, 6, BRASS[5])
-    t.rect(7, 7, 8, 8, LEAD[1])
-    return t
+    return steel_panel()
 
 
 @block("brocken_reactor_casting")
 def brocken_reactor_casting():
+    STEEL = REACTOR_STEEL
     t = reactor_casing()
     t.seed = 12
     # soot staining + fractures
@@ -93,8 +75,9 @@ def brocken_reactor_casting():
 
 @block("reactor_opening")
 def reactor_opening():
+    STEEL = REACTOR_STEEL
     t = Tex(seed=13)
-    casing(t, STEEL, seed=13, seam=False)
+    steel_panel(t)
     # recessed hatch showing the core
     t.rect(3, 3, 12, 12, DARK[1])
     inset(t, 3, 3, 12, 12, STEEL)
@@ -110,6 +93,7 @@ def reactor_opening():
 
 @block("control_rod")
 def control_rod():
+    LEAD = REACTOR_STEEL
     t = Tex(seed=14)
     brushed(t, DARK, base=2.5, amp=0.6, seed=14, axis="v")
     # four boron-carbide rods
@@ -148,8 +132,9 @@ def uranium_block():
 
 @block("heat_exchanger_top")
 def heat_exchanger_top():
+    STEEL = REACTOR_STEEL
     t = Tex(seed=16)
-    casing(t, STEEL, seed=16, seam=False, rivets=False)
+    steel_panel(t)
     for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
         bolt(t, x, y, STEEL)
     # four pipe bores matching the model's tube positions, kept clear of the
@@ -189,8 +174,9 @@ def heat_exchanger_pipes():
 
 @block("reactor_temperature_sensor")
 def reactor_temperature_sensor():
+    STEEL = REACTOR_STEEL
     t = Tex(seed=18)
-    casing(t, STEEL, seed=18, seam=False)
+    steel_panel(t)
     t.disc(8, 8, 5.2, STEEL[5])
     t.ring(8, 8, 5.2, 4.4, STEEL[2])
     t.ring(8, 8, 5.5, 5.0, STEEL[0])
@@ -219,11 +205,12 @@ def reactor_controller_on():
 
 
 def _reactor_controller(on):
+    STEEL = REACTOR_STEEL
     t = Tex(seed=19)
-    casing(t, STEEL, seed=19, seam=False)
+    steel_panel(t)
     # Analogue instrument with a brass bezel and separate activity window.
     t.rect(3, 3, 9, 9, BRASS[1])
-    bevel(t, 3, 3, 9, 9, BRASS)
+    bevel(t, 3, 3, 9, 9, STEEL)
     t.rect(4, 4, 8, 8, CRYO[5] if on else STEEL[3])
     for x, y in ((4, 6), (5, 4), (7, 4), (8, 6)):
         t.set(x, y, DARK[2])
@@ -244,24 +231,22 @@ def _reactor_controller(on):
 
 @block("reactor_fluid_port_input")
 def reactor_fluid_port_input():
-    return port_face(Tex(seed=20), STEEL, IN_ACCENT, seed=20, out=False)
+    return steel_port(IN_ACCENT)
 
 
 @block("reactor_fluid_port_output")
 def reactor_fluid_port_output():
-    return port_face(Tex(seed=21), STEEL, OUT_ACCENT, seed=21, out=True)
+    return steel_port(OUT_ACCENT, output=True)
 
 
 @block("reactor_fuel_port_input")
 def reactor_fuel_port_input():
-    return port_face(Tex(seed=22), STEEL, URANIUM, seed=22, out=False, square=True)
+    return steel_port(URANIUM, fuel=True)
 
 
 @block("reactor_fuel_port_output")
 def reactor_fuel_port_output():
-    t = port_face(Tex(seed=23), STEEL, LEAD, seed=23, out=True, square=True)
-    glow(t, 8, 8, 5.0, LEAD[6], 0.10)
-    return t
+    return steel_port(LEAD, output=True, fuel=True)
 
 
 # ======================================================================================
@@ -470,7 +455,7 @@ def centrifuge_shaft():
 @block("fusion_cryostat_casing")
 def fusion_cryostat_casing():
     t = Tex(seed=40)
-    casing(t, STEEL, seed=40, seam=False)
+    steel_panel(t)
     t.rect(3, 3, 12, 12, CRYO[4])
     for x0, y0, x1, y1 in ((3, 3, 7, 7), (8, 3, 12, 7), (3, 8, 7, 12), (8, 8, 12, 12)):
         bevel(t, x0, y0, x1, y1, CRYO, hi=CRYO[6], lo=CRYO[2])
@@ -526,7 +511,7 @@ def fusion_magnet_input():
 @block("fusion_accelerator_segment")
 def fusion_accelerator_segment():
     t = Tex(seed=43)
-    casing(t, DARK, seed=43, seam=False, rivets=False, base=3.0, amp=0.7)
+    steel_panel(t)
     # beam tube running left to right
     t.rect(0, 4, 15, 11, CRYO[3])
     t.hline(0, 15, 4, CRYO[5])
@@ -551,7 +536,7 @@ def fusion_accelerator_segment():
 @block("fusion_accelerator_corner")
 def fusion_accelerator_corner():
     t = Tex(seed=44)
-    casing(t, DARK, seed=44, seam=False, rivets=False, base=3.0, amp=0.7)
+    steel_panel(t)
     # elbow: enters from the left, leaves through the bottom
     t.rect(0, 4, 11, 11, CRYO[3])
     t.rect(4, 4, 11, 15, CRYO[3])
@@ -581,7 +566,7 @@ def fusion_accelerator_corner():
 @block("fusion_fuel_injector")
 def fusion_fuel_injector():
     t = Tex(seed=45)
-    casing(t, CRYO, seed=45, seam=False)
+    steel_panel(t)
     # feed block tapering into a nozzle
     t.rect(4, 2, 11, 5, CRYO[4])
     bevel(t, 4, 2, 11, 5, CRYO)
@@ -638,7 +623,7 @@ def fusion_controller_ignited():
 
 def _fusion_controller(state):
     t = Tex(seed=47)
-    casing(t, CRYO, seed=47, seam=False)
+    steel_panel(t)
     accent = {"off": CRYO, "on": CYAN, "ignited": PLASMA}[state]
     lit = state != "off"
     panel_screen(t, 3, 3, 12, 9, CRYO, accent, lit=lit, seed=7)
@@ -662,12 +647,12 @@ def _fusion_controller(state):
 
 @block("fusion_fluid_port_input")
 def fusion_fluid_port_input():
-    return port_face(Tex(seed=48), CRYO, IN_ACCENT, seed=48, out=False)
+    return steel_port(IN_ACCENT)
 
 
 @block("fusion_fluid_port_output")
 def fusion_fluid_port_output():
-    return port_face(Tex(seed=49), CRYO, OUT_ACCENT, seed=49, out=True)
+    return steel_port(OUT_ACCENT, output=True)
 
 
 @block("fusion_turbine_fluid_port_input")
