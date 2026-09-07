@@ -51,7 +51,7 @@ public class NuclearJeiPlugin implements IModPlugin {
                         uranium(UraniumItem.NATURAL_ENRICHMENT),
                         Component.translatable("jei.create_nuclearindustry.centrifuging.raw")),
                 new CentrifugingDisplay(
-                        uranium(UraniumItem.NATURAL_ENRICHMENT),
+                        uraniumIngotVariants(),
                         uranium(UraniumItem.REACTOR_FUEL_ENRICHMENT),
                         Component.translatable("jei.create_nuclearindustry.centrifuging.required")),
                 new CentrifugingDisplay(
@@ -74,6 +74,17 @@ public class NuclearJeiPlugin implements IModPlugin {
         if (stacks.isEmpty()) {
             stacks.add(new ItemStack(AllNuclearItems.RAW_URANIUM.get()));
         }
+        return stacks;
+    }
+
+    private static List<ItemStack> uraniumIngotVariants() {
+        List<ItemStack> stacks = new ArrayList<>();
+        BuiltInRegistries.ITEM.forEach(item -> {
+            ItemStack stack = new ItemStack(item);
+            if (org.papiricoh.create_nuclearindustry.enrichment.blockentity.CentrifugeBlockEntity.isUraniumIngot(stack)) {
+                stacks.add(stack);
+            }
+        });
         return stacks;
     }
 

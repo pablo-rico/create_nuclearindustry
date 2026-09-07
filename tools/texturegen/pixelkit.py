@@ -274,13 +274,13 @@ def hazard(t, x0, y0, x1, y1, c1, c2, period=4, seed=0):
 
 
 def glow(t, cx, cy, r, color, strength=0.85):
-    """Soft additive-ish halo."""
+    """Two restrained pixel highlight bands; no airbrushed halo."""
     for y in range(t.h):
         for x in range(t.w):
             d = math.sqrt((x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2)
             if d > r:
                 continue
-            a = (1.0 - d / r) ** 1.6 * strength
+            a = (0.18 if d < r * 0.38 else 0.06) * strength
             t.blend(x, y, color, a)
 
 

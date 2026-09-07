@@ -56,21 +56,18 @@ def borax_ore():
 def reactor_casing():
     t = Tex(seed=11)
     casing(t, STEEL, seed=11, seam=False)
-    # shielded centre plate held by four bolts
-    t.rect(4, 4, 11, 11, STEEL[4])
-    for x in range(4, 12):
-        t.set(x, 4, STEEL[6])
-        t.set(x, 11, STEEL[1])
-    for y in range(4, 12):
-        t.set(4, y, STEEL[5])
-        t.set(11, y, STEEL[1])
-    outline(t, 3, 3, 12, 12, STEEL[0])
-    for x, y in ((5, 5), (9, 5), (5, 9), (9, 9)):
-        t.set(x, y, STEEL[6])
-        t.set(x + 1, y + 1, STEEL[1])
-    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
-        bolt(t, x, y, STEEL)
-    t.blend(7, 7, URANIUM[4], 0.14)
+    # Graphite shielding plates secured by two vertical steel straps.
+    t.rect(3, 3, 12, 12, LEAD[2])
+    for y in (3, 6, 9):
+        t.hline(3, 12, y, LEAD[4])
+        t.hline(3, 12, y + 1, LEAD[3])
+        t.hline(3, 12, y + 2, LEAD[1])
+    for x in (5, 10):
+        t.vline(x, 3, 12, STEEL[4])
+        t.vline(x + 1, 3, 12, STEEL[1])
+    t.rect(6, 6, 9, 9, BRASS[2])
+    t.hline(6, 9, 6, BRASS[5])
+    t.rect(7, 7, 8, 8, LEAD[1])
     return t
 
 
@@ -224,18 +221,22 @@ def reactor_controller_on():
 def _reactor_controller(on):
     t = Tex(seed=19)
     casing(t, STEEL, seed=19, seam=False)
-    panel_screen(t, 3, 3, 12, 8, STEEL, RADIUM, lit=on, seed=3)
-    if on:
-        bar_readout(t, 4, 4, 12, 8, RADIUM, (3, 5, 2, 4, 5))
-    # button row
-    for i, x in enumerate((4, 7, 10)):
-        t.rect(x, 11, x + 1, 12, (DANGER, WARN, RADIUM)[i][4 if on else 2])
-        t.set(x, 11, (DANGER, WARN, RADIUM)[i][6 if on else 3])
-        t.set(x + 1, 12, DARK[0])
-    t.hline(3, 12, 10, STEEL[1])
-    t.hline(3, 12, 13, STEEL[5])
-    if on:
-        glow(t, 8, 6, 7.0, RADIUM[6], 0.16)
+    # Analogue instrument with a brass bezel and separate activity window.
+    t.rect(3, 3, 9, 9, BRASS[1])
+    bevel(t, 3, 3, 9, 9, BRASS)
+    t.rect(4, 4, 8, 8, CRYO[5] if on else STEEL[3])
+    for x, y in ((4, 6), (5, 4), (7, 4), (8, 6)):
+        t.set(x, y, DARK[2])
+    t.line(6, 7, 8 if on else 4, 5 if on else 7, DANGER[3])
+    t.set(6, 7, BRASS[1])
+    t.rect(11, 3, 12, 9, DARK[0])
+    for y in (4, 6, 8):
+        t.set(11, y, RADIUM[5] if on else RADIUM[1])
+    t.rect(3, 11, 6, 12, DARK[1])
+    t.hline(3, 6, 11, STEEL[5])
+    for x, accent in ((9, WARN), (12, DANGER)):
+        t.set(x, 11, accent[5] if on else accent[2])
+        t.set(x, 12, accent[1])
     return t
 
 
@@ -469,13 +470,14 @@ def centrifuge_shaft():
 @block("fusion_cryostat_casing")
 def fusion_cryostat_casing():
     t = Tex(seed=40)
-    casing(t, CRYO, seed=40)
-    t.rect(5, 5, 10, 10, CRYO[3])
-    bevel(t, 5, 5, 10, 10, CRYO)
-    outline(t, 5, 5, 10, 10, CRYO)
-    # frost
-    speckle(t, 1, 1, 14, 14, CRYO[6], chance=0.07, seed=40)
-    glow(t, 8, 8, 6.5, CRYO[6], 0.12)
+    casing(t, STEEL, seed=40, seam=False)
+    t.rect(3, 3, 12, 12, CRYO[4])
+    for x0, y0, x1, y1 in ((3, 3, 7, 7), (8, 3, 12, 7), (3, 8, 7, 12), (8, 8, 12, 12)):
+        bevel(t, x0, y0, x1, y1, CRYO, hi=CRYO[6], lo=CRYO[2])
+    t.hline(3, 12, 7, CYAN[2])
+    t.hline(3, 12, 8, CYAN[4])
+    for x in (2, 12):
+        bolt(t, x, 7, BRASS)
     return t
 
 
@@ -604,16 +606,18 @@ def fusion_plasma_turbine():
     t.disc(8, 8, 6.4, DARK[2])
     t.ring(8, 8, 6.4, 5.6, CRYO[3])
     t.ring(8, 8, 6.7, 6.3, DARK[0])
-    # plasma spiral
-    for a in range(0, 360, 30):
-        for k in range(6):
-            r = 1.2 + k * 0.8
-            ang = math.radians(a + k * 16)
-            x = 8 + math.cos(ang) * r - 0.5
-            y = 8 + math.sin(ang) * r - 0.5
-            t.set(round(x), round(y), PLASMA[6 - min(4, k)])
-    t.disc(8, 8, 1.6, PLASMA[6])
-    glow(t, 8, 8, 7.5, PLASMA[5], 0.4)
+    # Rotor blades stay visible through the narrow hot-fluid ring.
+    t.ring(8, 8, 5.3, 4.5, PLASMA[3])
+    for a in range(0, 360, 60):
+        ang = math.radians(a)
+        for offset, color in ((-0.5, BRASS[5]), (0.5, BRASS[2])):
+            t.line(8 + math.cos(ang) * 2, 8 + math.sin(ang) * 2,
+                   8 + offset + math.cos(ang + 0.4) * 5,
+                   8 + offset + math.sin(ang + 0.4) * 5, color)
+    t.disc(8, 8, 2.3, STEEL[1])
+    t.rect(6, 6, 9, 9, BRASS[3])
+    bevel(t, 6, 6, 9, 9, BRASS)
+    t.rect(7, 7, 8, 8, DARK[1])
     return t
 
 

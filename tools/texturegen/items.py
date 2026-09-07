@@ -99,16 +99,16 @@ INGOT = [
     "................",
     "................",
     "................",
-    "................",
-    "........####....",
-    ".......######...",
-    "......#######...",
-    ".....#######....",
-    "....#######.....",
-    "...#######......",
-    "..#######.......",
-    "..######........",
-    "...####.........",
+    ".........##.....",
+    ".......#####....",
+    ".....########...",
+    "...###########..",
+    "..############..",
+    "..############..",
+    "..###########...",
+    "..#########.....",
+    "...######.......",
+    "....###.........",
     "................",
     "................",
     "................",
@@ -273,7 +273,7 @@ DESIGNATOR = [
 
 @item("raw_uranium")
 def raw_uranium():
-    rock = Ramp("#101410", "#20281f", "#333d31", "#485442", "#5e6c57", "#77866e", "#94a48a")
+    rock = Ramp("#343b2c", "#50573c", "#70764a", "#919258", "#b1b476", "#ced199", "#e2e6bc")
     t = solid(CHUNK, rock, seed=201, base=3.6, outline=False)
     pts = mask_from(CHUNK)
     # uranium veins
@@ -295,9 +295,13 @@ def _ingot(seed, ramp, mark=None, mark_glow=None):
     t = Tex(16, 16, seed)
     pts = mask_from(INGOT)
     sculpt(t, pts, ramp, base=4.0, seed=seed, grain=0.45)
-    # polished top facet
+    # Broad polished top and a two-pixel bevel, matching Create ingot proportions.
     for (x, y) in sorted(pts):
-        if (x - 1, y - 1) not in pts and (x, y - 1) in pts:
+        if (x, y + 2) not in pts:
+            t.set(x, y, ramp[2] if (x, y + 1) in pts else ramp[1])
+        elif (x, y - 1) not in pts:
+            t.set(x, y, ramp[5])
+        elif x + y < 16:
             t.set(x, y, ramp[6])
     if mark:
         for (x, y) in mark:
@@ -324,7 +328,7 @@ def uranium_238():
 
 @item("borax_salt")
 def borax_salt():
-    salt = Ramp("#2b2c26", "#585a4e", "#8a8d7c", "#b4b7a4", "#d5d8c6", "#eef0e4", "#ffffff")
+    salt = Ramp("#50514b", "#767b6b", "#9fa58f", "#c5cbb1", "#e0e4cc", "#f1f3df", "#fffef0")
     t = solid(PILE, salt, seed=204, base=4.0, grain=1.1, outline=False)
     pts = mask_from(PILE)
     # crystal facets
@@ -338,7 +342,7 @@ def borax_salt():
 
 @item("boron")
 def boron():
-    bor = Ramp("#08090b", "#141619", "#212429", "#2f343b", "#40464f", "#535a65", "#6d7581")
+    bor = Ramp("#29272b", "#433d43", "#5f565b", "#7a6f70", "#968a84", "#b2a59a", "#cfc3b0")
     t = solid(PILE, bor, seed=205, base=3.5, grain=1.2, outline=False)
     pts = mask_from(PILE)
     for (x, y) in sorted(pts):
@@ -350,7 +354,7 @@ def boron():
 
 @item("beryllium")
 def beryllium():
-    ber = Ramp("#0e1210", "#1c2420", "#2e3a33", "#445448", "#5d7062", "#7c9080", "#a5b8a8")
+    ber = Ramp("#354039", "#546257", "#758777", "#98aa92", "#b6c9aa", "#d4e0c5", "#eff2dd")
     return _ingot(206, ber)
 
 
@@ -456,6 +460,11 @@ def _cell(seed, gas, label_ramp):
     for x in range(4, 12):
         t.set(x, 1 if x in range(6, 10) else 2, STEEL[6])
     glow(t, 8, 8, 7.0, gas[6], 0.25)
+    # Brass valve and measuring ticks distinguish these from plain bottles.
+    t.hline(6, 9, 1, BRASS[5])
+    t.rect(7, 2, 8, 3, BRASS[2])
+    for y in (6, 8, 10):
+        t.set(9, y, label_ramp[6])
     item_outline(t, STEEL[0])
     return t
 
@@ -486,7 +495,7 @@ def dt_fuel_pellet():
 
 @item("spent_dt_pellet")
 def spent_dt_pellet():
-    ash = Ramp("#0a0a0b", "#171719", "#242427", "#323236", "#424348", "#54555b", "#6a6b72")
+    ash = Ramp("#363137", "#504951", "#6a6068", "#847b80", "#9f9898", "#bdb5b0", "#d7cfc3")
     t = Tex(16, 16, 216)
     pts = mask_from(PELLET)
     sculpt(t, pts, ash, base=3.4, seed=216, grain=0.9)

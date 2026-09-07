@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.fusion.physics;
 
 import net.minecraft.nbt.CompoundTag;
+import org.papiricoh.create_nuclearindustry.Config;
 
 /**
  * Plasma physics for the fusion reactor. Mirrors the structure of
@@ -24,7 +25,6 @@ public class FusionPhysicsSimulator {
     private static final double CONFINEMENT_HEAT_GAIN = 6.0;
     private static final double RADIATIVE_LOSS_RATE = 0.9;
     private static final double FUSION_HEAT_GAIN = 0.05;
-    private static final double FUEL_BURN_RATE = 0.0015;
     private static final double POWER_PER_TEMP = 0.4;
     private static final double MIN_CONFINEMENT_FOR_IGNITION = 0.65;
     private static final double INSTABILITY_START_CONF = 0.55;
@@ -83,7 +83,7 @@ public class FusionPhysicsSimulator {
 
         if (ignited) {
             fusionPower = Math.max(0.0, (plasmaTemperature - IGNITION_TEMP) * POWER_PER_TEMP);
-            fuelRemaining -= FUEL_BURN_RATE * fusionPower;
+            fuelRemaining -= Config.deuteriumTritiumBurnRate * fusionPower;
             if (fuelRemaining <= 0.0) {
                 fuelRemaining = 0.0;
                 ignited = false;

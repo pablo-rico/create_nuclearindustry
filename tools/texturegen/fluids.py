@@ -38,7 +38,7 @@ def steam_still():
             for x in range(16):
                 a = fbm(x, (y + shift) % 16, 501, 16, 16, 3, 4.0)
                 b = fbm((x + shift) % 16, (y - shift) % 16, 733, 16, 16, 2, 6.0)
-                v = 186 + (a * 0.65 + b * 0.35 - 0.5) * 120
+                v = 168 + int((a * 0.65 + b * 0.35) * 5) * 16
                 px[x, f * 16 + y] = _grey(v)
     return im, {"animation": {"frametime": 3}}
 
@@ -55,6 +55,6 @@ def steam_flow():
                 sy = (y - f) % 16
                 streak = 0.5 + 0.5 * math.sin((x * 1.6 + sy * 0.55) * 0.9)
                 n = fbm(x, sy, 907, 16, 16, 2, 5.0)
-                v = 176 + (streak * 0.55 + n * 0.45 - 0.5) * 130
+                v = 152 + int((streak * 0.55 + n * 0.45) * 5) * 18
                 px[x, f * 16 + y] = _grey(v)
     return im, {"animation": {"frametime": 2}}

@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import sys
+import textwrap
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -60,16 +61,19 @@ def main():
     print("generated %d textures -> %s" % (len(made), args.out))
 
     if args.sheet:
-        cols, cell = 10, 64
+        cols, cell = 6, 180
         rows = (len(made) + cols - 1) // cols
-        sheet = Image.new("RGBA", (cols * cell, rows * (cell + 12)), (32, 34, 40, 255))
+        row_height = 158
+        sheet = Image.new("RGBA", (cols * cell, rows * row_height), (43, 47, 44, 255))
         d = ImageDraw.Draw(sheet)
         for i, (p, im) in enumerate(made):
-            im = im.resize((cell, cell), Image.NEAREST)
-            x, y = (i % cols) * cell, (i // cols) * (cell + 12)
-            sheet.paste(im, (x, y), im)
-            d.text((x + 1, y + cell + 1), os.path.basename(p)[:-4][:15],
-                   fill=(230, 230, 235, 255))
+            im = im.resize((112, 112), Image.Resampling.NEAREST)
+            x, y = (i % cols) * cell, (i // cols) * row_height
+            sheet.paste(im, (x + 34, y + 6), im)
+            label = os.path.basename(p)[:-4].replace("_", " ")
+            d.multiline_text((x + 6, y + 124), "\n".join(textwrap.wrap(label, 27)),
+                             fill=(230, 230, 235, 255), spacing=2)
+        os.makedirs(os.path.dirname(os.path.abspath(args.sheet)), exist_ok=True)
         sheet.save(args.sheet)
         print("contact sheet -> " + args.sheet)
 

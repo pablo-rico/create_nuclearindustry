@@ -1,61 +1,50 @@
 package org.papiricoh.create_nuclearindustry;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-// An example config class. This is not required, but it's a good idea to have one to keep your config organized.
-// Demonstrates how to use Forge's config APIs
 public class Config
 {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    private static final ModConfigSpec.BooleanValue LOG_DIRT_BLOCK = BUILDER
-            .comment("Whether to log the dirt block on common setup")
-            .define("logDirtBlock", true);
-
-    private static final ModConfigSpec.IntValue MAGIC_NUMBER = BUILDER
-            .comment("A magic number")
-            .defineInRange("magicNumber", 42, 0, Integer.MAX_VALUE);
-
-    public static final ModConfigSpec.ConfigValue<String> MAGIC_NUMBER_INTRODUCTION = BUILDER
-            .comment("What you want the introduction message to be for the magic number")
-            .define("magicNumberIntroduction", "The magic number is... ");
-
-    // a list of strings that are treated as resource locations for items
-    private static final ModConfigSpec.ConfigValue<List<? extends String>> ITEM_STRINGS = BUILDER
-            .comment("A list of items to log on common setup.")
-            .defineListAllowEmpty("items", List.of("minecraft:iron_ingot"), () -> "minecraft:air", Config::validateItemName);
+    private static final ModConfigSpec.DoubleValue TURBINE_CAPACITY = BUILDER
+            .comment("Steam turbine stress capacity per RPM per port at full throughput (320 mB/t).")
+            .defineInRange("turbines.steamCapacityPerPort", 32768.0, 0.0, 1.0e9);
+    private static final ModConfigSpec.DoubleValue FUSION_TURBINE_CAPACITY = BUILDER
+            .comment("Plasma turbine stress capacity per RPM per port at full throughput (160 mB/t).")
+            .defineInRange("turbines.plasmaCapacityPerPort", 65536.0, 0.0, 1.0e9);
+    private static final ModConfigSpec.DoubleValue BORON_ABSORPTION = BUILDER
+            .comment("Boron control rod absorption effectiveness, multiplied by the control/fuel rod ratio.",
+                    "Absorption is capped at 100% before applying insertion. Zero disables absorption.")
+            .defineInRange("fission.boronAbsorption", 1.5, 0.0, 1000.0);
+    private static final ModConfigSpec.DoubleValue URANIUM_BURN_RATE = BUILDER
+            .comment("Fuel units consumed per neutron level per tick. An assembly supplies 100 units.",
+                    "Zero disables uranium depletion.")
+            .defineInRange("fission.uraniumBurnPerNeutron", 0.0000045, 0.0, 100.0);
+    private static final ModConfigSpec.DoubleValue DT_BURN_RATE = BUILDER
+            .comment("D-T fuel units consumed per fusion power unit per tick. A pellet supplies 100 units.",
+                    "Deuterium and tritium are consumed together as pellets. Zero disables depletion.")
+            .defineInRange("fusion.deuteriumTritiumBurnRate", 0.0015, 0.0, 100.0);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 
-    public static boolean logDirtBlock;
-    public static int magicNumber;
-    public static String magicNumberIntroduction;
-    public static Set<Item> items;
-
-    private static boolean validateItemName(final Object obj)
-    {
-        return obj instanceof final String itemName && BuiltInRegistries.ITEM.containsKey(ResourceLocation.parse(itemName));
-    }
+    public static double steamCapacityPerPort = 32768.0;
+    public static double plasmaCapacityPerPort = 65536.0;
+    public static double boronAbsorption = 1.5;
+    public static double uraniumBurnPerNeutron = 0.0000045;
+    public static double deuteriumTritiumBurnRate = 0.0015;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event)
     {
-        logDirtBlock = LOG_DIRT_BLOCK.get();
-        magicNumber = MAGIC_NUMBER.get();
-        magicNumberIntroduction = MAGIC_NUMBER_INTRODUCTION.get();
-
-        // convert the list of strings into a set of items
-        items = ITEM_STRINGS.get().stream()
-                .map(itemName -> BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemName)))
-                .collect(Collectors.toSet());
+        if (event.getConfig().getSpec() != SPEC) {
+            return;
+        }
+        steamCapacityPerPort = TURBINE_CAPACITY.get();
+        plasmaCapacityPerPort = FUSION_TURBINE_CAPACITY.get();
+        boronAbsorption = BORON_ABSORPTION.get();
+        uraniumBurnPerNeutron = URANIUM_BURN_RATE.get();
+        deuteriumTritiumBurnRate = DT_BURN_RATE.get();
     }
 }

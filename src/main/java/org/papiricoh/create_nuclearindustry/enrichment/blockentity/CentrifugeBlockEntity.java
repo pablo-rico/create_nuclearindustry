@@ -8,6 +8,7 @@ import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -44,7 +45,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             return switch (slot) {
-                case INPUT_SLOT -> stack.is(AllNuclearItems.URANIUM.get()) || isRawUranium(stack);
+                case INPUT_SLOT -> isUraniumIngot(stack) || isRawUranium(stack);
                 case OUTPUT_SLOT -> stack.is(AllNuclearItems.URANIUM.get());
                 default -> false;
             };
@@ -96,6 +97,16 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
      */
     public static boolean isRawUranium(ItemStack stack) {
         return stack.is(AllNuclearTags.Items.RAW_URANIUM);
+    }
+
+    public static boolean isUraniumIngot(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        String path = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+        return stack.is(AllNuclearItems.URANIUM.get())
+                || stack.is(AllNuclearTags.Items.URANIUM_INGOTS)
+                || path.equals("uranium") || path.equals("uranium_ingot");
     }
 
     @Override
@@ -156,6 +167,12 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
 
     private boolean advanceProcessing() {
         boolean changed = false;
+        if (!processingStack.is(AllNuclearItems.URANIUM.get()) && isUraniumIngot(processingStack)) {
+            ItemStack refined = new ItemStack(AllNuclearItems.URANIUM.get(), processingStack.getCount());
+            UraniumItem.setEnrichment(refined, UraniumItem.NATURAL_ENRICHMENT);
+            processingStack = refined;
+            changed = true;
+        }
         if (isRawUranium(processingStack)) {
             if (progress < RAW_PROCESSING_TIME) {
                 return false;
@@ -186,7 +203,7 @@ public class CentrifugeBlockEntity extends KineticBlockEntity implements Clearab
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        if (!heldStack.isEmpty() && (heldStack.is(AllNuclearItems.URANIUM.get()) || isRawUranium(heldStack))) {
+        if (!heldStack.isEmpty() && (isUraniumIngot(heldStack) || isRawUranium(heldStack))) {
             ItemStack single = heldStack.copyWithCount(1);
             ItemStack remainder = inventory.insertItem(INPUT_SLOT, single, level.isClientSide);
             if (remainder.isEmpty()) {

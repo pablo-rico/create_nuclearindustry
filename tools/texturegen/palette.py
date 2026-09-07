@@ -8,32 +8,32 @@ from pixelkit import Ramp, hexc
 
 # Structural metals -------------------------------------------------------------------
 # Cool industrial steel, close in value to Create's andesite/brass casings.
-STEEL = Ramp("#0c0e11", "#1b2028", "#2a313b", "#3b444f", "#4e5865", "#65707e", "#828d9b")
+STEEL = Ramp("#353b38", "#4d5650", "#68736b", "#849087", "#9ca79b", "#b5bfb0", "#d0d7c8")
 # Darker frame / trim metal.
-DARK = Ramp("#07080a", "#101216", "#181c21", "#22262d", "#2d323a", "#3a404a", "#4a5159")
+DARK = Ramp("#202629", "#30383a", "#424c4d", "#55605e", "#6c7771", "#859086", "#a4afa1")
 # Warm brass, used for kinetic parts (shafts, turbine internals) like Create does.
-BRASS = Ramp("#1a1206", "#33240c", "#4f3a13", "#71551d", "#95742a", "#bd9840", "#e0c070")
+BRASS = Ramp("#613d2b", "#865235", "#a97645", "#c89b58", "#e8bd6c", "#ffda87", "#fff0b4")
 # Copper for heat exchange piping.
-COPPER = Ramp("#1c0e07", "#37190c", "#5a2c14", "#82441f", "#a85f30", "#c9814c", "#e6a877")
+COPPER = Ramp("#623b2e", "#864c37", "#a65e43", "#bd7555", "#d38d69", "#e7a887", "#f5c6a5")
 # Lead / graphite grey for shielding and control rods.
-LEAD = Ramp("#0a0a0c", "#161719", "#212327", "#2e3135", "#3d4146", "#4e5359", "#646a71")
+LEAD = Ramp("#292e31", "#40484b", "#586164", "#727b7c", "#909a98", "#adb7b1", "#ccd3c9")
 # Cryogenic white-blue for the fusion tier.
-CRYO = Ramp("#080f17", "#122031", "#1d3550", "#2a4d72", "#3d6d99", "#5f95c0", "#9ecbe6")
+CRYO = Ramp("#38494a", "#526e6d", "#74928c", "#9bb3a8", "#c0d0bc", "#dee6d1", "#f0f2df")
 # Concrete for launch pads.
-CONCRETE = Ramp("#101010", "#1e1e1f", "#2c2d2e", "#3d3e40", "#505153", "#666769", "#7f8083")
+CONCRETE = Ramp("#383b36", "#50564c", "#697063", "#838a7b", "#9da391", "#b7bdaa", "#d0d5c2")
 
 # Energy / signal accents ---------------------------------------------------------------
-URANIUM = Ramp("#04140a", "#0a2a13", "#11441f", "#186531", "#238a45", "#37b45f", "#65e086")
-RADIUM = Ramp("#062012", "#0b3a1f", "#12602f", "#1a8a43", "#28bb5b", "#4ce87e", "#9dffbd")
-CYAN = Ramp("#03151d", "#062a3c", "#0a4560", "#0e6489", "#158cb8", "#2eb8e0", "#87e9ff")
-PLASMA = Ramp("#200704", "#40130a", "#6c2611", "#9c3f14", "#cc6a1c", "#f0a02e", "#ffd98a")
-WARN = Ramp("#1e1503", "#3c2c06", "#66490b", "#957012", "#c39a1b", "#e8c034", "#ffe783")
-DANGER = Ramp("#1c0505", "#380a0a", "#5e1414", "#8c1f1f", "#bc3030", "#e05555", "#ff9494")
-TRITIUM = Ramp("#1c0714", "#360c26", "#5c1440", "#8a1f60", "#bb3086", "#e055ad", "#ff9bd6")
-LITHIUM = Ramp("#0d0f13", "#1a1e25", "#292f38", "#3c444f", "#525c69", "#6f7b89", "#98a5b2")
+URANIUM = Ramp("#334329", "#506333", "#6f8542", "#8fa44e", "#adc36b", "#cfde90", "#eaf0b9")
+RADIUM = Ramp("#203c28", "#355a36", "#4d8042", "#70a453", "#99ca6e", "#c4e793", "#e7f9c1")
+CYAN = Ramp("#203b3d", "#315b5c", "#477d7c", "#62a09b", "#8ac2b7", "#b3dfcf", "#dbf2df")
+PLASMA = Ramp("#583323", "#814829", "#ad6835", "#d29146", "#edb65e", "#ffda87", "#fff0c0")
+WARN = Ramp("#574023", "#7b5b2c", "#a48038", "#cda84d", "#e5c567", "#f3df92", "#fff0bd")
+DANGER = Ramp("#4c2928", "#733b35", "#9a5144", "#ba6754", "#d88168", "#eea18a", "#ffd0af")
+TRITIUM = Ramp("#433344", "#654966", "#876487", "#aa80a1", "#cba0b9", "#e6c4d0", "#f6e5e7")
+LITHIUM = Ramp("#354047", "#515f67", "#6d7e84", "#8c9e9f", "#adbfba", "#cddbd0", "#eaf0df")
 
 # Stone hosts for ores -------------------------------------------------------------------
-STONE = Ramp("#4a4a4a", "#585858", "#666666", "#727272", "#7e7e7e", "#8a8a8a", "#969696")
+STONE = Ramp("#4c4e49", "#5b5e57", "#6c7067", "#7d8177", "#8e9387", "#a0a599", "#b2b8aa")
 
 # Flat helpers ---------------------------------------------------------------------------
 BLACK = hexc("#000000")

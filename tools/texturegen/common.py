@@ -3,7 +3,7 @@
 import math
 import random
 
-from palette import BLACK, DARK, STEEL
+from palette import BLACK, BRASS, DARK, STEEL
 from pixelkit import (Tex, bevel, brushed, fbm, glow, inset, mix, outline, rivet,
                       scanlines, shade)
 
@@ -22,8 +22,12 @@ def bolt(t, x, y, ramp):
 
 def casing(t, ramp=STEEL, seed=0, base=3.4, amp=0.85, rivets=True, seam=True,
            axis="h", panel=(4, 4, 11, 11)):
-    """Outlined, bevelled, bolted machine plate. Everything else builds on this."""
-    brushed(t, ramp, 0, 0, t.w - 1, t.h - 1, base=base, amp=amp, seed=seed, axis=axis)
+    """Heavy folded frame around a ribbed metal inset, lit like Create casings."""
+    brushed(t, ramp, 0, 0, t.w - 1, t.h - 1, base=base, amp=amp * 0.7, seed=seed, axis=axis)
+    t.rect(3, 3, 12, 12, ramp[2])
+    for x in (4, 7, 10):
+        t.vline(x, 3, 12, ramp[3])
+        t.vline(x + 1, 3, 12, ramp[4])
     if seam:
         x0, y0, x1, y1 = panel
         for y in range(y0, y1 + 1):
@@ -33,10 +37,11 @@ def casing(t, ramp=STEEL, seed=0, base=3.4, amp=0.85, rivets=True, seam=True,
         t.vline(x0, y0, y1, ramp[1])
         t.hline(x0, x1, y1, ramp[5])
         t.vline(x1, y0, y1, ramp[5])
-    outline(t, 0, 0, t.w - 1, t.h - 1, ramp[0])
-    bevel(t, 1, 1, t.w - 2, t.h - 2, ramp)
+    outline(t, 0, 0, t.w - 1, t.h - 1, ramp[1])
+    bevel(t, 1, 1, t.w - 2, t.h - 2, ramp, hi=ramp[5], lo=ramp[0])
+    bevel(t, 2, 2, t.w - 3, t.h - 3, ramp, hi=ramp[4], lo=ramp[1])
     if rivets:
-        for x, y in ((2, 2), (t.w - 4, 2), (2, t.h - 4), (t.w - 4, t.h - 4)):
+        for x, y in ((1, 1), (t.w - 3, 1), (1, t.h - 3), (t.w - 3, t.h - 3)):
             bolt(t, x, y, ramp)
     return t
 
@@ -104,14 +109,14 @@ def chevron(t, dark, lite, ox=5, oy=5, up=False):
 
 def flange(t, ramp, accent, cx=8.0, cy=8.0, r=6.0):
     """Bolted pipe flange with a bright throat."""
-    t.disc(cx, cy, r, ramp[4])
-    t.ring(cx, cy, r, r - 1.2, ramp[5])
-    t.ring(cx, cy, r + 0.3, r - 0.3, ramp[0])
+    t.disc(cx, cy, r, BRASS[3])
+    t.ring(cx, cy, r, r - 1.2, BRASS[5])
+    t.ring(cx, cy, r + 0.3, r - 0.3, BRASS[0])
     # throat: a dark bore so the bright glyph inside it reads at a glance
-    t.disc(cx, cy, r - 2.2, ramp[1])
-    t.ring(cx, cy, r - 2.2, r - 2.9, ramp[0])
+    t.disc(cx, cy, r - 2.2, BRASS[2])
+    t.ring(cx, cy, r - 2.2, r - 2.9, BRASS[0])
     t.disc(cx, cy, r - 2.9, DARK[1])
-    t.ring(cx, cy, r - 2.9, r - 3.4, accent[3])
+    t.hline(6, 9, 4, accent[4])
     for a in (45, 135, 225, 315):
         bx = round(cx + math.cos(math.radians(a)) * (r - 1.0) - 0.5)
         by = round(cy + math.sin(math.radians(a)) * (r - 1.0) - 0.5)
@@ -136,7 +141,8 @@ def port_face(t, ramp, accent, seed=0, out=False, square=False):
     else:
         flange(t, ramp, accent)
     chevron(t, accent[5], accent[6], 5, 5, up=out)
-    glow(t, 8, 8, 6.0, accent[6], 0.10)
+    t.set(2, 7, accent[5])
+    t.set(2, 8, accent[2])
     return t
 
 
@@ -217,7 +223,8 @@ def ore(seed, host, ore_ramp, blobs, glow_color=None, size=16):
 
     rng = random.Random(seed)
     for i, (cx, cy, r) in enumerate(blobs):
-        pts = blob_pts(cx, cy, r, seed + i * 13, size)
+        # Small angular inclusions instead of large circular mineral patches.
+        pts = blob_pts(cx, cy, r * 0.62, seed + i * 13, size)
         for (x, y) in sorted(pts):
             up = ((x, (y - 1) % size) not in pts)
             down = ((x, (y + 1) % size) not in pts)

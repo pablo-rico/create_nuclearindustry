@@ -13,6 +13,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
 import org.papiricoh.create_nuclearindustry.fusion.block.FusionPlasmaTurbineBlock;
@@ -29,7 +30,6 @@ public class FusionPlasmaTurbineBlockEntity extends GeneratingKineticBlockEntity
     private static final int TANK_CAPACITY = 32_000;
     private static final int STEAM_PER_PORT_PER_TICK = 160;
     private static final float ACTIVE_RPM = 64.0f;
-    private static final float STRESS_CAPACITY_PER_PORT = 4096.0f;
 
     private final FluidTank plasmaSteamTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isPlasmaTurbineFluid) {
         @Override
@@ -75,7 +75,7 @@ public class FusionPlasmaTurbineBlockEntity extends GeneratingKineticBlockEntity
         float oldSpeed = generatedSpeed;
         float oldCapacity = generatedCapacity;
         generatedSpeed = consumed > 0 ? getSignedSpeed(ACTIVE_RPM) : 0.0f;
-        generatedCapacity = STRESS_CAPACITY_PER_PORT * recentSteamUse / (float) STEAM_PER_PORT_PER_TICK;
+        generatedCapacity = (float) Config.plasmaCapacityPerPort * recentSteamUse / (float) STEAM_PER_PORT_PER_TICK;
 
         if (Math.abs(oldSpeed - generatedSpeed) > 0.25f || Math.abs(oldCapacity - generatedCapacity) > 1.0f) {
             updateGeneratedRotation();

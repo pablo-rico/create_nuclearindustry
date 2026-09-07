@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.reactor.physics;
 
 import net.minecraft.nbt.CompoundTag;
+import org.papiricoh.create_nuclearindustry.Config;
 
 /**
  * Handles all nuclear physics calculations for the reactor.
@@ -12,9 +13,7 @@ public class ReactorPhysicsSimulator {
     private static final double BASE_FISSION_RATE = 4.0;            // neutrons per uranium rod per tick
     private static final double HEAT_GENERATION_RATE = 0.035;       // °C per neutron
     private static final double PASSIVE_HEAT_DISSIPATION = 0.8;     // °C per tick (baseline)
-    private static final double CONTROL_ROD_EFFECTIVENESS = 1.50;   // shutdown authority from inserted control rods
     private static final double FUEL_CONSUMPTION_RATE = 0.002;      // fuel units consumed per neutron
-    private static final double FUEL_BURN_PER_NEUTRON = 0.0000045;  // fuel units burned per neutron level per tick (~15 min per assembly at N=1200)
     private static final double STEAM_TEMPERATURE_FACTOR = 0.025;   // mB/t from temperature above boiling
     private static final double STEAM_NEUTRON_FACTOR = 0.055;       // mB/t from neutron activity
     private static final double STEAM_PER_ROD_MULTIPLIER = 0.5;     // steam output scales with uranium rod count
@@ -106,7 +105,7 @@ public class ReactorPhysicsSimulator {
 
         // Consume fuel based on operation
         if (neutronLevel > 0) {
-            fuelRemaining -= FUEL_BURN_PER_NEUTRON * neutronLevel;
+            fuelRemaining -= Config.uraniumBurnPerNeutron * neutronLevel;
             fuelRemaining = Math.max(0, fuelRemaining);
         }
 
@@ -151,7 +150,7 @@ public class ReactorPhysicsSimulator {
         double rodRatio = (double) controlRodCount / uraniumRodCount;
 
         // Maximum absorption capacity based on ratio (capped at 100%)
-        double maxAbsorption = Math.min(1.0, rodRatio * CONTROL_ROD_EFFECTIVENESS);
+        double maxAbsorption = Math.min(1.0, rodRatio * Config.boronAbsorption);
 
         double actualAbsorption = maxAbsorption * controlRodInsertion;
         double absorptionFactor = 1.0 - actualAbsorption;

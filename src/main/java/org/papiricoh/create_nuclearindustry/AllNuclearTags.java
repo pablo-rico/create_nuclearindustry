@@ -17,6 +17,7 @@ public class AllNuclearTags {
     public static class Items {
         /** Any raw uranium, from this mod or any other. */
         public static final TagKey<Item> RAW_URANIUM = tag("raw_uranium");
+        public static final TagKey<Item> URANIUM_INGOTS = tag("uranium_ingots");
 
         private static TagKey<Item> tag(String path) {
             return TagKey.create(Registries.ITEM,

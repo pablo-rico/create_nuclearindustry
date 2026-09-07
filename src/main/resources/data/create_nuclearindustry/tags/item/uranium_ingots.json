@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "create_nuclearindustry:uranium",
+    { "id": "#c:ingots/uranium", "required": false },
+    { "id": "#forge:ingots/uranium", "required": false }
+  ]
+}

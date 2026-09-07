@@ -12,6 +12,22 @@ python3 tools/texturegen/generate.py --out /tmp/preview --sheet /tmp/sheet.png
 Requires Pillow (`pip install pillow`). Output is deterministic: the same seed always
 produces the same pixels, so re-running never causes spurious diffs.
 
+The current artwork is included directly in the mod JAR. The older resource pack
+in `resourcepacks/` is a separate historical variant; disable it in-game to see
+the current mod textures.
+
+```bash
+python3.12 tools/texturegen/generate.py --sheet docs/textures-preview.png
+python3.12 tools/texturegen/validate.py --jar build/libs/create_nuclearindustry_1.21.1_1.0.0.jar
+```
+
+The redesign uses Create 6.0.10's andesite, brass and copper casings, fluid tank
+and brass ingot as visual references. Artwork is generated from this repository's
+own pixel definitions: thick folded frames, ribbed shielding, brass flanges,
+analogue instruments, ceramic insulation and broad-faceted ingots. Every existing
+block, item and fluid texture is regenerated. Models and their UV layouts are
+preserved, including the two-pixel tube shading period.
+
 | file | contents |
 | --- | --- |
 | `palette.py` | the colour identity - one ramp per material / energy accent |
