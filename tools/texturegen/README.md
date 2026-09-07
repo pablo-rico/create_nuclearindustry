@@ -56,10 +56,19 @@ faces. Check the model before redesigning those.
 
 `reactor_materials.py` defines the neutral rolled-steel plate shared by the reactor
 casing, damaged casing, hatches, instrumentation, fluid and fuel ports. Fusion
-attachments use the same structural steel under their functional components.
-This palette is local to reactor blocks: item artwork is unchanged.
+attachments have their own insulated titanium base in `fusion_materials.py`.
+These palettes are local to reactor blocks: item artwork is unchanged.
 
 Ore substrates are original vanilla assets under `reference/`: uranium overlays
 deepslate to match its world generation, while borax and thorium overlay stone.
 Only pixels in the small mineral masks are replaced; no tint or generated noise
 is applied to the host rock.
+
+## Fusion titanium revision
+
+Fusion uses blue-grey titanium sheets with a horizontal compression joint,
+subtle grain and recessed hardware. The same substrate is shared by the
+cryostat, fluid ports, accelerator sections, injector and analogue controls.
+Coils use muted copper, and the three controller states keep distinct indicators.
+The turbine rotor has dedicated metal and blade textures that follow its UV
+layout instead of reusing a machine front on its rotating parts.
