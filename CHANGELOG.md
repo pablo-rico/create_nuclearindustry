@@ -92,6 +92,10 @@ below for what changes in existing worlds.
   twice the radius plus 4 up to five times the radius. It condenses steam
   (heavy steam) back into water (heavy water) at base radius x height mB/t,
   with a plume and the sound of falling water. No power.
+- New Turbine Exhaust Port: a turbine with one stops condensing inside and
+  lets its steam out as exhaust steam, making twice the power from the same
+  steam. Only a Cooling Tower turns exhaust back into water (heavy exhaust
+  into heavy water); no turbine accepts it, so turbines cannot be chained.
 - Optional Cooling Tower Fans in the bottom wall layers add up to 25% each
   at 256 RPM, at most doubling the tower. Display Link source, JEI info and
   a Ponder scene.

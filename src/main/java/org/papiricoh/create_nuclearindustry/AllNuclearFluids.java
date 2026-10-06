@@ -56,6 +56,9 @@ public class AllNuclearFluids {
             .density(1100).viscosity(1500).temperature(300).canDrown(true).canSwim(true).supportsBoating(false), 4);
     public static final NuclearFluid HEAVY_STEAM_FLUID = gas("heavy_steam", 0xB07C9CFF, -80, 130, 393, 0);
     public static final NuclearFluid PLASMA_STEAM_FLUID = gas("plasma_steam", 0xC0FFD27C, -70, 120, 500, 6);
+    // Spent low-pressure steam a turbine's exhaust port sends to a cooling tower. No turbine takes it.
+    public static final NuclearFluid EXHAUST_STEAM_FLUID = gas("exhaust_steam", 0x90C8CCCC, -60, 120, 330, 0);
+    public static final NuclearFluid HEAVY_EXHAUST_STEAM_FLUID = gas("heavy_exhaust_steam", 0x90A8B4D8, -60, 120, 330, 0);
 
     // ---------------------------------------------------------------- fusion fuel
     public static final NuclearFluid DEUTERIUM_FLUID = gas("deuterium", 0xB05CD6FF, -90, 80, 300, 0);
@@ -89,6 +92,8 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> FLOWING_STEAM = STEAM_FLUID.flowing();
     public static final Supplier<FlowingFluid> HEAVY_WATER = HEAVY_WATER_FLUID.source();
     public static final Supplier<FlowingFluid> NITRIC_ACID = NITRIC_ACID_FLUID.source();
+    public static final Supplier<FlowingFluid> EXHAUST_STEAM = EXHAUST_STEAM_FLUID.source();
+    public static final Supplier<FlowingFluid> HEAVY_EXHAUST_STEAM = HEAVY_EXHAUST_STEAM_FLUID.source();
     public static final Supplier<FlowingFluid> SPENT_FUEL_SOLUTION = SPENT_FUEL_SOLUTION_FLUID.source();
     public static final Supplier<FlowingFluid> PLUTONIUM_NITRATE = PLUTONIUM_NITRATE_FLUID.source();
     public static final Supplier<FlowingFluid> FLOWING_HEAVY_WATER = HEAVY_WATER_FLUID.flowing();

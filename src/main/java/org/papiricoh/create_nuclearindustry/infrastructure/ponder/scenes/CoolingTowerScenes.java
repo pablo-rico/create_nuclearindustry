@@ -125,7 +125,7 @@ public class CoolingTowerScenes {
                     scene.effects().simpleParticleEmitter(ParticleTypes.CLOUD, new Vec3(0, 0.12, 0)), 1, 140);
         }
         scene.overlay().showText(110)
-                .text("It condenses its base radius times its height in mB/t, 48 here, and makes no power: it takes the steam no turbine can use and closes the water loop.")
+                .text("It condenses its base radius times its height in mB/t, 48 here. A turbine with an Exhaust Port sends it its spent steam instead of condensing it, and makes twice the power.")
                 .pointAt(util.vector().topOf(util.grid().at(5, 12, 5)))
                 .placeNearTarget();
         scene.idle(30);

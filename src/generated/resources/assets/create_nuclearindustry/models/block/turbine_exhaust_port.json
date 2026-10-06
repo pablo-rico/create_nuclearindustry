@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "create_nuclearindustry:block/turbine_exhaust_port",
+    "side": "create_nuclearindustry:block/turbine_casing",
+    "top": "create_nuclearindustry:block/turbine_casing"
+  }
+}

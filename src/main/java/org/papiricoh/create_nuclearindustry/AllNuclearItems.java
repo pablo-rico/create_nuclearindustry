@@ -43,6 +43,7 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> TURBINE_ROTOR = ITEMS.register("turbine_rotor", () -> new BlockItem(AllNuclearBlocks.TURBINE_ROTOR.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> TURBINE_OUTPUT = ITEMS.register("turbine_output", () -> new BlockItem(AllNuclearBlocks.TURBINE_OUTPUT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> TURBINE_FLUID_PORT = ITEMS.register("turbine_fluid_port", () -> new BlockItem(AllNuclearBlocks.TURBINE_FLUID_PORT.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> TURBINE_EXHAUST_PORT = ITEMS.register("turbine_exhaust_port", () -> new BlockItem(AllNuclearBlocks.TURBINE_EXHAUST_PORT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> NUCLEAR_BOMB = ITEMS.register("nuclear_bomb", () -> new BlockItem(AllNuclearBlocks.NUCLEAR_BOMB.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> LAUNCH_PAD = ITEMS.register("launch_pad", () -> new BlockItem(AllNuclearBlocks.LAUNCH_PAD.value(), new Item.Properties()));
 

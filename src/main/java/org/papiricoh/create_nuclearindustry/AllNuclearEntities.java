@@ -61,6 +61,10 @@ public class AllNuclearEntities {
             ENTITIES.register("rtg", () -> BlockEntityType.Builder.of(
                     org.papiricoh.create_nuclearindustry.rtg.RtgBlockEntity::new, AllNuclearBlocks.RTG.get()).build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.turbine.TurbineExhaustPortBlockEntity>> TURBINE_EXHAUST_PORT =
+            ENTITIES.register("turbine_exhaust_port", () -> BlockEntityType.Builder.of(
+                    org.papiricoh.create_nuclearindustry.turbine.TurbineExhaustPortBlockEntity::new, AllNuclearBlocks.TURBINE_EXHAUST_PORT.get()).build(null));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoolingTowerControllerBlockEntity>> COOLING_TOWER_CONTROLLER =
             ENTITIES.register("cooling_tower_controller", () -> BlockEntityType.Builder.of(
                     CoolingTowerControllerBlockEntity::new, AllNuclearBlocks.COOLING_TOWER_CONTROLLER.get()).build(null));

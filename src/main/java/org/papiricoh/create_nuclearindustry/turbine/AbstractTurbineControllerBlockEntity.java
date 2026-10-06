@@ -37,6 +37,8 @@ import java.util.Optional;
  */
 public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKineticBlockEntity implements MultiblockController {
     public static final float ACTIVE_RPM = 64.0f;
+    /** Exhausting to a cooling tower (a cold condenser) doubles the work each mB of steam does. */
+    public static final float EXHAUST_POWER_MULTIPLIER = 2.0f;
     private static final int VERSION = 2;
     private static final int SYNC_INTERVAL = 10;
 
@@ -72,7 +74,7 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
                 setChanged();
             }
         };
-        condensateTank = new FluidTank(tier.baseTank, NuclearFluidHelper::isCoolant) {
+        condensateTank = new FluidTank(tier.baseTank, stack -> NuclearFluidHelper.isCoolant(stack) || NuclearFluidHelper.isExhaustSteam(stack)) {
             @Override
             protected void onContentsChanged() {
                 setChanged();
@@ -121,7 +123,8 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
         }
 
         float speed = recentUse > 0 ? signedRpm() : 0;
-        float capacity = tier().capacityFor(recentUse);
+        float capacity = tier().capacityFor(recentUse)
+                * (structure.map(TurbineStructure::exhausting).orElse(false) ? EXHAUST_POWER_MULTIPLIER : 1.0f);
         if (Math.abs(speed - generatedSpeed) > 0.25f || Math.abs(capacity - generatedCapacity) > 1.0f) {
             generatedSpeed = speed;
             generatedCapacity = capacity;
@@ -158,7 +161,8 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
         if (working.isEmpty()) {
             return 0;
         }
-        FluidStack condensate = new FluidStack(tier().condensate(working), Integer.MAX_VALUE);
+        // Through an exhaust port the steam leaves as exhaust for a cooling tower; otherwise it condenses inside.
+        FluidStack condensate = new FluidStack(s.exhausting() ? tier().exhaust(working) : tier().condensate(working), Integer.MAX_VALUE);
         int space = condensateTank.fill(condensate.copyWithAmount(condensateTank.getCapacity()), IFluidHandler.FluidAction.SIMULATE);
         int amount = Math.min(s.throughputLimit(), Math.min(working.getAmount(), space));
         if (amount <= 0) {
@@ -353,10 +357,19 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
                     .withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("     Expanding " + display.currentUse() + " / " + display.limit() + " mB/t")
                     .withStyle(display.currentUse() > 0 ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
+            if (display.exhausting()) {
+                tooltip.add(Component.literal("     Exhausting to a cooling tower: x2 power").withStyle(ChatFormatting.AQUA));
+            }
+            if (display.currentUse() == 0 && condensateTank.getSpace() == 0) {
+                tooltip.add(Component.literal(display.exhausting()
+                        ? "     Exhaust full: send it to a cooling tower"
+                        : "     Condensate full: pump the water out").withStyle(ChatFormatting.RED));
+            }
         }
         tooltip.add(Component.literal("     " + tier().fluidName + ": " + steamTank.getFluidAmount() + " / " + steamTank.getCapacity() + " mB")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("     Condensate: " + condensateTank.getFluidAmount() + " / " + condensateTank.getCapacity() + " mB")
+        tooltip.add(Component.literal((NuclearFluidHelper.isExhaustSteam(condensateTank.getFluid()) ? "     Exhaust: " : "     Condensate: ")
+                + condensateTank.getFluidAmount() + " / " + condensateTank.getCapacity() + " mB")
                 .withStyle(ChatFormatting.GRAY));
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
         return true;

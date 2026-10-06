@@ -52,6 +52,7 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
                 AllNuclearBlocks.REACTOR_FUEL_PORT.get(),
                 AllNuclearBlocks.REACTOR_TEMPERATURE_SENSOR.get(),
                 AllNuclearBlocks.REACTOR_REDSTONE_PORT.get(),
+                AllNuclearBlocks.TURBINE_EXHAUST_PORT.get(),
                 AllNuclearBlocks.COOLING_TOWER_CASING.get(),
                 AllNuclearBlocks.COOLING_TOWER_CONTROLLER.get(),
                 AllNuclearBlocks.COOLING_TOWER_FLUID_PORT.get(),

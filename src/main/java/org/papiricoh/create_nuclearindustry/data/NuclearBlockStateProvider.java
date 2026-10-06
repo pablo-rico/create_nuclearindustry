@@ -110,6 +110,10 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         directionalBlock(AllNuclearBlocks.RTG.get(), rtg);
         simpleBlockItem(AllNuclearBlocks.RTG.get(), rtg);
         coolingTowerStates();
+        ModelFile exhaust = models().orientable("turbine_exhaust_port", modLoc("block/turbine_casing"),
+                modLoc("block/turbine_exhaust_port"), modLoc("block/turbine_casing"));
+        directionalBlock(AllNuclearBlocks.TURBINE_EXHAUST_PORT.get(), exhaust);
+        simpleBlockItem(AllNuclearBlocks.TURBINE_EXHAUST_PORT.get(), exhaust);
         simpleBlockWithItem(AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get(), models().cubeBottomTop("radioactive_waste_barrel",
                 modLoc("block/radioactive_waste_barrel_side"),
                 modLoc("block/radioactive_waste_barrel_top"),

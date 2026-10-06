@@ -862,6 +862,15 @@ def launch_pad_rail():
     return t
 
 
+@block("turbine_exhaust_port")
+def turbine_exhaust_port():
+    # A turbine port with a louvred grey outlet: spent steam goes out here, to a cooling tower.
+    t = port_face(Tex(seed=99), STEEL, LEAD, seed=99, out=True)
+    for y in (5, 7, 9):
+        t.hline(5, 10, y, STEEL[6])
+    return t
+
+
 # ======================================================================================
 # cooling tower
 # ======================================================================================

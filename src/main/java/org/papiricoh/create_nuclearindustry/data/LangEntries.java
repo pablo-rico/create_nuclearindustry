@@ -106,6 +106,7 @@ public final class LangEntries {
         add("item.create_nuclearindustry.depleted_uranium_chestplate", "Depleted Uranium Chestplate", "Peto de uranio empobrecido");
         add("item.create_nuclearindustry.depleted_uranium_leggings", "Depleted Uranium Leggings", "Grebas de uranio empobrecido");
         add("item.create_nuclearindustry.depleted_uranium_boots", "Depleted Uranium Boots", "Botas de uranio empobrecido");
+        add("block.create_nuclearindustry.turbine_exhaust_port", "Turbine Exhaust Port", "Puerto de escape de turbina");
         add("block.create_nuclearindustry.cooling_tower_casing", "Cooling Tower Casing", "Carcasa de torre de refrigeración");
         add("block.create_nuclearindustry.cooling_tower_controller", "Cooling Tower Controller", "Controlador de torre de refrigeración");
         add("block.create_nuclearindustry.cooling_tower_fluid_port", "Cooling Tower Fluid Port", "Puerto de fluidos de torre de refrigeración");
@@ -385,8 +386,8 @@ public final class LangEntries {
                 "Part of a reactor's shell. It puts out a 0-15 signal on its panel side: temperature, power, fuel, coolant or steam, or the SCRAM signal, which turns on when SCRAM is pressed or the automatic SCRAM trips. Control rods only move with pistons, so wire the SCRAM signal to them. Wrench to change the mode, sneak-wrench to turn it.",
                 "Forma parte de la carcasa de un reactor. Da una señal de 0 a 15 por la cara del panel: temperatura, potencia, combustible, refrigerante o vapor, o la señal de SCRAM, que se enciende al pulsar SCRAM o al dispararse el SCRAM automático. Las barras de control solo se mueven con pistones, así que conecta a ellos la señal de SCRAM. Llave para cambiar el modo; agachado con la llave para girarlo.");
         add("jei.create_nuclearindustry.info.cooling_tower",
-                "A hyperboloid of Cooling Tower Casing that turns steam back into water (heavy steam into heavy water) without making power. Base radius 4 to 16, on a full floor; the walls narrow to a waist and flare out at the open top. It condenses its base radius times its height in mB/t, and Fans in the bottom wall layers add up to double that. Ports go in the floor or the two wall layers above it; the controller sits in the bottom wall layer facing out. See its Ponder scene.",
-                "Un hiperboloide de Carcasa de torre de refrigeración que vuelve a convertir el vapor en agua (el vapor pesado en agua pesada) sin generar energía. Radio de base de 4 a 16, sobre un suelo completo; las paredes se estrechan hasta una cintura y se abren en la cima, que queda abierta. Condensa su radio de base por su altura en mB/t, y los Ventiladores de las capas bajas de la pared añaden hasta el doble. Los puertos van en el suelo o en las dos capas de pared sobre él; el controlador va en la capa más baja de la pared, mirando hacia fuera. Consulta su escena de Ponder.");
+                "A hyperboloid of Cooling Tower Casing that turns steam or turbine exhaust back into water (heavy into heavy water). A turbine with an Exhaust Port sends its spent steam here and makes twice the power. Base radius 4 to 16, on a full floor; the walls narrow to a waist and flare out at the open top. It condenses its base radius times its height in mB/t, and Fans in the bottom wall layers add up to double that. Ports go in the floor or the two wall layers above it; the controller sits in the bottom wall layer facing out. See its Ponder scene.",
+                "Un hiperboloide de Carcasa de torre de refrigeración que vuelve a convertir en agua el vapor o el escape de las turbinas (el pesado, en agua pesada). Una turbina con Puerto de escape le manda su vapor gastado y genera el doble de potencia. Radio de base de 4 a 16, sobre un suelo completo; las paredes se estrechan hasta una cintura y se abren en la cima, que queda abierta. Condensa su radio de base por su altura en mB/t, y los Ventiladores de las capas bajas de la pared añaden hasta el doble. Los puertos van en el suelo o en las dos capas de pared sobre él; el controlador va en la capa más baja de la pared, mirando hacia fuera. Consulta su escena de Ponder.");
         add("jei.create_nuclearindustry.info.depleted_uranium",
                 "Depleted uranium (under 0.7%) is dense: a block of it lets only 10% of radiation through, the best shield there is. Its heavy plate armour protects better than diamond and, as a full set, stops 98% of radiation, but slows you by about a sixth. A crusher turns the block back into metal.",
                 "El uranio empobrecido (menos del 0,7%) es muy denso: un bloque deja pasar solo el 10% de la radiación, el mejor blindaje que hay. Su armadura de placas protege más que el diamante y, completa, detiene el 98% de la radiación, pero te ralentiza más o menos una sexta parte. Una trituradora devuelve el bloque a metal.");
@@ -399,6 +400,9 @@ public final class LangEntries {
         add("jei.create_nuclearindustry.info.rtg",
                 "A small generator that turns decay heat into a steady 16 RPM, with no fuel to pump. Load it with RTG pellets by hand or by hopper: plutonium pellets give 256 stress capacity per RPM and halve in strength every 10 in-game days, waste pellets 64 and every 2 days. Below a quarter of their charge they come out spent. It irradiates its surroundings; wall it in with depleted uranium.",
                 "Un generador pequeño que convierte el calor de desintegración en 16 RPM constantes, sin combustible que bombear. Se carga con pastillas RTG a mano o por tolva: las de plutonio dan 256 de capacidad de stress por RPM y pierden la mitad de fuerza cada 10 días de juego; las de residuos, 64 y cada 2 días. Por debajo de una cuarta parte de su carga salen agotadas. Irradia a su alrededor: rodéalo de uranio empobrecido.");
+        add("jei.create_nuclearindustry.info.turbine_exhaust_port",
+                "Goes on a turbine's face like a fluid port. A turbine with one stops condensing its steam inside: it lets it out here as exhaust steam and makes twice the power from the same steam. Only a Cooling Tower turns exhaust steam back into water; if it backs up, the turbine stops. Works on steam and plasma turbines.",
+                "Va en una cara de la turbina, como un puerto de fluidos. Una turbina con uno deja de condensar el vapor dentro: lo saca por aquí como vapor de escape y genera el doble de potencia con el mismo vapor. Solo una Torre de refrigeración vuelve a convertir el vapor de escape en agua; si se acumula, la turbina se para. Funciona en turbinas de vapor y de plasma.");
         add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
         add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");
         add("jei.create_nuclearindustry.product", "Product: front face", "Producto: cara frontal");
@@ -408,6 +412,8 @@ public final class LangEntries {
         fluid("sulfuric_acid", "Sulfuric Acid", "Ácido sulfúrico");
         fluid("hydrofluoric_acid", "Hydrofluoric Acid", "Ácido fluorhídrico");
         fluid("nitric_acid", "Nitric Acid", "Ácido nítrico");
+        fluid("exhaust_steam", "Exhaust Steam", "Vapor de escape");
+        fluid("heavy_exhaust_steam", "Heavy Exhaust Steam", "Vapor de escape pesado");
         fluid("spent_fuel_solution", "Dissolved Spent Fuel", "Combustible gastado disuelto");
         fluid("plutonium_nitrate", "Plutonium Nitrate", "Nitrato de plutonio");
         fluid("uranium_hexafluoride", "Uranium Hexafluoride", "Hexafluoruro de uranio");
@@ -497,8 +503,8 @@ public final class LangEntries {
                 "Fans in the three bottom wall layers, facing out, add up to a quarter more each at 256 RPM, at most doubling the tower.",
                 "Los Ventiladores en las tres capas bajas de la pared, mirando hacia fuera, añaden hasta una cuarta parte más cada uno a 256 RPM, como mucho el doble de la torre.");
         add("create_nuclearindustry.ponder.cooling_tower.text_9",
-                "It condenses its base radius times its height in mB/t, 48 here, and makes no power: it takes the steam no turbine can use and closes the water loop.",
-                "Condensa su radio de base por su altura en mB/t, 48 aquí, y no genera energía: se lleva el vapor que ninguna turbina aprovecha y cierra el circuito de agua.");
+                "It condenses its base radius times its height in mB/t, 48 here. A turbine with an Exhaust Port sends it its spent steam instead of condensing it, and makes twice the power.",
+                "Condensa su radio de base por su altura en mB/t, 48 aquí. Una turbina con Puerto de escape le manda su vapor gastado en lugar de condensarlo, y genera el doble de potencia.");
         add("create_nuclearindustry.ponder.turbine.header",
                 "Building a Steam Turbine",
                 "Construir una turbina de vapor");

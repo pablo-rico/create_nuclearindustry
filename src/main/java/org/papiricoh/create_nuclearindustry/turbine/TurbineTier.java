@@ -88,9 +88,18 @@ public enum TurbineTier {
         return NuclearFluidHelper.isHeavySteam(working) ? AllNuclearFluids.HEAVY_WATER.get() : Fluids.WATER;
     }
 
+    /** What the working fluid leaves an exhaust port as: heavy steam as heavy exhaust, anything else as exhaust. */
+    public Fluid exhaust(FluidStack working) {
+        return NuclearFluidHelper.isHeavySteam(working) ? AllNuclearFluids.HEAVY_EXHAUST_STEAM.get() : AllNuclearFluids.EXHAUST_STEAM.get();
+    }
+
     /** Stress capacity per RPM at {@code use} mB/t; config values are for one port pair at full flow. */
     public float capacityFor(double use) {
         return (float) (capacityPerPort.getAsDouble() * use / perPort);
+    }
+
+    public static boolean isExhaustPort(BlockState state) {
+        return state.is(AllNuclearBlocks.TURBINE_EXHAUST_PORT.get());
     }
 
     public static boolean isGlass(BlockState state) {

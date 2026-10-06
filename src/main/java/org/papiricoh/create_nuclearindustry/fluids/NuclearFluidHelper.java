@@ -31,6 +31,21 @@ public final class NuclearFluidHelper {
         return isSteam(stack) || isHeavySteam(stack);
     }
 
+    /** Low-pressure steam from a turbine's exhaust port. */
+    public static boolean isExhaustSteam(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.EXHAUST_STEAM.get() || stack.getFluid() == AllNuclearFluids.HEAVY_EXHAUST_STEAM.get();
+    }
+
+    /** What a cooling tower condenses: reactor steam or turbine exhaust, light or heavy. */
+    public static boolean isCondensable(FluidStack stack) {
+        return isTurbineSteam(stack) || isExhaustSteam(stack);
+    }
+
+    /** Heavy steam or heavy exhaust: condenses to heavy water. */
+    public static boolean isHeavyVapour(FluidStack stack) {
+        return isHeavySteam(stack) || stack.getFluid() == AllNuclearFluids.HEAVY_EXHAUST_STEAM.get();
+    }
+
     public static boolean isDeuterium(FluidStack stack) {
         return stack.getFluid() == AllNuclearFluids.DEUTERIUM.get();
     }

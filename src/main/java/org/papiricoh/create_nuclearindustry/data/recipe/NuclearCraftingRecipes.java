@@ -221,6 +221,9 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 new String[]{" I ", "ISI", " I "}, 'I', Items.IRON_INGOT, 'S', CreateItems.get("shaft"));
         shaped(output, AllNuclearItems.TURBINE_FLUID_PORT.get(), 1, "turbine_fluid_port",
                 new String[]{" C ", "CPC", " C "}, 'C', AllNuclearItems.TURBINE_CASING.get(), 'P', CreateItems.get("fluid_pipe"));
+        shaped(output, AllNuclearItems.TURBINE_EXHAUST_PORT.get(), 1, "turbine_exhaust_port",
+                new String[]{" V ", "CPC", " C "}, 'C', AllNuclearItems.TURBINE_CASING.get(), 'P', CreateItems.get("fluid_pipe"),
+                'V', Items.IRON_BARS);
         shaped(output, AllNuclearItems.TURBINE_OUTPUT.get(), 1, "turbine_output",
                 new String[]{" B ", "CRC", " S "}, 'B', CreateItems.get("brass_ingot"), 'C', AllNuclearItems.TURBINE_CASING.get(),
                 'R', AllNuclearItems.TURBINE_ROTOR.get(), 'S', CreateItems.get("shaft"));

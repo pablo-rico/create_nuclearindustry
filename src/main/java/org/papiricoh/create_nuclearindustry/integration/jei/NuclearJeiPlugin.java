@@ -125,6 +125,8 @@ public class NuclearJeiPlugin implements IModPlugin {
         registration.addIngredientInfo(List.of(new ItemStack(AllNuclearItems.RTG.get()),
                         new ItemStack(AllNuclearItems.PLUTONIUM_RTG_PELLET.get()), new ItemStack(AllNuclearItems.WASTE_RTG_PELLET.get())),
                 VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.rtg"));
+        registration.addIngredientInfo(AllNuclearItems.TURBINE_EXHAUST_PORT.get(),
+                Component.translatable("jei.create_nuclearindustry.info.turbine_exhaust_port"));
         registration.addIngredientInfo(AllNuclearItems.TURBINE_OUTPUT.get(),
                 Component.translatable("jei.create_nuclearindustry.info.turbine"));
         registration.addIngredientInfo(AllNuclearItems.FUSION_PLASMA_TURBINE.get(),

@@ -48,6 +48,11 @@ largo, con una columna de rotores en el eje. Cada rotor expande 80 mB/t de vapor
 (40 de vapor de plasma) y cada par de puertos entrada/salida deja pasar 320 (160);
 el menor de los dos limites manda.
 
+Con un Puerto de escape de turbina, la turbina no condensa dentro: saca el vapor
+como vapor de escape hacia una torre de refrigeración y su capacidad se duplica
+con el mismo caudal. Si el escape no tiene salida, la turbina se para igual que
+con el tanque de condensado lleno.
+
 Las capacidades son la contribucion de stress por RPM por cada 320 mB/t de vapor
 (160 de vapor de plasma) expandidos; Create la multiplica por la velocidad. Las
 turbinas giran a 64 RPM. Duplicar una capacidad duplica su output con el mismo vapor.

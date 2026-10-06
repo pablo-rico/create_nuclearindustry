@@ -48,8 +48,8 @@ public final class TurbineStructureValidator {
             if (structure.inputPorts < 1) {
                 errors.add("Missing " + tier.fluidName.toLowerCase() + " input port");
             }
-            if (structure.outputPorts < 1) {
-                errors.add("Missing condensate output port");
+            if (structure.outputPorts < 1 && structure.exhaustPorts < 1) {
+                errors.add("Missing condensate output port (or an exhaust port to a cooling tower)");
             }
         }
         return errors.isEmpty()
@@ -81,7 +81,7 @@ public final class TurbineStructureValidator {
             }
             if (TurbineTier.isGlass(state)) {
                 errors.add("Glass cannot sit on an edge or corner at " + shortPos(pos));
-            } else if (s.tier.isPort(state)) {
+            } else if (s.tier.isPort(state) || TurbineTier.isExhaustPort(state)) {
                 errors.add("Ports must be on a face, not an edge, at " + shortPos(pos));
             } else {
                 errors.add("Invalid frame block at " + shortPos(pos));
@@ -106,6 +106,11 @@ public final class TurbineStructureValidator {
             } else {
                 s.outputPorts++;
             }
+            return;
+        }
+        if (TurbineTier.isExhaustPort(state)) {
+            s.ports.add(pos.asLong());
+            s.exhaustPorts++;
             return;
         }
         if (TurbineTier.isAnyController(state)) {
@@ -193,7 +198,7 @@ public final class TurbineStructureValidator {
     }
 
     private static boolean isWall(TurbineTier tier, BlockState state) {
-        return tier.isCasing(state) || TurbineTier.isGlass(state) || tier.isPort(state);
+        return tier.isCasing(state) || TurbineTier.isGlass(state) || tier.isPort(state) || TurbineTier.isExhaustPort(state);
     }
 
     private static boolean isRotor(TurbineTier tier, BlockState state, Direction.Axis axis) {

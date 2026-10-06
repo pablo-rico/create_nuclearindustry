@@ -185,7 +185,7 @@ public class CoolingTowerPortBlockEntity extends BlockEntity implements IHaveGog
 
         @Override
         public boolean isFluidValid(int tank, FluidStack stack) {
-            return input && NuclearFluidHelper.isTurbineSteam(stack);
+            return input && NuclearFluidHelper.isCondensable(stack);
         }
 
         @Override

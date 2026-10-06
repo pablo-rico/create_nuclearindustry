@@ -111,7 +111,7 @@ public abstract class TurbinePortBlockEntity extends BlockEntity implements IHav
         }
     }
 
-    private Optional<AbstractTurbineControllerBlockEntity> controller() {
+    protected Optional<AbstractTurbineControllerBlockEntity> controller() {
         return link.find();
     }
 

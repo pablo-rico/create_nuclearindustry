@@ -5,6 +5,7 @@
     "create_nuclearindustry:reactor_fuel_port",
     "create_nuclearindustry:reactor_temperature_sensor",
     "create_nuclearindustry:reactor_redstone_port",
+    "create_nuclearindustry:turbine_exhaust_port",
     "create_nuclearindustry:cooling_tower_casing",
     "create_nuclearindustry:cooling_tower_controller",
     "create_nuclearindustry:cooling_tower_fluid_port",

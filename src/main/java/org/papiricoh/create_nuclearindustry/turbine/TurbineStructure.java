@@ -30,6 +30,8 @@ public final class TurbineStructure {
     public final LongSet ports = new LongOpenHashSet();
     public int inputPorts;
     public int outputPorts;
+    /** Exhaust ports send the expanded steam to a cooling tower instead of condensing it inside. */
+    public int exhaustPorts;
     public int glassCount;
 
     public TurbineStructure(TurbineTier tier, BlockPos controllerPos, Direction outward, int hu, int hv, int length) {
@@ -71,8 +73,13 @@ public final class TurbineStructure {
     /** Working fluid the turbine can expand per tick: rotors and port pairs both limit it. */
     public int throughputLimit() {
         int rotorLimit = rotorCount() * tier.perRotor;
-        int portLimit = Math.min(inputPorts, outputPorts) * tier.perPort;
+        int portLimit = Math.min(inputPorts, outputPorts + exhaustPorts) * tier.perPort;
         return Math.min(rotorLimit, portLimit);
+    }
+
+    /** A turbine with any exhaust port exhausts all its steam through them. */
+    public boolean exhausting() {
+        return exhaustPorts > 0;
     }
 
     public int tankCapacity() {

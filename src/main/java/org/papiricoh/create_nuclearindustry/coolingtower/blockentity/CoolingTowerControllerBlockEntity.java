@@ -46,7 +46,7 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
     private static final int FAN_SCAN_INTERVAL = 20;
     private static final int BASE_TANK = 16000;
 
-    private final FluidTank steamTank = new FluidTank(BASE_TANK, NuclearFluidHelper::isTurbineSteam) {
+    private final FluidTank steamTank = new FluidTank(BASE_TANK, NuclearFluidHelper::isCondensable) {
         @Override
         protected void onContentsChanged() {
             setChanged();
@@ -145,7 +145,7 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
         if (steam.isEmpty() || capacity <= 0) {
             return 0;
         }
-        FluidStack water = new FluidStack(NuclearFluidHelper.isHeavySteam(steam)
+        FluidStack water = new FluidStack(NuclearFluidHelper.isHeavyVapour(steam)
                 ? AllNuclearFluids.HEAVY_WATER.get() : net.minecraft.world.level.material.Fluids.WATER, 1);
         int space = waterTank.fill(water.copyWithAmount(waterTank.getCapacity()), IFluidHandler.FluidAction.SIMULATE);
         int amount = Math.min(capacity, Math.min(steam.getAmount(), space));
@@ -325,7 +325,7 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
     }
 
     public int fillSteam(FluidStack resource, IFluidHandler.FluidAction action) {
-        return NuclearFluidHelper.isTurbineSteam(resource) ? steamTank.fill(resource, action) : 0;
+        return NuclearFluidHelper.isCondensable(resource) ? steamTank.fill(resource, action) : 0;
     }
 
     public FluidStack drainWater(int maxDrain, IFluidHandler.FluidAction action) {
