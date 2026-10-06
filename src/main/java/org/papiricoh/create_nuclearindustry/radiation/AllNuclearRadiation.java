@@ -44,6 +44,14 @@ public final class AllNuclearRadiation {
     public static final DataMapType<net.minecraft.world.item.Item, Radioactivity> RADIOACTIVITY = DataMapType.builder(
             id("radioactivity"), Registries.ITEM, Radioactivity.CODEC).synced(Radioactivity.CODEC, false).build();
 
+    /** Fraction of radiation that gets through a block. */
+    public static final DataMapType<net.minecraft.world.level.block.Block, RadiationTransmission> TRANSMISSION = DataMapType.builder(
+            id("radiation_transmission"), Registries.BLOCK, RadiationTransmission.CODEC).build();
+
+    /** Fraction of radiation a worn armour piece stops. Synced so the Geiger counter can show it. */
+    public static final DataMapType<net.minecraft.world.item.Item, RadiationShielding> SHIELDING = DataMapType.builder(
+            id("radiation_shielding"), Registries.ITEM, RadiationShielding.CODEC).synced(RadiationShielding.CODEC, false).build();
+
     public static final DeferredHolder<MobEffect, RadiationSicknessEffect> RADIATION_SICKNESS =
             EFFECTS.register("radiation_sickness", RadiationSicknessEffect::new);
 
@@ -71,6 +79,8 @@ public final class AllNuclearRadiation {
 
     private static void registerDataMaps(RegisterDataMapTypesEvent event) {
         event.register(RADIOACTIVITY);
+        event.register(TRANSMISSION);
+        event.register(SHIELDING);
     }
 
     public static Holder<ArmorMaterial> hazmat() {

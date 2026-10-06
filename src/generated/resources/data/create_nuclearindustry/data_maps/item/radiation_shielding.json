@@ -1,0 +1,16 @@
+{
+  "values": {
+    "create_nuclearindustry:hazmat_boots": {
+      "fraction": 0.15
+    },
+    "create_nuclearindustry:hazmat_chestplate": {
+      "fraction": 0.3
+    },
+    "create_nuclearindustry:hazmat_helmet": {
+      "fraction": 0.25
+    },
+    "create_nuclearindustry:hazmat_leggings": {
+      "fraction": 0.25
+    }
+  }
+}

@@ -66,6 +66,18 @@ public class Config
             .comment("Dose at which radiation sickness (damage) starts; it worsens at twice this dose.")
             .defineInRange("radiation.sicknessThreshold", 600.0, 0.0, 1.0e6);
 
+    private static final ModConfigSpec.DoubleValue REACTOR_EMISSION = BUILDER
+            .comment("Dose per second next to a running fission reactor, per neutron of its activity (0-2000). Zero stops reactors irradiating.")
+            .defineInRange("radiation.reactorEmissionPerNeutron", 0.002, 0.0, 10.0);
+    private static final ModConfigSpec.DoubleValue SOLID_TRANSMISSION = BUILDER
+            .comment("Fraction of radiation a solid block without its own radiation_transmission entry lets through.")
+            .defineInRange("radiation.solidTransmission", 0.9, 0.0, 1.0);
+    private static final ModConfigSpec.DoubleValue BACKGROUND_RATE = BUILDER
+            .comment("Dose rates below this count as background: they add no dose and let it decay.")
+            .defineInRange("radiation.backgroundRate", 0.05, 0.0, 100.0);
+    private static final ModConfigSpec.DoubleValue MAX_SHIELDING = BUILDER
+            .comment("Most radiation worn armour can stop, as a fraction.")
+            .defineInRange("radiation.maxShielding", 0.98, 0.0, 1.0);
     private static final ModConfigSpec.DoubleValue COOLING_TOWER_PASSIVE = BUILDER
             .comment("Steam a cooling tower condenses without fans, in mB/t per block of base radius per layer of height.")
             .defineInRange("coolingTower.passivePerBlock", 1.0, 0.0, 100.0);
@@ -98,6 +110,10 @@ public class Config
     public static double radiationNauseaThreshold = 100.0;
     public static double radiationWeaknessThreshold = 300.0;
     public static double radiationSicknessThreshold = 600.0;
+    public static double reactorEmissionPerNeutron = 0.002;
+    public static double radiationSolidTransmission = 0.9;
+    public static double radiationBackgroundRate = 0.05;
+    public static double radiationMaxShielding = 0.98;
     public static double coolingTowerPassivePerBlock = 1.0;
     public static double coolingTowerFanStress = 8.0;
     public static double coolingTowerFanBoost = 0.25;
@@ -135,6 +151,10 @@ public class Config
         radiationNauseaThreshold = NAUSEA_THRESHOLD.get();
         radiationWeaknessThreshold = WEAKNESS_THRESHOLD.get();
         radiationSicknessThreshold = SICKNESS_THRESHOLD.get();
+        reactorEmissionPerNeutron = REACTOR_EMISSION.get();
+        radiationSolidTransmission = SOLID_TRANSMISSION.get();
+        radiationBackgroundRate = BACKGROUND_RATE.get();
+        radiationMaxShielding = MAX_SHIELDING.get();
         coolingTowerPassivePerBlock = COOLING_TOWER_PASSIVE.get();
         coolingTowerFanStress = COOLING_TOWER_FAN_STRESS.get();
         coolingTowerFanBoost = COOLING_TOWER_FAN_BOOST.get();

@@ -79,6 +79,15 @@ below for what changes in existing worlds.
   a Ponder scene.
 
 ### Radiation
+- Blocks now shield: radiation from waste, fallout and reactors is cut by
+  every block between the source and the player, per the new block data map
+  `radiation_transmission` (reactor casing 35%, lead 20%, iron 50%,
+  obsidian 60%, water 85%, other solid blocks 90%).
+- Running fission reactors irradiate their surroundings in proportion to
+  their neutron level; their own casing stops most of it.
+- Armour shielding comes from the item data map `radiation_shielding`, so
+  other mods' armour can protect; the hazmat suit still stops 95%.
+- Dose rates below 0.05/s count as background and let the dose decay.
 - Players accumulate a dose from carried material, nearby waste and fallout
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit
   and Geiger counter. Configurable and can be disabled.
@@ -100,6 +109,8 @@ below for what changes in existing worlds.
   reset once; after that only physical rods count.
 - Three-block turbines no longer form; they keep their steam and
   condensate and ask to be rebuilt as a box.
+- Running reactors in existing worlds now irradiate nearby players. Set
+  `radiation.reactorEmissionPerNeutron = 0` to turn that off.
 - `fusion.deuteriumTritiumBurnRate` changed meaning (see
   `docs/configuration.md`); an existing config keeps its old value.
 

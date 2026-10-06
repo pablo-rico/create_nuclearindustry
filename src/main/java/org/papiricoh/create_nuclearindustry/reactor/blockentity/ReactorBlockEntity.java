@@ -43,6 +43,10 @@ import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
 import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
+import net.minecraft.world.phys.Vec3;
+import org.papiricoh.create_nuclearindustry.Config;
+import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitter;
+import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitters;
 import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodTracker;
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
@@ -54,7 +58,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable, MultiblockController {
+public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable, MultiblockController, RadiationEmitter {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int TANK_CAPACITY = 16_000;
     private static final int HEAT_EXCHANGER_STEAM_PER_TICK = 80;
@@ -189,8 +193,33 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         Level level = getLevel();
         if (level != null && !level.isClientSide) {
             MultiblockRegistry.register(this);
+            RadiationEmitters.register(this);
             ticksSinceLoad = 0;
         }
+    }
+
+    // ------------------------------------------------------------------ radiation
+
+    /** The middle of the reactor's core. */
+    @Override
+    public Vec3 radiationOrigin() {
+        return currentStructure.map(structure -> structure.bounds().getCenter().getCenter())
+                .orElseGet(() -> Vec3.atCenterOf(getBlockPos()));
+    }
+
+    /** Proportional to the chain reaction: an idle or unformed reactor emits nothing. */
+    @Override
+    public double radiationStrength() {
+        if (status == ReactorStatus.UNFORMED || currentStructure.isEmpty()) {
+            return 0.0;
+        }
+        return Config.reactorEmissionPerNeutron * physicsSimulator.getNeutronLevel();
+    }
+
+    /** Radiation leaves the core freely; only the shell and what lies beyond it shield. */
+    @Override
+    public BoundingBox radiationIgnoreBox() {
+        return currentStructure.map(structure -> structure.bounds().inflatedBy(-1)).orElse(null);
     }
 
     @Override
@@ -198,6 +227,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         Level level = getLevel();
         if (level != null && !level.isClientSide) {
             MultiblockRegistry.unregister(this);
+            RadiationEmitters.unregister(this);
         }
         super.setRemoved();
     }

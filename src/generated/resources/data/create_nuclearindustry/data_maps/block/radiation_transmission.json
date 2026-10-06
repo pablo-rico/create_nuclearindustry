@@ -1,0 +1,40 @@
+{
+  "values": {
+    "#c:storage_blocks/lead": {
+      "transmission": 0.2
+    },
+    "create_nuclearindustry:cooling_tower_casing": {
+      "transmission": 0.6
+    },
+    "create_nuclearindustry:reactor_casing": {
+      "transmission": 0.35
+    },
+    "create_nuclearindustry:reactor_controller": {
+      "transmission": 0.35
+    },
+    "create_nuclearindustry:reactor_fluid_port": {
+      "transmission": 0.35
+    },
+    "create_nuclearindustry:reactor_fuel_port": {
+      "transmission": 0.35
+    },
+    "create_nuclearindustry:reactor_redstone_port": {
+      "transmission": 0.35
+    },
+    "create_nuclearindustry:reactor_temperature_sensor": {
+      "transmission": 0.35
+    },
+    "minecraft:crying_obsidian": {
+      "transmission": 0.6
+    },
+    "minecraft:iron_block": {
+      "transmission": 0.5
+    },
+    "minecraft:obsidian": {
+      "transmission": 0.6
+    },
+    "minecraft:water": {
+      "transmission": 0.85
+    }
+  }
+}

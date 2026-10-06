@@ -7,6 +7,15 @@ import net.neoforged.neoforge.common.data.DataMapProvider;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.Radioactivity;
+import org.papiricoh.create_nuclearindustry.radiation.RadiationShielding;
+import org.papiricoh.create_nuclearindustry.radiation.RadiationTransmission;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+
+import java.util.List;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -40,6 +49,32 @@ public class NuclearDataMapProvider extends DataMapProvider {
         add(radioactivity, AllNuclearItems.TRITIUM_CELL, 0.05f, false);
         add(radioactivity, AllNuclearItems.DT_FUEL_PELLET, 0.05f, false);
         add(radioactivity, AllNuclearItems.SPENT_DT_PELLET, 0.2f, false);
+
+        // Fraction of radiation one block lets through. Unlisted solid blocks pass 90% (config).
+        var transmission = builder(AllNuclearRadiation.TRANSMISSION);
+        transmission.add(BlockTags.create(ResourceLocation.fromNamespaceAndPath("c", "storage_blocks/lead")),
+                new RadiationTransmission(0.2f), false);
+        for (Supplier<? extends Block> part : List.<Supplier<? extends Block>>of(AllNuclearBlocks.REACTOR_CASING,
+                AllNuclearBlocks.REACTOR_CONTROLLER, AllNuclearBlocks.REACTOR_FLUID_PORT, AllNuclearBlocks.REACTOR_FUEL_PORT,
+                AllNuclearBlocks.REACTOR_TEMPERATURE_SENSOR, AllNuclearBlocks.REACTOR_REDSTONE_PORT)) {
+            transmission.add(part.get().builtInRegistryHolder(), new RadiationTransmission(0.35f), false);
+        }
+        transmission.add(AllNuclearBlocks.COOLING_TOWER_CASING.get().builtInRegistryHolder(), new RadiationTransmission(0.6f), false);
+        transmission.add(Blocks.IRON_BLOCK.builtInRegistryHolder(), new RadiationTransmission(0.5f), false);
+        transmission.add(Blocks.OBSIDIAN.builtInRegistryHolder(), new RadiationTransmission(0.6f), false);
+        transmission.add(Blocks.CRYING_OBSIDIAN.builtInRegistryHolder(), new RadiationTransmission(0.6f), false);
+        transmission.add(Blocks.WATER.builtInRegistryHolder(), new RadiationTransmission(0.85f), false);
+
+        // Fraction of radiation one worn piece stops. A full hazmat suit stops 95%.
+        var shielding = builder(AllNuclearRadiation.SHIELDING);
+        shield(shielding, AllNuclearItems.HAZMAT_HELMET, 0.25f);
+        shield(shielding, AllNuclearItems.HAZMAT_CHESTPLATE, 0.30f);
+        shield(shielding, AllNuclearItems.HAZMAT_LEGGINGS, 0.25f);
+        shield(shielding, AllNuclearItems.HAZMAT_BOOTS, 0.15f);
+    }
+
+    private static void shield(Builder<RadiationShielding, Item> builder, Supplier<? extends Item> item, float fraction) {
+        builder.add(item.get().builtInRegistryHolder(), new RadiationShielding(fraction), false);
     }
 
     private static void add(Builder<Radioactivity, Item> builder, Supplier<? extends Item> item, float perSecond, boolean scaled) {

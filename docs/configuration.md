@@ -35,6 +35,10 @@ decayPerSecond = 1.0
 nauseaThreshold = 100.0
 weaknessThreshold = 300.0
 sicknessThreshold = 600.0
+reactorEmissionPerNeutron = 0.002
+solidTransmission = 0.9
+backgroundRate = 0.05
+maxShielding = 0.98
 ```
 
 ## Turbinas
@@ -102,6 +106,24 @@ La dosis se acumula con los objetos que lleva el jugador, los bloques
 radiactivos cercanos (barriles de residuos) y la lluvia radiactiva de accidentes.
 Un traje antirradiacion completo detiene el 95%. La dosis baja `decayPerSecond`
 por segundo cuando cesa la exposicion y se reinicia al morir.
+
+Entre la fuente y el jugador, cada bloque deja pasar solo una fracción de la
+radiación: la del mapa de datos de bloques `create_nuclearindustry:radiation_transmission`
+(carcasa de reactor 0,35; plomo `c:storage_blocks/lead` 0,2; hierro 0,5;
+obsidiana 0,6; agua 0,85) o `solidTransmission` para cualquier otro bloque
+sólido. Un reactor en marcha emite `reactorEmissionPerNeutron` por nivel de
+neutrones desde el centro del núcleo; su propia carcasa ya detiene la mayor
+parte. La armadura protege según el mapa de datos de objetos
+`create_nuclearindustry:radiation_shielding` (las piezas se suman, hasta
+`maxShielding`). Por debajo de `backgroundRate` la dosis no sube y sigue bajando.
+
+```json
+{
+  "values": {
+    "othermod:lead_bricks": { "transmission": 0.25 }
+  }
+}
+```
 
 Las tasas por objeto vienen del mapa de datos `create_nuclearindustry:radioactivity`
 (`data/create_nuclearindustry/data_maps/item/radioactivity.json`). Un datapack
