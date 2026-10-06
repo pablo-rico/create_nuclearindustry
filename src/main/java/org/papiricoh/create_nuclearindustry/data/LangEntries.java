@@ -436,6 +436,39 @@ public final class LangEntries {
     }
 
     private static void ponder() {
+        add("create_nuclearindustry.ponder.reactor_redstone_port.header",
+                "Reactor Redstone Ports and SCRAM",
+                "Puertos de redstone del reactor y SCRAM");
+        add("create_nuclearindustry.ponder.reactor_redstone_port.text_1",
+                "A Reactor Redstone Port takes the place of a casing block in the shell and puts out a 0-15 signal on its panel side.",
+                "Un Puerto de redstone de reactor ocupa el lugar de un bloque de carcasa y da una señal de 0 a 15 por la cara del panel.");
+        add("create_nuclearindustry.ponder.reactor_redstone_port.text_2",
+                "Use a Wrench to pick what it reads: temperature, power, fuel, coolant or steam. Like a comparator, any content gives at least 1.",
+                "Con una Llave eliges qué lee: temperatura, potencia, combustible, refrigerante o vapor. Como un comparador, cualquier contenido da al menos 1.");
+        add("create_nuclearindustry.ponder.reactor_redstone_port.text_3",
+                "Its last mode is SCRAM. It lights up when SCRAM is pressed on the control panel or the automatic SCRAM trips, and stays on until reset.",
+                "Su último modo es SCRAM. Se enciende al pulsar SCRAM en el panel de control o cuando salta el SCRAM automático, y sigue encendido hasta rearmar.");
+        add("create_nuclearindustry.ponder.reactor_redstone_port.text_4",
+                "Control Rods only move with pistons. Carry the signal to whatever drives them, here a Redstone Link pair and a Gearshift on the piston's shaft.",
+                "Las Barras de control solo se mueven con pistones. Lleva la señal a lo que las mueva; aquí, un par de Enlaces de redstone y una Caja de cambios en el eje del pistón.");
+        add("create_nuclearindustry.ponder.reactor_redstone_port.text_5",
+                "On SCRAM the Gearshift reverses the piston and the rods go all the way in. Without such wiring, SCRAM only lights the port.",
+                "Con el SCRAM, la Caja de cambios invierte el pistón y las barras entran del todo. Sin ese cableado, el SCRAM solo enciende el puerto.");
+        add("create_nuclearindustry.ponder.rtg.header",
+                "Radioisotope Generators",
+                "Generadores de radioisótopos");
+        add("create_nuclearindustry.ponder.rtg.text_1",
+                "A Radioisotope Generator turns the decay heat of a pellet into a steady 16 RPM on its front shaft. Right-click with a pellet, or feed it by hopper.",
+                "Un Generador de radioisótopos convierte el calor de desintegración de una pastilla en 16 RPM constantes en su eje frontal. Haz clic derecho con una pastilla o aliméntalo con una tolva.");
+        add("create_nuclearindustry.ponder.rtg.text_2",
+                "Plutonium pellets give 256 stress capacity per RPM and lose half of it every 10 in-game days; waste pellets give 64 and halve every 2. Below a quarter they come out spent.",
+                "Las pastillas de plutonio dan 256 de capacidad de stress por RPM y pierden la mitad cada 10 días de juego; las de residuos dan 64 y se reducen a la mitad cada 2. Por debajo de una cuarta parte salen agotadas.");
+        add("create_nuclearindustry.ponder.rtg.text_3",
+                "It irradiates whoever stands near it...",
+                "Irradia a quien esté cerca...");
+        add("create_nuclearindustry.ponder.rtg.text_4",
+                "...so wall it in. A Block of Depleted Uranium lets only a tenth of the radiation through.",
+                "...así que rodéalo. Un Bloque de uranio empobrecido solo deja pasar una décima parte de la radiación.");
         add("create_nuclearindustry.ponder.cooling_tower.header",
                 "Cooling Towers",
                 "Torres de refrigeración");

@@ -5,6 +5,8 @@ import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CoolingTowerScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorRedstoneScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.RtgScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TokamakScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TurbineScenes;
@@ -15,6 +17,11 @@ public class AllNuclearPonderScenes {
     }
 
     public static void register(PonderSceneRegistrationHelper<ResourceLocation> helper) {
+        helper.addStoryBoard(id("reactor_redstone_port"), "reactor_controller", ReactorRedstoneScenes::redstonePort);
+        helper.addStoryBoard(id("reactor_controller"), "reactor_controller", ReactorRedstoneScenes::redstonePort);
+        for (String part : new String[]{"rtg", "plutonium_rtg_pellet", "waste_rtg_pellet"}) {
+            helper.addStoryBoard(id(part), "centrifuge", RtgScenes::rtg);
+        }
         for (String part : new String[]{"cooling_tower_controller", "cooling_tower_casing", "cooling_tower_fluid_port", "cooling_tower_fan"}) {
             helper.addStoryBoard(id(part), "cooling_tower", CoolingTowerScenes::tower);
         }

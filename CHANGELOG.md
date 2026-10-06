@@ -44,7 +44,7 @@ below for what changes in existing worlds.
   coolant or steam as a 0-15 signal, or the SCRAM signal. Wrench to pick.
 - Control rods only move physically. The SCRAM button no longer pushes them
   in; it turns on the SCRAM signal of the Redstone Ports until reset, to be
-  wired to the pistons that drive the rods.
+  wired to the pistons that drive the rods. New Ponder scene shows how.
 - Automatic SCRAM on the control panel, on by default at 2800 °C (500-3900,
   +/- 100, Shift for 500). When the core reaches it the SCRAM signal turns
   on and stays latched; Reset only works 200 °C below the threshold.
@@ -140,6 +140,10 @@ below for what changes in existing worlds.
   gone; automation built on them must switch to the plutonium chain.
 - Running reactors in existing worlds now irradiate nearby players. Set
   `radiation.reactorEmissionPerNeutron = 0` to turn that off.
+- Every reactor gets the automatic SCRAM on at 2800 °C. Remember it only
+  turns on the SCRAM signal: wire it to your rod pistons.
+- Reactors, RTGs and fuel saved by this version carry new data (fuel kind,
+  SCRAM state); loading them in an older version is not supported.
 - `fusion.deuteriumTritiumBurnRate` changed meaning (see
   `docs/configuration.md`); an existing config keeps its old value.
 
