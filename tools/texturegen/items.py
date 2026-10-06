@@ -962,3 +962,50 @@ def weapons_grade_plutonium_core():
     glow(t, 8, 8, 7.0, PLASMA[5], 0.2)
     item_outline(t, PLUTONIUM[0])
     return t
+
+
+# ------------------------------------------------------------------ MOX fuel
+
+MOX = PLUTONIUM.tinted(UO2[3], 0.45)
+
+
+@item("mox_fuel_pellet")
+def mox_fuel_pellet():
+    t = Tex(16, 16, 265)
+    pts = rect_pts(5, 3, 10, 12)
+    sculpt(t, pts, MOX, base=3.8, seed=265, grain=0.35)
+    for y in range(3, 13):
+        t.set(5, y, MOX[5])
+        t.set(6, y, MOX[4])
+        t.set(10, y, MOX[1])
+    t.hline(5, 10, 3, MOX[6])
+    t.hline(5, 10, 4, MOX[4])
+    t.hline(5, 10, 12, MOX[1])
+    for y in (6, 9):
+        t.hline(6, 9, y, MOX[2])
+    t.set(7, 5, PLASMA[5])
+    glow(t, 8, 8, 5.0, PLASMA[5], 0.12)
+    item_outline(t, MOX[0])
+    return t
+
+
+@item("mox_reactor_fuel")
+def mox_reactor_fuel():
+    return _fuel_bundle(266, MOX, STEEL, glow_ramp=PLASMA)
+
+
+@item("incomplete_mox_reactor_fuel")
+def incomplete_mox_reactor_fuel():
+    t = _fuel_bundle(267, MOX, STEEL)
+    for x in range(8, 13):
+        for y in range(3, 12):
+            t.set(x, y, DARK[2] if x % 2 else DARK[1])
+    for y in range(3, 12):
+        t.set(12, y, DARK[0])
+    return t
+
+
+@item("depleted_mox_reactor_fuel")
+def depleted_mox_reactor_fuel():
+    dull = MOX.tinted(LEAD[3], 0.6)
+    return _fuel_bundle(268, dull, STEEL.tinted(DARK[3], 0.4), glow_ramp=None, spent=True)

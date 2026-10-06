@@ -33,6 +33,10 @@ below for what changes in existing worlds.
   far more radioactive than uranium and burns whoever carries it without
   at least half shielding.
 - Textured control panel with a manual SCRAM switch.
+- MOX fuel: plutonium dioxide compacted with depleted uranium dioxide into
+  pellets and assembled like uranium fuel. It burns like 12% uranium, a
+  little more reactive and 15% hotter, and control rods are 10% less
+  effective on it. Spent MOX reprocesses for less plutonium than went in.
 - Reactors now notice shell blocks removed by machines, not only by players.
 - Fuel is no longer lost when the structure changes, and neither is the core's
   heat: swapping a shell block no longer cools the reactor instantly.

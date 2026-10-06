@@ -111,6 +111,13 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> URANYL_NITRATE = enriched("uranyl_nitrate", 64);
     public static final DeferredHolder<Item, ? extends Item> PLUTONIUM_DIOXIDE = simple("plutonium_dioxide");
     public static final DeferredHolder<Item, ? extends Item> PLUTONIUM = ITEMS.register("plutonium", () -> new Item(new Item.Properties().stacksTo(8)));
+
+    // MOX fuel: plutonium dioxide mixed into depleted uranium dioxide
+    public static final DeferredHolder<Item, ? extends Item> MOX_FUEL_PELLET = simple("mox_fuel_pellet");
+    public static final DeferredHolder<Item, ? extends Item> INCOMPLETE_MOX_REACTOR_FUEL = ITEMS.register("incomplete_mox_reactor_fuel",
+            () -> new SequencedAssemblyItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredHolder<Item, ? extends Item> MOX_REACTOR_FUEL = ITEMS.register("mox_reactor_fuel", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> DEPLETED_MOX_REACTOR_FUEL = ITEMS.register("depleted_mox_reactor_fuel", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> FLUORITE = simple("fluorite");
 
     // Lithium chain

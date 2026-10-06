@@ -3,6 +3,9 @@
     "create_nuclearindustry:crushed_raw_uranium": {
       "per_second": 0.01
     },
+    "create_nuclearindustry:depleted_mox_reactor_fuel": {
+      "per_second": 6.0
+    },
     "create_nuclearindustry:depleted_uranium_reactor_fuel": {
       "per_second": 4.0
     },
@@ -11,6 +14,12 @@
     },
     "create_nuclearindustry:enriched_uranium_blend": {
       "per_second": 0.3
+    },
+    "create_nuclearindustry:mox_fuel_pellet": {
+      "per_second": 1.5
+    },
+    "create_nuclearindustry:mox_reactor_fuel": {
+      "per_second": 4.0
     },
     "create_nuclearindustry:plutonium": {
       "heat_per_second": 1.0,

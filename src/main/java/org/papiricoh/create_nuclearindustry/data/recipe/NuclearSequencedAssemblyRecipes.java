@@ -33,6 +33,19 @@ public class NuclearSequencedAssemblyRecipes extends SequencedAssemblyRecipeGen 
         }
     }
 
+    // MOX assemblies are built the same way from MOX pellets.
+    {
+        Ingredient pellet = Ingredient.of(AllNuclearItems.MOX_FUEL_PELLET.get());
+        create("mox_reactor_fuel", b -> b
+                .require(CreateItems.get("iron_sheet"))
+                .transitionTo(AllNuclearItems.INCOMPLETE_MOX_REACTOR_FUEL.get())
+                .addOutput(AllNuclearItems.MOX_REACTOR_FUEL.get(), 1)
+                .loops(1)
+                .addStep(DeployerApplicationRecipe::new, step -> step.require(pellet))
+                .addStep(DeployerApplicationRecipe::new, step -> step.require(pellet))
+                .addStep(PressingRecipe::new, step -> step));
+    }
+
     public NuclearSequencedAssemblyRecipes(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries, Create_NuclearIndustry.MODID);
     }

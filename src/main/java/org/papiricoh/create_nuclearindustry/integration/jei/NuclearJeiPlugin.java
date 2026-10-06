@@ -119,6 +119,9 @@ public class NuclearJeiPlugin implements IModPlugin {
                         new ItemStack(AllNuclearItems.SPENT_FUEL_FRAGMENTS.get()), new ItemStack(AllNuclearItems.PLUTONIUM_DIOXIDE.get()),
                         new ItemStack(AllNuclearItems.PLUTONIUM.get())),
                 VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.reprocessing"));
+        registration.addIngredientInfo(List.of(new ItemStack(AllNuclearItems.MOX_FUEL_PELLET.get()),
+                        new ItemStack(AllNuclearItems.MOX_REACTOR_FUEL.get()), new ItemStack(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get())),
+                VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.mox"));
         registration.addIngredientInfo(AllNuclearItems.TURBINE_OUTPUT.get(),
                 Component.translatable("jei.create_nuclearindustry.info.turbine"));
         registration.addIngredientInfo(AllNuclearItems.FUSION_PLASMA_TURBINE.get(),

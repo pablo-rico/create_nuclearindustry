@@ -61,6 +61,14 @@ public class NuclearCrushingRecipes extends StandardProcessingRecipeGen<Crushing
     GeneratedRecipe LOW_SPENT_FUEL = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.LOW);
     GeneratedRecipe HIGH_SPENT_FUEL = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.HIGH);
 
+    // Spent MOX is mostly depleted uranium: its fragments are of the depleted tier.
+    GeneratedRecipe MOX_SPENT_FUEL = create("mox_spent_fuel_fragments", b -> b
+            .require(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get())
+            .output(RecipeHelpers.enriched(AllNuclearItems.SPENT_FUEL_FRAGMENTS.get(),
+                    org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.DEPLETED))
+            .output(0.5f, Items.IRON_NUGGET)
+            .duration(200));
+
     private GeneratedRecipe spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier tier) {
         return create(tier.id() + "_spent_fuel_fragments", b -> b
                 .require(org.papiricoh.create_nuclearindustry.enrichment.recipe.MinEnrichmentIngredient.tier(

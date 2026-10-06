@@ -91,6 +91,10 @@ public final class LangEntries {
         item("uranyl_nitrate", "Uranyl Nitrate", "Nitrato de uranilo");
         item("plutonium_dioxide", "Plutonium Dioxide", "Dióxido de plutonio");
         item("plutonium", "Plutonium", "Plutonio");
+        item("mox_fuel_pellet", "MOX Fuel Pellet", "Pastilla de combustible MOX");
+        item("incomplete_mox_reactor_fuel", "Incomplete MOX Fuel Assembly", "Elemento combustible MOX incompleto");
+        item("mox_reactor_fuel", "MOX Fuel Assembly", "Elemento combustible MOX");
+        item("depleted_mox_reactor_fuel", "Spent MOX Fuel Assembly", "Elemento combustible MOX gastado");
         item("weapons_grade_plutonium_core", "Weapons-Grade Plutonium Core", "Núcleo de plutonio de grado militar");
         add("block.create_nuclearindustry.depleted_uranium_block", "Block of Depleted Uranium", "Bloque de uranio empobrecido");
         add("item.create_nuclearindustry.depleted_uranium_helmet", "Depleted Uranium Helmet", "Casco de uranio empobrecido");
@@ -384,6 +388,9 @@ public final class LangEntries {
         add("jei.create_nuclearindustry.info.reprocessing",
                 "Spent fuel is reprocessed for plutonium: crush it into fragments, dissolve them in nitric acid in a heated mixer (uranium comes back as uranyl nitrate one tier lower), separate the solution in a centrifuge into plutonium nitrate, recovered acid and waste, then make plutonium dioxide and reduce it to metal. Leaner fuel breeds more plutonium. Plutonium is far more radioactive than uranium and burns whoever carries it without a hazmat suit.",
                 "El combustible gastado se reprocesa para sacar plutonio: tritúralo en fragmentos, disuélvelos en ácido nítrico en una mezcladora calentada (el uranio vuelve como nitrato de uranilo un nivel por debajo), separa la disolución en una centrifugadora en nitrato de plutonio, ácido recuperado y residuos, luego obtén dióxido de plutonio y redúcelo a metal. El combustible menos enriquecido cría más plutonio. El plutonio es mucho más radiactivo que el uranio y quema a quien lo lleve sin traje antirradiación.");
+        add("jei.create_nuclearindustry.info.mox",
+                "MOX fuel mixes plutonium dioxide into depleted uranium dioxide. In a reactor it burns like 12% uranium, a little more reactive and hotter, and control rods hold it back less, so it needs more of them. Spent MOX is reprocessed like spent fuel but gives back less plutonium than went in.",
+                "El combustible MOX mezcla dióxido de plutonio con dióxido de uranio empobrecido. En un reactor arde como uranio al 12%, algo más reactivo y más caliente, y las barras de control lo frenan menos, así que necesita más. El MOX gastado se reprocesa como el combustible gastado, pero devuelve menos plutonio del que llevaba.");
         add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
         add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");
         add("jei.create_nuclearindustry.product", "Product: front face", "Producto: cara frontal");

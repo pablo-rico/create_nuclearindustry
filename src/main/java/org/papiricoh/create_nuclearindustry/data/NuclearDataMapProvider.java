@@ -50,6 +50,9 @@ public class NuclearDataMapProvider extends DataMapProvider {
         add(radioactivity, AllNuclearItems.DT_FUEL_PELLET, 0.05f, false);
         add(radioactivity, AllNuclearItems.SPENT_DT_PELLET, 0.2f, false);
         add(radioactivity, AllNuclearItems.SPENT_FUEL_FRAGMENTS, 3.0f, false);
+        add(radioactivity, AllNuclearItems.MOX_FUEL_PELLET, 1.5f, false);
+        add(radioactivity, AllNuclearItems.MOX_REACTOR_FUEL, 4.0f, false);
+        add(radioactivity, AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL, 6.0f, false);
         add(radioactivity, AllNuclearItems.URANYL_NITRATE, 1.5f, true);
         // Plutonium is far hotter than uranium, in dose and in decay heat.
         radioactivity.add(AllNuclearItems.PLUTONIUM_DIOXIDE.get().builtInRegistryHolder(), new Radioactivity(6.0f, false, 0.75f), false);

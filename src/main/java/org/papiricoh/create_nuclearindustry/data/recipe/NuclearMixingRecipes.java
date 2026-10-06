@@ -81,6 +81,8 @@ public class NuclearMixingRecipes extends MixingRecipeGen {
     // the plutonium and fission products go into solution. Leaner fuel bred more plutonium.
     GeneratedRecipe DISSOLVE_LOW = dissolve(EnrichmentTier.LOW, 500);
     GeneratedRecipe DISSOLVE_HIGH = dissolve(EnrichmentTier.HIGH, 250);
+    // Spent MOX keeps less plutonium than went in: recycling it always loses some.
+    GeneratedRecipe DISSOLVE_MOX = dissolve(EnrichmentTier.DEPLETED, 250);
 
     // Pu(NO3)4 precipitated as oxalate and calcined to PuO2; part of the acid is recovered.
     GeneratedRecipe PLUTONIUM_DIOXIDE = create("plutonium_dioxide", b -> b

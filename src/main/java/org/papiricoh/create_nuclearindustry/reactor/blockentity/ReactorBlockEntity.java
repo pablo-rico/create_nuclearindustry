@@ -48,6 +48,8 @@ import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitter;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitters;
 import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
+import org.papiricoh.create_nuclearindustry.reactor.physics.FuelKind;
+import org.papiricoh.create_nuclearindustry.reactor.physics.SpentAssembly;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodTracker;
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
@@ -91,7 +93,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private int scramRecoveryScanCounter;
     private int ticksSinceLoad;
     /** Enrichment of each burnt-out assembly waiting for space in the output slots. */
-    private final List<Float> pendingDepletedFuel = new ArrayList<>();
+    private final List<SpentAssembly> pendingDepletedFuel = new ArrayList<>();
     /** Set from the control panel: holds every rod fully inserted regardless of the physical rods. */
     private boolean manualScram;
     /** A reactor saved in manual SCRAM when that still forced the rods in keeps them in until reset. */
@@ -124,7 +126,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             if (slot < FUEL_INPUT_SLOTS) {
                 return isFreshFuel(stack);
             }
-            return stack.is(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get());
+            return isSpentFuel(stack);
         }
 
         @Override
@@ -588,7 +590,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 }
                 ItemStack extracted = fuelInventory.extractItem(slot, 1, false);
                 if (!extracted.isEmpty()) {
-                    if (physicsSimulator.loadFuelAssembly(getFuelEnrichment(extracted))) {
+                    if (physicsSimulator.loadFuelAssembly(fuelKindOf(extracted), getFuelEnrichment(extracted))) {
                         loaded = true;
                     } else {
                         fuelInventory.insertItem(slot, extracted, false);
@@ -603,7 +605,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     private void collectSpentFuel() {
-        List<Float> spent = physicsSimulator.drainSpentAssemblies();
+        List<SpentAssembly> spent = physicsSimulator.drainSpent();
         if (!spent.isEmpty()) {
             pendingDepletedFuel.addAll(spent);
             tryStorePendingDepletedFuel();
@@ -612,8 +614,14 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     private void tryStorePendingDepletedFuel() {
         while (!pendingDepletedFuel.isEmpty()) {
-            ItemStack depleted = new ItemStack(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get());
-            UraniumItem.setEnrichment(depleted, pendingDepletedFuel.get(0));
+            SpentAssembly next = pendingDepletedFuel.get(0);
+            ItemStack depleted;
+            if (next.kind() == FuelKind.MOX) {
+                depleted = new ItemStack(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get());
+            } else {
+                depleted = new ItemStack(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get());
+                UraniumItem.setEnrichment(depleted, next.enrichment());
+            }
             ItemStack remainder = insertIntoOutputSlots(depleted, false);
             if (!remainder.isEmpty()) {
                 return;
@@ -847,13 +855,28 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return fuelInventory;
     }
 
-    /** Only assembled fuel at low enrichment or better; bare uranium metal is not fuel. */
+    /** Only assembled fuel: uranium at low enrichment or better, or MOX. Bare uranium metal is not fuel. */
     public boolean isFreshFuel(ItemStack stack) {
+        if (stack.is(AllNuclearItems.MOX_REACTOR_FUEL.get())) {
+            return true;
+        }
         return stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get())
                 && getFuelEnrichment(stack) >= MIN_FUEL_ENRICHMENT;
     }
 
+    public static boolean isSpentFuel(ItemStack stack) {
+        return stack.is(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get()) || stack.is(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get());
+    }
+
+    public static FuelKind fuelKindOf(ItemStack stack) {
+        return stack.is(AllNuclearItems.MOX_REACTOR_FUEL.get()) ? FuelKind.MOX : FuelKind.URANIUM;
+    }
+
+    /** Enrichment a fresh assembly burns at; MOX counts as {@link FuelKind#MOX_EQUIVALENT_ENRICHMENT}. */
     public static float getFuelEnrichment(ItemStack stack) {
+        if (stack.is(AllNuclearItems.MOX_REACTOR_FUEL.get())) {
+            return FuelKind.MOX_EQUIVALENT_ENRICHMENT;
+        }
         if (stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get())) {
             return stack.has(AllNuclearDataComponents.ENRICHMENT.get())
                     ? UraniumItem.getEnrichment(stack)
@@ -982,22 +1005,31 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     private void writePendingDepleted(CompoundTag tag) {
         ListTag pending = new ListTag();
-        for (Float enrichment : pendingDepletedFuel) {
-            pending.add(FloatTag.valueOf(enrichment));
+        for (SpentAssembly assembly : pendingDepletedFuel) {
+            CompoundTag entry = new CompoundTag();
+            entry.putString("type", assembly.kind().id());
+            entry.putFloat("enrichment", assembly.enrichment());
+            pending.add(entry);
         }
-        tag.put("pendingDepleted", pending);
+        tag.put("pendingSpent", pending);
     }
 
     private void readPendingDepleted(CompoundTag tag) {
         pendingDepletedFuel.clear();
-        if (tag.contains("pendingDepleted", Tag.TAG_LIST)) {
+        if (tag.contains("pendingSpent", Tag.TAG_LIST)) {
+            for (Tag element : tag.getList("pendingSpent", Tag.TAG_COMPOUND)) {
+                CompoundTag entry = (CompoundTag) element;
+                pendingDepletedFuel.add(new SpentAssembly(FuelKind.fromId(entry.getString("type")), entry.getFloat("enrichment")));
+            }
+        } else if (tag.contains("pendingDepleted", Tag.TAG_LIST)) {
+            // Saves from before MOX kept only the enrichment of uranium assemblies.
             for (Tag element : tag.getList("pendingDepleted", Tag.TAG_FLOAT)) {
-                pendingDepletedFuel.add(((FloatTag) element).getAsFloat());
+                pendingDepletedFuel.add(SpentAssembly.uranium(((FloatTag) element).getAsFloat()));
             }
         } else {
             // Older saves only counted pending assemblies; they were all 20% fuel.
             for (int i = 0; i < Math.max(0, tag.getInt("pendingDepletedFuel")); i++) {
-                pendingDepletedFuel.add(UraniumItem.REACTOR_FUEL_ENRICHMENT);
+                pendingDepletedFuel.add(SpentAssembly.uranium(UraniumItem.REACTOR_FUEL_ENRICHMENT));
             }
         }
     }
@@ -1570,7 +1602,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
 
         private boolean isValidForView(int actual, ItemStack stack) {
-            return input ? isFreshFuel(stack) : actual >= FUEL_INPUT_SLOTS && stack.is(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get());
+            return input ? isFreshFuel(stack) : actual >= FUEL_INPUT_SLOTS && isSpentFuel(stack);
         }
     }
 
