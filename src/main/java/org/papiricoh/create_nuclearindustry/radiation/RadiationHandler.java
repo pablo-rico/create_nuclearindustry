@@ -89,7 +89,16 @@ public final class RadiationHandler {
     public static double exposureRate(Player player) {
         Vec3 body = bodyOf(player);
         return inventoryRate(player) + blockRate(player.level(), player.blockPosition(), body)
-                + falloutRate(player.level(), body) + emitterRate(player.level(), body);
+                + falloutRate(player.level(), body) + emitterRate(player.level(), body)
+                + groundRate(player, body);
+    }
+
+    /** Contaminated ground under and around the player. */
+    public static double groundRate(Player player, Vec3 body) {
+        if (!Config.contaminationEnabled || !(player.level() instanceof ServerLevel level)) {
+            return 0;
+        }
+        return org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination.exposure(level, body, player.getY());
     }
 
     private static Vec3 bodyOf(Player player) {

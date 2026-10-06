@@ -19,6 +19,7 @@ public final class LangEntries {
         materials();
         jei();
         ponder();
+        commands();
     }
 
     private LangEntries() {}
@@ -676,5 +677,29 @@ public final class LangEntries {
         add("create_nuclearindustry.ponder.reactor_controller.text_15",
                 "Inserted rods soak up neutrons: the deeper they sit, the more the reaction is throttled. Fully inserted means shutdown.",
                 "Las barras insertadas absorben neutrones: cuanto mas dentro esten, mas se frena la reaccion. Totalmente insertadas, el reactor se apaga.");
+    }
+
+    private static void commands() {
+        String p = "commands.create_nuclearindustry.";
+        add(p + "contamination.query", "Chunk %s, %s: %s rad/s, severity %s/%s",
+                "Chunk %s, %s: %s rad/s, gravedad %s/%s");
+        add(p + "contamination.add", "Added up to %s rad/s of contamination to %s loaded chunks",
+                "Añadidos hasta %s rad/s de contaminación a %s chunks cargados");
+        add(p + "contamination.set", "Chunk %s, %s set to %s rad/s",
+                "Chunk %s, %s fijado a %s rad/s");
+        add(p + "contamination.clear", "Cleared %s chunks",
+                "Limpiados %s chunks");
+        add(p + "contamination.clear_all", "Cleared %s loaded chunks; unloaded chunks will be clean when they load",
+                "Limpiados %s chunks cargados; los no cargados estarán limpios al cargarse");
+        add(p + "contamination.expand", "Spread contamination over %s chunks in %s steps",
+                "Contaminación extendida por %s chunks en %s pasos");
+        add(p + "contamination.fallout", "Fallout of radius %s blocks and %s rad/s at the centre",
+                "Lluvia radiactiva de radio %s bloques y %s rad/s en el centro");
+        add(p + "dose.get", "%s: dose %s rad, rate %s rad/s",
+                "%s: dosis %s rad, tasa %s rad/s");
+        add(p + "dose.set", "%s: dose set to %s rad",
+                "%s: dosis fijada a %s rad");
+        add(p + "dose.reset", "%s: dose reset",
+                "%s: dosis a cero");
     }
 }

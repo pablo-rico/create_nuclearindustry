@@ -78,6 +78,18 @@ public class Config
     private static final ModConfigSpec.DoubleValue MAX_SHIELDING = BUILDER
             .comment("Most radiation worn armour can stop, as a fraction.")
             .defineInRange("radiation.maxShielding", 0.98, 0.0, 1.0);
+    private static final ModConfigSpec.BooleanValue CONTAMINATION_ENABLED = BUILDER
+            .comment("Whether nuclear accidents leave lasting ground contamination (one value per chunk).")
+            .define("contamination.enabled", true);
+    private static final ModConfigSpec.IntValue CONTAMINATION_HALF_LIFE = BUILDER
+            .comment("Ticks for ground contamination to halve on its own. 240000 is ten in-game days; 0 means it never decays.")
+            .defineInRange("contamination.halfLifeTicks", 240000, 0, Integer.MAX_VALUE);
+    private static final ModConfigSpec.DoubleValue CONTAMINATION_MAX = BUILDER
+            .comment("Most contamination a chunk can hold, in rad/s at ground level.")
+            .defineInRange("contamination.max", 50.0, 0.0, 10000.0);
+    private static final ModConfigSpec.DoubleValue CONTAMINATION_DOSE_SCALE = BUILDER
+            .comment("Multiplier on the dose rate of standing on contaminated ground.")
+            .defineInRange("contamination.doseScale", 1.0, 0.0, 100.0);
     private static final ModConfigSpec.DoubleValue COOLING_TOWER_PASSIVE = BUILDER
             .comment("Steam a cooling tower condenses without fans, in mB/t per block of base radius per layer of height.")
             .defineInRange("coolingTower.passivePerBlock", 1.0, 0.0, 100.0);
@@ -114,6 +126,10 @@ public class Config
     public static double radiationSolidTransmission = 0.9;
     public static double radiationBackgroundRate = 0.05;
     public static double radiationMaxShielding = 0.98;
+    public static boolean contaminationEnabled = true;
+    public static long contaminationHalfLifeTicks = 240000;
+    public static double contaminationMax = 50.0;
+    public static double contaminationDoseScale = 1.0;
     public static double coolingTowerPassivePerBlock = 1.0;
     public static double coolingTowerFanStress = 8.0;
     public static double coolingTowerFanBoost = 0.25;
@@ -155,6 +171,10 @@ public class Config
         radiationSolidTransmission = SOLID_TRANSMISSION.get();
         radiationBackgroundRate = BACKGROUND_RATE.get();
         radiationMaxShielding = MAX_SHIELDING.get();
+        contaminationEnabled = CONTAMINATION_ENABLED.get();
+        contaminationHalfLifeTicks = CONTAMINATION_HALF_LIFE.get();
+        contaminationMax = CONTAMINATION_MAX.get();
+        contaminationDoseScale = CONTAMINATION_DOSE_SCALE.get();
         coolingTowerPassivePerBlock = COOLING_TOWER_PASSIVE.get();
         coolingTowerFanStress = COOLING_TOWER_FAN_STRESS.get();
         coolingTowerFanBoost = COOLING_TOWER_FAN_BOOST.get();

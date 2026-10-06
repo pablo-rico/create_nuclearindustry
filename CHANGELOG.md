@@ -127,6 +127,15 @@ below for what changes in existing worlds.
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit
   and Geiger counter. Configurable and can be disabled.
 
+### Ground contamination
+- Accidents can leave lasting ground contamination, stored per chunk. It
+  decays very slowly (half every ten in-game days by default), irradiates
+  players standing on it and is blocked by a roof overhead.
+- Unloaded chunks catch up on fallout when they load; nothing forces chunks
+  to load and nothing ticks.
+- `/nuclear contamination` (query, add, set, clear, clear all, expand,
+  fallout) and `/nuclear dose` (get, set, reset) for operators.
+
 ### Technical
 - Recipes, loot tables, tags, worldgen, models and lang come from datagen.
 - GameTests and JUnit tests cover multiblocks, machines, chain recipes,

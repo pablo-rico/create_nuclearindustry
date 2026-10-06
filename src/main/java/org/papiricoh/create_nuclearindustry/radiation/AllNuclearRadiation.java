@@ -20,6 +20,8 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import net.neoforged.neoforge.registries.datamaps.RegisterDataMapTypesEvent;
 import com.mojang.serialization.Codec;
+import net.minecraft.network.codec.ByteBufCodecs;
+import org.papiricoh.create_nuclearindustry.radiation.contamination.ChunkContamination;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 
 import java.util.EnumMap;
@@ -40,6 +42,18 @@ public final class AllNuclearRadiation {
     /** Dose rate measured on the last update, for the Geiger counter. Not saved. */
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Float>> RATE = ATTACHMENTS.register("radiation_rate",
             () -> AttachmentType.builder(() -> 0.0f).build());
+
+    /** Ground contamination of a chunk. Server only; clients get just the severity below. */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<ChunkContamination>> CHUNK_CONTAMINATION =
+            ATTACHMENTS.register("chunk_contamination", () -> AttachmentType.builder(() -> ChunkContamination.EMPTY)
+                    .serialize(ChunkContamination.CODEC).build());
+    /**
+     * Severity (1-7) of a contaminated chunk, synced to the clients that see it: one byte, sent
+     * with the chunk and again only when the severity changes. Absent when clean.
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Byte>> CONTAMINATION_SEVERITY =
+            ATTACHMENTS.register("contamination_severity", () -> AttachmentType.builder(() -> (byte) 0)
+                    .serialize(Codec.BYTE).sync(ByteBufCodecs.BYTE).build());
 
     public static final DataMapType<net.minecraft.world.item.Item, Radioactivity> RADIOACTIVITY = DataMapType.builder(
             id("radioactivity"), Registries.ITEM, Radioactivity.CODEC).synced(Radioactivity.CODEC, false).build();

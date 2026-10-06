@@ -39,6 +39,12 @@ reactorEmissionPerNeutron = 0.002
 solidTransmission = 0.9
 backgroundRate = 0.05
 maxShielding = 0.98
+
+[contamination]
+enabled = true
+halfLifeTicks = 240000
+max = 50.0
+doseScale = 1.0
 ```
 
 ## Turbinas
@@ -144,6 +150,34 @@ puede cambiarlas o anadir objetos de otros mods:
 ```
 
 Con `scales_with_enrichment`, la tasa se multiplica por `enriquecimiento / 90`.
+
+## Contaminacion del terreno
+
+Los accidentes dejan contaminacion en el suelo: un valor por chunk, en rad/s a
+ras de suelo. No hace tick: se calcula al leerlo y se reduce a la mitad cada
+`halfLifeTicks` (240000, diez dias de juego; 0 = nunca). Un chunk guarda como
+mucho `max`. La dosis de estar encima se mezcla entre los cuatro chunks mas
+cercanos, baja con la altura sobre el suelo (a la mitad a 8 bloques) y, bajo
+techo, solo cuenta lo que atraviesa el tejado. `doseScale` la multiplica.
+
+Los clientes solo reciben un byte de gravedad (0-7) por chunk contaminado, con
+el chunk y cuando cambia de nivel.
+
+Comandos de depuracion (nivel de permiso 2):
+
+| Comando | Que hace |
+|---|---|
+| `/nuclear contamination query [pos]` | Valor y gravedad del chunk |
+| `/nuclear contamination add <pos> <rad/s> [radio]` | Crea contaminacion, con caida hacia el borde del radio (en chunks) |
+| `/nuclear contamination set <pos> <rad/s>` | Fija el valor de un chunk |
+| `/nuclear contamination clear <pos> [radio]` | La elimina en un radio |
+| `/nuclear contamination clear all` | Limpia todo; los chunks no cargados se limpian al cargarse |
+| `/nuclear contamination expand <pos> <radio> [pasos] [fraccion]` | La extiende a los chunks vecinos conservando el total |
+| `/nuclear contamination fallout <pos> <radio> <rad/s>` | Simula la lluvia radiactiva de una explosion |
+| `/nuclear dose get\|set\|reset <jugadores>` | Consulta o ajusta la dosis |
+
+Los comandos solo tocan chunks cargados; `fallout` llega a los demas cuando se
+cargan.
 
 ## Uranio y litio de otros mods
 

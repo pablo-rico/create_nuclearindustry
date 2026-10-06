@@ -19,6 +19,8 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockChangeHandler;
 import org.papiricoh.create_nuclearindustry.processing.AllNuclearRecipeTypes;
 import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
+import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
+import org.papiricoh.create_nuclearindustry.commands.NuclearCommands;
 import org.papiricoh.create_nuclearindustry.processing.ProcessingMachineRenderer;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -84,6 +86,10 @@ public class Create_NuclearIndustry {
         MultiblockChangeHandler.register(NeoForge.EVENT_BUS);
         NeoForge.EVENT_BUS.addListener(RadiationHandler::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(org.papiricoh.create_nuclearindustry.radiation.FalloutData::onLevelTick);
+        NeoForge.EVENT_BUS.addListener(Contamination::onChunkLoad);
+        NeoForge.EVENT_BUS.addListener(Contamination::onChunkUnload);
+        NeoForge.EVENT_BUS.addListener(Contamination::onChunkWatch);
+        NeoForge.EVENT_BUS.addListener(NuclearCommands::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onLevelTick);
         NeoForge.EVENT_BUS.addListener(NuclearExplosionSoundManager::onLevelTick);
 
