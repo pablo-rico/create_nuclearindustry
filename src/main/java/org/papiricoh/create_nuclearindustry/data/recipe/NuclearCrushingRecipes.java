@@ -34,6 +34,28 @@ public class NuclearCrushingRecipes extends StandardProcessingRecipeGen<Crushing
             .output(0.75f, CreateItems.get("experience_nugget"))
             .duration(400));
 
+    GeneratedRecipe SPODUMENE_ORE = create("spodumene_ore", b -> b
+            .require(AllNuclearBlocks.SPODUMENE_ORE.get())
+            .output(AllNuclearItems.CRUSHED_SPODUMENE.get())
+            .output(0.75f, AllNuclearItems.CRUSHED_SPODUMENE.get())
+            .output(0.25f, AllNuclearItems.FLUORITE.get())
+            .output(0.75f, CreateItems.get("experience_nugget"))
+            .output(0.125f, Items.COBBLESTONE)
+            .duration(300));
+
+    // Pegmatites carry fluorite alongside the lithium minerals.
+    GeneratedRecipe RAW_SPODUMENE = create("raw_spodumene", b -> b
+            .require(AllNuclearTags.Items.C_RAW_LITHIUM)
+            .output(AllNuclearItems.CRUSHED_SPODUMENE.get())
+            .output(0.25f, AllNuclearItems.FLUORITE.get())
+            .output(0.75f, CreateItems.get("experience_nugget"))
+            .duration(300));
+
+    GeneratedRecipe SPENT_DT_PELLET = create("spent_dt_pellet", b -> b
+            .require(AllNuclearItems.SPENT_DT_PELLET.get())
+            .output(Items.IRON_NUGGET, 3)
+            .duration(100));
+
     GeneratedRecipe BORAX_ORE = create("borax_ore", b -> b
             .require(AllNuclearBlocks.BORAX_ORE.get())
             .output(AllNuclearItems.BORAX_SALT.get(), 3)

@@ -1,0 +1,14 @@
+{
+  "type": "create_nuclearindustry:electrolysis",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:lithium_carbonate"
+    }
+  ],
+  "processing_time": 120,
+  "results": [
+    {
+      "id": "create_nuclearindustry:lithium"
+    }
+  ]
+}

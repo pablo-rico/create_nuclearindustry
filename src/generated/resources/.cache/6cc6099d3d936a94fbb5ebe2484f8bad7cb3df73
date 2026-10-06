@@ -1,4 +1,7 @@
-// 1.21.1	2026-10-06T17:57:17.02802	create_nuclearindustry's processing recipes: crushing
+// 1.21.1	2026-10-06T17:59:50.359746	create_nuclearindustry's processing recipes: crushing
 c89cde51d34aa2f8fcab762e4437fe30b12aa174 data/create_nuclearindustry/recipe/crushing/borax_ore.json
+a665786f574bc351a71d11c0092bd3cb525afb7d data/create_nuclearindustry/recipe/crushing/raw_spodumene.json
 553abcf6dafa451020c8e576bcbf236d86d9500d data/create_nuclearindustry/recipe/crushing/raw_uranium.json
+318c9f376432126f6ea5585442891f495f07f3fc data/create_nuclearindustry/recipe/crushing/spent_dt_pellet.json
+0d2651e891859b35ba0ed2f902a46f77ca979f07 data/create_nuclearindustry/recipe/crushing/spodumene_ore.json
 9db1b7845b490cb3808f3e3803be62e00ad5ed19 data/create_nuclearindustry/recipe/crushing/uranium_ore.json

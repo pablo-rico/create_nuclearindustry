@@ -1,0 +1,17 @@
+{
+  "type": "create:emptying",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:dt_fuel_pellet"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:spent_dt_pellet"
+    },
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:tritium"
+    }
+  ]
+}

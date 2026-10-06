@@ -37,7 +37,16 @@ public class ChainRecipeTests {
             "pressing/low_uranium_fuel_pellet",
             "pressing/high_uranium_fuel_pellet",
             "sequenced_assembly/low_uranium_reactor_fuel",
-            "sequenced_assembly/high_uranium_reactor_fuel");
+            "sequenced_assembly/high_uranium_reactor_fuel",
+            "crushing/raw_spodumene",
+            "splashing/spodumene_concentrate",
+            "mixing/lithium_carbonate",
+            "electrolysis/lithium",
+            "centrifuging/lithium_6",
+            "electrolysis/heavy_water",
+            "electrolysis/deuterium",
+            "filling/deuterium_cell",
+            "emptying/tritium_cell");
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void everyChainRecipeIsLoaded(GameTestHelper helper) {

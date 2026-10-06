@@ -47,6 +47,15 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .unlockedBy("has_reactor_casing", has(AllNuclearItems.REACTOR_CASING.get()))
                 .save(output, id("crafting/electrolyzer"));
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AllNuclearItems.EMPTY_GAS_CELL.get(), 2)
+                .pattern(" C ")
+                .pattern("CGC")
+                .pattern(" C ")
+                .define('C', CreateItems.get("copper_sheet"))
+                .define('G', Items.GLASS)
+                .unlockedBy("has_copper_sheet", has(CreateItems.get("copper_sheet")))
+                .save(output, id("crafting/empty_gas_cell"));
+
         // Legacy item from an unfinished recipe chain: turn any leftovers into usable oxide.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.LOW))
                 .requires(AllNuclearItems.ENRICHED_URANIUM_BLEND.get())

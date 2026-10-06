@@ -1,7 +1,9 @@
-// 1.21.1	2026-10-06T17:57:17.027425	Recipes
+// 1.21.1	2026-10-06T17:59:50.359598	Recipes
 d4a3d9a111285c2956621cb545a1145d45205b79 data/create_nuclearindustry/advancement/recipes/building_blocks/crafting/uranium_rod.json
 071fcfa555d7f3757913d1a6a713447df7119988 data/create_nuclearindustry/advancement/recipes/misc/crafting/electrolyzer.json
+ae3700080d303530dc5c51349a2f5c5fd6bb8279 data/create_nuclearindustry/advancement/recipes/misc/crafting/empty_gas_cell.json
 0db4513f5aaafc231c28d3126e94532fa0cdd891 data/create_nuclearindustry/advancement/recipes/misc/crafting/uranium_dioxide_from_blend.json
 0e8788a33aa6a260bd11d89efebdd652d37ad56b data/create_nuclearindustry/recipe/crafting/electrolyzer.json
+ff3a56a2584288367f2b93b0a47e2c0a3988e4d8 data/create_nuclearindustry/recipe/crafting/empty_gas_cell.json
 256c7110967c2ca9ddcb4aed846d05eed7681e2d data/create_nuclearindustry/recipe/crafting/uranium_dioxide_from_blend.json
 8ea3882c20c665845ba71d3c6d8dcd646899e91e data/create_nuclearindustry/recipe/crafting/uranium_rod.json

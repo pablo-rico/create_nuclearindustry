@@ -1,0 +1,17 @@
+{
+  "type": "create_nuclearindustry:electrolysis",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 100,
+      "fluid": "create_nuclearindustry:heavy_water"
+    }
+  ],
+  "processing_time": 80,
+  "results": [
+    {
+      "amount": 100,
+      "id": "create_nuclearindustry:deuterium"
+    }
+  ]
+}

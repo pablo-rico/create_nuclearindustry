@@ -53,6 +53,15 @@ public class NuclearMixingRecipes extends MixingRecipeGen {
             .output(AllNuclearFluids.URANIUM_HEXAFLUORIDE.get(), 500)
             .requiresHeat(HeatCondition.SUPERHEATED));
 
+    // ------------------------------------------------------------------ lithium
+
+    // Acid roast of the concentrate, then carbonate precipitation.
+    GeneratedRecipe LITHIUM_CARBONATE = create("lithium_carbonate", b -> b
+            .require(AllNuclearItems.SPODUMENE_CONCENTRATE.get())
+            .require(AllNuclearFluids.SULFURIC_ACID.get(), 100)
+            .output(AllNuclearItems.LITHIUM_CARBONATE.get())
+            .requiresHeat(HeatCondition.HEATED));
+
     // ------------------------------------------------------------------ per-tier conversions
 
     {
