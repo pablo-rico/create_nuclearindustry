@@ -44,6 +44,17 @@ below for what changes in existing worlds.
   lithium from its carbonate. Heavy water is finally obtainable.
 - Gas cells are filled and emptied with spouts and item drains.
 
+### Turbines
+- Steam and plasma turbines are box multiblocks: 3 to 7 blocks wide and
+  high, 3 to 16 long, with a rotor column on the axis and the output at
+  the centre of one end. Each rotor expands 80 mB/t of steam (40 of plasma
+  steam), each port pair passes 320 (160); the smaller limit applies.
+- New Reinforced Turbine Glass with connected textures for the faces.
+- A formed turbine renders one large spinning rotor and the steam filling
+  it, and hums with its load.
+- Turbine casings now craft four at a time. Ports work on every side and
+  no longer scan the area on every call.
+
 ### Radiation
 - Players accumulate a dose from carried material, nearby waste and fallout
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit
@@ -62,6 +73,8 @@ below for what changes in existing worlds.
 - Old flat fusion rings no longer form: the controller says so. Stored D-T
   pellets become deuterium and tritium in the new tanks, and loose pellets can
   be drained for tritium in an item drain.
+- Three-block turbines no longer form; they keep their steam and
+  condensate and ask to be rebuilt as a box.
 - `fusion.deuteriumTritiumBurnRate` changed meaning (see
   `docs/configuration.md`); an existing config keeps its old value.
 

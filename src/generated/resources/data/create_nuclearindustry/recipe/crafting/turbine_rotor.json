@@ -1,10 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " I ",
-    "ISI",
-    " I "
-  ],
+  "category": "building",
   "key": {
     "I": {
       "item": "minecraft:iron_ingot"
@@ -13,6 +9,11 @@
       "item": "create:shaft"
     }
   },
+  "pattern": [
+    " I ",
+    "ISI",
+    " I "
+  ],
   "result": {
     "count": 1,
     "id": "create_nuclearindustry:turbine_rotor"

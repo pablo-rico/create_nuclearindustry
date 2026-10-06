@@ -141,6 +141,29 @@ public class TurbineStructureTests {
         expectError(helper, TurbineTier.STEAM, "Controller faces into the turbine");
     }
 
+    /** Ponder schematics come from tools/structgen/ponder_turbine.py; both must be valid turbines. */
+    @GameTest(template = "gametest/turbine_ponder")
+    public static void steamPonderSchematicForms(GameTestHelper helper) {
+        ponderSchematicForms(helper, TurbineTier.STEAM);
+    }
+
+    @GameTest(template = "gametest/fusion_turbine_ponder")
+    public static void plasmaPonderSchematicForms(GameTestHelper helper) {
+        ponderSchematicForms(helper, TurbineTier.PLASMA);
+    }
+
+    private static void ponderSchematicForms(GameTestHelper helper, TurbineTier tier) {
+        // Templates are placed one block above the test origin.
+        BlockPos controller = new BlockPos(4, 4, 7);
+        helper.runAfterDelay(2, () -> {
+            MultiblockValidationResult<TurbineStructure> result = TurbineTestBuilder.validate(helper, tier, controller);
+            helper.assertTrue(result.formed(), "the Ponder turbine should be valid: " + result.primaryMessage());
+            TurbineStructure s = result.structure().orElseThrow();
+            helper.assertTrue(s.rotorCount() == 5 && s.glassCount == 15, "5 rotors and 15 glass expected");
+            helper.succeed();
+        });
+    }
+
     private static void expectError(GameTestHelper helper, TurbineTier tier, String prefix) {
         MultiblockValidationResult<TurbineStructure> result = TurbineTestBuilder.validate(helper, tier, CONTROLLER);
         helper.assertFalse(result.formed(), "structure should not form");

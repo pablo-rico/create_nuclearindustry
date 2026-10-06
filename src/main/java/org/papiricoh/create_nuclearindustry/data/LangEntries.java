@@ -319,6 +319,9 @@ public final class LangEntries {
         add("jei.create_nuclearindustry.info.radiation",
                 "Enriched uranium, spent fuel and radioactive waste irradiate whoever carries them. A Geiger counter shows the dose; a full hazmat suit stops 95% of it.",
                 "El uranio enriquecido, el combustible gastado y los residuos irradian a quien los lleva. Un contador Geiger muestra la dosis; un traje antirradiación completo detiene el 95%.");
+        add("jei.create_nuclearindustry.info.turbine",
+                "A box multiblock 3-7 blocks wide and high and 3-16 long, with a rotor column on its axis and this block at the centre of one end. Each rotor expands 80 mB/t of steam (40 of plasma steam); each input/output port pair passes 320 (160). Reinforced Turbine Glass shows the rotor and steam inside.",
+                "Un multibloque en forma de caja de 3 a 7 bloques de ancho y alto y de 3 a 16 de largo, con una columna de rotores en su eje y este bloque en el centro de un extremo. Cada rotor expande 80 mB/t de vapor (40 de vapor de plasma); cada par de puertos entrada/salida deja pasar 320 (160). El Vidrio reforzado de turbina deja ver el rotor y el vapor.");
         add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
         add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");
         add("jei.create_nuclearindustry.product", "Product: front face", "Producto: cara frontal");
@@ -353,6 +356,60 @@ public final class LangEntries {
     }
 
     private static void ponder() {
+        add("create_nuclearindustry.ponder.turbine.header",
+                "Building a Steam Turbine",
+                "Construir una turbina de vapor");
+        add("create_nuclearindustry.ponder.turbine.text_1",
+                "A turbine is a box of casing: 3 to 7 blocks wide and high, and 3 to 16 blocks long.",
+                "Una turbina es una caja de carcasa: de 3 a 7 bloques de ancho y alto, y de 3 a 16 de largo.");
+        add("create_nuclearindustry.ponder.turbine.text_2",
+                "A column of rotors runs down its axis. Every rotor stage expands 80 mB/t of steam.",
+                "Una columna de rotores recorre su eje. Cada etapa de rotor expande 80 mB/t de vapor.");
+        add("create_nuclearindustry.ponder.turbine.text_3",
+                "Reinforced Turbine Glass can replace casing anywhere on a face, but not on edges or corners.",
+                "El Vidrio reforzado de turbina puede sustituir la carcasa en cualquier punto de una cara, pero no en aristas ni esquinas.");
+        add("create_nuclearindustry.ponder.turbine.text_4",
+                "Fluid Ports go on the faces. One set to INPUT takes the steam...",
+                "Los Puertos de fluido van en las caras. Uno en ENTRADA recibe el vapor...");
+        add("create_nuclearindustry.ponder.turbine.text_5",
+                "...and one set to OUTPUT returns the condensed water. Each pair passes 320 mB/t.",
+                "...y otro en SALIDA devuelve el agua condensada. Cada par deja pasar 320 mB/t.");
+        add("create_nuclearindustry.ponder.turbine.text_6",
+                "The Turbine Output sits at the centre of one end, its shaft pointing out. Right-click it to form the turbine.",
+                "La Salida de turbina va en el centro de un extremo, con el eje hacia fuera. Haz clic derecho para formar la turbina.");
+        add("create_nuclearindustry.ponder.turbine.text_7",
+                "Once formed, the rotor spins up while steam flows, and the glass shows how full the turbine is.",
+                "Una vez formada, el rotor gira mientras fluye el vapor, y el vidrio muestra lo llena que está la turbina.");
+        add("create_nuclearindustry.ponder.turbine.text_8",
+                "Rotors and port pairs both cap the flow; the smaller limit wins. Longer turbines with more ports make more power.",
+                "Los rotores y los pares de puertos limitan el caudal; manda el límite menor. Las turbinas más largas y con más puertos dan más potencia.");
+        add("create_nuclearindustry.ponder.fusion_plasma_turbine.header",
+                "Building a Plasma Turbine",
+                "Construir una turbina de plasma");
+        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_1",
+                "A turbine is a box of casing: 3 to 7 blocks wide and high, and 3 to 16 blocks long.",
+                "Una turbina es una caja de carcasa: de 3 a 7 bloques de ancho y alto, y de 3 a 16 de largo.");
+        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_2",
+                "A column of rotors runs down its axis. Every rotor stage expands 40 mB/t of plasma steam.",
+                "Una columna de rotores recorre su eje. Cada etapa de rotor expande 40 mB/t de vapor de plasma.");
+        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_3",
+                "Reinforced Turbine Glass can replace casing anywhere on a face, but not on edges or corners.",
+                "El Vidrio reforzado de turbina puede sustituir la carcasa en cualquier punto de una cara, pero no en aristas ni esquinas.");
+        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_4",
+                "Fluid Ports go on the faces. One set to INPUT takes the plasma steam...",
+                "Los Puertos de fluido van en las caras. Uno en ENTRADA recibe el vapor de plasma...");
+        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_5",
+                "...and one set to OUTPUT returns the condensed water. Each pair passes 160 mB/t.",
+                "...y otro en SALIDA devuelve el agua condensada. Cada par deja pasar 160 mB/t.");
+        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_6",
+                "The Plasma Turbine sits at the centre of one end, its shaft pointing out. Right-click it to form the turbine.",
+                "La Turbina de plasma va en el centro de un extremo, con el eje hacia fuera. Haz clic derecho para formar la turbina.");
+        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_7",
+                "Once formed, the rotor spins up while plasma steam flows, and the glass shows how full the turbine is.",
+                "Una vez formada, el rotor gira mientras fluye el vapor de plasma, y el vidrio muestra lo llena que está la turbina.");
+        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_8",
+                "Rotors and port pairs both cap the flow; the smaller limit wins. Longer turbines with more ports make more power.",
+                "Los rotores y los pares de puertos limitan el caudal; manda el límite menor. Las turbinas más largas y con más puertos dan más potencia.");
         add("create_nuclearindustry.ponder.tokamak.header",
                 "Building a Tokamak",
                 "Construir un tokamak");
@@ -455,48 +512,6 @@ public final class LangEntries {
         add("create_nuclearindustry.ponder.reactor_controller.text_10",
                 "Leave the casing OPEN above every Control Rod column: rods are moved from up here.",
                 "Deja ABIERTA la carcasa sobre cada columna de Barras de Control: las barras se mueven desde arriba.");
-        add("create_nuclearindustry.ponder.turbine.header",
-                "Assembling a Steam Turbine",
-                "Ensamblando una turbina de vapor");
-        add("create_nuclearindustry.ponder.turbine.text_1",
-                "The Steam Turbine turns steam into rotational power. Start with a Turbine Casing.",
-                "La turbina de vapor convierte el vapor en potencia rotacional. Empieza con una Carcasa de Turbina.");
-        add("create_nuclearindustry.ponder.turbine.text_2",
-                "Place a Turbine Rotor in front of the casing, its axis along the line.",
-                "Coloca un Rotor de Turbina delante de la carcasa, con su eje en linea.");
-        add("create_nuclearindustry.ponder.turbine.text_3",
-                "Cap the line with a Turbine Output facing outward: it generates the rotation for your machines.",
-                "Remata la linea con una Salida de Turbina mirando hacia afuera: genera la rotacion para tus maquinas.");
-        add("create_nuclearindustry.ponder.turbine.text_4",
-                "Feed steam through a Turbine Fluid Port set to INPUT...",
-                "Alimenta vapor por un Puerto de Fluido de Turbina en modo ENTRADA...");
-        add("create_nuclearindustry.ponder.turbine.text_5",
-                "...and drain the condensate through another set to OUTPUT.",
-                "...y drena el condensado por otro en modo SALIDA.");
-        add("create_nuclearindustry.ponder.turbine.text_6",
-                "With steam flowing, the turbine forms on its own and the output shaft powers your contraptions.",
-                "Con el vapor fluyendo, la turbina se forma sola y el eje de salida impulsa tus mecanismos.");
-        add("create_nuclearindustry.ponder.fusion_plasma_turbine.header",
-                "Generating power with a Plasma Turbine",
-                "Generando potencia con una turbina de plasma");
-        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_1",
-                "The Plasma Turbine is a multiblock: start with a Fusion Turbine Casing.",
-                "La Turbina de Plasma es un multibloque: empieza con una Carcasa de Turbina de Fusion.");
-        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_2",
-                "Place a Fusion Turbine Rotor in line with the casing.",
-                "Coloca un Rotor de Turbina de Fusion en linea con la carcasa.");
-        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_3",
-                "Cap the line with the Plasma Turbine, facing outward toward the shaft.",
-                "Remata la linea con la Turbina de Plasma mirando hacia el eje.");
-        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_4",
-                "Feed plasma steam through a Fusion Turbine Fluid Port set to INPUT.",
-                "Alimenta vapor de plasma por un Puerto de Turbina de Fusion en modo ENTRADA.");
-        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_5",
-                "Drain condensate through another Fusion Turbine Fluid Port set to OUTPUT.",
-                "Drena condensado por otro Puerto de Turbina de Fusion en modo SALIDA.");
-        add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_6",
-                "Each input/output pair can consume 160 mB/t and generate up to 4096 SU at 64 RPM.",
-                "Cada par entrada/salida consume 160 mB/t y genera hasta 4096 SU a 64 RPM.");
         add("create_nuclearindustry.ponder.reactor_controller.text_11",
                 "Right-click the controller to form the reactor.",
                 "Haz clic derecho en el controlador para formar el reactor.");

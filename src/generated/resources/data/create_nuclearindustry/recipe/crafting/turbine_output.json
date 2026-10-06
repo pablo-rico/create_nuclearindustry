@@ -1,10 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " B ",
-    "CRC",
-    " S "
-  ],
+  "category": "building",
   "key": {
     "B": {
       "item": "create:brass_ingot"
@@ -19,6 +15,11 @@
       "item": "create:shaft"
     }
   },
+  "pattern": [
+    " B ",
+    "CRC",
+    " S "
+  ],
   "result": {
     "count": 1,
     "id": "create_nuclearindustry:turbine_output"

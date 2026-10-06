@@ -39,9 +39,12 @@ preserved, including the two-pixel tube shading period.
 | `gui.py` | container screen backgrounds (reactor and tokamak panels) |
 | `armor.py` | hazmat armor layers (64x32 humanoid UV) and mob effect icons |
 
-Structure templates (GameTest arenas and the tokamak Ponder schematic) are written by
-`tools/structgen/`; the tokamak schematic mirrors `TokamakGeometry`, and a GameTest checks
-that it forms.
+`blocks.CUTOUT_BLOCKS` lists textures with transparent pixels: the reinforced turbine
+glass and its 64x64 connected-texture sheet (Create's RECTANGLE layout, 4x4 tiles,
+index = column + 4 * row). `validate.py` checks those at their own sizes.
+
+Structure templates (GameTest arenas and the tokamak and turbine Ponder schematics) are written by
+`tools/structgen/`; GameTests check that each Ponder schematic forms.
 
 ## Conventions
 

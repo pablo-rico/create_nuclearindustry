@@ -105,6 +105,10 @@ public class NuclearJeiPlugin implements IModPlugin {
                 Component.translatable("jei.create_nuclearindustry.info.tokamak"));
         registration.addIngredientInfo(AllNuclearItems.FUSION_CENTRAL_SOLENOID.get(),
                 Component.translatable("jei.create_nuclearindustry.info.tokamak"));
+        registration.addIngredientInfo(AllNuclearItems.TURBINE_OUTPUT.get(),
+                Component.translatable("jei.create_nuclearindustry.info.turbine"));
+        registration.addIngredientInfo(AllNuclearItems.FUSION_PLASMA_TURBINE.get(),
+                Component.translatable("jei.create_nuclearindustry.info.turbine"));
         registration.addIngredientInfo(AllNuclearItems.GEIGER_COUNTER.get(),
                 Component.translatable("jei.create_nuclearindustry.info.radiation"));
         registration.addIngredientInfo(AllNuclearItems.RADIOACTIVE_WASTE.get(),

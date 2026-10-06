@@ -4,7 +4,6 @@ import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
 import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
-import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FusionPlasmaTurbineScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TokamakScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TurbineScenes;
@@ -32,14 +31,13 @@ public class AllNuclearPonderScenes {
             helper.addStoryBoard(id(part), "tokamak", TokamakScenes::assembly);
         }
         helper.addStoryBoard(id("electrolyzer"), "centrifuge", CentrifugeScenes::electrolysis);
-        helper.addStoryBoard(id("fusion_plasma_turbine"), "turbine", FusionPlasmaTurbineScenes::generation);
-        helper.addStoryBoard(id("fusion_turbine_casing"), "turbine", FusionPlasmaTurbineScenes::generation);
-        helper.addStoryBoard(id("fusion_turbine_rotor"), "turbine", FusionPlasmaTurbineScenes::generation);
-        helper.addStoryBoard(id("fusion_turbine_fluid_port"), "turbine", FusionPlasmaTurbineScenes::generation);
-        // La turbina se ancla a todos sus componentes para que el ponder aparezca desde cualquiera de ellos.
-        helper.addStoryBoard(id("turbine_output"), "turbine", TurbineScenes::assembly);
-        helper.addStoryBoard(id("turbine_rotor"), "turbine", TurbineScenes::assembly);
-        helper.addStoryBoard(id("turbine_casing"), "turbine", TurbineScenes::assembly);
-        helper.addStoryBoard(id("turbine_fluid_port"), "turbine", TurbineScenes::assembly);
+        // Turbine storyboards are reachable from every block they are built from.
+        for (String part : new String[]{"turbine_output", "turbine_rotor", "turbine_casing", "turbine_fluid_port", "reinforced_turbine_glass"}) {
+            helper.addStoryBoard(id(part), "turbine", TurbineScenes::steam);
+        }
+        for (String part : new String[]{"fusion_plasma_turbine", "fusion_turbine_rotor", "fusion_turbine_casing",
+                "fusion_turbine_fluid_port", "reinforced_turbine_glass"}) {
+            helper.addStoryBoard(id(part), "fusion_turbine", TurbineScenes::plasma);
+        }
     }
 }

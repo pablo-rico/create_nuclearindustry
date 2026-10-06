@@ -1,10 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " C ",
-    "SPS",
-    " C "
-  ],
+  "category": "building",
   "key": {
     "C": {
       "item": "create_nuclearindustry:fusion_turbine_casing"
@@ -16,6 +12,11 @@
       "item": "create_nuclearindustry:superconductor_ingot"
     }
   },
+  "pattern": [
+    " C ",
+    "SPS",
+    " C "
+  ],
   "result": {
     "count": 1,
     "id": "create_nuclearindustry:fusion_turbine_fluid_port"

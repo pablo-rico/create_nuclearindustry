@@ -1,10 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " S ",
-    "RTR",
-    " S "
-  ],
+  "category": "building",
   "key": {
     "R": {
       "item": "create_nuclearindustry:turbine_rotor"
@@ -16,6 +12,11 @@
       "item": "create_nuclearindustry:tritium_cell"
     }
   },
+  "pattern": [
+    " S ",
+    "RTR",
+    " S "
+  ],
   "result": {
     "count": 1,
     "id": "create_nuclearindustry:fusion_turbine_rotor"

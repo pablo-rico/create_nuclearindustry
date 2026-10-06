@@ -1,134 +1,143 @@
 package org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes;
 
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
-import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock;
+import net.createmod.catnip.math.Pointing;
 import net.createmod.ponder.api.PonderPalette;
 import net.createmod.ponder.api.scene.SceneBuilder;
 import net.createmod.ponder.api.scene.SceneBuildingUtil;
+import net.createmod.ponder.api.scene.Selection;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RotatedPillarBlock;
-import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
-import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
-import org.papiricoh.create_nuclearindustry.reactor.block.TurbineFluidPortBlock;
-import org.papiricoh.create_nuclearindustry.reactor.block.TurbineOutputBlock;
+import net.minecraft.nbt.CompoundTag;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
+import org.papiricoh.create_nuclearindustry.reactor.block.TurbineRotorBlock;
+import org.papiricoh.create_nuclearindustry.turbine.AbstractTurbineControllerBlockEntity;
+import org.papiricoh.create_nuclearindustry.turbine.TurbineDisplay;
+import org.papiricoh.create_nuclearindustry.turbine.TurbineTier;
 
 /**
- * Escena Ponder de la turbina de vapor: muestra como ensamblar el multibloque en linea
- * [carcasa] - [rotor] - [salida] y como alimentarlo con vapor para generar rotacion.
- *
- * Igual que la centrifugadora, la estructura es plana (1 bloque de alto) y se construye en
- * runtime con {@code setBlocks}/{@code setBlock} sobre un schematic {@code turbine.nbt} con
- * tamano valido (size como ListTag); el storyboard la revela por pasos con {@code showSection}.
+ * Builds the 5x5x7 turbine of {@code ponder/turbine.nbt} / {@code ponder/fusion_turbine.nbt}
+ * (written by tools/structgen/ponder_turbine.py), then shows it formed and running.
  */
 public class TurbineScenes {
-    public static void assembly(SceneBuilder builder, SceneBuildingUtil util) {
+
+    public static void steam(SceneBuilder builder, SceneBuildingUtil util) {
+        assembly(builder, util, TurbineTier.STEAM, "turbine", "Building a Steam Turbine", "Turbine Output", "steam", "water");
+    }
+
+    public static void plasma(SceneBuilder builder, SceneBuildingUtil util) {
+        assembly(builder, util, TurbineTier.PLASMA, "fusion_plasma_turbine", "Building a Plasma Turbine", "Plasma Turbine",
+                "plasma steam", "water");
+    }
+
+    private static void assembly(SceneBuilder builder, SceneBuildingUtil util, TurbineTier tier, String id, String title,
+                                 String controllerName, String fluidName, String condensateName) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
-        scene.title("turbine", "Assembling a Steam Turbine");
-        scene.configureBasePlate(0, 0, 6);
+        scene.title(id, title);
+        scene.configureBasePlate(0, 0, 9);
         scene.scaleSceneView(0.75f);
         scene.setSceneOffsetY(-1.0f);
 
-        BlockPos casing = util.grid().at(1, 1, 2);
-        BlockPos rotor = util.grid().at(2, 1, 2);
-        BlockPos output = util.grid().at(3, 1, 2);
-        BlockPos shaft = util.grid().at(4, 1, 2);
-        BlockPos steamPort = util.grid().at(1, 1, 1);  // norte de la carcasa -> entrada de vapor
-        BlockPos condPort = util.grid().at(1, 1, 3);   // sur de la carcasa   -> salida de condensado
-
-        // Base + linea de la turbina (rotor/salida/shaft con su eje en X)
-        scene.world().setBlocks(util.select().fromTo(0, 0, 0, 5, 0, 4),
-                Blocks.ANDESITE.defaultBlockState(), false);
-        scene.world().setBlock(casing,
-                AllNuclearBlocks.TURBINE_CASING.get().defaultBlockState(), false);
-        scene.world().setBlock(rotor,
-                AllNuclearBlocks.TURBINE_ROTOR.get().defaultBlockState()
-                        .setValue(RotatedPillarBlock.AXIS, Direction.Axis.X), false);
-        scene.world().setBlock(output,
-                AllNuclearBlocks.TURBINE_OUTPUT.get().defaultBlockState()
-                        .setValue(TurbineOutputBlock.FACING, Direction.EAST), false);
-        scene.world().setBlock(shaft,
-                block("create", "shaft").defaultBlockState()
-                        .setValue(RotatedPillarKineticBlock.AXIS, Direction.Axis.X), false);
-        // Celdas de puerto: arrancan como carcasa y se "configuran" con replaceBlocks (efecto IN/OUT)
-        scene.world().setBlock(steamPort,
-                AllNuclearBlocks.TURBINE_CASING.get().defaultBlockState(), false);
-        scene.world().setBlock(condPort,
-                AllNuclearBlocks.TURBINE_CASING.get().defaultBlockState(), false);
+        BlockPos controller = util.grid().at(4, 3, 7);
+        BlockPos input = util.grid().at(4, 5, 4);
+        BlockPos output = util.grid().at(2, 3, 4);
+        Selection rotors = util.select().fromTo(4, 3, 2, 4, 3, 6);
+        Selection glass = util.select().fromTo(6, 2, 2, 6, 4, 6);
 
         scene.showBasePlate();
-        scene.idle(5);
+        scene.idle(10);
 
-        // 1: carcasa
-        scene.world().showSection(util.select().position(casing), Direction.DOWN);
+        scene.world().showSection(util.select().fromTo(2, 1, 1, 6, 5, 1), Direction.SOUTH);
+        scene.idle(10);
+        scene.world().showSection(util.select().fromTo(2, 1, 2, 6, 1, 6), Direction.UP);
         scene.idle(15);
-        scene.overlay().showText(80)
-                .text("The Steam Turbine turns steam into rotational power. Start with a Turbine Casing.")
-                .pointAt(util.vector().topOf(casing))
-                .placeNearTarget();
-        scene.idle(90);
-
-        // 2: rotor
-        scene.world().showSection(util.select().position(rotor), Direction.DOWN);
-        scene.idle(15);
-        scene.overlay().showText(80)
-                .text("Place a Turbine Rotor in front of the casing, its axis along the line.")
-                .pointAt(util.vector().centerOf(rotor))
-                .placeNearTarget();
-        scene.idle(90);
-
-        // 3: salida (genera la rotacion) + arrancar giro
-        scene.world().showSection(util.select().position(output), Direction.DOWN);
-        scene.world().showSection(util.select().position(shaft), Direction.DOWN);
-        scene.idle(15);
-        scene.world().setKineticSpeed(util.select().fromTo(2, 1, 2, 4, 1, 2), 48);
         scene.overlay().showText(90)
-                .text("Cap the line with a Turbine Output facing outward: it generates the rotation for your machines.")
-                .pointAt(util.vector().blockSurface(output, Direction.UP))
+                .text("A turbine is a box of casing: 3 to 7 blocks wide and high, and 3 to 16 blocks long.")
+                .pointAt(util.vector().topOf(util.grid().at(4, 1, 4)))
                 .placeNearTarget();
         scene.idle(100);
 
-        // 4: puerto de entrada de vapor
-        scene.world().showSection(util.select().position(steamPort), Direction.DOWN);
-        scene.world().replaceBlocks(util.select().position(steamPort),
-                AllNuclearBlocks.TURBINE_FLUID_PORT.get().defaultBlockState()
-                        .setValue(TurbineFluidPortBlock.FACING, Direction.NORTH)
-                        .setValue(TurbineFluidPortBlock.MODE, ReactorFluidPortMode.INPUT), false);
+        scene.world().showSection(rotors, Direction.SOUTH);
         scene.idle(15);
-        scene.overlay().showText(85)
-                .text("Feed steam through a Turbine Fluid Port set to INPUT...")
+        scene.overlay().showText(90)
+                .text("A column of rotors runs down its axis. Every rotor stage expands " + tier.perRotor + " mB/t of " + fluidName + ".")
+                .pointAt(util.vector().centerOf(util.grid().at(4, 3, 4)))
+                .placeNearTarget();
+        scene.idle(100);
+
+        scene.world().showSection(util.select().fromTo(2, 2, 2, 2, 5, 6).add(util.select().fromTo(3, 5, 2, 5, 5, 6))
+                .substract(util.select().position(input)).substract(util.select().position(output)), Direction.DOWN);
+        scene.world().showSection(util.select().fromTo(6, 1, 2, 6, 5, 6).substract(glass), Direction.DOWN);
+        scene.idle(10);
+        scene.world().showSection(glass, Direction.WEST);
+        scene.idle(15);
+        scene.overlay().showText(90)
+                .text("Reinforced Turbine Glass can replace casing anywhere on a face, but not on edges or corners.")
+                .colored(PonderPalette.BLUE)
+                .pointAt(util.vector().blockSurface(util.grid().at(6, 3, 4), Direction.EAST))
+                .placeNearTarget();
+        scene.idle(100);
+
+        scene.world().showSection(util.select().position(input), Direction.DOWN);
+        scene.idle(10);
+        scene.overlay().showText(80)
+                .text("Fluid Ports go on the faces. One set to INPUT takes the " + fluidName + "...")
                 .colored(PonderPalette.INPUT)
-                .pointAt(util.vector().blockSurface(steamPort, Direction.NORTH))
+                .pointAt(util.vector().topOf(input))
                 .placeNearTarget();
-        scene.idle(95);
-
-        // 5: puerto de salida de condensado
-        scene.world().showSection(util.select().position(condPort), Direction.DOWN);
-        scene.world().replaceBlocks(util.select().position(condPort),
-                AllNuclearBlocks.TURBINE_FLUID_PORT.get().defaultBlockState()
-                        .setValue(TurbineFluidPortBlock.FACING, Direction.SOUTH)
-                        .setValue(TurbineFluidPortBlock.MODE, ReactorFluidPortMode.OUTPUT), false);
-        scene.idle(15);
-        scene.overlay().showText(85)
-                .text("...and drain the condensate through another set to OUTPUT.")
+        scene.idle(90);
+        scene.world().showSection(util.select().position(output), Direction.EAST);
+        scene.idle(10);
+        scene.overlay().showText(80)
+                .text("...and one set to OUTPUT returns the condensed " + condensateName + ". Each pair passes " + tier.perPort + " mB/t.")
                 .colored(PonderPalette.OUTPUT)
-                .pointAt(util.vector().blockSurface(condPort, Direction.SOUTH))
+                .pointAt(util.vector().blockSurface(output, Direction.WEST))
                 .placeNearTarget();
-        scene.idle(95);
+        scene.idle(90);
 
-        // 6: cierre
+        scene.world().showSection(util.select().fromTo(2, 1, 7, 6, 5, 8), Direction.NORTH);
+        scene.idle(15);
+        scene.overlay().showControls(util.vector().blockSurface(controller, Direction.SOUTH), Pointing.DOWN, 60).rightClick();
         scene.overlay().showText(90)
-                .text("With steam flowing, the turbine forms on its own and the output shaft powers your contraptions.")
-                .pointAt(util.vector().blockSurface(shaft, Direction.EAST))
+                .text("The " + controllerName + " sits at the centre of one end, its shaft pointing out. Right-click it to form the turbine.")
+                .pointAt(util.vector().blockSurface(controller, Direction.SOUTH))
                 .placeNearTarget();
         scene.idle(100);
+
+        scene.world().modifyBlocks(rotors, state -> state.hasProperty(TurbineRotorBlock.FORMED)
+                ? state.setValue(TurbineRotorBlock.FORMED, true) : state, false);
+        scene.world().modifyBlockEntityNBT(util.select().position(controller), AbstractTurbineControllerBlockEntity.class,
+                nbt -> formedState(nbt, tier), false);
+        scene.world().setKineticSpeed(util.select().fromTo(4, 3, 7, 4, 3, 8), 64);
+        scene.idle(20);
+        scene.overlay().showText(100)
+                .text("Once formed, the rotor spins up while " + fluidName + " flows, and the glass shows how full the turbine is.")
+                .pointAt(util.vector().blockSurface(util.grid().at(6, 3, 4), Direction.EAST))
+                .placeNearTarget();
+        scene.idle(110);
+        scene.overlay().showText(100)
+                .text("Rotors and port pairs both cap the flow; the smaller limit wins. Longer turbines with more ports make more power.")
+                .pointAt(util.vector().centerOf(util.grid().at(4, 3, 4)))
+                .placeNearTarget();
+        scene.idle(110);
     }
 
-    private static Block block(String namespace, String path) {
-        return BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath(namespace, path));
+    /** Makes the controller render as a formed turbine with its tank half full. */
+    private static void formedState(CompoundTag nbt, TurbineTier tier) {
+        int rotors = 5;
+        int limit = Math.min(rotors * tier.perRotor, tier.perPort);
+        int capacity = tier.baseTank + 3 * 3 * 5 * tier.tankPerInteriorBlock;
+        FluidTank steam = new FluidTank(capacity);
+        steam.fill(new FluidStack(tier == TurbineTier.STEAM ? AllNuclearFluids.STEAM.get() : AllNuclearFluids.PLASMA_STEAM.get(),
+                capacity / 2), IFluidHandler.FluidAction.EXECUTE);
+        var registries = Minecraft.getInstance().level.registryAccess();
+        nbt.putInt("TurbineVersion", 2);
+        nbt.putInt("TankCapacity", capacity);
+        nbt.put("Steam", steam.writeToNBT(registries, new CompoundTag()));
+        nbt.put("Turbine", new TurbineDisplay(true, 2, 2, 7, rotors, 1, 1, limit, limit, capacity, "").write());
     }
 }
