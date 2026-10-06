@@ -43,6 +43,17 @@ public final class AllNuclearRadiation {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Float>> RATE = ATTACHMENTS.register("radiation_rate",
             () -> AttachmentType.builder(() -> 0.0f).build());
 
+    /** Every rad ever received. Never decays and survives death; only a command resets it. */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Float>> TOTAL_DOSE = ATTACHMENTS.register("radiation_total_dose",
+            () -> AttachmentType.builder(() -> 0.0f).serialize(Codec.FLOAT).copyOnDeath().build());
+    /**
+     * The dose HUD's reading, synced to its own player only, and only when the rounded values
+     * change. Removed (one last sync) when there is nothing left to show.
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<DoseReading>> DOSE_HUD = ATTACHMENTS.register("dose_hud",
+            () -> AttachmentType.builder(() -> DoseReading.NONE)
+                    .sync((holder, to) -> holder == to, DoseReading.STREAM_CODEC).build());
+
     /** Ground contamination of a chunk. Server only; clients get just the severity below. */
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<ChunkContamination>> CHUNK_CONTAMINATION =
             ATTACHMENTS.register("chunk_contamination", () -> AttachmentType.builder(() -> ChunkContamination.EMPTY)

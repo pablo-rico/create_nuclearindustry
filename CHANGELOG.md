@@ -138,6 +138,10 @@ below for what changes in existing worlds.
   to load and nothing ticks.
 - `/nuclear contamination` (query, add, set, clear, clear all, expand,
   fallout) and `/nuclear dose` (get, set, reset) for operators.
+- Dose HUD: rate, current dose with a bar up to radiation sickness and a
+  lifetime total that never decays and survives death. It shows while there
+  is a rate or a dose, can be moved or hidden in the client config, and is
+  only sent to its own player when its rounded values change.
 
 ### Technical
 - Recipes, loot tables, tags, worldgen, models and lang come from datagen.

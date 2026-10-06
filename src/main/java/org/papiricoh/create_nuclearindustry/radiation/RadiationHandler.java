@@ -40,6 +40,7 @@ public final class RadiationHandler {
     public static void update(Player player) {
         if (!Config.radiationEnabled || player.isCreative() || player.isSpectator()) {
             player.setData(AllNuclearRadiation.RATE, 0.0f);
+            publish(player, 0, player.getData(AllNuclearRadiation.DOSE), player.getData(AllNuclearRadiation.TOTAL_DOSE));
             return;
         }
         float rate = (float) (exposureRate(player) * (1.0 - shielding(player)) * Config.radiationDoseMultiplier);
@@ -50,8 +51,29 @@ public final class RadiationHandler {
         dose = rate > 0 ? dose + rate : Math.max(0.0f, dose - (float) Config.radiationDecayPerSecond);
         player.setData(AllNuclearRadiation.DOSE, dose);
         player.setData(AllNuclearRadiation.RATE, rate);
+        float total = player.getData(AllNuclearRadiation.TOTAL_DOSE) + rate;
+        if (rate > 0) {
+            player.setData(AllNuclearRadiation.TOTAL_DOSE, total);
+        }
+        publish(player, rate, dose, total);
         applySymptoms(player, dose);
         applyDecayHeat(player);
+    }
+
+    /**
+     * Updates the HUD reading only when its rounded values change; a synced attachment then
+     * sends those few bytes to this player alone. Nothing is sent while there is nothing to show.
+     */
+    public static void publish(Player player, float rate, float dose, float total) {
+        DoseReading reading = DoseReading.of(rate, dose, total);
+        DoseReading previous = player.getExistingDataOrNull(AllNuclearRadiation.DOSE_HUD);
+        if (!reading.visible()) {
+            if (previous != null) {
+                player.removeData(AllNuclearRadiation.DOSE_HUD);
+            }
+        } else if (!reading.equals(previous)) {
+            player.setData(AllNuclearRadiation.DOSE_HUD, reading);
+        }
     }
 
     /**

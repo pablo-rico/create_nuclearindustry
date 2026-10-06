@@ -82,7 +82,7 @@ public final class NuclearCommands {
         var get = Commands.literal("get").then(Commands.argument("targets", EntityArgument.players())
                 .executes(ctx -> forPlayers(ctx, player -> Component.translatable(PREFIX + "dose.get",
                         player.getDisplayName(), format(player.getData(AllNuclearRadiation.DOSE)),
-                        format(player.getData(AllNuclearRadiation.RATE))))));
+                        format(player.getData(AllNuclearRadiation.RATE)), format(player.getData(AllNuclearRadiation.TOTAL_DOSE))))));
         var set = Commands.literal("set").then(Commands.argument("targets", EntityArgument.players())
                 .then(Commands.argument("amount", FloatArgumentType.floatArg(0))
                         .executes(ctx -> {
@@ -93,11 +93,24 @@ public final class NuclearCommands {
                             });
                         })));
         var reset = Commands.literal("reset").then(Commands.argument("targets", EntityArgument.players())
-                .executes(ctx -> forPlayers(ctx, player -> {
-                    player.setData(AllNuclearRadiation.DOSE, 0.0f);
-                    return Component.translatable(PREFIX + "dose.reset", player.getDisplayName());
-                })));
+                .executes(ctx -> reset(ctx, true, false))
+                .then(Commands.literal("current").executes(ctx -> reset(ctx, true, false)))
+                .then(Commands.literal("total").executes(ctx -> reset(ctx, false, true)))
+                .then(Commands.literal("all").executes(ctx -> reset(ctx, true, true))));
         return Commands.literal("dose").then(get).then(set).then(reset);
+    }
+
+    private static int reset(CommandContext<CommandSourceStack> ctx, boolean current, boolean total) throws CommandSyntaxException {
+        String which = current && total ? "all" : total ? "total" : "current";
+        return forPlayers(ctx, player -> {
+            if (current) {
+                player.setData(AllNuclearRadiation.DOSE, 0.0f);
+            }
+            if (total) {
+                player.setData(AllNuclearRadiation.TOTAL_DOSE, 0.0f);
+            }
+            return Component.translatable(PREFIX + "dose.reset." + which, player.getDisplayName());
+        });
     }
 
     private static int query(CommandSourceStack source, BlockPos pos) {

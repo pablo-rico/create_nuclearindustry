@@ -169,7 +169,17 @@ de los chunks cercanos. En la configuracion del cliente
 [contamination]
 particles = true        # polvo sobre el suelo contaminado
 particleDensity = 1.0   # 0-4; con particulas "Reducidas" se usa el 40%
+
+[hud]
+enabled = true          # HUD de dosis
+corner = "TOP_LEFT"     # TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
 ```
+
+El HUD de dosis aparece mientras hay tasa o dosis: tasa, dosis actual con una
+barra hasta el umbral de enfermedad (coloreada por la etapa de sintomas) y el
+total acumulado. El total no baja nunca, se conserva al morir y solo lo pone a
+cero `/nuclear dose reset <jugadores> total`. El servidor envia la lectura solo
+a su jugador y solo cuando cambian sus valores redondeados.
 
 Comandos de depuracion (nivel de permiso 2):
 
@@ -182,7 +192,9 @@ Comandos de depuracion (nivel de permiso 2):
 | `/nuclear contamination clear all` | Limpia todo; los chunks no cargados se limpian al cargarse |
 | `/nuclear contamination expand <pos> <radio> [pasos] [fraccion]` | La extiende a los chunks vecinos conservando el total |
 | `/nuclear contamination fallout <pos> <radio> <rad/s>` | Simula la lluvia radiactiva de una explosion |
-| `/nuclear dose get\|set\|reset <jugadores>` | Consulta o ajusta la dosis |
+| `/nuclear dose get <jugadores>` | Dosis, tasa y total acumulado |
+| `/nuclear dose set <jugadores> <rad>` | Fija la dosis actual |
+| `/nuclear dose reset <jugadores> [current\|total\|all]` | Pone a cero la dosis actual, el total o ambos |
 
 Los comandos solo tocan chunks cargados; `fallout` llega a los demas cuando se
 cargan.

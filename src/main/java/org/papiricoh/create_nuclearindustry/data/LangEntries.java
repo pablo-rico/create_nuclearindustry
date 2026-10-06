@@ -695,11 +695,19 @@ public final class LangEntries {
                 "Contaminación extendida por %s chunks en %s pasos");
         add(p + "contamination.fallout", "Fallout of radius %s blocks and %s rad/s at the centre",
                 "Lluvia radiactiva de radio %s bloques y %s rad/s en el centro");
-        add(p + "dose.get", "%s: dose %s rad, rate %s rad/s",
-                "%s: dosis %s rad, tasa %s rad/s");
+        add(p + "dose.get", "%s: dose %s rad, rate %s rad/s, lifetime total %s rad",
+                "%s: dosis %s rad, tasa %s rad/s, total acumulado %s rad");
         add(p + "dose.set", "%s: dose set to %s rad",
                 "%s: dosis fijada a %s rad");
-        add(p + "dose.reset", "%s: dose reset",
+        add(p + "dose.reset.current", "%s: dose reset",
                 "%s: dosis a cero");
+        add(p + "dose.reset.total", "%s: lifetime total reset",
+                "%s: total acumulado a cero");
+        add(p + "dose.reset.all", "%s: dose and lifetime total reset",
+                "%s: dosis y total acumulado a cero");
+        String h = "hud.create_nuclearindustry.";
+        add(h + "rate", "☢ %s rad/s", "☢ %s rad/s");
+        add(h + "dose", "Dose %s rad", "Dosis %s rad");
+        add(h + "total", "Total %s rad", "Total %s rad");
     }
 }
