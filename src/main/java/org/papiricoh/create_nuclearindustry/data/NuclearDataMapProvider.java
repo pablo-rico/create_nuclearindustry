@@ -59,6 +59,7 @@ public class NuclearDataMapProvider extends DataMapProvider {
                 AllNuclearBlocks.REACTOR_TEMPERATURE_SENSOR, AllNuclearBlocks.REACTOR_REDSTONE_PORT)) {
             transmission.add(part.get().builtInRegistryHolder(), new RadiationTransmission(0.35f), false);
         }
+        transmission.add(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get().builtInRegistryHolder(), new RadiationTransmission(0.1f), false);
         transmission.add(AllNuclearBlocks.COOLING_TOWER_CASING.get().builtInRegistryHolder(), new RadiationTransmission(0.6f), false);
         transmission.add(Blocks.IRON_BLOCK.builtInRegistryHolder(), new RadiationTransmission(0.5f), false);
         transmission.add(Blocks.OBSIDIAN.builtInRegistryHolder(), new RadiationTransmission(0.6f), false);
@@ -71,6 +72,11 @@ public class NuclearDataMapProvider extends DataMapProvider {
         shield(shielding, AllNuclearItems.HAZMAT_CHESTPLATE, 0.30f);
         shield(shielding, AllNuclearItems.HAZMAT_LEGGINGS, 0.25f);
         shield(shielding, AllNuclearItems.HAZMAT_BOOTS, 0.15f);
+        // Depleted uranium plate: a full set reaches the 98% cap.
+        shield(shielding, AllNuclearItems.DEPLETED_URANIUM_HELMET, 0.25f);
+        shield(shielding, AllNuclearItems.DEPLETED_URANIUM_CHESTPLATE, 0.35f);
+        shield(shielding, AllNuclearItems.DEPLETED_URANIUM_LEGGINGS, 0.28f);
+        shield(shielding, AllNuclearItems.DEPLETED_URANIUM_BOOTS, 0.12f);
     }
 
     private static void shield(Builder<RadiationShielding, Item> builder, Supplier<? extends Item> item, float fraction) {

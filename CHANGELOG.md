@@ -87,6 +87,10 @@ below for what changes in existing worlds.
   their neutron level; their own casing stops most of it.
 - Armour shielding comes from the item data map `radiation_shielding`, so
   other mods' armour can protect; the hazmat suit still stops 95%.
+- Depleted uranium has uses: a Block of Depleted Uranium passes only 10%
+  of radiation, and heavy depleted uranium armour (3/8/6/3, toughness 2)
+  stops 98% as a full set but slows you by about a sixth. A crusher turns
+  the block back into depleted metal.
 - Dose rates below 0.05/s count as background and let the dose decay.
 - Players accumulate a dose from carried material, nearby waste and fallout
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit

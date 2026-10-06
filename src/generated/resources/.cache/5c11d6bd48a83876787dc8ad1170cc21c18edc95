@@ -1,6 +1,10 @@
-// 1.21.1	2026-10-06T18:33:27.017631	Item Models: create_nuclearindustry
+// 1.21.1	2026-10-06T22:49:46.793597	Item Models: create_nuclearindustry
 a10e5cdf5dbfb869f3c0473146440432e42eac63 assets/create_nuclearindustry/models/item/crushed_raw_uranium.json
 41c482f223bbf9f6c7fee49e9e34304a0d6b5a45 assets/create_nuclearindustry/models/item/crushed_spodumene.json
+6920783eb027284a8cbb5252104e63cf984f6bd2 assets/create_nuclearindustry/models/item/depleted_uranium_boots.json
+11f35958d947e43d1af879ac9e7c218df6a2dd68 assets/create_nuclearindustry/models/item/depleted_uranium_chestplate.json
+b81ba50468cfccb2e32e8871f9f97ac82dc9d713 assets/create_nuclearindustry/models/item/depleted_uranium_helmet.json
+498669ed8bbc69770604d08369f34c20a3a3abac assets/create_nuclearindustry/models/item/depleted_uranium_leggings.json
 d9c8cae17bd3997bbe5fdf78b1bf423cc7a251dc assets/create_nuclearindustry/models/item/empty_gas_cell.json
 af8438ffcd03543b1793435acdf02728908f646d assets/create_nuclearindustry/models/item/fluorite.json
 56082f436b0c532824a4985ce91bf5e9119396b6 assets/create_nuclearindustry/models/item/geiger_counter.json

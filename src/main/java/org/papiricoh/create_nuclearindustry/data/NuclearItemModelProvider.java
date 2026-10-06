@@ -40,7 +40,11 @@ public class NuclearItemModelProvider extends ItemModelProvider {
                 AllNuclearItems.HAZMAT_HELMET,
                 AllNuclearItems.HAZMAT_CHESTPLATE,
                 AllNuclearItems.HAZMAT_LEGGINGS,
-                AllNuclearItems.HAZMAT_BOOTS);
+                AllNuclearItems.HAZMAT_BOOTS,
+                AllNuclearItems.DEPLETED_URANIUM_HELMET,
+                AllNuclearItems.DEPLETED_URANIUM_CHESTPLATE,
+                AllNuclearItems.DEPLETED_URANIUM_LEGGINGS,
+                AllNuclearItems.DEPLETED_URANIUM_BOOTS);
         for (Supplier<? extends Item> item : flat) {
             basicItem(item.get());
         }

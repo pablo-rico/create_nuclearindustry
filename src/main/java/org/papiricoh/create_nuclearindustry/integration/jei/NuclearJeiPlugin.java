@@ -109,6 +109,10 @@ public class NuclearJeiPlugin implements IModPlugin {
                 Component.translatable("jei.create_nuclearindustry.info.reactor_redstone_port"));
         registration.addIngredientInfo(AllNuclearItems.COOLING_TOWER_CONTROLLER.get(),
                 Component.translatable("jei.create_nuclearindustry.info.cooling_tower"));
+        registration.addIngredientInfo(List.of(new ItemStack(AllNuclearItems.DEPLETED_URANIUM_BLOCK.get()),
+                        new ItemStack(AllNuclearItems.DEPLETED_URANIUM_HELMET.get()), new ItemStack(AllNuclearItems.DEPLETED_URANIUM_CHESTPLATE.get()),
+                        new ItemStack(AllNuclearItems.DEPLETED_URANIUM_LEGGINGS.get()), new ItemStack(AllNuclearItems.DEPLETED_URANIUM_BOOTS.get())),
+                VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.depleted_uranium"));
         registration.addIngredientInfo(AllNuclearItems.TURBINE_OUTPUT.get(),
                 Component.translatable("jei.create_nuclearindustry.info.turbine"));
         registration.addIngredientInfo(AllNuclearItems.FUSION_PLASMA_TURBINE.get(),

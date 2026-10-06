@@ -875,3 +875,41 @@ def hazmat_boots():
     t.hline(2, 6, 11, DARK[1])
     t.hline(10, 15, 11, DARK[1])
     return t
+
+
+DU = LEAD
+
+
+def _du_piece(art, seed):
+    t = solid(art, DU, seed=seed, base=3.2, grain=0.8, outline=False)
+    item_outline(t, DU[0])
+    return t
+
+
+@item("depleted_uranium_helmet")
+def depleted_uranium_helmet():
+    t = _du_piece(HELMET, 254)
+    t.hline(5, 10, 7, DARK[0])
+    return t
+
+
+@item("depleted_uranium_chestplate")
+def depleted_uranium_chestplate():
+    t = _du_piece(CHEST, 255)
+    trefoil(t, 8, 8, 2.6, WARN[5])
+    return t
+
+
+@item("depleted_uranium_leggings")
+def depleted_uranium_leggings():
+    t = _du_piece(LEGGINGS, 256)
+    t.hline(3, 12, 3, DARK[1])
+    return t
+
+
+@item("depleted_uranium_boots")
+def depleted_uranium_boots():
+    t = _du_piece(BOOTS, 257)
+    t.hline(2, 6, 11, DARK[0])
+    t.hline(10, 15, 11, DARK[0])
+    return t

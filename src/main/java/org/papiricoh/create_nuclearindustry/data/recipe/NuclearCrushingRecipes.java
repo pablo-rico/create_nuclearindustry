@@ -51,6 +51,12 @@ public class NuclearCrushingRecipes extends StandardProcessingRecipeGen<Crushing
             .output(0.75f, CreateItems.get("experience_nugget"))
             .duration(300));
 
+    // Keeps the metal's enrichment: a shapeless un-craft would turn it back into natural uranium.
+    GeneratedRecipe DEPLETED_URANIUM_BLOCK = create("depleted_uranium_block", b -> b
+            .require(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get())
+            .output(RecipeHelpers.enriched(AllNuclearItems.URANIUM.get(), org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.DEPLETED, 9))
+            .duration(250));
+
     GeneratedRecipe SPENT_DT_PELLET = create("spent_dt_pellet", b -> b
             .require(AllNuclearItems.SPENT_DT_PELLET.get())
             .output(Items.IRON_NUGGET, 3)

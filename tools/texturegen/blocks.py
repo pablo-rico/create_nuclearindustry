@@ -890,3 +890,23 @@ def cooling_tower_fan():
     t.ring(7.5, 7.5, 2.4, 1.6, STEEL[6])
     t.disc(7.5, 7.5, 0.9, DARK[0])
     return t
+
+
+
+@block("depleted_uranium_block")
+def depleted_uranium_block():
+    # Dense grey metal blocks stacked in a 2x2 bond, faint green oxide in the joints.
+    t = Tex(seed=95)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 95, 16, 16, 3, 4.0)
+            t.set(x, y, LEAD[int(round(2.2 + n * 2.4))])
+    for i in (0, 8):
+        t.hline(0, 15, i, LEAD[0])
+        t.vline(i, 0, 15, LEAD[0])
+        t.hline(0, 15, i + 1, LEAD[5])
+        t.vline(i + 1, 0, 15, LEAD[5])
+    speckle(t, 0, 0, 15, 15, URANIUM[1], chance=0.05, seed=95)
+    for cx, cy in ((4, 4), (12, 4), (4, 12), (12, 12)):
+        t.set(cx, cy, LEAD[6])
+    return t

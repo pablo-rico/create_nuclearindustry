@@ -103,6 +103,7 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         rotorStates(AllNuclearBlocks.TURBINE_ROTOR.get(), "turbine_rotor");
         rotorStates(AllNuclearBlocks.FUSION_TURBINE_ROTOR.get(), "fusion_turbine_rotor");
         facingStates(AllNuclearBlocks.TURBINE_OUTPUT.get(), "turbine_output");
+        simpleBlockWithItem(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get(), cubeAll(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get()));
         redstonePortStates();
         coolingTowerStates();
         simpleBlockWithItem(AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get(), models().cubeBottomTop("radioactive_waste_barrel",

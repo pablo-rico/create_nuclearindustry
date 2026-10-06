@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-06T22:41:55.902372	Loot Tables
+// 1.21.1	2026-10-06T22:49:46.793078	Loot Tables
 f7cd641dbc79fbdeb47db13d2fa7c6feb5d91098 data/create_nuclearindustry/loot_table/blocks/borax_ore.json
 774896dc0efff85c2635e35050dca047eb134e83 data/create_nuclearindustry/loot_table/blocks/centrifuge.json
 ff6f6eb4e0855da677f03f5fd4e3d1034be17374 data/create_nuclearindustry/loot_table/blocks/control_rod.json
@@ -6,6 +6,7 @@ cfd246d1267a34770be82deb8746f055a91573fd data/create_nuclearindustry/loot_table/
 b0ee9b9ec9598267b1c0702b544754995a5d4fd7 data/create_nuclearindustry/loot_table/blocks/cooling_tower_controller.json
 b7c9c25a0364985fd17ff8c204dc96a621ce4a3f data/create_nuclearindustry/loot_table/blocks/cooling_tower_fan.json
 222066343482f0088bb91bf5a7a2ade9d41c04f6 data/create_nuclearindustry/loot_table/blocks/cooling_tower_fluid_port.json
+cfc2e60f52faf0814f53b5e3bcdab4baa7d76bd5 data/create_nuclearindustry/loot_table/blocks/depleted_uranium_block.json
 96cfa9a623d932a9b08ca9f6c449c86959c02d0a data/create_nuclearindustry/loot_table/blocks/dual_fluid_pipe.json
 e2f910eaf4c2b9910364315eed3aa82117d2e943 data/create_nuclearindustry/loot_table/blocks/electrolyzer.json
 8855edf2176a0e7203c0c9d5553b980d7d76472f data/create_nuclearindustry/loot_table/blocks/fusion_accelerator_corner.json

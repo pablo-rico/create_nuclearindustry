@@ -68,6 +68,21 @@ public final class AllNuclearRadiation {
                 List.of(new ArmorMaterial.Layer(id("hazmat"))), 0.0f, 0.0f);
     });
 
+    /** Heavy plate pressed from depleted uranium: diamond-like armour, netherite-like toughness. */
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> DEPLETED_URANIUM_MATERIAL = ARMOR_MATERIALS.register("depleted_uranium", () -> {
+        EnumMap<ArmorItem.Type, Integer> defense = new EnumMap<>(ArmorItem.Type.class);
+        defense.put(ArmorItem.Type.HELMET, 3);
+        defense.put(ArmorItem.Type.CHESTPLATE, 8);
+        defense.put(ArmorItem.Type.LEGGINGS, 6);
+        defense.put(ArmorItem.Type.BOOTS, 3);
+        defense.put(ArmorItem.Type.BODY, 11);
+        return new ArmorMaterial(defense, 9, SoundEvents.ARMOR_EQUIP_NETHERITE,
+                () -> org.papiricoh.create_nuclearindustry.enrichment.recipe.MinEnrichmentIngredient.tier(
+                        org.papiricoh.create_nuclearindustry.AllNuclearItems.URANIUM.get(),
+                        org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.DEPLETED).toVanilla(),
+                List.of(new ArmorMaterial.Layer(id("depleted_uranium"))), 2.0f, 0.1f);
+    });
+
     private AllNuclearRadiation() {}
 
     public static void register(IEventBus modEventBus) {
@@ -89,6 +104,11 @@ public final class AllNuclearRadiation {
 
     static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path);
+    }
+
+    /** Durability multiplier 30 for depleted uranium plate, between diamond's 33 and iron's 15. */
+    public static Item.Properties depletedUraniumProperties(ArmorItem.Type type) {
+        return new Item.Properties().durability(type.getDurability(30));
     }
 
     /** Durability multiplier for hazmat pieces, like leather's 5. */

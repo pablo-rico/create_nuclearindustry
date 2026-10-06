@@ -6,6 +6,9 @@
     "create_nuclearindustry:cooling_tower_casing": {
       "transmission": 0.6
     },
+    "create_nuclearindustry:depleted_uranium_block": {
+      "transmission": 0.1
+    },
     "create_nuclearindustry:reactor_casing": {
       "transmission": 0.35
     },

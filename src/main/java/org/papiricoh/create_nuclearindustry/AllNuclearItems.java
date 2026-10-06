@@ -127,6 +127,18 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> HAZMAT_LEGGINGS = hazmat("hazmat_leggings", net.minecraft.world.item.ArmorItem.Type.LEGGINGS);
     public static final DeferredHolder<Item, ? extends Item> HAZMAT_BOOTS = hazmat("hazmat_boots", net.minecraft.world.item.ArmorItem.Type.BOOTS);
 
+    public static final DeferredHolder<Item, ? extends Item> DEPLETED_URANIUM_BLOCK = ITEMS.register("depleted_uranium_block", () -> new BlockItem(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> DEPLETED_URANIUM_HELMET = depletedUraniumArmor("depleted_uranium_helmet", net.minecraft.world.item.ArmorItem.Type.HELMET);
+    public static final DeferredHolder<Item, ? extends Item> DEPLETED_URANIUM_CHESTPLATE = depletedUraniumArmor("depleted_uranium_chestplate", net.minecraft.world.item.ArmorItem.Type.CHESTPLATE);
+    public static final DeferredHolder<Item, ? extends Item> DEPLETED_URANIUM_LEGGINGS = depletedUraniumArmor("depleted_uranium_leggings", net.minecraft.world.item.ArmorItem.Type.LEGGINGS);
+    public static final DeferredHolder<Item, ? extends Item> DEPLETED_URANIUM_BOOTS = depletedUraniumArmor("depleted_uranium_boots", net.minecraft.world.item.ArmorItem.Type.BOOTS);
+
+    private static DeferredHolder<Item, ? extends Item> depletedUraniumArmor(String name, net.minecraft.world.item.ArmorItem.Type type) {
+        return ITEMS.register(name, () -> new org.papiricoh.create_nuclearindustry.radiation.DepletedUraniumArmorItem(
+                org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.DEPLETED_URANIUM_MATERIAL, type,
+                org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.depletedUraniumProperties(type)));
+    }
+
     private static DeferredHolder<Item, ? extends Item> hazmat(String name, net.minecraft.world.item.ArmorItem.Type type) {
         return ITEMS.register(name, () -> new net.minecraft.world.item.ArmorItem(
                 org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.hazmat(), type,

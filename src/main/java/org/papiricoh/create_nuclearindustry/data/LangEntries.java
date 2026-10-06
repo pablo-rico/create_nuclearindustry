@@ -87,6 +87,11 @@ public final class LangEntries {
         add("block.create_nuclearindustry.reactor_temperature_sensor",
                 "Temperature Sensor",
                 "Sensor de temperatura");
+        add("block.create_nuclearindustry.depleted_uranium_block", "Block of Depleted Uranium", "Bloque de uranio empobrecido");
+        add("item.create_nuclearindustry.depleted_uranium_helmet", "Depleted Uranium Helmet", "Casco de uranio empobrecido");
+        add("item.create_nuclearindustry.depleted_uranium_chestplate", "Depleted Uranium Chestplate", "Peto de uranio empobrecido");
+        add("item.create_nuclearindustry.depleted_uranium_leggings", "Depleted Uranium Leggings", "Grebas de uranio empobrecido");
+        add("item.create_nuclearindustry.depleted_uranium_boots", "Depleted Uranium Boots", "Botas de uranio empobrecido");
         add("block.create_nuclearindustry.cooling_tower_casing", "Cooling Tower Casing", "Carcasa de torre de refrigeración");
         add("block.create_nuclearindustry.cooling_tower_controller", "Cooling Tower Controller", "Controlador de torre de refrigeración");
         add("block.create_nuclearindustry.cooling_tower_fluid_port", "Cooling Tower Fluid Port", "Puerto de fluidos de torre de refrigeración");
@@ -362,6 +367,9 @@ public final class LangEntries {
         add("jei.create_nuclearindustry.info.cooling_tower",
                 "A hyperboloid of Cooling Tower Casing that turns steam back into water (heavy steam into heavy water) without making power. Base radius 4 to 16, on a full floor; the walls narrow to a waist and flare out at the open top. It condenses its base radius times its height in mB/t, and Fans in the bottom wall layers add up to double that. Ports go in the floor or the two wall layers above it; the controller sits in the bottom wall layer facing out. See its Ponder scene.",
                 "Un hiperboloide de Carcasa de torre de refrigeración que vuelve a convertir el vapor en agua (el vapor pesado en agua pesada) sin generar energía. Radio de base de 4 a 16, sobre un suelo completo; las paredes se estrechan hasta una cintura y se abren en la cima, que queda abierta. Condensa su radio de base por su altura en mB/t, y los Ventiladores de las capas bajas de la pared añaden hasta el doble. Los puertos van en el suelo o en las dos capas de pared sobre él; el controlador va en la capa más baja de la pared, mirando hacia fuera. Consulta su escena de Ponder.");
+        add("jei.create_nuclearindustry.info.depleted_uranium",
+                "Depleted uranium (under 0.7%) is dense: a block of it lets only 10% of radiation through, the best shield there is. Its heavy plate armour protects better than diamond and, as a full set, stops 98% of radiation, but slows you by about a sixth. A crusher turns the block back into metal.",
+                "El uranio empobrecido (menos del 0,7%) es muy denso: un bloque deja pasar solo el 10% de la radiación, el mejor blindaje que hay. Su armadura de placas protege más que el diamante y, completa, detiene el 98% de la radiación, pero te ralentiza más o menos una sexta parte. Una trituradora devuelve el bloque a metal.");
         add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
         add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");
         add("jei.create_nuclearindustry.product", "Product: front face", "Producto: cara frontal");

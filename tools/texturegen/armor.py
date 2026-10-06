@@ -4,7 +4,7 @@ Armor layers follow the vanilla 64x32 humanoid UV layout: layer 1 is drawn for h
 chestplate and boots, layer 2 for leggings.
 """
 
-from palette import DARK, RADIUM, WARN
+from palette import DARK, LEAD, RADIUM, URANIUM, WARN
 from pixelkit import Tex, fbm
 from common import trefoil
 
@@ -90,8 +90,55 @@ def _layer(seed, legs_only=False):
     return t
 
 
+def _plates(t, box, seed):
+    """Dull depleted-uranium plate in 4x4 panels with dark seams and a faint green oxide."""
+    x0, y0, x1, y1 = box
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            n = fbm(x, y, seed, 64, 32, 2, 4.0)
+            t.set(x, y, LEAD[2 if n < 0.35 else 3 if n < 0.7 else 4])
+            if (x - x0) % 4 == 0 or (y - y0) % 4 == 0:
+                t.set(x, y, LEAD[1])
+            elif n > 0.85:
+                t.set(x, y, URANIUM[1])
+
+
+def _du_layer(seed, legs_only=False):
+    t = Tex(64, 32, seed)
+    if legs_only:
+        _plates(t, BODY, seed)
+        _plates(t, LEGS, seed + 1)
+        _clear_unused(t, BODY, (16, 16, 8, 4, 12))
+        _clear_unused(t, LEGS, (0, 16, 4, 4, 12))
+        for x in range(20, 36):
+            t.set(x, 30, LEAD[0])
+            t.set(x, 31, DARK[0])
+        return t
+    for box in (HEAD, BODY, ARMS, LEGS):
+        _plates(t, box, seed)
+    _clear_unused(t, HEAD, (0, 0, 8, 8, 8))
+    _clear_unused(t, BODY, (16, 16, 8, 4, 12))
+    _clear_unused(t, ARMS, (40, 16, 4, 4, 12))
+    _clear_unused(t, LEGS, (0, 16, 4, 4, 12))
+    # narrow eye slit on the face
+    t.rect(9, 11, 14, 11, DARK[0])
+    # yellow trefoil stencil on the chest
+    badge = Tex(8, 8, seed)
+    trefoil(badge, 4, 4, 3.6, WARN[5])
+    for y in range(8):
+        for x in range(8):
+            if badge.im.getpixel((x, y))[3]:
+                t.set(20 + x, 21 + y, WARN[5])
+    for x in range(0, 16):
+        for y in (30, 31):
+            t.set(x, y, DARK[1])
+    return t
+
+
 ARMOR["hazmat_layer_1"] = lambda: _layer(450)
 ARMOR["hazmat_layer_2"] = lambda: _layer(451, legs_only=True)
+ARMOR["depleted_uranium_layer_1"] = lambda: _du_layer(460)
+ARMOR["depleted_uranium_layer_2"] = lambda: _du_layer(461, legs_only=True)
 
 
 def radiation_sickness():

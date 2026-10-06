@@ -17,6 +17,7 @@
     "create_nuclearindustry:centrifuge",
     "create_nuclearindustry:electrolyzer",
     "create_nuclearindustry:radioactive_waste_barrel",
+    "create_nuclearindustry:depleted_uranium_block",
     "create_nuclearindustry:reinforced_turbine_glass",
     "create_nuclearindustry:turbine_casing",
     "create_nuclearindustry:turbine_rotor",

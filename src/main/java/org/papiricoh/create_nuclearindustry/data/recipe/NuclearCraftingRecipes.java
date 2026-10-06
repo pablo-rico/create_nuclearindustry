@@ -4,6 +4,8 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
+import org.papiricoh.create_nuclearindustry.enrichment.recipe.MinEnrichmentIngredient;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
@@ -22,6 +24,33 @@ public class NuclearCraftingRecipes extends RecipeProvider {
 
     public NuclearCraftingRecipes(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries);
+    }
+
+    /** Depleted uranium metal (under 0.7%) as dense shielding blocks and heavy armour. */
+    private void depletedUranium(RecipeOutput output) {
+        Ingredient metal = MinEnrichmentIngredient.tier(AllNuclearItems.URANIUM.get(), EnrichmentTier.DEPLETED).toVanilla();
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.DEPLETED_URANIUM_BLOCK.get())
+                .pattern("UUU")
+                .pattern("UUU")
+                .pattern("UUU")
+                .define('U', metal)
+                .unlockedBy("has_uranium", has(AllNuclearItems.URANIUM.get()))
+                .save(output, id("crafting/depleted_uranium_block"));
+        duArmor(output, metal, AllNuclearItems.DEPLETED_URANIUM_HELMET.get(), "UUU", "U U", null);
+        duArmor(output, metal, AllNuclearItems.DEPLETED_URANIUM_CHESTPLATE.get(), "U U", "UUU", "UUU");
+        duArmor(output, metal, AllNuclearItems.DEPLETED_URANIUM_LEGGINGS.get(), "UUU", "U U", "U U");
+        duArmor(output, metal, AllNuclearItems.DEPLETED_URANIUM_BOOTS.get(), "U U", "U U", null);
+    }
+
+    private static void duArmor(RecipeOutput output, Ingredient metal, net.minecraft.world.item.Item result,
+                                String top, String middle, String bottom) {
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, result).pattern(top).pattern(middle);
+        if (bottom != null) {
+            builder.pattern(bottom);
+        }
+        builder.define('U', metal)
+                .unlockedBy("has_uranium", has(AllNuclearItems.URANIUM.get()))
+                .save(output, id("crafting/" + net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(result).getPath()));
     }
 
     /** Concrete and andesite for the shell; Create parts for the controller, ports and fans. */
@@ -157,6 +186,7 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .save(output, id("crafting/reactor_redstone_port"));
 
         coolingTower(output);
+        depletedUranium(output);
 
         // Legacy item from an unfinished recipe chain: turn any leftovers into usable oxide.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.LOW))

@@ -37,6 +37,11 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.HAZMAT_CHESTPLATE.value());
                 output.accept(AllNuclearItems.HAZMAT_LEGGINGS.value());
                 output.accept(AllNuclearItems.HAZMAT_BOOTS.value());
+                output.accept(AllNuclearItems.DEPLETED_URANIUM_BLOCK.value());
+                output.accept(AllNuclearItems.DEPLETED_URANIUM_HELMET.value());
+                output.accept(AllNuclearItems.DEPLETED_URANIUM_CHESTPLATE.value());
+                output.accept(AllNuclearItems.DEPLETED_URANIUM_LEGGINGS.value());
+                output.accept(AllNuclearItems.DEPLETED_URANIUM_BOOTS.value());
                 output.accept(AllNuclearItems.URANIUM_REACTOR_FUEL.value());
                 output.accept(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.value());
                 output.accept(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.value());
