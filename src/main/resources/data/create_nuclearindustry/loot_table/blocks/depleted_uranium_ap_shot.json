@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_name",
+              "source": "block_entity"
+            },
+            {
+              "function": "minecraft:copy_components",
+              "include": [
+                "createbigcannons:tracer"
+              ],
+              "source": "block_entity"
+            }
+          ],
+          "name": "create_nuclearindustry:depleted_uranium_ap_shot"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "create_nuclearindustry:blocks/depleted_uranium_ap_shot"
+}

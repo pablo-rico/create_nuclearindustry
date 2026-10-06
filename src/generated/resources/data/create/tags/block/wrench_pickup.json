@@ -42,6 +42,10 @@
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false
+    },
+    {
+      "id": "create_nuclearindustry:depleted_uranium_ap_shot",
+      "required": false
     }
   ]
 }

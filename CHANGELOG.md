@@ -91,6 +91,8 @@ below for what changes in existing worlds.
   of radiation, and heavy depleted uranium armour (3/8/6/3, toughness 2)
   stops 98% as a full set but slows you by about a sixth. A crusher turns
   the block back into depleted metal.
+- With Create Big Cannons: a Depleted Uranium AP Shot, heavier and more
+  penetrating than CBC's own armour-piercing shot.
 - Dose rates below 0.05/s count as background and let the dose decay.
 - Players accumulate a dose from carried material, nearby waste and fallout
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit

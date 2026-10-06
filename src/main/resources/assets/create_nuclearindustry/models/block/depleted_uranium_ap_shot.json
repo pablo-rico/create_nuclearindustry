@@ -1,0 +1,9 @@
+{
+  "parent": "createbigcannons:block/projectile_block",
+  "textures": {
+    "bottom": "create_nuclearindustry:block/projectile/depleted_uranium_ap_shot_bottom",
+    "particle": "create_nuclearindustry:block/projectile/depleted_uranium_ap_shot_top",
+    "side": "create_nuclearindustry:block/projectile/depleted_uranium_ap_shot_side",
+    "top": "create_nuclearindustry:block/projectile/depleted_uranium_ap_shot_top"
+  }
+}

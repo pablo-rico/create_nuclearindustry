@@ -131,6 +131,8 @@ public final class LangEntries {
         add("block.create_nuclearindustry.launch_pad",
                 "Missile Launch Pad",
                 "Plataforma de lanzamiento");
+        add("block.create_nuclearindustry.depleted_uranium_ap_shot", "Depleted Uranium AP Shot", "Proyectil perforante de uranio empobrecido");
+        add("item.create_nuclearindustry.depleted_uranium_ap_shot", "Depleted Uranium AP Shot", "Proyectil perforante de uranio empobrecido");
         add("block.create_nuclearindustry.nuclear_cannon_shell",
                 "Nuclear Cannon Shell",
                 "Proyectil nuclear de cañón");

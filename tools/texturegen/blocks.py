@@ -728,6 +728,46 @@ def shell_side():
     return t
 
 
+@block("projectile/depleted_uranium_ap_shot_side")
+def du_shot_side():
+    t = Tex(seed=66)
+    brushed(t, LEAD, base=3.0, amp=0.6, seed=66, axis="v")
+    for x in range(16):
+        f = 0.7 + 0.6 * math.sin(math.pi * (x + 0.5) / 16)
+        for y in range(16):
+            t.set(x, y, shade(t.get(x, y), f))
+    # bright hardened penetrator cap on top, steel driving band, olive base
+    for y in range(0, 4):
+        for x in range(16):
+            t.set(x, y, shade(STEEL[5 if y < 2 else 4], 0.7 + 0.6 * math.sin(math.pi * (x + 0.5) / 16)))
+    t.hline(0, 15, 4, STEEL[1])
+    for y in (10, 11):
+        t.hline(0, 15, y, COPPER[3 if y == 10 else 1])
+    t.hline(0, 15, 12, URANIUM[1])
+    return t
+
+
+@block("projectile/depleted_uranium_ap_shot_top")
+def du_shot_top():
+    t = Tex(seed=67)
+    brushed(t, STEEL, base=3.6, amp=0.4, seed=67)
+    t.disc(8, 8, 7.0, STEEL[5])
+    t.ring(8, 8, 7.4, 6.9, STEEL[0])
+    t.disc(8, 8, 3.0, STEEL[6])
+    glow(t, 7, 7, 4.0, WHITE, 0.2)
+    return t
+
+
+@block("projectile/depleted_uranium_ap_shot_bottom")
+def du_shot_bottom():
+    t = Tex(seed=68)
+    brushed(t, LEAD, base=2.4, amp=0.5, seed=68)
+    t.disc(8, 8, 7.0, LEAD[2])
+    t.ring(8, 8, 7.4, 6.9, LEAD[0])
+    t.disc(8, 8, 3.0, URANIUM[1])
+    return t
+
+
 @block("projectile/nuclear_cannon_shell_top")
 def shell_top():
     t = Tex(seed=64)
