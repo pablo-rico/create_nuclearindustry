@@ -6,7 +6,13 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import com.simibubi.create.content.redstone.displayLink.source.SingleLineDisplaySource;
+import org.papiricoh.create_nuclearindustry.reactor.display.ReactorReadout;
+import org.papiricoh.create_nuclearindustry.reactor.display.ReactorReadoutDisplaySource;
 import org.papiricoh.create_nuclearindustry.reactor.display.ReactorSensorDisplaySource;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 public class AllNuclearDisplaySources {
     public static final DeferredRegister<DisplaySource> DISPLAY_SOURCES =
@@ -18,6 +24,17 @@ public class AllNuclearDisplaySources {
     public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.fusion.display.TokamakDisplaySource> TOKAMAK =
             DISPLAY_SOURCES.register("tokamak", org.papiricoh.create_nuclearindustry.fusion.display.TokamakDisplaySource::new);
 
+    /** One source per reactor reading, in {@link ReactorReadout} order. */
+    public static final Map<ReactorReadout, DeferredHolder<DisplaySource, SingleLineDisplaySource>> REACTOR_READOUTS = readouts();
+
+    private static Map<ReactorReadout, DeferredHolder<DisplaySource, SingleLineDisplaySource>> readouts() {
+        Map<ReactorReadout, DeferredHolder<DisplaySource, SingleLineDisplaySource>> sources = new EnumMap<>(ReactorReadout.class);
+        for (ReactorReadout readout : ReactorReadout.values()) {
+            sources.put(readout, DISPLAY_SOURCES.register(readout.id(), () -> ReactorReadoutDisplaySource.of(readout)));
+        }
+        return sources;
+    }
+
     public static void register(IEventBus modEventBus) {
         DISPLAY_SOURCES.register(modEventBus);
         modEventBus.addListener(AllNuclearDisplaySources::commonSetup);
@@ -26,6 +43,11 @@ public class AllNuclearDisplaySources {
     private static void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_TEMPERATURE_SENSOR.get(), REACTOR_TEMPERATURE_SENSOR.get());
+            for (DeferredHolder<DisplaySource, SingleLineDisplaySource> source : REACTOR_READOUTS.values()) {
+                DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR.get(), source.get());
+                DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_TEMPERATURE_SENSOR.get(), source.get());
+                DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_REDSTONE_PORT.get(), source.get());
+            }
             DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.FUSION_CONTROLLER.get(), TOKAMAK.get());
         });
     }

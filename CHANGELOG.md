@@ -34,6 +34,9 @@ below for what changes in existing worlds.
 - Automatic SCRAM on the control panel, on by default at 2800 °C (500-3900,
   +/- 100, Shift for 500). When the core reaches it the SCRAM signal turns
   on and stays latched; Reset only works 200 °C below the threshold.
+- Seven Display Link sources for the reactor (temperature, power, fuel,
+  control rods, coolant, steam, status), on the controller, Temperature
+  Sensors and Redstone Ports. Numeric ones work on nixie tubes.
 - The Temperature Sensor now outputs on its panel side, as its tooltip says;
   it used to power the block behind it.
 

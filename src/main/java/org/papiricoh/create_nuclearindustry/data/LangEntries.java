@@ -163,6 +163,13 @@ public final class LangEntries {
         add("create_nuclearindustry.display_source.reactor_temperature_sensor",
                 "Reactor Sensor",
                 "Sensor de reactor");
+        add("create_nuclearindustry.display_source.reactor_temperature", "Reactor Temperature", "Temperatura del reactor");
+        add("create_nuclearindustry.display_source.reactor_power", "Reactor Power", "Potencia del reactor");
+        add("create_nuclearindustry.display_source.reactor_fuel", "Reactor Fuel", "Combustible del reactor");
+        add("create_nuclearindustry.display_source.reactor_control_rods", "Control Rod Insertion", "Inserción de las barras de control");
+        add("create_nuclearindustry.display_source.reactor_coolant", "Reactor Coolant", "Refrigerante del reactor");
+        add("create_nuclearindustry.display_source.reactor_steam", "Reactor Steam", "Vapor del reactor");
+        add("create_nuclearindustry.display_source.reactor_status", "Reactor Status", "Estado del reactor");
         add("itemGroup.create_nuclearindustry.nuclear_tab",
                 "Create: Nuclear industry",
                 "Create: Nuclear industry");
