@@ -51,8 +51,7 @@ public class FissionStructureTests {
         });
     }
 
-    // Non-player block removal is not detected yet; the shared multiblock change handler fixes it.
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, required = false)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void removingShellBlockUnforms(GameTestHelper helper) {
         FissionTestBuilder.build(helper);
         ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);

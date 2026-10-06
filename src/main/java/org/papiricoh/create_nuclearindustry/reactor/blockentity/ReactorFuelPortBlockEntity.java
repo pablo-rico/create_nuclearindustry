@@ -13,16 +13,14 @@ import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFuelPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
-import org.papiricoh.create_nuclearindustry.reactor.event.ReactorManager;
-import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
+import org.papiricoh.create_nuclearindustry.multiblock.ControllerLink;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGoggleInformation {
-    private Optional<BlockPos> linkedReactor = Optional.empty();
-    private int relinkCooldown;
+    private final ControllerLink<ReactorBlockEntity> link = new ControllerLink<>(this, ReactorBlockEntity.class,
+            (reactor, pos) -> reactor.getStructure().map(structure -> structure.containsFuelPort(pos)).orElse(false));
 
     public ReactorFuelPortBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.REACTOR_FUEL_PORT.get(), pos, state);
@@ -32,10 +30,7 @@ public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGogg
         if (level == null || level.isClientSide) {
             return;
         }
-        if (relinkCooldown-- <= 0) {
-            relinkCooldown = 20;
-            linkedReactor = findLinkedReactor();
-        }
+        link.tick();
     }
 
     @Nullable
@@ -48,9 +43,8 @@ public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGogg
     }
 
     public void notifyLinkedReactorChanged(Player player) {
-        Optional<BlockPos> previousLink = linkedReactor;
-        linkedReactor = findLinkedReactor();
-        ReactorBlockEntity reactor = getLinkedReactor();
+        Optional<BlockPos> previousLink = link.linkedPos();
+        ReactorBlockEntity reactor = link.refresh().orElse(null);
         if (reactor != null) {
             reactor.requestStructureRevalidation(player);
         } else if (previousLink.isPresent()
@@ -63,47 +57,20 @@ public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGogg
     }
 
     public void setLinkedController(BlockPos controllerPos) {
-        linkedReactor = Optional.of(controllerPos);
-        setChanged();
+        if (link.link(controllerPos)) {
+            setChanged();
+        }
     }
 
     public void clearLinkedController(BlockPos controllerPos) {
-        if (linkedReactor.map(controllerPos::equals).orElse(false)) {
-            linkedReactor = Optional.empty();
+        if (link.unlink(controllerPos)) {
             setChanged();
         }
     }
 
     @Nullable
     private ReactorBlockEntity getLinkedReactor() {
-        if (level == null || linkedReactor.isEmpty()) {
-            return null;
-        }
-        BlockEntity blockEntity = level.getBlockEntity(linkedReactor.get());
-        if (blockEntity instanceof ReactorBlockEntity reactor
-                && reactor.getStructure().map(structure -> structure.containsFuelPort(getBlockPos())).orElse(false)) {
-            return reactor;
-        }
-        linkedReactor = Optional.empty();
-        return null;
-    }
-
-    private Optional<BlockPos> findLinkedReactor() {
-        if (level == null) {
-            return Optional.empty();
-        }
-        ReactorBlockEntity cached = getLinkedReactor();
-        if (cached != null) {
-            return Optional.of(cached.getBlockPos());
-        }
-        return ReactorManager.getReactorsInRange(level, getBlockPos(), ReactorStructureValidator.MAX_WIDTH + ReactorStructureValidator.MAX_HEIGHT)
-                .stream()
-                .filter(reactor -> reactor.getStructure()
-                        .map(structure -> structure.containsFuelPort(getBlockPos()))
-                        .orElse(false))
-                .sorted(Comparator.comparingLong(reactor -> reactor.getBlockPos().asLong()))
-                .map(ReactorBlockEntity::getBlockPos)
-                .findFirst();
+        return link.find().orElse(null);
     }
 
     private ReactorFluidPortMode getMode() {
@@ -115,7 +82,7 @@ public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGogg
         if (reactor != null) {
             return "Linked";
         }
-        if (linkedReactor.isPresent()) {
+        if (link.linkedPos().isPresent()) {
             return "Structure incomplete";
         }
         return "No reactor";

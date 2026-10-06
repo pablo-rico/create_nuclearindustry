@@ -14,20 +14,16 @@ import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
-import org.papiricoh.create_nuclearindustry.reactor.event.ReactorManager;
-import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
+import org.papiricoh.create_nuclearindustry.multiblock.ControllerLink;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGoggleInformation {
-    private static final int LINK_SCAN_INTERVAL = 20;
-
     private final IFluidHandler inputHandler = new PortFluidHandler(ReactorFluidPortMode.INPUT);
     private final IFluidHandler outputHandler = new PortFluidHandler(ReactorFluidPortMode.OUTPUT);
-    private Optional<BlockPos> linkedController = Optional.empty();
-    private int linkScanCounter;
+    private final ControllerLink<ReactorBlockEntity> link = new ControllerLink<>(this, ReactorBlockEntity.class,
+            (reactor, pos) -> reactor.getStructure().map(structure -> structure.containsFluidPort(pos)).orElse(false));
 
     public ReactorFluidPortBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.REACTOR_FLUID_PORT.get(), pos, state);
@@ -37,10 +33,7 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
         if (level == null || level.isClientSide) {
             return;
         }
-        if (++linkScanCounter >= LINK_SCAN_INTERVAL) {
-            linkScanCounter = 0;
-            linkedController = findLinkedReactor().map(ReactorBlockEntity::getBlockPos);
-        }
+        link.tick();
     }
 
     public IFluidHandler getFluidHandler(Direction direction) {
@@ -51,20 +44,18 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
     }
 
     public void notifyLinkedReactorChanged(Player player) {
-        Optional<ReactorBlockEntity> reactor = findLinkedReactor();
-        linkedController = reactor.map(ReactorBlockEntity::getBlockPos);
-        reactor.ifPresent(linkedReactor -> linkedReactor.requestStructureRevalidation(player));
+        link.refresh().ifPresent(reactor -> reactor.requestStructureRevalidation(player));
         setChanged();
     }
 
     public void setLinkedController(BlockPos controllerPos) {
-        linkedController = Optional.of(controllerPos);
-        setChanged();
+        if (link.link(controllerPos)) {
+            setChanged();
+        }
     }
 
     public void clearLinkedController(BlockPos controllerPos) {
-        if (linkedController.map(controllerPos::equals).orElse(false)) {
-            linkedController = Optional.empty();
+        if (link.unlink(controllerPos)) {
             setChanged();
         }
     }
@@ -74,30 +65,7 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
     }
 
     private Optional<ReactorBlockEntity> findLinkedReactor() {
-        if (level == null) {
-            return Optional.empty();
-        }
-        Optional<ReactorBlockEntity> cached = getCachedLinkedReactor();
-        if (cached.isPresent()) {
-            return cached;
-        }
-        return ReactorManager.getReactorsInRange(level, getBlockPos(), ReactorStructureValidator.MAX_WIDTH + ReactorStructureValidator.MAX_HEIGHT)
-                .stream()
-                .filter(reactor -> reactor.getStructure().map(structure -> structure.containsFluidPort(getBlockPos())).orElse(false))
-                .sorted(Comparator.comparingLong(reactor -> reactor.getBlockPos().asLong()))
-                .findFirst();
-    }
-
-    private Optional<ReactorBlockEntity> getCachedLinkedReactor() {
-        if (level == null || linkedController.isEmpty()) {
-            return Optional.empty();
-        }
-        if (level.getBlockEntity(linkedController.get()) instanceof ReactorBlockEntity reactor
-                && reactor.getStructure().map(structure -> structure.containsFluidPort(getBlockPos())).orElse(false)) {
-            return Optional.of(reactor);
-        }
-        linkedController = Optional.empty();
-        return Optional.empty();
+        return link.find();
     }
 
     private String linkStatus() {
@@ -105,7 +73,7 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
         if (reactor.isPresent()) {
             return "Linked";
         }
-        if (linkedController.isPresent()) {
+        if (link.linkedPos().isPresent()) {
             return "Structure incomplete";
         }
         return "No reactor";

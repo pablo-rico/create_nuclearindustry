@@ -15,8 +15,7 @@ import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.NuclearPonderPlugin;
 import org.papiricoh.create_nuclearindustry.integration.cbc.CBCNuclearIntegration;
-import org.papiricoh.create_nuclearindustry.reactor.event.ReactorBlockChangeHandler;
-import org.papiricoh.create_nuclearindustry.fusion.event.FusionBlockChangeHandler;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockChangeHandler;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(Create_NuclearIndustry.MODID)
@@ -75,21 +74,7 @@ public class Create_NuclearIndustry {
         AllNuclearFluids.BLOCKS.register(modEventBus);
         AllNuclearFluids.ITEMS.register(modEventBus);
 
-        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockBreak);
-        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockPlace);
-        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockMultiPlace);
-        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onNeighborNotify);
-        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onFluidPlaceBlock);
-        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockToolModification);
-        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onExplosionDetonate);
-        NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onChunkUnload);
-        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onBlockBreak);
-        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onBlockPlace);
-        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onBlockMultiPlace);
-        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onNeighborNotify);
-        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onFluidPlaceBlock);
-        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onExplosionDetonate);
-        NeoForge.EVENT_BUS.addListener(FusionBlockChangeHandler::onChunkUnload);
+        MultiblockChangeHandler.register(NeoForge.EVENT_BUS);
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onLevelTick);
         NeoForge.EVENT_BUS.addListener(NuclearExplosionSoundManager::onLevelTick);
 

@@ -17,6 +17,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
@@ -29,10 +30,15 @@ import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
+import org.papiricoh.create_nuclearindustry.multiblock.BlockChange;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
+import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodTracker;
-import org.papiricoh.create_nuclearindustry.reactor.event.ReactorManager;
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
 import org.slf4j.Logger;
@@ -40,9 +46,8 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
-public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable {
+public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable, MultiblockController {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int TANK_CAPACITY = 16_000;
     private static final int HEAT_EXCHANGER_STEAM_PER_TICK = 80;
@@ -54,7 +59,6 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private static final double HEAVY_WATER_MODERATION_PER_MB = 0.003;
     private static final int CONTROL_ROD_SCAN_INTERVAL = 5;
     private static final int SCRAM_RECOVERY_SCAN_INTERVAL = 20;
-    private static final int AUTOMATIC_MESSAGE_COOLDOWN_TICKS = 100;
     private static final int LOAD_MELTDOWN_GRACE_TICKS = 200;
     private static final int MELTDOWN_CONFIRM_TICKS = 200;
     private static final float MELTDOWN_EXPLOSION_POWER = 80.0f;
@@ -65,8 +69,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     private ReactorStatus status = ReactorStatus.UNFORMED;
     private Optional<ReactorStructureValidator.ReactorStructure> currentStructure = Optional.empty();
-    private ReactorStructureValidator.ReactorValidationResult lastValidation =
-            ReactorStructureValidator.ReactorValidationResult.invalid(List.of("Not formed"), List.of());
+    private MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> lastValidation =
+            MultiblockValidationResult.invalid(List.of("Not formed"), List.of());
     private ReactorPhysicsSimulator physicsSimulator = new ReactorPhysicsSimulator(0);
     private boolean pendingRevalidation = true;
     private int syncCounter;
@@ -77,10 +81,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private ControlRodTracker.ControlRodScan lastControlRodScan = ControlRodTracker.ControlRodScan.empty();
     private ReactorDisplaySnapshot displaySnapshot = ReactorDisplaySnapshot.empty();
     private boolean hasDisplaySnapshot;
-    private Optional<UUID> ownerUUID = Optional.empty();
-    private Player ownerPlayer;
-    private String lastAutomaticMessage = "";
-    private long lastAutomaticMessageGameTime = Long.MIN_VALUE;
+    private final MultiblockMessenger messenger = new MultiblockMessenger("Reactor");
+    private StructureSnapshot structureSnapshot;
 
     private final FluidTank coolantTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isCoolant) {
         @Override
@@ -168,7 +170,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         super.onLoad();
         Level level = getLevel();
         if (level != null && !level.isClientSide) {
-            ReactorManager.registerReactor(level, getBlockPos(), this);
+            MultiblockRegistry.register(this);
             ticksSinceLoad = 0;
         }
     }
@@ -177,7 +179,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     public void setRemoved() {
         Level level = getLevel();
         if (level != null && !level.isClientSide) {
-            ReactorManager.unregisterReactor(level, getBlockPos());
+            MultiblockRegistry.unregister(this);
         }
         super.setRemoved();
     }
@@ -186,27 +188,48 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         revalidate(true, player);
     }
 
+    @Override
     public void requestStructureRevalidation(Player player) {
-        if (player != null) {
-            ownerPlayer = player;
-            ownerUUID = Optional.of(player.getUUID());
-        }
+        messenger.setOwner(player);
         pendingRevalidation = true;
     }
 
-    public boolean shouldReactToBlockChange(BlockPos changedPos) {
+    @Override
+    public BoundingBox interestBounds() {
         if (currentStructure.isPresent()) {
-            ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
-            return structure.contains(changedPos) && !structure.isControlArea(changedPos);
+            return currentStructure.get().bounds();
         }
-        return changedPos.closerThan(getBlockPos(), ReactorStructureValidator.MAX_WIDTH + 2);
+        BlockPos pos = getBlockPos();
+        int halfWidth = ReactorStructureValidator.MAX_WIDTH / 2;
+        return new BoundingBox(pos.getX() - halfWidth, pos.getY() - ReactorStructureValidator.MAX_HEIGHT, pos.getZ() - halfWidth,
+                pos.getX() + halfWidth, pos.getY(), pos.getZ() + halfWidth);
+    }
+
+    @Override
+    public boolean shouldReactToBlockChange(BlockChange change) {
+        if (currentStructure.isPresent()) {
+            return structureSnapshot != null
+                    && structureSnapshot.isAffectedBy(change)
+                    && !currentStructure.get().isControlArea(change.pos());
+        }
+        return change.removed() || change.isMultiblockPart();
+    }
+
+    private void setStructure(Optional<ReactorStructureValidator.ReactorStructure> structure) {
+        boolean boundsChanged = !currentStructure.map(ReactorStructureValidator.ReactorStructure::bounds)
+                .equals(structure.map(ReactorStructureValidator.ReactorStructure::bounds));
+        currentStructure = structure;
+        Level level = getLevel();
+        structureSnapshot = structure.isPresent() && level != null && !level.isClientSide
+                ? StructureSnapshot.capture(level, structure.get().allBlocks)
+                : null;
+        if (boundsChanged) {
+            MultiblockRegistry.reindex(this);
+        }
     }
 
     private void revalidate(boolean playerInitiated, Player player) {
-        if (player != null) {
-            ownerPlayer = player;
-            ownerUUID = Optional.of(player.getUUID());
-        }
+        messenger.setOwner(player);
         pendingRevalidation = false;
 
         Level level = getLevel();
@@ -215,7 +238,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
 
         ReactorStatus previousStatus = status;
-        ReactorStructureValidator.ReactorValidationResult result = ReactorStructureValidator.validate(level, getBlockPos(), currentStructure);
+        MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> result = ReactorStructureValidator.validate(level, getBlockPos(), currentStructure);
         lastValidation = result;
 
         if (result.formed() && result.structure().isPresent()) {
@@ -224,7 +247,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             boolean structureChanged = currentStructure.isEmpty() || !sameStructure(currentStructure.get(), newStructure);
             boolean loadedStructureWithoutSnapshot = currentStructure.isEmpty()
                     && (previousStatus == ReactorStatus.FORMED || previousStatus == ReactorStatus.SCRAMMED || previousStatus == ReactorStatus.SCRAMMED_HOT);
-            currentStructure = Optional.of(newStructure);
+            setStructure(Optional.of(newStructure));
             status = previousStatus == ReactorStatus.SCRAMMED_HOT && ticksSinceLoad < LOAD_MELTDOWN_GRACE_TICKS
                     ? ReactorStatus.SCRAMMED_HOT
                     : ReactorStatus.FORMED;
@@ -255,7 +278,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
         if (previousStatus == ReactorStatus.FORMED || previousStatus == ReactorStatus.SCRAMMED || previousStatus == ReactorStatus.SCRAMMED_HOT) {
             currentStructure.ifPresent(this::clearStructureParts);
-            currentStructure = Optional.empty();
+            setStructure(Optional.empty());
             status = ReactorStatus.SCRAMMED;
             physicsSimulator.setControlRodInsertion(1.0f);
             if (playerInitiated || previousStatus != ReactorStatus.SCRAMMED) {
@@ -263,7 +286,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             }
         } else {
             status = ReactorStatus.UNFORMED;
-            currentStructure = Optional.empty();
+            setStructure(Optional.empty());
             if (playerInitiated) {
                 sendPlayerMessage("§cReactor incomplete: " + result.primaryMessage(), true);
             }
@@ -272,7 +295,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         markDirtyAndSync();
     }
 
-    private boolean isDynamicControlChannelFailure(ReactorStructureValidator.ReactorValidationResult result) {
+    private boolean isDynamicControlChannelFailure(MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> result) {
         return !result.errors().isEmpty()
                 && result.errors().stream().allMatch(error -> error.startsWith("Control rod channel blocked at "));
     }
@@ -495,36 +518,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     private void sendPlayerMessage(String message, boolean force) {
-        if (getLevel() == null) {
-            return;
-        }
-        if (!force && !shouldSendAutomaticMessage(message)) {
-            return;
-        }
-        if (ownerPlayer != null && ownerPlayer.isAlive()) {
-            ownerPlayer.displayClientMessage(Component.literal(message), false);
-            return;
-        }
-        if (ownerUUID.isPresent()) {
-            Player player = getLevel().getPlayerByUUID(ownerUUID.get());
-            if (player != null && player.isAlive()) {
-                ownerPlayer = player;
-                player.displayClientMessage(Component.literal(message), false);
-                return;
-            }
-        }
-        LOGGER.debug("[Reactor] {}", message);
-    }
-
-    private boolean shouldSendAutomaticMessage(String message) {
-        long gameTime = getLevel().getGameTime();
-        if (message.equals(lastAutomaticMessage)
-                && gameTime - lastAutomaticMessageGameTime < AUTOMATIC_MESSAGE_COOLDOWN_TICKS) {
-            return false;
-        }
-        lastAutomaticMessage = message;
-        lastAutomaticMessageGameTime = gameTime;
-        return true;
+        messenger.send(getLevel(), message, force);
     }
 
     private void handleMeltdown() {
@@ -538,7 +532,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
         status = ReactorStatus.MELTDOWN;
         currentStructure.ifPresent(this::clearStructureParts);
-        currentStructure = Optional.empty();
+        setStructure(Optional.empty());
         physicsSimulator = new ReactorPhysicsSimulator(0);
         markDirtyAndSync();
         sendPlayerMessage("§4Nuclear meltdown at " + getBlockPos(), false);
@@ -903,7 +897,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 : ControlRodTracker.ControlRodScan.empty();
         lastValidation = tag.contains("validation")
                 ? readValidationTag(tag.getCompound("validation"))
-                : ReactorStructureValidator.ReactorValidationResult.invalid(List.of("Not formed"), List.of());
+                : MultiblockValidationResult.invalid(List.of("Not formed"), List.of());
         displaySnapshot = tag.contains("displaySnapshot")
                 ? readDisplaySnapshot(tag.getCompound("displaySnapshot"))
                 : ReactorDisplaySnapshot.unsynced();
@@ -1135,7 +1129,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return new ControlRodTracker.ControlRodScan(insertionRatio, staticSegments, movingSegments, insertedSegments, expectedSegments);
     }
 
-    private CompoundTag writeValidationTag(ReactorStructureValidator.ReactorValidationResult validation) {
+    private CompoundTag writeValidationTag(MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> validation) {
         CompoundTag validationTag = new CompoundTag();
         validationTag.putBoolean("formed", validation.formed());
         validationTag.putString("errors", String.join("\n", validation.errors()));
@@ -1143,13 +1137,13 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return validationTag;
     }
 
-    private ReactorStructureValidator.ReactorValidationResult readValidationTag(CompoundTag validationTag) {
+    private MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> readValidationTag(CompoundTag validationTag) {
         List<String> errors = readStringList(validationTag.getString("errors"));
         List<String> warnings = readStringList(validationTag.getString("warnings"));
         if (validationTag.getBoolean("formed") && currentStructure.isPresent()) {
-            return ReactorStructureValidator.ReactorValidationResult.valid(currentStructure.get(), warnings);
+            return MultiblockValidationResult.valid(currentStructure.get(), warnings);
         }
-        return ReactorStructureValidator.ReactorValidationResult.invalid(
+        return MultiblockValidationResult.invalid(
                 errors.isEmpty() ? List.of("Not formed") : errors,
                 warnings);
     }

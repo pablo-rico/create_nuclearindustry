@@ -27,7 +27,10 @@ import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
 import org.papiricoh.create_nuclearindustry.fusion.block.FusionReactorControllerBlock;
-import org.papiricoh.create_nuclearindustry.fusion.event.FusionReactorManager;
+import org.papiricoh.create_nuclearindustry.multiblock.BlockChange;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.FusionStructureValidator;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.FusionStructureValidator.FusionStructure;
 import org.papiricoh.create_nuclearindustry.fusion.physics.FusionPhysicsSimulator;
@@ -37,7 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable {
+public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable, MultiblockController {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int TANK_CAPACITY = 16_000;
     private static final int MAX_PLASMA_STEAM_TANK = 16_000;
@@ -127,14 +130,14 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
     public void onLoad() {
         super.onLoad();
         if (level != null && !level.isClientSide) {
-            FusionReactorManager.registerReactor(level, getBlockPos(), this);
+            MultiblockRegistry.register(this);
         }
     }
 
     @Override
     public void setRemoved() {
         if (level != null && !level.isClientSide) {
-            FusionReactorManager.unregisterReactor(level, getBlockPos());
+            MultiblockRegistry.unregister(this);
         }
         super.setRemoved();
     }
@@ -143,6 +146,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         revalidate(true, player);
     }
 
+    @Override
     public void requestStructureRevalidation(Player player) {
         if (player != null) {
             ownerPlayer = player;
@@ -151,11 +155,22 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         pendingRevalidation = true;
     }
 
-    public boolean shouldReactToBlockChange(BlockPos changedPos) {
+    @Override
+    public BoundingBox interestBounds() {
+        int reach = FusionStructureValidator.MAX_SIZE / 2 + 1;
+        BlockPos pos = getBlockPos();
+        return new BoundingBox(pos.getX() - reach, pos.getY() - 1, pos.getZ() - reach,
+                pos.getX() + reach, pos.getY() + 1, pos.getZ() + reach);
+    }
+
+    @Override
+    public boolean shouldReactToBlockChange(BlockChange change) {
         if (currentStructure.isPresent()) {
-            return currentStructure.get().contains(changedPos);
+            return currentStructure.get().contains(change.pos())
+                    && !change.pos().equals(getBlockPos())
+                    && (change.removed() || change.isMultiblockPart() || change.state().isAir());
         }
-        return changedPos.closerThan(getBlockPos(), FusionStructureValidator.MAX_SIZE + 2);
+        return change.removed() || change.isMultiblockPart();
     }
 
     private double readConfinementInput() {

@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.AABB;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFuelPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
@@ -28,26 +29,26 @@ public class ReactorStructureValidator {
     public static final int MIN_HEIGHT = 4;
     public static final int MAX_HEIGHT = 12;
 
-    public static ReactorValidationResult validate(Level level, BlockPos controllerPos) {
+    public static MultiblockValidationResult<ReactorStructure> validate(Level level, BlockPos controllerPos) {
         return validate(level, controllerPos, Optional.empty());
     }
 
-    public static ReactorValidationResult validate(Level level, BlockPos controllerPos, Optional<ReactorStructure> previousStructure) {
+    public static MultiblockValidationResult<ReactorStructure> validate(Level level, BlockPos controllerPos, Optional<ReactorStructure> previousStructure) {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
         if (level == null) {
             errors.add("Level unavailable");
-            return ReactorValidationResult.invalid(errors, warnings);
+            return MultiblockValidationResult.invalid(errors, warnings);
         }
         if (!level.getBlockState(controllerPos).is(AllNuclearBlocks.REACTOR_CONTROLLER.get())) {
             errors.add("Controller block missing");
-            return ReactorValidationResult.invalid(errors, warnings);
+            return MultiblockValidationResult.invalid(errors, warnings);
         }
 
         Optional<DetectedBounds> detected = detectBounds(level, controllerPos, errors);
         if (detected.isEmpty()) {
-            return ReactorValidationResult.invalid(errors, warnings);
+            return MultiblockValidationResult.invalid(errors, warnings);
         }
 
         DetectedBounds bounds = detected.get();
@@ -61,9 +62,9 @@ public class ReactorStructureValidator {
         validateInterior(level, structure, errors, warnings);
 
         if (!errors.isEmpty()) {
-            return ReactorValidationResult.invalid(errors, warnings);
+            return MultiblockValidationResult.invalid(errors, warnings);
         }
-        return ReactorValidationResult.valid(structure, warnings);
+        return MultiblockValidationResult.valid(structure, warnings);
     }
 
     private static boolean sameBounds(ReactorStructure oldStructure, ReactorStructure newStructure) {
@@ -335,26 +336,6 @@ public class ReactorStructureValidator {
 
     private record DetectedBounds(int width, int height, int bottomY) {}
 
-    public record ReactorValidationResult(boolean formed, Optional<ReactorStructure> structure, List<String> errors, List<String> warnings) {
-        public static ReactorValidationResult valid(ReactorStructure structure, List<String> warnings) {
-            return new ReactorValidationResult(true, Optional.of(structure), List.of(), List.copyOf(warnings));
-        }
-
-        public static ReactorValidationResult invalid(List<String> errors, List<String> warnings) {
-            return new ReactorValidationResult(false, Optional.empty(), List.copyOf(errors), List.copyOf(warnings));
-        }
-
-        public String primaryMessage() {
-            if (!errors.isEmpty()) {
-                return errors.get(0);
-            }
-            if (!warnings.isEmpty()) {
-                return warnings.get(0);
-            }
-            return formed ? "Structure formed" : "Structure incomplete";
-        }
-    }
-
     public static class ReactorStructure {
         public final BlockPos controllerPos;
         public final int width;
@@ -438,6 +419,14 @@ public class ReactorStructureValidator {
                     || pos.getX() == controllerPos.getX() + halfWidth
                     || pos.getZ() == controllerPos.getZ() - halfWidth
                     || pos.getZ() == controllerPos.getZ() + halfWidth;
+        }
+
+        /** Every block of the structure plus the control rod travel space above it. */
+        public net.minecraft.world.level.levelgen.structure.BoundingBox bounds() {
+            int halfWidth = width / 2;
+            return new net.minecraft.world.level.levelgen.structure.BoundingBox(
+                    controllerPos.getX() - halfWidth, bottomY, controllerPos.getZ() - halfWidth,
+                    controllerPos.getX() + halfWidth, topY + innerHeight(), controllerPos.getZ() + halfWidth);
         }
 
         public int innerHeight() {
