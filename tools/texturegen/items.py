@@ -3,8 +3,9 @@
 import math
 
 from common import trefoil
-from palette import (BLACK, BRASS, CONCRETE, COPPER, CRYO, CYAN, DANGER, DARK, LEAD,
-                     LITHIUM, PLASMA, RADIUM, STEEL, TRITIUM, URANIUM, WARN, WHITE)
+from palette import (BLACK, BRASS, CARBONATE, CONCRETE, COPPER, CRYO, CYAN, DANGER, DARK,
+                     FLUORITE, LEAD, LITHIUM, PLASMA, RADIUM, SPODUMENE, STEEL, TRITIUM, UO2,
+                     URANIUM, WARN, WHITE, YELLOWCAKE)
 from pixelkit import (Ramp, Tex, fbm, glow, item_outline, mix, shade, speckle)
 
 ITEMS = {}
@@ -583,3 +584,153 @@ def target_designator():
     glow(t, 8.5, 9.5, 5.0, CYAN[6], 0.28)
     item_outline(t, DARK[0])
     return t
+
+
+# ======================================================================================
+# processing chain
+# ======================================================================================
+
+GRANULES = [
+    "................",
+    "................",
+    "................",
+    "................",
+    "......##..##....",
+    "....######.##...",
+    "...#########....",
+    "..###########...",
+    "..############..",
+    ".#############..",
+    ".##############.",
+    "..############..",
+    "...##########...",
+    "................",
+    "................",
+    "................",
+]
+
+
+def _powder(seed, ramp, grain=1.1, sparkle=None, sparkle_chance=0.0, shape=PILE):
+    """A heap of fine material lit from the top-left, optionally flecked."""
+    t = solid(shape, ramp, seed=seed, base=3.9, grain=grain, outline=False)
+    pts = mask_from(shape)
+    if sparkle is not None:
+        for (x, y) in sorted(pts):
+            if fbm(x, y, seed + 41, 16, 16, 2, 3.0) > 1.0 - sparkle_chance:
+                t.set(x, y, sparkle)
+    item_outline(t, ramp[0])
+    return t
+
+
+def _crystal(seed, ramp, facets=5, sparkle=WHITE):
+    """Angular mineral chunk with bright cleavage planes."""
+    t = solid(CHUNK, ramp, seed=seed, base=3.6, grain=0.6, outline=False)
+    pts = mask_from(CHUNK)
+    for (x, y) in sorted(pts):
+        if (x - y) % facets == 0 and (x, y - 1) in pts and (x + 1, y) in pts:
+            t.set(x, y, ramp[6])
+        elif (x - y) % facets == 1 and (x, y + 1) in pts:
+            t.set(x, y, ramp[2])
+    top = min(pts, key=lambda p: (p[1], p[0]))
+    t.set(top[0] + 1, top[1] + 1, sparkle)
+    item_outline(t, ramp[0])
+    return t
+
+
+@item("crushed_raw_uranium")
+def crushed_raw_uranium():
+    rock = Ramp("#343b2c", "#50573c", "#70764a", "#919258", "#b1b476", "#ced199", "#e2e6bc")
+    return _powder(230, rock, grain=1.3, sparkle=URANIUM[5], sparkle_chance=0.22, shape=GRANULES)
+
+
+@item("uranium_concentrate")
+def uranium_concentrate():
+    return _powder(231, URANIUM.tinted(DARK[2], 0.45), grain=1.2, sparkle=RADIUM[5], sparkle_chance=0.12)
+
+
+@item("yellowcake")
+def yellowcake():
+    return _powder(232, YELLOWCAKE, grain=0.9, sparkle=YELLOWCAKE[6], sparkle_chance=0.10)
+
+
+@item("uranium_dioxide")
+def uranium_dioxide():
+    return _powder(233, UO2, grain=0.8, sparkle=RADIUM[3], sparkle_chance=0.08)
+
+
+@item("uranium_fuel_pellet")
+def uranium_fuel_pellet():
+    # A sintered ceramic cylinder seen from the side: flat ends, satin barrel.
+    t = Tex(16, 16, 234)
+    pts = rect_pts(5, 3, 10, 12)
+    sculpt(t, pts, UO2, base=3.8, seed=234, grain=0.35)
+    for y in range(3, 13):
+        t.set(5, y, UO2[5])
+        t.set(6, y, UO2[4])
+        t.set(10, y, UO2[1])
+    t.hline(5, 10, 3, UO2[6])
+    t.hline(5, 10, 4, UO2[4])
+    t.hline(5, 10, 12, UO2[1])
+    for y in (6, 9):
+        t.hline(6, 9, y, UO2[2])
+    t.set(7, 5, RADIUM[5])
+    glow(t, 8, 8, 5.0, RADIUM[6], 0.12)
+    item_outline(t, UO2[0])
+    return t
+
+
+@item("incomplete_uranium_reactor_fuel")
+def incomplete_uranium_reactor_fuel():
+    t = _fuel_bundle(235, URANIUM, STEEL)
+    # Only the left half of the cladding is filled so far.
+    for x in range(8, 13):
+        for y in range(3, 12):
+            t.set(x, y, DARK[2] if x % 2 else DARK[1])
+    for y in range(3, 12):
+        t.set(12, y, DARK[0])
+    return t
+
+
+@item("radioactive_waste")
+def radioactive_waste():
+    # Vitrified waste: dark glass slag with a sickly glow.
+    glass = Ramp("#14201a", "#1f3125", "#2b4431", "#3a5a3e", "#4e744d", "#68935f", "#8ab27a")
+    t = solid(CHUNK, glass, seed=236, base=3.2, grain=1.0, outline=False)
+    pts = mask_from(CHUNK)
+    for (x, y) in sorted(pts):
+        if fbm(x, y, 236, 16, 16, 3, 4.0) > 0.66:
+            t.set(x, y, RADIUM[6])
+    glow(t, 7.5, 8.5, 7.0, RADIUM[6], 0.20)
+    item_outline(t, glass[0])
+    return t
+
+
+@item("fluorite")
+def fluorite():
+    return _crystal(237, FLUORITE, facets=4)
+
+
+@item("raw_spodumene")
+def raw_spodumene():
+    return _crystal(238, SPODUMENE, facets=6, sparkle=LITHIUM[6])
+
+
+@item("crushed_spodumene")
+def crushed_spodumene():
+    return _powder(239, SPODUMENE, grain=1.3, sparkle=SPODUMENE[6], sparkle_chance=0.18, shape=GRANULES)
+
+
+@item("spodumene_concentrate")
+def spodumene_concentrate():
+    return _powder(240, SPODUMENE.tinted(WHITE, 0.25), grain=1.0, sparkle=LITHIUM[5], sparkle_chance=0.10)
+
+
+@item("lithium_carbonate")
+def lithium_carbonate():
+    return _powder(241, CARBONATE, grain=0.7, sparkle=WHITE, sparkle_chance=0.12)
+
+
+@item("empty_gas_cell")
+def empty_gas_cell():
+    hollow = Ramp("#1b2224", "#253033", "#303e41", "#3c4d50", "#4b5f62", "#5d7477", "#738c8e")
+    return _cell(242, hollow, STEEL)

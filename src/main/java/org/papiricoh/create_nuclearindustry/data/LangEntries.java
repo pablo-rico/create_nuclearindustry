@@ -16,6 +16,7 @@ public final class LangEntries {
 
     static {
         content();
+        materials();
         jei();
         ponder();
     }
@@ -227,6 +228,43 @@ public final class LangEntries {
         add("fluid.create_nuclearindustry.plasma_steam",
                 "Plasma Steam",
                 "Vapor de Plasma");
+    }
+
+    private static void materials() {
+        item("crushed_raw_uranium", "Crushed Raw Uranium", "Uranio en bruto triturado");
+        item("uranium_concentrate", "Uranium Concentrate", "Concentrado de uranio");
+        item("yellowcake", "Yellowcake", "Torta amarilla");
+        item("uranium_dioxide", "Uranium Dioxide", "Dióxido de uranio");
+        item("uranium_fuel_pellet", "Uranium Fuel Pellet", "Pastilla de combustible de uranio");
+        item("incomplete_uranium_reactor_fuel", "Incomplete Uranium Reactor Fuel", "Combustible de uranio incompleto");
+        item("radioactive_waste", "Radioactive Waste", "Residuos radiactivos");
+        item("fluorite", "Fluorite", "Fluorita");
+        item("raw_spodumene", "Raw Spodumene", "Espodumena en bruto");
+        item("crushed_spodumene", "Crushed Spodumene", "Espodumena triturada");
+        item("spodumene_concentrate", "Spodumene Concentrate", "Concentrado de espodumena");
+        item("lithium_carbonate", "Lithium Carbonate", "Carbonato de litio");
+        item("empty_gas_cell", "Empty Gas Cell", "Célula de gas vacía");
+        block("spodumene_ore", "Spodumene Ore", "Mena de espodumena");
+
+        fluid("sulfuric_acid", "Sulfuric Acid", "Ácido sulfúrico");
+        fluid("hydrofluoric_acid", "Hydrofluoric Acid", "Ácido fluorhídrico");
+        fluid("uranium_hexafluoride", "Uranium Hexafluoride", "Hexafluoruro de uranio");
+        fluid("depleted_uranium_hexafluoride", "Depleted Uranium Hexafluoride", "Hexafluoruro de uranio empobrecido");
+        fluid("low_enriched_uranium_hexafluoride", "Low-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio poco enriquecido");
+        fluid("high_enriched_uranium_hexafluoride", "High-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio altamente enriquecido");
+        fluid("weapons_grade_uranium_hexafluoride", "Weapons-Grade Uranium Hexafluoride", "Hexafluoruro de uranio de grado militar");
+    }
+
+    private static void item(String id, String english, String spanish) {
+        add("item.create_nuclearindustry." + id, english, spanish);
+    }
+
+    private static void block(String id, String english, String spanish) {
+        add("block.create_nuclearindustry." + id, english, spanish);
+    }
+
+    private static void fluid(String id, String english, String spanish) {
+        add("fluid.create_nuclearindustry." + id, english, spanish);
     }
 
     private static void jei() {

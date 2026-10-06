@@ -4,325 +4,200 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class AllNuclearFluids {
     public static final DeferredRegister<FluidType> FLUID_TYPES =
             DeferredRegister.create(NeoForgeRegistries.Keys.FLUID_TYPES, Create_NuclearIndustry.MODID);
-    public static final DeferredRegister<net.minecraft.world.level.material.Fluid> FLUIDS =
+    public static final DeferredRegister<Fluid> FLUIDS =
             DeferredRegister.create(Registries.FLUID, Create_NuclearIndustry.MODID);
     public static final DeferredRegister<Block> BLOCKS =
             DeferredRegister.create(Registries.BLOCK, Create_NuclearIndustry.MODID);
     public static final DeferredRegister<Item> ITEMS =
             DeferredRegister.create(Registries.ITEM, Create_NuclearIndustry.MODID);
 
-    // Helper 1.20.1-friendly (evita APIs nuevas de 1.20.6)
+    private static final List<NuclearFluid> ALL = new ArrayList<>();
+
+    /** Which animated texture pair a fluid is drawn with; both are tinted at runtime. */
+    private enum Look {
+        GAS(tex("block/steam_still"), tex("block/steam_flow")),
+        LIQUID(ResourceLocation.withDefaultNamespace("block/water_still"), ResourceLocation.withDefaultNamespace("block/water_flow"));
+
+        private final ResourceLocation still;
+        private final ResourceLocation flowing;
+
+        Look(ResourceLocation still, ResourceLocation flowing) {
+            this.still = still;
+            this.flowing = flowing;
+        }
+    }
+
+    // ---------------------------------------------------------------- coolant loop
+    public static final NuclearFluid STEAM_FLUID = gas("steam", 0xA0FFFFFF, -100, 100, 373, 0);
+    public static final NuclearFluid HEAVY_WATER_FLUID = register("heavy_water", Look.GAS, 0xFF3F67C9, FluidType.Properties.create()
+            .density(1100).viscosity(1500).temperature(300).canDrown(true).canSwim(true).supportsBoating(false), 4);
+    public static final NuclearFluid HEAVY_STEAM_FLUID = gas("heavy_steam", 0xB07C9CFF, -80, 130, 393, 0);
+    public static final NuclearFluid PLASMA_STEAM_FLUID = gas("plasma_steam", 0xC0FFD27C, -70, 120, 500, 6);
+
+    // ---------------------------------------------------------------- fusion fuel
+    public static final NuclearFluid DEUTERIUM_FLUID = gas("deuterium", 0xB05CD6FF, -90, 80, 300, 0);
+    public static final NuclearFluid TRITIUM_FLUID = gas("tritium", 0xB0FF66AA, -85, 80, 300, 2);
+
+    // ---------------------------------------------------------------- process chemicals
+    public static final NuclearFluid SULFURIC_ACID_FLUID = liquid("sulfuric_acid", 0xF0E3D46A, 1830, 2400, 300);
+    public static final NuclearFluid HYDROFLUORIC_ACID_FLUID = liquid("hydrofluoric_acid", 0xD0BDE6D3, 1150, 1100, 290);
+
+    // ---------------------------------------------------------------- uranium hexafluoride, one fluid per enrichment tier
+    public static final NuclearFluid DEPLETED_URANIUM_HEXAFLUORIDE_FLUID = gas("depleted_uranium_hexafluoride", 0xC8A3A796, 5000, 300, 340, 0);
+    public static final NuclearFluid URANIUM_HEXAFLUORIDE_FLUID = gas("uranium_hexafluoride", 0xC8D6E39A, 5000, 300, 340, 0);
+    public static final NuclearFluid LOW_ENRICHED_URANIUM_HEXAFLUORIDE_FLUID = gas("low_enriched_uranium_hexafluoride", 0xC8B5E06E, 5000, 300, 340, 1);
+    public static final NuclearFluid HIGH_ENRICHED_URANIUM_HEXAFLUORIDE_FLUID = gas("high_enriched_uranium_hexafluoride", 0xC88ED35A, 5000, 300, 340, 2);
+    public static final NuclearFluid WEAPONS_GRADE_URANIUM_HEXAFLUORIDE_FLUID = gas("weapons_grade_uranium_hexafluoride", 0xC869C64C, 5000, 300, 340, 4);
+
+    // ---------------------------------------------------------------- short accessors used across the mod
+    public static final Supplier<FluidType> STEAM_TYPE = STEAM_FLUID.type();
+    public static final Supplier<FluidType> HEAVY_WATER_TYPE = HEAVY_WATER_FLUID.type();
+    public static final Supplier<FluidType> HEAVY_STEAM_TYPE = HEAVY_STEAM_FLUID.type();
+    public static final Supplier<FluidType> DEUTERIUM_TYPE = DEUTERIUM_FLUID.type();
+    public static final Supplier<FluidType> TRITIUM_TYPE = TRITIUM_FLUID.type();
+    public static final Supplier<FluidType> PLASMA_STEAM_TYPE = PLASMA_STEAM_FLUID.type();
+
+    public static final Supplier<FlowingFluid> STEAM = STEAM_FLUID.source();
+    public static final Supplier<FlowingFluid> FLOWING_STEAM = STEAM_FLUID.flowing();
+    public static final Supplier<FlowingFluid> HEAVY_WATER = HEAVY_WATER_FLUID.source();
+    public static final Supplier<FlowingFluid> FLOWING_HEAVY_WATER = HEAVY_WATER_FLUID.flowing();
+    public static final Supplier<FlowingFluid> HEAVY_STEAM = HEAVY_STEAM_FLUID.source();
+    public static final Supplier<FlowingFluid> FLOWING_HEAVY_STEAM = HEAVY_STEAM_FLUID.flowing();
+    public static final Supplier<FlowingFluid> DEUTERIUM = DEUTERIUM_FLUID.source();
+    public static final Supplier<FlowingFluid> FLOWING_DEUTERIUM = DEUTERIUM_FLUID.flowing();
+    public static final Supplier<FlowingFluid> TRITIUM = TRITIUM_FLUID.source();
+    public static final Supplier<FlowingFluid> FLOWING_TRITIUM = TRITIUM_FLUID.flowing();
+    public static final Supplier<FlowingFluid> PLASMA_STEAM = PLASMA_STEAM_FLUID.source();
+    public static final Supplier<FlowingFluid> FLOWING_PLASMA_STEAM = PLASMA_STEAM_FLUID.flowing();
+    public static final Supplier<FlowingFluid> SULFURIC_ACID = SULFURIC_ACID_FLUID.source();
+    public static final Supplier<FlowingFluid> HYDROFLUORIC_ACID = HYDROFLUORIC_ACID_FLUID.source();
+    public static final Supplier<FlowingFluid> DEPLETED_URANIUM_HEXAFLUORIDE = DEPLETED_URANIUM_HEXAFLUORIDE_FLUID.source();
+    public static final Supplier<FlowingFluid> URANIUM_HEXAFLUORIDE = URANIUM_HEXAFLUORIDE_FLUID.source();
+    public static final Supplier<FlowingFluid> LOW_ENRICHED_URANIUM_HEXAFLUORIDE = LOW_ENRICHED_URANIUM_HEXAFLUORIDE_FLUID.source();
+    public static final Supplier<FlowingFluid> HIGH_ENRICHED_URANIUM_HEXAFLUORIDE = HIGH_ENRICHED_URANIUM_HEXAFLUORIDE_FLUID.source();
+    public static final Supplier<FlowingFluid> WEAPONS_GRADE_URANIUM_HEXAFLUORIDE = WEAPONS_GRADE_URANIUM_HEXAFLUORIDE_FLUID.source();
+
+    // ---------------------------------------------------------------- world block and bucket (steam only)
+    public static final Supplier<LiquidBlock> STEAM_BLOCK = BLOCKS.register("steam", () -> new LiquidBlock(
+            STEAM.get(),
+            BlockBehaviour.Properties.of()
+                    .noCollission()
+                    .noLootTable()
+                    .replaceable()
+                    .strength(100f)
+                    .pushReaction(PushReaction.DESTROY)));
+
+    public static final Supplier<Item> STEAM_BUCKET = ITEMS.register("steam_bucket",
+            () -> new BucketItem(STEAM.get(), new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
+
+    public static List<NuclearFluid> all() {
+        return Collections.unmodifiableList(ALL);
+    }
+
+    public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        for (NuclearFluid fluid : ALL) {
+            Look look = fluid.look;
+            int tint = fluid.tint;
+            event.registerFluidType(new IClientFluidTypeExtensions() {
+                @Override public ResourceLocation getStillTexture() { return look.still; }
+                @Override public ResourceLocation getFlowingTexture() { return look.flowing; }
+                @Override public int getTintColor() { return tint; }
+            }, fluid.type().get());
+        }
+    }
+
+    private static NuclearFluid gas(String name, int tint, int density, int viscosity, int temperature, int light) {
+        return register(name, Look.GAS, tint, FluidType.Properties.create()
+                .density(density).viscosity(viscosity).temperature(temperature).lightLevel(light)
+                .canDrown(false).canSwim(false).supportsBoating(false), 2);
+    }
+
+    private static NuclearFluid liquid(String name, int tint, int density, int viscosity, int temperature) {
+        return register(name, Look.LIQUID, tint, FluidType.Properties.create()
+                .density(density).viscosity(viscosity).temperature(temperature)
+                .canDrown(true).canSwim(true).supportsBoating(false), 4);
+    }
+
+    private static NuclearFluid register(String name, Look look, int tint, FluidType.Properties properties, int slopeFindDistance) {
+        properties.descriptionId("fluid." + Create_NuclearIndustry.MODID + "." + name);
+        NuclearFluid fluid = new NuclearFluid(name, look, tint, slopeFindDistance);
+        fluid.type = FLUID_TYPES.register(name, () -> new FluidType(properties));
+        fluid.source = FLUIDS.register(name, () -> new BaseFlowingFluid.Source(fluid.properties()));
+        fluid.flowing = FLUIDS.register("flowing_" + name, () -> new BaseFlowingFluid.Flowing(fluid.properties()));
+        ALL.add(fluid);
+        return fluid;
+    }
+
     private static ResourceLocation tex(String path) {
-        // En 1.20.1 este ctor NO está deprecado.
         return ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path);
     }
 
-    private static final IClientFluidTypeExtensions STEAM_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
-        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
-        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
-        @Override public int getTintColor() { return 0xA0FFFFFF; }
-    };
+    /** One registered fluid: its type plus source and flowing variants. */
+    public static final class NuclearFluid {
+        private final String name;
+        private final Look look;
+        private final int tint;
+        private final int slopeFindDistance;
+        private DeferredHolder<FluidType, FluidType> type;
+        private DeferredHolder<Fluid, FlowingFluid> source;
+        private DeferredHolder<Fluid, FlowingFluid> flowing;
+        private BaseFlowingFluid.Properties properties;
 
-    private static final IClientFluidTypeExtensions HEAVY_WATER_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
-        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
-        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
-        @Override public int getTintColor() { return 0xFF3F67C9; }
-    };
-
-    private static final IClientFluidTypeExtensions HEAVY_STEAM_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
-        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
-        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
-        @Override public int getTintColor() { return 0xB07C9CFF; }
-    };
-
-    private static final IClientFluidTypeExtensions DEUTERIUM_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
-        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
-        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
-        @Override public int getTintColor() { return 0xB05CD6FF; }
-    };
-
-    private static final IClientFluidTypeExtensions TRITIUM_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
-        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
-        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
-        @Override public int getTintColor() { return 0xB0FF66AA; }
-    };
-
-    private static final IClientFluidTypeExtensions PLASMA_STEAM_CLIENT_EXTENSIONS = new IClientFluidTypeExtensions() {
-        @Override public ResourceLocation getStillTexture()   { return tex("block/steam_still"); }
-        @Override public ResourceLocation getFlowingTexture() { return tex("block/steam_flow"); }
-        @Override public int getTintColor() { return 0xC0FFD27C; }
-    };
-
-    public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
-        event.registerFluidType(STEAM_CLIENT_EXTENSIONS, STEAM_TYPE.get());
-        event.registerFluidType(HEAVY_WATER_CLIENT_EXTENSIONS, HEAVY_WATER_TYPE.get());
-        event.registerFluidType(HEAVY_STEAM_CLIENT_EXTENSIONS, HEAVY_STEAM_TYPE.get());
-        event.registerFluidType(DEUTERIUM_CLIENT_EXTENSIONS, DEUTERIUM_TYPE.get());
-        event.registerFluidType(TRITIUM_CLIENT_EXTENSIONS, TRITIUM_TYPE.get());
-        event.registerFluidType(PLASMA_STEAM_CLIENT_EXTENSIONS, PLASMA_STEAM_TYPE.get());
-    }
-
-    // --------------------------------------------------------------------------------------------
-    // FluidType: Steam (gas)
-    // --------------------------------------------------------------------------------------------
-    public static final Supplier<FluidType> STEAM_TYPE = FLUID_TYPES.register("steam", () ->
-            new FluidType(FluidType.Properties.create()
-                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".steam")
-                    .density(-100)          // negativo → “gas”
-                    .viscosity(100)         // poco viscoso
-                    .temperature(373)       // ~100 ºC
-                    .lightLevel(0)
-                    .canDrown(false)
-                    .canSwim(false)
-                    .supportsBoating(false)
-            )
-    );
-
-    public static final Supplier<FluidType> HEAVY_WATER_TYPE = FLUID_TYPES.register("heavy_water", () ->
-            new FluidType(FluidType.Properties.create()
-                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".heavy_water")
-                    .density(1100)
-                    .viscosity(1500)
-                    .temperature(300)
-                    .lightLevel(0)
-                    .canDrown(true)
-                    .canSwim(true)
-                    .supportsBoating(false)
-            )
-    );
-
-    public static final Supplier<FluidType> HEAVY_STEAM_TYPE = FLUID_TYPES.register("heavy_steam", () ->
-            new FluidType(FluidType.Properties.create()
-                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".heavy_steam")
-                    .density(-80)
-                    .viscosity(130)
-                    .temperature(393)
-                    .lightLevel(0)
-                    .canDrown(false)
-                    .canSwim(false)
-                    .supportsBoating(false)
-            )
-    );
-
-    public static final Supplier<FluidType> DEUTERIUM_TYPE = FLUID_TYPES.register("deuterium", () ->
-            new FluidType(FluidType.Properties.create()
-                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".deuterium")
-                    .density(-90)
-                    .viscosity(80)
-                    .temperature(300)
-                    .lightLevel(0)
-                    .canDrown(false)
-                    .canSwim(false)
-                    .supportsBoating(false)
-            )
-    );
-
-    public static final Supplier<FluidType> TRITIUM_TYPE = FLUID_TYPES.register("tritium", () ->
-            new FluidType(FluidType.Properties.create()
-                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".tritium")
-                    .density(-85)
-                    .viscosity(80)
-                    .temperature(300)
-                    .lightLevel(2)
-                    .canDrown(false)
-                    .canSwim(false)
-                    .supportsBoating(false)
-            )
-    );
-
-    public static final Supplier<FluidType> PLASMA_STEAM_TYPE = FLUID_TYPES.register("plasma_steam", () ->
-            new FluidType(FluidType.Properties.create()
-                    .descriptionId("fluid." + Create_NuclearIndustry.MODID + ".plasma_steam")
-                    .density(-70)
-                    .viscosity(120)
-                    .temperature(500)
-                    .lightLevel(6)
-                    .canDrown(false)
-                    .canSwim(false)
-                    .supportsBoating(false)
-            )
-    );
-
-    // -------------------- Fluids --------------------
-    public static final Supplier<FlowingFluid> STEAM = FLUIDS.register(
-            "steam",
-            () -> new BaseFlowingFluid.Source(steamProps())  // <- lazy
-    );
-
-    public static final Supplier<FlowingFluid> FLOWING_STEAM = FLUIDS.register(
-            "flowing_steam",
-            () -> new BaseFlowingFluid.Flowing(steamProps()) // <- lazy
-    );
-
-    public static final Supplier<FlowingFluid> HEAVY_WATER = FLUIDS.register(
-            "heavy_water",
-            () -> new BaseFlowingFluid.Source(heavyWaterProps())
-    );
-
-    public static final Supplier<FlowingFluid> FLOWING_HEAVY_WATER = FLUIDS.register(
-            "flowing_heavy_water",
-            () -> new BaseFlowingFluid.Flowing(heavyWaterProps())
-    );
-
-    public static final Supplier<FlowingFluid> HEAVY_STEAM = FLUIDS.register(
-            "heavy_steam",
-            () -> new BaseFlowingFluid.Source(heavySteamProps())
-    );
-
-    public static final Supplier<FlowingFluid> FLOWING_HEAVY_STEAM = FLUIDS.register(
-            "flowing_heavy_steam",
-            () -> new BaseFlowingFluid.Flowing(heavySteamProps())
-    );
-
-    public static final Supplier<FlowingFluid> DEUTERIUM = FLUIDS.register(
-            "deuterium",
-            () -> new BaseFlowingFluid.Source(deuteriumProps())
-    );
-    public static final Supplier<FlowingFluid> FLOWING_DEUTERIUM = FLUIDS.register(
-            "flowing_deuterium",
-            () -> new BaseFlowingFluid.Flowing(deuteriumProps())
-    );
-
-    public static final Supplier<FlowingFluid> TRITIUM = FLUIDS.register(
-            "tritium",
-            () -> new BaseFlowingFluid.Source(tritiumProps())
-    );
-    public static final Supplier<FlowingFluid> FLOWING_TRITIUM = FLUIDS.register(
-            "flowing_tritium",
-            () -> new BaseFlowingFluid.Flowing(tritiumProps())
-    );
-
-    public static final Supplier<FlowingFluid> PLASMA_STEAM = FLUIDS.register(
-            "plasma_steam",
-            () -> new BaseFlowingFluid.Source(plasmaSteamProps())
-    );
-    public static final Supplier<FlowingFluid> FLOWING_PLASMA_STEAM = FLUIDS.register(
-            "flowing_plasma_steam",
-            () -> new BaseFlowingFluid.Flowing(plasmaSteamProps())
-    );
-
-    // -------------------- Bloque y cubo (opcionales) --------------------
-    public static final Supplier<LiquidBlock> STEAM_BLOCK = BLOCKS.register(
-            "steam",
-            () -> new LiquidBlock(
-                    STEAM.get(),
-                    BlockBehaviour.Properties.of()
-                            .noCollission()
-                            .noLootTable()
-                            .replaceable()
-                            .strength(100f)
-                            .pushReaction(PushReaction.DESTROY)
-            )
-    );
-
-    public static final Supplier<Item> STEAM_BUCKET = ITEMS.register(
-            "steam_bucket",
-            () -> new BucketItem(STEAM.get(), new Item.Properties().stacksTo(1)
-                    .craftRemainder(net.minecraft.world.item.Items.BUCKET))
-    );
-
-    // -------------------- Lazy properties --------------------
-    private static BaseFlowingFluid.Properties steamProps; // no final a propósito
-    private static BaseFlowingFluid.Properties heavyWaterProps;
-    private static BaseFlowingFluid.Properties heavySteamProps;
-    private static BaseFlowingFluid.Properties deuteriumProps;
-    private static BaseFlowingFluid.Properties tritiumProps;
-    private static BaseFlowingFluid.Properties plasmaSteamProps;
-
-    private static BaseFlowingFluid.Properties deuteriumProps() {
-        if (deuteriumProps == null) {
-            deuteriumProps = new BaseFlowingFluid.Properties(DEUTERIUM_TYPE, DEUTERIUM, FLOWING_DEUTERIUM)
-                    .slopeFindDistance(2)
-                    .levelDecreasePerBlock(1)
-                    .tickRate(5)
-                    .explosionResistance(100f);
+        private NuclearFluid(String name, Look look, int tint, int slopeFindDistance) {
+            this.name = name;
+            this.look = look;
+            this.tint = tint;
+            this.slopeFindDistance = slopeFindDistance;
         }
-        return deuteriumProps;
-    }
 
-    private static BaseFlowingFluid.Properties tritiumProps() {
-        if (tritiumProps == null) {
-            tritiumProps = new BaseFlowingFluid.Properties(TRITIUM_TYPE, TRITIUM, FLOWING_TRITIUM)
-                    .slopeFindDistance(2)
-                    .levelDecreasePerBlock(1)
-                    .tickRate(5)
-                    .explosionResistance(100f);
+        public String name() {
+            return name;
         }
-        return tritiumProps;
-    }
 
-    private static BaseFlowingFluid.Properties plasmaSteamProps() {
-        if (plasmaSteamProps == null) {
-            plasmaSteamProps = new BaseFlowingFluid.Properties(PLASMA_STEAM_TYPE, PLASMA_STEAM, FLOWING_PLASMA_STEAM)
-                    .slopeFindDistance(2)
-                    .levelDecreasePerBlock(1)
-                    .tickRate(5)
-                    .explosionResistance(100f);
+        public DeferredHolder<FluidType, FluidType> type() {
+            return type;
         }
-        return plasmaSteamProps;
-    }
 
-    private static BaseFlowingFluid.Properties steamProps() {
-        if (steamProps == null) {
-            steamProps = new BaseFlowingFluid.Properties(
-                    STEAM_TYPE,
-                    STEAM,
-                    FLOWING_STEAM
-            )
-                    .slopeFindDistance(2)
-                    .levelDecreasePerBlock(1)
-                    .tickRate(5)
-                    .explosionResistance(100f);
-                    //.block(STEAM_BLOCK);     // comenta si no quieres bloque en mundo
-                    //.bucket(STEAM_BUCKET);  // comenta si no quieres cubo
+        public DeferredHolder<Fluid, FlowingFluid> source() {
+            return source;
         }
-        return steamProps;
-    }
 
-    private static BaseFlowingFluid.Properties heavyWaterProps() {
-        if (heavyWaterProps == null) {
-            heavyWaterProps = new BaseFlowingFluid.Properties(
-                    HEAVY_WATER_TYPE,
-                    HEAVY_WATER,
-                    FLOWING_HEAVY_WATER
-            )
-                    .slopeFindDistance(4)
-                    .levelDecreasePerBlock(1)
-                    .tickRate(5)
-                    .explosionResistance(100f);
+        public DeferredHolder<Fluid, FlowingFluid> flowing() {
+            return flowing;
         }
-        return heavyWaterProps;
-    }
 
-    private static BaseFlowingFluid.Properties heavySteamProps() {
-        if (heavySteamProps == null) {
-            heavySteamProps = new BaseFlowingFluid.Properties(
-                    HEAVY_STEAM_TYPE,
-                    HEAVY_STEAM,
-                    FLOWING_HEAVY_STEAM
-            )
-                    .slopeFindDistance(2)
-                    .levelDecreasePerBlock(1)
-                    .tickRate(5)
-                    .explosionResistance(100f);
+        private BaseFlowingFluid.Properties properties() {
+            if (properties == null) {
+                properties = new BaseFlowingFluid.Properties(type, source, flowing)
+                        .slopeFindDistance(slopeFindDistance)
+                        .levelDecreasePerBlock(1)
+                        .tickRate(5)
+                        .explosionResistance(100f);
+            }
+            return properties;
         }
-        return heavySteamProps;
     }
 }

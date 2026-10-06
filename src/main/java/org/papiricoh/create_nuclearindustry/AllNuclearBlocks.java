@@ -36,6 +36,9 @@ public class AllNuclearBlocks {
     // Creates a new Block with the id "create_nuclearindustry:example_block", combining the namespace and path
     public static final DeferredHolder<Block, ? extends Block> URANIUM_ORE = BLOCKS.register("uranium_ore", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f).requiresCorrectToolForDrops()));
     public static final DeferredHolder<Block, ? extends Block> BORAX_ORE = BLOCKS.register("borax_ore", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f).requiresCorrectToolForDrops()));
+    public static final DeferredHolder<Block, ? extends Block> SPODUMENE_ORE = BLOCKS.register("spodumene_ore", () -> new net.minecraft.world.level.block.DropExperienceBlock(
+            net.minecraft.util.valueproviders.UniformInt.of(1, 3),
+            BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f).requiresCorrectToolForDrops()));
 
 
 

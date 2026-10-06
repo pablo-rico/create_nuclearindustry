@@ -44,6 +44,12 @@ def borax_ore():
     return mineral("stone", borax, offset=1)
 
 
+@block("spodumene_ore")
+def spodumene_ore():
+    from palette import SPODUMENE
+    return mineral("stone", SPODUMENE, offset=3)
+
+
 # ======================================================================================
 # fission tier - casings and structure
 # ======================================================================================

@@ -24,6 +24,13 @@ public class AllCreativeTabs {
                 UraniumItem.setEnrichment(weaponsGradeUranium, 90.0f);
                 output.accept(weaponsGradeUranium);
                 output.accept(AllNuclearItems.URANIUM_ORE.value());
+                output.accept(AllNuclearItems.CRUSHED_RAW_URANIUM.value());
+                output.accept(AllNuclearItems.URANIUM_CONCENTRATE.value());
+                output.accept(AllNuclearItems.YELLOWCAKE.value());
+                output.accept(AllNuclearItems.FLUORITE.value());
+                output.accept(AllNuclearItems.URANIUM_DIOXIDE.value());
+                output.accept(AllNuclearItems.URANIUM_FUEL_PELLET.value());
+                output.accept(AllNuclearItems.RADIOACTIVE_WASTE.value());
                 output.accept(AllNuclearItems.URANIUM_REACTOR_FUEL.value());
                 output.accept(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.value());
                 output.accept(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.value());
@@ -31,6 +38,12 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.BORAX_ORE.value());
                 output.accept(AllNuclearItems.BORAX_SALT.value());
                 output.accept(AllNuclearItems.BORON.value());
+                output.accept(AllNuclearItems.SPODUMENE_ORE.value());
+                output.accept(AllNuclearItems.RAW_SPODUMENE.value());
+                output.accept(AllNuclearItems.CRUSHED_SPODUMENE.value());
+                output.accept(AllNuclearItems.SPODUMENE_CONCENTRATE.value());
+                output.accept(AllNuclearItems.LITHIUM_CARBONATE.value());
+                output.accept(AllNuclearItems.EMPTY_GAS_CELL.value());
                 output.accept(AllNuclearItems.CONTROL_ROD.value());
                 output.accept(AllNuclearItems.HEAT_EXCHANGER.value());
                 output.accept(AllNuclearItems.REACTOR_CASING.value());

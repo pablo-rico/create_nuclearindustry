@@ -32,6 +32,13 @@ DANGER = Ramp("#4c2928", "#733b35", "#9a5144", "#ba6754", "#d88168", "#eea18a", 
 TRITIUM = Ramp("#433344", "#654966", "#876487", "#aa80a1", "#cba0b9", "#e6c4d0", "#f6e5e7")
 LITHIUM = Ramp("#354047", "#515f67", "#6d7e84", "#8c9e9f", "#adbfba", "#cddbd0", "#eaf0df")
 
+# Process chemistry ----------------------------------------------------------------------
+YELLOWCAKE = Ramp("#5b3f12", "#86601a", "#b08524", "#d4a930", "#ecc845", "#f8e07a", "#fff3b8")
+UO2 = Ramp("#1d1a17", "#2c2722", "#3d362e", "#51483c", "#675b4b", "#7f705c", "#9a8a72")
+FLUORITE = Ramp("#2e1f45", "#46306a", "#614a8f", "#7e68b0", "#9e8bcb", "#c0b1e0", "#e3dbf3")
+SPODUMENE = Ramp("#4a4448", "#6b6168", "#8e828a", "#ad9fa8", "#c9bbc3", "#e0d4da", "#f4ecef")
+CARBONATE = Ramp("#5d6062", "#83878a", "#a7abad", "#c6c9ca", "#dfe1e1", "#f0f1f0", "#ffffff")
+
 # Stone hosts for ores -------------------------------------------------------------------
 STONE = Ramp("#4c4e49", "#5b5e57", "#6c7067", "#7d8177", "#8e9387", "#a0a599", "#b2b8aa")
 

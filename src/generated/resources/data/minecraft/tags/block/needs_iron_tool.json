@@ -1,0 +1,7 @@
+{
+  "values": [
+    "create_nuclearindustry:uranium_ore",
+    "create_nuclearindustry:borax_ore",
+    "create_nuclearindustry:spodumene_ore"
+  ]
+}

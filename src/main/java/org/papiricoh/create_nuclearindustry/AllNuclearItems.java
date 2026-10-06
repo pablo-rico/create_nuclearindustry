@@ -5,6 +5,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import com.simibubi.create.content.processing.sequenced.SequencedAssemblyItem;
+import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
 
@@ -18,6 +20,7 @@ public class AllNuclearItems {
     // Creates a new BlockItem with the id "create_nuclearindustry:example_block", combining the namespace and path
     public static final DeferredHolder<Item, ? extends Item> URANIUM_ORE = ITEMS.register("uranium_ore", () -> new BlockItem(AllNuclearBlocks.URANIUM_ORE.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> BORAX_ORE = ITEMS.register("borax_ore", () -> new BlockItem(AllNuclearBlocks.BORAX_ORE.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> SPODUMENE_ORE = ITEMS.register("spodumene_ore", () -> new BlockItem(AllNuclearBlocks.SPODUMENE_ORE.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> CONTROL_ROD = ITEMS.register("control_rod", () -> new BlockItem(AllNuclearBlocks.CONTROL_ROD.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> URANIUM_ROD = ITEMS.register("uranium_rod", () -> new BlockItem(AllNuclearBlocks.URANIUM_ROD.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> HEAT_EXCHANGER = ITEMS.register("heat_exchanger", () -> new BlockItem(AllNuclearBlocks.HEAT_EXCHANGER.value(), new Item.Properties()));
@@ -70,20 +73,51 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> URANIUM = ITEMS.register("uranium", () -> new UraniumItem(new Item.Properties()
             .stacksTo(16)
             .component(AllNuclearDataComponents.ENRICHMENT.get(), UraniumItem.NATURAL_ENRICHMENT)));
-    public static final DeferredHolder<Item, ? extends Item> URANIUM_REACTOR_FUEL = ITEMS.register("uranium_reactor_fuel", () -> new Item(new Item.Properties()
+    // Fuel made before enrichment tiers existed carries no component and reads as the old 20% default.
+    public static final DeferredHolder<Item, ? extends Item> URANIUM_REACTOR_FUEL = ITEMS.register("uranium_reactor_fuel", () -> new UraniumItem(new Item.Properties()
             .stacksTo(16)
             .component(AllNuclearDataComponents.ENRICHMENT.get(), UraniumItem.REACTOR_FUEL_ENRICHMENT)));
-    public static final DeferredHolder<Item, ? extends Item> DEPLETED_URANIUM_REACTOR_FUEL = ITEMS.register("depleted_uranium_reactor_fuel", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> DEPLETED_URANIUM_REACTOR_FUEL = ITEMS.register("depleted_uranium_reactor_fuel", () -> new UraniumItem(new Item.Properties()
+            .stacksTo(16)
+            .component(AllNuclearDataComponents.ENRICHMENT.get(), EnrichmentTier.LOW.nominal())));
     public static final DeferredHolder<Item, ? extends Item> ENRICHED_URANIUM_BLEND = ITEMS.register("enriched_uranium_blend", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> WEAPONS_GRADE_URANIUM_CORE = ITEMS.register("weapons_grade_uranium_core", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> BORAX_SALT = ITEMS.register("borax_salt", () -> new Item(new Item.Properties().stacksTo(64)));
     public static final DeferredHolder<Item, ? extends Item> BORON = ITEMS.register("boron", () -> new Item(new Item.Properties().stacksTo(64)));
+
+    // Uranium processing chain
+    public static final DeferredHolder<Item, ? extends Item> CRUSHED_RAW_URANIUM = simple("crushed_raw_uranium");
+    public static final DeferredHolder<Item, ? extends Item> URANIUM_CONCENTRATE = simple("uranium_concentrate");
+    public static final DeferredHolder<Item, ? extends Item> YELLOWCAKE = simple("yellowcake");
+    public static final DeferredHolder<Item, ? extends Item> URANIUM_DIOXIDE = enriched("uranium_dioxide", 64);
+    public static final DeferredHolder<Item, ? extends Item> URANIUM_FUEL_PELLET = enriched("uranium_fuel_pellet", 64);
+    public static final DeferredHolder<Item, ? extends Item> INCOMPLETE_URANIUM_REACTOR_FUEL = ITEMS.register("incomplete_uranium_reactor_fuel",
+            () -> new SequencedAssemblyItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredHolder<Item, ? extends Item> RADIOACTIVE_WASTE = simple("radioactive_waste");
+    public static final DeferredHolder<Item, ? extends Item> FLUORITE = simple("fluorite");
+
+    // Lithium chain
+    public static final DeferredHolder<Item, ? extends Item> RAW_SPODUMENE = simple("raw_spodumene");
+    public static final DeferredHolder<Item, ? extends Item> CRUSHED_SPODUMENE = simple("crushed_spodumene");
+    public static final DeferredHolder<Item, ? extends Item> SPODUMENE_CONCENTRATE = simple("spodumene_concentrate");
+    public static final DeferredHolder<Item, ? extends Item> LITHIUM_CARBONATE = simple("lithium_carbonate");
+    public static final DeferredHolder<Item, ? extends Item> EMPTY_GAS_CELL = ITEMS.register("empty_gas_cell", () -> new Item(new Item.Properties().stacksTo(16)));
 
     // Sistema de misiles
     public static final DeferredHolder<Item, ? extends Item> MISSILE = ITEMS.register("missile", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> TARGET_DESIGNATOR = ITEMS.register("target_designator", () -> new TargetDesignatorItem(new Item.Properties().stacksTo(1)));
 
 
+
+    private static DeferredHolder<Item, ? extends Item> simple(String name) {
+        return ITEMS.register(name, () -> new Item(new Item.Properties()));
+    }
+
+    private static DeferredHolder<Item, ? extends Item> enriched(String name, int stackSize) {
+        return ITEMS.register(name, () -> new UraniumItem(new Item.Properties()
+                .stacksTo(stackSize)
+                .component(AllNuclearDataComponents.ENRICHMENT.get(), UraniumItem.NATURAL_ENRICHMENT)));
+    }
 
     public static void init() {}
 }

@@ -2,16 +2,24 @@ package org.papiricoh.create_nuclearindustry.data;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockTags;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class NuclearBlockTagsProvider extends BlockTagsProvider {
+    /** Provided by the Create Big Cannons integration, only registered when that mod is present. */
+    private static final ResourceLocation NUCLEAR_CANNON_SHELL =
+            ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "nuclear_cannon_shell");
 
     public NuclearBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
                                     @Nullable ExistingFileHelper existingFileHelper) {
@@ -20,6 +28,22 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
+        Block[] ores = {AllNuclearBlocks.URANIUM_ORE.get(), AllNuclearBlocks.BORAX_ORE.get(), AllNuclearBlocks.SPODUMENE_ORE.get()};
+
+        tag(BlockTags.NEEDS_IRON_TOOL).add(ores);
+        tag(AllNuclearTags.Blocks.C_ORES_URANIUM).add(AllNuclearBlocks.URANIUM_ORE.get());
+        tag(AllNuclearTags.Blocks.C_ORES_LITHIUM).add(AllNuclearBlocks.SPODUMENE_ORE.get());
+        tag(AllNuclearTags.Blocks.C_ORES_BORAX).add(AllNuclearBlocks.BORAX_ORE.get());
+        tag(AllNuclearTags.Blocks.C_ORES).addTags(AllNuclearTags.Blocks.C_ORES_URANIUM,
+                AllNuclearTags.Blocks.C_ORES_LITHIUM, AllNuclearTags.Blocks.C_ORES_BORAX);
+
+        List<Block> machines = AllNuclearBlocks.BLOCKS.getEntries().stream()
+                .map(holder -> (Block) holder.get())
+                .filter(block -> !List.of(ores).contains(block))
+                .toList();
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ores).add(machines.toArray(Block[]::new)).addOptional(NUCLEAR_CANNON_SHELL);
+        tag(AllNuclearTags.Blocks.WRENCH_PICKUP).add(machines.toArray(Block[]::new)).addOptional(NUCLEAR_CANNON_SHELL);
+
         tag(MultiblockTags.MULTIBLOCK_PARTS).add(
                 AllNuclearBlocks.REACTOR_CASING.get(),
                 AllNuclearBlocks.REACTOR_FLUID_PORT.get(),
