@@ -1,4 +1,5 @@
-// 1.21.1	2026-10-06T17:47:22.467358	Registries
+// 1.21.1	2026-10-06T18:24:34.508869	Registries
+5c62302d02c233c0b744f7c894b3b889c2c6970f data/create_nuclearindustry/damage_type/radiation.json
 3adc2b2db21ab433a2bcdd3a58e6103c7a1f1f03 data/create_nuclearindustry/neoforge/biome_modifier/borax_ore.json
 16c7164aabb6a2adcefcbcf42a25ca990ec74315 data/create_nuclearindustry/neoforge/biome_modifier/spodumene_ore.json
 10c2caa3f93576cb6898ee825bcdee3aca209038 data/create_nuclearindustry/neoforge/biome_modifier/uranium_ore.json

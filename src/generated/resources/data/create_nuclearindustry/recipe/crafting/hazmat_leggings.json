@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "W": {
+      "item": "minecraft:yellow_wool"
+    }
+  },
+  "pattern": [
+    "WWW",
+    "W W",
+    "W W"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:hazmat_leggings"
+  }
+}

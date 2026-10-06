@@ -45,6 +45,25 @@ public class Config
             .comment("Whether a plasma disruption blows holes in the tokamak. If false, the plasma just quenches.")
             .define("fusion.disruptionExplosions", true);
 
+    private static final ModConfigSpec.BooleanValue RADIATION_ENABLED = BUILDER
+            .comment("Whether carrying or standing near radioactive material gives players a radiation dose.")
+            .define("radiation.enabled", true);
+    private static final ModConfigSpec.DoubleValue RADIATION_MULTIPLIER = BUILDER
+            .comment("Multiplier on every dose rate.")
+            .defineInRange("radiation.doseMultiplier", 1.0, 0.0, 100.0);
+    private static final ModConfigSpec.DoubleValue RADIATION_DECAY = BUILDER
+            .comment("Dose removed per second while not exposed.")
+            .defineInRange("radiation.decayPerSecond", 1.0, 0.0, 1000.0);
+    private static final ModConfigSpec.DoubleValue NAUSEA_THRESHOLD = BUILDER
+            .comment("Dose at which nausea starts.")
+            .defineInRange("radiation.nauseaThreshold", 100.0, 0.0, 1.0e6);
+    private static final ModConfigSpec.DoubleValue WEAKNESS_THRESHOLD = BUILDER
+            .comment("Dose at which weakness starts.")
+            .defineInRange("radiation.weaknessThreshold", 300.0, 0.0, 1.0e6);
+    private static final ModConfigSpec.DoubleValue SICKNESS_THRESHOLD = BUILDER
+            .comment("Dose at which radiation sickness (damage) starts; it worsens at twice this dose.")
+            .defineInRange("radiation.sicknessThreshold", 600.0, 0.0, 1.0e6);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     public static double steamCapacityPerPort = 32768.0;
@@ -58,6 +77,12 @@ public class Config
     public static int fusionCoilsPerSector = 4;
     public static double fusionMagnetStress = 1024.0;
     public static boolean fusionDisruptionExplosions = true;
+    public static boolean radiationEnabled = true;
+    public static double radiationDoseMultiplier = 1.0;
+    public static double radiationDecayPerSecond = 1.0;
+    public static double radiationNauseaThreshold = 100.0;
+    public static double radiationWeaknessThreshold = 300.0;
+    public static double radiationSicknessThreshold = 600.0;
 
     static void onLoad(final ModConfigEvent.Loading event)
     {
@@ -85,5 +110,11 @@ public class Config
         fusionCoilsPerSector = COILS_PER_SECTOR.get();
         fusionMagnetStress = MAGNET_STRESS.get();
         fusionDisruptionExplosions = DISRUPTION_EXPLOSIONS.get();
+        radiationEnabled = RADIATION_ENABLED.get();
+        radiationDoseMultiplier = RADIATION_MULTIPLIER.get();
+        radiationDecayPerSecond = RADIATION_DECAY.get();
+        radiationNauseaThreshold = NAUSEA_THRESHOLD.get();
+        radiationWeaknessThreshold = WEAKNESS_THRESHOLD.get();
+        radiationSicknessThreshold = SICKNESS_THRESHOLD.get();
     }
 }

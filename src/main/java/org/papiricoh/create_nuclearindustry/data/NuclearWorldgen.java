@@ -34,7 +34,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Ore generation, registered as datapack registry entries. */
+/** Datapack registry entries: ore generation and the radiation damage type. */
 public final class NuclearWorldgen {
 
     private static final List<Ore> ORES = List.of(
@@ -51,7 +51,10 @@ public final class NuclearWorldgen {
         return new RegistrySetBuilder()
                 .add(Registries.CONFIGURED_FEATURE, NuclearWorldgen::configuredFeatures)
                 .add(Registries.PLACED_FEATURE, NuclearWorldgen::placedFeatures)
-                .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, NuclearWorldgen::biomeModifiers);
+                .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, NuclearWorldgen::biomeModifiers)
+                .add(Registries.DAMAGE_TYPE, context -> context.register(
+                        org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.RADIATION_DAMAGE,
+                        new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".radiation", 0.0f)));
     }
 
     private static void configuredFeatures(BootstrapContext<ConfiguredFeature<?, ?>> context) {

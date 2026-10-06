@@ -32,7 +32,12 @@ public class NuclearItemModelProvider extends ItemModelProvider {
                 AllNuclearItems.CRUSHED_SPODUMENE,
                 AllNuclearItems.SPODUMENE_CONCENTRATE,
                 AllNuclearItems.LITHIUM_CARBONATE,
-                AllNuclearItems.EMPTY_GAS_CELL);
+                AllNuclearItems.EMPTY_GAS_CELL,
+                AllNuclearItems.GEIGER_COUNTER,
+                AllNuclearItems.HAZMAT_HELMET,
+                AllNuclearItems.HAZMAT_CHESTPLATE,
+                AllNuclearItems.HAZMAT_LEGGINGS,
+                AllNuclearItems.HAZMAT_BOOTS);
         for (Supplier<? extends Item> item : flat) {
             basicItem(item.get());
         }

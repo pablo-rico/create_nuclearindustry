@@ -248,6 +248,16 @@ public final class LangEntries {
         block("electrolyzer", "Electrolyzer", "Electrolizador");
         block("radioactive_waste_barrel", "Radioactive Waste Barrel", "Barril de residuos radiactivos");
         block("fusion_central_solenoid", "Central Solenoid", "Solenoide central");
+        item("geiger_counter", "Geiger Counter", "Contador Geiger");
+        add("item.create_nuclearindustry.geiger_counter.reading", "☢ %s rad/s   dose %s rad", "☢ %s rad/s   dosis %s rad");
+        item("hazmat_helmet", "Hazmat Hood", "Capucha antirradiación");
+        item("hazmat_chestplate", "Hazmat Suit", "Traje antirradiación");
+        item("hazmat_leggings", "Hazmat Trousers", "Pantalones antirradiación");
+        item("hazmat_boots", "Hazmat Boots", "Botas antirradiación");
+        add("effect.create_nuclearindustry.radiation_sickness", "Radiation Sickness", "Síndrome de irradiación");
+        add("death.attack.create_nuclearindustry.radiation", "%1$s died of radiation sickness", "%1$s murió por irradiación");
+        add("death.attack.create_nuclearindustry.radiation.player", "%1$s died of radiation sickness while fighting %2$s",
+                "%1$s murió por irradiación mientras luchaba contra %2$s");
         block("fusion_breeding_blanket", "Breeding Blanket", "Manto regenerador");
 
         add("create_nuclearindustry.display_source.tokamak", "Tokamak Status", "Estado del tokamak");

@@ -38,6 +38,7 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
+import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -57,6 +58,9 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
     public static final int TRITIUM_RESERVE = 1_000;
     private static final int PORT_THROUGHPUT = 160;
     private static final int LEGACY_PELLET_FLUID = 250;
+    /** Released tritium contaminates the hall for a couple of in-game hours. */
+    private static final int DISRUPTION_CONTAMINATION_TICKS = 6_000;
+    private static final double DISRUPTION_RADIATION = 8.0;
 
     private Status status = Status.UNFORMED;
     private Optional<TokamakStructure> structure = Optional.empty();
@@ -190,7 +194,10 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         BlockPos pos = getBlockPos();
         LOGGER.warn("Tokamak disruption at {}", pos);
         physics.quench();
-        // The breeding blanket inventory is lost to the wall.
+        // The tritium inventory escapes into the hall.
+        if (!tritiumTank.isEmpty()) {
+            FalloutData.contaminate(level, pos, DISRUPTION_RADIATION, DISRUPTION_CONTAMINATION_TICKS);
+        }
         tritiumTank.setFluid(FluidStack.EMPTY);
         tritiumDebt = 0;
         tritiumCredit = 0;

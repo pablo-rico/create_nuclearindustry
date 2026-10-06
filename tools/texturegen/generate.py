@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from PIL import Image, ImageDraw  # noqa: E402
 
 import blocks  # noqa: E402
+import armor  # noqa: E402
 import fluids  # noqa: E402
 import gui  # noqa: E402
 import items  # noqa: E402
@@ -49,6 +50,12 @@ def main():
         p = os.path.join(args.out, "item", name + ".png")
         write(p, t.im)
         made.append((p, t.im))
+
+    for name, fn in sorted(armor.ARMOR.items()):
+        write(os.path.join(args.out, "models", "armor", name + ".png"), fn().im)
+
+    for name, fn in sorted(armor.EFFECTS.items()):
+        write(os.path.join(args.out, "mob_effect", name + ".png"), fn().im)
 
     for name, fn in sorted(gui.GUIS.items()):
         t = fn()

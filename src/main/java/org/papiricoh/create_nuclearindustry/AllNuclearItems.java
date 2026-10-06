@@ -113,6 +113,20 @@ public class AllNuclearItems {
 
 
 
+    // Radiation protection
+    public static final DeferredHolder<Item, ? extends Item> GEIGER_COUNTER = ITEMS.register("geiger_counter",
+            () -> new org.papiricoh.create_nuclearindustry.radiation.GeigerCounterItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredHolder<Item, ? extends Item> HAZMAT_HELMET = hazmat("hazmat_helmet", net.minecraft.world.item.ArmorItem.Type.HELMET);
+    public static final DeferredHolder<Item, ? extends Item> HAZMAT_CHESTPLATE = hazmat("hazmat_chestplate", net.minecraft.world.item.ArmorItem.Type.CHESTPLATE);
+    public static final DeferredHolder<Item, ? extends Item> HAZMAT_LEGGINGS = hazmat("hazmat_leggings", net.minecraft.world.item.ArmorItem.Type.LEGGINGS);
+    public static final DeferredHolder<Item, ? extends Item> HAZMAT_BOOTS = hazmat("hazmat_boots", net.minecraft.world.item.ArmorItem.Type.BOOTS);
+
+    private static DeferredHolder<Item, ? extends Item> hazmat(String name, net.minecraft.world.item.ArmorItem.Type type) {
+        return ITEMS.register(name, () -> new net.minecraft.world.item.ArmorItem(
+                org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.hazmat(), type,
+                org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.hazmatProperties(type)));
+    }
+
     private static DeferredHolder<Item, ? extends Item> simple(String name) {
         return ITEMS.register(name, () -> new Item(new Item.Properties()));
     }

@@ -79,11 +79,47 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .unlockedBy("has_corner", has(AllNuclearItems.FUSION_ACCELERATOR_CORNER.get()))
                 .save(output, id("crafting/fusion_accelerator_segment_from_corner"));
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, AllNuclearItems.GEIGER_COUNTER.get())
+                .pattern(" E ")
+                .pattern("BTB")
+                .pattern(" R ")
+                .define('E', CreateItems.get("electron_tube"))
+                .define('B', CreateItems.get("brass_sheet"))
+                .define('T', Items.GLASS_PANE)
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_electron_tube", has(CreateItems.get("electron_tube")))
+                .save(output, id("crafting/geiger_counter"));
+
+        // Lead-lined rubberised fabric, approximated with yellow wool and iron.
+        hazmat(output, AllNuclearItems.HAZMAT_HELMET.get(), "WWW", "WGW", null);
+        hazmat(output, AllNuclearItems.HAZMAT_CHESTPLATE.get(), "W W", "WIW", "WWW");
+        hazmat(output, AllNuclearItems.HAZMAT_LEGGINGS.get(), "WWW", "W W", "W W");
+        hazmat(output, AllNuclearItems.HAZMAT_BOOTS.get(), "W W", "I I", null);
+
         // Legacy item from an unfinished recipe chain: turn any leftovers into usable oxide.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.LOW))
                 .requires(AllNuclearItems.ENRICHED_URANIUM_BLEND.get())
                 .unlockedBy("has_blend", has(AllNuclearItems.ENRICHED_URANIUM_BLEND.get()))
                 .save(output, id("crafting/uranium_dioxide_from_blend"));
+    }
+
+    private static void hazmat(RecipeOutput output, net.minecraft.world.item.Item result, String top, String middle, String bottom) {
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, result)
+                .pattern(top)
+                .pattern(middle);
+        if (bottom != null) {
+            builder.pattern(bottom);
+        }
+        String all = top + middle + (bottom == null ? "" : bottom);
+        builder.define('W', Items.YELLOW_WOOL);
+        if (all.indexOf('G') >= 0) {
+            builder.define('G', Items.GLASS_PANE);
+        }
+        if (all.indexOf('I') >= 0) {
+            builder.define('I', Items.IRON_INGOT);
+        }
+        builder.unlockedBy("has_yellow_wool", has(Items.YELLOW_WOOL))
+                .save(output, id("crafting/" + net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(result).getPath()));
     }
 
     private static ResourceLocation id(String path) {

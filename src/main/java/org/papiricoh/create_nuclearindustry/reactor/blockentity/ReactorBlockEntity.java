@@ -40,6 +40,7 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
+import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodTracker;
@@ -86,6 +87,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private final List<Float> pendingDepletedFuel = new ArrayList<>();
     /** Set from the control panel: holds every rod fully inserted regardless of the physical rods. */
     private boolean manualScram;
+    /** A meltdown leaves fallout that fades over a few in-game days. */
+    private static final int MELTDOWN_CONTAMINATION_TICKS = 72_000;
+    private static final double MELTDOWN_RADIATION = 40.0;
     private ControlRodTracker.ControlRodScan lastControlRodScan = ControlRodTracker.ControlRodScan.empty();
     private ReactorDisplaySnapshot displaySnapshot = ReactorDisplaySnapshot.empty();
     private boolean hasDisplaySnapshot;
@@ -552,6 +556,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         LOGGER.warn("Nuclear meltdown at {}", reactorPos);
 
         status = ReactorStatus.MELTDOWN;
+        FalloutData.contaminate(level, reactorPos, MELTDOWN_RADIATION, MELTDOWN_CONTAMINATION_TICKS);
         currentStructure.ifPresent(this::clearStructureParts);
         setStructure(Optional.empty());
         physicsSimulator = new ReactorPhysicsSimulator(0);
