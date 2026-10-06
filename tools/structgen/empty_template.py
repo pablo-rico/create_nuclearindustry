@@ -16,6 +16,7 @@ OUT = pathlib.Path(__file__).resolve().parents[2] / "src/main/resources/data/cre
 TEMPLATES = {
     "empty_13x16x13": (13, 16, 13),
     "empty_41x9x41": (41, 9, 41),
+    "empty_11x10x20": (11, 10, 20),
 }
 
 
