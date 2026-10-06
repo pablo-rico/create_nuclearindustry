@@ -135,5 +135,11 @@ public class NuclearJeiPlugin implements IModPlugin {
                 Component.translatable("jei.create_nuclearindustry.info.radiation"));
         registration.addIngredientInfo(AllNuclearItems.RADIOACTIVE_WASTE.get(),
                 Component.translatable("jei.create_nuclearindustry.info.radiation"));
+        registration.addIngredientInfo(AllNuclearItems.RADIATION_SCRUBBER.get(),
+                Component.translatable("jei.create_nuclearindustry.info.radiation_scrubber"));
+        registration.addIngredientInfo(AllNuclearItems.RADIOACTIVE_WASTE_BARREL.get(),
+                Component.translatable("jei.create_nuclearindustry.info.waste_storage"));
+        registration.addIngredientInfo(org.papiricoh.create_nuclearindustry.AllNuclearFluids.CONTAMINATED_WATER_BUCKET.get(),
+                Component.translatable("jei.create_nuclearindustry.info.contaminated_water"));
     }
 }

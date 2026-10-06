@@ -381,6 +381,15 @@ public final class LangEntries {
         add("jei.create_nuclearindustry.info.radiation",
                 "Enriched uranium, spent fuel and radioactive waste irradiate whoever carries them. A Geiger counter shows the dose; a full hazmat suit stops 95% of it.",
                 "El uranio enriquecido, el combustible gastado y los residuos irradian a quien los lleva. Un contador Geiger muestra la dosis; un traje antirradiación completo detiene el 95%.");
+        add("jei.create_nuclearindustry.info.radiation_scrubber",
+                "Draws ground contamination out of its chunk and the chunks around it, the worst first. Drive it with a shaft from below; it cleans faster up to 256 RPM. What it absorbs comes out as Radioactive Waste for a funnel or hopper; when full it stops. Contamination comes from fallout, meltdowns and waste barrels left above Y=0.",
+                "Saca la contaminación del suelo de su chunk y de los de alrededor, empezando por el peor. Acciónalo con un eje desde abajo; limpia más rápido hasta 256 RPM. Lo que absorbe sale como Residuos radiactivos para un embudo o una tolva; lleno se detiene. La contaminación viene de la lluvia radiactiva, las fusiones del núcleo y los barriles de residuos por encima de Y=0.");
+        add("jei.create_nuclearindustry.info.waste_storage",
+                "Irradiates whoever comes close and slowly leaks into the ground of its chunk. Placed at Y=0 or lower it counts as geologically stored: it neither irradiates nor leaks. See its Ponder scene.",
+                "Irradia a quien se acerca y se filtra poco a poco en el suelo de su chunk. Colocado en Y=0 o más abajo cuenta como almacenado geológicamente: ni irradia ni se filtra. Mira su escena de Ponder.");
+        add("jei.create_nuclearindustry.info.contaminated_water",
+                "Heavy fallout turns the surface of lakes and rivers into Contaminated Water. It irradiates; a centrifuge separates it into clean water and radioactive waste.",
+                "La lluvia radiactiva intensa convierte la superficie de lagos y ríos en Agua contaminada. Irradia; una centrífuga la separa en agua limpia y residuos radiactivos.");
         add("jei.create_nuclearindustry.info.turbine",
                 "A box multiblock 3-7 blocks wide and high and 3-16 long, with a rotor column on its axis and this block at the centre of one end. Each rotor expands 80 mB/t of steam (40 of plasma steam); each input/output port pair passes 320 (160). Reinforced Turbine Glass shows the rotor and steam inside.",
                 "Un multibloque en forma de caja de 3 a 7 bloques de ancho y alto y de 3 a 16 de largo, con una columna de rotores en su eje y este bloque en el centro de un extremo. Cada rotor expande 80 mB/t de vapor (40 de vapor de plasma); cada par de puertos entrada/salida deja pasar 320 (160). El Vidrio reforzado de turbina deja ver el rotor y el vapor.");

@@ -156,6 +156,9 @@ below for what changes in existing worlds.
   only sent to its own player when its rounded values change.
 
 ### Technical
+- Ground contamination and the dose HUD reach clients through NeoForge's
+  synced data attachments (a byte per contaminated chunk, a few bytes per
+  reading), only when they change; the mod adds no packets of its own.
 - Recipes, loot tables, tags, worldgen, models and lang come from datagen.
 - GameTests and JUnit tests cover multiblocks, machines, chain recipes,
   physics and radiation.
