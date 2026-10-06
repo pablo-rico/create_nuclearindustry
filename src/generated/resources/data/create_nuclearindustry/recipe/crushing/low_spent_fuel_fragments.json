@@ -1,6 +1,5 @@
 {
-  "type": "create:mixing",
-  "heat_requirement": "heated",
+  "type": "create:crushing",
   "ingredients": [
     {
       "type": "create_nuclearindustry:min_enrichment",
@@ -9,20 +8,15 @@
       },
       "max_enrichment": 15.0,
       "min_enrichment": 3.0
-    },
-    {
-      "type": "neoforge:single",
-      "amount": 250,
-      "fluid": "create_nuclearindustry:sulfuric_acid"
     }
   ],
+  "processing_time": 200,
   "results": [
     {
-      "id": "create_nuclearindustry:uranium_dioxide"
-    },
-    {
-      "count": 2,
-      "id": "create_nuclearindustry:radioactive_waste"
+      "components": {
+        "create_nuclearindustry:enrichment": 5.0
+      },
+      "id": "create_nuclearindustry:spent_fuel_fragments"
     },
     {
       "chance": 0.5,

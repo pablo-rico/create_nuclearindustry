@@ -34,7 +34,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Datapack registry entries: ore generation and the radiation damage type. */
+/** Datapack registry entries: ore generation and the radiation and plutonium burn damage types. */
 public final class NuclearWorldgen {
 
     private static final List<Ore> ORES = List.of(
@@ -52,9 +52,13 @@ public final class NuclearWorldgen {
                 .add(Registries.CONFIGURED_FEATURE, NuclearWorldgen::configuredFeatures)
                 .add(Registries.PLACED_FEATURE, NuclearWorldgen::placedFeatures)
                 .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, NuclearWorldgen::biomeModifiers)
-                .add(Registries.DAMAGE_TYPE, context -> context.register(
-                        org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.RADIATION_DAMAGE,
-                        new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".radiation", 0.0f)));
+                .add(Registries.DAMAGE_TYPE, context -> {
+                    context.register(org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.RADIATION_DAMAGE,
+                            new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".radiation", 0.0f));
+                    context.register(org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.PLUTONIUM_BURN,
+                            new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".plutonium_burn", 0.1f,
+                                    net.minecraft.world.damagesource.DamageEffects.BURNING));
+                });
     }
 
     private static void configuredFeatures(BootstrapContext<ConfiguredFeature<?, ?>> context) {

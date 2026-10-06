@@ -22,7 +22,7 @@ public class NuclearDamageTypeTagsProvider extends TagsProvider<DamageType> {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        tag(DamageTypeTags.BYPASSES_ARMOR).add(AllNuclearRadiation.RADIATION_DAMAGE);
+        tag(DamageTypeTags.BYPASSES_ARMOR).add(AllNuclearRadiation.RADIATION_DAMAGE, AllNuclearRadiation.PLUTONIUM_BURN);
         tag(DamageTypeTags.NO_KNOCKBACK).add(AllNuclearRadiation.RADIATION_DAMAGE);
     }
 }

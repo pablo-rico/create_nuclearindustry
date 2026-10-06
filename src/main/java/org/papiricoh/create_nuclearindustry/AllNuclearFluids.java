@@ -64,6 +64,11 @@ public class AllNuclearFluids {
     // ---------------------------------------------------------------- process chemicals
     public static final NuclearFluid SULFURIC_ACID_FLUID = liquid("sulfuric_acid", 0xF0E3D46A, 1830, 2400, 300);
     public static final NuclearFluid HYDROFLUORIC_ACID_FLUID = liquid("hydrofluoric_acid", 0xD0BDE6D3, 1150, 1100, 290);
+    public static final NuclearFluid NITRIC_ACID_FLUID = liquid("nitric_acid", 0xE0F2E6A0, 1510, 900, 300);
+
+    // ---------------------------------------------------------------- spent fuel reprocessing (PUREX)
+    public static final NuclearFluid SPENT_FUEL_SOLUTION_FLUID = liquid("spent_fuel_solution", 0xE0556B2F, 1400, 1300, 320);
+    public static final NuclearFluid PLUTONIUM_NITRATE_FLUID = liquid("plutonium_nitrate", 0xE0A85A3C, 1600, 1300, 320);
 
     // ---------------------------------------------------------------- uranium hexafluoride, one fluid per enrichment tier
     public static final NuclearFluid DEPLETED_URANIUM_HEXAFLUORIDE_FLUID = gas("depleted_uranium_hexafluoride", 0xC8A3A796, 5000, 300, 340, 0);
@@ -83,6 +88,9 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> STEAM = STEAM_FLUID.source();
     public static final Supplier<FlowingFluid> FLOWING_STEAM = STEAM_FLUID.flowing();
     public static final Supplier<FlowingFluid> HEAVY_WATER = HEAVY_WATER_FLUID.source();
+    public static final Supplier<FlowingFluid> NITRIC_ACID = NITRIC_ACID_FLUID.source();
+    public static final Supplier<FlowingFluid> SPENT_FUEL_SOLUTION = SPENT_FUEL_SOLUTION_FLUID.source();
+    public static final Supplier<FlowingFluid> PLUTONIUM_NITRATE = PLUTONIUM_NITRATE_FLUID.source();
     public static final Supplier<FlowingFluid> FLOWING_HEAVY_WATER = HEAVY_WATER_FLUID.flowing();
     public static final Supplier<FlowingFluid> HEAVY_STEAM = HEAVY_STEAM_FLUID.source();
     public static final Supplier<FlowingFluid> FLOWING_HEAVY_STEAM = HEAVY_STEAM_FLUID.flowing();

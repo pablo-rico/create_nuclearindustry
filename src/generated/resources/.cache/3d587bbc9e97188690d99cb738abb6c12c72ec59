@@ -1,5 +1,6 @@
-// 1.21.1	2026-10-06T17:57:17.026043	create_nuclearindustry's processing recipes: centrifuging
+// 1.21.1	2026-10-06T22:56:35.973945	create_nuclearindustry's processing recipes: centrifuging
 59dffb0ea75f5a98b1667bcb98f79abf72f70f62 data/create_nuclearindustry/recipe/centrifuging/high_uranium_hexafluoride.json
 132d26f56ce8d0f34ab16637d83306c26fd00721 data/create_nuclearindustry/recipe/centrifuging/lithium_6.json
 075f41e4cbfe90841fe2a700aae5630303b1381c data/create_nuclearindustry/recipe/centrifuging/low_uranium_hexafluoride.json
+33b0e0923090b6d9815bc96437c6c3f9afd07300 data/create_nuclearindustry/recipe/centrifuging/plutonium_nitrate.json
 ee224405262ee0737d89575677793b5f51240fad data/create_nuclearindustry/recipe/centrifuging/weapons_uranium_hexafluoride.json

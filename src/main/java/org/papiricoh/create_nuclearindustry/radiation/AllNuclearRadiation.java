@@ -56,6 +56,8 @@ public final class AllNuclearRadiation {
             EFFECTS.register("radiation_sickness", RadiationSicknessEffect::new);
 
     public static final ResourceKey<DamageType> RADIATION_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, id("radiation"));
+    /** Decay heat of plutonium carried without protection. */
+    public static final ResourceKey<DamageType> PLUTONIUM_BURN = ResourceKey.create(Registries.DAMAGE_TYPE, id("plutonium_burn"));
 
     public static final DeferredHolder<ArmorMaterial, ArmorMaterial> HAZMAT_MATERIAL = ARMOR_MATERIALS.register("hazmat", () -> {
         EnumMap<ArmorItem.Type, Integer> defense = new EnumMap<>(ArmorItem.Type.class);

@@ -62,25 +62,48 @@ public class NuclearMixingRecipes extends MixingRecipeGen {
             .output(AllNuclearItems.LITHIUM_CARBONATE.get())
             .requiresHeat(HeatCondition.HEATED));
 
-    // ------------------------------------------------------------------ spent fuel reprocessing
+    // ------------------------------------------------------------------ spent fuel reprocessing (PUREX)
 
-    // Dissolving spent fuel recovers uranium one tier below what went into the reactor;
-    // the fission products stay behind as waste.
-    GeneratedRecipe REPROCESS_HIGH = create("reprocess_high_enriched_fuel", b -> b
-            .require(MinEnrichmentIngredient.tier(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get(), EnrichmentTier.HIGH))
+    // Saltpetre (from gunpowder) + H2SO4 -> HNO3
+    GeneratedRecipe NITRIC_ACID = create("nitric_acid", b -> b
+            .require(Items.GUNPOWDER)
             .require(AllNuclearFluids.SULFURIC_ACID.get(), 250)
-            .output(enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.LOW))
-            .output(AllNuclearItems.RADIOACTIVE_WASTE.get(), 2)
-            .output(0.5f, Items.IRON_NUGGET)
+            .output(AllNuclearFluids.NITRIC_ACID.get(), 250)
             .requiresHeat(HeatCondition.HEATED));
 
-    GeneratedRecipe REPROCESS_LOW = create("reprocess_low_enriched_fuel", b -> b
-            .require(MinEnrichmentIngredient.tier(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get(), EnrichmentTier.LOW))
+    GeneratedRecipe NITRIC_ACID_FROM_SALTPETER = create("nitric_acid_from_saltpeter", b -> b
+            .require(AllNuclearTags.Items.SALTPETER_DUSTS)
             .require(AllNuclearFluids.SULFURIC_ACID.get(), 250)
-            .output(enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.NATURAL))
-            .output(AllNuclearItems.RADIOACTIVE_WASTE.get(), 2)
-            .output(0.5f, Items.IRON_NUGGET)
+            .output(AllNuclearFluids.NITRIC_ACID.get(), 500)
             .requiresHeat(HeatCondition.HEATED));
+
+    // Dissolving the sheared fuel in nitric acid: the uranium comes back one tier below what went in,
+    // the plutonium and fission products go into solution. Leaner fuel bred more plutonium.
+    GeneratedRecipe DISSOLVE_LOW = dissolve(EnrichmentTier.LOW, 500);
+    GeneratedRecipe DISSOLVE_HIGH = dissolve(EnrichmentTier.HIGH, 250);
+
+    // Pu(NO3)4 precipitated as oxalate and calcined to PuO2; part of the acid is recovered.
+    GeneratedRecipe PLUTONIUM_DIOXIDE = create("plutonium_dioxide", b -> b
+            .require(AllNuclearFluids.PLUTONIUM_NITRATE.get(), 250)
+            .output(AllNuclearItems.PLUTONIUM_DIOXIDE.get())
+            .output(AllNuclearFluids.NITRIC_ACID.get(), 100)
+            .requiresHeat(HeatCondition.HEATED));
+
+    // Reduced to metal like uranium.
+    GeneratedRecipe PLUTONIUM = create("plutonium", b -> b
+            .require(AllNuclearItems.PLUTONIUM_DIOXIDE.get())
+            .require(Items.BONE_MEAL)
+            .output(AllNuclearItems.PLUTONIUM.get())
+            .requiresHeat(HeatCondition.SUPERHEATED));
+
+    private GeneratedRecipe dissolve(EnrichmentTier fuel, int solution) {
+        return create("dissolve_" + fuel.id() + "_spent_fuel", b -> b
+                .require(MinEnrichmentIngredient.tier(AllNuclearItems.SPENT_FUEL_FRAGMENTS.get(), fuel))
+                .require(AllNuclearFluids.NITRIC_ACID.get(), 250)
+                .output(enriched(AllNuclearItems.URANYL_NITRATE.get(), fuel.previous()))
+                .output(AllNuclearFluids.SPENT_FUEL_SOLUTION.get(), solution)
+                .requiresHeat(HeatCondition.HEATED));
+    }
 
     // ------------------------------------------------------------------ per-tier conversions
 
@@ -100,6 +123,15 @@ public class NuclearMixingRecipes extends MixingRecipeGen {
                     .require(Items.BONE_MEAL)
                     .output(enriched(AllNuclearItems.URANIUM.get(), tier))
                     .requiresHeat(HeatCondition.SUPERHEATED));
+
+            // Recovered uranyl nitrate denitrates back to oxide of its tier.
+            if (tier.ordinal() <= EnrichmentTier.LOW.ordinal()) {
+                create(tier.id() + "_uranium_dioxide_from_uranyl_nitrate", b -> b
+                        .require(MinEnrichmentIngredient.tier(AllNuclearItems.URANYL_NITRATE.get(), tier))
+                        .output(enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), tier))
+                        .output(AllNuclearFluids.NITRIC_ACID.get(), 50)
+                        .requiresHeat(HeatCondition.HEATED));
+            }
 
             // Any uranium metal, including ingots from other mods, fluorinates back into the cascade.
             Ingredient metal = tier == EnrichmentTier.NATURAL

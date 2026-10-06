@@ -26,6 +26,8 @@ public final class AllNuclearTags {
         public static final TagKey<Item> C_RAW_LITHIUM = common("raw_materials/lithium");
         public static final TagKey<Item> C_INGOTS_URANIUM = common("ingots/uranium");
         public static final TagKey<Item> C_GEMS_FLUORITE = common("gems/fluorite");
+        /** Saltpetre from other mods, for nitric acid. */
+        public static final TagKey<Item> SALTPETER_DUSTS = common("dusts/saltpeter");
 
         private static TagKey<Item> mod(String path) {
             return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path));

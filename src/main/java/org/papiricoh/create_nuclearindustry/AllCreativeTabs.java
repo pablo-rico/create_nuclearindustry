@@ -29,6 +29,10 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.YELLOWCAKE.value());
                 output.accept(AllNuclearItems.FLUORITE.value());
                 output.accept(AllNuclearItems.URANIUM_DIOXIDE.value());
+                output.accept(AllNuclearItems.SPENT_FUEL_FRAGMENTS.value());
+                output.accept(AllNuclearItems.URANYL_NITRATE.value());
+                output.accept(AllNuclearItems.PLUTONIUM_DIOXIDE.value());
+                output.accept(AllNuclearItems.PLUTONIUM.value());
                 output.accept(AllNuclearItems.URANIUM_FUEL_PELLET.value());
                 output.accept(AllNuclearItems.RADIOACTIVE_WASTE.value());
                 output.accept(AllNuclearItems.RADIOACTIVE_WASTE_BARREL.value());

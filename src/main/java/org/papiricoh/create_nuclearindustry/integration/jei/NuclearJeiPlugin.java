@@ -45,7 +45,9 @@ public class NuclearJeiPlugin implements IModPlugin {
             AllNuclearItems.URANIUM_DIOXIDE,
             AllNuclearItems.URANIUM_FUEL_PELLET,
             AllNuclearItems.URANIUM_REACTOR_FUEL,
-            AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL);
+            AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL,
+            AllNuclearItems.SPENT_FUEL_FRAGMENTS,
+            AllNuclearItems.URANYL_NITRATE);
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -113,6 +115,10 @@ public class NuclearJeiPlugin implements IModPlugin {
                         new ItemStack(AllNuclearItems.DEPLETED_URANIUM_HELMET.get()), new ItemStack(AllNuclearItems.DEPLETED_URANIUM_CHESTPLATE.get()),
                         new ItemStack(AllNuclearItems.DEPLETED_URANIUM_LEGGINGS.get()), new ItemStack(AllNuclearItems.DEPLETED_URANIUM_BOOTS.get())),
                 VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.depleted_uranium"));
+        registration.addIngredientInfo(List.of(new ItemStack(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get()),
+                        new ItemStack(AllNuclearItems.SPENT_FUEL_FRAGMENTS.get()), new ItemStack(AllNuclearItems.PLUTONIUM_DIOXIDE.get()),
+                        new ItemStack(AllNuclearItems.PLUTONIUM.get())),
+                VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.reprocessing"));
         registration.addIngredientInfo(AllNuclearItems.TURBINE_OUTPUT.get(),
                 Component.translatable("jei.create_nuclearindustry.info.turbine"));
         registration.addIngredientInfo(AllNuclearItems.FUSION_PLASMA_TURBINE.get(),

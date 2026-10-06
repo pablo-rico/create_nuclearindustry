@@ -4,6 +4,7 @@ import com.simibubi.create.api.data.recipe.StandardProcessingRecipeGen;
 import com.simibubi.create.foundation.recipe.IRecipeTypeInfo;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
+import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
@@ -33,6 +34,16 @@ public class NuclearCentrifugingRecipes extends StandardProcessingRecipeGen<Cent
             .output(AllNuclearItems.LITHIUM_6.get())
             .output(AllNuclearItems.LITHIUM.get(), 6)
             .duration(200));
+
+    // PUREX extraction: plutonium leaves in the product, the acid is recovered as tails,
+    // fission products settle out as waste.
+    GeneratedRecipe PLUTONIUM_NITRATE = create("plutonium_nitrate", b -> b
+            .require(AllNuclearFluids.SPENT_FUEL_SOLUTION.get(), 1000)
+            .output(AllNuclearFluids.PLUTONIUM_NITRATE.get(), 250)
+            .output(AllNuclearFluids.NITRIC_ACID.get(), 250)
+            .output(AllNuclearItems.RADIOACTIVE_WASTE.get(), 2)
+            .output(0.5f, AllNuclearItems.RADIOACTIVE_WASTE.get())
+            .duration(300));
 
     public NuclearCentrifugingRecipes(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries, Create_NuclearIndustry.MODID);

@@ -12,6 +12,14 @@
     "create_nuclearindustry:enriched_uranium_blend": {
       "per_second": 0.3
     },
+    "create_nuclearindustry:plutonium": {
+      "heat_per_second": 1.0,
+      "per_second": 8.0
+    },
+    "create_nuclearindustry:plutonium_dioxide": {
+      "heat_per_second": 0.75,
+      "per_second": 6.0
+    },
     "create_nuclearindustry:radioactive_waste": {
       "per_second": 6.0
     },
@@ -23,6 +31,9 @@
     },
     "create_nuclearindustry:spent_dt_pellet": {
       "per_second": 0.2
+    },
+    "create_nuclearindustry:spent_fuel_fragments": {
+      "per_second": 3.0
     },
     "create_nuclearindustry:tritium_cell": {
       "per_second": 0.05
@@ -44,6 +55,10 @@
     },
     "create_nuclearindustry:uranium_reactor_fuel": {
       "per_second": 3.0,
+      "scales_with_enrichment": true
+    },
+    "create_nuclearindustry:uranyl_nitrate": {
+      "per_second": 1.5,
       "scales_with_enrichment": true
     },
     "create_nuclearindustry:weapons_grade_uranium_core": {

@@ -51,6 +51,39 @@ public final class RadiationHandler {
         player.setData(AllNuclearRadiation.DOSE, dose);
         player.setData(AllNuclearRadiation.RATE, rate);
         applySymptoms(player, dose);
+        applyDecayHeat(player);
+    }
+
+    /**
+     * Plutonium is warm: carried without at least half shielding (gloves and suit), its decay
+     * heat burns, up to a heart every two seconds.
+     */
+    private static void applyDecayHeat(Player player) {
+        if ((player.tickCount / INTERVAL) % 2 != 0) {
+            return;
+        }
+        double heat = inventoryHeat(player);
+        if (heat <= 0 || shielding(player) >= 0.5f) {
+            return;
+        }
+        float damage = (float) Math.min(2.0, 0.5 * Math.ceil(Math.sqrt(heat)));
+        player.hurt(player.damageSources().source(AllNuclearRadiation.PLUTONIUM_BURN), damage);
+    }
+
+    public static double inventoryHeat(Player player) {
+        double heat = 0;
+        var inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            Radioactivity radioactivity = stack.getItemHolder().getData(AllNuclearRadiation.RADIOACTIVITY);
+            if (radioactivity != null) {
+                heat += radioactivity.heatPerSecond() * stack.getCount();
+            }
+        }
+        return heat;
     }
 
     public static double exposureRate(Player player) {

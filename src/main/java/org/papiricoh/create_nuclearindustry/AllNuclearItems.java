@@ -104,6 +104,12 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> INCOMPLETE_URANIUM_REACTOR_FUEL = ITEMS.register("incomplete_uranium_reactor_fuel",
             () -> new SequencedAssemblyItem(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<Item, ? extends Item> RADIOACTIVE_WASTE = simple("radioactive_waste");
+
+    // Spent fuel reprocessing
+    public static final DeferredHolder<Item, ? extends Item> SPENT_FUEL_FRAGMENTS = enriched("spent_fuel_fragments", 64);
+    public static final DeferredHolder<Item, ? extends Item> URANYL_NITRATE = enriched("uranyl_nitrate", 64);
+    public static final DeferredHolder<Item, ? extends Item> PLUTONIUM_DIOXIDE = simple("plutonium_dioxide");
+    public static final DeferredHolder<Item, ? extends Item> PLUTONIUM = ITEMS.register("plutonium", () -> new Item(new Item.Properties().stacksTo(8)));
     public static final DeferredHolder<Item, ? extends Item> FLUORITE = simple("fluorite");
 
     // Lithium chain

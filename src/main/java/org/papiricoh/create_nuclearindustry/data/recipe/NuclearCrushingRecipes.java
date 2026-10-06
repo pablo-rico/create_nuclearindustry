@@ -57,6 +57,19 @@ public class NuclearCrushingRecipes extends StandardProcessingRecipeGen<Crushing
             .output(RecipeHelpers.enriched(AllNuclearItems.URANIUM.get(), org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.DEPLETED, 9))
             .duration(250));
 
+    // Shearing spent fuel for reprocessing: the fragments keep the tier the fuel was made at.
+    GeneratedRecipe LOW_SPENT_FUEL = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.LOW);
+    GeneratedRecipe HIGH_SPENT_FUEL = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.HIGH);
+
+    private GeneratedRecipe spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier tier) {
+        return create(tier.id() + "_spent_fuel_fragments", b -> b
+                .require(org.papiricoh.create_nuclearindustry.enrichment.recipe.MinEnrichmentIngredient.tier(
+                        AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get(), tier))
+                .output(RecipeHelpers.enriched(AllNuclearItems.SPENT_FUEL_FRAGMENTS.get(), tier))
+                .output(0.5f, Items.IRON_NUGGET)
+                .duration(200));
+    }
+
     GeneratedRecipe SPENT_DT_PELLET = create("spent_dt_pellet", b -> b
             .require(AllNuclearItems.SPENT_DT_PELLET.get())
             .output(Items.IRON_NUGGET, 3)

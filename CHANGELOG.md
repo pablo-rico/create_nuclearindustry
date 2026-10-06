@@ -20,8 +20,14 @@ below for what changes in existing worlds.
 ### Fission reactor
 - Only assembled fuel at 3% or more is accepted. Each fuel channel holds one
   assembly; richer fuel lasts longer and is more reactive.
-- Spent fuel keeps its enrichment and reprocesses into oxide one tier lower
-  plus radioactive waste, sealed into waste barrels.
+- Spent fuel keeps its enrichment and is reprocessed (PUREX) for plutonium
+  with Create machines: crush it, dissolve the fragments in nitric acid
+  (uranium comes back as uranyl nitrate one tier lower), centrifuge the
+  solution into plutonium nitrate, recovered acid and waste, then make
+  plutonium dioxide and metal. Leaner fuel breeds more plutonium.
+- New nitric acid (gunpowder or saltpetre with sulfuric acid). Plutonium is
+  far more radioactive than uranium and burns whoever carries it without
+  at least half shielding.
 - Textured control panel with a manual SCRAM switch.
 - Reactors now notice shell blocks removed by machines, not only by players.
 - Fuel is no longer lost when the structure changes, and neither is the core's
@@ -115,6 +121,8 @@ below for what changes in existing worlds.
   reset once; after that only physical rods count.
 - Three-block turbines no longer form; they keep their steam and
   condensate and ask to be rebuilt as a box.
+- The old sulfuric acid reprocessing recipes (`mixing/reprocess_*`) are
+  gone; automation built on them must switch to the plutonium chain.
 - Running reactors in existing worlds now irradiate nearby players. Set
   `radiation.reactorEmissionPerNeutron = 0` to turn that off.
 - `fusion.deuteriumTritiumBurnRate` changed meaning (see

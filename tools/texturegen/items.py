@@ -913,3 +913,35 @@ def depleted_uranium_boots():
     t.hline(2, 6, 11, DARK[0])
     t.hline(10, 15, 11, DARK[0])
     return t
+
+
+# ------------------------------------------------------------------ reprocessing and plutonium
+
+PLUTONIUM = Ramp("#2a2230", "#3f3347", "#56475f", "#6e5c79", "#887393", "#a48eae", "#c2adca")
+
+
+@item("spent_fuel_fragments")
+def spent_fuel_fragments():
+    # Sheared cladding and fuel: steel slivers mixed with dark ceramic.
+    t = _powder(260, LEAD, grain=1.3, sparkle=RADIUM[4], sparkle_chance=0.06)
+    for (x, y) in ((4, 9), (5, 9), (9, 7), (10, 7), (11, 7), (7, 11), (8, 11)):
+        t.set(x, y, STEEL[5])
+    return t
+
+
+@item("uranyl_nitrate")
+def uranyl_nitrate():
+    return _crystal(261, YELLOWCAKE.tinted(URANIUM[5], 0.4), facets=6, sparkle=URANIUM[6])
+
+
+@item("plutonium_dioxide")
+def plutonium_dioxide():
+    return _powder(262, PLUTONIUM.tinted(URANIUM[3], 0.25), grain=0.9, sparkle=PLASMA[5], sparkle_chance=0.10)
+
+
+@item("plutonium")
+def plutonium():
+    # Plutonium is warm to the touch: a dull ingot with a faint ember glow.
+    t = _ingot(263, PLUTONIUM)
+    glow(t, 8, 8, 7.0, PLASMA[5], 0.16)
+    return t

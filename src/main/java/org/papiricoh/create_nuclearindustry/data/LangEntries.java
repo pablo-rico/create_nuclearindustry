@@ -87,6 +87,10 @@ public final class LangEntries {
         add("block.create_nuclearindustry.reactor_temperature_sensor",
                 "Temperature Sensor",
                 "Sensor de temperatura");
+        item("spent_fuel_fragments", "Spent Fuel Fragments", "Fragmentos de combustible gastado");
+        item("uranyl_nitrate", "Uranyl Nitrate", "Nitrato de uranilo");
+        item("plutonium_dioxide", "Plutonium Dioxide", "Dióxido de plutonio");
+        item("plutonium", "Plutonium", "Plutonio");
         add("block.create_nuclearindustry.depleted_uranium_block", "Block of Depleted Uranium", "Bloque de uranio empobrecido");
         add("item.create_nuclearindustry.depleted_uranium_helmet", "Depleted Uranium Helmet", "Casco de uranio empobrecido");
         add("item.create_nuclearindustry.depleted_uranium_chestplate", "Depleted Uranium Chestplate", "Peto de uranio empobrecido");
@@ -286,6 +290,10 @@ public final class LangEntries {
         item("hazmat_boots", "Hazmat Boots", "Botas antirradiación");
         add("effect.create_nuclearindustry.radiation_sickness", "Radiation Sickness", "Síndrome de irradiación");
         add("death.attack.create_nuclearindustry.radiation", "%1$s died of radiation sickness", "%1$s murió por irradiación");
+        add("death.attack.create_nuclearindustry.plutonium_burn", "%1$s was burnt by the plutonium they carried",
+                "%1$s se quemó con el plutonio que llevaba");
+        add("death.attack.create_nuclearindustry.plutonium_burn.player", "%1$s was burnt by plutonium while fighting %2$s",
+                "%1$s se quemó con plutonio mientras luchaba contra %2$s");
         add("death.attack.create_nuclearindustry.radiation.player", "%1$s died of radiation sickness while fighting %2$s",
                 "%1$s murió por irradiación mientras luchaba contra %2$s");
         block("fusion_breeding_blanket", "Breeding Blanket", "Manto regenerador");
@@ -352,8 +360,8 @@ public final class LangEntries {
                 "Parada de emergencia: enciende la señal de SCRAM de todos los Puertos de redstone en modo SCRAM hasta rearmar. Conéctala a los pistones que mueven tus barras de control.");
 
         add("jei.create_nuclearindustry.info.reactor_fuel",
-                "Fuel assemblies are pressed from uranium dioxide pellets. Each Fuel Channel in a reactor holds one assembly. Richer fuel lasts longer and is more reactive; spent fuel keeps its enrichment and can be reprocessed.",
-                "Los elementos combustibles se montan con pastillas de dióxido de uranio. Cada Canal de combustible de un reactor aloja uno. El combustible más enriquecido dura más y es más reactivo; el gastado conserva su enriquecimiento y se puede reprocesar.");
+                "Fuel assemblies are pressed from uranium dioxide pellets. Each Fuel Channel in a reactor holds one assembly. Richer fuel lasts longer and is more reactive; spent fuel keeps its enrichment and can be reprocessed for plutonium.",
+                "Los elementos combustibles se montan con pastillas de dióxido de uranio. Cada Canal de combustible de un reactor aloja uno. El combustible más enriquecido dura más y es más reactivo; el gastado conserva su enriquecimiento y se puede reprocesar para sacar plutonio.");
         add("jei.create_nuclearindustry.info.tokamak",
                 "A ring-shaped fusion reactor around a Central Solenoid. Feed it deuterium and tritium, coolant and rotation for its Magnet Drives; it makes plasma steam for a Plasma Turbine. See its Ponder scene.",
                 "Un reactor de fusión en forma de anillo alrededor de un Solenoide central. Necesita deuterio y tritio, refrigerante y rotación para sus Tomas de imanes; produce vapor de plasma para una Turbina de plasma. Consulta su escena de Ponder.");
@@ -372,6 +380,9 @@ public final class LangEntries {
         add("jei.create_nuclearindustry.info.depleted_uranium",
                 "Depleted uranium (under 0.7%) is dense: a block of it lets only 10% of radiation through, the best shield there is. Its heavy plate armour protects better than diamond and, as a full set, stops 98% of radiation, but slows you by about a sixth. A crusher turns the block back into metal.",
                 "El uranio empobrecido (menos del 0,7%) es muy denso: un bloque deja pasar solo el 10% de la radiación, el mejor blindaje que hay. Su armadura de placas protege más que el diamante y, completa, detiene el 98% de la radiación, pero te ralentiza más o menos una sexta parte. Una trituradora devuelve el bloque a metal.");
+        add("jei.create_nuclearindustry.info.reprocessing",
+                "Spent fuel is reprocessed for plutonium: crush it into fragments, dissolve them in nitric acid in a heated mixer (uranium comes back as uranyl nitrate one tier lower), separate the solution in a centrifuge into plutonium nitrate, recovered acid and waste, then make plutonium dioxide and reduce it to metal. Leaner fuel breeds more plutonium. Plutonium is far more radioactive than uranium and burns whoever carries it without a hazmat suit.",
+                "El combustible gastado se reprocesa para sacar plutonio: tritúralo en fragmentos, disuélvelos en ácido nítrico en una mezcladora calentada (el uranio vuelve como nitrato de uranilo un nivel por debajo), separa la disolución en una centrifugadora en nitrato de plutonio, ácido recuperado y residuos, luego obtén dióxido de plutonio y redúcelo a metal. El combustible menos enriquecido cría más plutonio. El plutonio es mucho más radiactivo que el uranio y quema a quien lo lleve sin traje antirradiación.");
         add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
         add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");
         add("jei.create_nuclearindustry.product", "Product: front face", "Producto: cara frontal");
@@ -380,6 +391,9 @@ public final class LangEntries {
 
         fluid("sulfuric_acid", "Sulfuric Acid", "Ácido sulfúrico");
         fluid("hydrofluoric_acid", "Hydrofluoric Acid", "Ácido fluorhídrico");
+        fluid("nitric_acid", "Nitric Acid", "Ácido nítrico");
+        fluid("spent_fuel_solution", "Dissolved Spent Fuel", "Combustible gastado disuelto");
+        fluid("plutonium_nitrate", "Plutonium Nitrate", "Nitrato de plutonio");
         fluid("uranium_hexafluoride", "Uranium Hexafluoride", "Hexafluoruro de uranio");
         fluid("depleted_uranium_hexafluoride", "Depleted Uranium Hexafluoride", "Hexafluoruro de uranio empobrecido");
         fluid("low_enriched_uranium_hexafluoride", "Low-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio poco enriquecido");
