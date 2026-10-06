@@ -8,6 +8,7 @@ public final class NuclearGameTests {
     public static final String SMALL_ARENA = "gametest/empty_13x16x13";
     public static final String TOKAMAK_ARENA = "gametest/empty_41x9x41";
     public static final String LONG_ARENA = "gametest/empty_11x10x20";
+    public static final String TOWER_ARENA = "gametest/empty_19x26x19";
 
     private NuclearGameTests() {}
 }

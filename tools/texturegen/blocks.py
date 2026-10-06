@@ -820,3 +820,73 @@ def launch_pad_rail():
             t.set(x + 1, y, STEEL[4])
             t.set(x + 2, y, STEEL[1])
     return t
+
+
+# ======================================================================================
+# cooling tower
+# ======================================================================================
+
+def _tower_concrete(t, seed):
+    # Poured concrete in horizontal lifts, weathered with vertical rain streaks.
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, seed, 16, 16, 3, 5.0)
+            t.set(x, y, CONCRETE[int(round(2.0 + n * 3.0))])
+    for y in (0, 8):
+        t.hline(0, 15, y, CONCRETE[1])
+        t.hline(0, 15, y + 1, CONCRETE[5])
+    for x in (3, 9, 13):
+        for y in range(2, 16):
+            if fbm(x, y, seed + 5, 16, 16, 2, 3.0) > 0.45:
+                t.set(x, y, CONCRETE[2])
+    speckle(t, 0, 0, 15, 15, CONCRETE[1], chance=0.05, seed=seed)
+    return t
+
+
+@block("cooling_tower_casing")
+def cooling_tower_casing():
+    return _tower_concrete(Tex(seed=90), 90)
+
+
+@block("cooling_tower_controller")
+def cooling_tower_controller():
+    t = _tower_concrete(Tex(seed=91), 91)
+    # Steel instrument plate with a load dial and a water-level column.
+    t.rect(2, 2, 13, 13, STEEL[3])
+    bevel(t, 2, 2, 13, 13, STEEL)
+    outline(t, 2, 2, 13, 13, STEEL[0])
+    t.disc(6.5, 7.5, 3.4, DARK[2])
+    t.ring(6.5, 7.5, 3.4, 2.8, STEEL[5])
+    for a in range(200, 341, 20):
+        r = math.radians(a)
+        t.set(round(6.5 + math.cos(r) * 2.2 - 0.5), round(7.5 + math.sin(r) * 2.2 - 0.5), CYAN[5])
+    t.line(6, 7, 8, 5, WARN[6])
+    t.rect(11, 4, 12, 11, DARK[0])
+    t.rect(11, 8, 12, 11, CYAN[4])
+    t.set(11, 8, CYAN[6])
+    return t
+
+
+@block("cooling_tower_fluid_port_input")
+def cooling_tower_fluid_port_input():
+    return port_face(Tex(seed=92), CONCRETE, IN_ACCENT, seed=92)
+
+
+@block("cooling_tower_fluid_port_output")
+def cooling_tower_fluid_port_output():
+    return port_face(Tex(seed=93), CONCRETE, OUT_ACCENT, seed=93, out=True)
+
+
+@block("cooling_tower_fan")
+def cooling_tower_fan():
+    t = _tower_concrete(Tex(seed=94), 94)
+    # Louvred intake around a steel hub.
+    t.rect(1, 1, 14, 14, DARK[1])
+    bevel(t, 1, 1, 14, 14, STEEL)
+    for y in range(3, 13, 2):
+        t.hline(2, 13, y, STEEL[4])
+        t.hline(2, 13, y + 1, DARK[0])
+    t.disc(7.5, 7.5, 2.4, STEEL[3])
+    t.ring(7.5, 7.5, 2.4, 1.6, STEEL[6])
+    t.disc(7.5, 7.5, 0.9, DARK[0])
+    return t

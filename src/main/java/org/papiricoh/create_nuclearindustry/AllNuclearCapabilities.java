@@ -40,6 +40,12 @@ public class AllNuclearCapabilities {
                 (port, direction) -> port.getFluidHandler(direction)
         );
 
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                AllNuclearEntities.COOLING_TOWER_FLUID_PORT.get(),
+                (port, direction) -> port.getFluidHandler(direction)
+        );
+
         // ---- Fusion reactor ----
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,

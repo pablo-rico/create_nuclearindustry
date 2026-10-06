@@ -11,6 +11,9 @@ import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import net.minecraft.resources.ResourceLocation;
+import org.papiricoh.create_nuclearindustry.coolingtower.block.CoolingTowerFluidPortBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorRedstonePortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.RedstonePortMode;
 
@@ -60,6 +63,33 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         simpleBlockItem(AllNuclearBlocks.REACTOR_REDSTONE_PORT.get(), normal);
     }
 
+    /** Concrete casing for the tower, with a front texture on the faces that have one. */
+    private void coolingTowerStates() {
+        ResourceLocation concrete = modLoc("block/cooling_tower_casing");
+        simpleBlockWithItem(AllNuclearBlocks.COOLING_TOWER_CASING.get(), cubeAll(AllNuclearBlocks.COOLING_TOWER_CASING.get()));
+
+        ModelFile controller = models().orientable("cooling_tower_controller", concrete, modLoc("block/cooling_tower_controller"), concrete);
+        horizontalBlock(AllNuclearBlocks.COOLING_TOWER_CONTROLLER.get(), controller);
+        simpleBlockItem(AllNuclearBlocks.COOLING_TOWER_CONTROLLER.get(), controller);
+
+        ModelFile fan = models().orientable("cooling_tower_fan", concrete, modLoc("block/cooling_tower_fan"), concrete);
+        horizontalBlock(AllNuclearBlocks.COOLING_TOWER_FAN.get(), fan);
+        simpleBlockItem(AllNuclearBlocks.COOLING_TOWER_FAN.get(), fan);
+
+        ModelFile input = models().orientable("cooling_tower_fluid_port_input", concrete,
+                modLoc("block/cooling_tower_fluid_port_input"), concrete);
+        ModelFile output = models().orientable("cooling_tower_fluid_port_output", concrete,
+                modLoc("block/cooling_tower_fluid_port_output"), concrete);
+        getVariantBuilder(AllNuclearBlocks.COOLING_TOWER_FLUID_PORT.get()).forAllStates(state -> {
+            Direction facing = state.getValue(BlockStateProperties.FACING);
+            int x = facing == Direction.UP ? 270 : facing == Direction.DOWN ? 90 : 0;
+            int y = facing.getAxis().isHorizontal() ? ((int) facing.toYRot() + 180) % 360 : 0;
+            ModelFile model = state.getValue(CoolingTowerFluidPortBlock.MODE) == ReactorFluidPortMode.INPUT ? input : output;
+            return ConfiguredModel.builder().modelFile(model).rotationX(x).rotationY(y).build();
+        });
+        simpleBlockItem(AllNuclearBlocks.COOLING_TOWER_FLUID_PORT.get(), input);
+    }
+
     @Override
     protected void registerStatesAndModels() {
         simpleBlockWithItem(AllNuclearBlocks.SPODUMENE_ORE.get(), cubeAll(AllNuclearBlocks.SPODUMENE_ORE.get()));
@@ -74,6 +104,7 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         rotorStates(AllNuclearBlocks.FUSION_TURBINE_ROTOR.get(), "fusion_turbine_rotor");
         facingStates(AllNuclearBlocks.TURBINE_OUTPUT.get(), "turbine_output");
         redstonePortStates();
+        coolingTowerStates();
         simpleBlockWithItem(AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get(), models().cubeBottomTop("radioactive_waste_barrel",
                 modLoc("block/radioactive_waste_barrel_side"),
                 modLoc("block/radioactive_waste_barrel_top"),

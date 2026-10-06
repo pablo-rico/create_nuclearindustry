@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "create_nuclearindustry:block/cooling_tower_fluid_port_input",
+    "side": "create_nuclearindustry:block/cooling_tower_casing",
+    "top": "create_nuclearindustry:block/cooling_tower_casing"
+  }
+}

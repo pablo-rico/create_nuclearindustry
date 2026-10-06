@@ -66,6 +66,19 @@ public class Config
             .comment("Dose at which radiation sickness (damage) starts; it worsens at twice this dose.")
             .defineInRange("radiation.sicknessThreshold", 600.0, 0.0, 1.0e6);
 
+    private static final ModConfigSpec.DoubleValue COOLING_TOWER_PASSIVE = BUILDER
+            .comment("Steam a cooling tower condenses without fans, in mB/t per block of base radius per layer of height.")
+            .defineInRange("coolingTower.passivePerBlock", 1.0, 0.0, 100.0);
+    private static final ModConfigSpec.DoubleValue COOLING_TOWER_FAN_STRESS = BUILDER
+            .comment("Stress impact of a cooling tower fan, in SU per RPM.")
+            .defineInRange("coolingTower.fanStress", 8.0, 0.0, 1.0e6);
+    private static final ModConfigSpec.DoubleValue COOLING_TOWER_FAN_BOOST = BUILDER
+            .comment("Capacity a fan at 256 RPM or more adds, as a fraction of the passive capacity.")
+            .defineInRange("coolingTower.fanBoostPerFan", 0.25, 0.0, 10.0);
+    private static final ModConfigSpec.DoubleValue COOLING_TOWER_MAX_BOOST = BUILDER
+            .comment("Most capacity all fans together can add, as a fraction of the passive capacity.")
+            .defineInRange("coolingTower.maxFanBoost", 1.0, 0.0, 100.0);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     public static double steamCapacityPerPort = 32768.0;
@@ -85,6 +98,10 @@ public class Config
     public static double radiationNauseaThreshold = 100.0;
     public static double radiationWeaknessThreshold = 300.0;
     public static double radiationSicknessThreshold = 600.0;
+    public static double coolingTowerPassivePerBlock = 1.0;
+    public static double coolingTowerFanStress = 8.0;
+    public static double coolingTowerFanBoost = 0.25;
+    public static double coolingTowerMaxFanBoost = 1.0;
 
     static void onLoad(final ModConfigEvent.Loading event)
     {
@@ -118,5 +135,9 @@ public class Config
         radiationNauseaThreshold = NAUSEA_THRESHOLD.get();
         radiationWeaknessThreshold = WEAKNESS_THRESHOLD.get();
         radiationSicknessThreshold = SICKNESS_THRESHOLD.get();
+        coolingTowerPassivePerBlock = COOLING_TOWER_PASSIVE.get();
+        coolingTowerFanStress = COOLING_TOWER_FAN_STRESS.get();
+        coolingTowerFanBoost = COOLING_TOWER_FAN_BOOST.get();
+        coolingTowerMaxFanBoost = COOLING_TOWER_MAX_BOOST.get();
     }
 }

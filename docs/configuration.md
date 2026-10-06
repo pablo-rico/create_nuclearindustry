@@ -22,6 +22,12 @@ coilsPerSector = 4
 magnetInputStress = 1024.0
 disruptionExplosions = true
 
+[coolingTower]
+passivePerBlock = 1.0
+fanStress = 8.0
+fanBoostPerFan = 0.25
+maxFanBoost = 1.0
+
 [radiation]
 enabled = true
 doseMultiplier = 1.0
@@ -41,6 +47,14 @@ el menor de los dos limites manda.
 Las capacidades son la contribucion de stress por RPM por cada 320 mB/t de vapor
 (160 de vapor de plasma) expandidos; Create la multiplica por la velocidad. Las
 turbinas giran a 64 RPM. Duplicar una capacidad duplica su output con el mismo vapor.
+
+## Torres de refrigeración
+
+Una torre de radio de base Rb y altura H condensa `Rb * H * passivePerBlock`
+mB/t de vapor (o vapor pesado) en agua (o agua pesada), 1:1. Cada ventilador a
+256 RPM o más suma `fanBoostPerFan` de esa capacidad (proporcional por debajo,
+nada por debajo de 16 RPM), hasta `maxFanBoost` en total, y consume `fanStress`
+SU por RPM. El radio va de 4 a 16 y la altura de `2*Rb + 4` a `5*Rb` (máximo 64).
 
 ## Fision
 

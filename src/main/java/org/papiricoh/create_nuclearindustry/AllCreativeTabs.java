@@ -58,6 +58,10 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.REACTOR_FUEL_PORT.value());
                 output.accept(AllNuclearItems.REACTOR_TEMPERATURE_SENSOR.value());
                 output.accept(AllNuclearItems.REACTOR_REDSTONE_PORT.value());
+                output.accept(AllNuclearItems.COOLING_TOWER_CASING.value());
+                output.accept(AllNuclearItems.COOLING_TOWER_CONTROLLER.value());
+                output.accept(AllNuclearItems.COOLING_TOWER_FLUID_PORT.value());
+                output.accept(AllNuclearItems.COOLING_TOWER_FAN.value());
                 output.accept(AllNuclearItems.DUAL_FLUID_PIPE.value());
                 output.accept(AllNuclearItems.CENTRIFUGE.value());
                 output.accept(AllNuclearItems.ELECTROLYZER.value());

@@ -69,6 +69,15 @@ below for what changes in existing worlds.
 - Turbine casings now craft four at a time. Ports work on every side and
   no longer scan the area on every call.
 
+### Cooling towers
+- New hyperboloid Cooling Tower multiblock: base radius 4 to 16, height from
+  twice the radius plus 4 up to five times the radius. It condenses steam
+  (heavy steam) back into water (heavy water) at base radius x height mB/t,
+  with a plume and the sound of falling water. No power.
+- Optional Cooling Tower Fans in the bottom wall layers add up to 25% each
+  at 256 RPM, at most doubling the tower. Display Link source, JEI info and
+  a Ponder scene.
+
 ### Radiation
 - Players accumulate a dose from carried material, nearby waste and fallout
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit

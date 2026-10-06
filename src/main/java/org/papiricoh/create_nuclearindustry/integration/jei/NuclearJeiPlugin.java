@@ -107,6 +107,8 @@ public class NuclearJeiPlugin implements IModPlugin {
                 Component.translatable("jei.create_nuclearindustry.info.tokamak"));
         registration.addIngredientInfo(AllNuclearItems.REACTOR_REDSTONE_PORT.get(),
                 Component.translatable("jei.create_nuclearindustry.info.reactor_redstone_port"));
+        registration.addIngredientInfo(AllNuclearItems.COOLING_TOWER_CONTROLLER.get(),
+                Component.translatable("jei.create_nuclearindustry.info.cooling_tower"));
         registration.addIngredientInfo(AllNuclearItems.TURBINE_OUTPUT.get(),
                 Component.translatable("jei.create_nuclearindustry.info.turbine"));
         registration.addIngredientInfo(AllNuclearItems.FUSION_PLASMA_TURBINE.get(),

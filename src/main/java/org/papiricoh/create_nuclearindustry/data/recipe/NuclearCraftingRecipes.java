@@ -24,6 +24,45 @@ public class NuclearCraftingRecipes extends RecipeProvider {
         super(output, registries);
     }
 
+    /** Concrete and andesite for the shell; Create parts for the controller, ports and fans. */
+    private void coolingTower(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.COOLING_TOWER_CASING.get(), 8)
+                .pattern("SSS")
+                .pattern("SAS")
+                .pattern("SSS")
+                .define('S', Items.SMOOTH_STONE)
+                .define('A', CreateItems.get("andesite_alloy"))
+                .unlockedBy("has_andesite_alloy", has(CreateItems.get("andesite_alloy")))
+                .save(output, id("crafting/cooling_tower_casing"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AllNuclearItems.COOLING_TOWER_CONTROLLER.get())
+                .pattern(" E ")
+                .pattern("PCP")
+                .pattern(" R ")
+                .define('C', AllNuclearItems.COOLING_TOWER_CASING.get())
+                .define('E', CreateItems.get("electron_tube"))
+                .define('P', CreateItems.get("copper_sheet"))
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_cooling_tower_casing", has(AllNuclearItems.COOLING_TOWER_CASING.get()))
+                .save(output, id("crafting/cooling_tower_controller"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AllNuclearItems.COOLING_TOWER_FLUID_PORT.get(), 2)
+                .pattern(" P ")
+                .pattern("PCP")
+                .pattern(" P ")
+                .define('C', AllNuclearItems.COOLING_TOWER_CASING.get())
+                .define('P', CreateItems.get("fluid_pipe"))
+                .unlockedBy("has_cooling_tower_casing", has(AllNuclearItems.COOLING_TOWER_CASING.get()))
+                .save(output, id("crafting/cooling_tower_fluid_port"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AllNuclearItems.COOLING_TOWER_FAN.get())
+                .pattern(" F ")
+                .pattern(" C ")
+                .pattern(" S ")
+                .define('C', AllNuclearItems.COOLING_TOWER_CASING.get())
+                .define('F', CreateItems.get("propeller"))
+                .define('S', CreateItems.get("shaft"))
+                .unlockedBy("has_cooling_tower_casing", has(AllNuclearItems.COOLING_TOWER_CASING.get()))
+                .save(output, id("crafting/cooling_tower_fan"));
+    }
+
     @Override
     protected void buildRecipes(RecipeOutput output) {
         // The fuel channel no longer embeds fuel: assemblies are loaded through the fuel port.
@@ -116,6 +155,8 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .define('R', Items.REDSTONE)
                 .unlockedBy("has_reactor_casing", has(AllNuclearItems.REACTOR_CASING.get()))
                 .save(output, id("crafting/reactor_redstone_port"));
+
+        coolingTower(output);
 
         // Legacy item from an unfinished recipe chain: turn any leftovers into usable oxide.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.LOW))

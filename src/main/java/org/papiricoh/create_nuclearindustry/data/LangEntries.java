@@ -87,6 +87,11 @@ public final class LangEntries {
         add("block.create_nuclearindustry.reactor_temperature_sensor",
                 "Temperature Sensor",
                 "Sensor de temperatura");
+        add("block.create_nuclearindustry.cooling_tower_casing", "Cooling Tower Casing", "Carcasa de torre de refrigeración");
+        add("block.create_nuclearindustry.cooling_tower_controller", "Cooling Tower Controller", "Controlador de torre de refrigeración");
+        add("block.create_nuclearindustry.cooling_tower_fluid_port", "Cooling Tower Fluid Port", "Puerto de fluidos de torre de refrigeración");
+        add("block.create_nuclearindustry.cooling_tower_fan", "Cooling Tower Fan", "Ventilador de torre de refrigeración");
+        add("create_nuclearindustry.display_source.cooling_tower", "Steam Condensed", "Vapor condensado");
         add("block.create_nuclearindustry.reactor_redstone_port",
                 "Reactor Redstone Port",
                 "Puerto de redstone de reactor");
@@ -354,6 +359,9 @@ public final class LangEntries {
         add("jei.create_nuclearindustry.info.reactor_redstone_port",
                 "Part of a reactor's shell. It puts out a 0-15 signal on its panel side: temperature, power, fuel, coolant or steam, or the SCRAM signal, which turns on when SCRAM is pressed or the automatic SCRAM trips. Control rods only move with pistons, so wire the SCRAM signal to them. Wrench to change the mode, sneak-wrench to turn it.",
                 "Forma parte de la carcasa de un reactor. Da una señal de 0 a 15 por la cara del panel: temperatura, potencia, combustible, refrigerante o vapor, o la señal de SCRAM, que se enciende al pulsar SCRAM o al dispararse el SCRAM automático. Las barras de control solo se mueven con pistones, así que conecta a ellos la señal de SCRAM. Llave para cambiar el modo; agachado con la llave para girarlo.");
+        add("jei.create_nuclearindustry.info.cooling_tower",
+                "A hyperboloid of Cooling Tower Casing that turns steam back into water (heavy steam into heavy water) without making power. Base radius 4 to 16, on a full floor; the walls narrow to a waist and flare out at the open top. It condenses its base radius times its height in mB/t, and Fans in the bottom wall layers add up to double that. Ports go in the floor or the two wall layers above it; the controller sits in the bottom wall layer facing out. See its Ponder scene.",
+                "Un hiperboloide de Carcasa de torre de refrigeración que vuelve a convertir el vapor en agua (el vapor pesado en agua pesada) sin generar energía. Radio de base de 4 a 16, sobre un suelo completo; las paredes se estrechan hasta una cintura y se abren en la cima, que queda abierta. Condensa su radio de base por su altura en mB/t, y los Ventiladores de las capas bajas de la pared añaden hasta el doble. Los puertos van en el suelo o en las dos capas de pared sobre él; el controlador va en la capa más baja de la pared, mirando hacia fuera. Consulta su escena de Ponder.");
         add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
         add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");
         add("jei.create_nuclearindustry.product", "Product: front face", "Producto: cara frontal");
@@ -388,6 +396,36 @@ public final class LangEntries {
     }
 
     private static void ponder() {
+        add("create_nuclearindustry.ponder.cooling_tower.header",
+                "Cooling Towers",
+                "Torres de refrigeración");
+        add("create_nuclearindustry.ponder.cooling_tower.text_1",
+                "A Cooling Tower stands on a full round floor of Cooling Tower Casing, 4 to 16 blocks in radius.",
+                "Una torre de refrigeración se levanta sobre un suelo redondo y completo de Carcasa de torre de refrigeración, de 4 a 16 bloques de radio.");
+        add("create_nuclearindustry.ponder.cooling_tower.text_2",
+                "Ring by ring, the wall narrows to a waist about three quarters of the way up, then flares out again. The top stays open.",
+                "Anillo a anillo, la pared se estrecha hasta una cintura a unos tres cuartos de la altura y luego vuelve a abrirse. La cima queda abierta.");
+        add("create_nuclearindustry.ponder.cooling_tower.text_3",
+                "Its height may be from twice the radius plus 4 up to five times the radius. A bigger tower condenses more.",
+                "Su altura puede ir del doble del radio más 4 hasta cinco veces el radio. Una torre más grande condensa más.");
+        add("create_nuclearindustry.ponder.cooling_tower.text_4",
+                "The inside must stay empty.",
+                "El interior debe quedar vacío.");
+        add("create_nuclearindustry.ponder.cooling_tower.text_5",
+                "The Cooling Tower Controller goes in the bottom wall layer, centred on a side and facing out. Right-click it to form the tower.",
+                "El Controlador de la torre va en la capa más baja de la pared, centrado en un lado y mirando hacia fuera. Haz clic derecho para formar la torre.");
+        add("create_nuclearindustry.ponder.cooling_tower.text_6",
+                "Fluid Ports go in the floor or the two wall layers above it. One on INPUT takes steam or heavy steam...",
+                "Los Puertos de fluidos van en el suelo o en las dos capas de pared sobre él. Uno en ENTRADA recibe vapor o vapor pesado...");
+        add("create_nuclearindustry.ponder.cooling_tower.text_7",
+                "...and one on OUTPUT gives back the same amount of water or heavy water.",
+                "...y otro en SALIDA devuelve la misma cantidad de agua o agua pesada.");
+        add("create_nuclearindustry.ponder.cooling_tower.text_8",
+                "Fans in the three bottom wall layers, facing out, add up to a quarter more each at 256 RPM, at most doubling the tower.",
+                "Los Ventiladores en las tres capas bajas de la pared, mirando hacia fuera, añaden hasta una cuarta parte más cada uno a 256 RPM, como mucho el doble de la torre.");
+        add("create_nuclearindustry.ponder.cooling_tower.text_9",
+                "It condenses its base radius times its height in mB/t, 48 here, and makes no power: it takes the steam no turbine can use and closes the water loop.",
+                "Condensa su radio de base por su altura en mB/t, 48 aquí, y no genera energía: se lleva el vapor que ninguna turbina aprovecha y cierra el circuito de agua.");
         add("create_nuclearindustry.ponder.turbine.header",
                 "Building a Steam Turbine",
                 "Construir una turbina de vapor");

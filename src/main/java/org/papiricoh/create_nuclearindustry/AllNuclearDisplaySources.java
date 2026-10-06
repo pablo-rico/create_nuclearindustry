@@ -24,6 +24,9 @@ public class AllNuclearDisplaySources {
     public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.fusion.display.TokamakDisplaySource> TOKAMAK =
             DISPLAY_SOURCES.register("tokamak", org.papiricoh.create_nuclearindustry.fusion.display.TokamakDisplaySource::new);
 
+    public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.coolingtower.CoolingTowerDisplaySource> COOLING_TOWER =
+            DISPLAY_SOURCES.register("cooling_tower", org.papiricoh.create_nuclearindustry.coolingtower.CoolingTowerDisplaySource::new);
+
     /** One source per reactor reading, in {@link ReactorReadout} order. */
     public static final Map<ReactorReadout, DeferredHolder<DisplaySource, SingleLineDisplaySource>> REACTOR_READOUTS = readouts();
 
@@ -49,6 +52,7 @@ public class AllNuclearDisplaySources {
                 DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_REDSTONE_PORT.get(), source.get());
             }
             DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.FUSION_CONTROLLER.get(), TOKAMAK.get());
+            DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.COOLING_TOWER_CONTROLLER.get(), COOLING_TOWER.get());
         });
     }
 }

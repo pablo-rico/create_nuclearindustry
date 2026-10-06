@@ -20,6 +20,9 @@ import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionTurbineFlui
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFuelPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFluidPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.coolingtower.blockentity.CoolingTowerControllerBlockEntity;
+import org.papiricoh.create_nuclearindustry.coolingtower.blockentity.CoolingTowerFanBlockEntity;
+import org.papiricoh.create_nuclearindustry.coolingtower.blockentity.CoolingTowerPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorRedstonePortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorTemperatureSensorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.TurbineFluidPortBlockEntity;
@@ -53,6 +56,18 @@ public class AllNuclearEntities {
                     ReactorTemperatureSensorBlockEntity::new,
                     AllNuclearBlocks.REACTOR_TEMPERATURE_SENSOR.get()
             ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoolingTowerControllerBlockEntity>> COOLING_TOWER_CONTROLLER =
+            ENTITIES.register("cooling_tower_controller", () -> BlockEntityType.Builder.of(
+                    CoolingTowerControllerBlockEntity::new, AllNuclearBlocks.COOLING_TOWER_CONTROLLER.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoolingTowerPortBlockEntity>> COOLING_TOWER_FLUID_PORT =
+            ENTITIES.register("cooling_tower_fluid_port", () -> BlockEntityType.Builder.of(
+                    CoolingTowerPortBlockEntity::new, AllNuclearBlocks.COOLING_TOWER_FLUID_PORT.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoolingTowerFanBlockEntity>> COOLING_TOWER_FAN =
+            ENTITIES.register("cooling_tower_fan", () -> BlockEntityType.Builder.of(
+                    CoolingTowerFanBlockEntity::new, AllNuclearBlocks.COOLING_TOWER_FAN.get()).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ReactorRedstonePortBlockEntity>> REACTOR_REDSTONE_PORT =
             ENTITIES.register("reactor_redstone_port", () -> BlockEntityType.Builder.of(

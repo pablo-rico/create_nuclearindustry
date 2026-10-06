@@ -4,6 +4,7 @@ import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
 import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CoolingTowerScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TokamakScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TurbineScenes;
@@ -14,6 +15,9 @@ public class AllNuclearPonderScenes {
     }
 
     public static void register(PonderSceneRegistrationHelper<ResourceLocation> helper) {
+        for (String part : new String[]{"cooling_tower_controller", "cooling_tower_casing", "cooling_tower_fluid_port", "cooling_tower_fan"}) {
+            helper.addStoryBoard(id(part), "cooling_tower", CoolingTowerScenes::tower);
+        }
         helper.addStoryBoard(
                 id("centrifuge"),
                 "centrifuge",
