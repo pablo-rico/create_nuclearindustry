@@ -31,6 +31,7 @@ public class NuclearItemModelProvider extends ItemModelProvider {
                 AllNuclearItems.URANYL_NITRATE,
                 AllNuclearItems.PLUTONIUM_DIOXIDE,
                 AllNuclearItems.PLUTONIUM,
+                AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE,
                 AllNuclearItems.URANIUM_FUEL_PELLET,
                 AllNuclearItems.INCOMPLETE_URANIUM_REACTOR_FUEL,
                 AllNuclearItems.RADIOACTIVE_WASTE,

@@ -61,6 +61,10 @@
       "per_second": 1.5,
       "scales_with_enrichment": true
     },
+    "create_nuclearindustry:weapons_grade_plutonium_core": {
+      "heat_per_second": 4.0,
+      "per_second": 25.0
+    },
     "create_nuclearindustry:weapons_grade_uranium_core": {
       "per_second": 12.0
     },

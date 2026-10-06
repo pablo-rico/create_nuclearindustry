@@ -24,6 +24,8 @@ public class NuclearItemTagsProvider extends ItemTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
+        tag(AllNuclearTags.Items.NUCLEAR_WARHEAD_CORES).add(
+                AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.get(), AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get());
         copy(AllNuclearTags.Blocks.C_ORES_URANIUM, itemTag(AllNuclearTags.Blocks.C_ORES_URANIUM));
         copy(AllNuclearTags.Blocks.C_ORES_LITHIUM, itemTag(AllNuclearTags.Blocks.C_ORES_LITHIUM));
         copy(AllNuclearTags.Blocks.C_ORES_BORAX, itemTag(AllNuclearTags.Blocks.C_ORES_BORAX));

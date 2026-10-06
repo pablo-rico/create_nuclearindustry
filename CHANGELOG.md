@@ -25,6 +25,10 @@ below for what changes in existing worlds.
   (uranium comes back as uranyl nitrate one tier lower), centrifuge the
   solution into plutonium nitrate, recovered acid and waste, then make
   plutonium dioxide and metal. Leaner fuel breeds more plutonium.
+- The nuclear bomb, the missile launch pad and the CBC nuclear shell accept
+  plutonium as well as 90% uranium. Plutonium has a smaller critical mass:
+  each piece counts as two units, so 8 plutonium fill a slot like 16
+  uranium, and 4 make a Weapons-Grade Plutonium Core (8 for uranium).
 - New nitric acid (gunpowder or saltpetre with sulfuric acid). Plutonium is
   far more radioactive than uranium and burns whoever carries it without
   at least half shielding.

@@ -20,6 +20,8 @@ public final class AllNuclearTags {
         public static final TagKey<Item> RAW_URANIUM = mod("raw_uranium");
         /** Any uranium ingot, from this mod or any other. */
         public static final TagKey<Item> URANIUM_INGOTS = mod("uranium_ingots");
+        /** Weapons-grade cores, uranium or plutonium, for warhead recipes. */
+        public static final TagKey<Item> NUCLEAR_WARHEAD_CORES = mod("nuclear_warhead_cores");
 
         public static final TagKey<Item> C_RAW_MATERIALS = common("raw_materials");
         public static final TagKey<Item> C_RAW_URANIUM = common("raw_materials/uranium");

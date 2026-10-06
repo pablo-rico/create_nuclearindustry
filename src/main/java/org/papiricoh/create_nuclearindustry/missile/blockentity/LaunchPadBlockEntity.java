@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.explosive.FissileMaterial;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
@@ -59,7 +60,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         if (slot == DESIGNATOR_SLOT) {
             return stack.is(AllNuclearItems.TARGET_DESIGNATOR.get());
         }
-        return isValidUranium(stack);
+        return isValidFissile(stack);
     }
 
     public void tick() {
@@ -115,28 +116,13 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         return COUNTDOWN_TICKS;
     }
 
+    /** Warhead units loaded: one per weapons-grade uranium, two per plutonium. */
     public int getValidUraniumCount() {
-        int count = 0;
-        for (int slot = FIRST_URANIUM_SLOT; slot < SLOT_COUNT; slot++) {
-            ItemStack stack = inventory.getStackInSlot(slot);
-            if (isValidUranium(stack)) {
-                count += stack.getCount();
-            }
-        }
-        return count;
+        return FissileMaterial.units(inventory, FIRST_URANIUM_SLOT, SLOT_COUNT);
     }
 
     public float getAverageEnrichment() {
-        int count = 0;
-        float total = 0.0f;
-        for (int slot = FIRST_URANIUM_SLOT; slot < SLOT_COUNT; slot++) {
-            ItemStack stack = inventory.getStackInSlot(slot);
-            if (isValidUranium(stack)) {
-                count += stack.getCount();
-                total += UraniumItem.getEnrichment(stack) * stack.getCount();
-            }
-        }
-        return count == 0 ? 0.0f : total / count;
+        return FissileMaterial.averageEnrichment(inventory, FIRST_URANIUM_SLOT, SLOT_COUNT);
     }
 
     public float getEstimatedPower() {
@@ -151,8 +137,14 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         return WarheadStats.verticalRadius(getValidUraniumCount(), getAverageEnrichment());
     }
 
+    /** Weapons-grade uranium or plutonium. */
+    public boolean isValidFissile(ItemStack stack) {
+        return FissileMaterial.isWeaponsFissile(stack);
+    }
+
+    /** Kept for callers from before plutonium: same as {@link #isValidFissile}. */
     public boolean isValidUranium(ItemStack stack) {
-        return stack.is(AllNuclearItems.URANIUM.get()) && UraniumItem.getEnrichment(stack) >= REQUIRED_ENRICHMENT;
+        return isValidFissile(stack);
     }
 
     private void launch() {

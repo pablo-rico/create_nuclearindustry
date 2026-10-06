@@ -945,3 +945,20 @@ def plutonium():
     t = _ingot(263, PLUTONIUM)
     glow(t, 8, 8, 7.0, PLASMA[5], 0.16)
     return t
+
+
+@item("weapons_grade_plutonium_core")
+def weapons_grade_plutonium_core():
+    # A nickel-plated plutonium pit: a bright sphere with a warm glow.
+    t = Tex(16, 16, 264)
+    for y in range(16):
+        for x in range(16):
+            d = math.hypot(x + 0.5 - 8, y + 0.5 - 8)
+            if d <= 6.2:
+                light = 1.0 - math.hypot(x + 0.5 - 6, y + 0.5 - 6) / 9.0
+                t.set(x, y, PLUTONIUM[max(1, min(6, int(round(1 + light * 5.5))))])
+    t.ring(8, 8, 6.4, 5.6, PLUTONIUM[0])
+    t.disc(6, 6, 1.2, WHITE)
+    glow(t, 8, 8, 7.0, PLASMA[5], 0.2)
+    item_outline(t, PLUTONIUM[0])
+    return t

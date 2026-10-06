@@ -54,6 +54,7 @@ public class NuclearDataMapProvider extends DataMapProvider {
         // Plutonium is far hotter than uranium, in dose and in decay heat.
         radioactivity.add(AllNuclearItems.PLUTONIUM_DIOXIDE.get().builtInRegistryHolder(), new Radioactivity(6.0f, false, 0.75f), false);
         radioactivity.add(AllNuclearItems.PLUTONIUM.get().builtInRegistryHolder(), new Radioactivity(8.0f, false, 1.0f), false);
+        radioactivity.add(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get().builtInRegistryHolder(), new Radioactivity(25.0f, false, 4.0f), false);
 
         // Fraction of radiation one block lets through. Unlisted solid blocks pass 90% (config).
         var transmission = builder(AllNuclearRadiation.TRANSMISSION);

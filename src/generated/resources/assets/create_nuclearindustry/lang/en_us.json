@@ -247,6 +247,7 @@
   "item.create_nuclearindustry.uranium_fuel_pellet": "Uranium Fuel Pellet",
   "item.create_nuclearindustry.uranium_reactor_fuel": "Uranium Reactor Fuel",
   "item.create_nuclearindustry.uranyl_nitrate": "Uranyl Nitrate",
+  "item.create_nuclearindustry.weapons_grade_plutonium_core": "Weapons-Grade Plutonium Core",
   "item.create_nuclearindustry.weapons_grade_uranium_core": "Weapons-Grade Uranium Core",
   "item.create_nuclearindustry.yellowcake": "Yellowcake",
   "itemGroup.create_nuclearindustry.nuclear_tab": "Create: Nuclear industry",

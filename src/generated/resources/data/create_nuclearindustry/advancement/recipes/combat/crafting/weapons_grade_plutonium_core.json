@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_plutonium": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:plutonium"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "create_nuclearindustry:crafting/weapons_grade_plutonium_core"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_plutonium"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "create_nuclearindustry:crafting/weapons_grade_plutonium_core"
+    ]
+  }
+}

@@ -91,6 +91,7 @@ public final class LangEntries {
         item("uranyl_nitrate", "Uranyl Nitrate", "Nitrato de uranilo");
         item("plutonium_dioxide", "Plutonium Dioxide", "Dióxido de plutonio");
         item("plutonium", "Plutonium", "Plutonio");
+        item("weapons_grade_plutonium_core", "Weapons-Grade Plutonium Core", "Núcleo de plutonio de grado militar");
         add("block.create_nuclearindustry.depleted_uranium_block", "Block of Depleted Uranium", "Bloque de uranio empobrecido");
         add("item.create_nuclearindustry.depleted_uranium_helmet", "Depleted Uranium Helmet", "Casco de uranio empobrecido");
         add("item.create_nuclearindustry.depleted_uranium_chestplate", "Depleted Uranium Chestplate", "Peto de uranio empobrecido");

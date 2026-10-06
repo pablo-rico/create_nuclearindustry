@@ -30,7 +30,7 @@ public class NuclearBombScreen extends AbstractContainerScreen<NuclearBombMenu> 
         NuclearBombBlockEntity bomb = menu.getBomb();
         if (bomb != null) {
             int valid = bomb.getValidUraniumCount();
-            guiGraphics.drawString(font, "Uranium: " + valid + "/" + NuclearBombBlockEntity.MAX_URANIUM_UNITS, leftPos + 14, topPos + 28, 0xDDDDDD);
+            guiGraphics.drawString(font, "Fissile: " + valid + "/" + NuclearBombBlockEntity.MAX_URANIUM_UNITS, leftPos + 14, topPos + 28, 0xDDDDDD);
             guiGraphics.drawString(font, String.format("Avg enrichment: %.1f%%", bomb.getAverageEnrichment()), leftPos + 14, topPos + 40, 0xDDDDDD);
             guiGraphics.drawString(font, String.format("Power: %.1f", bomb.getEstimatedPower()), leftPos + 14, topPos + 52, 0xFF7777);
             guiGraphics.drawString(font, "Radius H/V: " + bomb.getEstimatedRadius() + "/" + bomb.getEstimatedVerticalRadius(), leftPos + 14, topPos + 64, 0xFFAA77);

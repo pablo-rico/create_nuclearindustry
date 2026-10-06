@@ -188,6 +188,14 @@ public class NuclearCraftingRecipes extends RecipeProvider {
         coolingTower(output);
         depletedUranium(output);
 
+        // Plutonium's smaller critical mass: four pieces make a core, against eight of uranium.
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get())
+                .pattern("PP")
+                .pattern("PP")
+                .define('P', AllNuclearItems.PLUTONIUM.get())
+                .unlockedBy("has_plutonium", has(AllNuclearItems.PLUTONIUM.get()))
+                .save(output, id("crafting/weapons_grade_plutonium_core"));
+
         // Legacy item from an unfinished recipe chain: turn any leftovers into usable oxide.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.LOW))
                 .requires(AllNuclearItems.ENRICHED_URANIUM_BLEND.get())
