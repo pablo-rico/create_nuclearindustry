@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FusionPlasmaTurbineScenes;
-import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FusionReactorScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TokamakScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TurbineScenes;
 
@@ -25,14 +25,13 @@ public class AllNuclearPonderScenes {
                 "reactor_controller",
                 ReactorScenes::assembly
         );
-        // El reactor de fusion se ancla a todos sus bloques de estructura principales.
-        helper.addStoryBoard(id("fusion_controller"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_accelerator_segment"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_accelerator_corner"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_electromagnet"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_magnet_input"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_fluid_port"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_fuel_injector"), "fusion_controller", FusionReactorScenes::assembly);
+        // The tokamak storyboard is reachable from every block it is built from.
+        for (String part : new String[]{"fusion_controller", "fusion_central_solenoid", "fusion_accelerator_segment",
+                "fusion_electromagnet", "fusion_breeding_blanket", "fusion_cryostat_casing", "fusion_magnet_input",
+                "fusion_fluid_port", "fusion_fuel_injector"}) {
+            helper.addStoryBoard(id(part), "tokamak", TokamakScenes::assembly);
+        }
+        helper.addStoryBoard(id("electrolyzer"), "centrifuge", CentrifugeScenes::electrolysis);
         helper.addStoryBoard(id("fusion_plasma_turbine"), "turbine", FusionPlasmaTurbineScenes::generation);
         helper.addStoryBoard(id("fusion_turbine_casing"), "turbine", FusionPlasmaTurbineScenes::generation);
         helper.addStoryBoard(id("fusion_turbine_rotor"), "turbine", FusionPlasmaTurbineScenes::generation);

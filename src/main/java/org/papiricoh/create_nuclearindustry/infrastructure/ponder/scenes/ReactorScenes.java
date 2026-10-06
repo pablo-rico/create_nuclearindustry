@@ -80,7 +80,7 @@ public class ReactorScenes {
         scene.world().showSection(util.select().fromTo(3, 2, 4, 3, 4, 4), Direction.DOWN);
         scene.idle(15);
         scene.overlay().showText(80)
-                .text("Inside, raise columns of Uranium Rods: the fuel.")
+                .text("Inside, raise columns of Fuel Channels: each block holds one fuel assembly.")
                 .colored(PonderPalette.RED)
                 .pointAt(util.vector().centerOf(util.grid().at(3, 3, 2)))
                 .placeNearTarget();
@@ -144,7 +144,7 @@ public class ReactorScenes {
                 false);
         scene.idle(10);
         scene.overlay().showText(80)
-                .text("A Reactor Fuel Port loads uranium fuel and ejects depleted fuel.")
+                .text("A Reactor Fuel Port loads fuel assemblies and ejects spent fuel.")
                 .pointAt(util.vector().blockSurface(fuelPort, Direction.NORTH))
                 .placeNearTarget();
         scene.idle(90);

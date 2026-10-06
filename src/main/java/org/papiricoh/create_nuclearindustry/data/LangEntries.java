@@ -67,8 +67,8 @@ public final class LangEntries {
                 "Control Rod",
                 "Barra de control");
         add("block.create_nuclearindustry.uranium_rod",
-                "Uranium Rod",
-                "Barra de uranio");
+                "Fuel Channel",
+                "Canal de combustible");
         add("block.create_nuclearindustry.heat_exchanger",
                 "Heat Exchanger",
                 "Intercambiador de calor");
@@ -309,6 +309,15 @@ public final class LangEntries {
         add("gui.create_nuclearindustry.reactor.scram.tooltip", "Emergency shutdown: holds every control rod fully inserted until reset.",
                 "Parada de emergencia: mantiene todas las barras de control insertadas hasta rearmar.");
 
+        add("jei.create_nuclearindustry.info.reactor_fuel",
+                "Fuel assemblies are pressed from uranium dioxide pellets. Each Fuel Channel in a reactor holds one assembly. Richer fuel lasts longer and is more reactive; spent fuel keeps its enrichment and can be reprocessed.",
+                "Los elementos combustibles se montan con pastillas de dióxido de uranio. Cada Canal de combustible de un reactor aloja uno. El combustible más enriquecido dura más y es más reactivo; el gastado conserva su enriquecimiento y se puede reprocesar.");
+        add("jei.create_nuclearindustry.info.tokamak",
+                "A ring-shaped fusion reactor around a Central Solenoid. Feed it deuterium and tritium, coolant and rotation for its Magnet Drives; it makes plasma steam for a Plasma Turbine. See its Ponder scene.",
+                "Un reactor de fusión en forma de anillo alrededor de un Solenoide central. Necesita deuterio y tritio, refrigerante y rotación para sus Tomas de imanes; produce vapor de plasma para una Turbina de plasma. Consulta su escena de Ponder.");
+        add("jei.create_nuclearindustry.info.radiation",
+                "Enriched uranium, spent fuel and radioactive waste irradiate whoever carries them. A Geiger counter shows the dose; a full hazmat suit stops 95% of it.",
+                "El uranio enriquecido, el combustible gastado y los residuos irradian a quien los lleva. Un contador Geiger muestra la dosis; un traje antirradiación completo detiene el 95%.");
         add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
         add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");
         add("jei.create_nuclearindustry.product", "Product: front face", "Producto: cara frontal");
@@ -343,24 +352,75 @@ public final class LangEntries {
     }
 
     private static void ponder() {
+        add("create_nuclearindustry.ponder.tokamak.header",
+                "Building a Tokamak",
+                "Construir un tokamak");
+        add("create_nuclearindustry.ponder.tokamak.text_1",
+                "A tokamak holds a ring of plasma with magnets. Start with a Central Solenoid column, five blocks tall, at its axis.",
+                "Un tokamak sujeta un anillo de plasma con imanes. Empieza por una columna de Solenoide central, de cinco bloques de alto, en su eje.");
+        add("create_nuclearindustry.ponder.tokamak.text_2",
+                "The torus has a 5x5 cross-section. Its floor and roof can hold Breeding Blankets, which turn fusion neutrons into tritium.",
+                "El toro tiene una sección de 5x5. Su suelo y su techo pueden llevar Mantos regeneradores, que convierten los neutrones de fusión en tritio.");
+        add("create_nuclearindustry.ponder.tokamak.text_3",
+                "Toroidal Field Coils line the walls. The 3x3 core of the ring must stay empty: it is the plasma chamber.",
+                "Las Bobinas de campo toroidal forran las paredes. El núcleo de 3x3 del anillo debe quedar vacío: es la cámara de plasma.");
+        add("create_nuclearindustry.ponder.tokamak.text_4",
+                "The ring may be 4 to 16 blocks from the solenoid to the plasma. A bigger ring holds more plasma and makes more power.",
+                "El anillo puede estar a entre 4 y 16 bloques del solenoide al plasma. Un anillo mayor contiene más plasma y da más potencia.");
+        add("create_nuclearindustry.ponder.tokamak.text_5",
+                "The Tokamak Controller sits on the outer equator. Right-click it to form the tokamak and open its control panel.",
+                "El Controlador del tokamak va en el ecuador exterior. Haz clic derecho para formar el tokamak y abrir su panel de control.");
+        add("create_nuclearindustry.ponder.tokamak.text_6",
+                "A Fluid Port on INPUT takes water or heavy water as coolant...",
+                "Un Puerto de fluidos en ENTRADA recibe agua o agua pesada como refrigerante...");
+        add("create_nuclearindustry.ponder.tokamak.text_7",
+                "...and one on OUTPUT gives plasma steam for a Plasma Turbine.",
+                "...y otro en SALIDA entrega vapor de plasma para una Turbina de plasma.");
+        add("create_nuclearindustry.ponder.tokamak.text_8",
+                "The Fuel Injector takes deuterium and tritium, by pipe or by hand with gas cells. On deuterium alone the plasma runs slowly and breeds its first tritium.",
+                "El Inyector de combustible recibe deuterio y tritio, por tubería o a mano con células de gas. Solo con deuterio el plasma funciona despacio y cría su primer tritio.");
+        add("create_nuclearindustry.ponder.tokamak.text_9",
+                "Magnet Drives turn rotation into the confining field: one for every 4 blocks of radius, at 64 RPM or more.",
+                "Las Tomas de imanes convierten la rotación en el campo de confinamiento: una por cada 4 bloques de radio, a 64 RPM o más.");
+        add("create_nuclearindustry.ponder.tokamak.text_10",
+                "Keep the coolant flowing. A tokamak without coolant overheats and disrupts, blowing holes in its vessel.",
+                "Mantén el refrigerante fluyendo. Un tokamak sin refrigerante se sobrecalienta y sufre una disrupción que agujerea su cámara.");
         add("create_nuclearindustry.ponder.centrifuge.header",
-                "Processing uranium with a Centrifuge",
-                "Procesando uranio con una centrifugadora");
+                "Enriching uranium with Centrifuges",
+                "Enriquecer uranio con centrifugadoras");
         add("create_nuclearindustry.ponder.centrifuge.text_1",
-                "The Centrifuge is a kinetic machine for refining uranium.",
-                "La centrifugadora es una maquina cinetica para refinar uranio.");
+                "The Centrifuge separates uranium hexafluoride by enrichment. It turns through its back, at 32 RPM or more.",
+                "La centrifugadora separa el hexafluoruro de uranio por enriquecimiento. Gira por su parte trasera, a 32 RPM o más.");
         add("create_nuclearindustry.ponder.centrifuge.text_2",
-                "It accepts rotational power through the rear shaft.",
-                "Acepta potencia rotacional por el eje trasero.");
+                "Pipe UF6 into the top or the sides.",
+                "Introduce el UF6 por arriba o por los lados.");
         add("create_nuclearindustry.ponder.centrifuge.text_3",
-                "Right-click with Raw Uranium or Uranium to insert one item.",
-                "Haz clic derecho con uranio bruto o uranio para insertar un objeto.");
+                "The enriched product leaves through the front...",
+                "El producto enriquecido sale por el frente...");
         add("create_nuclearindustry.ponder.centrifuge.text_4",
-                "At 16 RPM or faster, uranium is enriched continuously until it reaches the target set on the scroll dial.",
-                "A 16 RPM o mas, el uranio se enriquece de forma continua hasta alcanzar el objetivo fijado en el dial.");
+                "...and the depleted tails through the bottom.",
+                "...y las colas empobrecidas por abajo.");
         add("create_nuclearindustry.ponder.centrifuge.text_5",
-                "Extract finished uranium from the bottom, or right-click with an empty hand.",
-                "Extrae el uranio terminado por abajo, o con clic derecho usando la mano vacia.");
+                "Chain centrifuges into a cascade: natural to LEU, LEU to HEU, HEU to weapons grade. Pipe each stage's tails back into the stage before it.",
+                "Encadena centrifugadoras en cascada: natural a LEU, LEU a HEU, HEU a grado militar. Devuelve las colas de cada etapa a la etapa anterior.");
+        add("create_nuclearindustry.ponder.centrifuge.text_6",
+                "It also separates Lithium-6 from lithium.",
+                "También separa litio-6 del litio.");
+        add("create_nuclearindustry.ponder.electrolyzer.header",
+                "Electrolysis",
+                "Electrólisis");
+        add("create_nuclearindustry.ponder.electrolyzer.text_1",
+                "The Electrolyzer uses rotation in place of electric current, at 32 RPM or more.",
+                "El electrolizador usa la rotación en lugar de corriente eléctrica, a 32 RPM o más.");
+        add("create_nuclearindustry.ponder.electrolyzer.text_2",
+                "Fed water, it slowly concentrates heavy water. Heavy water then splits into deuterium gas.",
+                "Con agua, concentra lentamente agua pesada. Luego el agua pesada se descompone en gas deuterio.");
+        add("create_nuclearindustry.ponder.electrolyzer.text_3",
+                "It also reduces lithium carbonate to lithium metal.",
+                "También reduce el carbonato de litio a litio metálico.");
+        add("create_nuclearindustry.ponder.electrolyzer.text_4",
+                "Fluids leave through the front, items through the bottom.",
+                "Los fluidos salen por el frente y los objetos por abajo.");
         add("create_nuclearindustry.ponder.reactor_controller.header",
                 "Assembling a Nuclear Reactor",
                 "Ensamblando un reactor nuclear");
@@ -371,8 +431,8 @@ public final class LangEntries {
                 "The width must be odd (3-9) and the height 4-12.",
                 "La anchura debe ser impar (3-9) y la altura 4-12.");
         add("create_nuclearindustry.ponder.reactor_controller.text_3",
-                "Inside, raise columns of Uranium Rods: the fuel.",
-                "Dentro, levanta columnas de Barras de Uranio: el combustible.");
+                "Inside, raise columns of Fuel Channels: each block holds one fuel assembly.",
+                "Dentro, levanta columnas de Canales de combustible: cada bloque aloja un elemento combustible.");
         add("create_nuclearindustry.ponder.reactor_controller.text_4",
                 "A central column of Heat Exchangers carries the heat into the coolant.",
                 "Una columna central de Intercambiadores de Calor lleva el calor al refrigerante.");
@@ -386,47 +446,14 @@ public final class LangEntries {
                 "...and another set to OUTPUT for steam.",
                 "...y otro en modo SALIDA para el vapor.");
         add("create_nuclearindustry.ponder.reactor_controller.text_8",
-                "A Reactor Fuel Port loads uranium fuel and ejects depleted fuel.",
-                "Un Puerto de Combustible carga uranio y expulsa el combustible gastado.");
+                "A Reactor Fuel Port loads fuel assemblies and ejects spent fuel.",
+                "Un Puerto de combustible carga elementos combustibles y expulsa el combustible gastado.");
         add("create_nuclearindustry.ponder.reactor_controller.text_9",
                 "Cap the reactor and place the Reactor Controller at the centre of the top face.",
                 "Corona el reactor y coloca el Controlador de Reactor en el centro de la cara superior.");
         add("create_nuclearindustry.ponder.reactor_controller.text_10",
                 "Leave the casing OPEN above every Control Rod column: rods are moved from up here.",
                 "Deja ABIERTA la carcasa sobre cada columna de Barras de Control: las barras se mueven desde arriba.");
-        add("create_nuclearindustry.ponder.fusion_controller.header",
-                "Assembling a Fusion Reactor",
-                "Ensamblando un reactor de fusion");
-        add("create_nuclearindustry.ponder.fusion_controller.text_1",
-                "Place the Fusion Reactor Core at the centre.",
-                "Coloca el Nucleo del Reactor de Fusion en el centro.");
-        add("create_nuclearindustry.ponder.fusion_controller.text_2",
-                "Use Accelerator Corners on all four corners.",
-                "Usa Esquinas Aceleradoras en las cuatro esquinas.");
-        add("create_nuclearindustry.ponder.fusion_controller.text_3",
-                "Build an odd square ring: 5x5 to 11x11.",
-                "Construye un anillo cuadrado impar: 5x5 a 11x11.");
-        add("create_nuclearindustry.ponder.fusion_controller.text_4",
-                "Fill the chamber between ring and core with Cryostat Casing.",
-                "Rellena la camara entre el anillo y el nucleo con Carcasa de Criostato.");
-        add("create_nuclearindustry.ponder.fusion_controller.text_5",
-                "More Electromagnets improve field stability.",
-                "Mas Electroimanes mejoran la estabilidad del campo.");
-        add("create_nuclearindustry.ponder.fusion_controller.text_6",
-                "Power a Magnet Drive with Create rotation.",
-                "Alimenta una Toma de Iman con rotacion de Create.");
-        add("create_nuclearindustry.ponder.fusion_controller.text_7",
-                "Add an INPUT Fusion Fluid Port for coolant.",
-                "Anade un Puerto de Fluido en ENTRADA para refrigerante.");
-        add("create_nuclearindustry.ponder.fusion_controller.text_8",
-                "Add an OUTPUT Fusion Fluid Port for plasma steam.",
-                "Anade otro en SALIDA para vapor de plasma.");
-        add("create_nuclearindustry.ponder.fusion_controller.text_9",
-                "The Fuel Injector loads D-T Fuel Pellets.",
-                "El Inyector carga Pellets de Combustible D-T.");
-        add("create_nuclearindustry.ponder.fusion_controller.text_10",
-                "Right-click the core to form the reactor.",
-                "Haz clic derecho en el nucleo para formar el reactor.");
         add("create_nuclearindustry.ponder.turbine.header",
                 "Assembling a Steam Turbine",
                 "Ensamblando una turbina de vapor");

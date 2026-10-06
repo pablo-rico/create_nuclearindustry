@@ -7,12 +7,15 @@ from zipfile import ZipFile
 
 from PIL import Image
 from reactor_materials import REFERENCE
+import armor
 import blocks
 import fluids
+import gui
 import items
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / "src/main/resources/assets/create_nuclearindustry"
+GENERATED_ASSETS = ROOT / "src/generated/resources/assets/create_nuclearindustry"
 
 
 def main():
@@ -24,6 +27,12 @@ def main():
     for folder, factories in (("block", blocks.BLOCKS), ("item", items.ITEMS)):
         for name, factory in factories.items():
             expected[f"{folder}/{name}.png"] = factory().im
+    # Larger textures with their own layouts: screens, armor layers, effect icons.
+    special = {}
+    for folder, factories in (("gui", gui.GUIS), ("models/armor", armor.ARMOR), ("mob_effect", armor.EFFECTS)):
+        for name, factory in factories.items():
+            special[f"{folder}/{name}.png"] = factory().im
+    expected.update(special)
     for name, factory in fluids.FLUIDS.items():
         im, meta = factory()
         expected[f"block/{name}.png"] = im
@@ -34,19 +43,23 @@ def main():
         with Image.open(textures / name) as im:
             assert im.size == expected_image.size, name
             assert im.tobytes() == expected_image.tobytes(), "Stale generated texture: " + name
-            assert im.width == 16 and im.height % 16 == 0, name
             assert im.getbbox() is not None, name
+            if name in special:
+                continue
+            assert im.width == 16 and im.height % 16 == 0, name
             alpha = im.getchannel("A")
             assert set(alpha.tobytes()) <= {0, 255}, "Blended alpha: " + name
             if name.startswith("block/"):
                 assert alpha.getextrema() == (255, 255), "Transparent block face: " + name
             else:
                 assert alpha.getextrema() == (0, 255), "Missing item silhouette: " + name
-    for model in (ASSETS / "models").rglob("*.json"):
+    models = list((ASSETS / "models").rglob("*.json")) + list((GENERATED_ASSETS / "models").rglob("*.json"))
+    for model in models:
         for ref in json.loads(model.read_text()).get("textures", {}).values():
             if ref.startswith("create_nuclearindustry:"):
                 assert ref.split(":", 1)[1] + ".png" in expected, (model, ref)
-    for name, host in (("uranium_ore", "deepslate"), ("borax_ore", "stone"), ("thorium_ore", "stone")):
+    for name, host in (("uranium_ore", "deepslate"), ("borax_ore", "stone"), ("thorium_ore", "stone"),
+                       ("spodumene_ore", "stone")):
         with Image.open(REFERENCE / (host + ".png")) as source:
             original = source.convert("RGBA").tobytes()
         ore = expected[f"block/{name}.png"].tobytes()
@@ -58,7 +71,7 @@ def main():
                 if file.is_file():
                     entry = "assets/create_nuclearindustry/textures/" + file.relative_to(textures).as_posix()
                     assert archive.read(entry) == file.read_bytes(), "Stale JAR asset: " + entry
-    print(f"Validated {len(expected)} textures, alpha, animation metadata and all model texture references.")
+    print(f"Validated {len(expected)} textures, alpha, animation metadata and {len(models)} models' texture references.")
     if args.jar:
         print("All textures in the JAR match the source assets.")
 

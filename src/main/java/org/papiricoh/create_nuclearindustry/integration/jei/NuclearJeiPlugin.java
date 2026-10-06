@@ -87,11 +87,27 @@ public class NuclearJeiPlugin implements IModPlugin {
                 .stream().map(RecipeHolder::value).toList());
         registration.addRecipes(ELECTROLYSIS, recipes.getAllRecipesFor(AllNuclearRecipeTypes.ELECTROLYSIS.<ProcessingInput, ElectrolysisRecipe>getType())
                 .stream().map(RecipeHolder::value).toList());
+        addInfo(registration);
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(AllNuclearBlocks.CENTRIFUGE.get(), CENTRIFUGING);
         registration.addRecipeCatalyst(AllNuclearBlocks.ELECTROLYZER.get(), ELECTROLYSIS);
+    }
+
+    private static void addInfo(IRecipeRegistration registration) {
+        registration.addIngredientInfo(AllNuclearItems.URANIUM_REACTOR_FUEL.get(),
+                Component.translatable("jei.create_nuclearindustry.info.reactor_fuel"));
+        registration.addIngredientInfo(AllNuclearItems.URANIUM_ROD.get(),
+                Component.translatable("jei.create_nuclearindustry.info.reactor_fuel"));
+        registration.addIngredientInfo(AllNuclearItems.FUSION_CONTROLLER.get(),
+                Component.translatable("jei.create_nuclearindustry.info.tokamak"));
+        registration.addIngredientInfo(AllNuclearItems.FUSION_CENTRAL_SOLENOID.get(),
+                Component.translatable("jei.create_nuclearindustry.info.tokamak"));
+        registration.addIngredientInfo(AllNuclearItems.GEIGER_COUNTER.get(),
+                Component.translatable("jei.create_nuclearindustry.info.radiation"));
+        registration.addIngredientInfo(AllNuclearItems.RADIOACTIVE_WASTE.get(),
+                Component.translatable("jei.create_nuclearindustry.info.radiation"));
     }
 }

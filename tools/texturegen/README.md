@@ -36,6 +36,12 @@ preserved, including the two-pixel tube shading period.
 | `blocks.py` | one function per block texture |
 | `items.py` | one function per item texture, built from silhouette masks |
 | `fluids.py` | animated steam still/flow (+ `.mcmeta`) |
+| `gui.py` | container screen backgrounds (reactor and tokamak panels) |
+| `armor.py` | hazmat armor layers (64x32 humanoid UV) and mob effect icons |
+
+Structure templates (GameTest arenas and the tokamak Ponder schematic) are written by
+`tools/structgen/`; the tokamak schematic mirrors `TokamakGeometry`, and a GameTest checks
+that it forms.
 
 ## Conventions
 

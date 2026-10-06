@@ -1,5 +1,70 @@
 # Changelog
 
+## Unreleased: nuclear chain rewrite
+
+Worlds from 1.1.0 load: every item and block keeps its id. See "Upgrading"
+below for what changes in existing worlds.
+
+### Uranium and fuel
+- New fuel chain: ore, crushing, washing, acid leaching (yellowcake),
+  hydrofluorination to uranium hexafluoride, a centrifuge cascade with reflux
+  (natural, LEU, HEU, weapons grade), deconversion to uranium dioxide, pellet
+  pressing and fuel assembly by sequenced assembly.
+- The centrifuge is now a gas centrifuge stage with feed, product and tails
+  tanks and real recipes (shown in JEI). Its old scroll dial is gone.
+- New sulfuric acid, hydrofluoric acid and one uranium hexafluoride fluid per
+  enrichment tier. Uranium dioxide reduces to uranium metal for warheads and
+  other mods; any uranium metal fluorinates back into the cascade.
+- Ores drop with Fortune and Silk Touch, so ore crushing works.
+
+### Fission reactor
+- Only assembled fuel at 3% or more is accepted. Each fuel channel holds one
+  assembly; richer fuel lasts longer and is more reactive.
+- Spent fuel keeps its enrichment and reprocesses into oxide one tier lower
+  plus radioactive waste, sealed into waste barrels.
+- Textured control panel with a manual SCRAM switch.
+- Reactors now notice shell blocks removed by machines, not only by players.
+- Fuel is no longer lost when the structure changes.
+
+### Fusion
+- The flat fusion ring is replaced by a tokamak: a toroidal multiblock of
+  radius 4 to 16 around a new central solenoid, with toroidal field coils,
+  new breeding blankets, magnet drives, fluid ports and fuel injectors.
+- Deuterium and tritium are fluids. Without tritium the plasma runs D-D and
+  breeds its own; blankets set the tritium breeding ratio. Coolant carries
+  80% of the power out as plasma steam; without it the plasma overheats and
+  disrupts.
+- Control panel, Display Link source and a new Ponder scene.
+
+### Lithium, deuterium and new machines
+- New spodumene ore: lithium via crushing, washing, acid roast and
+  electrolysis; lithium-6 from the centrifuge. Beryllium washes out of
+  spodumene. Borax only gives boron.
+- New electrolyzer: heavy water from water, deuterium from heavy water,
+  lithium from its carbonate. Heavy water is finally obtainable.
+- Gas cells are filled and emptied with spouts and item drains.
+
+### Radiation
+- Players accumulate a dose from carried material, nearby waste and fallout
+  from accidents, with nausea, weakness and radiation sickness. Hazmat suit
+  and Geiger counter. Configurable and can be disabled.
+
+### Technical
+- Recipes, loot tables, tags, worldgen, models and lang come from datagen.
+- GameTests and JUnit tests cover multiblocks, machines, chain recipes,
+  physics and radiation.
+
+### Upgrading
+- Old fuel assemblies count as 20% fuel; old spent fuel as 5%. Loaded reactor
+  fuel converts to 20% assemblies at its previous reactivity.
+- Old centrifuges keep their items in the output slots; they can be taken out
+  by hand.
+- Old flat fusion rings no longer form: the controller says so. Stored D-T
+  pellets become deuterium and tritium in the new tanks, and loose pellets can
+  be drained for tritium in an item drain.
+- `fusion.deuteriumTritiumBurnRate` changed meaning (see
+  `docs/configuration.md`); an existing config keeps its old value.
+
 ## 1.1.0
 
 - Added configuration for steam/plasma turbine capacity, boron absorption,

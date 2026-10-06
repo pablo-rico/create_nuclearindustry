@@ -1,8 +1,7 @@
 package org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes;
 
-import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock;
-import net.createmod.catnip.math.Pointing;
+import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import net.createmod.ponder.api.PonderPalette;
 import net.createmod.ponder.api.scene.SceneBuilder;
 import net.createmod.ponder.api.scene.SceneBuildingUtil;
@@ -10,94 +9,105 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
-import org.papiricoh.create_nuclearindustry.enrichment.block.CentrifugeBlock;
+import org.papiricoh.create_nuclearindustry.processing.KineticProcessingBlock;
 
+/** Centrifuge and electrolyzer: the two single-slot kinetic machines share a layout. */
 public class CentrifugeScenes {
+
     public static void processing(SceneBuilder builder, SceneBuildingUtil util) {
-        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
-        scene.title("centrifuge", "Processing uranium with a Centrifuge");
-        scene.configureBasePlate(0, 0, 5);
-        scene.scaleSceneView(0.8f);
-        scene.setSceneOffsetY(-1.0f);
-
-        BlockPos centrifuge = util.grid().at(2, 1, 2);
-        BlockPos shaft = util.grid().at(2, 1, 3);
-        BlockPos cogwheel = util.grid().at(2, 1, 4);
-
-        scene.world().setBlocks(
-                util.select().fromTo(0, 0, 0, 4, 0, 4),
-                Blocks.ANDESITE.defaultBlockState(),
-                false
-        );
-        scene.world().setBlock(
-                centrifuge,
-                AllNuclearBlocks.CENTRIFUGE.get().defaultBlockState().setValue(CentrifugeBlock.FACING, Direction.NORTH),
-                false
-        );
-        scene.world().setBlock(
-                shaft,
-                block("create", "shaft").defaultBlockState().setValue(RotatedPillarKineticBlock.AXIS, Direction.Axis.Z),
-                false
-        );
-        scene.world().setBlock(
-                cogwheel,
-                block("create", "cogwheel").defaultBlockState().setValue(RotatedPillarKineticBlock.AXIS, Direction.Axis.Z),
-                false
-        );
-
-        scene.showBasePlate();
-        scene.idle(5);
-        scene.world().showSection(util.select().fromTo(2, 1, 2, 2, 1, 4), Direction.DOWN);
-        scene.idle(20);
-
-        scene.overlay().showText(70)
-                .text("The Centrifuge is a kinetic machine for refining uranium.")
-                .pointAt(util.vector().topOf(centrifuge))
-                .placeNearTarget();
-        scene.idle(80);
-
-        scene.overlay().showText(70)
-                .text("It accepts rotational power through the rear shaft.")
-                .pointAt(util.vector().centerOf(shaft))
-                .placeNearTarget();
-        scene.world().setKineticSpeed(util.select().fromTo(2, 1, 2, 2, 1, 4), 32);
-        scene.idle(80);
-
-        scene.overlay().showControls(util.vector().blockSurface(centrifuge, Direction.WEST), Pointing.RIGHT, 50)
-                .rightClick()
-                .withItem(new ItemStack(AllNuclearItems.RAW_URANIUM.get()));
-        scene.overlay().showText(70)
-                .text("Right-click with Raw Uranium or Uranium to insert one item.")
-                .colored(PonderPalette.INPUT)
-                .pointAt(util.vector().blockSurface(centrifuge, Direction.WEST))
-                .placeNearTarget();
-        scene.idle(80);
+        CreateSceneBuilder scene = machine(builder, util, "centrifuge", "Enriching uranium with Centrifuges", AllNuclearBlocks.CENTRIFUGE.get());
+        BlockPos machine = util.grid().at(2, 1, 2);
 
         scene.overlay().showText(80)
-                .text("At 16 RPM or faster, the Centrifuge processes the input over time.")
-                .pointAt(util.vector().centerOf(centrifuge))
+                .text("The Centrifuge separates uranium hexafluoride by enrichment. It turns through its back, at 32 RPM or more.")
+                .pointAt(util.vector().topOf(machine))
                 .placeNearTarget();
         scene.idle(90);
-
-        scene.world().createItemEntity(
-                util.vector().blockSurface(centrifuge, Direction.DOWN).add(0, -0.25, 0),
-                util.vector().of(0, -0.05, 0),
-                new ItemStack(AllNuclearItems.URANIUM.get())
-        );
         scene.overlay().showText(70)
-                .text("Extract finished uranium from the bottom, or right-click with an empty hand.")
+                .text("Pipe UF6 into the top or the sides.")
+                .colored(PonderPalette.INPUT)
+                .pointAt(util.vector().topOf(machine))
+                .placeNearTarget();
+        scene.idle(80);
+        scene.overlay().showText(70)
+                .text("The enriched product leaves through the front...")
                 .colored(PonderPalette.OUTPUT)
-                .pointAt(util.vector().blockSurface(centrifuge, Direction.DOWN))
+                .pointAt(util.vector().blockSurface(machine, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(80);
+        scene.overlay().showText(70)
+                .text("...and the depleted tails through the bottom.")
+                .colored(PonderPalette.OUTPUT)
+                .pointAt(util.vector().blockSurface(machine, Direction.DOWN))
+                .placeNearTarget();
+        scene.idle(80);
+        scene.overlay().showText(110)
+                .text("Chain centrifuges into a cascade: natural to LEU, LEU to HEU, HEU to weapons grade. Pipe each stage's tails back into the stage before it.")
+                .pointAt(util.vector().centerOf(machine))
+                .placeNearTarget();
+        scene.idle(120);
+        scene.overlay().showText(70)
+                .text("It also separates Lithium-6 from lithium.")
+                .pointAt(util.vector().centerOf(machine))
                 .placeNearTarget();
         scene.idle(80);
     }
 
-    private static Block block(String namespace, String path) {
-        return BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath(namespace, path));
+    public static void electrolysis(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = machine(builder, util, "electrolyzer", "Electrolysis", AllNuclearBlocks.ELECTROLYZER.get());
+        BlockPos machine = util.grid().at(2, 1, 2);
+
+        scene.overlay().showText(80)
+                .text("The Electrolyzer uses rotation in place of electric current, at 32 RPM or more.")
+                .pointAt(util.vector().topOf(machine))
+                .placeNearTarget();
+        scene.idle(90);
+        scene.overlay().showText(100)
+                .text("Fed water, it slowly concentrates heavy water. Heavy water then splits into deuterium gas.")
+                .colored(PonderPalette.INPUT)
+                .pointAt(util.vector().topOf(machine))
+                .placeNearTarget();
+        scene.idle(110);
+        scene.overlay().showText(80)
+                .text("It also reduces lithium carbonate to lithium metal.")
+                .pointAt(util.vector().centerOf(machine))
+                .placeNearTarget();
+        scene.idle(90);
+        scene.overlay().showText(80)
+                .text("Fluids leave through the front, items through the bottom.")
+                .colored(PonderPalette.OUTPUT)
+                .pointAt(util.vector().blockSurface(machine, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(90);
+    }
+
+    private static CreateSceneBuilder machine(SceneBuilder builder, SceneBuildingUtil util, String id, String title, Block block) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        scene.title(id, title);
+        scene.configureBasePlate(0, 0, 5);
+        scene.scaleSceneView(0.8f);
+        scene.setSceneOffsetY(-1.0f);
+
+        BlockPos machine = util.grid().at(2, 1, 2);
+        scene.world().setBlocks(util.select().fromTo(0, 0, 0, 4, 0, 4), Blocks.ANDESITE.defaultBlockState(), false);
+        scene.world().setBlock(machine, block.defaultBlockState().setValue(KineticProcessingBlock.FACING, Direction.NORTH), false);
+        scene.world().setBlock(util.grid().at(2, 1, 3),
+                block("shaft").defaultBlockState().setValue(RotatedPillarKineticBlock.AXIS, Direction.Axis.Z), false);
+        scene.world().setBlock(util.grid().at(2, 1, 4),
+                block("cogwheel").defaultBlockState().setValue(RotatedPillarKineticBlock.AXIS, Direction.Axis.Z), false);
+
+        scene.showBasePlate();
+        scene.idle(5);
+        scene.world().showSection(util.select().fromTo(2, 1, 2, 2, 1, 4), Direction.DOWN);
+        scene.world().setKineticSpeed(util.select().fromTo(2, 1, 2, 2, 1, 4), 64);
+        scene.idle(20);
+        return scene;
+    }
+
+    private static Block block(String path) {
+        return BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("create", path));
     }
 }
