@@ -1,0 +1,3 @@
+// 1.21.1	2026-10-06T17:57:17.027558	create_nuclearindustry's processing recipes: pressing
+5c751ab6e1229812f6d49e50762a0007fb1940db data/create_nuclearindustry/recipe/pressing/high_uranium_fuel_pellet.json
+3c42dabb8bb8309a2870f3bf67067fa5b2615302 data/create_nuclearindustry/recipe/pressing/low_uranium_fuel_pellet.json

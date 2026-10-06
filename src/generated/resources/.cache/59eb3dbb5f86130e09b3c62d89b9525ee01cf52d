@@ -1,8 +1,9 @@
-// 1.21.1	2026-10-06T17:47:22.467034	Loot Tables
+// 1.21.1	2026-10-06T17:57:17.026446	Loot Tables
 f7cd641dbc79fbdeb47db13d2fa7c6feb5d91098 data/create_nuclearindustry/loot_table/blocks/borax_ore.json
 774896dc0efff85c2635e35050dca047eb134e83 data/create_nuclearindustry/loot_table/blocks/centrifuge.json
 ff6f6eb4e0855da677f03f5fd4e3d1034be17374 data/create_nuclearindustry/loot_table/blocks/control_rod.json
 96cfa9a623d932a9b08ca9f6c449c86959c02d0a data/create_nuclearindustry/loot_table/blocks/dual_fluid_pipe.json
+e2f910eaf4c2b9910364315eed3aa82117d2e943 data/create_nuclearindustry/loot_table/blocks/electrolyzer.json
 8855edf2176a0e7203c0c9d5553b980d7d76472f data/create_nuclearindustry/loot_table/blocks/fusion_accelerator_corner.json
 021bba9237f73930b824142308c5392990e3855c data/create_nuclearindustry/loot_table/blocks/fusion_accelerator_segment.json
 e822c2db4e33a8b3192bda6c446af5554a41008e data/create_nuclearindustry/loot_table/blocks/fusion_controller.json

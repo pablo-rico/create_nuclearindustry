@@ -245,6 +245,24 @@ public final class LangEntries {
         item("lithium_carbonate", "Lithium Carbonate", "Carbonato de litio");
         item("empty_gas_cell", "Empty Gas Cell", "Célula de gas vacía");
         block("spodumene_ore", "Spodumene Ore", "Mena de espodumena");
+        block("electrolyzer", "Electrolyzer", "Electrolizador");
+
+        add("gui.create_nuclearindustry.machine.input", "Input", "Entrada");
+        add("gui.create_nuclearindustry.machine.output", "Output", "Salida");
+        add("gui.create_nuclearindustry.machine.feed", "Feed", "Alimentación");
+        add("gui.create_nuclearindustry.machine.product", "Product", "Producto");
+        add("gui.create_nuclearindustry.machine.tails", "Tails", "Colas");
+        add("gui.create_nuclearindustry.machine.status.too_slow", "Needs at least %s RPM", "Necesita al menos %s RPM");
+        add("gui.create_nuclearindustry.machine.status.overstressed", "Overstressed", "Sobrecargada");
+        add("gui.create_nuclearindustry.machine.status.output_full", "Output full", "Salida llena");
+        add("gui.create_nuclearindustry.machine.status.idle", "Idle", "En espera");
+        add("gui.create_nuclearindustry.machine.status.working", "Working", "Procesando");
+
+        add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
+        add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");
+        add("jei.create_nuclearindustry.product", "Product: front face", "Producto: cara frontal");
+        add("jei.create_nuclearindustry.tails", "Tails: bottom face", "Colas: cara inferior");
+        add("jei.create_nuclearindustry.processing_time", "%ss at %s RPM, faster when spun faster", "%ss a %s RPM, más rápido a más velocidad");
 
         fluid("sulfuric_acid", "Sulfuric Acid", "Ácido sulfúrico");
         fluid("hydrofluoric_acid", "Hydrofluoric Acid", "Ácido fluorhídrico");
@@ -271,21 +289,6 @@ public final class LangEntries {
         add("jei.create_nuclearindustry.category.centrifuging",
                 "Centrifuging",
                 "Centrifugado");
-        add("jei.create_nuclearindustry.centrifuging.enrichment",
-                "Output enrichment: %s%%",
-                "Enriquecimiento de salida: %s%%");
-        add("jei.create_nuclearindustry.centrifuging.required",
-                "Set the target enrichment with the scroll dial on the Centrifuge. Reactor fuel requires Uranium at 20%% or higher.",
-                "Ajusta el enriquecimiento objetivo con el dial de la centrifugadora. El combustible de reactor requiere uranio al 20%% o mas.");
-        add("jei.create_nuclearindustry.centrifuging.raw",
-                "Raw Uranium is refined into Uranium at natural enrichment (0.70%%).",
-                "El uranio bruto se refina en uranio con enriquecimiento natural (0.70%%).");
-        add("jei.create_nuclearindustry.centrifuging.weapons",
-                "Weapons grade cores require Uranium enriched to 90%% or higher.",
-                "Los nucleos de grado armamentistico requieren uranio enriquecido al 90%% o mas.");
-        add("create_nuclearindustry.centrifuge.target_enrichment",
-                "Target Enrichment",
-                "Enriquecimiento objetivo");
     }
 
     private static void ponder() {

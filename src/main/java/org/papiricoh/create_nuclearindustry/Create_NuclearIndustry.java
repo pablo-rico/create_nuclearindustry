@@ -16,6 +16,8 @@ import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManag
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.NuclearPonderPlugin;
 import org.papiricoh.create_nuclearindustry.integration.cbc.CBCNuclearIntegration;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockChangeHandler;
+import org.papiricoh.create_nuclearindustry.processing.AllNuclearRecipeTypes;
+import org.papiricoh.create_nuclearindustry.processing.ProcessingMachineRenderer;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(Create_NuclearIndustry.MODID)
@@ -39,6 +41,8 @@ public class Create_NuclearIndustry {
 
         AllNuclearRecipes.init();
         AllNuclearRecipes.SERIALIZERS.register(modEventBus);
+
+        AllNuclearRecipeTypes.register(modEventBus);
 
         AllNuclearIngredients.init();
         AllNuclearIngredients.INGREDIENT_TYPES.register(modEventBus);
@@ -96,8 +100,8 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.missile.client.MissileRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.LAUNCH_PAD.get(),
                     org.papiricoh.create_nuclearindustry.missile.client.LaunchPadRenderer::new);
-            event.registerBlockEntityRenderer(AllNuclearEntities.CENTRIFUGE.get(),
-                    org.papiricoh.create_nuclearindustry.enrichment.client.CentrifugeRenderer::new);
+            event.registerBlockEntityRenderer(AllNuclearEntities.CENTRIFUGE.get(), ProcessingMachineRenderer::new);
+            event.registerBlockEntityRenderer(AllNuclearEntities.ELECTROLYZER.get(), ProcessingMachineRenderer::new);
         }
 
         public static void onRegisterScreens(RegisterMenuScreensEvent event) {

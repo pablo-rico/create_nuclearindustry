@@ -1,0 +1,30 @@
+{
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:uranium_ore"
+    }
+  ],
+  "processing_time": 350,
+  "results": [
+    {
+      "id": "create_nuclearindustry:crushed_raw_uranium"
+    },
+    {
+      "chance": 0.75,
+      "id": "create_nuclearindustry:crushed_raw_uranium"
+    },
+    {
+      "chance": 0.6,
+      "id": "create_nuclearindustry:fluorite"
+    },
+    {
+      "chance": 0.75,
+      "id": "create:experience_nugget"
+    },
+    {
+      "chance": 0.125,
+      "id": "minecraft:cobbled_deepslate"
+    }
+  ]
+}

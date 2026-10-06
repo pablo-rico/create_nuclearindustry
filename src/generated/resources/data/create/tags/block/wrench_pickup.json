@@ -10,6 +10,7 @@
     "create_nuclearindustry:reactor_temperature_sensor",
     "create_nuclearindustry:dual_fluid_pipe",
     "create_nuclearindustry:centrifuge",
+    "create_nuclearindustry:electrolyzer",
     "create_nuclearindustry:turbine_casing",
     "create_nuclearindustry:turbine_rotor",
     "create_nuclearindustry:turbine_output",

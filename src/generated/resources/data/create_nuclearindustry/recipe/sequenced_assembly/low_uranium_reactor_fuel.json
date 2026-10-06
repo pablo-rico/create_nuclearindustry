@@ -1,0 +1,74 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:iron_sheet"
+  },
+  "results": [
+    {
+      "components": {
+        "create_nuclearindustry:enrichment": 5.0
+      },
+      "id": "create_nuclearindustry:uranium_reactor_fuel"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_uranium_reactor_fuel"
+        },
+        {
+          "type": "create_nuclearindustry:min_enrichment",
+          "base": {
+            "item": "create_nuclearindustry:uranium_fuel_pellet"
+          },
+          "max_enrichment": 15.0,
+          "min_enrichment": 3.0
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_uranium_reactor_fuel"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_uranium_reactor_fuel"
+        },
+        {
+          "type": "create_nuclearindustry:min_enrichment",
+          "base": {
+            "item": "create_nuclearindustry:uranium_fuel_pellet"
+          },
+          "max_enrichment": 15.0,
+          "min_enrichment": 3.0
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_uranium_reactor_fuel"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_uranium_reactor_fuel"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_uranium_reactor_fuel"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "create_nuclearindustry:incomplete_uranium_reactor_fuel"
+  }
+}

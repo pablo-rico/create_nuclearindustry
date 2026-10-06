@@ -1,0 +1,39 @@
+{
+  "type": "create_nuclearindustry:centrifuging",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create_nuclearindustry:lithium"
+    },
+    {
+      "item": "create_nuclearindustry:lithium"
+    }
+  ],
+  "processing_time": 200,
+  "results": [
+    {
+      "id": "create_nuclearindustry:lithium_6"
+    },
+    {
+      "count": 6,
+      "id": "create_nuclearindustry:lithium"
+    }
+  ]
+}

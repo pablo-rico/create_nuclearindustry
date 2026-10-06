@@ -65,6 +65,12 @@ public class AllNuclearEntities {
                     AllNuclearBlocks.CENTRIFUGE.get()
             ).build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.chemistry.electrolyzer.ElectrolyzerBlockEntity>> ELECTROLYZER =
+            ENTITIES.register("electrolyzer", () -> BlockEntityType.Builder.of(
+                    org.papiricoh.create_nuclearindustry.chemistry.electrolyzer.ElectrolyzerBlockEntity::new,
+                    AllNuclearBlocks.ELECTROLYZER.get()
+            ).build(null));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TurbineOutputBlockEntity>> TURBINE_OUTPUT =
             ENTITIES.register("turbine_output", () -> BlockEntityType.Builder.of(
                     TurbineOutputBlockEntity::new,

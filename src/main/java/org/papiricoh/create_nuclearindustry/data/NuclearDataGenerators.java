@@ -9,6 +9,7 @@ import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.data.recipe.*;
 
 import java.util.List;
 import java.util.Set;
@@ -35,7 +36,13 @@ public final class NuclearDataGenerators {
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(NuclearBlockLoot::new, LootContextParamSets.BLOCK)), lookup));
 
+        generator.addProvider(event.includeServer(), new NuclearCraftingRecipes(output, lookup));
+        generator.addProvider(event.includeServer(), new NuclearCrushingRecipes(output, lookup));
+        generator.addProvider(event.includeServer(), new NuclearWashingRecipes(output, lookup));
         generator.addProvider(event.includeServer(), new NuclearMixingRecipes(output, lookup));
+        generator.addProvider(event.includeServer(), new NuclearPressingRecipes(output, lookup));
+        generator.addProvider(event.includeServer(), new NuclearSequencedAssemblyRecipes(output, lookup));
+        generator.addProvider(event.includeServer(), new NuclearCentrifugingRecipes(output, lookup));
 
         generator.addProvider(event.includeClient(), new NuclearBlockStateProvider(output, existingFiles));
         generator.addProvider(event.includeClient(), new NuclearItemModelProvider(output, existingFiles));

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "create:copper_sheet"
+    },
+    "C": {
+      "item": "create_nuclearindustry:reactor_casing"
+    },
+    "P": {
+      "item": "create:fluid_pipe"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    " P ",
+    "ASA",
+    " C "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:electrolyzer"
+  }
+}

@@ -2,30 +2,50 @@ package org.papiricoh.create_nuclearindustry.integration.jei;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.VanillaTypes;
+import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
-import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
-import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
+import org.papiricoh.create_nuclearindustry.processing.AllNuclearRecipeTypes;
+import org.papiricoh.create_nuclearindustry.processing.recipe.CentrifugingRecipe;
+import org.papiricoh.create_nuclearindustry.processing.recipe.ElectrolysisRecipe;
+import org.papiricoh.create_nuclearindustry.processing.recipe.ProcessingInput;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 @JeiPlugin
 public class NuclearJeiPlugin implements IModPlugin {
-    public static final RecipeType<CentrifugingDisplay> CENTRIFUGING =
-            RecipeType.create(Create_NuclearIndustry.MODID, "centrifuging", CentrifugingDisplay.class);
+    public static final RecipeType<CentrifugingRecipe> CENTRIFUGING =
+            RecipeType.create(Create_NuclearIndustry.MODID, "centrifuging", CentrifugingRecipe.class);
+    public static final RecipeType<ElectrolysisRecipe> ELECTROLYSIS =
+            RecipeType.create(Create_NuclearIndustry.MODID, "electrolysis", ElectrolysisRecipe.class);
     private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "jei_plugin");
+
+    /** Items whose enrichment component makes them distinct entries. */
+    private static final List<Supplier<? extends Item>> ENRICHED_ITEMS = List.of(
+            AllNuclearItems.URANIUM,
+            AllNuclearItems.URANIUM_DIOXIDE,
+            AllNuclearItems.URANIUM_FUEL_PELLET,
+            AllNuclearItems.URANIUM_REACTOR_FUEL,
+            AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL);
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -34,63 +54,44 @@ public class NuclearJeiPlugin implements IModPlugin {
 
     @Override
     public void registerItemSubtypes(ISubtypeRegistration registration) {
-        registration.registerSubtypeInterpreter(AllNuclearItems.URANIUM.get(),
-                (stack, context) -> String.format("enrichment=%.2f", UraniumItem.getEnrichment(stack)));
+        ISubtypeInterpreter<ItemStack> enrichment = new ISubtypeInterpreter<>() {
+            @Override
+            public Object getSubtypeData(ItemStack stack, UidContext context) {
+                return UraniumItem.getEnrichment(stack);
+            }
+
+            @Override
+            public String getLegacyStringSubtypeInfo(ItemStack stack, UidContext context) {
+                return String.format("enrichment=%.2f", UraniumItem.getEnrichment(stack));
+            }
+        };
+        for (Supplier<? extends Item> item : ENRICHED_ITEMS) {
+            registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, item.get(), enrichment);
+        }
     }
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
-        registration.addRecipeCategories(new CentrifugingJeiCategory(registration.getJeiHelpers().getGuiHelper()));
+        IGuiHelper gui = registration.getJeiHelpers().getGuiHelper();
+        registration.addRecipeCategories(
+                new ProcessingJeiCategory<>(gui, CENTRIFUGING,
+                        Component.translatable("jei.create_nuclearindustry.category.centrifuging"), AllNuclearBlocks.CENTRIFUGE.get(), 32),
+                new ProcessingJeiCategory<>(gui, ELECTROLYSIS,
+                        Component.translatable("jei.create_nuclearindustry.category.electrolysis"), AllNuclearBlocks.ELECTROLYZER.get(), 32));
     }
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        registration.addRecipes(CENTRIFUGING, List.of(
-                new CentrifugingDisplay(
-                        rawUraniumVariants(),
-                        uranium(UraniumItem.NATURAL_ENRICHMENT),
-                        Component.translatable("jei.create_nuclearindustry.centrifuging.raw")),
-                new CentrifugingDisplay(
-                        uraniumIngotVariants(),
-                        uranium(UraniumItem.REACTOR_FUEL_ENRICHMENT),
-                        Component.translatable("jei.create_nuclearindustry.centrifuging.required")),
-                new CentrifugingDisplay(
-                        uranium(UraniumItem.REACTOR_FUEL_ENRICHMENT),
-                        uranium(WarheadStats.REQUIRED_ENRICHMENT),
-                        Component.translatable("jei.create_nuclearindustry.centrifuging.weapons"))
-        ));
+        RecipeManager recipes = Objects.requireNonNull(Minecraft.getInstance().level).getRecipeManager();
+        registration.addRecipes(CENTRIFUGING, recipes.getAllRecipesFor(AllNuclearRecipeTypes.CENTRIFUGING.<ProcessingInput, CentrifugingRecipe>getType())
+                .stream().map(RecipeHolder::value).toList());
+        registration.addRecipes(ELECTROLYSIS, recipes.getAllRecipesFor(AllNuclearRecipeTypes.ELECTROLYSIS.<ProcessingInput, ElectrolysisRecipe>getType())
+                .stream().map(RecipeHolder::value).toList());
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(AllNuclearBlocks.CENTRIFUGE.get(), CENTRIFUGING);
-    }
-
-    /** Every raw uranium accepted by the centrifuge, this mod's and any other's. */
-    private static List<ItemStack> rawUraniumVariants() {
-        List<ItemStack> stacks = new ArrayList<>();
-        BuiltInRegistries.ITEM.getTag(AllNuclearTags.Items.RAW_URANIUM)
-                .ifPresent(holders -> holders.forEach(holder -> stacks.add(new ItemStack(holder))));
-        if (stacks.isEmpty()) {
-            stacks.add(new ItemStack(AllNuclearItems.RAW_URANIUM.get()));
-        }
-        return stacks;
-    }
-
-    private static List<ItemStack> uraniumIngotVariants() {
-        List<ItemStack> stacks = new ArrayList<>();
-        BuiltInRegistries.ITEM.forEach(item -> {
-            ItemStack stack = new ItemStack(item);
-            if (org.papiricoh.create_nuclearindustry.enrichment.blockentity.CentrifugeBlockEntity.isUraniumIngot(stack)) {
-                stacks.add(stack);
-            }
-        });
-        return stacks;
-    }
-
-    private static ItemStack uranium(float enrichment) {
-        ItemStack stack = new ItemStack(AllNuclearItems.URANIUM.get());
-        UraniumItem.setEnrichment(stack, enrichment);
-        return stack;
+        registration.addRecipeCatalyst(AllNuclearBlocks.ELECTROLYZER.get(), ELECTROLYSIS);
     }
 }

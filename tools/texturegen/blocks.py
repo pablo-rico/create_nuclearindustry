@@ -456,6 +456,60 @@ def centrifuge_shaft():
 
 
 # ======================================================================================
+# electrolyzer (same body as the centrifuge, copper cell and electrode panel)
+# ======================================================================================
+
+@block("electrolyzer_metal")
+def electrolyzer_metal():
+    t = Tex(seed=37)
+    brushed(t, COPPER, base=3.8, amp=0.7, seed=37, axis="v")
+    for x in range(16):
+        f = 0.70 + 0.58 * math.sin(math.pi * (x + 0.5) / 16)
+        for y in range(16):
+            t.set(x, y, shade(t.get(x, y), f))
+    # banded electrolytic cell with insulating rings
+    for y in (0, 5, 10, 15):
+        for x in range(16):
+            t.set(x, y, shade(DARK[2], 0.9 if y in (0, 15) else 1.1))
+    for y in range(1, 15):
+        if y not in (5, 10):
+            t.blend(4, y, WHITE, 0.14)
+    for y in (2, 7, 12):
+        for x in (3, 12):
+            t.set(x, y, BRASS[5])
+            t.set(x, y + 1, BRASS[1])
+    return t
+
+
+@block("electrolyzer_panel")
+def electrolyzer_panel():
+    t = Tex(seed=38)
+    brushed(t, DARK, base=3.4, amp=0.6, seed=38)
+    bevel(t, 0, 0, 15, 15, DARK)
+    outline(t, 0, 0, 15, 15, DARK)
+    # sight glass with two electrodes and rising bubbles
+    t.rect(2, 2, 13, 11, CYAN[1])
+    inset(t, 2, 2, 13, 11, DARK)
+    for y in range(3, 11):
+        for x in range(3, 13):
+            t.set(x, y, CYAN[2] if (x + y) % 5 else CYAN[3])
+    for y in range(3, 11):
+        t.set(5, y, COPPER[5])
+        t.set(6, y, COPPER[2])
+        t.set(10, y, LEAD[5])
+        t.set(11, y, LEAD[2])
+    for x, y in ((7, 9), (8, 7), (7, 5), (9, 4), (4, 8), (12, 6)):
+        t.set(x, y, CYAN[6])
+    glow(t, 8, 7, 6.0, CYAN[6], 0.18)
+    # polarity marks
+    t.rect(3, 13, 4, 13, DANGER[5])
+    t.rect(11, 13, 12, 13, CYAN[5])
+    t.set(4, 12, DANGER[5])
+    t.set(4, 14, DANGER[5])
+    return t
+
+
+# ======================================================================================
 # fusion tier
 # ======================================================================================
 

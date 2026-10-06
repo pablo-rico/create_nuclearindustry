@@ -1,0 +1,19 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:uranium_concentrate"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 100,
+      "fluid": "create_nuclearindustry:sulfuric_acid"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:yellowcake"
+    }
+  ]
+}

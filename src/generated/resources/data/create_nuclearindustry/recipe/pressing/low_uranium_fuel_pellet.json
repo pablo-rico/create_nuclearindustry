@@ -1,0 +1,21 @@
+{
+  "type": "create:pressing",
+  "ingredients": [
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:uranium_dioxide"
+      },
+      "max_enrichment": 15.0,
+      "min_enrichment": 3.0
+    }
+  ],
+  "results": [
+    {
+      "components": {
+        "create_nuclearindustry:enrichment": 5.0
+      },
+      "id": "create_nuclearindustry:uranium_fuel_pellet"
+    }
+  ]
+}

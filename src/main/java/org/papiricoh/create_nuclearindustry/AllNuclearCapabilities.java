@@ -7,11 +7,14 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 public class AllNuclearCapabilities {
     @SubscribeEvent
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
-                AllNuclearEntities.CENTRIFUGE.get(),
-                (centrifuge, direction) -> centrifuge.getItemHandler(direction)
-        );
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, AllNuclearEntities.CENTRIFUGE.get(),
+                (machine, direction) -> machine.getItemHandler(direction));
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, AllNuclearEntities.CENTRIFUGE.get(),
+                (machine, direction) -> machine.getFluidHandler(direction));
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, AllNuclearEntities.ELECTROLYZER.get(),
+                (machine, direction) -> machine.getItemHandler(direction));
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, AllNuclearEntities.ELECTROLYZER.get(),
+                (machine, direction) -> machine.getFluidHandler(direction));
 
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
