@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-06T19:06:31.114258	Loot Tables
+// 1.21.1	2026-10-06T22:25:03.890552	Loot Tables
 f7cd641dbc79fbdeb47db13d2fa7c6feb5d91098 data/create_nuclearindustry/loot_table/blocks/borax_ore.json
 774896dc0efff85c2635e35050dca047eb134e83 data/create_nuclearindustry/loot_table/blocks/centrifuge.json
 ff6f6eb4e0855da677f03f5fd4e3d1034be17374 data/create_nuclearindustry/loot_table/blocks/control_rod.json
@@ -26,6 +26,7 @@ c483997b10c088f50be33ec456219a4eafc942cc data/create_nuclearindustry/loot_table/
 141bae2a5ee1c2a79c2fd27076f153af7c2fef44 data/create_nuclearindustry/loot_table/blocks/reactor_controller.json
 d8cecc584f8a309f038ea4e8d16a24e730247c33 data/create_nuclearindustry/loot_table/blocks/reactor_fluid_port.json
 48711324530fdc3834f49b7484df0cb98844c46d data/create_nuclearindustry/loot_table/blocks/reactor_fuel_port.json
+a863ac56e10e3448a9aa43ba5f188534d503abd7 data/create_nuclearindustry/loot_table/blocks/reactor_redstone_port.json
 337c8948d5190432c38ca8f7a6f0e57b0ac32064 data/create_nuclearindustry/loot_table/blocks/reactor_temperature_sensor.json
 bf01e8fb59d80618e84b93ed386dd072642b0b14 data/create_nuclearindustry/loot_table/blocks/reinforced_turbine_glass.json
 f53f9e37b07864dc9f771758c8e683beea475c82 data/create_nuclearindustry/loot_table/blocks/spodumene_ore.json

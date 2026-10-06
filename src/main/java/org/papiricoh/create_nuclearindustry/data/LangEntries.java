@@ -87,6 +87,16 @@ public final class LangEntries {
         add("block.create_nuclearindustry.reactor_temperature_sensor",
                 "Temperature Sensor",
                 "Sensor de temperatura");
+        add("block.create_nuclearindustry.reactor_redstone_port",
+                "Reactor Redstone Port",
+                "Puerto de redstone de reactor");
+        add("create_nuclearindustry.redstone_port.mode", "Mode: %s", "Modo: %s");
+        add("create_nuclearindustry.redstone_port.mode.temperature", "Temperature", "Temperatura");
+        add("create_nuclearindustry.redstone_port.mode.power", "Power", "Potencia");
+        add("create_nuclearindustry.redstone_port.mode.fuel", "Fuel", "Combustible");
+        add("create_nuclearindustry.redstone_port.mode.coolant", "Coolant", "Refrigerante");
+        add("create_nuclearindustry.redstone_port.mode.steam", "Steam", "Vapor");
+        add("create_nuclearindustry.redstone_port.mode.scram", "SCRAM signal", "Señal de SCRAM");
         add("block.create_nuclearindustry.dual_fluid_pipe",
                 "Dual Fluid Pipe",
                 "Tubería dual de fluidos");
@@ -302,13 +312,15 @@ public final class LangEntries {
         add("gui.create_nuclearindustry.reactor.stress", "Thermal stress: %s%%", "Estrés térmico: %s%%");
         add("gui.create_nuclearindustry.reactor.excursion", "EXCURSION", "EXCURSIÓN");
         add("gui.create_nuclearindustry.reactor.rods", "Rods: %s/%s inserted (%s%%)", "Barras: %s/%s insertadas (%s%%)");
-        add("gui.create_nuclearindustry.reactor.scram_engaged", "Manual SCRAM: all rods held in", "SCRAM manual: todas las barras dentro");
+        add("gui.create_nuclearindustry.reactor.scram_engaged", "SCRAM signal on: Redstone Ports in SCRAM mode emit",
+                "Señal de SCRAM activa: los Puertos de redstone en modo SCRAM emiten");
         add("gui.create_nuclearindustry.reactor.fuel_in", "Fuel in", "Combustible");
         add("gui.create_nuclearindustry.reactor.spent", "Spent", "Gastado");
         add("gui.create_nuclearindustry.reactor.scram", "SCRAM", "SCRAM");
         add("gui.create_nuclearindustry.reactor.reset", "Reset", "Rearmar");
-        add("gui.create_nuclearindustry.reactor.scram.tooltip", "Emergency shutdown: holds every control rod fully inserted until reset.",
-                "Parada de emergencia: mantiene todas las barras de control insertadas hasta rearmar.");
+        add("gui.create_nuclearindustry.reactor.scram.tooltip",
+                "Emergency shutdown: turns on the SCRAM signal of every Redstone Port in SCRAM mode until reset. Wire it to the pistons that drive your control rods.",
+                "Parada de emergencia: enciende la señal de SCRAM de todos los Puertos de redstone en modo SCRAM hasta rearmar. Conéctala a los pistones que mueven tus barras de control.");
 
         add("jei.create_nuclearindustry.info.reactor_fuel",
                 "Fuel assemblies are pressed from uranium dioxide pellets. Each Fuel Channel in a reactor holds one assembly. Richer fuel lasts longer and is more reactive; spent fuel keeps its enrichment and can be reprocessed.",
@@ -322,6 +334,9 @@ public final class LangEntries {
         add("jei.create_nuclearindustry.info.turbine",
                 "A box multiblock 3-7 blocks wide and high and 3-16 long, with a rotor column on its axis and this block at the centre of one end. Each rotor expands 80 mB/t of steam (40 of plasma steam); each input/output port pair passes 320 (160). Reinforced Turbine Glass shows the rotor and steam inside.",
                 "Un multibloque en forma de caja de 3 a 7 bloques de ancho y alto y de 3 a 16 de largo, con una columna de rotores en su eje y este bloque en el centro de un extremo. Cada rotor expande 80 mB/t de vapor (40 de vapor de plasma); cada par de puertos entrada/salida deja pasar 320 (160). El Vidrio reforzado de turbina deja ver el rotor y el vapor.");
+        add("jei.create_nuclearindustry.info.reactor_redstone_port",
+                "Part of a reactor's shell. It puts out a 0-15 signal on its panel side: temperature, power, fuel, coolant or steam, or the SCRAM signal, which turns on when SCRAM is pressed or the automatic SCRAM trips. Control rods only move with pistons, so wire the SCRAM signal to them. Wrench to change the mode, sneak-wrench to turn it.",
+                "Forma parte de la carcasa de un reactor. Da una señal de 0 a 15 por la cara del panel: temperatura, potencia, combustible, refrigerante o vapor, o la señal de SCRAM, que se enciende al pulsar SCRAM o al dispararse el SCRAM automático. Las barras de control solo se mueven con pistones, así que conecta a ellos la señal de SCRAM. Llave para cambiar el modo; agachado con la llave para girarlo.");
         add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
         add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");
         add("jei.create_nuclearindustry.product", "Product: front face", "Producto: cara frontal");

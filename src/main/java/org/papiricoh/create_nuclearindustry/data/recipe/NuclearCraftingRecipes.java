@@ -107,6 +107,16 @@ public class NuclearCraftingRecipes extends RecipeProvider {
 
         turbines(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, AllNuclearItems.REACTOR_REDSTONE_PORT.get())
+                .pattern(" R ")
+                .pattern("QCQ")
+                .pattern(" R ")
+                .define('C', AllNuclearItems.REACTOR_CASING.get())
+                .define('Q', Items.COMPARATOR)
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_reactor_casing", has(AllNuclearItems.REACTOR_CASING.get()))
+                .save(output, id("crafting/reactor_redstone_port"));
+
         // Legacy item from an unfinished recipe chain: turn any leftovers into usable oxide.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.LOW))
                 .requires(AllNuclearItems.ENRICHED_URANIUM_BLEND.get())

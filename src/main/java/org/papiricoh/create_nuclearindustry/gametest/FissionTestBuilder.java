@@ -24,6 +24,11 @@ public final class FissionTestBuilder {
     private FissionTestBuilder() {}
 
     public static void build(GameTestHelper helper) {
+        build(helper, true);
+    }
+
+    /** With {@code controlRods} false the control column is left empty and open at the top: 0% insertion. */
+    public static void build(GameTestHelper helper, boolean controlRods) {
         BlockState casing = AllNuclearBlocks.REACTOR_CASING.get().defaultBlockState();
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < SIZE; y++) {
@@ -40,7 +45,12 @@ public final class FissionTestBuilder {
             helper.setBlock(ORIGIN.offset(1, y, 1), AllNuclearBlocks.URANIUM_ROD.get());
             helper.setBlock(ORIGIN.offset(3, y, 3), AllNuclearBlocks.URANIUM_ROD.get());
             helper.setBlock(ORIGIN.offset(2, y, 2), AllNuclearBlocks.HEAT_EXCHANGER.get());
-            helper.setBlock(ORIGIN.offset(1, y, 3), AllNuclearBlocks.CONTROL_ROD.get());
+            if (controlRods) {
+                helper.setBlock(ORIGIN.offset(1, y, 3), AllNuclearBlocks.CONTROL_ROD.get());
+            }
+        }
+        if (!controlRods) {
+            helper.setBlock(ORIGIN.offset(1, SIZE - 1, 3), net.minecraft.world.level.block.Blocks.AIR);
         }
 
         helper.setBlock(COOLANT_PORT, port(Direction.WEST, ReactorFluidPortMode.INPUT));

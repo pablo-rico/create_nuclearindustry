@@ -11,6 +11,8 @@ import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.reactor.block.ReactorRedstonePortBlock;
+import org.papiricoh.create_nuclearindustry.reactor.block.RedstonePortMode;
 
 /** Block states and models for blocks added by the rewrite; older blocks keep hand-written ones. */
 public class NuclearBlockStateProvider extends BlockStateProvider {
@@ -42,6 +44,22 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         });
     }
 
+    /** Reactor-casing block with a lamp panel on its output face; the SCRAM mode gets a striped panel. */
+    private void redstonePortStates() {
+        ModelFile normal = models().orientable("reactor_redstone_port", modLoc("block/reactor_casing"),
+                modLoc("block/reactor_redstone_port"), modLoc("block/reactor_casing"));
+        ModelFile scram = models().orientable("reactor_redstone_port_scram", modLoc("block/reactor_casing"),
+                modLoc("block/reactor_redstone_port_scram"), modLoc("block/reactor_casing"));
+        getVariantBuilder(AllNuclearBlocks.REACTOR_REDSTONE_PORT.get()).forAllStatesExcept(state -> {
+            Direction facing = state.getValue(BlockStateProperties.FACING);
+            int x = facing == Direction.UP ? 270 : facing == Direction.DOWN ? 90 : 0;
+            int y = facing.getAxis().isHorizontal() ? ((int) facing.toYRot() + 180) % 360 : 0;
+            ModelFile model = state.getValue(ReactorRedstonePortBlock.MODE) == RedstonePortMode.SCRAM ? scram : normal;
+            return ConfiguredModel.builder().modelFile(model).rotationX(x).rotationY(y).build();
+        }, BlockStateProperties.POWER);
+        simpleBlockItem(AllNuclearBlocks.REACTOR_REDSTONE_PORT.get(), normal);
+    }
+
     @Override
     protected void registerStatesAndModels() {
         simpleBlockWithItem(AllNuclearBlocks.SPODUMENE_ORE.get(), cubeAll(AllNuclearBlocks.SPODUMENE_ORE.get()));
@@ -55,6 +73,7 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         rotorStates(AllNuclearBlocks.TURBINE_ROTOR.get(), "turbine_rotor");
         rotorStates(AllNuclearBlocks.FUSION_TURBINE_ROTOR.get(), "fusion_turbine_rotor");
         facingStates(AllNuclearBlocks.TURBINE_OUTPUT.get(), "turbine_output");
+        redstonePortStates();
         simpleBlockWithItem(AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get(), models().cubeBottomTop("radioactive_waste_barrel",
                 modLoc("block/radioactive_waste_barrel_side"),
                 modLoc("block/radioactive_waste_barrel_top"),

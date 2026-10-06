@@ -201,6 +201,39 @@ def reactor_temperature_sensor():
     return t
 
 
+@block("reactor_redstone_port")
+def reactor_redstone_port():
+    return _reactor_redstone_port(False)
+
+
+@block("reactor_redstone_port_scram")
+def reactor_redstone_port_scram():
+    return _reactor_redstone_port(True)
+
+
+def _reactor_redstone_port(scram):
+    STEEL = REACTOR_STEEL
+    t = Tex(seed=24 if scram else 23)
+    steel_panel(t)
+    # Recessed socket with a redstone lamp; the SCRAM variant gets a hazard-striped bezel.
+    t.rect(4, 4, 11, 11, DARK[1])
+    bevel(t, 4, 4, 11, 11, STEEL)
+    if scram:
+        for i in range(4, 12):
+            for j in (4, 11):
+                t.set(i, j, WARN[5] if (i // 2) % 2 == 0 else DARK[0])
+                t.set(j, i, WARN[5] if (i // 2) % 2 == 0 else DARK[0])
+    t.rect(6, 6, 9, 9, DANGER[1])
+    t.rect(7, 7, 8, 8, DANGER[5] if scram else DANGER[3])
+    t.set(7, 7, DANGER[6])
+    glow(t, 7.5, 7.5, 3.0, DANGER[6], 0.3 if scram else 0.15)
+    # comparator-style output pins along the bottom edge
+    for x in (5, 8, 10):
+        t.set(x, 13, STEEL[6])
+        t.set(x, 14, STEEL[1])
+    return t
+
+
 @block("reactor_controller_off")
 def reactor_controller_off():
     return _reactor_controller(False)

@@ -24,7 +24,15 @@ below for what changes in existing worlds.
   plus radioactive waste, sealed into waste barrels.
 - Textured control panel with a manual SCRAM switch.
 - Reactors now notice shell blocks removed by machines, not only by players.
-- Fuel is no longer lost when the structure changes.
+- Fuel is no longer lost when the structure changes, and neither is the core's
+  heat: swapping a shell block no longer cools the reactor instantly.
+- New Reactor Redstone Port for the shell: puts out temperature, power, fuel,
+  coolant or steam as a 0-15 signal, or the SCRAM signal. Wrench to pick.
+- Control rods only move physically. The SCRAM button no longer pushes them
+  in; it turns on the SCRAM signal of the Redstone Ports until reset, to be
+  wired to the pistons that drive the rods.
+- The Temperature Sensor now outputs on its panel side, as its tooltip says;
+  it used to power the block behind it.
 
 ### Fusion
 - The flat fusion ring is replaced by a tokamak: a toroidal multiblock of
@@ -73,6 +81,8 @@ below for what changes in existing worlds.
 - Old flat fusion rings no longer form: the controller says so. Stored D-T
   pellets become deuterium and tritium in the new tanks, and loose pellets can
   be drained for tritium in an item drain.
+- A reactor saved in manual SCRAM keeps its rods held in until the SCRAM is
+  reset once; after that only physical rods count.
 - Three-block turbines no longer form; they keep their steam and
   condensate and ask to be rebuilt as a box.
 - `fusion.deuteriumTritiumBurnRate` changed meaning (see

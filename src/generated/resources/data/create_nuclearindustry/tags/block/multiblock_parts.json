@@ -4,6 +4,7 @@
     "create_nuclearindustry:reactor_fluid_port",
     "create_nuclearindustry:reactor_fuel_port",
     "create_nuclearindustry:reactor_temperature_sensor",
+    "create_nuclearindustry:reactor_redstone_port",
     "create_nuclearindustry:uranium_rod",
     "create_nuclearindustry:heat_exchanger",
     "create_nuclearindustry:control_rod",

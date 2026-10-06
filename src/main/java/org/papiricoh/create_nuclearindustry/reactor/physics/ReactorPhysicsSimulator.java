@@ -354,6 +354,19 @@ public class ReactorPhysicsSimulator {
         previous.spentAssemblies.clear();
     }
 
+    /**
+     * Carries the core's heat and activity over when the structure is rebuilt, so swapping a
+     * shell block cannot cool the core down instantly.
+     */
+    public void inheritThermalState(ReactorPhysicsSimulator previous) {
+        coreTemperature = previous.coreTemperature;
+        neutronLevel = previous.neutronLevel;
+        controlRodInsertion = previous.controlRodInsertion;
+        meltdownTickCounter = previous.meltdownTickCounter;
+        thermalStress = previous.thermalStress;
+        thermalExcursionActive = previous.thermalExcursionActive;
+    }
+
     /** Enrichment of every assembly burnt out since the last call. */
     public List<Float> drainSpentAssemblies() {
         if (spentAssemblies.isEmpty()) {

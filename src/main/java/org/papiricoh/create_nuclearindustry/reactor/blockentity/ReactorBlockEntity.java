@@ -66,6 +66,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private static final int CONTROL_ROD_SCAN_INTERVAL = 5;
     private static final int SCRAM_RECOVERY_SCAN_INTERVAL = 20;
     private static final int LOAD_MELTDOWN_GRACE_TICKS = 200;
+    /** 2: a manual SCRAM no longer forces the rods in. Absent in older saves. */
+    private static final int SCRAM_VERSION = 2;
     private static final int MELTDOWN_CONFIRM_TICKS = 200;
     private static final float MELTDOWN_EXPLOSION_POWER = 80.0f;
     public static final int FUEL_INPUT_SLOTS = 4;
@@ -87,6 +89,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private final List<Float> pendingDepletedFuel = new ArrayList<>();
     /** Set from the control panel: holds every rod fully inserted regardless of the physical rods. */
     private boolean manualScram;
+    /** A reactor saved in manual SCRAM when that still forced the rods in keeps them in until reset. */
+    private boolean legacyScramHold;
     /** A meltdown leaves fallout that fades over a few in-game days. */
     private static final int MELTDOWN_CONTAMINATION_TICKS = 72_000;
     private static final double MELTDOWN_RADIATION = 40.0;
@@ -266,6 +270,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 ReactorPhysicsSimulator previousSimulator = physicsSimulator;
                 physicsSimulator = new ReactorPhysicsSimulator(newStructure.getUraniumRodCount(), newStructure.getControlRodCount());
                 physicsSimulator.inheritFuel(previousSimulator);
+                physicsSimulator.inheritThermalState(previousSimulator);
                 collectSpentFuel();
             }
             updateControlRodInsertion(true);
@@ -327,7 +332,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 && oldStructure.controlChannels.equals(newStructure.controlChannels)
                 && oldStructure.fluidPorts.equals(newStructure.fluidPorts)
                 && oldStructure.fuelPorts.equals(newStructure.fuelPorts)
-                && oldStructure.temperatureSensors.equals(newStructure.temperatureSensors);
+                && oldStructure.temperatureSensors.equals(newStructure.temperatureSensors)
+                && oldStructure.redstonePorts.equals(newStructure.redstonePorts);
     }
 
     private void linkStructureParts(ReactorStructureValidator.ReactorStructure structure) {
@@ -348,6 +354,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         for (BlockPos sensorPos : structure.temperatureSensors) {
             if (level.getBlockEntity(sensorPos) instanceof ReactorTemperatureSensorBlockEntity sensor) {
                 sensor.setLinkedController(getBlockPos());
+            }
+        }
+        for (BlockPos portPos : structure.redstonePorts) {
+            if (level.getBlockEntity(portPos) instanceof ReactorRedstonePortBlockEntity port) {
+                port.setLinkedController(getBlockPos());
             }
         }
     }
@@ -372,6 +383,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 sensor.clearLinkedController(getBlockPos());
             }
         }
+        for (BlockPos portPos : structure.redstonePorts) {
+            if (level.getBlockEntity(portPos) instanceof ReactorRedstonePortBlockEntity port) {
+                port.clearLinkedController(getBlockPos());
+            }
+        }
     }
 
     private void updateControlRodInsertion(boolean force) {
@@ -386,22 +402,48 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
         controlRodScanCounter = 0;
         lastControlRodScan = ControlRodTracker.scan(getLevel(), currentStructure.get());
-        physicsSimulator.setControlRodInsertion(manualScram ? 1.0f : lastControlRodScan.insertionRatio());
+        // Rods only move physically (Create pistons). A SCRAM is a redstone request, except for
+        // reactors saved in manual SCRAM before that change, which hold their rods in until reset.
+        physicsSimulator.setControlRodInsertion(legacyScramHold ? 1.0f : lastControlRodScan.insertionRatio());
     }
 
     public boolean isManualScram() {
         return manualScram;
     }
 
-    /** Control panel SCRAM switch. While engaged the reactor behaves as if every rod were in. */
+    /** True while the reactor asks for its rods to go in: Redstone Ports in SCRAM mode emit. */
+    public boolean isScramRequested() {
+        return manualScram || legacyScramHold;
+    }
+
+    /**
+     * Control panel SCRAM switch. Engaging it only raises the SCRAM signal on the reactor's
+     * Redstone Ports; the rods themselves are moved by whatever the player wires to them.
+     */
     public void setManualScram(boolean engaged) {
-        if (manualScram == engaged) {
+        if (manualScram == engaged && (engaged || !legacyScramHold)) {
             return;
         }
         manualScram = engaged;
+        if (!engaged) {
+            legacyScramHold = false;
+        }
         updateControlRodInsertion(true);
-        sendPlayerMessage(engaged ? "§cManual SCRAM engaged" : "§aManual SCRAM released", true);
+        refreshRedstonePorts();
+        sendPlayerMessage(engaged ? "§cManual SCRAM: signal sent to the Redstone Ports" : "§aManual SCRAM released", true);
         markDirtyAndSync();
+    }
+
+    private void refreshRedstonePorts() {
+        Level level = getLevel();
+        if (level == null || level.isClientSide || currentStructure.isEmpty()) {
+            return;
+        }
+        for (BlockPos portPos : currentStructure.get().redstonePorts) {
+            if (level.getBlockEntity(portPos) instanceof ReactorRedstonePortBlockEntity port) {
+                port.refreshSignal();
+            }
+        }
     }
 
     private void processCoolantLoop() {
@@ -855,6 +897,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.put("fuelInventory", fuelInventory.serializeNBT(provider));
         writePendingDepleted(tag);
         tag.putBoolean("manualScram", manualScram);
+        tag.putInt("scramVersion", SCRAM_VERSION);
+        tag.putBoolean("legacyScramHold", legacyScramHold);
     }
 
     private void writePendingDepleted(CompoundTag tag) {
@@ -899,6 +943,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
         readPendingDepleted(tag);
         manualScram = tag.getBoolean("manualScram");
+        legacyScramHold = tag.contains("scramVersion") ? tag.getBoolean("legacyScramHold") : manualScram;
         pendingRevalidation = true;
     }
 
@@ -912,6 +957,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.put("fuelInventory", fuelInventory.serializeNBT(provider));
         writePendingDepleted(tag);
         tag.putBoolean("manualScram", manualScram);
+        tag.putBoolean("legacyScramHold", legacyScramHold);
         currentStructure.ifPresent(structure -> {
             tag.put("structure", writeStructureTag(structure));
             tag.put("controlRodScan", writeControlRodScanTag(lastControlRodScan));
@@ -949,6 +995,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
         readPendingDepleted(tag);
         manualScram = tag.getBoolean("manualScram");
+        legacyScramHold = tag.getBoolean("legacyScramHold");
         currentStructure = tag.contains("structure")
                 ? readStructureTag(tag.getCompound("structure"))
                 : Optional.empty();
@@ -1128,6 +1175,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         structureTag.putLongArray("fluidPorts", writePositions(structure.fluidPorts));
         structureTag.putLongArray("fuelPorts", writePositions(structure.fuelPorts));
         structureTag.putLongArray("temperatureSensors", writePositions(structure.temperatureSensors));
+        structureTag.putLongArray("redstonePorts", writePositions(structure.redstonePorts));
         return structureTag;
     }
 
@@ -1157,6 +1205,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         readPositions(structureTag.getLongArray("fluidPorts"), structure.fluidPorts);
         readPositions(structureTag.getLongArray("fuelPorts"), structure.fuelPorts);
         readPositions(structureTag.getLongArray("temperatureSensors"), structure.temperatureSensors);
+        readPositions(structureTag.getLongArray("redstonePorts"), structure.redstonePorts);
         return Optional.of(structure);
     }
 

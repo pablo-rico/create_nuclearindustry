@@ -109,9 +109,10 @@ public class ReactorTemperatureSensorBlock extends BaseEntityBlock {
         return true;
     }
 
+    /** {@code direction} is the side of the neighbour being powered, so the output side is the facing. */
     @Override
     protected int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        return direction == state.getValue(FACING) ? state.getValue(POWER) : 0;
+        return direction.getOpposite() == state.getValue(FACING) ? state.getValue(POWER) : 0;
     }
 
     @Override

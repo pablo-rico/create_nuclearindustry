@@ -20,6 +20,7 @@ import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionTurbineFlui
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFuelPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFluidPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorRedstonePortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorTemperatureSensorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.TurbineFluidPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.TurbineOutputBlockEntity;
@@ -51,6 +52,12 @@ public class AllNuclearEntities {
             ENTITIES.register("reactor_temperature_sensor", () -> BlockEntityType.Builder.of(
                     ReactorTemperatureSensorBlockEntity::new,
                     AllNuclearBlocks.REACTOR_TEMPERATURE_SENSOR.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ReactorRedstonePortBlockEntity>> REACTOR_REDSTONE_PORT =
+            ENTITIES.register("reactor_redstone_port", () -> BlockEntityType.Builder.of(
+                    ReactorRedstonePortBlockEntity::new,
+                    AllNuclearBlocks.REACTOR_REDSTONE_PORT.get()
             ).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DualFluidPipeBlockEntity>> DUAL_PIPE =

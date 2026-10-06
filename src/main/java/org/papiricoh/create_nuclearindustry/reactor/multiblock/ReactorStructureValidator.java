@@ -159,6 +159,11 @@ public class ReactorStructureValidator {
                 continue;
             }
 
+            if (shell && block == AllNuclearBlocks.REACTOR_REDSTONE_PORT.get()) {
+                structure.redstonePorts.add(pos);
+                continue;
+            }
+
             if (shell && block != AllNuclearBlocks.REACTOR_CASING.get()) {
                 errors.add("Missing casing at " + shortPos(pos));
                 if (errors.size() >= 6) {
@@ -348,6 +353,7 @@ public class ReactorStructureValidator {
         public final Set<BlockPos> fluidPorts = new HashSet<>();
         public final Set<BlockPos> fuelPorts = new HashSet<>();
         public final Set<BlockPos> temperatureSensors = new HashSet<>();
+        public final Set<BlockPos> redstonePorts = new HashSet<>();
         public int uraniumRodCount;
         public int controlRodCount;
         public int heatExchangerCount;
@@ -390,6 +396,10 @@ public class ReactorStructureValidator {
 
         public boolean containsTemperatureSensor(BlockPos pos) {
             return temperatureSensors.contains(pos);
+        }
+
+        public boolean containsRedstonePort(BlockPos pos) {
+            return redstonePorts.contains(pos);
         }
 
         public boolean isControlArea(BlockPos pos) {

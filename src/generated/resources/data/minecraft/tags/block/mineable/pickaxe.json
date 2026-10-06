@@ -11,6 +11,7 @@
     "create_nuclearindustry:reactor_fluid_port",
     "create_nuclearindustry:reactor_fuel_port",
     "create_nuclearindustry:reactor_temperature_sensor",
+    "create_nuclearindustry:reactor_redstone_port",
     "create_nuclearindustry:dual_fluid_pipe",
     "create_nuclearindustry:centrifuge",
     "create_nuclearindustry:electrolyzer",
