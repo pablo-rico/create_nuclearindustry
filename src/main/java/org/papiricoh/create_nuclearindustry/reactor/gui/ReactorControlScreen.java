@@ -2,6 +2,7 @@ package org.papiricoh.create_nuclearindustry.reactor.gui;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -11,7 +12,7 @@ import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimula
 
 /**
  * Reactor control panel. Readouts are drawn over the generated background texture;
- * control rods themselves are physical blocks, so the only control here is the SCRAM switch.
+ * control rods themselves are physical blocks, so the controls here only drive the SCRAM signal.
  */
 public class ReactorControlScreen extends AbstractContainerScreen<ReactorControlMenu> {
     private static final ResourceLocation TEXTURE =
@@ -31,6 +32,9 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     private static final int GAUGE_HEIGHT = 12;
 
     private Button scramButton;
+    private Button autoButton;
+    private Button thresholdDown;
+    private Button thresholdUp;
 
     public ReactorControlScreen(ReactorControlMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -50,18 +54,49 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
                 .tooltip(net.minecraft.client.gui.components.Tooltip.create(
                         Component.translatable("gui.create_nuclearindustry.reactor.scram.tooltip")))
                 .build());
+
+        // Automatic SCRAM threshold between the fuel slots: [-] [threshold / OFF] [+]. Shift steps by 500.
+        thresholdDown = addRenderableWidget(Button.builder(Component.literal("-"),
+                        button -> click(hasShiftDown() ? ReactorControlMenu.BUTTON_THRESHOLD_DOWN_BIG : ReactorControlMenu.BUTTON_THRESHOLD_DOWN))
+                .bounds(leftPos + 95, topPos + 177, 13, 19)
+                .tooltip(Tooltip.create(Component.translatable("gui.create_nuclearindustry.reactor.auto_scram.step.tooltip")))
+                .build());
+        autoButton = addRenderableWidget(Button.builder(autoLabel(), button -> click(ReactorControlMenu.BUTTON_TOGGLE_AUTO))
+                .bounds(leftPos + 108, topPos + 177, 41, 19)
+                .tooltip(Tooltip.create(Component.translatable("gui.create_nuclearindustry.reactor.auto_scram.tooltip")))
+                .build());
+        thresholdUp = addRenderableWidget(Button.builder(Component.literal("+"),
+                        button -> click(hasShiftDown() ? ReactorControlMenu.BUTTON_THRESHOLD_UP_BIG : ReactorControlMenu.BUTTON_THRESHOLD_UP))
+                .bounds(leftPos + 149, topPos + 177, 13, 19)
+                .tooltip(Tooltip.create(Component.translatable("gui.create_nuclearindustry.reactor.auto_scram.step.tooltip")))
+                .build());
+    }
+
+    private void click(int buttonId) {
+        if (minecraft != null && minecraft.gameMode != null) {
+            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, buttonId);
+        }
     }
 
     private Component scramLabel() {
-        return Component.translatable(menu.isManualScram()
+        return Component.translatable(menu.isScramRequested()
                 ? "gui.create_nuclearindustry.reactor.reset"
                 : "gui.create_nuclearindustry.reactor.scram");
+    }
+
+    private Component autoLabel() {
+        return menu.isAutoScramEnabled()
+                ? Component.translatable("gui.create_nuclearindustry.reactor.auto_scram.threshold", menu.getAutoScramThreshold())
+                : Component.translatable("gui.create_nuclearindustry.reactor.auto_scram.off");
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         scramButton.setMessage(scramLabel());
         scramButton.active = menu.isReactorFormed();
+        autoButton.setMessage(autoLabel());
+        thresholdDown.active = menu.isAutoScramEnabled();
+        thresholdUp.active = menu.isAutoScramEnabled();
         super.render(graphics, mouseX, mouseY, partialTick);
         renderTooltip(graphics, mouseX, mouseY);
     }
@@ -77,6 +112,7 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
                 GUI_WIDTH / 2, TITLE_Y, 0xFFE8C26A);
         graphics.drawString(font, Component.translatable("gui.create_nuclearindustry.reactor.fuel_in"), 20, 170, 0xFFCCCCCC, false);
         graphics.drawString(font, Component.translatable("gui.create_nuclearindustry.reactor.spent"), 164, 170, 0xFFCCCCCC, false);
+        graphics.drawCenteredString(font, Component.translatable("gui.create_nuclearindustry.reactor.auto_scram"), 128, 168, 0xFFCCCCCC);
 
         if (menu.getReactorPos() == null || !menu.isReactorFormed()) {
             String key = menu.getReactorPos() == null
@@ -117,7 +153,10 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.rods",
                 menu.getInsertedControlRodSegments(), menu.getExpectedControlRodSegments(),
                 Math.round(menu.getControlRodInsertionRatio() * 100)), ROD_Y, 0xFFFFAA00);
-        if (menu.isManualScram()) {
+        if (menu.isAutoScramTripped()) {
+            text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.auto_scram.tripped", menu.getAutoScramThreshold()),
+                    ROD_Y + 10, 0xFFFF5555);
+        } else if (menu.isScramRequested()) {
             text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.scram_engaged"), ROD_Y + 10, 0xFFFF5555);
         }
     }

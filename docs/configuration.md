@@ -56,6 +56,13 @@ turbinas giran a 64 RPM. Duplicar una capacidad duplica su output con el mismo v
   el enriquecimiento por encima del 5%. Con 0,25, el combustible al 20% es 1,5
   veces mas reactivo. Cero hace que el enriquecimiento solo afecte a la duracion.
 
+Las barras de control solo se mueven físicamente, con pistones de Create. El
+SCRAM (botón del panel o SCRAM automático, activado por defecto a 2800 °C) no
+las mueve: enciende la señal de los Puertos de redstone en modo SCRAM hasta que
+se rearma, y esa señal es la que hay que llevar a los pistones. El umbral se
+ajusta en el panel (no es una opción de configuración) y solo se puede rearmar
+cuando el núcleo está 200 °C por debajo.
+
 Cada canal de combustible aloja un elemento. El reactor solo acepta elementos
 combustibles al 3% o mas; el uranio metalico suelto ya no es combustible. El
 combustible gastado conserva el enriquecimiento con el que entro.

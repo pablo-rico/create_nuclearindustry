@@ -31,6 +31,9 @@ below for what changes in existing worlds.
 - Control rods only move physically. The SCRAM button no longer pushes them
   in; it turns on the SCRAM signal of the Redstone Ports until reset, to be
   wired to the pistons that drive the rods.
+- Automatic SCRAM on the control panel, on by default at 2800 °C (500-3900,
+  +/- 100, Shift for 500). When the core reaches it the SCRAM signal turns
+  on and stays latched; Reset only works 200 °C below the threshold.
 - The Temperature Sensor now outputs on its panel side, as its tooltip says;
   it used to power the block behind it.
 

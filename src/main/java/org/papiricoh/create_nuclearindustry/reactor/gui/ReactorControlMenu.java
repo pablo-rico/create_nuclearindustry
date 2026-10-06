@@ -44,10 +44,21 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     private static final int DATA_PENDING_DEPLETED = 20;
     private static final int DATA_FUEL_ENRICHMENT_X10 = 21;
     private static final int DATA_MANUAL_SCRAM = 22;
-    private static final int DATA_COUNT = 23;
+    private static final int DATA_AUTO_ENABLED = 23;
+    private static final int DATA_AUTO_THRESHOLD = 24;
+    private static final int DATA_AUTO_TRIPPED = 25;
+    private static final int DATA_SCRAM_REQUESTED = 26;
+    private static final int DATA_COUNT = 27;
 
-    /** {@link #clickMenuButton} id that toggles the manual SCRAM. */
+    /** {@link #clickMenuButton} ids. SCRAM engages the manual SCRAM, or resets once one is on. */
     public static final int BUTTON_TOGGLE_SCRAM = 0;
+    public static final int BUTTON_THRESHOLD_DOWN = 1;
+    public static final int BUTTON_THRESHOLD_UP = 2;
+    public static final int BUTTON_THRESHOLD_DOWN_BIG = 3;
+    public static final int BUTTON_THRESHOLD_UP_BIG = 4;
+    public static final int BUTTON_TOGGLE_AUTO = 5;
+    public static final int THRESHOLD_STEP = 100;
+    public static final int THRESHOLD_BIG_STEP = 500;
 
     private final ReactorBlockEntity reactor;
     private final BlockPos reactorPos;
@@ -160,16 +171,48 @@ public class ReactorControlMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (id != BUTTON_TOGGLE_SCRAM) {
+        if (id < BUTTON_TOGGLE_SCRAM || id > BUTTON_TOGGLE_AUTO) {
             return false;
         }
         ReactorBlockEntity liveReactor = getReactorEntity(player);
         if (liveReactor == null || player.level().isClientSide) {
             return liveReactor != null;
         }
-        liveReactor.requestStructureRevalidation(player);
-        liveReactor.setManualScram(!liveReactor.isManualScram());
+        switch (id) {
+            case BUTTON_TOGGLE_SCRAM -> {
+                liveReactor.requestStructureRevalidation(player);
+                if (liveReactor.isScramRequested()) {
+                    liveReactor.resetScram();
+                } else {
+                    liveReactor.setManualScram(true);
+                }
+            }
+            case BUTTON_THRESHOLD_DOWN -> liveReactor.adjustAutoScramThreshold(-THRESHOLD_STEP);
+            case BUTTON_THRESHOLD_UP -> liveReactor.adjustAutoScramThreshold(THRESHOLD_STEP);
+            case BUTTON_THRESHOLD_DOWN_BIG -> liveReactor.adjustAutoScramThreshold(-THRESHOLD_BIG_STEP);
+            case BUTTON_THRESHOLD_UP_BIG -> liveReactor.adjustAutoScramThreshold(THRESHOLD_BIG_STEP);
+            case BUTTON_TOGGLE_AUTO -> liveReactor.toggleAutoScram();
+            default -> {
+                return false;
+            }
+        }
         return true;
+    }
+
+    public boolean isAutoScramEnabled() {
+        return reactorData.get(DATA_AUTO_ENABLED) != 0;
+    }
+
+    public int getAutoScramThreshold() {
+        return reactorData.get(DATA_AUTO_THRESHOLD);
+    }
+
+    public boolean isAutoScramTripped() {
+        return reactorData.get(DATA_AUTO_TRIPPED) != 0;
+    }
+
+    public boolean isScramRequested() {
+        return reactorData.get(DATA_SCRAM_REQUESTED) != 0;
     }
 
     public float getFuelEnrichment() {
@@ -436,6 +479,10 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         data[DATA_PENDING_DEPLETED] = clampInt(snapshot.pendingDepletedFuel(), 0, 32767);
         data[DATA_FUEL_ENRICHMENT_X10] = scaled(snapshot.fuelEnrichment(), 10.0);
         data[DATA_MANUAL_SCRAM] = snapshot.manualScram() ? 1 : 0;
+        data[DATA_AUTO_ENABLED] = reactor.getAutoScram().isEnabled() ? 1 : 0;
+        data[DATA_AUTO_THRESHOLD] = reactor.getAutoScram().getThreshold();
+        data[DATA_AUTO_TRIPPED] = reactor.getAutoScram().isTripped() ? 1 : 0;
+        data[DATA_SCRAM_REQUESTED] = reactor.isScramRequested() ? 1 : 0;
         return data;
     }
 

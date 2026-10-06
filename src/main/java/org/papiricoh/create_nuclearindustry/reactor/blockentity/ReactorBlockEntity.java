@@ -43,6 +43,7 @@ import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
 import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
+import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodTracker;
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
@@ -91,6 +92,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private boolean manualScram;
     /** A reactor saved in manual SCRAM when that still forced the rods in keeps them in until reset. */
     private boolean legacyScramHold;
+    private final AutoScram autoScram = new AutoScram();
     /** A meltdown leaves fallout that fades over a few in-game days. */
     private static final int MELTDOWN_CONTAMINATION_TICKS = 72_000;
     private static final double MELTDOWN_RADIATION = 40.0;
@@ -144,6 +146,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         entity.ticksSinceLoad++;
 
         if (entity.status == ReactorStatus.FORMED) {
+            entity.checkAutoScram();
             entity.updateControlRodInsertion(false);
             entity.tryStorePendingDepletedFuel();
             entity.tryLoadFuelAssembly();
@@ -413,7 +416,50 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     /** True while the reactor asks for its rods to go in: Redstone Ports in SCRAM mode emit. */
     public boolean isScramRequested() {
-        return manualScram || legacyScramHold;
+        return manualScram || legacyScramHold || autoScram.isTripped();
+    }
+
+    public AutoScram getAutoScram() {
+        return autoScram;
+    }
+
+    private void checkAutoScram() {
+        if (autoScram.check(physicsSimulator.getCoreTemperature())) {
+            refreshRedstonePorts();
+            sendPlayerMessage("§cAutomatic SCRAM at " + autoScram.getThreshold() + " °C: SCRAM signal on", true);
+            markDirtyAndSync();
+        }
+    }
+
+    /**
+     * Control panel Reset: clears the manual SCRAM and, if the core has cooled enough, the
+     * automatic trip. Returns false (and changes nothing) while a tripped core is still too hot.
+     */
+    public boolean resetScram() {
+        double temperature = physicsSimulator.getCoreTemperature();
+        if (!autoScram.canReset(temperature)) {
+            sendPlayerMessage("§cAutomatic SCRAM can only be reset below "
+                    + (autoScram.getThreshold() - AutoScram.RESET_MARGIN) + " °C", true);
+            return false;
+        }
+        autoScram.reset(temperature);
+        manualScram = false;
+        legacyScramHold = false;
+        updateControlRodInsertion(true);
+        refreshRedstonePorts();
+        sendPlayerMessage("§aSCRAM reset", true);
+        markDirtyAndSync();
+        return true;
+    }
+
+    public void adjustAutoScramThreshold(int delta) {
+        autoScram.adjust(delta);
+        markDirtyAndSync();
+    }
+
+    public void toggleAutoScram() {
+        autoScram.setEnabled(!autoScram.isEnabled());
+        markDirtyAndSync();
     }
 
     /**
@@ -828,8 +874,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (snapshot.fuelEnrichment() > 0.0f) {
             tooltip.add(Component.literal(String.format("  Fuel enrichment: %.1f%%", snapshot.fuelEnrichment())).withStyle(ChatFormatting.GRAY));
         }
-        if (snapshot.manualScram()) {
-            tooltip.add(Component.literal("  Manual SCRAM engaged").withStyle(ChatFormatting.RED));
+        if (autoScram.isTripped()) {
+            tooltip.add(Component.literal("  Automatic SCRAM tripped at " + autoScram.getThreshold() + " C").withStyle(ChatFormatting.RED));
+        } else if (snapshot.manualScram()) {
+            tooltip.add(Component.literal("  Manual SCRAM signal on").withStyle(ChatFormatting.RED));
         }
         tooltip.add(Component.literal("  Fuel input: " + snapshot.inputFuelCount() + " assemblies").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Depleted fuel: " + snapshot.outputFuelCount() + " assemblies").withStyle(ChatFormatting.GRAY));
@@ -899,6 +947,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.putBoolean("manualScram", manualScram);
         tag.putInt("scramVersion", SCRAM_VERSION);
         tag.putBoolean("legacyScramHold", legacyScramHold);
+        autoScram.save(tag);
     }
 
     private void writePendingDepleted(CompoundTag tag) {
@@ -944,6 +993,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         readPendingDepleted(tag);
         manualScram = tag.getBoolean("manualScram");
         legacyScramHold = tag.contains("scramVersion") ? tag.getBoolean("legacyScramHold") : manualScram;
+        autoScram.load(tag);
         pendingRevalidation = true;
     }
 
@@ -958,6 +1008,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         writePendingDepleted(tag);
         tag.putBoolean("manualScram", manualScram);
         tag.putBoolean("legacyScramHold", legacyScramHold);
+        autoScram.save(tag);
         currentStructure.ifPresent(structure -> {
             tag.put("structure", writeStructureTag(structure));
             tag.put("controlRodScan", writeControlRodScanTag(lastControlRodScan));
@@ -996,6 +1047,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         readPendingDepleted(tag);
         manualScram = tag.getBoolean("manualScram");
         legacyScramHold = tag.getBoolean("legacyScramHold");
+        autoScram.load(tag);
         currentStructure = tag.contains("structure")
                 ? readStructureTag(tag.getCompound("structure"))
                 : Optional.empty();

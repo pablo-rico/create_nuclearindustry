@@ -315,6 +315,16 @@ public final class LangEntries {
         add("gui.create_nuclearindustry.reactor.scram_engaged", "SCRAM signal on: Redstone Ports in SCRAM mode emit",
                 "Señal de SCRAM activa: los Puertos de redstone en modo SCRAM emiten");
         add("gui.create_nuclearindustry.reactor.fuel_in", "Fuel in", "Combustible");
+        add("gui.create_nuclearindustry.reactor.auto_scram", "Auto SCRAM", "SCRAM auto.");
+        add("gui.create_nuclearindustry.reactor.auto_scram.threshold", "%s°C", "%s°C");
+        add("gui.create_nuclearindustry.reactor.auto_scram.off", "OFF", "NO");
+        add("gui.create_nuclearindustry.reactor.auto_scram.tripped", "AUTO SCRAM tripped at %s °C: SCRAM signal on",
+                "SCRAM AUTOMÁTICO disparado a %s °C: señal de SCRAM activa");
+        add("gui.create_nuclearindustry.reactor.auto_scram.tooltip",
+                "Automatic SCRAM: when the core reaches this temperature the SCRAM signal turns on and stays on until reset, which only works 200 °C below it. Click to turn it on or off.",
+                "SCRAM automático: cuando el núcleo llega a esta temperatura se enciende la señal de SCRAM y se queda encendida hasta rearmar, lo que solo funciona 200 °C por debajo. Haz clic para activarlo o desactivarlo.");
+        add("gui.create_nuclearindustry.reactor.auto_scram.step.tooltip", "Change the threshold by 100 °C (Shift: 500 °C)",
+                "Cambia el umbral en 100 °C (Mayús: 500 °C)");
         add("gui.create_nuclearindustry.reactor.spent", "Spent", "Gastado");
         add("gui.create_nuclearindustry.reactor.scram", "SCRAM", "SCRAM");
         add("gui.create_nuclearindustry.reactor.reset", "Reset", "Rearmar");
