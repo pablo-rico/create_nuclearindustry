@@ -58,6 +58,9 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
                 AllNuclearBlocks.FUSION_CRYOSTAT_CASING.get(),
                 AllNuclearBlocks.FUSION_MAGNET_INPUT.get(),
                 AllNuclearBlocks.FUSION_FLUID_PORT.get(),
-                AllNuclearBlocks.FUSION_FUEL_INJECTOR.get());
+                AllNuclearBlocks.FUSION_FUEL_INJECTOR.get(),
+                AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get(),
+                AllNuclearBlocks.FUSION_BREEDING_BLANKET.get(),
+                AllNuclearBlocks.FUSION_CONTROLLER.get());
     }
 }

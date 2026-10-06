@@ -15,13 +15,18 @@ public class AllNuclearDisplaySources {
     public static final DeferredHolder<DisplaySource, ReactorSensorDisplaySource> REACTOR_TEMPERATURE_SENSOR =
             DISPLAY_SOURCES.register("reactor_temperature_sensor", ReactorSensorDisplaySource::new);
 
+    public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.fusion.display.TokamakDisplaySource> TOKAMAK =
+            DISPLAY_SOURCES.register("tokamak", org.papiricoh.create_nuclearindustry.fusion.display.TokamakDisplaySource::new);
+
     public static void register(IEventBus modEventBus) {
         DISPLAY_SOURCES.register(modEventBus);
         modEventBus.addListener(AllNuclearDisplaySources::commonSetup);
     }
 
     private static void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() ->
-                DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_TEMPERATURE_SENSOR.get(), REACTOR_TEMPERATURE_SENSOR.get()));
+        event.enqueueWork(() -> {
+            DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_TEMPERATURE_SENSOR.get(), REACTOR_TEMPERATURE_SENSOR.get());
+            DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.FUSION_CONTROLLER.get(), TOKAMAK.get());
+        });
     }
 }

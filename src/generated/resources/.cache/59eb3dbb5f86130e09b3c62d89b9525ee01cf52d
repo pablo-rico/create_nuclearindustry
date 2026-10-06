@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-06T18:05:13.992274	Loot Tables
+// 1.21.1	2026-10-06T18:17:10.329381	Loot Tables
 f7cd641dbc79fbdeb47db13d2fa7c6feb5d91098 data/create_nuclearindustry/loot_table/blocks/borax_ore.json
 774896dc0efff85c2635e35050dca047eb134e83 data/create_nuclearindustry/loot_table/blocks/centrifuge.json
 ff6f6eb4e0855da677f03f5fd4e3d1034be17374 data/create_nuclearindustry/loot_table/blocks/control_rod.json
@@ -6,6 +6,8 @@ ff6f6eb4e0855da677f03f5fd4e3d1034be17374 data/create_nuclearindustry/loot_table/
 e2f910eaf4c2b9910364315eed3aa82117d2e943 data/create_nuclearindustry/loot_table/blocks/electrolyzer.json
 8855edf2176a0e7203c0c9d5553b980d7d76472f data/create_nuclearindustry/loot_table/blocks/fusion_accelerator_corner.json
 021bba9237f73930b824142308c5392990e3855c data/create_nuclearindustry/loot_table/blocks/fusion_accelerator_segment.json
+39ec9a12ae2e46f12b25be24ee3a5561ac2c3b58 data/create_nuclearindustry/loot_table/blocks/fusion_breeding_blanket.json
+0cf47b9ff3e654369fcae08fbd407350bff8fe63 data/create_nuclearindustry/loot_table/blocks/fusion_central_solenoid.json
 e822c2db4e33a8b3192bda6c446af5554a41008e data/create_nuclearindustry/loot_table/blocks/fusion_controller.json
 fc46a445d579272077d39e29ec5ba7ce06c47889 data/create_nuclearindustry/loot_table/blocks/fusion_cryostat_casing.json
 335c0a78c4ada5eed85f2037761ddaa499ca7575 data/create_nuclearindustry/loot_table/blocks/fusion_electromagnet.json

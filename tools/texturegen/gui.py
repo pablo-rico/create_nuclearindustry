@@ -83,3 +83,28 @@ def reactor_control():
     for col in range(9):
         _slot(t, 48 + col * 18, 280)
     return t
+
+
+@gui("tokamak_control")
+def tokamak_control():
+    from palette import CRYO, CYAN
+    w, h = 248, 196
+    t = _plate(w, h, 402)
+    _recess(t, 8, 4, w - 9, 18)
+    hazard(t, 9, 5, 26, 17, CYAN[3], DARK[0], period=6, seed=403)
+    hazard(t, w - 27, 5, w - 10, 17, CYAN[3], DARK[0], period=6, seed=404)
+    # telemetry window and gauge troughs (gauges are 5 px tall at these rows)
+    _recess(t, 8, 22, 158, 160)
+    for gy in (37, 59, 81):
+        _trough(t, 14, gy, 120, 5)
+    # tank column: D, T, coolant, plasma steam
+    _recess(t, 162, 22, w - 9, 160)
+    for x in (168, 186, 204, 222):
+        t.rect(x - 1, 27, x + 12, 148, DARK[0])
+        t.rect(x, 28, x + 11, 147, DARK[2])
+        for y in range(40, 148, 12):
+            t.hline(x, x + 3, y, DARK[4])
+    # fuel switch bay
+    t.rect(160, 166, 241, 189, CRYO[1])
+    outline(t, 160, 166, 241, 189, DARK)
+    return t

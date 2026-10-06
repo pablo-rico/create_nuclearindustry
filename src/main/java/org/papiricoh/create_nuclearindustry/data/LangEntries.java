@@ -157,29 +157,29 @@ public final class LangEntries {
                 "Create: Nuclear industry",
                 "Create: Nuclear industry");
         add("block.create_nuclearindustry.fusion_controller",
-                "Fusion Reactor Core",
-                "Núcleo del Reactor de Fusión");
+                "Tokamak Controller",
+                "Controlador del tokamak");
         add("block.create_nuclearindustry.fusion_accelerator_segment",
-                "Accelerator Segment",
-                "Segmento Acelerador");
+                "Tokamak Vacuum Vessel",
+                "Cámara de vacío del tokamak");
         add("block.create_nuclearindustry.fusion_accelerator_corner",
-                "Accelerator Corner",
-                "Esquina Aceleradora");
+                "Vacuum Vessel Corner (Legacy)",
+                "Esquina de cámara de vacío (antigua)");
         add("block.create_nuclearindustry.fusion_electromagnet",
-                "Confinement Electromagnet",
-                "Electroimán de Confinamiento");
+                "Toroidal Field Coil",
+                "Bobina de campo toroidal");
         add("block.create_nuclearindustry.fusion_cryostat_casing",
                 "Cryostat Casing",
                 "Carcasa Criostato");
         add("block.create_nuclearindustry.fusion_magnet_input",
-                "Confinement Magnet Drive",
-                "Toma de Imán de Confinamiento");
+                "Magnet Drive",
+                "Toma de imanes");
         add("block.create_nuclearindustry.fusion_fluid_port",
-                "Fusion Fluid Port",
-                "Puerto de Fluido de Fusión");
+                "Tokamak Fluid Port",
+                "Puerto de fluidos del tokamak");
         add("block.create_nuclearindustry.fusion_fuel_injector",
-                "Fusion Fuel Injector",
-                "Inyector de Combustible de Fusión");
+                "Tokamak Fuel Injector",
+                "Inyector de combustible del tokamak");
         add("block.create_nuclearindustry.fusion_turbine_casing",
                 "Fusion Turbine Casing",
                 "Carcasa de Turbina de Fusión");
@@ -214,8 +214,8 @@ public final class LangEntries {
                 "Tritium Cell",
                 "Célula de Tritio");
         add("item.create_nuclearindustry.dt_fuel_pellet",
-                "D-T Fuel Pellet",
-                "Pellet de Combustible D-T");
+                "D-T Fuel Pellet (Legacy)",
+                "Pellet de combustible D-T (antiguo)");
         add("item.create_nuclearindustry.spent_dt_pellet",
                 "Spent D-T Pellet",
                 "Pellet D-T Gastado");
@@ -247,6 +247,27 @@ public final class LangEntries {
         block("spodumene_ore", "Spodumene Ore", "Mena de espodumena");
         block("electrolyzer", "Electrolyzer", "Electrolizador");
         block("radioactive_waste_barrel", "Radioactive Waste Barrel", "Barril de residuos radiactivos");
+        block("fusion_central_solenoid", "Central Solenoid", "Solenoide central");
+        block("fusion_breeding_blanket", "Breeding Blanket", "Manto regenerador");
+
+        add("create_nuclearindustry.display_source.tokamak", "Tokamak Status", "Estado del tokamak");
+        add("gui.create_nuclearindustry.tokamak.title", "Tokamak Control", "Control del tokamak");
+        add("gui.create_nuclearindustry.tokamak.unformed", "Tokamak not formed", "Tokamak sin formar");
+        add("gui.create_nuclearindustry.tokamak.temperature", "Plasma: %s °", "Plasma: %s °");
+        add("gui.create_nuclearindustry.tokamak.confinement", "Conf. %s (coils %s, drive %s)", "Conf. %s (bobinas %s, toma %s)");
+        add("gui.create_nuclearindustry.tokamak.instability", "Instability: %s%%", "Inestabilidad: %s%%");
+        add("gui.create_nuclearindustry.tokamak.power", "%s MW, %s", "%s MW, %s");
+        add("gui.create_nuclearindustry.tokamak.mode.cold", "cold", "frío");
+        add("gui.create_nuclearindustry.tokamak.mode.dt", "D-T burn", "fusión D-T");
+        add("gui.create_nuclearindustry.tokamak.mode.dd", "D-D burn", "fusión D-D");
+        add("gui.create_nuclearindustry.tokamak.burn", "Burn %s mB/t, TBR %s", "Quema %s mB/t, TBR %s");
+        add("gui.create_nuclearindustry.tokamak.structure", "R=%s, %s coils, %s blankets", "R=%s, %s bobinas, %s mantos");
+        add("gui.create_nuclearindustry.tokamak.suspended", "Paused: part of the torus is unloaded", "En pausa: parte del toro no está cargada");
+        add("gui.create_nuclearindustry.tokamak.fuel_on", "Fuel: ON", "Combustible: SÍ");
+        add("gui.create_nuclearindustry.tokamak.fuel_off", "Fuel: OFF", "Combustible: NO");
+        add("gui.create_nuclearindustry.tokamak.fuel.tooltip",
+                "Stops or resumes fuel injection. Without fuel the plasma cools down safely while the magnets hold it.",
+                "Detiene o reanuda la inyección de combustible. Sin combustible el plasma se enfría con seguridad mientras los imanes lo sujetan.");
 
         add("gui.create_nuclearindustry.machine.input", "Input", "Entrada");
         add("gui.create_nuclearindustry.machine.output", "Output", "Salida");

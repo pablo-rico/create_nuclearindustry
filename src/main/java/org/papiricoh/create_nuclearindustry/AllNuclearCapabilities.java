@@ -48,9 +48,9 @@ public class AllNuclearCapabilities {
         );
 
         event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
+                Capabilities.FluidHandler.BLOCK,
                 AllNuclearEntities.FUSION_FUEL_INJECTOR.get(),
-                (port, direction) -> port.getItemHandler(direction)
+                (port, direction) -> port.getFluidHandler(direction)
         );
 
         event.registerBlockEntity(

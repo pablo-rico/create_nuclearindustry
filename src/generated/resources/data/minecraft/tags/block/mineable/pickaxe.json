@@ -26,6 +26,8 @@
     "create_nuclearindustry:fusion_accelerator_corner",
     "create_nuclearindustry:fusion_electromagnet",
     "create_nuclearindustry:fusion_cryostat_casing",
+    "create_nuclearindustry:fusion_central_solenoid",
+    "create_nuclearindustry:fusion_breeding_blanket",
     "create_nuclearindustry:fusion_magnet_input",
     "create_nuclearindustry:fusion_fluid_port",
     "create_nuclearindustry:fusion_fuel_injector",

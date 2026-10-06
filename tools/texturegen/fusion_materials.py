@@ -163,7 +163,50 @@ def blade():
     return t
 
 
+def solenoid_side():
+    """Tall stack of superconducting windings in a titanium bore."""
+    t = Tex(seed=141)
+    for y in range(16):
+        for x in range(16):
+            t.set(x, y, COPPER[4 if y % 2 == 0 else 2])
+    for x in (0, 1, 14, 15):
+        for y in range(16):
+            t.set(x, y, TITANIUM[2 if x in (0, 15) else 4])
+    for y in (0, 15):
+        t.hline(0, 15, y, GRAPHITE[2])
+    for y in (5, 10):
+        t.hline(2, 13, y, GRAPHITE[3])
+    for x in range(3, 13, 3):
+        t.set(x, 7, COPPER[6])
+    return t
+
+
+def solenoid_top():
+    t = panel()
+    t.disc(8, 8, 6.5, GRAPHITE[2])
+    t.ring(8, 8, 6.5, 5.5, TITANIUM[5])
+    for r in (4.5, 3.0):
+        t.ring(8, 8, r, r - 0.8, COPPER[4])
+    t.disc(8, 8, 1.4, GRAPHITE[0])
+    return t
+
+
+def blanket():
+    """Lithium-6 breeder modules behind a beryllium first wall."""
+    t = panel()
+    recess(t, (2, 2, 13, 13))
+    for y in range(3, 13, 3):
+        for x in range(3, 13, 3):
+            t.rect(x, y, x + 1, y + 1, (205, 219, 208, 255))
+            t.set(x, y, (234, 240, 223, 255))
+            t.set(x + 1, y + 1, (140, 158, 159, 255))
+    return t
+
+
 FUSION_BLOCKS = {
+    "fusion_central_solenoid_side": solenoid_side,
+    "fusion_central_solenoid_top": solenoid_top,
+    "fusion_breeding_blanket": blanket,
     "fusion_cryostat_casing": panel,
     "fusion_electromagnet": electromagnet,
     "fusion_magnet_input": magnet_input,

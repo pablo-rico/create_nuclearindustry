@@ -29,5 +29,9 @@ public class AllNuclearGUIs {
     public static final DeferredHolder<MenuType<?>, MenuType<LaunchPadMenu>> LAUNCH_PAD_MENU =
             MENUS.register("launch_pad", () -> new MenuType<LaunchPadMenu>((containerId, inventory) -> new LaunchPadMenu(containerId, inventory, null), FeatureFlags.DEFAULT_FLAGS));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<org.papiricoh.create_nuclearindustry.fusion.gui.TokamakMenu>> TOKAMAK_MENU =
+            MENUS.register("tokamak_control", () -> IMenuTypeExtension.create(
+                    org.papiricoh.create_nuclearindustry.fusion.gui.TokamakMenu::read));
+
     public static void init() {}
 }

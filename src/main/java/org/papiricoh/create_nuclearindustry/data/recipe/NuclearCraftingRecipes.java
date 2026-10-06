@@ -56,6 +56,29 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .unlockedBy("has_copper_sheet", has(CreateItems.get("copper_sheet")))
                 .save(output, id("crafting/empty_gas_cell"));
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.FUSION_CENTRAL_SOLENOID.get())
+                .pattern(" S ")
+                .pattern("ECE")
+                .pattern(" S ")
+                .define('S', AllNuclearItems.SUPERCONDUCTOR_INGOT.get())
+                .define('E', AllNuclearItems.FUSION_ELECTROMAGNET.get())
+                .define('C', AllNuclearItems.FUSION_CRYOSTAT_CASING.get())
+                .unlockedBy("has_superconductor", has(AllNuclearItems.SUPERCONDUCTOR_INGOT.get()))
+                .save(output, id("crafting/fusion_central_solenoid"));
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.FUSION_BREEDING_BLANKET.get())
+                .requires(AllNuclearItems.LITHIUM_6_BREEDER_ASSEMBLY.get())
+                .requires(AllNuclearItems.FUSION_CRYOSTAT_CASING.get())
+                .requires(AllNuclearItems.BERYLLIUM.get())
+                .unlockedBy("has_breeder_assembly", has(AllNuclearItems.LITHIUM_6_BREEDER_ASSEMBLY.get()))
+                .save(output, id("crafting/fusion_breeding_blanket"));
+
+        // Old flat-ring corners become plain vessel segments.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.FUSION_ACCELERATOR_SEGMENT.get())
+                .requires(AllNuclearItems.FUSION_ACCELERATOR_CORNER.get())
+                .unlockedBy("has_corner", has(AllNuclearItems.FUSION_ACCELERATOR_CORNER.get()))
+                .save(output, id("crafting/fusion_accelerator_segment_from_corner"));
+
         // Legacy item from an unfinished recipe chain: turn any leftovers into usable oxide.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.LOW))
                 .requires(AllNuclearItems.ENRICHED_URANIUM_BLEND.get())

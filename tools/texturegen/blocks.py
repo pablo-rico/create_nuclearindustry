@@ -467,16 +467,12 @@ def radioactive_waste_barrel_side():
         f = 0.72 + 0.56 * math.sin(math.pi * (x + 0.5) / 16)
         for y in range(16):
             t.set(x, y, shade(t.get(x, y), f))
-    # rolling hoops
+    # rolling hoops top and bottom
     for y in (0, 1, 14, 15):
         for x in range(16):
             t.set(x, y, shade(DARK[3], 1.0 if y in (1, 14) else 0.8))
-    for y in (4, 11):
-        for x in range(16):
-            t.set(x, y, shade(WARN[1], 0.9))
-            t.set(x, y + 1, shade(WARN[5], 1.0))
-    t.disc(8, 8, 3.4, WARN[6])
-    trefoil(t, 8, 8, 3.2, DARK[0])
+    # black trefoil on the drum
+    trefoil(t, 8, 8, 5.6, DARK[0])
     return t
 
 

@@ -111,6 +111,8 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombScreen::new);
             event.register(AllNuclearGUIs.LAUNCH_PAD_MENU.get(),
                     org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadScreen::new);
+            event.register(AllNuclearGUIs.TOKAMAK_MENU.get(),
+                    org.papiricoh.create_nuclearindustry.fusion.gui.TokamakScreen::new);
         }
     }
 

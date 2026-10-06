@@ -18,6 +18,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.gui.TokamakMenu;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.SimpleMenuProvider;
 
 public class FusionReactorControllerBlock extends BaseEntityBlock {
     public static final BooleanProperty ON = BooleanProperty.create("on");
@@ -68,10 +71,11 @@ public class FusionReactorControllerBlock extends BaseEntityBlock {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        if (level.getBlockEntity(pos) instanceof FusionReactorBlockEntity reactor) {
-            reactor.attemptFormation(player);
-            reactor.setChanged();
-            level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
+        if (level.getBlockEntity(pos) instanceof FusionReactorBlockEntity tokamak) {
+            tokamak.attemptFormation(player);
+            Component title = Component.translatable("gui.create_nuclearindustry.tokamak.title");
+            player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new TokamakMenu(id, inventory, tokamak), title),
+                    buf -> TokamakMenu.writeInitialData(buf, tokamak));
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

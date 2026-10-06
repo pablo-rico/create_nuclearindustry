@@ -12,12 +12,11 @@ import java.util.List;
 /**
  * Consumes a large amount of Create stress to energize the confinement field. The contribution it
  * reports (0..1) scales with shaft speed once above the minimum, and the controller reads it each
- * tick. While the plasma is ignited the confinement cost tapers off (self-sustaining field).
+ * tick.
  */
 public class FusionMagnetInputBlockEntity extends KineticBlockEntity {
     private static final float MIN_CONFINEMENT_SPEED = 64.0f;
     private static final float RATED_SPEED = 192.0f;
-    private static final float CONFINEMENT_STRESS = 1024.0f;
 
     public FusionMagnetInputBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.FUSION_MAGNET_INPUT.get(), pos, state);
@@ -38,7 +37,7 @@ public class FusionMagnetInputBlockEntity extends KineticBlockEntity {
 
     @Override
     public float calculateStressApplied() {
-        return CONFINEMENT_STRESS;
+        return (float) org.papiricoh.create_nuclearindustry.Config.fusionMagnetStress;
     }
 
     @Override

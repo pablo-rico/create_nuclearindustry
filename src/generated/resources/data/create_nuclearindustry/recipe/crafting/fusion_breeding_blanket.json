@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:lithium_6_breeder_assembly"
+    },
+    {
+      "item": "create_nuclearindustry:fusion_cryostat_casing"
+    },
+    {
+      "item": "create_nuclearindustry:beryllium"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:fusion_breeding_blanket"
+  }
+}
