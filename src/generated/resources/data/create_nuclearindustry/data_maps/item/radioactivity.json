@@ -1,5 +1,8 @@
 {
   "values": {
+    "create_nuclearindustry:contaminated_water_bucket": {
+      "per_second": 0.3
+    },
     "create_nuclearindustry:crushed_raw_uranium": {
       "per_second": 0.01
     },

@@ -25,7 +25,7 @@ import org.papiricoh.create_nuclearindustry.radiation.contamination.GeologicalSt
 @PrefixGameTestTemplate(false)
 public class FalloutSourcesTests {
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_detonationFalloutReachesPastTheCraterAndFadesOut")
     public static void detonationFalloutReachesPastTheCraterAndFadesOut(GameTestHelper helper) {
         int crater = WarheadStats.horizontalRadius(WarheadStats.MAX_URANIUM_UNITS, WarheadStats.REQUIRED_ENRICHMENT);
         float power = WarheadStats.power(WarheadStats.MAX_URANIUM_UNITS, WarheadStats.REQUIRED_ENRICHMENT);
@@ -53,7 +53,7 @@ public class FalloutSourcesTests {
         helper.succeed();
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_barrelsLeakAboveTheStorageDepthOnly")
     public static void barrelsLeakAboveTheStorageDepthOnly(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos pos = helper.absolutePos(new BlockPos(6, 1, 6));
@@ -77,7 +77,7 @@ public class FalloutSourcesTests {
         helper.succeed();
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_storedBarrelsStopIrradiating")
     public static void storedBarrelsStopIrradiating(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos pos = helper.absolutePos(new BlockPos(6, 1, 6));

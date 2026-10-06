@@ -97,6 +97,9 @@ public class Config
     private static final ModConfigSpec.IntValue STORAGE_MAX_Y = BUILDER
             .comment("Waste barrels at or below this height count as geologically stored: they neither irradiate nor leak.")
             .defineInRange("contamination.geologicalStorageMaxY", 0, -2048, 2048);
+    private static final ModConfigSpec.IntValue WATER_COLUMNS_PER_TICK = BUILDER
+            .comment("Water columns per tick checked for fallout settling on them (256 is one chunk). Zero leaves water clean.")
+            .defineInRange("contamination.waterColumnsPerTick", 256, 0, 65536);
     private static final ModConfigSpec.DoubleValue COOLING_TOWER_PASSIVE = BUILDER
             .comment("Steam a cooling tower condenses without fans, in mB/t per block of base radius per layer of height.")
             .defineInRange("coolingTower.passivePerBlock", 1.0, 0.0, 100.0);
@@ -139,6 +142,7 @@ public class Config
     public static double contaminationDoseScale = 1.0;
     public static double barrelLeak = 0.02;
     public static int geologicalStorageMaxY = 0;
+    public static int waterColumnsPerTick = 256;
     public static double coolingTowerPassivePerBlock = 1.0;
     public static double coolingTowerFanStress = 8.0;
     public static double coolingTowerFanBoost = 0.25;
@@ -186,6 +190,7 @@ public class Config
         contaminationDoseScale = CONTAMINATION_DOSE_SCALE.get();
         barrelLeak = BARREL_LEAK.get();
         geologicalStorageMaxY = STORAGE_MAX_Y.get();
+        waterColumnsPerTick = WATER_COLUMNS_PER_TICK.get();
         coolingTowerPassivePerBlock = COOLING_TOWER_PASSIVE.get();
         coolingTowerFanStress = COOLING_TOWER_FAN_STRESS.get();
         coolingTowerFanBoost = COOLING_TOWER_FAN_BOOST.get();

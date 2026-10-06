@@ -90,6 +90,7 @@ public class Create_NuclearIndustry {
         NeoForge.EVENT_BUS.addListener(Contamination::onChunkLoad);
         NeoForge.EVENT_BUS.addListener(Contamination::onChunkUnload);
         NeoForge.EVENT_BUS.addListener(Contamination::onChunkWatch);
+        NeoForge.EVENT_BUS.addListener(org.papiricoh.create_nuclearindustry.radiation.contamination.WaterContamination::onLevelTick);
         NeoForge.EVENT_BUS.addListener(NuclearCommands::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onLevelTick);
         NeoForge.EVENT_BUS.addListener(NuclearExplosionSoundManager::onLevelTick);

@@ -4,6 +4,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.common.data.DataMapProvider;
+import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.Radioactivity;
@@ -47,6 +48,8 @@ public class NuclearDataMapProvider extends DataMapProvider {
         add(radioactivity, AllNuclearItems.RADIOACTIVE_WASTE, 6.0f, false);
         add(radioactivity, AllNuclearItems.RADIOACTIVE_WASTE_BARREL, 1.0f, false);
         add(radioactivity, AllNuclearItems.TRITIUM_CELL, 0.05f, false);
+        // Carried in a bucket and as each source block of a contaminated lake.
+        radioactivity.add(AllNuclearFluids.CONTAMINATED_WATER_BUCKET.get().builtInRegistryHolder(), new Radioactivity(0.3f, false), false);
         add(radioactivity, AllNuclearItems.DT_FUEL_PELLET, 0.05f, false);
         add(radioactivity, AllNuclearItems.SPENT_DT_PELLET, 0.2f, false);
         add(radioactivity, AllNuclearItems.SPENT_FUEL_FRAGMENTS, 3.0f, false);
@@ -77,6 +80,7 @@ public class NuclearDataMapProvider extends DataMapProvider {
         transmission.add(Blocks.OBSIDIAN.builtInRegistryHolder(), new RadiationTransmission(0.6f), false);
         transmission.add(Blocks.CRYING_OBSIDIAN.builtInRegistryHolder(), new RadiationTransmission(0.6f), false);
         transmission.add(Blocks.WATER.builtInRegistryHolder(), new RadiationTransmission(0.85f), false);
+        transmission.add(AllNuclearFluids.CONTAMINATED_WATER_BLOCK.get().builtInRegistryHolder(), new RadiationTransmission(0.85f), false);
 
         // Fraction of radiation one worn piece stops. A full hazmat suit stops 95%.
         var shielding = builder(AllNuclearRadiation.SHIELDING);

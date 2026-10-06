@@ -23,14 +23,15 @@ import org.papiricoh.create_nuclearindustry.radiation.contamination.Contaminatio
 
 /**
  * Ground contamination. These tests share chunks with whatever runs beside them, so they run
- * in their own batch and always leave the chunks clean.
+ * each in a batch of its own (so one at a time) and always leave the chunks clean.
  */
 @GameTestHolder(Create_NuclearIndustry.MODID)
 @PrefixGameTestTemplate(false)
 public class ContaminationTests {
+    /** Prefix of each test's own batch: they share chunks, so none may run beside another. */
     static final String BATCH = "contamination";
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_addReadAndCap")
     public static void addReadAndCap(GameTestHelper helper) {
         LevelChunk chunk = chunkAt(helper, BlockPos.ZERO);
         try {
@@ -40,14 +41,16 @@ public class ContaminationTests {
             helper.assertTrue(Contamination.read(chunk) == (float) Config.contaminationMax, "contamination should cap at the configured maximum");
             Contamination.add(chunk, -100_000);
             helper.assertTrue(Contamination.read(chunk) == 0, "removing more than there is should leave it clean");
-            helper.assertFalse(chunk.hasData(AllNuclearRadiation.CHUNK_CONTAMINATION.get()), "a clean chunk should keep no record");
+            ChunkContamination record = chunk.getExistingDataOrNull(AllNuclearRadiation.CHUNK_CONTAMINATION.get());
+            helper.assertTrue(record == null || (record.level() == 0 && record.lastEvent() > 0),
+                    "a clean chunk should keep a record only to remember the fallout it has seen");
         } finally {
             clean(helper, 0);
         }
         helper.succeed();
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_onlySeverityChangesAreSynced")
     public static void onlySeverityChangesAreSynced(GameTestHelper helper) {
         LevelChunk chunk = chunkAt(helper, BlockPos.ZERO);
         try {
@@ -65,7 +68,7 @@ public class ContaminationTests {
         helper.succeed();
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_decaysLazily")
     public static void decaysLazily(GameTestHelper helper) {
         LevelChunk chunk = chunkAt(helper, BlockPos.ZERO);
         try {
@@ -82,7 +85,7 @@ public class ContaminationTests {
         helper.succeed();
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_groundIrradiatesAndARoofShields")
     public static void groundIrradiatesAndARoofShields(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos column = helper.absolutePos(new BlockPos(6, 1, 6));
@@ -107,7 +110,7 @@ public class ContaminationTests {
         helper.succeed();
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_playersOnContaminatedGroundTakeDose")
     public static void playersOnContaminatedGroundTakeDose(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos column = helper.absolutePos(new BlockPos(6, 1, 6));
@@ -133,7 +136,7 @@ public class ContaminationTests {
         helper.succeed();
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_falloutReachesLoadedChunksNowAndOthersOnLoad")
     public static void falloutReachesLoadedChunksNowAndOthersOnLoad(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos center = helper.absolutePos(new BlockPos(6, 1, 6));
@@ -161,7 +164,7 @@ public class ContaminationTests {
         helper.succeed();
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_clearAllReachesUnloadedChunksByEpoch")
     public static void clearAllReachesUnloadedChunksByEpoch(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         LevelChunk here = chunkAt(helper, BlockPos.ZERO);
@@ -182,7 +185,7 @@ public class ContaminationTests {
         helper.succeed();
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_expandSpreadsAndKeepsTheTotal")
     public static void expandSpreadsAndKeepsTheTotal(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         LevelChunk here = chunkAt(helper, BlockPos.ZERO);

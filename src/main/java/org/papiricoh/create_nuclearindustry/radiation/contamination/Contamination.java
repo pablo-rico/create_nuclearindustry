@@ -151,10 +151,17 @@ public final class Contamination {
                 }
                 float amount = event.at(chunk.getPos().getMiddleBlockX(), chunk.getPos().getMiddleBlockZ());
                 if (amount > 0) {
-                    add(chunk, amount);
+                    settle(level, chunk, add(chunk, amount));
                     markSeen(chunk, event.id());
                 }
             }
+        }
+    }
+
+    /** Heavy fallout also reaches the chunk's open water, a few columns per tick. */
+    private static void settle(ServerLevel level, LevelChunk chunk, float value) {
+        if (severity(value) >= WaterContamination.MIN_SEVERITY) {
+            WaterContamination.queue(level, chunk.getPos());
         }
     }
 
@@ -193,7 +200,7 @@ public final class Contamination {
                 }
             }
             if (latest > seen) {
-                add(chunk, missed);
+                settle(level, chunk, add(chunk, missed));
                 record = markSeen(chunk, latest);
             }
         }

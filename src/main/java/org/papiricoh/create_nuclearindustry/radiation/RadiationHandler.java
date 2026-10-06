@@ -162,14 +162,26 @@ public final class RadiationHandler {
                     pos.set(center.getX() + dx, center.getY() + dy, center.getZ() + dz);
                     var state = level.getBlockState(pos);
                     Radioactivity radioactivity = state.getBlock().asItem().builtInRegistryHolder().getData(AllNuclearRadiation.RADIOACTIVITY);
-                    if (radioactivity != null && !GeologicalStorage.isStored(state, pos)) {
-                        double open = radioactivity.perSecond() / (1.0 + dx * dx + dy * dy + dz * dz);
+                    double strength = radioactivity != null && !GeologicalStorage.isStored(state, pos)
+                            ? radioactivity.perSecond() : fluidStrength(state);
+                    if (strength > 0) {
+                        double open = strength / (1.0 + dx * dx + dy * dy + dz * dz);
                         rate += open * RadiationRay.transmission(level, Vec3.atCenterOf(pos), body);
                     }
                 }
             }
         }
         return rate;
+    }
+
+    /** Radioactive liquid in the world irradiates like its bucket, less as it thins out when flowing. */
+    private static double fluidStrength(net.minecraft.world.level.block.state.BlockState state) {
+        var fluid = state.getFluidState();
+        if (fluid.isEmpty()) {
+            return 0;
+        }
+        Radioactivity radioactivity = fluid.getType().getBucket().builtInRegistryHolder().getData(AllNuclearRadiation.RADIOACTIVITY);
+        return radioactivity == null ? 0 : radioactivity.perSecond() * fluid.getAmount() / 8.0;
     }
 
     private static double falloutRate(Level level, Vec3 body) {

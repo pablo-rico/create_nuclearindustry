@@ -92,6 +92,9 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
+        // Fluid blocks render from their fluid type; the model only needs a particle texture.
+        simpleBlock(org.papiricoh.create_nuclearindustry.AllNuclearFluids.CONTAMINATED_WATER_BLOCK.get(),
+                models().getBuilder("contaminated_water").texture("particle", mcLoc("block/water_still")));
         simpleBlockWithItem(AllNuclearBlocks.SPODUMENE_ORE.get(), cubeAll(AllNuclearBlocks.SPODUMENE_ORE.get()));
         axisBlock((net.minecraft.world.level.block.RotatedPillarBlock) AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get(),
                 modLoc("block/fusion_central_solenoid_side"), modLoc("block/fusion_central_solenoid_top"));

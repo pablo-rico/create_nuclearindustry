@@ -36,6 +36,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.URANIUM_FUEL_PELLET.value());
                 output.accept(AllNuclearItems.RADIOACTIVE_WASTE.value());
                 output.accept(AllNuclearItems.RADIOACTIVE_WASTE_BARREL.value());
+                output.accept(AllNuclearFluids.CONTAMINATED_WATER_BUCKET.get());
                 output.accept(AllNuclearItems.GEIGER_COUNTER.value());
                 output.accept(AllNuclearItems.HAZMAT_HELMET.value());
                 output.accept(AllNuclearItems.HAZMAT_CHESTPLATE.value());

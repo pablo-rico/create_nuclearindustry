@@ -413,6 +413,9 @@ public final class LangEntries {
         fluid("sulfuric_acid", "Sulfuric Acid", "Ácido sulfúrico");
         fluid("hydrofluoric_acid", "Hydrofluoric Acid", "Ácido fluorhídrico");
         fluid("nitric_acid", "Nitric Acid", "Ácido nítrico");
+        fluid("contaminated_water", "Contaminated Water", "Agua contaminada");
+        block("contaminated_water", "Contaminated Water", "Agua contaminada");
+        item("contaminated_water_bucket", "Contaminated Water Bucket", "Cubo de agua contaminada");
         fluid("exhaust_steam", "Exhaust Steam", "Vapor de escape");
         fluid("heavy_exhaust_steam", "Heavy Exhaust Steam", "Vapor de escape pesado");
         fluid("spent_fuel_solution", "Dissolved Spent Fuel", "Combustible gastado disuelto");

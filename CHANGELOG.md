@@ -140,6 +140,9 @@ below for what changes in existing worlds.
   fallout) and `/nuclear dose` (get, set, reset) for operators.
 - Nuclear detonations leave fallout out to 1.5 times the crater radius, and a
   meltdown contaminates 48 blocks around the reactor.
+- Heavy fallout turns the surface of lakes and rivers into Contaminated
+  Water, a few columns per tick. It irradiates, can be picked up in a bucket
+  and pumped, and a centrifuge separates it into clean water and waste.
 - Waste barrels now irradiate 1.0/s (was 0.1) and slowly leak into their
   chunk, unless they sit at Y=0 or lower: geologically stored waste neither
   irradiates nor leaks. A Ponder scene shows how to store it.

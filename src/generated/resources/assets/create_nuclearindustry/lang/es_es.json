@@ -1,6 +1,7 @@
 {
   "block.create_nuclearindustry.borax_ore": "Mena de bórax",
   "block.create_nuclearindustry.centrifuge": "Centrifugadora",
+  "block.create_nuclearindustry.contaminated_water": "Agua contaminada",
   "block.create_nuclearindustry.control_rod": "Barra de control",
   "block.create_nuclearindustry.cooling_tower_casing": "Carcasa de torre de refrigeración",
   "block.create_nuclearindustry.cooling_tower_controller": "Controlador de torre de refrigeración",
@@ -162,6 +163,7 @@
   "death.attack.create_nuclearindustry.radiation.player": "%1$s murió por irradiación mientras luchaba contra %2$s",
   "effect.create_nuclearindustry.radiation_sickness": "Síndrome de irradiación",
   "entity.create_nuclearindustry.missile": "Misil nuclear",
+  "fluid.create_nuclearindustry.contaminated_water": "Agua contaminada",
   "fluid.create_nuclearindustry.depleted_uranium_hexafluoride": "Hexafluoruro de uranio empobrecido",
   "fluid.create_nuclearindustry.deuterium": "Deuterio",
   "fluid.create_nuclearindustry.exhaust_steam": "Vapor de escape",
@@ -234,6 +236,7 @@
   "item.create_nuclearindustry.beryllium": "Berilio",
   "item.create_nuclearindustry.borax_salt": "Sal de bórax",
   "item.create_nuclearindustry.boron": "Boro",
+  "item.create_nuclearindustry.contaminated_water_bucket": "Cubo de agua contaminada",
   "item.create_nuclearindustry.crushed_raw_uranium": "Uranio en bruto triturado",
   "item.create_nuclearindustry.crushed_spodumene": "Espodumena triturada",
   "item.create_nuclearindustry.depleted_mox_reactor_fuel": "Elemento combustible MOX gastado",

@@ -1,6 +1,7 @@
 {
   "block.create_nuclearindustry.borax_ore": "Borax Ore",
   "block.create_nuclearindustry.centrifuge": "Centrifuge",
+  "block.create_nuclearindustry.contaminated_water": "Contaminated Water",
   "block.create_nuclearindustry.control_rod": "Control Rod",
   "block.create_nuclearindustry.cooling_tower_casing": "Cooling Tower Casing",
   "block.create_nuclearindustry.cooling_tower_controller": "Cooling Tower Controller",
@@ -162,6 +163,7 @@
   "death.attack.create_nuclearindustry.radiation.player": "%1$s died of radiation sickness while fighting %2$s",
   "effect.create_nuclearindustry.radiation_sickness": "Radiation Sickness",
   "entity.create_nuclearindustry.missile": "Nuclear Missile",
+  "fluid.create_nuclearindustry.contaminated_water": "Contaminated Water",
   "fluid.create_nuclearindustry.depleted_uranium_hexafluoride": "Depleted Uranium Hexafluoride",
   "fluid.create_nuclearindustry.deuterium": "Deuterium",
   "fluid.create_nuclearindustry.exhaust_steam": "Exhaust Steam",
@@ -234,6 +236,7 @@
   "item.create_nuclearindustry.beryllium": "Beryllium",
   "item.create_nuclearindustry.borax_salt": "Borax Salt",
   "item.create_nuclearindustry.boron": "Boron",
+  "item.create_nuclearindustry.contaminated_water_bucket": "Contaminated Water Bucket",
   "item.create_nuclearindustry.crushed_raw_uranium": "Crushed Raw Uranium",
   "item.create_nuclearindustry.crushed_spodumene": "Crushed Spodumene",
   "item.create_nuclearindustry.depleted_mox_reactor_fuel": "Spent MOX Fuel Assembly",

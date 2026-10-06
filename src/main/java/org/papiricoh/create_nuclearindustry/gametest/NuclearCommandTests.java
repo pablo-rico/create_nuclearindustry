@@ -17,7 +17,7 @@ import org.papiricoh.create_nuclearindustry.radiation.contamination.Contaminatio
 @PrefixGameTestTemplate(false)
 public class NuclearCommandTests {
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_contaminationCommandsCreateSpreadAndClear")
     public static void contaminationCommandsCreateSpreadAndClear(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos pos = helper.absolutePos(new BlockPos(6, 1, 6));

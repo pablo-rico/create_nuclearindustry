@@ -65,5 +65,8 @@ public class NuclearItemModelProvider extends ItemModelProvider {
         withExistingParent("steam_bucket", ResourceLocation.fromNamespaceAndPath("neoforge", "item/bucket"))
                 .customLoader(DynamicFluidContainerModelBuilder::begin)
                 .fluid(AllNuclearFluids.STEAM.get());
+        withExistingParent("contaminated_water_bucket", ResourceLocation.fromNamespaceAndPath("neoforge", "item/bucket"))
+                .customLoader(DynamicFluidContainerModelBuilder::begin)
+                .fluid(AllNuclearFluids.CONTAMINATED_WATER.get());
     }
 }

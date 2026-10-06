@@ -47,6 +47,7 @@ max = 50.0
 doseScale = 1.0
 barrelLeak = 0.02
 geologicalStorageMaxY = 0
+waterColumnsPerTick = 256
 ```
 
 ## Turbinas
@@ -208,6 +209,13 @@ Que contamina:
 - La fusion del nucleo de un reactor: 20 rad/s en el reactor, hasta 48 bloques.
 - Los barriles de residuos por encima de `geologicalStorageMaxY`: cada tick
   aleatorio (unos 68 s de media) suman `barrelLeak` a su chunk.
+
+Cuando una lluvia radiactiva deja un chunk con gravedad 3 o mas (0,5 rad/s), la
+fuente de agua de la superficie de cada columna puede volverse agua
+contaminada (con probabilidad gravedad/7). Los chunks esperan en una cola y se
+revisan `waterColumnsPerTick` columnas por tick (256 = un chunk). El agua
+contaminada irradia 0,3 rad/s por fuente (igual que su cubo) y la centrifuga la
+separa en agua limpia y residuos.
 
 Un barril en `geologicalStorageMaxY` o mas abajo (Y=0 por defecto) cuenta como
 almacenado: ni irradia ni contamina. La regla es solo la profundidad; el

@@ -5,7 +5,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.MapColor;
+import net.neoforged.neoforge.common.SoundActions;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Fluid;
@@ -80,6 +84,13 @@ public class AllNuclearFluids {
     public static final NuclearFluid HIGH_ENRICHED_URANIUM_HEXAFLUORIDE_FLUID = gas("high_enriched_uranium_hexafluoride", 0xC88ED35A, 5000, 300, 340, 2);
     public static final NuclearFluid WEAPONS_GRADE_URANIUM_HEXAFLUORIDE_FLUID = gas("weapons_grade_uranium_hexafluoride", 0xC869C64C, 5000, 300, 340, 4);
 
+    // ---------------------------------------------------------------- the world: water that fallout reached
+    public static final NuclearFluid CONTAMINATED_WATER_FLUID = register("contaminated_water", Look.LIQUID, 0xE0738C3A,
+            FluidType.Properties.create().density(1000).viscosity(1000).temperature(300)
+                    .canDrown(true).canSwim(true).supportsBoating(true).canExtinguish(true).canHydrate(false)
+                    .sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL)
+                    .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY), 4);
+
     // ---------------------------------------------------------------- short accessors used across the mod
     public static final Supplier<FluidType> STEAM_TYPE = STEAM_FLUID.type();
     public static final Supplier<FluidType> HEAVY_WATER_TYPE = HEAVY_WATER_FLUID.type();
@@ -112,6 +123,7 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> LOW_ENRICHED_URANIUM_HEXAFLUORIDE = LOW_ENRICHED_URANIUM_HEXAFLUORIDE_FLUID.source();
     public static final Supplier<FlowingFluid> HIGH_ENRICHED_URANIUM_HEXAFLUORIDE = HIGH_ENRICHED_URANIUM_HEXAFLUORIDE_FLUID.source();
     public static final Supplier<FlowingFluid> WEAPONS_GRADE_URANIUM_HEXAFLUORIDE = WEAPONS_GRADE_URANIUM_HEXAFLUORIDE_FLUID.source();
+    public static final Supplier<FlowingFluid> CONTAMINATED_WATER = CONTAMINATED_WATER_FLUID.source();
 
     // ---------------------------------------------------------------- world block and bucket (steam only)
     public static final Supplier<LiquidBlock> STEAM_BLOCK = BLOCKS.register("steam", () -> new LiquidBlock(
@@ -125,6 +137,17 @@ public class AllNuclearFluids {
 
     public static final Supplier<Item> STEAM_BUCKET = ITEMS.register("steam_bucket",
             () -> new BucketItem(STEAM.get(), new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
+
+    // ---------------------------------------------------------------- contaminated water: lakes, rivers and buckets
+    public static final DeferredHolder<Block, LiquidBlock> CONTAMINATED_WATER_BLOCK = BLOCKS.register("contaminated_water",
+            () -> new LiquidBlock(CONTAMINATED_WATER.get(), BlockBehaviour.Properties.ofFullCopy(Blocks.WATER).mapColor(MapColor.COLOR_GREEN)));
+
+    public static final DeferredHolder<Item, BucketItem> CONTAMINATED_WATER_BUCKET = ITEMS.register("contaminated_water_bucket",
+            () -> new BucketItem(CONTAMINATED_WATER.get(), new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
+
+    static {
+        CONTAMINATED_WATER_FLUID.placeable(CONTAMINATED_WATER_BLOCK, CONTAMINATED_WATER_BUCKET);
+    }
 
     public static List<NuclearFluid> all() {
         return Collections.unmodifiableList(ALL);
@@ -178,6 +201,8 @@ public class AllNuclearFluids {
         private DeferredHolder<Fluid, FlowingFluid> source;
         private DeferredHolder<Fluid, FlowingFluid> flowing;
         private BaseFlowingFluid.Properties properties;
+        private Supplier<? extends LiquidBlock> block;
+        private Supplier<? extends Item> bucket;
 
         private NuclearFluid(String name, Look look, int tint, int slopeFindDistance) {
             this.name = name;
@@ -202,6 +227,12 @@ public class AllNuclearFluids {
             return flowing;
         }
 
+        /** Gives the fluid a world block and a bucket, so it can be placed and picked up. */
+        private void placeable(Supplier<? extends LiquidBlock> block, Supplier<? extends Item> bucket) {
+            this.block = block;
+            this.bucket = bucket;
+        }
+
         private BaseFlowingFluid.Properties properties() {
             if (properties == null) {
                 properties = new BaseFlowingFluid.Properties(type, source, flowing)
@@ -209,6 +240,9 @@ public class AllNuclearFluids {
                         .levelDecreasePerBlock(1)
                         .tickRate(5)
                         .explosionResistance(100f);
+                if (block != null) {
+                    properties.block(block).bucket(bucket);
+                }
             }
             return properties;
         }

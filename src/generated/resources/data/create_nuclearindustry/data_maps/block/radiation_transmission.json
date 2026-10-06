@@ -3,6 +3,9 @@
     "#c:storage_blocks/lead": {
       "transmission": 0.2
     },
+    "create_nuclearindustry:contaminated_water": {
+      "transmission": 0.85
+    },
     "create_nuclearindustry:cooling_tower_casing": {
       "transmission": 0.6
     },
