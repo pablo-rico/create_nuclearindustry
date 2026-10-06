@@ -1,29 +1,22 @@
 package org.papiricoh.create_nuclearindustry;
 
-import com.mojang.logging.LogUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.neoforged.api.distmarker.Dist;
 
-import java.lang.reflect.Method;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.createmod.ponder.foundation.PonderIndex;
+import org.papiricoh.create_nuclearindustry.data.NuclearDataGenerators;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.NuclearPonderPlugin;
 import org.papiricoh.create_nuclearindustry.integration.cbc.CBCNuclearIntegration;
 import org.papiricoh.create_nuclearindustry.reactor.event.ReactorBlockChangeHandler;
 import org.papiricoh.create_nuclearindustry.fusion.event.FusionBlockChangeHandler;
-import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(Create_NuclearIndustry.MODID)
@@ -31,14 +24,14 @@ public class Create_NuclearIndustry {
 
     // Define mod id in a common place for everything to reference
     public static final String MODID = "create_nuclearindustry";
-    // Directly reference a slf4j logger
-    private static final Logger LOGGER = LogUtils.getLogger();
 
 
     public Create_NuclearIndustry(IEventBus modEventBus, ModContainer modContainer) {
 
         modEventBus.addListener(Config::onLoad);
+        modEventBus.addListener(Config::onReload);
         modEventBus.addListener(AllNuclearCapabilities::registerCapabilities);
+        modEventBus.addListener(NuclearDataGenerators::gatherData);
 
         AllCreativeTabs.init();
 
@@ -82,13 +75,6 @@ public class Create_NuclearIndustry {
         AllNuclearFluids.BLOCKS.register(modEventBus);
         AllNuclearFluids.ITEMS.register(modEventBus);
 
-
-
-
-
-
-        // Register ourselves for server and other game events we are interested in
-        NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockBreak);
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockPlace);
         NeoForge.EVENT_BUS.addListener(ReactorBlockChangeHandler::onBlockMultiPlace);
@@ -109,36 +95,17 @@ public class Create_NuclearIndustry {
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             PonderIndex.addPlugin(new NuclearPonderPlugin());
-            modEventBus.addListener(ClientModEvents::onClientSetup);
+            modEventBus.addListener(ClientModEvents::onRegisterScreens);
             modEventBus.addListener(ClientModEvents::onRegisterRenderers);
             modEventBus.addListener(AllNuclearFluids::registerClientExtensions);
         }
-
-        // Register the item to a creative tab
-        modEventBus.addListener(this::addCreative);
 
         // Register our mod's ForgeConfigSpec so that NeoForge can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
-    // Add the example block item to the building blocks tab
-    private void addCreative(BuildCreativeModeTabContentsEvent event)
-    {
-        /*if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
-            event.accept(AllNuclearItems.EXAMPLE_BLOCK_ITEM);
-            */
-    }
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-        // Do something when the server starts
-        LOGGER.info("HELLO from server starting");
-    }
-
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     public static class ClientModEvents {
 
-        @SubscribeEvent
         public static void onRegisterRenderers(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
             event.registerEntityRenderer(AllNuclearEntities.MISSILE.get(),
                     org.papiricoh.create_nuclearindustry.missile.client.MissileRenderer::new);
@@ -148,25 +115,13 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.enrichment.client.CentrifugeRenderer::new);
         }
 
-        @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event)
-        {
-            // Some client setup code
-            LOGGER.info("HELLO FROM CLIENT SETUP");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-
-            // Register screens via reflection since MenuScreens.register is private
-            event.enqueueWork(() -> {
-                try {
-                    Method registerMethod = MenuScreens.class.getDeclaredMethod("register", net.minecraft.world.inventory.MenuType.class, net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor.class);
-                    registerMethod.setAccessible(true);
-                    registerMethod.invoke(null, AllNuclearGUIs.REACTOR_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlMenu, org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlScreen>)org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlScreen::new);
-                    registerMethod.invoke(null, AllNuclearGUIs.NUCLEAR_BOMB_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenu, org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombScreen>)org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombScreen::new);
-                    registerMethod.invoke(null, AllNuclearGUIs.LAUNCH_PAD_MENU.get(), (net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor<org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadMenu, org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadScreen>)org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadScreen::new);
-                } catch (Exception e) {
-                    LOGGER.error("Failed to register nuclear screens", e);
-                }
-            });
+        public static void onRegisterScreens(RegisterMenuScreensEvent event) {
+            event.register(AllNuclearGUIs.REACTOR_MENU.get(),
+                    org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlScreen::new);
+            event.register(AllNuclearGUIs.NUCLEAR_BOMB_MENU.get(),
+                    org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombScreen::new);
+            event.register(AllNuclearGUIs.LAUNCH_PAD_MENU.get(),
+                    org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadScreen::new);
         }
     }
 

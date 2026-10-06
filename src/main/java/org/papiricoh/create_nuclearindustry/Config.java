@@ -1,6 +1,5 @@
 package org.papiricoh.create_nuclearindustry;
 
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -35,8 +34,17 @@ public class Config
     public static double uraniumBurnPerNeutron = 0.0000045;
     public static double deuteriumTritiumBurnRate = 0.0015;
 
-    @SubscribeEvent
-    static void onLoad(final ModConfigEvent event)
+    static void onLoad(final ModConfigEvent.Loading event)
+    {
+        bake(event);
+    }
+
+    static void onReload(final ModConfigEvent.Reloading event)
+    {
+        bake(event);
+    }
+
+    private static void bake(final ModConfigEvent event)
     {
         if (event.getConfig().getSpec() != SPEC) {
             return;
