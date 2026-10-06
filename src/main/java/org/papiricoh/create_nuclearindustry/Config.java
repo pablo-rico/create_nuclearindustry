@@ -18,9 +18,16 @@ public class Config
                     "Absorption is capped at 100% before applying insertion. Zero disables absorption.")
             .defineInRange("fission.boronAbsorption", 1.5, 0.0, 1000.0);
     private static final ModConfigSpec.DoubleValue URANIUM_BURN_RATE = BUILDER
-            .comment("Fuel units consumed per neutron level per tick. An assembly supplies 100 units.",
-                    "Zero disables uranium depletion.")
+            .comment("Fuel units consumed per neutron level per tick. Zero disables uranium depletion.")
             .defineInRange("fission.uraniumBurnPerNeutron", 0.0000045, 0.0, 100.0);
+    private static final ModConfigSpec.DoubleValue FUEL_UNITS = BUILDER
+            .comment("Fuel units in a low-enriched (5%) assembly. Richer fuel lasts longer:",
+                    "units = this * (enrichment / 5)^0.66, so 20% fuel holds about 2.5 times as much.")
+            .defineInRange("fission.fuelUnitsPerAssembly", 100.0, 1.0, 100000.0);
+    private static final ModConfigSpec.DoubleValue ENRICHMENT_REACTIVITY = BUILDER
+            .comment("Extra neutron production per doubling of fuel enrichment above 5%.",
+                    "0.25 makes 20% fuel 1.5 times as reactive. Zero makes enrichment affect only fuel life.")
+            .defineInRange("fission.enrichmentReactivity", 0.25, 0.0, 10.0);
     private static final ModConfigSpec.DoubleValue DT_BURN_RATE = BUILDER
             .comment("D-T fuel units consumed per fusion power unit per tick. A pellet supplies 100 units.",
                     "Deuterium and tritium are consumed together as pellets. Zero disables depletion.")
@@ -32,6 +39,8 @@ public class Config
     public static double plasmaCapacityPerPort = 65536.0;
     public static double boronAbsorption = 1.5;
     public static double uraniumBurnPerNeutron = 0.0000045;
+    public static double fuelUnitsPerAssembly = 100.0;
+    public static double enrichmentReactivity = 0.25;
     public static double deuteriumTritiumBurnRate = 0.0015;
 
     static void onLoad(final ModConfigEvent.Loading event)
@@ -53,6 +62,8 @@ public class Config
         plasmaCapacityPerPort = FUSION_TURBINE_CAPACITY.get();
         boronAbsorption = BORON_ABSORPTION.get();
         uraniumBurnPerNeutron = URANIUM_BURN_RATE.get();
+        fuelUnitsPerAssembly = FUEL_UNITS.get();
+        enrichmentReactivity = ENRICHMENT_REACTIVITY.get();
         deuteriumTritiumBurnRate = DT_BURN_RATE.get();
     }
 }

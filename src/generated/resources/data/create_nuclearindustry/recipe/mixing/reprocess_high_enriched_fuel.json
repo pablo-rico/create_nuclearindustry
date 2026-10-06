@@ -1,0 +1,35 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:depleted_uranium_reactor_fuel"
+      },
+      "max_enrichment": 90.0,
+      "min_enrichment": 15.0
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:sulfuric_acid"
+    }
+  ],
+  "results": [
+    {
+      "components": {
+        "create_nuclearindustry:enrichment": 5.0
+      },
+      "id": "create_nuclearindustry:uranium_dioxide"
+    },
+    {
+      "count": 2,
+      "id": "create_nuclearindustry:radioactive_waste"
+    },
+    {
+      "chance": 0.5,
+      "id": "minecraft:iron_nugget"
+    }
+  ]
+}

@@ -41,6 +41,7 @@ public final class NuclearDataGenerators {
         generator.addProvider(event.includeServer(), new NuclearWashingRecipes(output, lookup));
         generator.addProvider(event.includeServer(), new NuclearMixingRecipes(output, lookup));
         generator.addProvider(event.includeServer(), new NuclearPressingRecipes(output, lookup));
+        generator.addProvider(event.includeServer(), new NuclearCompactingRecipes(output, lookup));
         generator.addProvider(event.includeServer(), new NuclearSequencedAssemblyRecipes(output, lookup));
         generator.addProvider(event.includeServer(), new NuclearCentrifugingRecipes(output, lookup));
         generator.addProvider(event.includeServer(), new NuclearElectrolysisRecipes(output, lookup));

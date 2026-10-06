@@ -42,7 +42,12 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     private static final int DATA_FUEL_INPUT = 18;
     private static final int DATA_FUEL_OUTPUT = 19;
     private static final int DATA_PENDING_DEPLETED = 20;
-    private static final int DATA_COUNT = 21;
+    private static final int DATA_FUEL_ENRICHMENT_X10 = 21;
+    private static final int DATA_MANUAL_SCRAM = 22;
+    private static final int DATA_COUNT = 23;
+
+    /** {@link #clickMenuButton} id that toggles the manual SCRAM. */
+    public static final int BUTTON_TOGGLE_SCRAM = 0;
 
     private final ReactorBlockEntity reactor;
     private final BlockPos reactorPos;
@@ -151,6 +156,28 @@ public class ReactorControlMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
         return copy;
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (id != BUTTON_TOGGLE_SCRAM) {
+            return false;
+        }
+        ReactorBlockEntity liveReactor = getReactorEntity(player);
+        if (liveReactor == null || player.level().isClientSide) {
+            return liveReactor != null;
+        }
+        liveReactor.requestStructureRevalidation(player);
+        liveReactor.setManualScram(!liveReactor.isManualScram());
+        return true;
+    }
+
+    public float getFuelEnrichment() {
+        return reactorData.get(DATA_FUEL_ENRICHMENT_X10) / 10.0f;
+    }
+
+    public boolean isManualScram() {
+        return reactorData.get(DATA_MANUAL_SCRAM) != 0;
     }
 
     @Override
@@ -407,6 +434,8 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         data[DATA_FUEL_INPUT] = clampInt(snapshot.inputFuelCount(), 0, 32767);
         data[DATA_FUEL_OUTPUT] = clampInt(snapshot.outputFuelCount(), 0, 32767);
         data[DATA_PENDING_DEPLETED] = clampInt(snapshot.pendingDepletedFuel(), 0, 32767);
+        data[DATA_FUEL_ENRICHMENT_X10] = scaled(snapshot.fuelEnrichment(), 10.0);
+        data[DATA_MANUAL_SCRAM] = snapshot.manualScram() ? 1 : 0;
         return data;
     }
 
@@ -418,8 +447,11 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         return Math.max(min, Math.min(max, value));
     }
 
+    /** Server-side data slots. The snapshot is taken once per game tick, not once per slot. */
     private static class LiveReactorData implements ContainerData {
         private final ReactorBlockEntity reactor;
+        private int[] cached = emptyInitialData();
+        private long cachedAt = Long.MIN_VALUE;
 
         private LiveReactorData(ReactorBlockEntity reactor) {
             this.reactor = reactor;
@@ -430,7 +462,12 @@ public class ReactorControlMenu extends AbstractContainerMenu {
             if (index < 0 || index >= DATA_COUNT) {
                 return 0;
             }
-            return snapshot(reactor)[index];
+            long now = reactor.getLevel() == null ? 0 : reactor.getLevel().getGameTime();
+            if (now != cachedAt) {
+                cached = snapshot(reactor);
+                cachedAt = now;
+            }
+            return cached[index];
         }
 
         @Override

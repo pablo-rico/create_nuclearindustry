@@ -16,5 +16,9 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         simpleBlockWithItem(AllNuclearBlocks.SPODUMENE_ORE.get(), cubeAll(AllNuclearBlocks.SPODUMENE_ORE.get()));
+        simpleBlockWithItem(AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get(), models().cubeBottomTop("radioactive_waste_barrel",
+                modLoc("block/radioactive_waste_barrel_side"),
+                modLoc("block/radioactive_waste_barrel_top"),
+                modLoc("block/radioactive_waste_barrel_top")));
     }
 }

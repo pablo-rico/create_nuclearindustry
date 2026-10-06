@@ -246,6 +246,7 @@ public final class LangEntries {
         item("empty_gas_cell", "Empty Gas Cell", "Célula de gas vacía");
         block("spodumene_ore", "Spodumene Ore", "Mena de espodumena");
         block("electrolyzer", "Electrolyzer", "Electrolizador");
+        block("radioactive_waste_barrel", "Radioactive Waste Barrel", "Barril de residuos radiactivos");
 
         add("gui.create_nuclearindustry.machine.input", "Input", "Entrada");
         add("gui.create_nuclearindustry.machine.output", "Output", "Salida");
@@ -257,6 +258,25 @@ public final class LangEntries {
         add("gui.create_nuclearindustry.machine.status.output_full", "Output full", "Salida llena");
         add("gui.create_nuclearindustry.machine.status.idle", "Idle", "En espera");
         add("gui.create_nuclearindustry.machine.status.working", "Working", "Procesando");
+
+        add("gui.create_nuclearindustry.reactor.title", "Reactor Control Panel", "Panel de control del reactor");
+        add("gui.create_nuclearindustry.reactor.missing", "Reactor not found", "Reactor no encontrado");
+        add("gui.create_nuclearindustry.reactor.unformed", "Reactor not formed", "Reactor sin formar");
+        add("gui.create_nuclearindustry.reactor.temperature", "Temperature: %s °C", "Temperatura: %s °C");
+        add("gui.create_nuclearindustry.reactor.neutrons", "Neutrons: %s / %s", "Neutrones: %s / %s");
+        add("gui.create_nuclearindustry.reactor.fuel", "Fuel: %s / %s units (%s%%)", "Combustible: %s / %s unidades (%s%%)");
+        add("gui.create_nuclearindustry.reactor.power", "Power: %s MW  Steam: %s mB/t", "Potencia: %s MW  Vapor: %s mB/t");
+        add("gui.create_nuclearindustry.reactor.state", "State: %s", "Estado: %s");
+        add("gui.create_nuclearindustry.reactor.stress", "Thermal stress: %s%%", "Estrés térmico: %s%%");
+        add("gui.create_nuclearindustry.reactor.excursion", "EXCURSION", "EXCURSIÓN");
+        add("gui.create_nuclearindustry.reactor.rods", "Rods: %s/%s inserted (%s%%)", "Barras: %s/%s insertadas (%s%%)");
+        add("gui.create_nuclearindustry.reactor.scram_engaged", "Manual SCRAM: all rods held in", "SCRAM manual: todas las barras dentro");
+        add("gui.create_nuclearindustry.reactor.fuel_in", "Fuel in", "Combustible");
+        add("gui.create_nuclearindustry.reactor.spent", "Spent", "Gastado");
+        add("gui.create_nuclearindustry.reactor.scram", "SCRAM", "SCRAM");
+        add("gui.create_nuclearindustry.reactor.reset", "Reset", "Rearmar");
+        add("gui.create_nuclearindustry.reactor.scram.tooltip", "Emergency shutdown: holds every control rod fully inserted until reset.",
+                "Parada de emergencia: mantiene todas las barras de control insertadas hasta rearmar.");
 
         add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
         add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");

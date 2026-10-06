@@ -31,6 +31,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.URANIUM_DIOXIDE.value());
                 output.accept(AllNuclearItems.URANIUM_FUEL_PELLET.value());
                 output.accept(AllNuclearItems.RADIOACTIVE_WASTE.value());
+                output.accept(AllNuclearItems.RADIOACTIVE_WASTE_BARREL.value());
                 output.accept(AllNuclearItems.URANIUM_REACTOR_FUEL.value());
                 output.accept(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.value());
                 output.accept(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.value());

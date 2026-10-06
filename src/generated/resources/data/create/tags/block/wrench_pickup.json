@@ -11,6 +11,7 @@
     "create_nuclearindustry:dual_fluid_pipe",
     "create_nuclearindustry:centrifuge",
     "create_nuclearindustry:electrolyzer",
+    "create_nuclearindustry:radioactive_waste_barrel",
     "create_nuclearindustry:turbine_casing",
     "create_nuclearindustry:turbine_rotor",
     "create_nuclearindustry:turbine_output",

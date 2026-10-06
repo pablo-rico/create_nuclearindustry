@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-06T17:57:17.026446	Loot Tables
+// 1.21.1	2026-10-06T18:05:13.992274	Loot Tables
 f7cd641dbc79fbdeb47db13d2fa7c6feb5d91098 data/create_nuclearindustry/loot_table/blocks/borax_ore.json
 774896dc0efff85c2635e35050dca047eb134e83 data/create_nuclearindustry/loot_table/blocks/centrifuge.json
 ff6f6eb4e0855da677f03f5fd4e3d1034be17374 data/create_nuclearindustry/loot_table/blocks/control_rod.json
@@ -19,6 +19,7 @@ b2369637d3fcb72cf72990866e53ca73fbbfbc6e data/create_nuclearindustry/loot_table/
 c43d10630d20ff8fc98097ea62dc566ba5774478 data/create_nuclearindustry/loot_table/blocks/heat_exchanger.json
 ce7e23980fa7c56de2a27d4091a0d389093cbbe1 data/create_nuclearindustry/loot_table/blocks/launch_pad.json
 d614592cfc7377ffa8597d2b25d2c26297c29ff7 data/create_nuclearindustry/loot_table/blocks/nuclear_bomb.json
+d849a4d7437a6950baaee8e74f781cb2b11ae2d6 data/create_nuclearindustry/loot_table/blocks/radioactive_waste_barrel.json
 c483997b10c088f50be33ec456219a4eafc942cc data/create_nuclearindustry/loot_table/blocks/reactor_casing.json
 141bae2a5ee1c2a79c2fd27076f153af7c2fef44 data/create_nuclearindustry/loot_table/blocks/reactor_controller.json
 d8cecc584f8a309f038ea4e8d16a24e730247c33 data/create_nuclearindustry/loot_table/blocks/reactor_fluid_port.json

@@ -103,7 +103,7 @@ public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGogg
         if (reactor != null) {
             tooltip.add(Component.literal(String.format("  Fuel: %.1f / %.1f units", reactor.getFuelRemaining(), reactor.getFuelCapacity()))
                     .withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Accepted enrichment: > " + ReactorBlockEntity.MIN_FUEL_ENRICHMENT + "%")
+            tooltip.add(Component.literal("  Accepts fuel assemblies at " + ReactorBlockEntity.MIN_FUEL_ENRICHMENT + "% or more")
                     .withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Fuel input: " + reactor.getInputFuelCount() + " assemblies")
                     .withStyle(ChatFormatting.GRAY));

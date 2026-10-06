@@ -1,40 +1,39 @@
 package org.papiricoh.create_nuclearindustry.reactor.gui;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
 
 /**
- * GUI screen for reactor control panel.
- * Displays temperature, neutrons, fuel, and allows manual control rod adjustment.
+ * Reactor control panel. Readouts are drawn over the generated background texture;
+ * control rods themselves are physical blocks, so the only control here is the SCRAM switch.
  */
 public class ReactorControlScreen extends AbstractContainerScreen<ReactorControlMenu> {
-
-    private static final int TEXTURE_WIDTH = 256;
-    private static final int TEXTURE_HEIGHT = 256;
-
-    // GUI dimensions
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "textures/gui/reactor_control.png");
     private static final int GUI_WIDTH = 256;
     private static final int GUI_HEIGHT = 304;
 
-    // Display positions
     private static final int TITLE_Y = 10;
     private static final int TEMP_Y = 34;
     private static final int NEUTRON_Y = 58;
     private static final int FUEL_Y = 82;
-    private static final int POWER_Y = 106;
-    private static final int STATE_Y = 130;
-    private static final int STRESS_Y = 142;
-    private static final int ROD_Y = 154;
-
-    // Gauge bar width
+    private static final int POWER_Y = 112;
+    private static final int STATE_Y = 124;
+    private static final int STRESS_Y = 136;
+    private static final int ROD_Y = 148;
     private static final int GAUGE_WIDTH = 180;
     private static final int GAUGE_HEIGHT = 12;
 
+    private Button scramButton;
 
-    public ReactorControlScreen(ReactorControlMenu menu, Inventory playerInventory, net.minecraft.network.chat.Component component) {
-        super(menu, playerInventory, component);
+    public ReactorControlScreen(ReactorControlMenu menu, Inventory playerInventory, Component title) {
+        super(menu, playerInventory, title);
         this.imageWidth = GUI_WIDTH;
         this.imageHeight = GUI_HEIGHT;
     }
@@ -42,178 +41,120 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     @Override
     protected void init() {
         super.init();
-        // Center the GUI on screen
-        this.leftPos = (this.width - this.imageWidth) / 2;
-        this.topPos = (this.height - this.imageHeight) / 2;
+        scramButton = addRenderableWidget(Button.builder(scramLabel(), button -> {
+                    if (minecraft != null && minecraft.gameMode != null) {
+                        minecraft.gameMode.handleInventoryButtonClick(menu.containerId, ReactorControlMenu.BUTTON_TOGGLE_SCRAM);
+                    }
+                })
+                .bounds(leftPos + 207, topPos + 177, 41, 19)
+                .tooltip(net.minecraft.client.gui.components.Tooltip.create(
+                        Component.translatable("gui.create_nuclearindustry.reactor.scram.tooltip")))
+                .build());
+    }
+
+    private Component scramLabel() {
+        return Component.translatable(menu.isManualScram()
+                ? "gui.create_nuclearindustry.reactor.reset"
+                : "gui.create_nuclearindustry.reactor.scram");
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        // Render background
-        this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        scramButton.setMessage(scramLabel());
+        scramButton.active = menu.isReactorFormed();
+        super.render(graphics, mouseX, mouseY, partialTick);
+        renderTooltip(graphics, mouseX, mouseY);
+    }
 
-        // Render title and labels
-        guiGraphics.drawCenteredString(this.font, "§6REACTOR CONTROL PANEL", leftPos + GUI_WIDTH / 2, topPos + TITLE_Y, 0xFFFFFF);
+    @Override
+    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, GUI_WIDTH, GUI_HEIGHT, GUI_WIDTH, GUI_HEIGHT);
+    }
 
-        if (menu.getReactorPos() == null) {
-            guiGraphics.drawCenteredString(this.font, "§cReactor Not Found", leftPos + GUI_WIDTH / 2, topPos + 90, 0xFF0000);
-            super.render(guiGraphics, mouseX, mouseY, partialTick);
+    @Override
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawCenteredString(font, Component.translatable("gui.create_nuclearindustry.reactor.title"),
+                GUI_WIDTH / 2, TITLE_Y, 0xFFE8C26A);
+        graphics.drawString(font, Component.translatable("gui.create_nuclearindustry.reactor.fuel_in"), 20, 170, 0xFFCCCCCC, false);
+        graphics.drawString(font, Component.translatable("gui.create_nuclearindustry.reactor.spent"), 164, 170, 0xFFCCCCCC, false);
+
+        if (menu.getReactorPos() == null || !menu.isReactorFormed()) {
+            String key = menu.getReactorPos() == null
+                    ? "gui.create_nuclearindustry.reactor.missing"
+                    : "gui.create_nuclearindustry.reactor.unformed";
+            graphics.drawCenteredString(font, Component.translatable(key), GUI_WIDTH / 2, 90, 0xFFFF5555);
             return;
         }
 
-        if (!menu.isReactorFormed()) {
-            guiGraphics.drawCenteredString(this.font, "§cReactor Not Formed", leftPos + GUI_WIDTH / 2, topPos + 90, 0xFF0000);
-            super.render(guiGraphics, mouseX, mouseY, partialTick);
-            return;
-        }
-
-        // Reactor status
-        String state = menu.getSyncedReactorStateName();
-        int stateColor = getStateColor(state);
-        guiGraphics.drawString(this.font, "State: §r" + state, leftPos + 20, topPos + STATE_Y, stateColor);
-
-        double stress = menu.getThermalStress();
-        String stressText = String.format("Thermal stress: §r%.0f%%", stress);
-        if (menu.isThermalExcursionActive()) {
-            stressText += " §cEXCURSION";
-        }
-        guiGraphics.drawString(this.font, stressText, leftPos + 20, topPos + STRESS_Y, getStressColor((float) stress));
-
-        // Temperature (get fresh data)
         double temp = menu.getCoreTemperature();
-        String tempText = String.format("Temperature: §r%.0f°C", temp);
-        int tempColor = getTempColor((float) temp);
-        guiGraphics.drawString(this.font, tempText, leftPos + 20, topPos + TEMP_Y, tempColor);
-        renderGaugeBar(guiGraphics, leftPos + 20, topPos + TEMP_Y + 12, (float) (temp / 4000.0));
+        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.temperature", Math.round(temp)), TEMP_Y, tempColor(temp));
+        gauge(graphics, TEMP_Y + 12, (float) (temp / 4000.0));
 
-        // Neutron level (get fresh data)
         double neutrons = menu.getNeutronLevel();
         double maxNeutrons = ReactorPhysicsSimulator.getMaxNeutronLevel();
-        String neutronText = String.format("Neutrons: §r%.0f / %.0f", neutrons, maxNeutrons);
-        guiGraphics.drawString(this.font, neutronText, leftPos + 20, topPos + NEUTRON_Y, 0xFFFF00);
-        renderGaugeBar(guiGraphics, leftPos + 20, topPos + NEUTRON_Y + 12, (float) (neutrons / maxNeutrons));
+        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.neutrons",
+                Math.round(neutrons), Math.round(maxNeutrons)), NEUTRON_Y, 0xFFFFFF55);
+        gauge(graphics, NEUTRON_Y + 12, (float) (neutrons / maxNeutrons));
 
-        // Fuel remaining (get fresh data)
         double fuel = menu.getFuelRemaining();
-        double fuelCapacity = menu.getFuelCapacity();
-        float fuelPercent = fuelCapacity <= 0.0 ? 0.0f : (float) (fuel / fuelCapacity);
-        String fuelText = String.format("Fuel: §r%.1f / %.1f units", fuel, fuelCapacity);
-        guiGraphics.drawString(this.font, fuelText, leftPos + 20, topPos + FUEL_Y, 0x00FF00);
-        renderGaugeBar(guiGraphics, leftPos + 20, topPos + FUEL_Y + 12, fuelPercent);
+        double capacity = menu.getFuelCapacity();
+        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.fuel",
+                String.format("%.1f", fuel), String.format("%.1f", capacity), String.format("%.1f", menu.getFuelEnrichment())),
+                FUEL_Y, 0xFF55FF55);
+        gauge(graphics, FUEL_Y + 12, capacity <= 0 ? 0 : (float) (fuel / capacity));
 
-        // Power output
-        double power = menu.getPowerOutput();
-        String powerText = String.format("Power: §r%.1f MW  Steam: %.1f mB/t", power, menu.getSteamGenerationRate());
-        guiGraphics.drawString(this.font, powerText, leftPos + 20, topPos + POWER_Y, 0x0099FF);
+        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.power",
+                String.format("%.1f", menu.getPowerOutput()), String.format("%.1f", menu.getSteamGenerationRate())), POWER_Y, 0xFF55BBFF);
+        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.state", menu.getSyncedReactorStateName()),
+                STATE_Y, stateColor(menu.getSyncedReactorStateName()));
 
-        String rodText = String.format("Rods: §r%d/%d inserted §8(static %d, moving %d)",
-                menu.getInsertedControlRodSegments(),
-                menu.getExpectedControlRodSegments(),
-                menu.getStaticControlRodSegments(),
-                menu.getMovingControlRodSegments());
-        guiGraphics.drawString(this.font, rodText, leftPos + 20, topPos + ROD_Y, 0xFFAA00);
-        guiGraphics.drawString(this.font, String.format("Rod insertion: %.0f%%", menu.getControlRodInsertionRatio() * 100.0f),
-                leftPos + 20, topPos + ROD_Y + 12, 0xFFAA00);
-        if (fuel > 0.0 && neutrons <= 1.0 && menu.getControlRodInsertionRatio() >= 0.99f) {
-            guiGraphics.drawString(this.font, "Loaded: rods suppressing reaction", leftPos + 20, topPos + 176, 0xFFFFAA00);
+        Component stress = Component.translatable("gui.create_nuclearindustry.reactor.stress", Math.round(menu.getThermalStress()));
+        if (menu.isThermalExcursionActive()) {
+            stress = stress.copy().append(" ").append(Component.translatable("gui.create_nuclearindustry.reactor.excursion"));
         }
-        guiGraphics.drawString(this.font, "Fuel In", leftPos + 20, topPos + 168, 0xCCCCCC);
-        guiGraphics.drawString(this.font, "Spent", leftPos + 164, topPos + 168, 0xCCCCCC);
+        text(graphics, stress, STRESS_Y, stressColor(menu.getThermalStress()));
 
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-    }
-
-    @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        // Don't render default labels
-    }
-
-    @Override
-    public void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        // Draw background panel
-        guiGraphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF1a1a1a);
-
-        // Draw dark gray item slot areas
-        guiGraphics.fill(leftPos + 12, topPos + 158, leftPos + 116, topPos + 206, 0xFF2B2B2B);
-        guiGraphics.fill(leftPos + 156, topPos + 158, leftPos + 216, topPos + 206, 0xFF2B2B2B);
-        guiGraphics.fill(leftPos + 40, topPos + 214, leftPos + 218, topPos + 294, 0xFF2B2B2B);
-
-        // Draw border
-        guiGraphics.fill(leftPos - 1, topPos - 1, leftPos + imageWidth + 1, topPos + 1, 0xFFAAAAAA);
-        guiGraphics.fill(leftPos - 1, topPos - 1, leftPos + 1, topPos + imageHeight + 1, 0xFFAAAAAA);
-        guiGraphics.fill(leftPos - 1, topPos + imageHeight - 1, leftPos + imageWidth + 1, topPos + imageHeight + 1, 0xFFAAAAAA);
-        guiGraphics.fill(leftPos + imageWidth - 1, topPos - 1, leftPos + imageWidth + 1, topPos + imageHeight + 1, 0xFFAAAAAA);
-    }
-
-    /**
-     * Renders a horizontal gauge bar.
-     */
-    private void renderGaugeBar(GuiGraphics guiGraphics, int x, int y, float percentage) {
-        percentage = Math.max(0, Math.min(1, percentage));
-
-        // Background
-        guiGraphics.fill(x, y, x + GAUGE_WIDTH, y + GAUGE_HEIGHT, 0xFF333333);
-
-        // Filled portion
-        int filledWidth = (int) (GAUGE_WIDTH * percentage);
-        int color = 0xFF00FF00;
-        if (percentage > 0.75f) {
-            color = 0xFFFF0000;
-        } else if (percentage > 0.5f) {
-            color = 0xFFFFAA00;
+        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.rods",
+                menu.getInsertedControlRodSegments(), menu.getExpectedControlRodSegments(),
+                Math.round(menu.getControlRodInsertionRatio() * 100)), ROD_Y, 0xFFFFAA00);
+        if (menu.isManualScram()) {
+            text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.scram_engaged"), ROD_Y + 10, 0xFFFF5555);
         }
-        guiGraphics.fill(x, y, x + filledWidth, y + GAUGE_HEIGHT, color);
-
-        // Border
-        guiGraphics.fill(x - 1, y - 1, x + GAUGE_WIDTH + 1, y + 1, 0xFFAAAAAA);
-        guiGraphics.fill(x - 1, y - 1, x + 1, y + GAUGE_HEIGHT + 1, 0xFFAAAAAA);
-        guiGraphics.fill(x - 1, y + GAUGE_HEIGHT - 1, x + GAUGE_WIDTH + 1, y + GAUGE_HEIGHT + 1, 0xFFAAAAAA);
-        guiGraphics.fill(x + GAUGE_WIDTH - 1, y - 1, x + GAUGE_WIDTH + 1, y + GAUGE_HEIGHT + 1, 0xFFAAAAAA);
     }
 
-    /**
-     * Renders the control rod position slider.
-     */
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-
-        return super.mouseClicked(mouseX, mouseY, button);
+    private void text(GuiGraphics graphics, Component text, int y, int color) {
+        graphics.drawString(font, text, 20, y, color, false);
     }
 
-
-
-
-    /**
-     * Gets the color for temperature gauge.
-     */
-    private int getTempColor(float temp) {
-        if (temp < 500) return 0xFF00FF00;      // Green
-        if (temp < 2000) return 0xFFFFAA00;     // Orange
-        if (temp < 3500) return 0xFFFF5500;     // Red-orange
-        return 0xFFFF0000;                      // Red
+    private void gauge(GuiGraphics graphics, int y, float fraction) {
+        fraction = Math.max(0, Math.min(1, fraction));
+        int color = fraction > 0.75f ? 0xFFE04A3A : fraction > 0.5f ? 0xFFE8A93A : 0xFF6FBF4E;
+        graphics.fill(20, y, 20 + Math.round(GAUGE_WIDTH * fraction), y + GAUGE_HEIGHT - 3, color);
     }
 
-    private int getStressColor(float stress) {
-        if (stress < 35) return 0xFF00FF00;      // Green
-        if (stress < 65) return 0xFFFFFF00;      // Yellow
-        if (stress < 90) return 0xFFFFAA00;      // Orange
-        return 0xFFFF0000;                       // Red
+    private static int tempColor(double temp) {
+        if (temp < 500) return 0xFF55FF55;
+        if (temp < 2000) return 0xFFFFAA00;
+        if (temp < 3500) return 0xFFFF7733;
+        return 0xFFFF3333;
     }
 
-    /**
-     * Gets the color for reactor state text.
-     */
-    private int getStateColor(String state) {
+    private static int stressColor(double stress) {
+        if (stress < 35) return 0xFF55FF55;
+        if (stress < 65) return 0xFFFFFF55;
+        if (stress < 90) return 0xFFFFAA00;
+        return 0xFFFF3333;
+    }
+
+    private static int stateColor(String state) {
         return switch (state) {
-            case "Idle" -> 0xFF00CCFF;          // Cyan
-            case "Fuel queued" -> 0xFFFFFF66;   // Yellow
-            case "Suppressed" -> 0xFFFFAA00;    // Orange
-            case "Running" -> 0xFF00FF00;       // Green
-            case "Warning" -> 0xFFFFAA00;       // Orange
-            case "Critical" -> 0xFFFF0000;      // Red
-            case "MELTING" -> 0xFFFF00FF;       // Magenta
-            default -> 0xFFCCCCCC;              // Gray
+            case "Idle" -> 0xFF55CCFF;
+            case "Fuel queued" -> 0xFFFFFF66;
+            case "Suppressed", "Warning" -> 0xFFFFAA00;
+            case "Running" -> 0xFF55FF55;
+            case "Critical" -> 0xFFFF3333;
+            case "MELTING" -> 0xFFFF55FF;
+            default -> 0xFFCCCCCC;
         };
     }
 }

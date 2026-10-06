@@ -1,7 +1,15 @@
 package org.papiricoh.create_nuclearindustry.reactor.physics;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import org.papiricoh.create_nuclearindustry.Config;
+import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 
 /**
  * Handles all nuclear physics calculations for the reactor.
@@ -27,7 +35,9 @@ public class ReactorPhysicsSimulator {
     // Limits
     private static final double MAX_NEUTRON_LEVEL = 2000.0;
     private static final double MIN_NEUTRON_LEVEL = 0.0;
-    private static final double FUEL_PER_ASSEMBLY = 100.0;
+    /** Units per assembly before the enrichment-based fuel model; used for old saves. */
+    private static final double LEGACY_FUEL_PER_ASSEMBLY = 100.0;
+    private static final float LEGACY_FUEL_ENRICHMENT = 20.0f;
     private static final double MAX_THERMAL_STRESS = 100.0;
     private static final double STRESS_START_TEMP = 2500.0;
     private static final double STRESS_MAX_TEMP = 3000.0;
@@ -36,7 +46,8 @@ public class ReactorPhysicsSimulator {
     // State variables
     private double coreTemperature;                                 // Celsius (0-4000)
     private double neutronLevel;                                    // 0-MAX_NEUTRON_LEVEL
-    private double fuelRemaining;                                   // Fuel units (0-capacity)
+    private final Deque<FuelAssembly> assemblies = new ArrayDeque<>(); // loaded fuel, burnt front to back
+    private final List<Float> spentAssemblies = new ArrayList<>();   // enrichment of assemblies burnt out since last drain
     private float controlRodInsertion;                              // 0.0 = withdrawn, 1.0 = fully inserted
     private int uraniumRodCount;                                    // Number of fuel rods in reactor
     private int controlRodCount;                                    // Number of control rods (PHYSICAL blocks)
@@ -55,7 +66,6 @@ public class ReactorPhysicsSimulator {
     public ReactorPhysicsSimulator(int uraniumRodCount, int controlRodCount) {
         this.coreTemperature = 20.0;                                // Start at room temperature
         this.neutronLevel = 0.0;
-        this.fuelRemaining = 0.0;                                   // Fuel must be loaded through reactor refuel inventory
         this.controlRodInsertion = 1.0f;                            // Start fully inserted (safe state)
         this.uraniumRodCount = uraniumRodCount;
         this.controlRodCount = controlRodCount;
@@ -71,7 +81,7 @@ public class ReactorPhysicsSimulator {
      * @return true if reactor is functioning normally, false if melted down
      */
     public boolean tick() {
-        if (fuelRemaining <= 0) {
+        if (!hasFuel()) {
             // No fuel, shut down
             neutronLevel = Math.max(0, neutronLevel - 8.0);
             coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 2.5);
@@ -105,8 +115,7 @@ public class ReactorPhysicsSimulator {
 
         // Consume fuel based on operation
         if (neutronLevel > 0) {
-            fuelRemaining -= Config.uraniumBurnPerNeutron * neutronLevel;
-            fuelRemaining = Math.max(0, fuelRemaining);
+            burn(Config.uraniumBurnPerNeutron * neutronLevel);
         }
 
         // Calculate power output
@@ -156,7 +165,44 @@ public class ReactorPhysicsSimulator {
         double absorptionFactor = 1.0 - actualAbsorption;
 
         // Base fission multiplied by number of uranium rods and absorption factor
-        return uraniumRodCount * BASE_FISSION_RATE * absorptionFactor;
+        return uraniumRodCount * BASE_FISSION_RATE * absorptionFactor * getFuelReactivity();
+    }
+
+    /**
+     * Multiplier on neutron production from the enrichment of the loaded fuel, weighted
+     * by the units each assembly still holds. Low-enriched fuel is the 1.0 reference.
+     */
+    public double getFuelReactivity() {
+        double units = 0.0;
+        double weighted = 0.0;
+        for (FuelAssembly assembly : assemblies) {
+            units += assembly.units;
+            weighted += assembly.units * assembly.reactivity;
+        }
+        return units <= 0.0 ? 1.0 : weighted / units;
+    }
+
+    /** Units of burn a fresh assembly of this enrichment provides. */
+    public static double fuelUnitsFor(float enrichment) {
+        return Config.fuelUnitsPerAssembly * Math.pow(Math.max(EnrichmentTier.LOW.min(), enrichment) / EnrichmentTier.LOW.nominal(), 0.66);
+    }
+
+    public static double reactivityFor(float enrichment) {
+        double ratio = Math.max(EnrichmentTier.LOW.min(), enrichment) / EnrichmentTier.LOW.nominal();
+        return Math.max(0.25, 1.0 + Config.enrichmentReactivity * (Math.log(ratio) / Math.log(2.0)));
+    }
+
+    private void burn(double amount) {
+        while (amount > 0.0 && !assemblies.isEmpty()) {
+            FuelAssembly head = assemblies.peekFirst();
+            double used = Math.min(amount, head.units);
+            head.units -= used;
+            amount -= used;
+            if (head.units <= 1.0e-9) {
+                assemblies.pollFirst();
+                spentAssemblies.add(head.enrichment);
+            }
+        }
     }
 
     /**
@@ -202,7 +248,7 @@ public class ReactorPhysicsSimulator {
     }
 
     private void applyThermalExcursion() {
-        if (!thermalExcursionActive || fuelRemaining <= 0) {
+        if (!thermalExcursionActive || !hasFuel()) {
             return;
         }
 
@@ -274,27 +320,76 @@ public class ReactorPhysicsSimulator {
     }
 
     public boolean hasFuel() {
-        return fuelRemaining > 0.0;
+        return getFuelRemaining() > 0.0;
     }
 
+    /** Each fuel channel block holds one assembly. */
     public boolean canLoadFuelAssembly() {
-        return getFuelCapacity() - fuelRemaining >= FUEL_PER_ASSEMBLY;
+        return assemblies.size() < uraniumRodCount;
     }
 
-    public boolean loadFuelAssembly() {
+    public boolean loadFuelAssembly(float enrichment) {
         if (!canLoadFuelAssembly()) {
             return false;
         }
-        fuelRemaining = Math.min(getFuelCapacity(), fuelRemaining + FUEL_PER_ASSEMBLY);
+        double units = fuelUnitsFor(enrichment);
+        assemblies.addLast(new FuelAssembly(enrichment, units, units, reactivityFor(enrichment)));
         return true;
     }
 
-    public void clearFuel() {
-        fuelRemaining = 0.0;
+    /**
+     * Moves loaded fuel over from the simulator of a previous structure. Assemblies that no
+     * longer fit (fewer fuel channels) are reported as spent rather than lost.
+     */
+    public void inheritFuel(ReactorPhysicsSimulator previous) {
+        for (FuelAssembly assembly : previous.assemblies) {
+            if (assemblies.size() < uraniumRodCount) {
+                assemblies.addLast(assembly);
+            } else {
+                spentAssemblies.add(assembly.enrichment);
+            }
+        }
+        spentAssemblies.addAll(previous.spentAssemblies);
+        previous.assemblies.clear();
+        previous.spentAssemblies.clear();
     }
 
+    /** Enrichment of every assembly burnt out since the last call. */
+    public List<Float> drainSpentAssemblies() {
+        if (spentAssemblies.isEmpty()) {
+            return List.of();
+        }
+        List<Float> spent = List.copyOf(spentAssemblies);
+        spentAssemblies.clear();
+        return spent;
+    }
+
+    public int getLoadedAssemblyCount() {
+        return assemblies.size();
+    }
+
+    /** Enrichment averaged over the units still in the core, or 0 when empty. */
+    public float getAverageFuelEnrichment() {
+        double units = 0.0;
+        double weighted = 0.0;
+        for (FuelAssembly assembly : assemblies) {
+            units += assembly.units;
+            weighted += assembly.units * assembly.enrichment;
+        }
+        return units <= 0.0 ? 0.0f : (float) (weighted / units);
+    }
+
+    public void clearFuel() {
+        assemblies.clear();
+    }
+
+    /** Loaded assemblies at their initial size, plus empty channels at the reference size. */
     public double getFuelCapacity() {
-        return uraniumRodCount * FUEL_PER_ASSEMBLY;
+        double capacity = 0.0;
+        for (FuelAssembly assembly : assemblies) {
+            capacity += assembly.initialUnits;
+        }
+        return capacity + Math.max(0, uraniumRodCount - assemblies.size()) * Config.fuelUnitsPerAssembly;
     }
 
     public void forceScramForLoad() {
@@ -322,7 +417,11 @@ public class ReactorPhysicsSimulator {
     }
 
     public double getFuelRemaining() {
-        return fuelRemaining;
+        double units = 0.0;
+        for (FuelAssembly assembly : assemblies) {
+            units += assembly.units;
+        }
+        return units;
     }
 
     public float getControlRodPosition() {
@@ -370,7 +469,7 @@ public class ReactorPhysicsSimulator {
     }
 
     public boolean isRunning() {
-        return neutronLevel > 1.0 && fuelRemaining > 0;
+        return neutronLevel > 1.0 && hasFuel();
     }
 
     /**
@@ -394,7 +493,23 @@ public class ReactorPhysicsSimulator {
     public void serializeNBT(CompoundTag tag) {
         tag.putDouble("coreTemperature", coreTemperature);
         tag.putDouble("neutronLevel", neutronLevel);
-        tag.putDouble("fuelRemaining", fuelRemaining);
+        ListTag loaded = new ListTag();
+        for (FuelAssembly assembly : assemblies) {
+            CompoundTag entry = new CompoundTag();
+            entry.putFloat("enrichment", assembly.enrichment);
+            entry.putDouble("units", assembly.units);
+            entry.putDouble("initialUnits", assembly.initialUnits);
+            entry.putDouble("reactivity", assembly.reactivity);
+            loaded.add(entry);
+        }
+        tag.put("assemblies", loaded);
+        ListTag spent = new ListTag();
+        for (Float enrichment : spentAssemblies) {
+            CompoundTag entry = new CompoundTag();
+            entry.putFloat("enrichment", enrichment);
+            spent.add(entry);
+        }
+        tag.put("spentAssemblies", spent);
         tag.putFloat("controlRodInsertion", controlRodInsertion);
         tag.putInt("uraniumRodCount", uraniumRodCount);
         tag.putInt("controlRodCount", controlRodCount);
@@ -412,10 +527,53 @@ public class ReactorPhysicsSimulator {
         this.controlRodInsertion = Math.max(0.0f, Math.min(1.0f, controlRodInsertion));
         this.uraniumRodCount = Math.max(0, tag.getInt("uraniumRodCount"));
         this.controlRodCount = Math.max(0, tag.getInt("controlRodCount"));
-        this.fuelRemaining = clamp(tag.getDouble("fuelRemaining"), 0.0, getFuelCapacity());
+        readFuel(tag);
         this.meltdownTickCounter = Math.max(0, Math.min(100, tag.getInt("meltdownTickCounter")));
         this.thermalStress = calculateThermalStress();
         this.thermalExcursionActive = tag.getBoolean("thermalExcursionActive") && thermalStress >= MAX_THERMAL_STRESS;
+    }
+
+    private void readFuel(CompoundTag tag) {
+        assemblies.clear();
+        spentAssemblies.clear();
+        if (tag.contains("assemblies", Tag.TAG_LIST)) {
+            for (Tag element : tag.getList("assemblies", Tag.TAG_COMPOUND)) {
+                CompoundTag entry = (CompoundTag) element;
+                double units = Math.max(0.0, entry.getDouble("units"));
+                if (units > 0.0 && assemblies.size() < uraniumRodCount) {
+                    double initial = Math.max(units, entry.getDouble("initialUnits"));
+                    double reactivity = entry.contains("reactivity") ? entry.getDouble("reactivity") : 1.0;
+                    assemblies.addLast(new FuelAssembly(entry.getFloat("enrichment"), units, initial, reactivity));
+                }
+            }
+            for (Tag element : tag.getList("spentAssemblies", Tag.TAG_COMPOUND)) {
+                spentAssemblies.add(((CompoundTag) element).getFloat("enrichment"));
+            }
+            return;
+        }
+        // Saves from before enrichment mattered held a single fuel counter. Split it back into
+        // 100-unit assemblies of the old 20% fuel, at neutral reactivity so nothing heats up on load.
+        double legacy = clamp(tag.getDouble("fuelRemaining"), 0.0, uraniumRodCount * LEGACY_FUEL_PER_ASSEMBLY);
+        while (legacy > 1.0e-9 && assemblies.size() < uraniumRodCount) {
+            double units = Math.min(LEGACY_FUEL_PER_ASSEMBLY, legacy);
+            assemblies.addLast(new FuelAssembly(LEGACY_FUEL_ENRICHMENT, units, LEGACY_FUEL_PER_ASSEMBLY, 1.0));
+            legacy -= units;
+        }
+    }
+
+    /** One fuel assembly loaded in a channel. */
+    private static final class FuelAssembly {
+        private final float enrichment;
+        private final double initialUnits;
+        private final double reactivity;
+        private double units;
+
+        private FuelAssembly(float enrichment, double units, double initialUnits, double reactivity) {
+            this.enrichment = enrichment;
+            this.units = units;
+            this.initialUnits = initialUnits;
+            this.reactivity = reactivity;
+        }
     }
 
     private static double clamp(double value, double min, double max) {

@@ -18,6 +18,7 @@ from PIL import Image, ImageDraw  # noqa: E402
 
 import blocks  # noqa: E402
 import fluids  # noqa: E402
+import gui  # noqa: E402
 import items  # noqa: E402
 
 DEFAULT_OUT = os.path.join("src", "main", "resources", "assets",
@@ -48,6 +49,11 @@ def main():
         p = os.path.join(args.out, "item", name + ".png")
         write(p, t.im)
         made.append((p, t.im))
+
+    for name, fn in sorted(gui.GUIS.items()):
+        t = fn()
+        p = os.path.join(args.out, "gui", name + ".png")
+        write(p, t.im)
 
     for name, fn in sorted(fluids.FLUIDS.items()):
         im, meta = fn()

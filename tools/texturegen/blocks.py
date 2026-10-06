@@ -456,6 +456,44 @@ def centrifuge_shaft():
 
 
 # ======================================================================================
+# waste storage
+# ======================================================================================
+
+@block("radioactive_waste_barrel_side")
+def radioactive_waste_barrel_side():
+    t = Tex(seed=39)
+    brushed(t, WARN, base=3.6, amp=0.6, seed=39, axis="v")
+    for x in range(16):
+        f = 0.72 + 0.56 * math.sin(math.pi * (x + 0.5) / 16)
+        for y in range(16):
+            t.set(x, y, shade(t.get(x, y), f))
+    # rolling hoops
+    for y in (0, 1, 14, 15):
+        for x in range(16):
+            t.set(x, y, shade(DARK[3], 1.0 if y in (1, 14) else 0.8))
+    for y in (4, 11):
+        for x in range(16):
+            t.set(x, y, shade(WARN[1], 0.9))
+            t.set(x, y + 1, shade(WARN[5], 1.0))
+    t.disc(8, 8, 3.4, WARN[6])
+    trefoil(t, 8, 8, 3.2, DARK[0])
+    return t
+
+
+@block("radioactive_waste_barrel_top")
+def radioactive_waste_barrel_top():
+    t = Tex(seed=40)
+    brushed(t, WARN, base=3.4, amp=0.5, seed=40)
+    t.ring(8, 8, 8.0, 6.9, DARK[3])
+    t.ring(8, 8, 6.9, 6.2, WARN[5])
+    # bung and vent
+    t.disc(11, 5, 1.6, DARK[2])
+    t.set(10, 4, DARK[5])
+    t.disc(5, 11, 1.1, DARK[2])
+    return t
+
+
+# ======================================================================================
 # electrolyzer (same body as the centrifuge, copper cell and electrode panel)
 # ======================================================================================
 

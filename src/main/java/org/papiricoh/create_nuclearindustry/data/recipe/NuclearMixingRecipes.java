@@ -62,6 +62,26 @@ public class NuclearMixingRecipes extends MixingRecipeGen {
             .output(AllNuclearItems.LITHIUM_CARBONATE.get())
             .requiresHeat(HeatCondition.HEATED));
 
+    // ------------------------------------------------------------------ spent fuel reprocessing
+
+    // Dissolving spent fuel recovers uranium one tier below what went into the reactor;
+    // the fission products stay behind as waste.
+    GeneratedRecipe REPROCESS_HIGH = create("reprocess_high_enriched_fuel", b -> b
+            .require(MinEnrichmentIngredient.tier(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get(), EnrichmentTier.HIGH))
+            .require(AllNuclearFluids.SULFURIC_ACID.get(), 250)
+            .output(enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.LOW))
+            .output(AllNuclearItems.RADIOACTIVE_WASTE.get(), 2)
+            .output(0.5f, Items.IRON_NUGGET)
+            .requiresHeat(HeatCondition.HEATED));
+
+    GeneratedRecipe REPROCESS_LOW = create("reprocess_low_enriched_fuel", b -> b
+            .require(MinEnrichmentIngredient.tier(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get(), EnrichmentTier.LOW))
+            .require(AllNuclearFluids.SULFURIC_ACID.get(), 250)
+            .output(enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.NATURAL))
+            .output(AllNuclearItems.RADIOACTIVE_WASTE.get(), 2)
+            .output(0.5f, Items.IRON_NUGGET)
+            .requiresHeat(HeatCondition.HEATED));
+
     // ------------------------------------------------------------------ per-tier conversions
 
     {

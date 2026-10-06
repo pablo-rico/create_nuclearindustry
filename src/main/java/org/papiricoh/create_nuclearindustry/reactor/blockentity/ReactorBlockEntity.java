@@ -7,6 +7,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.FloatTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -28,6 +31,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearDataComponents;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
 import org.papiricoh.create_nuclearindustry.multiblock.BlockChange;
@@ -43,6 +47,7 @@ import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureV
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -65,7 +70,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     public static final int FUEL_INPUT_SLOTS = 4;
     public static final int FUEL_OUTPUT_SLOTS = 2;
     public static final int FUEL_SLOT_COUNT = FUEL_INPUT_SLOTS + FUEL_OUTPUT_SLOTS;
-    public static final float MIN_FUEL_ENRICHMENT = 3.0f;
+    public static final float MIN_FUEL_ENRICHMENT = EnrichmentTier.LOW.min();
 
     private ReactorStatus status = ReactorStatus.UNFORMED;
     private Optional<ReactorStructureValidator.ReactorStructure> currentStructure = Optional.empty();
@@ -77,7 +82,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private int controlRodScanCounter;
     private int scramRecoveryScanCounter;
     private int ticksSinceLoad;
-    private int pendingDepletedFuel;
+    /** Enrichment of each burnt-out assembly waiting for space in the output slots. */
+    private final List<Float> pendingDepletedFuel = new ArrayList<>();
+    /** Set from the control panel: holds every rod fully inserted regardless of the physical rods. */
+    private boolean manualScram;
     private ControlRodTracker.ControlRodScan lastControlRodScan = ControlRodTracker.ControlRodScan.empty();
     private ReactorDisplaySnapshot displaySnapshot = ReactorDisplaySnapshot.empty();
     private boolean hasDisplaySnapshot;
@@ -131,9 +139,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             entity.updateControlRodInsertion(false);
             entity.tryStorePendingDepletedFuel();
             entity.tryLoadFuelAssembly();
-            double previousFuel = entity.physicsSimulator.getFuelRemaining();
             boolean stillRunning = entity.physicsSimulator.tick();
-            entity.recordSpentFuel(previousFuel);
+            entity.collectSpentFuel();
             entity.processCoolantLoop();
             entity.updateControllerRunningState();
             if (!stillRunning) {
@@ -252,7 +259,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                     ? ReactorStatus.SCRAMMED_HOT
                     : ReactorStatus.FORMED;
             if (structureChanged && !loadedStructureWithoutSnapshot) {
+                ReactorPhysicsSimulator previousSimulator = physicsSimulator;
                 physicsSimulator = new ReactorPhysicsSimulator(newStructure.getUraniumRodCount(), newStructure.getControlRodCount());
+                physicsSimulator.inheritFuel(previousSimulator);
+                collectSpentFuel();
             }
             updateControlRodInsertion(true);
             linkStructureParts(newStructure);
@@ -372,7 +382,22 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
         controlRodScanCounter = 0;
         lastControlRodScan = ControlRodTracker.scan(getLevel(), currentStructure.get());
-        physicsSimulator.setControlRodInsertion(lastControlRodScan.insertionRatio());
+        physicsSimulator.setControlRodInsertion(manualScram ? 1.0f : lastControlRodScan.insertionRatio());
+    }
+
+    public boolean isManualScram() {
+        return manualScram;
+    }
+
+    /** Control panel SCRAM switch. While engaged the reactor behaves as if every rod were in. */
+    public void setManualScram(boolean engaged) {
+        if (manualScram == engaged) {
+            return;
+        }
+        manualScram = engaged;
+        updateControlRodInsertion(true);
+        sendPlayerMessage(engaged ? "§cManual SCRAM engaged" : "§aManual SCRAM released", true);
+        markDirtyAndSync();
     }
 
     private void processCoolantLoop() {
@@ -430,7 +455,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     private void tryLoadFuelAssembly() {
-        if (pendingDepletedFuel > 0) {
+        if (!pendingDepletedFuel.isEmpty()) {
             return;
         }
         while (physicsSimulator.canLoadFuelAssembly()) {
@@ -441,7 +466,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 }
                 ItemStack extracted = fuelInventory.extractItem(slot, 1, false);
                 if (!extracted.isEmpty()) {
-                    if (physicsSimulator.loadFuelAssembly()) {
+                    if (physicsSimulator.loadFuelAssembly(getFuelEnrichment(extracted))) {
                         loaded = true;
                     } else {
                         fuelInventory.insertItem(slot, extracted, false);
@@ -455,27 +480,23 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
     }
 
-    private void recordSpentFuel(double previousFuel) {
-        int previousAssemblies = assembliesRemaining(previousFuel);
-        int currentAssemblies = assembliesRemaining(physicsSimulator.getFuelRemaining());
-        if (currentAssemblies < previousAssemblies) {
-            pendingDepletedFuel += previousAssemblies - currentAssemblies;
+    private void collectSpentFuel() {
+        List<Float> spent = physicsSimulator.drainSpentAssemblies();
+        if (!spent.isEmpty()) {
+            pendingDepletedFuel.addAll(spent);
             tryStorePendingDepletedFuel();
         }
     }
 
-    private int assembliesRemaining(double fuelAmount) {
-        return fuelAmount <= 0.0 ? 0 : (int) Math.ceil(fuelAmount / 100.0);
-    }
-
     private void tryStorePendingDepletedFuel() {
-        while (pendingDepletedFuel > 0) {
+        while (!pendingDepletedFuel.isEmpty()) {
             ItemStack depleted = new ItemStack(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get());
+            UraniumItem.setEnrichment(depleted, pendingDepletedFuel.get(0));
             ItemStack remainder = insertIntoOutputSlots(depleted, false);
             if (!remainder.isEmpty()) {
                 return;
             }
-            pendingDepletedFuel--;
+            pendingDepletedFuel.remove(0);
         }
     }
 
@@ -579,7 +600,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     public int getPendingDepletedFuel() {
-        return pendingDepletedFuel;
+        return pendingDepletedFuel.size();
+    }
+
+    public float getAverageFuelEnrichment() {
+        return isFormed() ? physicsSimulator.getAverageFuelEnrichment() : 0.0f;
     }
 
     public ControlRodTracker.ControlRodScan getControlRodScan() {
@@ -699,15 +724,13 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return fuelInventory;
     }
 
+    /** Only assembled fuel at low enrichment or better; bare uranium metal is not fuel. */
     public boolean isFreshFuel(ItemStack stack) {
-        return (stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get()) || stack.is(AllNuclearItems.URANIUM.get()))
-                && getFuelEnrichment(stack) > MIN_FUEL_ENRICHMENT;
+        return stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get())
+                && getFuelEnrichment(stack) >= MIN_FUEL_ENRICHMENT;
     }
 
     public static float getFuelEnrichment(ItemStack stack) {
-        if (stack.is(AllNuclearItems.URANIUM.get())) {
-            return UraniumItem.getEnrichment(stack);
-        }
         if (stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get())) {
             return stack.has(AllNuclearDataComponents.ENRICHMENT.get())
                     ? UraniumItem.getEnrichment(stack)
@@ -755,6 +778,12 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             tooltip.add(Component.literal("  Thermal excursion: insert control rods").withStyle(ChatFormatting.RED));
         }
         tooltip.add(Component.literal(String.format("  Fuel: %.1f / %.1f units", snapshot.fuelRemaining(), snapshot.fuelCapacity())).withStyle(ChatFormatting.GRAY));
+        if (snapshot.fuelEnrichment() > 0.0f) {
+            tooltip.add(Component.literal(String.format("  Fuel enrichment: %.1f%%", snapshot.fuelEnrichment())).withStyle(ChatFormatting.GRAY));
+        }
+        if (snapshot.manualScram()) {
+            tooltip.add(Component.literal("  Manual SCRAM engaged").withStyle(ChatFormatting.RED));
+        }
         tooltip.add(Component.literal("  Fuel input: " + snapshot.inputFuelCount() + " assemblies").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Depleted fuel: " + snapshot.outputFuelCount() + " assemblies").withStyle(ChatFormatting.GRAY));
         if (snapshot.fuelRemaining() > 0.0 && snapshot.neutronLevel() <= 1.0 && snapshot.controlRodInsertionRatio() >= 0.99f) {
@@ -819,7 +848,30 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.put("coolant", coolantTank.writeToNBT(provider, new CompoundTag()));
         tag.put("steam", steamTank.writeToNBT(provider, new CompoundTag()));
         tag.put("fuelInventory", fuelInventory.serializeNBT(provider));
-        tag.putInt("pendingDepletedFuel", pendingDepletedFuel);
+        writePendingDepleted(tag);
+        tag.putBoolean("manualScram", manualScram);
+    }
+
+    private void writePendingDepleted(CompoundTag tag) {
+        ListTag pending = new ListTag();
+        for (Float enrichment : pendingDepletedFuel) {
+            pending.add(FloatTag.valueOf(enrichment));
+        }
+        tag.put("pendingDepleted", pending);
+    }
+
+    private void readPendingDepleted(CompoundTag tag) {
+        pendingDepletedFuel.clear();
+        if (tag.contains("pendingDepleted", Tag.TAG_LIST)) {
+            for (Tag element : tag.getList("pendingDepleted", Tag.TAG_FLOAT)) {
+                pendingDepletedFuel.add(((FloatTag) element).getAsFloat());
+            }
+        } else {
+            // Older saves only counted pending assemblies; they were all 20% fuel.
+            for (int i = 0; i < Math.max(0, tag.getInt("pendingDepletedFuel")); i++) {
+                pendingDepletedFuel.add(UraniumItem.REACTOR_FUEL_ENRICHMENT);
+            }
+        }
     }
 
     @Override
@@ -840,7 +892,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         } else {
             physicsSimulator.clearFuel();
         }
-        pendingDepletedFuel = Math.max(0, tag.getInt("pendingDepletedFuel"));
+        readPendingDepleted(tag);
+        manualScram = tag.getBoolean("manualScram");
         pendingRevalidation = true;
     }
 
@@ -852,7 +905,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.put("coolant", coolantTank.writeToNBT(provider, new CompoundTag()));
         tag.put("steam", steamTank.writeToNBT(provider, new CompoundTag()));
         tag.put("fuelInventory", fuelInventory.serializeNBT(provider));
-        tag.putInt("pendingDepletedFuel", pendingDepletedFuel);
+        writePendingDepleted(tag);
+        tag.putBoolean("manualScram", manualScram);
         currentStructure.ifPresent(structure -> {
             tag.put("structure", writeStructureTag(structure));
             tag.put("controlRodScan", writeControlRodScanTag(lastControlRodScan));
@@ -888,7 +942,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (tag.contains("fuelInventory")) {
             fuelInventory.deserializeNBT(provider, tag.getCompound("fuelInventory"));
         }
-        pendingDepletedFuel = Math.max(0, tag.getInt("pendingDepletedFuel"));
+        readPendingDepleted(tag);
+        manualScram = tag.getBoolean("manualScram");
         currentStructure = tag.contains("structure")
                 ? readStructureTag(tag.getCompound("structure"))
                 : Optional.empty();
@@ -946,7 +1001,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 lastControlRodScan.expectedSegments(),
                 countInputFuel(),
                 countOutputFuel(),
-                pendingDepletedFuel
+                pendingDepletedFuel.size(),
+                physicsSimulator.getAverageFuelEnrichment(),
+                manualScram
         );
     }
 
@@ -992,6 +1049,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.putInt("inputFuelCount", snapshot.inputFuelCount());
         tag.putInt("outputFuelCount", snapshot.outputFuelCount());
         tag.putInt("pendingDepletedFuel", snapshot.pendingDepletedFuel());
+        tag.putFloat("fuelEnrichment", snapshot.fuelEnrichment());
+        tag.putBoolean("manualScram", snapshot.manualScram());
         return tag;
     }
 
@@ -1032,7 +1091,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 Math.max(0, tag.getInt("expectedControlRodSegments")),
                 Math.max(0, tag.getInt("inputFuelCount")),
                 Math.max(0, tag.getInt("outputFuelCount")),
-                Math.max(0, tag.getInt("pendingDepletedFuel"))
+                Math.max(0, tag.getInt("pendingDepletedFuel")),
+                Math.max(0.0f, tag.getFloat("fuelEnrichment")),
+                tag.getBoolean("manualScram")
         );
     }
 
@@ -1214,7 +1275,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             int expectedControlRodSegments,
             int inputFuelCount,
             int outputFuelCount,
-            int pendingDepletedFuel
+            int pendingDepletedFuel,
+            float fuelEnrichment,
+            boolean manualScram
     ) {
         public static ReactorDisplaySnapshot empty() {
             return empty("Incomplete", ReactorPhysicsSimulator.ReactorState.IDLE, "Not formed");
@@ -1261,7 +1324,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                     0,
                     0,
                     0,
-                    0
+                    0,
+                    0.0f,
+                    false
             );
         }
     }
@@ -1292,7 +1357,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     private int countOutputFuel() {
-        int count = pendingDepletedFuel;
+        int count = pendingDepletedFuel.size();
         for (int slot = FUEL_INPUT_SLOTS; slot < FUEL_SLOT_COUNT; slot++) {
             count += fuelInventory.getStackInSlot(slot).getCount();
         }

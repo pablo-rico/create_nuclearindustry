@@ -32,6 +32,7 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> DUAL_FLUID_PIPE = ITEMS.register("dual_fluid_pipe", () -> new BlockItem(AllNuclearBlocks.DUAL_FLUID_PIPE.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> CENTRIFUGE = ITEMS.register("centrifuge", () -> new BlockItem(AllNuclearBlocks.CENTRIFUGE.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> ELECTROLYZER = ITEMS.register("electrolyzer", () -> new BlockItem(AllNuclearBlocks.ELECTROLYZER.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> RADIOACTIVE_WASTE_BARREL = ITEMS.register("radioactive_waste_barrel", () -> new BlockItem(AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> TURBINE_CASING = ITEMS.register("turbine_casing", () -> new BlockItem(AllNuclearBlocks.TURBINE_CASING.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> TURBINE_ROTOR = ITEMS.register("turbine_rotor", () -> new BlockItem(AllNuclearBlocks.TURBINE_ROTOR.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> TURBINE_OUTPUT = ITEMS.register("turbine_output", () -> new BlockItem(AllNuclearBlocks.TURBINE_OUTPUT.value(), new Item.Properties()));
