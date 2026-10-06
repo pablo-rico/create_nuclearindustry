@@ -52,6 +52,7 @@ public final class NuclearDataGenerators {
 
         generator.addProvider(event.includeClient(), new NuclearBlockStateProvider(output, existingFiles));
         generator.addProvider(event.includeClient(), new NuclearItemModelProvider(output, existingFiles));
+        generator.addProvider(event.includeClient(), new NuclearParticleDescriptionProvider(output, existingFiles));
         generator.addProvider(event.includeClient(), NuclearLangProvider.english(output));
         generator.addProvider(event.includeClient(), NuclearLangProvider.spanish(output));
     }

@@ -131,6 +131,9 @@ below for what changes in existing worlds.
 - Accidents can leave lasting ground contamination, stored per chunk. It
   decays very slowly (half every ten in-game days by default), irradiates
   players standing on it and is blocked by a roof overhead.
+- Contaminated ground shows green dust, thicker with severity. Clients get
+  only a one-byte severity per contaminated chunk, when it changes; the dust
+  can be turned down or off in the new client config.
 - Unloaded chunks catch up on fallout when they load; nothing forces chunks
   to load and nothing ticks.
 - `/nuclear contamination` (query, add, set, clear, clear all, expand,

@@ -12,6 +12,7 @@ import blocks
 import fluids
 import gui
 import items
+import particles
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / "src/main/resources/assets/create_nuclearindustry"
@@ -29,7 +30,8 @@ def main():
             expected[f"{folder}/{name}.png"] = factory().im
     # Larger textures with their own layouts: screens, armor layers, effect icons.
     special = {}
-    for folder, factories in (("gui", gui.GUIS), ("models/armor", armor.ARMOR), ("mob_effect", armor.EFFECTS)):
+    for folder, factories in (("gui", gui.GUIS), ("models/armor", armor.ARMOR), ("mob_effect", armor.EFFECTS),
+                                ("particle", particles.PARTICLES)):
         for name, factory in factories.items():
             special[f"{folder}/{name}.png"] = factory().im
     expected.update(special)

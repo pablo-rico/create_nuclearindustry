@@ -48,6 +48,7 @@ public class Create_NuclearIndustry {
 
         AllNuclearRecipeTypes.register(modEventBus);
         AllNuclearRadiation.register(modEventBus);
+        AllNuclearParticles.register(modEventBus);
 
         AllNuclearIngredients.init();
         AllNuclearIngredients.INGREDIENT_TYPES.register(modEventBus);
@@ -99,6 +100,11 @@ public class Create_NuclearIndustry {
             modEventBus.addListener(ClientModEvents::onRegisterScreens);
             modEventBus.addListener(ClientModEvents::onRegisterRenderers);
             modEventBus.addListener(AllNuclearFluids::registerClientExtensions);
+            modEventBus.addListener(ClientConfig::onLoad);
+            modEventBus.addListener(ClientConfig::onReload);
+            modEventBus.addListener(org.papiricoh.create_nuclearindustry.radiation.contamination.client.ContaminationParticles::registerProviders);
+            NeoForge.EVENT_BUS.addListener(org.papiricoh.create_nuclearindustry.radiation.contamination.client.ContaminationParticles::onClientTick);
+            modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
         }
 
         // Register our mod's ForgeConfigSpec so that NeoForge can create and load the config file for us

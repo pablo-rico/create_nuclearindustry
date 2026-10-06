@@ -161,7 +161,15 @@ cercanos, baja con la altura sobre el suelo (a la mitad a 8 bloques) y, bajo
 techo, solo cuenta lo que atraviesa el tejado. `doseScale` la multiplica.
 
 Los clientes solo reciben un byte de gravedad (0-7) por chunk contaminado, con
-el chunk y cuando cambia de nivel.
+el chunk y cuando cambia de nivel, y lo dibujan como polvo verde sobre el suelo
+de los chunks cercanos. En la configuracion del cliente
+(`create_nuclearindustry-client.toml`):
+
+```toml
+[contamination]
+particles = true        # polvo sobre el suelo contaminado
+particleDensity = 1.0   # 0-4; con particulas "Reducidas" se usa el 40%
+```
 
 Comandos de depuracion (nivel de permiso 2):
 

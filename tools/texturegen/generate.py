@@ -21,6 +21,7 @@ import armor  # noqa: E402
 import fluids  # noqa: E402
 import gui  # noqa: E402
 import items  # noqa: E402
+import particles  # noqa: E402
 
 DEFAULT_OUT = os.path.join("src", "main", "resources", "assets",
                            "create_nuclearindustry", "textures")
@@ -57,6 +58,9 @@ def main():
 
     for name, fn in sorted(armor.EFFECTS.items()):
         write(os.path.join(args.out, "mob_effect", name + ".png"), fn().im)
+
+    for name, fn in sorted(particles.PARTICLES.items()):
+        write(os.path.join(args.out, "particle", name + ".png"), fn().im)
 
     for name, fn in sorted(gui.GUIS.items()):
         t = fn()
