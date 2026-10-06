@@ -138,6 +138,11 @@ below for what changes in existing worlds.
   to load and nothing ticks.
 - `/nuclear contamination` (query, add, set, clear, clear all, expand,
   fallout) and `/nuclear dose` (get, set, reset) for operators.
+- Nuclear detonations leave fallout out to 1.5 times the crater radius, and a
+  meltdown contaminates 48 blocks around the reactor.
+- Waste barrels now irradiate 1.0/s (was 0.1) and slowly leak into their
+  chunk, unless they sit at Y=0 or lower: geologically stored waste neither
+  irradiates nor leaks. A Ponder scene shows how to store it.
 - Dose HUD: rate, current dose with a bar up to radiation sickness and a
   lifetime total that never decays and survives death. It shows while there
   is a rate or a dose, can be moved or hidden in the client config, and is
@@ -162,6 +167,8 @@ below for what changes in existing worlds.
   condensate and ask to be rebuilt as a box.
 - The old sulfuric acid reprocessing recipes (`mixing/reprocess_*`) are
   gone; automation built on them must switch to the plutonium chain.
+- Waste barrels already placed above Y=0 start leaking into the ground. Set
+  `contamination.barrelLeak = 0` to stop that.
 - Running reactors in existing worlds now irradiate nearby players. Set
   `radiation.reactorEmissionPerNeutron = 0` to turn that off.
 - Every reactor gets the automatic SCRAM on at 2800 °C. Remember it only

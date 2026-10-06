@@ -476,6 +476,18 @@ public final class LangEntries {
         add("create_nuclearindustry.ponder.rtg.text_4",
                 "...so wall it in. A Block of Depleted Uranium lets only a tenth of the radiation through.",
                 "...así que rodéalo. Un Bloque de uranio empobrecido solo deja pasar una décima parte de la radiación.");
+        add("create_nuclearindustry.ponder.waste_storage.header",
+                "Geological Waste Storage",
+                "Almacenamiento geológico de residuos");
+        add("create_nuclearindustry.ponder.waste_storage.text_1",
+                "At the surface a Waste Barrel irradiates whoever comes close, and slowly leaks into the ground around it.",
+                "En la superficie, un Barril de residuos irradia a quien se acerca y va filtrándose poco a poco en el suelo de alrededor.");
+        add("create_nuclearindustry.ponder.waste_storage.text_2",
+                "Waste stored at Y=0 or lower counts as geologically stored.",
+                "Los residuos guardados en Y=0 o más abajo cuentan como almacenados geológicamente.");
+        add("create_nuclearindustry.ponder.waste_storage.text_3",
+                "Down there barrels neither irradiate nor leak. Dig a deep gallery, fill it and seal it off: only the depth matters.",
+                "Ahí abajo los barriles ni irradian ni se filtran. Excava una galería profunda, llénala y ciérrala: solo cuenta la profundidad.");
         add("create_nuclearindustry.ponder.cooling_tower.header",
                 "Cooling Towers",
                 "Torres de refrigeración");

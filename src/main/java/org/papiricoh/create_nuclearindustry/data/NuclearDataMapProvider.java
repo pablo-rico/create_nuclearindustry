@@ -45,7 +45,7 @@ public class NuclearDataMapProvider extends DataMapProvider {
         add(radioactivity, AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE, 12.0f, false);
         add(radioactivity, AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL, 4.0f, false);
         add(radioactivity, AllNuclearItems.RADIOACTIVE_WASTE, 6.0f, false);
-        add(radioactivity, AllNuclearItems.RADIOACTIVE_WASTE_BARREL, 0.1f, false);
+        add(radioactivity, AllNuclearItems.RADIOACTIVE_WASTE_BARREL, 1.0f, false);
         add(radioactivity, AllNuclearItems.TRITIUM_CELL, 0.05f, false);
         add(radioactivity, AllNuclearItems.DT_FUEL_PELLET, 0.05f, false);
         add(radioactivity, AllNuclearItems.SPENT_DT_PELLET, 0.2f, false);

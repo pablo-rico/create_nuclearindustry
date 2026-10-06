@@ -47,6 +47,9 @@ public final class AllNuclearTags {
         public static final TagKey<Block> C_ORES_URANIUM = common("ores/uranium");
         public static final TagKey<Block> C_ORES_LITHIUM = common("ores/lithium");
         public static final TagKey<Block> C_ORES_BORAX = common("ores/borax");
+        /** Radioactive blocks that stop irradiating and leaking below the geological storage depth. */
+        public static final TagKey<Block> GEOLOGICALLY_STORABLE = TagKey.create(Registries.BLOCK,
+                ResourceLocation.fromNamespaceAndPath(org.papiricoh.create_nuclearindustry.Create_NuclearIndustry.MODID, "geologically_storable"));
         public static final TagKey<Block> WRENCH_PICKUP = TagKey.create(Registries.BLOCK,
                 ResourceLocation.fromNamespaceAndPath("create", "wrench_pickup"));
 

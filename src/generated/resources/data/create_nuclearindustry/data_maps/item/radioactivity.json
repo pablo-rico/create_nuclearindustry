@@ -39,7 +39,7 @@
       "per_second": 6.0
     },
     "create_nuclearindustry:radioactive_waste_barrel": {
-      "per_second": 0.1
+      "per_second": 1.0
     },
     "create_nuclearindustry:raw_uranium": {
       "per_second": 0.01

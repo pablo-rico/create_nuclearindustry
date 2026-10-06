@@ -33,6 +33,7 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
         Block[] ores = {AllNuclearBlocks.URANIUM_ORE.get(), AllNuclearBlocks.BORAX_ORE.get(), AllNuclearBlocks.SPODUMENE_ORE.get()};
 
         tag(BlockTags.NEEDS_IRON_TOOL).add(ores);
+        tag(AllNuclearTags.Blocks.GEOLOGICALLY_STORABLE).add(AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get());
         tag(AllNuclearTags.Blocks.C_ORES_URANIUM).add(AllNuclearBlocks.URANIUM_ORE.get());
         tag(AllNuclearTags.Blocks.C_ORES_LITHIUM).add(AllNuclearBlocks.SPODUMENE_ORE.get());
         tag(AllNuclearTags.Blocks.C_ORES_BORAX).add(AllNuclearBlocks.BORAX_ORE.get());

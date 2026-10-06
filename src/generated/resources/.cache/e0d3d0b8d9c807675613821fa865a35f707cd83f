@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-06T23:08:17.650729	Data Maps
+// 1.21.1	2026-10-07T01:25:35.624625	Data Maps
 1aef3019c816676fe18011d1ba27c636b95152ec data/create_nuclearindustry/data_maps/block/radiation_transmission.json
 df1bda4c50a5e1b2f6d721dbb6709ea3669915ea data/create_nuclearindustry/data_maps/item/radiation_shielding.json
-f39d01cfc59e86f25eb9968483aa394999a19c66 data/create_nuclearindustry/data_maps/item/radioactivity.json
+68ae4d9e98fa1b455baa7c49f640a507c09fafe0 data/create_nuclearindustry/data_maps/item/radioactivity.json

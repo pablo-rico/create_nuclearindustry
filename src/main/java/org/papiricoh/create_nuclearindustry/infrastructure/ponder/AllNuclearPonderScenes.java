@@ -10,6 +10,7 @@ import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.RtgScen
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TokamakScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TurbineScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.WasteStorageScenes;
 
 public class AllNuclearPonderScenes {
     private static ResourceLocation id(String path) {
@@ -19,6 +20,7 @@ public class AllNuclearPonderScenes {
     public static void register(PonderSceneRegistrationHelper<ResourceLocation> helper) {
         helper.addStoryBoard(id("reactor_redstone_port"), "reactor_controller", ReactorRedstoneScenes::redstonePort);
         helper.addStoryBoard(id("reactor_controller"), "reactor_controller", ReactorRedstoneScenes::redstonePort);
+        helper.addStoryBoard(id("radioactive_waste_barrel"), "waste_storage", WasteStorageScenes::storage);
         for (String part : new String[]{"rtg", "plutonium_rtg_pellet", "waste_rtg_pellet"}) {
             helper.addStoryBoard(id(part), "centrifuge", RtgScenes::rtg);
         }

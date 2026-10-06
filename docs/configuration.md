@@ -45,6 +45,8 @@ enabled = true
 halfLifeTicks = 240000
 max = 50.0
 doseScale = 1.0
+barrelLeak = 0.02
+geologicalStorageMaxY = 0
 ```
 
 ## Turbinas
@@ -198,6 +200,19 @@ Comandos de depuracion (nivel de permiso 2):
 
 Los comandos solo tocan chunks cargados; `fallout` llega a los demas cuando se
 cargan.
+
+Que contamina:
+
+- Bombas, misiles y proyectiles nucleares: hasta 1,5 veces el radio del crater,
+  con 0,2 rad/s por punto de potencia en el centro (32 con una cabeza completa).
+- La fusion del nucleo de un reactor: 20 rad/s en el reactor, hasta 48 bloques.
+- Los barriles de residuos por encima de `geologicalStorageMaxY`: cada tick
+  aleatorio (unos 68 s de media) suman `barrelLeak` a su chunk.
+
+Un barril en `geologicalStorageMaxY` o mas abajo (Y=0 por defecto) cuenta como
+almacenado: ni irradia ni contamina. La regla es solo la profundidad; el
+almacen lo construye el jugador. Los bloques que siguen esta regla estan en la
+etiqueta `create_nuclearindustry:geologically_storable`.
 
 ## Uranio y litio de otros mods
 

@@ -6,10 +6,17 @@ import net.minecraft.core.Position;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.papiricoh.create_nuclearindustry.Config;
+import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.slf4j.Logger;
 
+/** Every nuclear detonation (bomb, missile, cannon shell): blast, crater and fallout. */
 public final class NuclearDetonation {
     private static final Logger LOGGER = LogUtils.getLogger();
+    /** Fallout reaches this far beyond the crater rim, as a multiple of the crater radius. */
+    public static final float FALLOUT_RADIUS_FACTOR = 1.5f;
+    /** Ground contamination at ground zero per point of blast power. */
+    public static final float FALLOUT_PER_POWER = 0.2f;
 
     private NuclearDetonation() {}
 
@@ -18,19 +25,29 @@ public final class NuclearDetonation {
     }
 
     public static void detonate(ServerLevel level, Position position, int uraniumUnits, float averageEnrichment) {
-        float power = WarheadStats.power(uraniumUnits, averageEnrichment);
-        int horizontalRadius = WarheadStats.horizontalRadius(uraniumUnits, averageEnrichment);
-        int verticalRadius = WarheadStats.verticalRadius(uraniumUnits, averageEnrichment);
-        float intensity = WarheadStats.intensity(averageEnrichment);
+        detonate(level, new Vec3(position.x(), position.y(), position.z()),
+                WarheadStats.power(uraniumUnits, averageEnrichment),
+                WarheadStats.horizontalRadius(uraniumUnits, averageEnrichment),
+                WarheadStats.verticalRadius(uraniumUnits, averageEnrichment),
+                WarheadStats.intensity(averageEnrichment));
+    }
 
-        Vec3 impact = new Vec3(position.x(), position.y(), position.z());
-        BlockPos center = BlockPos.containing(position.x(), position.y(), position.z());
+    public static void detonate(ServerLevel level, Vec3 impact, float power, int horizontalRadius, int verticalRadius, float intensity) {
+        BlockPos center = BlockPos.containing(impact);
         LOGGER.info("Nuclear detonation at {} with power={}, horizontalRadius={}, verticalRadius={}",
                 center, power, horizontalRadius, verticalRadius);
 
         NuclearExplosionSoundManager.playDelayedForWorld(level, impact);
-        level.explode(null, position.x(), position.y(), position.z(),
-                Math.min(64.0f, power * 0.35f), Level.ExplosionInteraction.BLOCK);
+        level.explode(null, impact.x, impact.y, impact.z, Math.min(64.0f, power * 0.35f), Level.ExplosionInteraction.BLOCK);
         NuclearBlastManager.start(level, center, horizontalRadius, verticalRadius, intensity);
+        Contamination.fallout(level, center, falloutRadius(horizontalRadius), falloutIntensity(power));
+    }
+
+    public static int falloutRadius(int horizontalRadius) {
+        return Math.round(horizontalRadius * FALLOUT_RADIUS_FACTOR);
+    }
+
+    public static float falloutIntensity(float power) {
+        return (float) Math.min(Config.contaminationMax, power * FALLOUT_PER_POWER);
     }
 }

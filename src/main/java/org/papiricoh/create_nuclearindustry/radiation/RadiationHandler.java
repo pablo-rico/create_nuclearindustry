@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.radiation.contamination.GeologicalStorage;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 
@@ -159,9 +160,9 @@ public final class RadiationHandler {
             for (int dy = -BLOCK_SCAN_RADIUS; dy <= BLOCK_SCAN_RADIUS; dy++) {
                 for (int dz = -BLOCK_SCAN_RADIUS; dz <= BLOCK_SCAN_RADIUS; dz++) {
                     pos.set(center.getX() + dx, center.getY() + dy, center.getZ() + dz);
-                    var item = level.getBlockState(pos).getBlock().asItem();
-                    Radioactivity radioactivity = item.builtInRegistryHolder().getData(AllNuclearRadiation.RADIOACTIVITY);
-                    if (radioactivity != null) {
+                    var state = level.getBlockState(pos);
+                    Radioactivity radioactivity = state.getBlock().asItem().builtInRegistryHolder().getData(AllNuclearRadiation.RADIOACTIVITY);
+                    if (radioactivity != null && !GeologicalStorage.isStored(state, pos)) {
                         double open = radioactivity.perSecond() / (1.0 + dx * dx + dy * dy + dz * dz);
                         rate += open * RadiationRay.transmission(level, Vec3.atCenterOf(pos), body);
                     }

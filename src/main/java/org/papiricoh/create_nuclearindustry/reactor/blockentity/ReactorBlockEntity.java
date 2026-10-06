@@ -102,6 +102,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     /** A meltdown leaves fallout that fades over a few in-game days. */
     private static final int MELTDOWN_CONTAMINATION_TICKS = 72_000;
     private static final double MELTDOWN_RADIATION = 40.0;
+    /** Ground contamination a meltdown leaves: this many rad/s at the reactor, nothing beyond the radius. */
+    static final int MELTDOWN_FALLOUT_RADIUS = 48;
+    static final float MELTDOWN_FALLOUT_INTENSITY = 20.0f;
     private ControlRodTracker.ControlRodScan lastControlRodScan = ControlRodTracker.ControlRodScan.empty();
     private ReactorDisplaySnapshot displaySnapshot = ReactorDisplaySnapshot.empty();
     private boolean hasDisplaySnapshot;
@@ -683,6 +686,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
         status = ReactorStatus.MELTDOWN;
         FalloutData.contaminate(level, reactorPos, MELTDOWN_RADIATION, MELTDOWN_CONTAMINATION_TICKS);
+        if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination.fallout(serverLevel, reactorPos,
+                    MELTDOWN_FALLOUT_RADIUS, MELTDOWN_FALLOUT_INTENSITY);
+        }
         currentStructure.ifPresent(this::clearStructureParts);
         setStructure(Optional.empty());
         physicsSimulator = new ReactorPhysicsSimulator(0);

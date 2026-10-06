@@ -90,6 +90,13 @@ public class Config
     private static final ModConfigSpec.DoubleValue CONTAMINATION_DOSE_SCALE = BUILDER
             .comment("Multiplier on the dose rate of standing on contaminated ground.")
             .defineInRange("contamination.doseScale", 1.0, 0.0, 100.0);
+    private static final ModConfigSpec.DoubleValue BARREL_LEAK = BUILDER
+            .comment("Contamination (rad/s) a waste barrel above the storage depth adds to its chunk on each random tick",
+                    "(about every 68 seconds at the default random tick speed). Zero stops barrels leaking.")
+            .defineInRange("contamination.barrelLeak", 0.02, 0.0, 100.0);
+    private static final ModConfigSpec.IntValue STORAGE_MAX_Y = BUILDER
+            .comment("Waste barrels at or below this height count as geologically stored: they neither irradiate nor leak.")
+            .defineInRange("contamination.geologicalStorageMaxY", 0, -2048, 2048);
     private static final ModConfigSpec.DoubleValue COOLING_TOWER_PASSIVE = BUILDER
             .comment("Steam a cooling tower condenses without fans, in mB/t per block of base radius per layer of height.")
             .defineInRange("coolingTower.passivePerBlock", 1.0, 0.0, 100.0);
@@ -130,6 +137,8 @@ public class Config
     public static long contaminationHalfLifeTicks = 240000;
     public static double contaminationMax = 50.0;
     public static double contaminationDoseScale = 1.0;
+    public static double barrelLeak = 0.02;
+    public static int geologicalStorageMaxY = 0;
     public static double coolingTowerPassivePerBlock = 1.0;
     public static double coolingTowerFanStress = 8.0;
     public static double coolingTowerFanBoost = 0.25;
@@ -175,6 +184,8 @@ public class Config
         contaminationHalfLifeTicks = CONTAMINATION_HALF_LIFE.get();
         contaminationMax = CONTAMINATION_MAX.get();
         contaminationDoseScale = CONTAMINATION_DOSE_SCALE.get();
+        barrelLeak = BARREL_LEAK.get();
+        geologicalStorageMaxY = STORAGE_MAX_Y.get();
         coolingTowerPassivePerBlock = COOLING_TOWER_PASSIVE.get();
         coolingTowerFanStress = COOLING_TOWER_FAN_STRESS.get();
         coolingTowerFanBoost = COOLING_TOWER_FAN_BOOST.get();

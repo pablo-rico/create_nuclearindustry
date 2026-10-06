@@ -15,9 +15,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
-import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
-import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
 import org.papiricoh.create_nuclearindustry.explosive.FissileMaterial;
+import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
 
 public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
@@ -132,10 +131,8 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         float intensity = WarheadStats.intensity(getAverageEnrichment());
         clearContent();
         level.removeBlock(center, false);
-        NuclearExplosionSoundManager.playDelayedForWorld(serverLevel, center.getCenter());
-        level.explode(null, center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5,
-                Math.min(64.0f, power * 0.35f), Level.ExplosionInteraction.BLOCK);
-        NuclearBlastManager.start(serverLevel, center, horizontalRadius, verticalRadius, intensity);
+        NuclearDetonation.detonate(serverLevel, center.getCenter(),
+                power, horizontalRadius, verticalRadius, intensity);
     }
 
     private void markDirtyAndSync() {
