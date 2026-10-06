@@ -112,6 +112,14 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> PLUTONIUM_DIOXIDE = simple("plutonium_dioxide");
     public static final DeferredHolder<Item, ? extends Item> PLUTONIUM = ITEMS.register("plutonium", () -> new Item(new Item.Properties().stacksTo(8)));
 
+    // RTG
+    public static final DeferredHolder<Item, ? extends Item> RTG = ITEMS.register("rtg", () -> new BlockItem(AllNuclearBlocks.RTG.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> PLUTONIUM_RTG_PELLET = ITEMS.register("plutonium_rtg_pellet",
+            () -> new org.papiricoh.create_nuclearindustry.rtg.RtgPelletItem(org.papiricoh.create_nuclearindustry.rtg.RtgFuel.PLUTONIUM, new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> WASTE_RTG_PELLET = ITEMS.register("waste_rtg_pellet",
+            () -> new org.papiricoh.create_nuclearindustry.rtg.RtgPelletItem(org.papiricoh.create_nuclearindustry.rtg.RtgFuel.WASTE, new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, ? extends Item> DEPLETED_RTG_PELLET = simple("depleted_rtg_pellet");
+
     // MOX fuel: plutonium dioxide mixed into depleted uranium dioxide
     public static final DeferredHolder<Item, ? extends Item> MOX_FUEL_PELLET = simple("mox_fuel_pellet");
     public static final DeferredHolder<Item, ? extends Item> INCOMPLETE_MOX_REACTOR_FUEL = ITEMS.register("incomplete_mox_reactor_fuel",

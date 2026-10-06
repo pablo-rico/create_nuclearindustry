@@ -51,6 +51,9 @@ public class NuclearDataMapProvider extends DataMapProvider {
         add(radioactivity, AllNuclearItems.SPENT_DT_PELLET, 0.2f, false);
         add(radioactivity, AllNuclearItems.SPENT_FUEL_FRAGMENTS, 3.0f, false);
         add(radioactivity, AllNuclearItems.MOX_FUEL_PELLET, 1.5f, false);
+        add(radioactivity, AllNuclearItems.PLUTONIUM_RTG_PELLET, 4.0f, false);
+        add(radioactivity, AllNuclearItems.WASTE_RTG_PELLET, 3.0f, false);
+        add(radioactivity, AllNuclearItems.DEPLETED_RTG_PELLET, 1.0f, false);
         add(radioactivity, AllNuclearItems.MOX_REACTOR_FUEL, 4.0f, false);
         add(radioactivity, AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL, 6.0f, false);
         add(radioactivity, AllNuclearItems.URANYL_NITRATE, 1.5f, true);

@@ -6,6 +6,9 @@
     "create_nuclearindustry:depleted_mox_reactor_fuel": {
       "per_second": 6.0
     },
+    "create_nuclearindustry:depleted_rtg_pellet": {
+      "per_second": 1.0
+    },
     "create_nuclearindustry:depleted_uranium_reactor_fuel": {
       "per_second": 4.0
     },
@@ -28,6 +31,9 @@
     "create_nuclearindustry:plutonium_dioxide": {
       "heat_per_second": 0.75,
       "per_second": 6.0
+    },
+    "create_nuclearindustry:plutonium_rtg_pellet": {
+      "per_second": 4.0
     },
     "create_nuclearindustry:radioactive_waste": {
       "per_second": 6.0
@@ -69,6 +75,9 @@
     "create_nuclearindustry:uranyl_nitrate": {
       "per_second": 1.5,
       "scales_with_enrichment": true
+    },
+    "create_nuclearindustry:waste_rtg_pellet": {
+      "per_second": 3.0
     },
     "create_nuclearindustry:weapons_grade_plutonium_core": {
       "heat_per_second": 4.0,

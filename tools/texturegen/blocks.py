@@ -950,3 +950,43 @@ def depleted_uranium_block():
     for cx, cy in ((4, 4), (12, 4), (4, 12), (12, 12)):
         t.set(cx, cy, LEAD[6])
     return t
+
+
+# ======================================================================================
+# RTG
+# ======================================================================================
+
+@block("rtg_side")
+def rtg_side():
+    # Radiator fins over a dark core, with a yellow trefoil plate.
+    t = Tex(seed=96)
+    for y in range(16):
+        for x in range(16):
+            t.set(x, y, STEEL[2] if x % 3 == 0 else STEEL[4] if x % 3 == 1 else STEEL[5])
+    t.hline(0, 15, 0, STEEL[1])
+    t.hline(0, 15, 15, STEEL[0])
+    t.rect(5, 5, 10, 10, WARN[5])
+    outline(t, 5, 5, 10, 10, DARK[0])
+    trefoil(t, 7.5, 7.5, 2.2, DARK[0])
+    return t
+
+
+@block("rtg_front")
+def rtg_front():
+    t = Tex(seed=97)
+    brushed(t, STEEL, base=3.2, amp=0.5, seed=97)
+    bevel(t, 0, 0, 15, 15, STEEL)
+    t.disc(7.5, 7.5, 3.6, DARK[0])
+    t.ring(7.5, 7.5, 4.4, 3.6, BRASS[4])
+    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        bolt(t, x, y, STEEL)
+    return t
+
+
+@block("rtg_back")
+def rtg_back():
+    t = Tex(seed=98)
+    brushed(t, STEEL, base=2.8, amp=0.5, seed=98)
+    bevel(t, 0, 0, 15, 15, STEEL)
+    hazard(t, 2, 6, 13, 9, WARN[5], DARK[1], period=4, seed=98)
+    return t

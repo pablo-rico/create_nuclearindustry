@@ -22,6 +22,18 @@ public class NuclearCompactingRecipes extends StandardProcessingRecipeGen<BasinR
             .require(CreateItems.get("iron_sheet")).require(CreateItems.get("iron_sheet"))
             .output(AllNuclearItems.RADIOACTIVE_WASTE_BARREL.get()));
 
+    // RTG heat sources sealed in an iron capsule.
+    GeneratedRecipe PLUTONIUM_RTG_PELLET = create("plutonium_rtg_pellet", b -> b
+            .require(AllNuclearItems.PLUTONIUM_DIOXIDE.get())
+            .require(CreateItems.get("iron_sheet"))
+            .output(AllNuclearItems.PLUTONIUM_RTG_PELLET.get()));
+
+    GeneratedRecipe WASTE_RTG_PELLET = create("waste_rtg_pellet", b -> b
+            .require(AllNuclearItems.RADIOACTIVE_WASTE.get()).require(AllNuclearItems.RADIOACTIVE_WASTE.get())
+            .require(AllNuclearItems.RADIOACTIVE_WASTE.get()).require(AllNuclearItems.RADIOACTIVE_WASTE.get())
+            .require(CreateItems.get("iron_sheet"))
+            .output(AllNuclearItems.WASTE_RTG_PELLET.get()));
+
     // MOX: one part plutonium dioxide to three of depleted uranium dioxide.
     GeneratedRecipe MOX_FUEL_PELLET = create("mox_fuel_pellet", b -> b
             .require(AllNuclearItems.PLUTONIUM_DIOXIDE.get())

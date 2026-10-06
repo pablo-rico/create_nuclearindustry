@@ -108,6 +108,8 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.missile.client.LaunchPadRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.CENTRIFUGE.get(), ProcessingMachineRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.ELECTROLYZER.get(), ProcessingMachineRenderer::new);
+            event.registerBlockEntityRenderer(AllNuclearEntities.RTG.get(),
+                    org.papiricoh.create_nuclearindustry.rtg.client.RtgRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.TURBINE_OUTPUT.get(),
                     org.papiricoh.create_nuclearindustry.turbine.client.TurbineRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.FUSION_PLASMA_TURBINE.get(),

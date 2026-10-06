@@ -23,5 +23,11 @@ public class AllNuclearDataComponents {
                     .persistent(BlockPos.CODEC)
                     .networkSynchronized(BlockPos.STREAM_CODEC));
 
+    /** Fraction of an RTG pellet's heat left, 1 when fresh. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Float>> RTG_CHARGE =
+            DATA_COMPONENTS.registerComponentType("rtg_charge", builder -> builder
+                    .persistent(Codec.FLOAT)
+                    .networkSynchronized(ByteBufCodecs.FLOAT));
+
     public static void init() {}
 }

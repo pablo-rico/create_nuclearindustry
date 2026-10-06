@@ -1009,3 +1009,34 @@ def incomplete_mox_reactor_fuel():
 def depleted_mox_reactor_fuel():
     dull = MOX.tinted(LEAD[3], 0.6)
     return _fuel_bundle(268, dull, STEEL.tinted(DARK[3], 0.4), glow_ramp=None, spent=True)
+
+
+# ------------------------------------------------------------------ RTG pellets
+
+def _rtg_pellet(seed, core, glow_color=None):
+    # A cylindrical heat source in an iron capsule.
+    t = Tex(16, 16, seed)
+    pts = rect_pts(4, 3, 11, 12)
+    sculpt(t, pts, STEEL, base=3.8, seed=seed, grain=0.3)
+    t.rect(6, 5, 9, 10, core[4])
+    t.vline(6, 5, 10, core[6])
+    t.vline(9, 5, 10, core[2])
+    if glow_color:
+        glow(t, 7.5, 7.5, 5.0, glow_color, 0.22)
+    item_outline(t, STEEL[0])
+    return t
+
+
+@item("plutonium_rtg_pellet")
+def plutonium_rtg_pellet():
+    return _rtg_pellet(270, PLUTONIUM, PLASMA[6])
+
+
+@item("waste_rtg_pellet")
+def waste_rtg_pellet():
+    return _rtg_pellet(271, RADIUM, RADIUM[6])
+
+
+@item("depleted_rtg_pellet")
+def depleted_rtg_pellet():
+    return _rtg_pellet(272, LEAD)

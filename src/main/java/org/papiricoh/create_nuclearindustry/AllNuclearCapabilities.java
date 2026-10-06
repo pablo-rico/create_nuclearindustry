@@ -46,6 +46,12 @@ public class AllNuclearCapabilities {
                 (port, direction) -> port.getFluidHandler(direction)
         );
 
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                AllNuclearEntities.RTG.get(),
+                (rtg, direction) -> rtg.getAutomationHandler()
+        );
+
         // ---- Fusion reactor ----
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,

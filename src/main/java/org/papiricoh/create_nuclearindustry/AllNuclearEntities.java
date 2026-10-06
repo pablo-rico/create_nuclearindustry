@@ -57,6 +57,10 @@ public class AllNuclearEntities {
                     AllNuclearBlocks.REACTOR_TEMPERATURE_SENSOR.get()
             ).build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.rtg.RtgBlockEntity>> RTG =
+            ENTITIES.register("rtg", () -> BlockEntityType.Builder.of(
+                    org.papiricoh.create_nuclearindustry.rtg.RtgBlockEntity::new, AllNuclearBlocks.RTG.get()).build(null));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoolingTowerControllerBlockEntity>> COOLING_TOWER_CONTROLLER =
             ENTITIES.register("cooling_tower_controller", () -> BlockEntityType.Builder.of(
                     CoolingTowerControllerBlockEntity::new, AllNuclearBlocks.COOLING_TOWER_CONTROLLER.get()).build(null));

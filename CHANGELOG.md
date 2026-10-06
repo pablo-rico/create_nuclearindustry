@@ -92,6 +92,13 @@ below for what changes in existing worlds.
   at 256 RPM, at most doubling the tower. Display Link source, JEI info and
   a Ponder scene.
 
+### Radioisotope generator
+- New RTG: a small kinetic source that turns a pellet's decay heat into a
+  steady 16 RPM. Plutonium pellets give 256 SU/RPM and halve every 10
+  in-game days; waste pellets (four radioactive waste in a capsule) give 64
+  and halve every 2 days. Spent pellets come out below a quarter charge;
+  hoppers can feed and empty it. It irradiates its surroundings.
+
 ### Radiation
 - Blocks now shield: radiation from waste, fallout and reactors is cut by
   every block between the source and the player, per the new block data map

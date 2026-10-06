@@ -1,0 +1,19 @@
+{
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:depleted_rtg_pellet"
+    }
+  ],
+  "processing_time": 100,
+  "results": [
+    {
+      "count": 3,
+      "id": "minecraft:iron_nugget"
+    },
+    {
+      "chance": 0.25,
+      "id": "create_nuclearindustry:radioactive_waste"
+    }
+  ]
+}

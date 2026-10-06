@@ -91,6 +91,11 @@ public final class LangEntries {
         item("uranyl_nitrate", "Uranyl Nitrate", "Nitrato de uranilo");
         item("plutonium_dioxide", "Plutonium Dioxide", "Dióxido de plutonio");
         item("plutonium", "Plutonium", "Plutonio");
+        add("block.create_nuclearindustry.rtg", "Radioisotope Generator", "Generador de radioisótopos");
+        item("plutonium_rtg_pellet", "Plutonium RTG Pellet", "Pastilla RTG de plutonio");
+        item("waste_rtg_pellet", "Waste RTG Pellet", "Pastilla RTG de residuos");
+        item("depleted_rtg_pellet", "Spent RTG Pellet", "Pastilla RTG agotada");
+        add("item.create_nuclearindustry.rtg_pellet.charge", "Charge: %s%%", "Carga: %s%%");
         item("mox_fuel_pellet", "MOX Fuel Pellet", "Pastilla de combustible MOX");
         item("incomplete_mox_reactor_fuel", "Incomplete MOX Fuel Assembly", "Elemento combustible MOX incompleto");
         item("mox_reactor_fuel", "MOX Fuel Assembly", "Elemento combustible MOX");
@@ -391,6 +396,9 @@ public final class LangEntries {
         add("jei.create_nuclearindustry.info.mox",
                 "MOX fuel mixes plutonium dioxide into depleted uranium dioxide. In a reactor it burns like 12% uranium, a little more reactive and hotter, and control rods hold it back less, so it needs more of them. Spent MOX is reprocessed like spent fuel but gives back less plutonium than went in.",
                 "El combustible MOX mezcla dióxido de plutonio con dióxido de uranio empobrecido. En un reactor arde como uranio al 12%, algo más reactivo y más caliente, y las barras de control lo frenan menos, así que necesita más. El MOX gastado se reprocesa como el combustible gastado, pero devuelve menos plutonio del que llevaba.");
+        add("jei.create_nuclearindustry.info.rtg",
+                "A small generator that turns decay heat into a steady 16 RPM, with no fuel to pump. Load it with RTG pellets by hand or by hopper: plutonium pellets give 256 stress capacity per RPM and halve in strength every 10 in-game days, waste pellets 64 and every 2 days. Below a quarter of their charge they come out spent. It irradiates its surroundings; wall it in with depleted uranium.",
+                "Un generador pequeño que convierte el calor de desintegración en 16 RPM constantes, sin combustible que bombear. Se carga con pastillas RTG a mano o por tolva: las de plutonio dan 256 de capacidad de stress por RPM y pierden la mitad de fuerza cada 10 días de juego; las de residuos, 64 y cada 2 días. Por debajo de una cuarta parte de su carga salen agotadas. Irradia a su alrededor: rodéalo de uranio empobrecido.");
         add("jei.create_nuclearindustry.category.electrolysis", "Electrolysis", "Electrólisis");
         add("jei.create_nuclearindustry.chance", "%s%% chance", "%s%% de probabilidad");
         add("jei.create_nuclearindustry.product", "Product: front face", "Producto: cara frontal");

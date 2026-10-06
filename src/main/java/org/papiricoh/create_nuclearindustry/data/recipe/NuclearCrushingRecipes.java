@@ -78,6 +78,13 @@ public class NuclearCrushingRecipes extends StandardProcessingRecipeGen<Crushing
                 .duration(200));
     }
 
+    // A spent RTG capsule gives back its iron and a little residue.
+    GeneratedRecipe DEPLETED_RTG_PELLET = create("depleted_rtg_pellet", b -> b
+            .require(AllNuclearItems.DEPLETED_RTG_PELLET.get())
+            .output(Items.IRON_NUGGET, 3)
+            .output(0.25f, AllNuclearItems.RADIOACTIVE_WASTE.get())
+            .duration(100));
+
     GeneratedRecipe SPENT_DT_PELLET = create("spent_dt_pellet", b -> b
             .require(AllNuclearItems.SPENT_DT_PELLET.get())
             .output(Items.IRON_NUGGET, 3)
