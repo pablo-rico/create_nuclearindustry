@@ -39,16 +39,18 @@ public class FalloutSourcesTests {
         ChunkPos origin = new ChunkPos(center);
         ContaminationData data = ContaminationData.get(level);
         try {
-            ContaminationTests.loadAround(level, origin, 3);
-            Contamination.fallout(level, center, 40, 10);
+            ContaminationTests.loadAround(level, origin, 4);
+            // Wherever the arena sits in its chunk, two chunks out is at most 41 blocks away and four
+            // chunks out diagonally at least 80: a radius of 56 always reaches one and never the other.
+            Contamination.fallout(level, center, 56, 10);
             float near = Contamination.get(level, origin);
             float far = Contamination.get(level, new ChunkPos(origin.x + 2, origin.z));
-            float out = Contamination.get(level, new ChunkPos(origin.x + 3, origin.z + 3));
+            float out = Contamination.get(level, new ChunkPos(origin.x + 4, origin.z + 4));
             helper.assertTrue(near > far && far > 0, "fallout should fade with distance: " + near + " then " + far);
             helper.assertTrue(out == 0, "nothing should land beyond the radius, got " + out);
             data.events().removeLast();
         } finally {
-            ContaminationTests.clean(helper, 3);
+            ContaminationTests.clean(helper, 4);
         }
         helper.succeed();
     }
