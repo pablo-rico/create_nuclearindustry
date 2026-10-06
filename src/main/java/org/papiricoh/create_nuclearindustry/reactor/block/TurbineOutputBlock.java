@@ -77,4 +77,23 @@ public class TurbineOutputBlock extends KineticBlock implements EntityBlock {
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
+
+    @Override
+    protected net.minecraft.world.InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                                                   net.minecraft.world.entity.player.Player player,
+                                                                   net.minecraft.world.phys.BlockHitResult hit) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof org.papiricoh.create_nuclearindustry.turbine.AbstractTurbineControllerBlockEntity turbine) {
+            turbine.attemptFormation(player);
+        }
+        return net.minecraft.world.InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock())
+                && level.getBlockEntity(pos) instanceof org.papiricoh.create_nuclearindustry.turbine.AbstractTurbineControllerBlockEntity turbine) {
+            turbine.onControllerRemoved();
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
 }

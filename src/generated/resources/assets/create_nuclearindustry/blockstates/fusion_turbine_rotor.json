@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "axis=x,formed=false": {
+      "model": "create_nuclearindustry:block/fusion_turbine_rotor",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,formed=true": {
+      "model": "create_nuclearindustry:block/fusion_turbine_rotor",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y,formed=false": {
+      "model": "create_nuclearindustry:block/fusion_turbine_rotor"
+    },
+    "axis=y,formed=true": {
+      "model": "create_nuclearindustry:block/fusion_turbine_rotor"
+    },
+    "axis=z,formed=false": {
+      "model": "create_nuclearindustry:block/fusion_turbine_rotor",
+      "x": 90
+    },
+    "axis=z,formed=true": {
+      "model": "create_nuclearindustry:block/fusion_turbine_rotor",
+      "x": 90
+    }
+  }
+}

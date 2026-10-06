@@ -8,10 +8,12 @@ public class Config
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     private static final ModConfigSpec.DoubleValue TURBINE_CAPACITY = BUILDER
-            .comment("Steam turbine stress capacity per RPM per port at full throughput (320 mB/t).")
+            .comment("Steam turbine stress capacity per RPM for every 320 mB/t of steam expanded",
+                    "(one full port pair, or four rotor stages at 80 mB/t each).")
             .defineInRange("turbines.steamCapacityPerPort", 32768.0, 0.0, 1.0e9);
     private static final ModConfigSpec.DoubleValue FUSION_TURBINE_CAPACITY = BUILDER
-            .comment("Plasma turbine stress capacity per RPM per port at full throughput (160 mB/t).")
+            .comment("Plasma turbine stress capacity per RPM for every 160 mB/t of plasma steam expanded",
+                    "(one full port pair, or four rotor stages at 40 mB/t each).")
             .defineInRange("turbines.plasmaCapacityPerPort", 65536.0, 0.0, 1.0e9);
     private static final ModConfigSpec.DoubleValue BORON_ABSORPTION = BUILDER
             .comment("Boron control rod absorption effectiveness, multiplied by the control/fuel rod ratio.",
