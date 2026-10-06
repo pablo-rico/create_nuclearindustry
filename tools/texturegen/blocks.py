@@ -999,3 +999,49 @@ def rtg_back():
     bevel(t, 0, 0, 15, 15, STEEL)
     hazard(t, 2, 6, 13, 9, WARN[5], DARK[1], period=4, seed=98)
     return t
+
+
+@block("radiation_scrubber_side")
+def radiation_scrubber_side():
+    # Steel housing around a glowing green filter cartridge behind a grille.
+    t = Tex(seed=96)
+    brushed(t, STEEL, base=3.0, amp=0.8, seed=96)
+    bevel(t, 0, 0, 15, 15, STEEL)
+    outline(t, 0, 0, 15, 15, STEEL[0])
+    t.rect(3, 3, 12, 12, DARK[0])
+    t.rect(4, 4, 11, 11, RADIUM[2])
+    for x in range(4, 12, 2):
+        t.vline(x, 4, 11, RADIUM[4])
+    for y in (4, 7, 10):
+        t.hline(4, 11, y, DARK[1])
+    t.set(7, 6, RADIUM[6])
+    t.set(8, 9, RADIUM[6])
+    for x, y in ((1, 1), (14, 1), (1, 14), (14, 14)):
+        rivet(t, x, y, STEEL)
+    return t
+
+
+@block("radiation_scrubber_top")
+def radiation_scrubber_top():
+    # Intake grate with the trefoil warning.
+    t = Tex(seed=97)
+    brushed(t, STEEL, base=3.2, amp=0.7, seed=97)
+    bevel(t, 0, 0, 15, 15, STEEL)
+    outline(t, 0, 0, 15, 15, STEEL[0])
+    t.disc(7.5, 7.5, 6.2, DARK[1])
+    t.disc(7.5, 7.5, 5.4, WARN[4])
+    trefoil(t, 7.5, 7.5, 4.8, DARK[0])
+    return t
+
+
+@block("radiation_scrubber_bottom")
+def radiation_scrubber_bottom():
+    # Plain plate around the drive shaft socket.
+    t = Tex(seed=98)
+    brushed(t, STEEL, base=2.8, amp=0.7, seed=98)
+    bevel(t, 0, 0, 15, 15, STEEL)
+    outline(t, 0, 0, 15, 15, STEEL[0])
+    t.disc(7.5, 7.5, 3.2, DARK[0])
+    t.ring(7.5, 7.5, 3.2, 2.4, STEEL[5])
+    t.rect(6, 6, 9, 9, DARK[2])
+    return t

@@ -72,6 +72,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.REACTOR_FUEL_PORT.value());
                 output.accept(AllNuclearItems.REACTOR_TEMPERATURE_SENSOR.value());
                 output.accept(AllNuclearItems.REACTOR_REDSTONE_PORT.value());
+                output.accept(AllNuclearItems.RADIATION_SCRUBBER.value());
                 output.accept(AllNuclearItems.RTG.value());
                 output.accept(AllNuclearItems.PLUTONIUM_RTG_PELLET.value());
                 output.accept(AllNuclearItems.WASTE_RTG_PELLET.value());

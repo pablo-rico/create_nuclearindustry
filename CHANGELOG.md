@@ -146,6 +146,10 @@ below for what changes in existing worlds.
 - Waste barrels now irradiate 1.0/s (was 0.1) and slowly leak into their
   chunk, unless they sit at Y=0 or lower: geologically stored waste neither
   irradiates nor leaks. A Ponder scene shows how to store it.
+- Radiation Scrubber: a kinetic block that draws contamination out of the
+  ground of its chunk and those around it, the worst first, faster up to
+  256 RPM. What it absorbs comes out as Radioactive Waste for funnels or
+  hoppers; when full it stops. Has a Ponder scene.
 - Dose HUD: rate, current dose with a bar up to radiation sickness and a
   lifetime total that never decays and survives death. It shows while there
   is a rate or a dose, can be moved or hidden in the client config, and is

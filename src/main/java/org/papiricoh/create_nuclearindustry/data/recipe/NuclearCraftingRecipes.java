@@ -197,6 +197,16 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .define('S', CreateItems.get("shaft"))
                 .unlockedBy("has_reactor_casing", has(AllNuclearItems.REACTOR_CASING.get()))
                 .save(output, id("crafting/rtg"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AllNuclearItems.RADIATION_SCRUBBER.get())
+                .pattern(" F ")
+                .pattern("PCP")
+                .pattern(" S ")
+                .define('F', CreateItems.get("filter"))
+                .define('P', CreateItems.get("iron_sheet"))
+                .define('C', AllNuclearItems.REACTOR_CASING.get())
+                .define('S', CreateItems.get("shaft"))
+                .unlockedBy("has_reactor_casing", has(AllNuclearItems.REACTOR_CASING.get()))
+                .save(output, id("crafting/radiation_scrubber"));
 
         // Plutonium's smaller critical mass: four pieces make a core, against eight of uranium.
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get())

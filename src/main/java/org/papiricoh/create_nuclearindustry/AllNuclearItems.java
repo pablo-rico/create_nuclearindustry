@@ -113,6 +113,8 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> PLUTONIUM_DIOXIDE = simple("plutonium_dioxide");
     public static final DeferredHolder<Item, ? extends Item> PLUTONIUM = ITEMS.register("plutonium", () -> new Item(new Item.Properties().stacksTo(8)));
 
+    public static final DeferredHolder<Item, ? extends Item> RADIATION_SCRUBBER = ITEMS.register("radiation_scrubber", () -> new BlockItem(AllNuclearBlocks.RADIATION_SCRUBBER.value(), new Item.Properties()));
+
     // RTG
     public static final DeferredHolder<Item, ? extends Item> RTG = ITEMS.register("rtg", () -> new BlockItem(AllNuclearBlocks.RTG.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> PLUTONIUM_RTG_PELLET = ITEMS.register("plutonium_rtg_pellet",

@@ -100,6 +100,18 @@ public class Config
     private static final ModConfigSpec.IntValue WATER_COLUMNS_PER_TICK = BUILDER
             .comment("Water columns per tick checked for fallout settling on them (256 is one chunk). Zero leaves water clean.")
             .defineInRange("contamination.waterColumnsPerTick", 256, 0, 65536);
+    private static final ModConfigSpec.DoubleValue SCRUBBER_RATE = BUILDER
+            .comment("Contamination (rad/s) a Radiation Scrubber at 256 RPM or more removes each second, shared among the chunks it reaches.")
+            .defineInRange("contamination.scrubberRate", 0.05, 0.0, 1000.0);
+    private static final ModConfigSpec.IntValue SCRUBBER_RADIUS = BUILDER
+            .comment("Chunks around its own a Radiation Scrubber reaches: 1 is a 3x3 area.")
+            .defineInRange("contamination.scrubberRadius", 1, 0, 4);
+    private static final ModConfigSpec.DoubleValue SCRUBBER_WASTE_PER = BUILDER
+            .comment("Contamination a Radiation Scrubber absorbs for each Radioactive Waste it produces.")
+            .defineInRange("contamination.scrubberWastePer", 2.0, 0.01, 1000.0);
+    private static final ModConfigSpec.DoubleValue SCRUBBER_STRESS = BUILDER
+            .comment("Stress impact of a Radiation Scrubber, in SU per RPM.")
+            .defineInRange("contamination.scrubberStress", 8.0, 0.0, 1.0e6);
     private static final ModConfigSpec.DoubleValue COOLING_TOWER_PASSIVE = BUILDER
             .comment("Steam a cooling tower condenses without fans, in mB/t per block of base radius per layer of height.")
             .defineInRange("coolingTower.passivePerBlock", 1.0, 0.0, 100.0);
@@ -143,6 +155,10 @@ public class Config
     public static double barrelLeak = 0.02;
     public static int geologicalStorageMaxY = 0;
     public static int waterColumnsPerTick = 256;
+    public static double scrubberRate = 0.05;
+    public static int scrubberRadius = 1;
+    public static double scrubberWastePer = 2.0;
+    public static double scrubberStress = 8.0;
     public static double coolingTowerPassivePerBlock = 1.0;
     public static double coolingTowerFanStress = 8.0;
     public static double coolingTowerFanBoost = 0.25;
@@ -191,6 +207,10 @@ public class Config
         barrelLeak = BARREL_LEAK.get();
         geologicalStorageMaxY = STORAGE_MAX_Y.get();
         waterColumnsPerTick = WATER_COLUMNS_PER_TICK.get();
+        scrubberRate = SCRUBBER_RATE.get();
+        scrubberRadius = SCRUBBER_RADIUS.get();
+        scrubberWastePer = SCRUBBER_WASTE_PER.get();
+        scrubberStress = SCRUBBER_STRESS.get();
         coolingTowerPassivePerBlock = COOLING_TOWER_PASSIVE.get();
         coolingTowerFanStress = COOLING_TOWER_FAN_STRESS.get();
         coolingTowerFanBoost = COOLING_TOWER_FAN_BOOST.get();

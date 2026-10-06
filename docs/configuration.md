@@ -48,6 +48,10 @@ doseScale = 1.0
 barrelLeak = 0.02
 geologicalStorageMaxY = 0
 waterColumnsPerTick = 256
+scrubberRate = 0.05
+scrubberRadius = 1
+scrubberWastePer = 2.0
+scrubberStress = 8.0
 ```
 
 ## Turbinas
@@ -216,6 +220,13 @@ contaminada (con probabilidad gravedad/7). Los chunks esperan en una cola y se
 revisan `waterColumnsPerTick` columnas por tick (256 = un chunk). El agua
 contaminada irradia 0,3 rad/s por fuente (igual que su cubo) y la centrifuga la
 separa en agua limpia y residuos.
+
+El Absorbedor de radiacion limpia el suelo: accionado desde abajo, quita cada
+segundo `scrubberRate` rad/s (a 256 RPM o mas; menos si gira mas despacio) de su
+chunk y de los que estan a `scrubberRadius` chunks, empezando por el mas
+contaminado. Cada `scrubberWastePer` absorbidos produce un Residuo radiactivo
+en su unica ranura, que se vacia con embudos o tolvas; lleno, se para. Consume
+`scrubberStress` SU por RPM.
 
 Un barril en `geologicalStorageMaxY` o mas abajo (Y=0 por defecto) cuenta como
 almacenado: ni irradia ni contamina. La regla es solo la profundidad; el

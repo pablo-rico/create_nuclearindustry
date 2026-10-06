@@ -21,6 +21,7 @@
     "create_nuclearindustry:electrolyzer",
     "create_nuclearindustry:radioactive_waste_barrel",
     "create_nuclearindustry:depleted_uranium_block",
+    "create_nuclearindustry:radiation_scrubber",
     "create_nuclearindustry:rtg",
     "create_nuclearindustry:reinforced_turbine_glass",
     "create_nuclearindustry:turbine_casing",

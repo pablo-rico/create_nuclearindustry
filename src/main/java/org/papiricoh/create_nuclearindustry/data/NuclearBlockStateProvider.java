@@ -108,6 +108,8 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         facingStates(AllNuclearBlocks.TURBINE_OUTPUT.get(), "turbine_output");
         simpleBlockWithItem(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get(), cubeAll(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get()));
         redstonePortStates();
+        simpleBlockWithItem(AllNuclearBlocks.RADIATION_SCRUBBER.get(), models().cubeBottomTop("radiation_scrubber",
+                modLoc("block/radiation_scrubber_side"), modLoc("block/radiation_scrubber_bottom"), modLoc("block/radiation_scrubber_top")));
         // The RTG's model faces north with its shaft opening; the shaft points along FACING.
         ModelFile rtg = models().getExistingFile(modLoc("block/rtg"));
         directionalBlock(AllNuclearBlocks.RTG.get(), rtg);

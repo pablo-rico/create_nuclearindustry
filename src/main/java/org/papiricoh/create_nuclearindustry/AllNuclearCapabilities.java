@@ -53,6 +53,12 @@ public class AllNuclearCapabilities {
         );
 
         event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                AllNuclearEntities.RADIATION_SCRUBBER.get(),
+                (scrubber, direction) -> scrubber.getAutomationHandler()
+        );
+
+        event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
                 AllNuclearEntities.TURBINE_EXHAUST_PORT.get(),
                 (port, direction) -> port.getFluidHandler(direction)

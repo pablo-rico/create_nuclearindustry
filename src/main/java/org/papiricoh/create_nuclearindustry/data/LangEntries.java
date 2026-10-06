@@ -292,6 +292,7 @@ public final class LangEntries {
         block("spodumene_ore", "Spodumene Ore", "Mena de espodumena");
         block("electrolyzer", "Electrolyzer", "Electrolizador");
         block("radioactive_waste_barrel", "Radioactive Waste Barrel", "Barril de residuos radiactivos");
+        block("radiation_scrubber", "Radiation Scrubber", "Absorbedor de radiación");
         block("reinforced_turbine_glass", "Reinforced Turbine Glass", "Vidrio reforzado de turbina");
         block("fusion_central_solenoid", "Central Solenoid", "Solenoide central");
         item("geiger_counter", "Geiger Counter", "Contador Geiger");
@@ -479,6 +480,18 @@ public final class LangEntries {
         add("create_nuclearindustry.ponder.rtg.text_4",
                 "...so wall it in. A Block of Depleted Uranium lets only a tenth of the radiation through.",
                 "...así que rodéalo. Un Bloque de uranio empobrecido solo deja pasar una décima parte de la radiación.");
+        add("create_nuclearindustry.ponder.radiation_scrubber.header",
+                "Radiation Scrubbers",
+                "Absorbedores de radiación");
+        add("create_nuclearindustry.ponder.radiation_scrubber.text_1",
+                "Fallout leaves the ground contaminated: green dust rises from it, and standing on it irradiates.",
+                "La lluvia radiactiva deja el suelo contaminado: de él sube un polvo verde y estar encima irradia.");
+        add("create_nuclearindustry.ponder.radiation_scrubber.text_2",
+                "A Radiation Scrubber draws it out of the ground of its chunk and the eight around it, the worst first. Drive it from below: it cleans faster up to 256 RPM.",
+                "Un Absorbedor de radiación la saca del suelo de su chunk y de los ocho de alrededor, empezando por el peor. Acciónalo desde abajo: limpia más rápido hasta 256 RPM.");
+        add("create_nuclearindustry.ponder.radiation_scrubber.text_3",
+                "What it absorbs comes out as Radioactive Waste. Take it out with a funnel or hopper: full, it stops, and the waste inside irradiates.",
+                "Lo que absorbe sale como Residuos radiactivos. Sácalos con un embudo o una tolva: lleno se detiene, y los residuos de dentro irradian.");
         add("create_nuclearindustry.ponder.waste_storage.header",
                 "Geological Waste Storage",
                 "Almacenamiento geológico de residuos");
