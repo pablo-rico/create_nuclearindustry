@@ -1,6 +1,9 @@
 package org.papiricoh.create_nuclearindustry.data;
 
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
+import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -41,5 +44,10 @@ public class NuclearItemModelProvider extends ItemModelProvider {
         for (Supplier<? extends Item> item : flat) {
             basicItem(item.get());
         }
+
+        // Bucket drawn with the fluid's own texture and tint.
+        withExistingParent("steam_bucket", ResourceLocation.fromNamespaceAndPath("neoforge", "item/bucket"))
+                .customLoader(DynamicFluidContainerModelBuilder::begin)
+                .fluid(AllNuclearFluids.STEAM.get());
     }
 }
