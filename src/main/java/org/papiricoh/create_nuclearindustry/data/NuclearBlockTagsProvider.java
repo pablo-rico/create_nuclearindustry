@@ -61,6 +61,16 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
                 AllNuclearBlocks.FUSION_FUEL_INJECTOR.get(),
                 AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get(),
                 AllNuclearBlocks.FUSION_BREEDING_BLANKET.get(),
-                AllNuclearBlocks.FUSION_CONTROLLER.get());
+                AllNuclearBlocks.FUSION_CONTROLLER.get(),
+                AllNuclearBlocks.TURBINE_CASING.get(),
+                AllNuclearBlocks.TURBINE_ROTOR.get(),
+                AllNuclearBlocks.TURBINE_OUTPUT.get(),
+                AllNuclearBlocks.TURBINE_FLUID_PORT.get(),
+                AllNuclearBlocks.FUSION_TURBINE_CASING.get(),
+                AllNuclearBlocks.FUSION_TURBINE_ROTOR.get(),
+                AllNuclearBlocks.FUSION_TURBINE_FLUID_PORT.get(),
+                AllNuclearBlocks.FUSION_PLASMA_TURBINE.get(),
+                AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get());
+        tag(BlockTags.IMPERMEABLE).add(AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get());
     }
 }

@@ -57,6 +57,10 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> CENTRIFUGE = BLOCKS.register("centrifuge", () -> new CentrifugeBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> ELECTROLYZER = BLOCKS.register("electrolyzer", () -> new org.papiricoh.create_nuclearindustry.chemistry.electrolyzer.ElectrolyzerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(3.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> RADIOACTIVE_WASTE_BARREL = BLOCKS.register("radioactive_waste_barrel", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_YELLOW).strength(4.0f, 12.0f).requiresCorrectToolForDrops()));
+    public static final DeferredHolder<Block, ? extends Block> REINFORCED_TURBINE_GLASS = BLOCKS.register("reinforced_turbine_glass", () -> new org.papiricoh.create_nuclearindustry.turbine.block.TurbineGlassBlock(BlockBehaviour.Properties.of()
+            .mapColor(MapColor.NONE).strength(3.0f, 1200.0f).sound(net.minecraft.world.level.block.SoundType.GLASS).noOcclusion()
+            .isValidSpawn((state, level, pos, type) -> false).isRedstoneConductor((state, level, pos) -> false)
+            .isSuffocating((state, level, pos) -> false).isViewBlocking((state, level, pos) -> false)));
     public static final DeferredHolder<Block, ? extends Block> TURBINE_CASING = BLOCKS.register("turbine_casing", () -> new TurbineCasingBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f)));
     public static final DeferredHolder<Block, ? extends Block> TURBINE_ROTOR = BLOCKS.register("turbine_rotor", () -> new TurbineRotorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> TURBINE_OUTPUT = BLOCKS.register("turbine_output", () -> new TurbineOutputBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f).noOcclusion()));

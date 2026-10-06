@@ -28,6 +28,7 @@
   "block.create_nuclearindustry.reactor_fluid_port": "Puerto de fluido de reactor",
   "block.create_nuclearindustry.reactor_fuel_port": "Puerto de combustible de reactor",
   "block.create_nuclearindustry.reactor_temperature_sensor": "Sensor de temperatura",
+  "block.create_nuclearindustry.reinforced_turbine_glass": "Vidrio reforzado de turbina",
   "block.create_nuclearindustry.spodumene_ore": "Mena de espodumena",
   "block.create_nuclearindustry.turbine_casing": "Carcasa de turbina",
   "block.create_nuclearindustry.turbine_fluid_port": "Puerto de fluido de turbina",

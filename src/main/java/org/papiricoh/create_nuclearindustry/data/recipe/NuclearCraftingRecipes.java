@@ -96,6 +96,15 @@ public class NuclearCraftingRecipes extends RecipeProvider {
         hazmat(output, AllNuclearItems.HAZMAT_LEGGINGS.get(), "WWW", "W W", "W W");
         hazmat(output, AllNuclearItems.HAZMAT_BOOTS.get(), "W W", "I I", null);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.REINFORCED_TURBINE_GLASS.get(), 4)
+                .pattern("PGP")
+                .pattern("G G")
+                .pattern("PGP")
+                .define('P', CreateItems.get("iron_sheet"))
+                .define('G', Items.GLASS)
+                .unlockedBy("has_glass", has(Items.GLASS))
+                .save(output, id("crafting/reinforced_turbine_glass"));
+
         // Legacy item from an unfinished recipe chain: turn any leftovers into usable oxide.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, enriched(AllNuclearItems.URANIUM_DIOXIDE.get(), EnrichmentTier.LOW))
                 .requires(AllNuclearItems.ENRICHED_URANIUM_BLEND.get())

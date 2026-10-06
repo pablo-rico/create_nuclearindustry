@@ -16,6 +16,15 @@
     "create_nuclearindustry:fusion_fuel_injector",
     "create_nuclearindustry:fusion_central_solenoid",
     "create_nuclearindustry:fusion_breeding_blanket",
-    "create_nuclearindustry:fusion_controller"
+    "create_nuclearindustry:fusion_controller",
+    "create_nuclearindustry:turbine_casing",
+    "create_nuclearindustry:turbine_rotor",
+    "create_nuclearindustry:turbine_output",
+    "create_nuclearindustry:turbine_fluid_port",
+    "create_nuclearindustry:fusion_turbine_casing",
+    "create_nuclearindustry:fusion_turbine_rotor",
+    "create_nuclearindustry:fusion_turbine_fluid_port",
+    "create_nuclearindustry:fusion_plasma_turbine",
+    "create_nuclearindustry:reinforced_turbine_glass"
   ]
 }

@@ -46,6 +46,11 @@ def main():
             assert im.getbbox() is not None, name
             if name in special:
                 continue
+            cutout = name.startswith("block/") and name[len("block/"):-4] in blocks.CUTOUT_BLOCKS
+            if cutout:
+                assert im.size == blocks.CUTOUT_BLOCKS[name[len("block/"):-4]], name
+                assert set(im.getchannel("A").tobytes()) == {0, 255}, "Cutout texture needs clear and opaque pixels: " + name
+                continue
             assert im.width == 16 and im.height % 16 == 0, name
             alpha = im.getchannel("A")
             assert set(alpha.tobytes()) <= {0, 255}, "Blended alpha: " + name

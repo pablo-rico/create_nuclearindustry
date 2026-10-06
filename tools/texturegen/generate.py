@@ -43,7 +43,8 @@ def main():
         t = fn()
         p = os.path.join(args.out, "block", name + ".png")
         write(p, t.im)
-        made.append((p, t.im))
+        # connected-texture sheets show their isolated tile on the contact sheet
+        made.append((p, t.im.crop((0, 48, 16, 64)) if t.im.size == (64, 64) else t.im))
 
     for name, fn in sorted(items.ITEMS.items()):
         t = fn()

@@ -20,6 +20,9 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
                 modLoc("block/fusion_central_solenoid_side"), modLoc("block/fusion_central_solenoid_top"));
         simpleBlockItem(AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get(), models().getExistingFile(modLoc("block/fusion_central_solenoid")));
         simpleBlockWithItem(AllNuclearBlocks.FUSION_BREEDING_BLANKET.get(), cubeAll(AllNuclearBlocks.FUSION_BREEDING_BLANKET.get()));
+        simpleBlockWithItem(AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get(), models()
+                .cubeAll("reinforced_turbine_glass", modLoc("block/reinforced_turbine_glass"))
+                .renderType("cutout"));
         simpleBlockWithItem(AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get(), models().cubeBottomTop("radioactive_waste_barrel",
                 modLoc("block/radioactive_waste_barrel_side"),
                 modLoc("block/radioactive_waste_barrel_top"),

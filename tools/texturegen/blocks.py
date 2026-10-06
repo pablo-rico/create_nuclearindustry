@@ -456,6 +456,70 @@ def centrifuge_shaft():
 
 
 # ======================================================================================
+# reinforced turbine glass (connected textures)
+# ======================================================================================
+
+# Textures drawn with transparent pixels; validate.py checks these against their own sizes.
+CUTOUT_BLOCKS = {
+    "reinforced_turbine_glass": (16, 16),
+    "reinforced_turbine_glass_connected": (64, 64),
+}
+
+
+def _glass_tile(t, ox, oy, left, right, top, bottom):
+    """One 16x16 pane at (ox, oy). Borders are drawn only where the pane meets a non-glass
+    neighbour, so tiles join seamlessly; the wire mesh uses tile-local coordinates so it lines
+    up across joined panes."""
+    for y in range(16):
+        for x in range(16):
+            px = None
+            if (x % 8 == 3 and y % 8 != 3) or (y % 8 == 3 and x % 8 != 3):
+                px = STEEL[2]
+            elif x % 8 == 3 and y % 8 == 3:
+                px = STEEL[4]
+            t.set(ox + x, oy + y, px) if px else None
+    # faint glint, drawn opaque so cutout rendering keeps it
+    for i in range(3):
+        t.set(ox + 10 + i, oy + 5 - i, STEEL[6])
+    edges = []
+    if top:
+        edges += [(x, 0, 1) for x in range(16)] + [(x, 1, 0) for x in range(16)]
+    if bottom:
+        edges += [(x, 15, 1) for x in range(16)] + [(x, 14, 0) for x in range(16)]
+    if left:
+        edges += [(0, y, 1) for y in range(16)] + [(1, y, 0) for y in range(16)]
+    if right:
+        edges += [(15, y, 1) for y in range(16)] + [(14, y, 0) for y in range(16)]
+    for x, y, outer in edges:
+        t.set(ox + x, oy + y, DARK[1] if outer else STEEL[5 if (x + y) % 2 else 4])
+    # bolts where two bordered sides meet
+    for cx, cy, on in ((2, 2, top and left), (13, 2, top and right), (2, 13, bottom and left), (13, 13, bottom and right)):
+        if on:
+            t.set(ox + cx, oy + cy, BRASS[5])
+
+
+@block("reinforced_turbine_glass")
+def reinforced_turbine_glass():
+    t = Tex(seed=41)
+    _glass_tile(t, 0, 0, True, True, True, True)
+    return t
+
+
+@block("reinforced_turbine_glass_connected")
+def reinforced_turbine_glass_connected():
+    """Create's RECTANGLE layout: 4x4 tiles, index = col + 4*row.
+    col 0 isolated, 1 joined right, 2 joined both, 3 joined left;
+    row 0 joined down, 1 joined both, 2 joined up, 3 isolated."""
+    t = Tex(64, 64, 42)
+    for row in range(4):
+        for col in range(4):
+            _glass_tile(t, col * 16, row * 16,
+                        left=col in (0, 1), right=col in (0, 3),
+                        top=row in (0, 3), bottom=row in (2, 3))
+    return t
+
+
+# ======================================================================================
 # waste storage
 # ======================================================================================
 

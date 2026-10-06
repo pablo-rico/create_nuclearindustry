@@ -247,6 +247,7 @@ public final class LangEntries {
         block("spodumene_ore", "Spodumene Ore", "Mena de espodumena");
         block("electrolyzer", "Electrolyzer", "Electrolizador");
         block("radioactive_waste_barrel", "Radioactive Waste Barrel", "Barril de residuos radiactivos");
+        block("reinforced_turbine_glass", "Reinforced Turbine Glass", "Vidrio reforzado de turbina");
         block("fusion_central_solenoid", "Central Solenoid", "Solenoide central");
         item("geiger_counter", "Geiger Counter", "Contador Geiger");
         add("item.create_nuclearindustry.geiger_counter.reading", "☢ %s rad/s   dose %s rad", "☢ %s rad/s   dosis %s rad");

@@ -61,6 +61,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.CENTRIFUGE.value());
                 output.accept(AllNuclearItems.ELECTROLYZER.value());
                 output.accept(AllNuclearItems.TURBINE_CASING.value());
+                output.accept(AllNuclearItems.REINFORCED_TURBINE_GLASS.value());
                 output.accept(AllNuclearItems.TURBINE_ROTOR.value());
                 output.accept(AllNuclearItems.TURBINE_OUTPUT.value());
                 output.accept(AllNuclearItems.TURBINE_FLUID_PORT.value());
