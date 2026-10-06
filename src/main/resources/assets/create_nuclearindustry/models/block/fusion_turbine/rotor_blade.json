@@ -1,0 +1,7 @@
+{
+  "parent": "create_nuclearindustry:block/turbine/rotor_blade",
+  "textures": {
+    "blade": "create_nuclearindustry:block/fusion_turbine_blade",
+    "particle": "create_nuclearindustry:block/fusion_turbine_blade"
+  }
+}

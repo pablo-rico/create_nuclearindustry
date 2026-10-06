@@ -1,0 +1,21 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "core": "create_nuclearindustry:block/turbine_rotor_core",
+    "particle": "create_nuclearindustry:block/turbine_rotor_core"
+  },
+  "elements": [
+    {
+      "from": [5, 0, 5],
+      "to": [11, 16, 11],
+      "faces": {
+        "north": {"uv": [5, 0, 11, 16], "texture": "#core"},
+        "east": {"uv": [5, 0, 11, 16], "texture": "#core"},
+        "south": {"uv": [5, 0, 11, 16], "texture": "#core"},
+        "west": {"uv": [5, 0, 11, 16], "texture": "#core"},
+        "up": {"uv": [5, 5, 11, 11], "texture": "#core"},
+        "down": {"uv": [5, 5, 11, 11], "texture": "#core"}
+      }
+    }
+  ]
+}

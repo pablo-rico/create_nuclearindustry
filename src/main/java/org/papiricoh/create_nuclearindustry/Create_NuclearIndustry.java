@@ -89,6 +89,7 @@ public class Create_NuclearIndustry {
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             PonderIndex.addPlugin(new NuclearPonderPlugin());
+            org.papiricoh.create_nuclearindustry.turbine.client.NuclearClient.init(modEventBus);
             modEventBus.addListener(ClientModEvents::onRegisterScreens);
             modEventBus.addListener(ClientModEvents::onRegisterRenderers);
             modEventBus.addListener(AllNuclearFluids::registerClientExtensions);
@@ -107,6 +108,10 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.missile.client.LaunchPadRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.CENTRIFUGE.get(), ProcessingMachineRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.ELECTROLYZER.get(), ProcessingMachineRenderer::new);
+            event.registerBlockEntityRenderer(AllNuclearEntities.TURBINE_OUTPUT.get(),
+                    org.papiricoh.create_nuclearindustry.turbine.client.TurbineRenderer::new);
+            event.registerBlockEntityRenderer(AllNuclearEntities.FUSION_PLASMA_TURBINE.get(),
+                    org.papiricoh.create_nuclearindustry.turbine.client.TurbineRenderer::new);
         }
 
         public static void onRegisterScreens(RegisterMenuScreensEvent event) {
