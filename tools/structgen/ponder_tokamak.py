@@ -3,7 +3,7 @@
 
     python3 tools/structgen/ponder_tokamak.py
 
-Mirrors TokamakGeometry: rho = round(sqrt(dx^2 + dz^2)); plasma |rho-R|<=1, |dy|<=1;
+Mirrors TokamakGeometry (TokamakScenes relies on this layout): rho = round(sqrt(dx^2 + dz^2)); plasma |rho-R|<=1, |dy|<=1;
 shell is the rest of |rho-R|<=2, |dy|<=2. Layout matches TokamakScenes.
 """
 import math
@@ -56,13 +56,15 @@ def main():
     for dy in range(-2, 3):
         blocks[(cx, cy + dy, cz)] = (NS + "fusion_central_solenoid", {"axis": "y"})
 
+    # Ponder looks from the north-west: controller, ports and magnet drive face that way;
+    # the injector sits on the east side and the scene turns the camera to show it.
     edge = R + 2
-    blocks[(cx + edge, cy, cz)] = (NS + "fusion_controller", {"on": "false", "ignited": "false"})
-    blocks[(cx + edge, cy + 1, cz)] = (NS + "fusion_fluid_port", {"facing": "east", "mode": "input"})
-    blocks[(cx + edge, cy - 1, cz)] = (NS + "fusion_fluid_port", {"facing": "east", "mode": "output"})
-    blocks[(cx - edge, cy, cz)] = (NS + "fusion_fuel_injector", {"facing": "west", "mode": "input"})
-    blocks[(cx, cy, cz + edge)] = (NS + "fusion_magnet_input", {"facing": "south"})
-    blocks[(cx, cy, cz + edge + 1)] = ("create:shaft", {"axis": "z"})
+    blocks[(cx - edge, cy, cz)] = (NS + "fusion_controller", {"on": "false", "ignited": "false"})
+    blocks[(cx - edge, cy + 1, cz)] = (NS + "fusion_fluid_port", {"facing": "west", "mode": "input"})
+    blocks[(cx - edge, cy - 1, cz)] = (NS + "fusion_fluid_port", {"facing": "west", "mode": "output"})
+    blocks[(cx + edge, cy, cz)] = (NS + "fusion_fuel_injector", {"facing": "east", "mode": "input"})
+    blocks[(cx, cy, cz - edge)] = (NS + "fusion_magnet_input", {"facing": "north"})
+    blocks[(cx, cy, cz - edge - 1)] = ("create:shaft", {"axis": "z"})
 
     data = nbtwriter.structure((SIZE, 6, SIZE), blocks)
     for path in (OUT, TEST_OUT):

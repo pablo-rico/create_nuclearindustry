@@ -43,7 +43,7 @@ public class TokamakFormationTests {
     @GameTest(template = "gametest/tokamak_r4")
     public static void ponderSchematicForms(GameTestHelper helper) {
         // Templates are placed one block above the test origin.
-        BlockPos controller = new BlockPos(13, 4, 7);
+        BlockPos controller = new BlockPos(1, 4, 7);
         helper.runAfterDelay(2, () -> {
             MultiblockValidationResult<?> result = TokamakStructureValidator.validate(helper.getLevel(), helper.absolutePos(controller));
             helper.assertTrue(result.formed(), "the Ponder tokamak should be valid: " + result.primaryMessage());

@@ -4,10 +4,11 @@
     python3 tools/structgen/ponder_turbine.py
 
 Layout (matches TurbineScenes): base plate at y=0; turbine along Z over x 2..6, y 1..5,
-z 1..7; controller at (4,3,7) facing south with a shaft at (4,3,8); rotors at (4,3,2..6);
-input port on top at (4,5,4); output port on the west wall at (2,3,4); glass across the
-east wall (x=6, y 2..4, z 2..6). Each schematic is also written as a GameTest template so
-a test can prove it forms.
+z 1..7. Ponder looks from the north-west, so the parts worth seeing face that way: the
+controller at (4,3,1) facing north with its shaft at (4,3,0), and glass across the west
+wall (x=2, y 2..4, z 2..6) to watch the rotor. Rotors at (4,3,2..6); input port on top at
+(4,5,4); output port on the east wall at (6,3,4) (the scene turns the camera for it).
+Each schematic is also written as a GameTest template so a test can prove it forms.
 """
 import pathlib
 
@@ -44,11 +45,11 @@ def build(tier):
         blocks[(4, 3, z)] = (NS + tier["rotor"], {"axis": "z", "formed": "false"})
     for y in range(2, 5):
         for z in range(2, 7):
-            blocks[(6, y, z)] = (NS + "reinforced_turbine_glass", {})
+            blocks[(2, y, z)] = (NS + "reinforced_turbine_glass", {})
     blocks[(4, 5, 4)] = (NS + tier["port"], {"facing": "up", "mode": "input"})
-    blocks[(2, 3, 4)] = (NS + tier["port"], {"facing": "west", "mode": "output"})
-    blocks[(4, 3, 7)] = (NS + tier["controller"], {"facing": "south"})
-    blocks[(4, 3, 8)] = ("create:shaft", {"axis": "z"})
+    blocks[(6, 3, 4)] = (NS + tier["port"], {"facing": "east", "mode": "output"})
+    blocks[(4, 3, 1)] = (NS + tier["controller"], {"facing": "north"})
+    blocks[(4, 3, 0)] = ("create:shaft", {"axis": "z"})
     return nbtwriter.structure(SIZE, blocks)
 
 

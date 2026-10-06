@@ -154,7 +154,7 @@ public class TurbineStructureTests {
 
     private static void ponderSchematicForms(GameTestHelper helper, TurbineTier tier) {
         // Templates are placed one block above the test origin.
-        BlockPos controller = new BlockPos(4, 4, 7);
+        BlockPos controller = new BlockPos(4, 4, 1);
         helper.runAfterDelay(2, () -> {
             MultiblockValidationResult<TurbineStructure> result = TurbineTestBuilder.validate(helper, tier, controller);
             helper.assertTrue(result.formed(), "the Ponder turbine should be valid: " + result.primaryMessage());
