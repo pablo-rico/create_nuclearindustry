@@ -50,7 +50,10 @@ public abstract class TurbinePortBlockEntity extends BlockEntity implements IHav
         if (level == null || level.isClientSide) {
             return;
         }
-        if (link.tick()) {
+        // Only a real change of controller may invalidate the capability: Create's pipes reset
+        // their fluid network on every invalidation, so doing it on each rescan stops the flow.
+        var before = link.linkedPos();
+        if (link.tick() && !link.linkedPos().equals(before)) {
             sync();
         }
         if (link.linkedPos().isEmpty()) {

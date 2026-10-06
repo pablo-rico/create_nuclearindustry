@@ -80,6 +80,10 @@ below for what changes in existing worlds.
 - New Reinforced Turbine Glass with connected textures for the faces.
 - A formed turbine renders one large spinning rotor and the steam filling
   it, and hums with its load.
+- Turbine, cooling tower and tokamak ports no longer invalidate their fluid
+  capability every second, which kept resetting Create pipe networks: water
+  pumped out of a turbine never reached its tank and the turbine stalled
+  with a full condensate tank.
 - Turbine casings now craft four at a time. Ports work on every side and
   no longer scan the area on every call.
 
