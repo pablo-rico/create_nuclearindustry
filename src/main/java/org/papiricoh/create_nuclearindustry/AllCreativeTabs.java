@@ -127,6 +127,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.DEUTERIUM_CELL.value());
                 output.accept(AllNuclearItems.TRITIUM_CELL.value());
                 output.accept(AllNuclearItems.SPENT_DT_PELLET.value());
+                NuclearFeatures.fillCreativeTab(parameters, output);
                 CBCNuclearIntegration.addCreativeItems(output);
             }).build());
 

@@ -80,6 +80,7 @@ public class Create_NuclearIndustry {
         AllNuclearSounds.SOUNDS.register(modEventBus);
 
         CBCNuclearIntegration.init(modEventBus);
+        NuclearFeatures.register(modEventBus);
 
         AllNuclearFluids.FLUID_TYPES.register(modEventBus);
         AllNuclearFluids.FLUIDS.register(modEventBus);
@@ -100,6 +101,7 @@ public class Create_NuclearIndustry {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             PonderIndex.addPlugin(new NuclearPonderPlugin());
             org.papiricoh.create_nuclearindustry.turbine.client.NuclearClient.init(modEventBus);
+            org.papiricoh.create_nuclearindustry.client.NuclearFeaturesClient.init(modEventBus);
             modEventBus.addListener(ClientModEvents::onRegisterScreens);
             modEventBus.addListener(ClientModEvents::onRegisterRenderers);
             modEventBus.addListener(ClientModEvents::onRegisterGeometryLoaders);
@@ -135,11 +137,13 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.controlroom.client.ControlMonitorRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.REACTOR_CONTROL_PANEL.get(),
                     org.papiricoh.create_nuclearindustry.controlroom.desk.client.ControlDeskRenderer::new);
+            org.papiricoh.create_nuclearindustry.client.NuclearFeaturesClient.registerRenderers(event);
         }
 
         public static void onRegisterGeometryLoaders(net.neoforged.neoforge.client.event.ModelEvent.RegisterGeometryLoaders event) {
             event.register(org.papiricoh.create_nuclearindustry.controlroom.desk.client.DeskCornerModel.LOADER_ID,
                     org.papiricoh.create_nuclearindustry.controlroom.desk.client.DeskCornerModel.Loader.INSTANCE);
+            org.papiricoh.create_nuclearindustry.client.NuclearFeaturesClient.registerGeometryLoaders(event);
         }
 
         public static void onRegisterScreens(RegisterMenuScreensEvent event) {
@@ -153,6 +157,7 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadScreen::new);
             event.register(AllNuclearGUIs.TOKAMAK_MENU.get(),
                     org.papiricoh.create_nuclearindustry.fusion.gui.TokamakScreen::new);
+            org.papiricoh.create_nuclearindustry.client.NuclearFeaturesClient.registerScreens(event);
         }
     }
 

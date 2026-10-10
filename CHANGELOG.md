@@ -228,6 +228,24 @@ below for what changes in existing worlds.
   is a rate or a dose, can be moved or hidden in the client config, and is
   only sent to its own player when its rounded values change.
 
+### Pressurized water reactors and accidents
+<!-- pwr: filled by its work package -->
+
+### Spent fuel
+<!-- spentfuel: filled by its work package -->
+
+### Waste management
+<!-- waste: filled by its work package -->
+
+### Control room instruments
+<!-- controlroom2: filled by its work package -->
+
+### Civil defense
+<!-- civildefense: filled by its work package -->
+
+### Ponder: the nuclear power plant
+<!-- plantponder: filled by its work package -->
+
 ### Technical
 - Ground contamination and the dose HUD reach clients through NeoForge's
   synced data attachments (a byte per contaminated chunk, a few bytes per

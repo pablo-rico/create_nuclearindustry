@@ -8,6 +8,7 @@ import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.display.ReactorReadout;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PlantReadings;
 import org.papiricoh.create_nuclearindustry.turbine.AbstractTurbineControllerBlockEntity;
 import org.papiricoh.create_nuclearindustry.turbine.TurbineDisplay;
 
@@ -25,6 +26,14 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     // Reactor
     public static final int R_TEMPERATURE = 0, R_POWER = 1, R_NEUTRONS = 2, R_REACTIVITY = 3, R_XENON = 4, R_DECAY_HEAT = 5,
             R_RODS = 6, R_ROD_TARGET = 7, R_COOLANT = 8, R_STEAM = 9, R_FUEL = 10, R_SCRAM = 11, R_FORMED = 12, R_STRESS = 13;
+    // Reactor, pressurized water loop and containment (see PlantReadings); all 0 for a reactor that boils directly
+    public static final int R_PRESSURE = 14, R_T_HOT = 15, R_T_COLD = 16, R_SUBCOOLING = 17, R_PZR_LEVEL = 18, R_FLOW = 19,
+            R_VESSEL_LEVEL = 20, R_CONT_PRESSURE = 21, R_H2 = 22, R_PWR = 23;
+    private static final int REACTOR_VALUES = 24;
+    // Steam generator: water level 0-1, steam made mB/t, primary temperature drop °C, formed flag, heat moved MW
+    public static final int S_LEVEL = 0, S_STEAM = 1, S_PRIMARY_DT = 2, S_FORMED = 3, S_HEAT = 4;
+    // Containment: pressure bar, hydrogen fraction 0-1, sealed flag, vent open flag, airborne activity, free volume m³
+    public static final int N_PRESSURE = 0, N_H2 = 1, N_SEALED = 2, N_VENT = 3, N_ACTIVITY = 4, N_VOLUME = 5;
     // Turbine
     public static final int T_SPEED = 0, T_USE = 1, T_LIMIT = 2, T_STEAM = 3, T_EXHAUST = 4, T_FORMED = 5, T_CAPACITY = 6;
     // Cooling tower
@@ -63,13 +72,14 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
             case LinkedTarget.Turbine turbine -> turbine(turbine.turbine());
             case LinkedTarget.Tower tower -> tower(tower.tower());
             case LinkedTarget.Tokamak tokamak -> tokamak(tokamak.tokamak());
+            case LinkedTarget.Plant plant -> plant.machine().plantSample();
             case LinkedTarget.Area area -> area(area);
             case LinkedTarget.NoSignal noSignal -> new MonitorReading(noSignal.kind(), noSignal.reason(), new float[0], 0, 0);
         };
     }
 
     private static MonitorReading reactor(ReactorBlockEntity reactor) {
-        float[] v = new float[14];
+        float[] v = new float[REACTOR_VALUES];
         v[R_TEMPERATURE] = (float) reactor.getCoreTemperature();
         v[R_POWER] = (float) reactor.getPowerOutput();
         v[R_NEUTRONS] = (float) reactor.getNeutronLevel();
@@ -84,6 +94,17 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
         v[R_SCRAM] = reactor.isScramRequested() ? 1 : 0;
         v[R_FORMED] = reactor.isFormed() ? 1 : 0;
         v[R_STRESS] = (float) reactor.getThermalStress();
+        PlantReadings plant = reactor.plantReadings();
+        v[R_PRESSURE] = plant.pressure();
+        v[R_T_HOT] = plant.hotLeg();
+        v[R_T_COLD] = plant.coldLeg();
+        v[R_SUBCOOLING] = plant.subcooling();
+        v[R_PZR_LEVEL] = plant.pressurizerLevel();
+        v[R_FLOW] = plant.flow();
+        v[R_VESSEL_LEVEL] = plant.vesselLevel();
+        v[R_CONT_PRESSURE] = plant.containmentPressure();
+        v[R_H2] = plant.hydrogen();
+        v[R_PWR] = plant.pwr() ? 1 : 0;
         String status = ReactorReadout.STATUS.read(reactor).getString();
         return new MonitorReading(TargetKind.REACTOR, status, v,
                 clamp01(v[R_TEMPERATURE] / 4000.0f), clamp01(v[R_POWER] / 1000.0f));

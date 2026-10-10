@@ -275,6 +275,26 @@ almacenado: ni irradia ni contamina. La regla es solo la profundidad; el
 almacen lo construye el jugador. Los bloques que siguen esta regla estan en la
 etiqueta `create_nuclearindustry:geologically_storable`.
 
+## Reactor de agua a presión y accidentes
+
+<!-- opciones pwr.*: las documenta su paquete de trabajo -->
+
+## Combustible gastado
+
+<!-- opciones spentFuel.*: las documenta su paquete de trabajo -->
+
+## Residuos y repositorio
+
+<!-- opciones waste.*: las documenta su paquete de trabajo -->
+
+## Instrumentos de la sala de control
+
+<!-- opciones controlRoom.*: las documenta su paquete de trabajo -->
+
+## Defensa civil
+
+<!-- opciones civilDefense.*: las documenta su paquete de trabajo -->
+
 ## Uranio y litio de otros mods
 
 - Materias primas: la etiqueta `create_nuclearindustry:raw_uranium` incluye

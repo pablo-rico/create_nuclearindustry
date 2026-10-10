@@ -1,5 +1,7 @@
 package org.papiricoh.create_nuclearindustry.reactor.blockentity;
 
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PlantReadings;
+import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelHooks;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import net.minecraft.ChatFormatting;
@@ -707,6 +709,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 depleted = new ItemStack(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get());
                 UraniumItem.setEnrichment(depleted, next.enrichment());
             }
+            SpentFuelHooks.onDischarge(depleted, level);
             ItemStack remainder = insertIntoOutputSlots(depleted, false);
             if (!remainder.isEmpty()) {
                 return;
@@ -870,6 +873,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     public double getThermalStress() {
         return isFormed() ? physicsSimulator.getThermalStress() : 0.0;
+    }
+
+    /** The pressurized water loop and containment around this reactor; {@link PlantReadings#NONE} when it boils directly. */
+    public PlantReadings plantReadings() {
+        return PlantReadings.NONE;
     }
 
     /** Fraction of neutron production xenon-135 swallows right now. */

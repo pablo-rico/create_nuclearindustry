@@ -82,5 +82,7 @@ public class AllNuclearCapabilities {
                 AllNuclearEntities.FUSION_TURBINE_FLUID_PORT.get(),
                 (port, direction) -> port.getFluidHandler(direction)
         );
+
+        NuclearFeatures.registerCapabilities(event);
     }
 }

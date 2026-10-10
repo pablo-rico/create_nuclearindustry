@@ -177,5 +177,6 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
                 modLoc("block/radioactive_waste_barrel_side"),
                 modLoc("block/radioactive_waste_barrel_top"),
                 modLoc("block/radioactive_waste_barrel_top")));
+        AreaDataGen.ALL.forEach(area -> area.blockStates(this));
     }
 }

@@ -49,6 +49,17 @@ public class NuclearItemTagsProvider extends ItemTagsProvider {
         tag(TagKey.create(net.minecraft.core.registries.Registries.ITEM,
                 ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "uranium")))
                 .add(AllNuclearItems.URANIUM.get());
+        AreaDataGen.ALL.forEach(area -> area.itemTags(this, provider));
+    }
+
+    /** {@link #tag} for the areas' datagen, which lives in other classes. */
+    public IntrinsicTagAppender<Item> tagFor(TagKey<Item> tag) {
+        return tag(tag);
+    }
+
+    /** {@link #copy} for the areas' datagen. */
+    public void copyTag(TagKey<Block> blockTag, TagKey<Item> itemTag) {
+        copy(blockTag, itemTag);
     }
 
     private static TagKey<Item> itemTag(TagKey<Block> blockTag) {

@@ -1468,3 +1468,11 @@ def desk_toggle():
     t.rect(10, 0, 11, 1, STEEL[6])
     t.vline(12, 0, 2, STEEL[4])
     return t
+
+
+# Each area keeps its textures in its own module; they register into the tables above.
+import tex_pwr  # noqa: E402,F401
+import tex_spentfuel  # noqa: E402,F401
+import tex_waste  # noqa: E402,F401
+import tex_controlroom2  # noqa: E402,F401
+import tex_civildefense  # noqa: E402,F401

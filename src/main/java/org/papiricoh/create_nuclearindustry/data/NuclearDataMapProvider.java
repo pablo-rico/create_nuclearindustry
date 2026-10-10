@@ -93,13 +93,19 @@ public class NuclearDataMapProvider extends DataMapProvider {
         shield(shielding, AllNuclearItems.DEPLETED_URANIUM_CHESTPLATE, 0.35f);
         shield(shielding, AllNuclearItems.DEPLETED_URANIUM_LEGGINGS, 0.28f);
         shield(shielding, AllNuclearItems.DEPLETED_URANIUM_BOOTS, 0.12f);
+        AreaDataGen.ALL.forEach(area -> area.dataMaps(this));
     }
 
-    private static void shield(Builder<RadiationShielding, Item> builder, Supplier<? extends Item> item, float fraction) {
+    /** {@link #builder} for the areas' datagen; a data map's builder is shared, so areas add to the same file. */
+    public <T, R> Builder<T, R> builderFor(net.neoforged.neoforge.registries.datamaps.DataMapType<R, T> type) {
+        return builder(type);
+    }
+
+    static void shield(Builder<RadiationShielding, Item> builder, Supplier<? extends Item> item, float fraction) {
         builder.add(item.get().builtInRegistryHolder(), new RadiationShielding(fraction), false);
     }
 
-    private static void add(Builder<Radioactivity, Item> builder, Supplier<? extends Item> item, float perSecond, boolean scaled) {
+    static void add(Builder<Radioactivity, Item> builder, Supplier<? extends Item> item, float perSecond, boolean scaled) {
         builder.add(item.get().builtInRegistryHolder(), new Radioactivity(perSecond, scaled), false);
     }
 }

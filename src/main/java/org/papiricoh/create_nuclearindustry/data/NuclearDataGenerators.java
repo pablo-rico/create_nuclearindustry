@@ -50,6 +50,7 @@ public final class NuclearDataGenerators {
         generator.addProvider(event.includeServer(), new NuclearElectrolysisRecipes(output, lookup));
         generator.addProvider(event.includeServer(), new NuclearFillingRecipes(output, lookup));
         generator.addProvider(event.includeServer(), new NuclearEmptyingRecipes(output, lookup));
+        AreaDataGen.ALL.forEach(area -> area.addProviders(event, generator, output, lookup, existingFiles));
 
         generator.addProvider(event.includeClient(), new NuclearBlockStateProvider(output, existingFiles));
         generator.addProvider(event.includeClient(), new NuclearItemModelProvider(output, existingFiles));

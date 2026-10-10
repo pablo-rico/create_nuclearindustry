@@ -11,7 +11,11 @@ public enum TargetKind {
     COOLING_TOWER,
     TOKAMAK,
     /** Any other block: the radiation around it. */
-    AREA;
+    AREA,
+    /** A {@link PlantReadable} steam generator. */
+    STEAM_GENERATOR,
+    /** A {@link PlantReadable} containment building. */
+    CONTAINMENT;
 
     public String translationKey() {
         return "create_nuclearindustry.control_room.kind." + name().toLowerCase(java.util.Locale.ROOT);

@@ -31,7 +31,7 @@ public final class LinkedTarget {
     private LinkedTarget() {}
 
     /** The live end of a link. */
-    public sealed interface Resolved permits Reactor, Turbine, Tower, Tokamak, Area, NoSignal {
+    public sealed interface Resolved permits Reactor, Turbine, Tower, Tokamak, Plant, Area, NoSignal {
         TargetKind kind();
     }
 
@@ -56,6 +56,13 @@ public final class LinkedTarget {
     public record Tokamak(FusionReactorBlockEntity tokamak) implements Resolved {
         public TargetKind kind() {
             return TargetKind.TOKAMAK;
+        }
+    }
+
+    /** Steam generators, containments and other {@link PlantReadable} machines. */
+    public record Plant(PlantReadable machine) implements Resolved {
+        public TargetKind kind() {
+            return machine.plantKind();
         }
     }
 
@@ -107,6 +114,9 @@ public final class LinkedTarget {
         if (entity instanceof FusionReactorBlockEntity) {
             return TargetKind.TOKAMAK;
         }
+        if (entity instanceof PlantReadable plant) {
+            return plant.plantKind();
+        }
         return TargetKind.AREA;
     }
 
@@ -147,6 +157,9 @@ public final class LinkedTarget {
         if (entity instanceof FusionReactorBlockEntity tokamak) {
             return new Tokamak(tokamak);
         }
+        if (entity instanceof PlantReadable plant) {
+            return new Plant(plant);
+        }
         if (level instanceof ServerLevel serverLevel) {
             return new Area(serverLevel, target.pos());
         }
@@ -165,7 +178,8 @@ public final class LinkedTarget {
 
     private static boolean isMachineController(@Nullable BlockEntity entity) {
         return entity instanceof ReactorBlockEntity || entity instanceof AbstractTurbineControllerBlockEntity
-                || entity instanceof CoolingTowerControllerBlockEntity || entity instanceof FusionReactorBlockEntity;
+                || entity instanceof CoolingTowerControllerBlockEntity || entity instanceof FusionReactorBlockEntity
+                || entity instanceof PlantReadable;
     }
 
     private static boolean isFormedMachine(MultiblockController controller) {
@@ -180,6 +194,9 @@ public final class LinkedTarget {
         }
         if (controller instanceof FusionReactorBlockEntity tokamak) {
             return tokamak.isFormed();
+        }
+        if (controller instanceof PlantReadable plant) {
+            return plant.plantFormed();
         }
         return false;
     }

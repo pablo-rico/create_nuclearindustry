@@ -83,5 +83,11 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
                 AllNuclearBlocks.FUSION_PLASMA_TURBINE.get(),
                 AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get());
         tag(BlockTags.IMPERMEABLE).add(AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get());
+        AreaDataGen.ALL.forEach(area -> area.blockTags(this, provider));
+    }
+
+    /** {@link #tag} for the areas' datagen, which lives in other classes. */
+    public IntrinsicTagAppender<Block> tagFor(net.minecraft.tags.TagKey<Block> tag) {
+        return tag(tag);
     }
 }

@@ -13,6 +13,7 @@ public final class LangEntries {
     public record Entry(String key, String english, String spanish) {}
 
     private static final List<Entry> ENTRIES = new ArrayList<>();
+    private static final java.util.Set<String> KEYS = new java.util.HashSet<>();
 
     static {
         content();
@@ -25,6 +26,7 @@ public final class LangEntries {
         jei();
         ponder();
         commands();
+        AreaDataGen.ALL.forEach(AreaDataGen::lang);
     }
 
     private LangEntries() {}
@@ -34,6 +36,9 @@ public final class LangEntries {
     }
 
     static void add(String key, String english, String spanish) {
+        if (!KEYS.add(key)) {
+            throw new IllegalStateException("Duplicate lang key " + key);
+        }
         ENTRIES.add(new Entry(key, english, spanish));
     }
 
@@ -679,15 +684,15 @@ public final class LangEntries {
                 "El Moderador de grafito y el Reflector de berilio llenan columnas interiores enteras de un reactor de fisión, como los Canales de combustible. El grafito frena los neutrones para que el combustible de al lado se fisione más: un Canal de combustible con dos columnas de grafito pegadas a sus caras está totalmente moderado, y un núcleo totalmente moderado es un 35% más reactivo. El berilio que reviste las columnas que tocan la carcasa devuelve los neutrones que escapan: un anillo completo reduce las pérdidas en una cuarta parte. Ambos sacan más potencia del mismo combustible, así que también necesitan más barras de control.");
     }
 
-    private static void item(String id, String english, String spanish) {
+    static void item(String id, String english, String spanish) {
         add("item.create_nuclearindustry." + id, english, spanish);
     }
 
-    private static void block(String id, String english, String spanish) {
+    static void block(String id, String english, String spanish) {
         add("block.create_nuclearindustry." + id, english, spanish);
     }
 
-    private static void fluid(String id, String english, String spanish) {
+    static void fluid(String id, String english, String spanish) {
         add("fluid.create_nuclearindustry." + id, english, spanish);
     }
 

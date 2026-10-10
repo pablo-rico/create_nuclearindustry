@@ -30,6 +30,7 @@ public class NuclearBlockLoot extends BlockLootSubProvider {
         add(AllNuclearBlocks.URANIUM_ORE.get(), block -> createOreDrop(block, AllNuclearItems.RAW_URANIUM.get()));
         add(AllNuclearBlocks.SPODUMENE_ORE.get(), block -> createOreDrop(block, AllNuclearItems.RAW_SPODUMENE.get()));
         add(AllNuclearBlocks.BORAX_ORE.get(), block -> createMultipleOreDrops(block, AllNuclearItems.BORAX_SALT.get(), 2, 3));
+        AreaDataGen.ALL.forEach(area -> area.blockLoot(this));
 
 
         for (Block block : getKnownBlocks()) {
@@ -45,6 +46,20 @@ public class NuclearBlockLoot extends BlockLootSubProvider {
         return createSilkTouchDispatchTable(block, applyExplosionDecay(block, LootItem.lootTableItem(item)
                 .apply(SetItemCountFunction.setCount(UniformGenerator.between(min, max)))
                 .apply(ApplyBonusCount.addOreBonusCount(enchantments.getOrThrow(Enchantments.FORTUNE)))));
+    }
+
+    /** {@link #add} for the areas' datagen. */
+    public void addTable(Block block, LootTable.Builder table) {
+        add(block, table);
+    }
+
+    /** {@link #dropOther} for the areas' datagen. */
+    public void addDropOther(Block block, net.minecraft.world.level.ItemLike drop) {
+        dropOther(block, drop);
+    }
+
+    public HolderLookup.Provider lookup() {
+        return registries;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.explosive;
 
+import net.neoforged.neoforge.common.NeoForge;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
@@ -46,6 +47,7 @@ public final class NuclearDetonation {
         LOGGER.info("Nuclear detonation at {} with power={}, horizontalRadius={}, verticalRadius={}, salting={}",
                 center, power, horizontalRadius, verticalRadius, salting);
 
+        NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, horizontalRadius, false));
         NuclearExplosionSoundManager.playDelayedForWorld(level, impact);
         level.explode(null, impact.x, impact.y, impact.z, Math.min(64.0f, power * 0.35f), Level.ExplosionInteraction.BLOCK);
         NuclearBlastManager.start(level, center, horizontalRadius, verticalRadius, intensity);
@@ -67,6 +69,8 @@ public final class NuclearDetonation {
     public static void detonateDirty(ServerLevel level, Vec3 impact, float load) {
         BlockPos center = BlockPos.containing(impact);
         LOGGER.info("Dirty bomb detonation at {} with load={}", center, load);
+        NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, DirtyWarheadStats.blastPower(load),
+                DirtyWarheadStats.falloutRadius(load), true));
         level.explode(null, impact.x, impact.y, impact.z, DirtyWarheadStats.blastPower(load), Level.ExplosionInteraction.BLOCK);
         Contamination.fallout(level, center, DirtyWarheadStats.falloutRadius(load), DirtyWarheadStats.falloutIntensity(load));
         org.papiricoh.create_nuclearindustry.radiation.FalloutData.contaminate(level, center, DirtyWarheadStats.hotSpot(load),

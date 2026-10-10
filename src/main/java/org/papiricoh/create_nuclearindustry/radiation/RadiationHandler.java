@@ -103,9 +103,8 @@ public final class RadiationHandler {
                 continue;
             }
             Radioactivity radioactivity = stack.getItemHolder().getData(AllNuclearRadiation.RADIOACTIVITY);
-            if (radioactivity != null) {
-                heat += radioactivity.heatPerSecond() * stack.getCount();
-            }
+            double perItem = (radioactivity != null ? radioactivity.heatPerSecond() : 0) + RadioactivityModifiers.extraHeat(stack);
+            heat += perItem * stack.getCount();
         }
         return heat;
     }
@@ -113,8 +112,8 @@ public final class RadiationHandler {
     public static double exposureRate(Player player) {
         Vec3 body = bodyOf(player);
         return inventoryRate(player) + blockRate(player.level(), player.blockPosition(), body)
-                + falloutRate(player.level(), body) + emitterRate(player.level(), body)
-                + groundRate(player, body);
+                + (falloutRate(player.level(), body) + groundRate(player, body)) * ExposureModifiers.shelter(player.level(), body)
+                + emitterRate(player.level(), body);
     }
 
     /**
@@ -125,7 +124,8 @@ public final class RadiationHandler {
         double ground = Config.contaminationEnabled
                 ? org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination.exposure(level, body, body.y - 0.9)
                 : 0;
-        return blockRate(level, BlockPos.containing(body), body) + falloutRate(level, body) + emitterRate(level, body) + ground;
+        return blockRate(level, BlockPos.containing(body), body) + emitterRate(level, body)
+                + (falloutRate(level, body) + ground) * ExposureModifiers.shelter(level, body);
     }
 
     /** Contaminated ground under and around the player. */
@@ -161,7 +161,7 @@ public final class RadiationHandler {
         if (radioactivity.scalesWithEnrichment()) {
             perItem *= UraniumItem.getEnrichment(stack) / 90.0;
         }
-        return perItem * stack.getCount();
+        return perItem * RadioactivityModifiers.doseScale(stack) * stack.getCount();
     }
 
     /** Radioactive blocks (waste barrels...) within a few blocks, falling off with distance and shielded by what is between. */

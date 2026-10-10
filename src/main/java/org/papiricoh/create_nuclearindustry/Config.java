@@ -164,6 +164,14 @@ public class Config
             .comment("Most capacity all fans together can add, as a fraction of the passive capacity.")
             .defineInRange("coolingTower.maxFanBoost", 1.0, 0.0, 100.0);
 
+    static {
+        org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.waste.WasteConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.define(BUILDER);
+    }
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     public static double steamCapacityPerPort = 32768.0;
@@ -276,5 +284,10 @@ public class Config
         coolingTowerFanStress = COOLING_TOWER_FAN_STRESS.get();
         coolingTowerFanBoost = COOLING_TOWER_FAN_BOOST.get();
         coolingTowerMaxFanBoost = COOLING_TOWER_MAX_BOOST.get();
+        org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig.bake();
+        org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelConfig.bake();
+        org.papiricoh.create_nuclearindustry.waste.WasteConfig.bake();
+        org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config.bake();
+        org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.bake();
     }
 }
