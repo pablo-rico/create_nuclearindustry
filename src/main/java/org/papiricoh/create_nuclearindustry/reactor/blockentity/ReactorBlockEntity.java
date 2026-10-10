@@ -6,6 +6,7 @@ import org.papiricoh.create_nuclearindustry.reactor.pwr.PrimaryLoop;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.CladdingOxidationModel;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.PlantAlarm;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReactorAccidents;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReleasePath;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.SteamExplosion;
@@ -922,6 +923,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (level == null || level.isClientSide) {
             return;
         }
+        PlantAlarm.raise(level, getBlockPos());
         if (!PwrConfig.legacyMeltdown && level instanceof ServerLevel serverLevel && currentStructure.isPresent()) {
             meltCore(serverLevel, currentStructure.get());
             return;
@@ -1075,6 +1077,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         primaryLoop.idle();
         physicsSimulator.setCoolantFeedback(1.0);
         sendPlayerMessage("§4Reactor vessel breached at " + getBlockPos() + ": the primary is open", false);
+        PlantAlarm.raise(level, getBlockPos());
         markDirtyAndSync();
         BlockPos head = getBlockPos().above();
         SteamExplosion.explode(level, Vec3.atCenterOf(head), SteamExplosion.REFLOOD_POWER);

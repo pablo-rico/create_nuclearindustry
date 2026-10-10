@@ -12,6 +12,11 @@ import org.papiricoh.create_nuclearindustry.reactor.pwr.physics.SaturationTable;
  * decides each tick how much heat leaves the core, how much cold coolant comes out hot, what the
  * relief valve vents and how the water feeds back on the chain reaction. The flows the pumps really
  * move through the reactor's ports are measured here as moving averages.
+ * <p>
+ * A control desk can take over the pressurizer: force the backup heaters or the spray on, or let a
+ * pressure controller run the heaters and spray. Like a held button, each order lasts
+ * {@link #DESK_HOLD_TICKS} ticks unless the desk repeats it, so a broken or unloaded desk lets go on
+ * its own; the orders are not saved, since a desk repeats them as soon as it ticks again.
  */
 public final class PrimaryLoop {
     /** Coolant that just covers the core, mB. Less uncovers it. */
@@ -31,6 +36,8 @@ public final class PrimaryLoop {
     private static final double FLOW_SMOOTHING = 0.25;
     /** Cold leg flow the spray needs, mB/t. */
     private static final double SPRAY_MIN_FLOW = 1.0;
+    /** How long a desk order to the pressurizer holds without being repeated, in ticks. */
+    public static final int DESK_HOLD_TICKS = 40;
 
     private final PrimaryCoolantModel coolant = new PrimaryCoolantModel();
     private PressurizerModel pressurizer;
@@ -42,6 +49,12 @@ public final class PrimaryLoop {
     private boolean heatersRunning;
     private boolean spraying;
     private boolean reliefStuck;
+    // Desk orders: ticks each one still holds, and what the pressure controller last asked for.
+    private int backupHeatersHold;
+    private int sprayHold;
+    private int controllerHold;
+    private double controllerHeaters;
+    private double controllerSpray;
 
     /**
      * What the reactor knows this tick.
@@ -108,9 +121,19 @@ public final class PrimaryLoop {
         int moved = coolant.step(new PrimaryCoolantModel.Conditions(coreCooling * rodMultiplier, c.cold(),
                 Math.max(0, c.hotCapacity() - c.hot()), Math.max(flowIn, flowOut), inventory, CORE_VOLUME, saturation), coolantParams);
 
+        int autoHeaters = c.autoHeaters();
+        int manualHeaters = c.manualHeaters();
+        if (backupHeatersHold > 0) {
+            // The backup heaters: every heater port runs, whatever its mode.
+            autoHeaters = 0;
+            manualHeaters = c.stack().heaterPorts().size();
+        }
+        PressurizerModel.Demand demand = new PressurizerModel.Demand(controllerHold > 0, controllerHold > 0 ? controllerHeaters : 0.0,
+                Math.max(sprayHold > 0 ? 1.0 : 0.0, controllerHold > 0 ? controllerSpray : 0.0));
         boolean venting = pressurizer.tick(new PressurizerModel.Inputs(levelDemand(inventory, capacity),
-                c.autoHeaters(), c.manualHeaters(), flowIn >= SPRAY_MIN_FLOW, coolant.hotLeg(), coolant.coldLeg(),
-                c.reliefIsolated(), c.stickRoll(), PwrConfig.reliefStickChance), pressurizerParams());
+                autoHeaters, manualHeaters, flowIn >= SPRAY_MIN_FLOW, coolant.hotLeg(), coolant.coldLeg(),
+                c.reliefIsolated(), c.stickRoll(), PwrConfig.reliefStickChance, demand), pressurizerParams());
+        countDownDeskOrders();
         int vented = 0;
         if (venting) {
             vented = (int) Math.round(coolant.ventSteam(RELIEF_STEAM_HEAT, coolantParams));
@@ -150,6 +173,48 @@ public final class PrimaryLoop {
     private static PressurizerModel.Params pressurizerParams() {
         return new PressurizerModel.Params(PwrConfig.pressureSetpoint, 2.0, 5.0, PwrConfig.heaterRate, 0.05, 0.002,
                 20.0, 60.0, PwrConfig.reliefOpenPressure, PwrConfig.reliefClosePressure, 0.3, 0.1);
+    }
+
+    // ------------------------------------------------------------------ desk control
+
+    /** Backup heaters on: every heater port heats, for the next {@link #DESK_HOLD_TICKS} ticks. */
+    public void holdBackupHeaters() {
+        backupHeatersHold = DESK_HOLD_TICKS;
+    }
+
+    /** Spray fully open while the cold leg flows, for the next {@link #DESK_HOLD_TICKS} ticks. */
+    public void holdSpray() {
+        sprayHold = DESK_HOLD_TICKS;
+    }
+
+    /**
+     * A pressure controller takes over the automatic heaters and the spray for the next
+     * {@link #DESK_HOLD_TICKS} ticks: the automatic heater ports run at {@code heaters} of their power
+     * and the spray opens to {@code spray}, both 0-1.
+     */
+    public void holdPressureDemand(double heaters, double spray) {
+        controllerHold = DESK_HOLD_TICKS;
+        controllerHeaters = Math.max(0.0, Math.min(1.0, heaters));
+        controllerSpray = Math.max(0.0, Math.min(1.0, spray));
+    }
+
+    public boolean backupHeatersHeld() {
+        return backupHeatersHold > 0;
+    }
+
+    public boolean sprayHeld() {
+        return sprayHold > 0;
+    }
+
+    /** Whether a pressure controller is driving the heaters and spray. */
+    public boolean pressureControlled() {
+        return controllerHold > 0;
+    }
+
+    private void countDownDeskOrders() {
+        backupHeatersHold = Math.max(0, backupHeatersHold - 1);
+        sprayHold = Math.max(0, sprayHold - 1);
+        controllerHold = Math.max(0, controllerHold - 1);
     }
 
     /** The loop stopped running (no coolant, no pressurizer): readings go blank, the state stays for a restart. */

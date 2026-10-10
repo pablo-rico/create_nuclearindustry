@@ -26,6 +26,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModule;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 
 import java.util.HashMap;
 import java.util.List;
@@ -283,11 +284,23 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         return fallback;
     }
 
-    /** "Metric", "Setting", "Label" and "Unlink" for window {@code part}; values are sanitised. */
+    /**
+     * "Metric", "Setting", "Label" and "Unlink" for window {@code part}; values are sanitised. A
+     * "Preset" sets up every window instead, from {@link AnnunciatorPreset} with the thresholds of the
+     * plant config; its "Labels" list holds the client's translations of the window labels.
+     */
     @Override
     public boolean configure(int part, CompoundTag config) {
         if (part < 0 || part >= WINDOWS) {
             return false;
+        }
+        if (config.contains("Preset", Tag.TAG_STRING)) {
+            AnnunciatorPreset preset = AnnunciatorPreset.byName(config.getString("Preset"));
+            if (preset == null) {
+                return false;
+            }
+            applyPreset(preset, config.getList("Labels", Tag.TAG_STRING));
+            return true;
         }
         Window window = windows[part];
         if (config.contains("Metric", Tag.TAG_STRING)) {
@@ -306,6 +319,31 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         check();
         notifyUpdate();
         return true;
+    }
+
+    /**
+     * Sets every window's metric, threshold and label from {@code preset}; links stay as they are.
+     * {@code labels} may hold up to one translated label per window: blank or missing ones take the
+     * preset's own.
+     */
+    public void applyPreset(AnnunciatorPreset preset, ListTag labels) {
+        List<AnnunciatorPreset.Window> setup = preset.windows(plantConfig());
+        for (int i = 0; i < WINDOWS && i < setup.size(); i++) {
+            AnnunciatorPreset.Window entry = setup.get(i);
+            Window window = windows[i];
+            window.metric = metricByName(entry.metric(), window.metric);
+            window.setting = Mth.clamp(entry.setting(), 0, 100);
+            String label = i < labels.size() ? ControlModule.sanitizeLabel(labels.getString(i)) : "";
+            window.label = label.isEmpty() ? ControlModule.sanitizeLabel(entry.label()) : label;
+        }
+        check();
+        notifyUpdate();
+    }
+
+    /** The plant settings preset thresholds follow, from the config in force. */
+    public static AnnunciatorPreset.Plant plantConfig() {
+        return new AnnunciatorPreset.Plant(PwrConfig.pressureSetpoint, PwrConfig.reliefOpenPressure, PwrConfig.naturalCirculation,
+                PwrConfig.coreTemperatureRise);
     }
 
     private static AlarmMetric metricByName(String name, AlarmMetric fallback) {

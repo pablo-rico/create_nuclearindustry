@@ -29,6 +29,7 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.SealedVolume;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.PlantAlarm;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReleasePath;
 
 import java.util.List;
@@ -255,6 +256,7 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
             return;
         }
         lastBurn = level.getGameTime();
+        PlantAlarm.raise(level, worldPosition);
         BoundingBox box = shape.bounds();
         if (level instanceof ServerLevel server) {
             for (int i = 0; i < 12; i++) {
@@ -284,6 +286,7 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
         double overpressure = model.pressure() - shape.weakestRating();
         double released = model.depressurize();
         ruptures++;
+        PlantAlarm.raise(level, at);
         if (level instanceof ServerLevel server) {
             ReleasePath.UNFILTERED.release(server, at, released);
             server.sendParticles(ParticleTypes.EXPLOSION_EMITTER, at.getX() + 0.5, at.getY() + 0.5, at.getZ() + 0.5, 1, 0, 0, 0, 0);

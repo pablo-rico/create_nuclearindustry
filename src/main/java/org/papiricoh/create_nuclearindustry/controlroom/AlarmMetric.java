@@ -2,6 +2,7 @@ package org.papiricoh.create_nuclearindustry.controlroom;
 
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
 import com.simibubi.create.foundation.gui.AllIcons;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReleasePath;
 
 import java.util.Locale;
 
@@ -303,6 +304,124 @@ public enum AlarmMetric implements INamedIconOptions {
         public boolean watches(TargetKind kind) {
             return kind == TargetKind.CONTAINMENT || kind == TargetKind.REACTOR;
         }
+    },
+    // Added with the annunciator templates; saved by ordinal, so new metrics go after these.
+    RELIEF_OPEN(AllIcons.I_SEND_ONLY, TargetKind.REACTOR) {
+        @Override
+        public String format(int setting) {
+            return "-";
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.flag(MonitorReading.R_RELIEF) ? 1 : 0;
+        }
+
+        @Override
+        boolean tripped(float reading, int setting) {
+            return reading > 0;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return pressurized(sample);
+        }
+    },
+    SG_LEVEL_HIGH(AllIcons.I_OVERLAY, TargetKind.STEAM_GENERATOR) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.S_LEVEL) * 100f;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return steamGeneratorFormed(sample);
+        }
+    },
+    SG_STEAM_LOW(AllIcons.I_PRIORITY_VERY_LOW, TargetKind.STEAM_GENERATOR) {
+        @Override
+        public float scaled(int setting) {
+            return setting * MonitorReading.SG_STEAM_MAX / 100f;
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.0f mB/t", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.S_STEAM);
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return steamGeneratorFormed(sample);
+        }
+    },
+    SG_PRIMARY_DT_LOW(AllIcons.I_FX_BLEND_OFF, TargetKind.STEAM_GENERATOR) {
+        @Override
+        public float scaled(int setting) {
+            return setting * MonitorReading.SG_DT_MAX / 100f;
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.1f°C", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.S_PRIMARY_DT);
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return steamGeneratorFormed(sample);
+        }
+    },
+    CONTAINMENT_OPEN(AllIcons.I_DISABLE, TargetKind.CONTAINMENT) {
+        @Override
+        public String format(int setting) {
+            return "-";
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.flag(MonitorReading.N_SEALED) ? 0 : 1;
+        }
+
+        @Override
+        boolean tripped(float reading, int setting) {
+            return reading > 0;
+        }
+    },
+    CONTAINMENT_ACTIVITY(AllIcons.I_PATTERN_CHECKERED, TargetKind.CONTAINMENT) {
+        /** Logarithmic, as the activity gauge: 0 is a hundred-thousandth of a whole core's release, 100 all of it. */
+        @Override
+        public float scaled(int setting) {
+            return (float) (ReleasePath.CORE_REFERENCE * Math.pow(10.0, (setting / 100.0 - 1.0) * MonitorReading.ACTIVITY_DECADES));
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.3g", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.N_ACTIVITY);
+        }
     };
 
     private final AllIcons icon;
@@ -344,6 +463,10 @@ public enum AlarmMetric implements INamedIconOptions {
 
     private static boolean pressurized(MonitorReading sample) {
         return sample.kind() == TargetKind.REACTOR && sample.flag(MonitorReading.R_PWR);
+    }
+
+    private static boolean steamGeneratorFormed(MonitorReading sample) {
+        return sample.kind() == TargetKind.STEAM_GENERATOR && sample.flag(MonitorReading.S_FORMED);
     }
 
     /** True when the alarm sounds below the threshold rather than above it. */

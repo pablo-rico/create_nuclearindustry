@@ -127,6 +127,46 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(m + "sg_level_low", "Steam generator level below", "Nivel del generador de vapor por debajo de");
         add(m + "containment_pressure", "Containment pressure above", "Presión de la contención por encima de");
         add(m + "hydrogen", "Containment hydrogen above", "Hidrógeno en la contención por encima de");
+        add(s + "relief_open", "RELIEF OPEN", "ALIVIO ABIERTA");
+        add(s + "sg_level_high", "SG LEVEL HI", "NIVEL GV ALTO");
+        add(s + "sg_steam_low", "STEAM FLOW LO", "VAPOR BAJO");
+        add(s + "sg_primary_dt_low", "PRIMARY ΔT LO", "ΔT PRIMARIO BAJO");
+        add(s + "containment_open", "CONT OPEN", "CONT. ABIERTA");
+        add(s + "containment_activity", "ACTIVITY HI", "ACTIVIDAD ALTA");
+        add(m + "relief_open", "Pressurizer relief valve open", "Válvula de alivio del presionador abierta");
+        add(m + "sg_level_high", "Steam generator level above", "Nivel del generador de vapor por encima de");
+        add(m + "sg_steam_low", "Steam generator output below", "Vapor del generador de vapor por debajo de");
+        add(m + "sg_primary_dt_low", "Steam generator primary ΔT below", "ΔT primario del generador de vapor por debajo de");
+        add(m + "containment_open", "Containment not sealed", "Contención no estanca");
+        add(m + "containment_activity", "Containment airborne activity above", "Actividad en el aire de la contención por encima de");
+        presets(a);
+    }
+
+    /** Annunciator presets: their names and the labels they give the six windows. */
+    private static void presets(String a) {
+        String p = a + "preset.";
+        add(p + "apply", "OK", "OK");
+        add(p + "hint", "Preset for all six windows: %s. Click to choose another (sneak to go back), OK to apply it to every window. Links stay as they are.",
+                "Plantilla para las seis ventanas: %s. Haz clic para elegir otra (agachado para volver) y OK para aplicarla a todas. Los enlaces no cambian.");
+        preset(p + "reactor_core", "Reactor core", "Núcleo",
+                new String[]{"CORE TEMP HI", "CORE TEMP HI-HI", "POWER HI", "XENON HI", "COOLANT LO", "SCRAM"},
+                new String[]{"TEMP NÚCLEO ALTA", "T NÚCLEO M. ALTA", "POTENCIA ALTA", "XENÓN ALTO", "REFRIG. BAJO", "SCRAM"});
+        preset(p + "pwr_primary", "PWR primary", "Primario PWR",
+                new String[]{"PRESS HI", "PRESS LO", "RELIEF OPEN", "SUBCOOL LO", "PZR LEVEL LO", "LOSS OF FLOW"},
+                new String[]{"PRESIÓN ALTA", "PRESIÓN BAJA", "ALIVIO ABIERTA", "SUBENFR. BAJO", "NIVEL PZR BAJO", "PÉRDIDA CAUDAL"});
+        preset(p + "steam_generator", "Steam gen.", "Gen. vapor",
+                new String[]{"SG LEVEL LO", "SG LEVEL LO-LO", "SG DRYOUT", "SG LEVEL HI", "STEAM FLOW LO", "PRIMARY ΔT LO"},
+                new String[]{"NIVEL GV BAJO", "NIVEL GV M. BAJO", "GV SECO", "NIVEL GV ALTO", "VAPOR BAJO", "ΔT PRIMARIO BAJO"});
+        preset(p + "containment", "Containment", "Contención",
+                new String[]{"CONT PRESS HI", "CONT PRESS HI-HI", "H2 HI", "H2 HI-HI", "ACTIVITY HI", "CONT OPEN"},
+                new String[]{"PRES. CONT. ALTA", "P. CONT. M. ALTA", "H2 ALTO", "H2 MUY ALTO", "ACTIVIDAD ALTA", "CONT. ABIERTA"});
+    }
+
+    private static void preset(String key, String english, String spanish, String[] labelsEn, String[] labelsEs) {
+        add(key, english, spanish);
+        for (int i = 0; i < labelsEn.length; i++) {
+            add(key + "." + (i + 1), labelsEn[i], labelsEs[i]);
+        }
     }
 
     private static void controller() {
@@ -138,9 +178,20 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(m + "mode.auto", "Mode: automatic", "Modo: automático");
         add(m + "mode.standby", "Mode: standby", "Modo: en espera");
         add(m + "standby", "standby", "en espera");
-        add(m + "controller_state", "%s, rods %s", "%s, barras %s");
+        add(m + "controller_state", "%s, %s", "%s, %s");
         add(m + "controller_demand", "rods to %s%%", "barras al %s%%");
         add(m + "setpoint", "Setpoint %s, %s", "Consigna %s, %s");
+        pressurizerControl(m);
+    }
+
+    /** Levers, lamp and controller for a pressurizer: backup heaters, spray, relief valve and automatic pressure. */
+    private static void pressurizerControl(String m) {
+        add(m + "function.pzr_heaters", "Pressurizer backup heaters", "Calentadores de respaldo del presionador");
+        add(m + "function.pzr_spray", "Pressurizer spray", "Rociado del presionador");
+        add(m + "function.auto_pressure", "Automatic pressure", "Presión automática");
+        add(m + "function.lamp_relief_open", "Relief valve open", "Válvula de alivio abierta");
+        add(m + "pressure_heaters", "heaters %s%%", "calentadores al %s%%");
+        add(m + "pressure_spray", "spray %s%%", "rociado al %s%%");
     }
 
     /** Monitor rows, gauges and target names for the pressurized water loop, steam generators and containments. */
@@ -168,6 +219,7 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(monitor + "closed", "Closed", "Cerrado");
         add(monitor + "activity", "Airborne", "En el aire");
         add(monitor + "volume", "Volume", "Volumen");
+        add(monitor + "relief", "Relief valve", "Válv. alivio");
         String r = "create_nuclearindustry.control_module.reading.";
         add(r + "reactor_pressure", "Primary pressure", "Presión del primario");
         add(r + "reactor_hot_leg", "Hot leg temperature", "Temperatura de la rama caliente");
@@ -183,5 +235,6 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(r + "sg_primary_dt", "Steam generator primary ΔT", "ΔT primario del generador de vapor");
         add(r + "containment_pressure", "Containment pressure", "Presión de la contención");
         add(r + "containment_hydrogen", "Containment hydrogen", "Hidrógeno en la contención");
+        add(r + "containment_activity", "Containment airborne activity (log)", "Actividad en el aire de la contención (log.)");
     }
 }

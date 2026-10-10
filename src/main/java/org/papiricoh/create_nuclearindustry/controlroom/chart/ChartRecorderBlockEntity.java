@@ -26,6 +26,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
+import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 
 import java.util.List;
 
@@ -222,21 +223,43 @@ public class ChartRecorderBlockEntity extends SmartBlockEntity implements Contro
         return target;
     }
 
-    /** A new kind of target gets the first readings that suit it on its pens; the same kind keeps them. */
+    /**
+     * A new kind of target gets the {@link GaugeReading#defaultPens} that suit it; the same kind keeps
+     * the pens, unless they are still the defaults of the other sort of reactor (one boiling directly,
+     * one with a pressurized loop), which are swapped for the right ones.
+     */
     @Override
     public void setTarget(@Nullable GlobalPos newTarget) {
         target = newTarget;
-        TargetKind newKind = newTarget != null && level != null && level.dimension().equals(newTarget.dimension())
-                && level.isLoaded(newTarget.pos()) ? LinkedTarget.kindAt(level, newTarget.pos()) : TargetKind.NONE;
-        if (newKind != kind && newKind != TargetKind.NONE) {
-            List<GaugeReading> suited = GaugeReading.forKind(newKind);
+        boolean reachable = newTarget != null && level != null && level.dimension().equals(newTarget.dimension())
+                && level.isLoaded(newTarget.pos());
+        TargetKind newKind = reachable ? LinkedTarget.kindAt(level, newTarget.pos()) : TargetKind.NONE;
+        if (newKind != TargetKind.NONE && (newKind != kind || showsDefaults(kind))) {
+            boolean pressurized = level.getBlockEntity(newTarget.pos()) instanceof ReactorBlockEntity reactor && reactor.hasPressurizer();
+            List<GaugeReading> defaults = GaugeReading.defaultPens(newKind, pressurized);
             for (int pen = 0; pen < pens.length; pen++) {
-                pens[pen] = pen < suited.size() && pen < 2 ? suited.get(pen) : null;
+                pens[pen] = pen < defaults.size() ? defaults.get(pen) : null;
             }
-            chart.clear();
+            if (newKind != kind) {
+                chart.clear();
+            }
         }
         kind = newKind;
         notifyUpdate();
+    }
+
+    /** Whether the pens are one of the default sets for {@code kind}, as the recorder chose them. */
+    private boolean showsDefaults(TargetKind kind) {
+        return sameAs(GaugeReading.defaultPens(kind, false)) || sameAs(GaugeReading.defaultPens(kind, true));
+    }
+
+    private boolean sameAs(List<GaugeReading> set) {
+        for (int pen = 0; pen < pens.length; pen++) {
+            if (pens[pen] != (pen < set.size() ? set.get(pen) : null)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public Direction facing() {
