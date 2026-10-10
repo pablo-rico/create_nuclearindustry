@@ -56,6 +56,8 @@ public final class NuclearDetonation {
             fallout = (float) Math.min(Config.contaminationMax, fallout + DirtyWarheadStats.falloutIntensity(salting));
         }
         Contamination.fallout(level, center, radius, fallout);
+        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, center, Math.max(64, radius * 2),
+                org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.NUCLEAR_DETONATION);
     }
 
     /**
@@ -69,6 +71,8 @@ public final class NuclearDetonation {
         Contamination.fallout(level, center, DirtyWarheadStats.falloutRadius(load), DirtyWarheadStats.falloutIntensity(load));
         org.papiricoh.create_nuclearindustry.radiation.FalloutData.contaminate(level, center, DirtyWarheadStats.hotSpot(load),
                 DirtyWarheadStats.HOT_SPOT_TICKS);
+        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, center, Math.max(64, DirtyWarheadStats.falloutRadius(load)),
+                org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.DIRTY_DETONATION);
     }
 
     public static int falloutRadius(int horizontalRadius) {

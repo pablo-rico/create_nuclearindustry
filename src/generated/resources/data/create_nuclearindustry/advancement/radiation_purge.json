@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:radiation_sickness",
+  "criteria": {
+    "radiation_purge": {
+      "conditions": {
+        "event": "radiation_purge"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.radiation_purge.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:prussian_blue"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.radiation_purge.title"
+    }
+  },
+  "requirements": [
+    [
+      "radiation_purge"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

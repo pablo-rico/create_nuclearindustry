@@ -1,0 +1,45 @@
+{
+  "parent": "create_nuclearindustry:plutonium",
+  "criteria": {
+    "plutonium": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:weapons_grade_plutonium_core"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "uranium": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:weapons_grade_uranium_core"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.weapons_core.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:weapons_grade_plutonium_core"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.weapons_core.title"
+    }
+  },
+  "requirements": [
+    [
+      "uranium",
+      "plutonium"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

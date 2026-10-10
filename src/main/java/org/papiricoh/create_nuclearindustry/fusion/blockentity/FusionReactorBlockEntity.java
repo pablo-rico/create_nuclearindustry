@@ -224,6 +224,10 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         }
         boolean on = status == Status.FORMED && magnetDrive > 0;
         boolean ignited = physics.isBurning();
+        if (ignited && !state.getValue(FusionReactorControllerBlock.IGNITED)) {
+            org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level),
+                    org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.TOKAMAK_IGNITION);
+        }
         if (state.getValue(FusionReactorControllerBlock.ON) != on || state.getValue(FusionReactorControllerBlock.IGNITED) != ignited) {
             level.setBlock(getBlockPos(), state.setValue(FusionReactorControllerBlock.ON, on)
                     .setValue(FusionReactorControllerBlock.IGNITED, ignited), Block.UPDATE_CLIENTS);

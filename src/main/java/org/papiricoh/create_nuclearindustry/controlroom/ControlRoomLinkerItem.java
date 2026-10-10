@@ -62,6 +62,7 @@ public class ControlRoomLinkerItem extends Item {
                 return InteractionResult.SUCCESS;
             }
             device.setTarget(link);
+            org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.award(player, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.CONTROL_ROOM_LINKED);
             message(player, Component.translatable(KEY + "applied", describe(level, link)), ChatFormatting.GREEN);
             return InteractionResult.SUCCESS;
         }

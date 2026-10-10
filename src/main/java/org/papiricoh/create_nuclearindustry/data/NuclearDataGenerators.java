@@ -35,6 +35,7 @@ public final class NuclearDataGenerators {
                 new NuclearItemTagsProvider(output, lookup, blockTags.contentsGetter(), existingFiles));
         generator.addProvider(event.includeServer(), new NuclearDamageTypeTagsProvider(output, lookup, existingFiles));
         generator.addProvider(event.includeServer(), new NuclearDataMapProvider(output, lookup));
+        generator.addProvider(event.includeServer(), new NuclearAdvancementProvider(output, lookup, existingFiles));
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
                 List.of(new LootTableProvider.SubProviderEntry(NuclearBlockLoot::new, LootContextParamSets.BLOCK)), lookup));
 

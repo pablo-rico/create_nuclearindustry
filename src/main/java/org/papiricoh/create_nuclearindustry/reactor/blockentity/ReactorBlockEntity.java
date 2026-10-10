@@ -28,6 +28,8 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearDataComponents;
+import org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements;
+import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
@@ -76,6 +78,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     /** 2: a manual SCRAM no longer forces the rods in. Absent in older saves. */
     private static final int SCRAM_VERSION = 2;
     private static final int MELTDOWN_CONFIRM_TICKS = 200;
+    /** Share of the xenon worth a shut-down core must reach to count as in the iodine pit. */
+    private static final double IODINE_PIT_FRACTION = 0.6;
     private static final float MELTDOWN_EXPLOSION_POWER = 80.0f;
     public static final int FUEL_INPUT_SLOTS = 4;
     public static final int FUEL_OUTPUT_SLOTS = 2;
@@ -191,6 +195,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (++entity.syncCounter >= 20) {
             entity.markDirtyAndSync();
             entity.syncCounter = 0;
+            entity.checkIodinePit();
         }
     }
 
@@ -316,6 +321,12 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             }
             updateControlRodInsertion(true);
             linkStructureParts(newStructure);
+            if (status == ReactorStatus.FORMED && (playerInitiated || previousStatus != ReactorStatus.FORMED)) {
+                awardMachine(NuclearEvent.REACTOR_FORMED);
+                if (newStructure.moderation > 0 || newStructure.reflection > 0) {
+                    awardMachine(NuclearEvent.MODERATED_CORE);
+                }
+            }
             if (playerInitiated || previousStatus != ReactorStatus.FORMED) {
                 sendPlayerMessage(status == ReactorStatus.FORMED
                         ? "§2Reactor formed §8[" + newStructure.dimensionsText() + "]"
@@ -512,6 +523,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     private void checkAutoScram() {
         if (autoScram.check(physicsSimulator.getCoreTemperature())) {
+            awardMachine(NuclearEvent.SCRAM);
             refreshRedstonePorts();
             sendPlayerMessage("§cAutomatic SCRAM at " + autoScram.getThreshold() + " °C: SCRAM signal on", true);
             markDirtyAndSync();
@@ -560,11 +572,29 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         manualScram = engaged;
         if (!engaged) {
             legacyScramHold = false;
+        } else {
+            awardMachine(NuclearEvent.SCRAM);
         }
         updateControlRodInsertion(true);
         refreshRedstonePorts();
         sendPlayerMessage(engaged ? "§cManual SCRAM: signal sent to the Redstone Ports" : "§aManual SCRAM released", true);
         markDirtyAndSync();
+    }
+
+    /** A shut-down core held back by most of the xenon it can hold: the iodine pit. */
+    private void checkIodinePit() {
+        if (status == ReactorStatus.FORMED && Config.xenonPoisoning && Config.xenonWorth > 0 && !physicsSimulator.isRunning()
+                && physicsSimulator.getXenonPenalty() >= Config.xenonWorth * IODINE_PIT_FRACTION) {
+            awardMachine(NuclearEvent.IODINE_PIT);
+        }
+    }
+
+    /** Awards an event to whoever last worked on the reactor and anyone near it. */
+    private void awardMachine(NuclearEvent event) {
+        Level level = getLevel();
+        if (level != null && !level.isClientSide) {
+            NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), event);
+        }
     }
 
     private void refreshRedstonePorts() {
@@ -709,6 +739,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             return;
         }
         boolean running = status == ReactorStatus.FORMED && physicsSimulator.isRunning();
+        if (running && !state.getValue(NuclearReactorControllerBlock.ON)) {
+            awardMachine(NuclearEvent.REACTOR_RUNNING);
+        }
         if (state.getValue(NuclearReactorControllerBlock.ON) != running) {
             level.setBlock(getBlockPos(), state.setValue(NuclearReactorControllerBlock.ON, running), Block.UPDATE_CLIENTS);
         }
@@ -737,6 +770,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         LOGGER.warn("Nuclear meltdown at {}", reactorPos);
 
         status = ReactorStatus.MELTDOWN;
+        awardMachine(NuclearEvent.MELTDOWN);
+        NuclearAdvancements.awardNearby(level, reactorPos, MELTDOWN_FALLOUT_RADIUS, NuclearEvent.MELTDOWN);
         FalloutData.contaminate(level, reactorPos, MELTDOWN_RADIATION, MELTDOWN_CONTAMINATION_TICKS);
         if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination.fallout(serverLevel, reactorPos,

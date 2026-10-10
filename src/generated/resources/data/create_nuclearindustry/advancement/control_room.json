@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:reactor_running",
+  "criteria": {
+    "control_room_linked": {
+      "conditions": {
+        "event": "control_room_linked"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.control_room.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:control_monitor"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.control_room.title"
+    }
+  },
+  "requirements": [
+    [
+      "control_room_linked"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

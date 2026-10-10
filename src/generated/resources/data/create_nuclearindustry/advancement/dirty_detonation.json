@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:geiger",
+  "criteria": {
+    "dirty_detonation": {
+      "conditions": {
+        "event": "dirty_detonation"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.dirty_detonation.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:dirty_bomb"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.dirty_detonation.title"
+    }
+  },
+  "requirements": [
+    [
+      "dirty_detonation"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

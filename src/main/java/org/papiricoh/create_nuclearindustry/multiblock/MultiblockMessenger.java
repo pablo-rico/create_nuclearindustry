@@ -55,8 +55,9 @@ public final class MultiblockMessenger {
         }
     }
 
+    /** The player who last worked on the multiblock, if they are still around. */
     @Nullable
-    private Player owner(Level level) {
+    public Player owner(Level level) {
         if (ownerPlayer != null && ownerPlayer.isAlive()) {
             return ownerPlayer;
         }

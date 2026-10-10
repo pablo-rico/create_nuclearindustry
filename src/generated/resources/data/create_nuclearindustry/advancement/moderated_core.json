@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:reactor_formed",
+  "criteria": {
+    "moderated_core": {
+      "conditions": {
+        "event": "moderated_core"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.moderated_core.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:graphite_moderator"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.moderated_core.title"
+    }
+  },
+  "requirements": [
+    [
+      "moderated_core"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

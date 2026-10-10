@@ -21,6 +21,7 @@ public final class LangEntries {
         controlRoom();
         medicine();
         dirtyBomb();
+        advancements();
         jei();
         ponder();
         commands();
@@ -445,6 +446,13 @@ public final class LangEntries {
         fluid("low_enriched_uranium_hexafluoride", "Low-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio poco enriquecido");
         fluid("high_enriched_uranium_hexafluoride", "High-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio altamente enriquecido");
         fluid("weapons_grade_uranium_hexafluoride", "Weapons-Grade Uranium Hexafluoride", "Hexafluoruro de uranio de grado militar");
+    }
+
+    private static void advancements() {
+        for (NuclearAdvancementProvider.Entry entry : NuclearAdvancementProvider.ENTRIES) {
+            add(entry.titleKey(), entry.title(), entry.titleEs());
+            add(entry.descriptionKey(), entry.description(), entry.descriptionEs());
+        }
     }
 
     private static void dirtyBomb() {

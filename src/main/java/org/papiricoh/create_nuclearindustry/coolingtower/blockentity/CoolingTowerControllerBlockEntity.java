@@ -247,6 +247,8 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
             CoolingTowerStructure next = result.structure().get();
             setStructure(Optional.of(next));
             if (playerInitiated || !wasFormed) {
+                org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level),
+                        org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.COOLING_TOWER_FORMED);
                 messenger.send(level, "§bCooling tower formed §8[" + next.dimensionsText() + ", " + getCapacity() + " mB/t]",
                         playerInitiated);
             }

@@ -1,0 +1,43 @@
+{
+  "parent": "create_nuclearindustry:geiger",
+  "criteria": {
+    "has": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:hazmat_helmet"
+          },
+          {
+            "items": "create_nuclearindustry:hazmat_chestplate"
+          },
+          {
+            "items": "create_nuclearindustry:hazmat_leggings"
+          },
+          {
+            "items": "create_nuclearindustry:hazmat_boots"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.hazmat.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:hazmat_chestplate"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.hazmat.title"
+    }
+  },
+  "requirements": [
+    [
+      "has"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

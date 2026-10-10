@@ -37,6 +37,9 @@ public class RadiationMedicineItem extends Item {
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
         if (entity instanceof Player player) {
             player.getCooldowns().addCooldown(this, COOLDOWN_TICKS);
+            if (stack.is(org.papiricoh.create_nuclearindustry.AllNuclearItems.PRUSSIAN_BLUE.get())) {
+                org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.award(player, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.RADIATION_PURGE);
+            }
         }
         return super.finishUsingItem(stack, level, entity);
     }

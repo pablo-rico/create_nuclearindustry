@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:geiger",
+  "criteria": {
+    "radiation_sickness": {
+      "conditions": {
+        "event": "radiation_sickness"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.radiation_sickness.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:radioactive_waste"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.radiation_sickness.title"
+    }
+  },
+  "requirements": [
+    [
+      "radiation_sickness"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

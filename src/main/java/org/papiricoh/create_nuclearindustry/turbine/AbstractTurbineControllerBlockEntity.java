@@ -255,6 +255,8 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
             TurbineStructure next = result.structure().get();
             setStructure(Optional.of(next));
             if (playerInitiated || !wasFormed) {
+                org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level),
+                        org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.TURBINE_FORMED);
                 messenger.send(level, "§b" + tier().fluidName + " turbine formed §8[" + next.dimensionsText() + ", "
                         + next.rotorCount() + " rotors, up to " + next.throughputLimit() + " mB/t]", playerInitiated);
             }

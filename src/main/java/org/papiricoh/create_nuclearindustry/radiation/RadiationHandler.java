@@ -260,6 +260,7 @@ public final class RadiationHandler {
 
     private static void applySymptoms(Player player, float dose) {
         if (dose >= Config.radiationSicknessThreshold) {
+            org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.award(player, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.RADIATION_SICKNESS);
             int amplifier = dose >= 2 * Config.radiationSicknessThreshold ? 1 : 0;
             player.addEffect(new MobEffectInstance(AllNuclearRadiation.RADIATION_SICKNESS, 60, amplifier, true, true));
         }

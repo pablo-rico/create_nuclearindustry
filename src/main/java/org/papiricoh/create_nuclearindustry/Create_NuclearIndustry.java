@@ -48,6 +48,7 @@ public class Create_NuclearIndustry {
 
         AllNuclearRecipeTypes.register(modEventBus);
         AllNuclearRadiation.register(modEventBus);
+        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.register(modEventBus);
         AllNuclearParticles.register(modEventBus);
 
         AllNuclearIngredients.init();

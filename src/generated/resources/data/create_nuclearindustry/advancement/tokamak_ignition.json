@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:deuterium",
+  "criteria": {
+    "tokamak_ignition": {
+      "conditions": {
+        "event": "tokamak_ignition"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.tokamak_ignition.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:fusion_controller"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.tokamak_ignition.title"
+    }
+  },
+  "requirements": [
+    [
+      "tokamak_ignition"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

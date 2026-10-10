@@ -161,6 +161,14 @@ below for what changes in existing worlds.
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit
   and Geiger counter. Configurable and can be disabled.
 
+### Advancements
+- A progression tree of 24 advancements: the fuel cycle from raw uranium to
+  MOX, reactor operation (forming, criticality, moderated cores, SCRAM, the
+  iodine pit, control rooms, turbines, cooling towers and a hidden meltdown
+  challenge), fusion up to tokamak ignition, radiation safety and weapons.
+- A new `create_nuclearindustry:nuclear_event` criterion trigger lets data
+  packs listen for the same moments.
+
 ### Dirty bomb
 - New Dirty Bomb: loaded with anything radioactive that is not weapons-grade
   (waste, spent fuel, fragments, RTG pellets) and set off by redstone like the
