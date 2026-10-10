@@ -12,6 +12,7 @@ public final class NuclearClient {
 
     public static void init(IEventBus modEventBus) {
         NuclearPartialModels.init();
+        org.papiricoh.create_nuclearindustry.controlroom.desk.client.DeskPartials.init();
         NuclearSpriteShifts.init();
         modEventBus.addListener(NuclearModelSwaps::onModifyBakingResult);
         TurbineClientHooks.install(TurbineClientEffects::tick);

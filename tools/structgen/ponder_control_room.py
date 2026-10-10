@@ -4,8 +4,8 @@
     python3 tools/structgen/ponder_control_room.py
 
 Layout (matches ControlRoomScenes), 9x4x9 on a smooth stone floor at y 0:
-a 3x2 monitor wall at x 1..3, y 1..2, z 6 facing north; the reactor control panel at (2, 1, 3)
-and the alarm at (4, 1, 3); a 3x2x3 block of reactor casing at x 6..8, z 5..7 with its controller
+a 3x2 monitor wall at x 1..3, y 1..2, z 6 facing north; a console of two control desks at
+(1..2, 1, 3) facing north, joined to each other, and the alarm at (4, 1, 3); a 3x2x3 block of reactor casing at x 6..8, z 5..7 with its controller
 on top at (7, 3, 6) and a redstone port in Withdraw rods mode on its west face at (6, 1, 6).
 Ponder looks from the north-west, so every front faces north or west.
 """
@@ -26,7 +26,10 @@ def build():
     for x in range(1, 4):
         for y in (1, 2):
             blocks[(x, y, 6)] = (MOD + "control_monitor", {"facing": "north"})
-    blocks[(2, 1, 3)] = (MOD + "reactor_control_panel", {"facing": "north"})
+    # Operator to the north: the desk at x 1 has the other on its left (east), the one at x 2 on its right.
+    desk = {"facing": "north", "shape": "straight"}
+    blocks[(1, 1, 3)] = (MOD + "reactor_control_panel", dict(desk, left="true", right="false"))
+    blocks[(2, 1, 3)] = (MOD + "reactor_control_panel", dict(desk, left="false", right="true"))
     blocks[(4, 1, 3)] = (MOD + "nuclear_alarm", {"lit": "false"})
     for x in range(6, 9):
         for y in (1, 2):

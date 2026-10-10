@@ -1,0 +1,136 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/control_desk_side",
+    "side": "create_nuclearindustry:block/control_desk_side",
+    "trim": "create_nuclearindustry:block/control_desk_trim"
+  },
+  "elements": [
+    {
+      "name": "cheek_lower",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        0.75,
+        9.25,
+        16
+      ],
+      "faces": {
+        "west": {
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "east": {
+          "texture": "#trim"
+        },
+        "north": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "down": {
+          "texture": "#trim",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "cheek_slope",
+      "from": [
+        0.05,
+        6,
+        0.25
+      ],
+      "to": [
+        0.7,
+        9.75,
+        15.5
+      ],
+      "rotation": {
+        "angle": -22.5,
+        "axis": "x",
+        "origin": [
+          8,
+          9,
+          1
+        ]
+      },
+      "faces": {
+        "west": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#trim"
+        },
+        "north": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "cheek_rail",
+      "from": [
+        0,
+        9.25,
+        13.75
+      ],
+      "to": [
+        0.75,
+        15.5,
+        16
+      ],
+      "faces": {
+        "west": {
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "east": {
+          "texture": "#trim"
+        },
+        "north": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "cheek_post_top",
+      "from": [
+        0,
+        15.5,
+        13.75
+      ],
+      "to": [
+        0.75,
+        16,
+        16
+      ],
+      "faces": {
+        "west": {
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "east": {
+          "texture": "#trim"
+        },
+        "north": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim",
+          "cullface": "up"
+        },
+        "south": {
+          "texture": "#trim",
+          "cullface": "south"
+        }
+      }
+    }
+  ]
+}

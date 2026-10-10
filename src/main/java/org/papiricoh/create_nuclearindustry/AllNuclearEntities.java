@@ -131,9 +131,9 @@ public class AllNuclearEntities {
                     AllNuclearBlocks.CONTROL_MONITOR.get()
             ).build(null));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.controlroom.ReactorControlPanelBlockEntity>> REACTOR_CONTROL_PANEL =
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity>> REACTOR_CONTROL_PANEL =
             ENTITIES.register("reactor_control_panel", () -> BlockEntityType.Builder.of(
-                    (pos, state) -> new org.papiricoh.create_nuclearindustry.controlroom.ReactorControlPanelBlockEntity(AllNuclearEntities.REACTOR_CONTROL_PANEL.get(), pos, state),
+                    (pos, state) -> new org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity(AllNuclearEntities.REACTOR_CONTROL_PANEL.get(), pos, state),
                     AllNuclearBlocks.REACTOR_CONTROL_PANEL.get()
             ).build(null));
 

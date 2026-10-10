@@ -32,6 +32,15 @@ DANGER = Ramp("#4c2928", "#733b35", "#9a5144", "#ba6754", "#d88168", "#eea18a", 
 TRITIUM = Ramp("#433344", "#654966", "#876487", "#aa80a1", "#cba0b9", "#e6c4d0", "#f6e5e7")
 LITHIUM = Ramp("#354047", "#515f67", "#6d7e84", "#8c9e9f", "#adbfba", "#cddbd0", "#eaf0df")
 
+# Control desk enamel: the grey-green of 1970s-80s reactor control rooms.
+CONSOLE = Ramp("#2f3a35", "#45534b", "#5c6d62", "#73867a", "#8b9e90", "#a7b8a8", "#c6d3c2")
+# Mimic-diagram blue (cooling water). Red = DANGER (primary loop), green = RADIUM (steam/feed),
+# yellow = WARN (tie lines / valves).
+MIMIC_BLUE = Ramp("#1d2a45", "#2a3f6b", "#385693", "#4a70b5", "#6b92cf", "#97b6e3", "#c9dcf3")
+# Neutral lamp glass, tinted at render time by the lamp colour.
+GLASS_OFF = Ramp("#1e1e1e", "#2e2e2e", "#3e3e3e", "#505050", "#646464", "#7a7a7a", "#949494")
+GLASS_ON = Ramp("#8a8a8a", "#a6a6a6", "#c0c0c0", "#d6d6d6", "#e8e8e8", "#f6f6f6", "#ffffff")
+
 # Process chemistry ----------------------------------------------------------------------
 YELLOWCAKE = Ramp("#5b3f12", "#86601a", "#b08524", "#d4a930", "#ecc845", "#f8e07a", "#fff3b8")
 UO2 = Ramp("#1d1a17", "#2c2722", "#3d362e", "#51483c", "#675b4b", "#7f705c", "#9a8a72")

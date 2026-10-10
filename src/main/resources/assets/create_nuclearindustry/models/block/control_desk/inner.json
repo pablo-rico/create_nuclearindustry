@@ -1,0 +1,326 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/control_desk_body",
+    "surface": "create_nuclearindustry:block/control_desk_surface",
+    "body": "create_nuclearindustry:block/control_desk_body",
+    "trim": "create_nuclearindustry:block/control_desk_trim"
+  },
+  "elements": [
+    {
+      "name": "plinth_a",
+      "from": [
+        2,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        1,
+        16
+      ],
+      "faces": {
+        "west": {
+          "texture": "#trim"
+        },
+        "east": {
+          "texture": "#trim",
+          "cullface": "east"
+        },
+        "south": {
+          "texture": "#trim",
+          "cullface": "south"
+        },
+        "down": {
+          "texture": "#trim",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "plinth_b",
+      "from": [
+        0,
+        0,
+        2
+      ],
+      "to": [
+        2,
+        1,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#trim"
+        },
+        "south": {
+          "texture": "#trim",
+          "cullface": "south"
+        },
+        "down": {
+          "texture": "#trim",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "cabinet_a",
+      "from": [
+        1,
+        1,
+        0
+      ],
+      "to": [
+        16,
+        9,
+        16
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            0,
+            7,
+            16,
+            15
+          ],
+          "texture": "#body"
+        },
+        "east": {
+          "uv": [
+            0,
+            7,
+            16,
+            15
+          ],
+          "texture": "#body",
+          "cullface": "east"
+        },
+        "south": {
+          "uv": [
+            0,
+            7,
+            15,
+            15
+          ],
+          "texture": "#body",
+          "cullface": "south"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "cabinet_b",
+      "from": [
+        0,
+        1,
+        1
+      ],
+      "to": [
+        1,
+        9,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            15,
+            7,
+            16,
+            15
+          ],
+          "texture": "#body"
+        },
+        "south": {
+          "uv": [
+            15,
+            7,
+            16,
+            15
+          ],
+          "texture": "#body",
+          "cullface": "south"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "armrest_row",
+      "from": [
+        0,
+        8,
+        0.25
+      ],
+      "to": [
+        1.5,
+        9.5,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#trim"
+        },
+        "south": {
+          "texture": "#trim"
+        },
+        "east": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "armrest_leg",
+      "from": [
+        0.25,
+        8,
+        0
+      ],
+      "to": [
+        1.5,
+        9.5,
+        0.25
+      ],
+      "faces": {
+        "west": {
+          "texture": "#trim"
+        },
+        "east": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "top_p1",
+      "from": [
+        0,
+        7.5,
+        1
+      ],
+      "to": [
+        16,
+        9,
+        16
+      ],
+      "rotation": {
+        "angle": -22.5,
+        "axis": "x",
+        "origin": [
+          8,
+          9,
+          1
+        ]
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            15
+          ],
+          "rotation": 180,
+          "texture": "#surface"
+        }
+      }
+    },
+    {
+      "name": "top_p2",
+      "from": [
+        1,
+        7.5,
+        0
+      ],
+      "to": [
+        16,
+        9,
+        16
+      ],
+      "rotation": {
+        "angle": 22.5,
+        "axis": "z",
+        "origin": [
+          1,
+          9,
+          8
+        ]
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            15
+          ],
+          "rotation": 90,
+          "texture": "#surface"
+        }
+      }
+    },
+    {
+      "name": "rail_south",
+      "from": [
+        0,
+        9,
+        14
+      ],
+      "to": [
+        16,
+        15.5,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "south": {
+          "texture": "#body",
+          "cullface": "south"
+        }
+      }
+    },
+    {
+      "name": "rail_east",
+      "from": [
+        14,
+        9,
+        0
+      ],
+      "to": [
+        16,
+        15.5,
+        14
+      ],
+      "faces": {
+        "west": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "east": {
+          "texture": "#body",
+          "cullface": "east"
+        }
+      }
+    }
+  ]
+}

@@ -18,8 +18,8 @@ import org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlockEntit
 import org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget;
 import org.papiricoh.create_nuclearindustry.controlroom.NuclearAlarmBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.NuclearAlarmBlockEntity;
-import org.papiricoh.create_nuclearindustry.controlroom.PanelButton;
-import org.papiricoh.create_nuclearindustry.controlroom.ReactorControlPanelBlockEntity;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.reactor.block.RedstonePortMode;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
@@ -128,24 +128,24 @@ public class ControlRoomTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
-    public static void panelScramsAndResetsTheReactor(GameTestHelper helper) {
+    public static void deskModulesScramAndSetTheRods(GameTestHelper helper) {
         FissionTestBuilder.build(helper);
         ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);
         helper.setBlock(PANEL, AllNuclearBlocks.REACTOR_CONTROL_PANEL.get().defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH));
         helper.runAfterDelay(5, () -> {
-            ReactorControlPanelBlockEntity panel = helper.getBlockEntity(PANEL);
-            panel.setTarget(global(helper, FissionTestBuilder.CONTROLLER));
+            ControlDeskBlockEntity desk = helper.getBlockEntity(PANEL);
+            desk.insert(0, ModuleType.PUSH_BUTTON);
+            desk.insert(1, ModuleType.DIAL);
+            desk.setTarget(global(helper, FissionTestBuilder.CONTROLLER));
             helper.assertTrue(reactor.isFormed(), "reactor should form");
-            panel.press(PanelButton.SCRAM, null);
-            helper.assertTrue(reactor.isScramRequested(), "SCRAM from the panel");
-            panel.press(PanelButton.SCRAM, null);
+            desk.press(0, false);
+            helper.assertTrue(reactor.isScramRequested(), "SCRAM from the desk button");
+            desk.press(0, false);
             helper.assertFalse(reactor.isScramRequested(), "and reset, the core being cold");
-            panel.press(PanelButton.RODS_OUT, null);
-            helper.assertTrue(Math.abs(reactor.getRodTarget() - 0.9f) < 1e-4, "rods out from fully in is 90%, got " + reactor.getRodTarget());
-            boolean auto = reactor.getAutoScram().isEnabled();
-            panel.press(PanelButton.AUTO_SCRAM, null);
-            helper.assertTrue(reactor.getAutoScram().isEnabled() != auto, "the auto SCRAM toggles");
+            desk.press(1, true);
+            helper.assertTrue(Math.abs(reactor.getRodTarget() - 0.95f) < 1e-4,
+                    "a rod dial stepped down from fully in asks for 95%, got " + reactor.getRodTarget());
             helper.succeed();
         });
     }

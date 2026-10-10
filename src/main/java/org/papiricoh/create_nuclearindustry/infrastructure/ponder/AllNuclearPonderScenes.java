@@ -51,7 +51,8 @@ public class AllNuclearPonderScenes {
             helper.addStoryBoard(id(part), "reactor_controller", ReactorModerationScenes::moderation);
         }
         for (String part : new String[]{"control_monitor", "reactor_control_panel", "nuclear_alarm", "control_room_linker",
-                "reactor_redstone_port"}) {
+                "reactor_redstone_port", "push_button_module", "lever_module", "dial_module", "lamp_module", "gauge_module",
+                "key_switch_module"}) {
             helper.addStoryBoard(id(part), "control_room", ControlRoomScenes::controlRoom);
         }
         helper.addStoryBoard(id("electrolyzer"), "centrifuge", CentrifugeScenes::electrolysis);

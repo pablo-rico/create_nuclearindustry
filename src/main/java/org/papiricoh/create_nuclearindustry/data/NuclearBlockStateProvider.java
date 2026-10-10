@@ -11,6 +11,8 @@ import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlock;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.DeskShape;
 import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.coolingtower.block.CoolingTowerFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
@@ -69,15 +71,42 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         ModelFile monitor = models().orientable("control_monitor", housing, modLoc("block/control_monitor_front"), housing);
         horizontalBlock(AllNuclearBlocks.CONTROL_MONITOR.get(), monitor);
         simpleBlockItem(AllNuclearBlocks.CONTROL_MONITOR.get(), monitor);
-        ModelFile panel = models().orientable("reactor_control_panel", housing, modLoc("block/control_panel_front"), housing);
-        horizontalBlock(AllNuclearBlocks.REACTOR_CONTROL_PANEL.get(), panel);
-        simpleBlockItem(AllNuclearBlocks.REACTOR_CONTROL_PANEL.get(), panel);
+        controlDeskStates();
         ModelFile alarm = models().cubeBottomTop("nuclear_alarm", modLoc("block/nuclear_alarm_side"), housing, modLoc("block/nuclear_alarm_top"));
         ModelFile alarmLit = models().cubeBottomTop("nuclear_alarm_lit", modLoc("block/nuclear_alarm_side_lit"), housing,
                 modLoc("block/nuclear_alarm_top_lit"));
         getVariantBuilder(AllNuclearBlocks.NUCLEAR_ALARM.get()).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(state.getValue(BlockStateProperties.LIT) ? alarmLit : alarm).build());
         simpleBlockItem(AllNuclearBlocks.NUCLEAR_ALARM.get(), alarm);
+    }
+
+    /**
+     * The control desk is multipart: a body per shape plus an end cheek on each end no neighbouring
+     * desk closes, so joined desks show no seam. The models are hand-made in models/block/control_desk;
+     * native orientation has the operator to the north.
+     */
+    private void controlDeskStates() {
+        Block desk = AllNuclearBlocks.REACTOR_CONTROL_PANEL.get();
+        ModelFile straight = models().getExistingFile(modLoc("block/control_desk/straight"));
+        ModelFile inner = models().getExistingFile(modLoc("block/control_desk/inner"));
+        ModelFile outer = models().getExistingFile(modLoc("block/control_desk/outer"));
+        ModelFile capLeft = models().getExistingFile(modLoc("block/control_desk/cap_left"));
+        ModelFile capRight = models().getExistingFile(modLoc("block/control_desk/cap_right"));
+        var builder = getMultipartBuilder(desk);
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            int base = ((int) facing.toYRot() + 180) % 360;
+            for (DeskShape shape : DeskShape.values()) {
+                ModelFile body = shape == DeskShape.STRAIGHT ? straight : shape.isInner() ? inner : outer;
+                builder.part().modelFile(body).rotationY((base + shape.bodyExtraRotation()) % 360).addModel()
+                        .condition(BlockStateProperties.HORIZONTAL_FACING, facing).condition(ControlDeskBlock.SHAPE, shape).end();
+                builder.part().modelFile(capLeft).rotationY((base + shape.leftCapRotation()) % 360).addModel()
+                        .condition(BlockStateProperties.HORIZONTAL_FACING, facing).condition(ControlDeskBlock.SHAPE, shape)
+                        .condition(ControlDeskBlock.LEFT, false).end();
+                builder.part().modelFile(capRight).rotationY((base + shape.rightCapRotation()) % 360).addModel()
+                        .condition(BlockStateProperties.HORIZONTAL_FACING, facing).condition(ControlDeskBlock.SHAPE, shape)
+                        .condition(ControlDeskBlock.RIGHT, false).end();
+            }
+        }
     }
 
     /** Concrete casing for the tower, with a front texture on the faces that have one. */

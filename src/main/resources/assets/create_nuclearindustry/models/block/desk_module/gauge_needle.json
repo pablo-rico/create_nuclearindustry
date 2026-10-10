@@ -1,0 +1,69 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_gauge",
+    "part": "create_nuclearindustry:block/desk_gauge"
+  },
+  "elements": [
+    {
+      "name": "needle",
+      "from": [
+        7.875,
+        1.5,
+        5.75
+      ],
+      "to": [
+        8.125,
+        4,
+        5.95
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            7,
+            12.25,
+            9.5
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            12,
+            7,
+            12.25,
+            9.5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            12,
+            7,
+            12.2,
+            9.5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            12,
+            7,
+            12.2,
+            9.5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            12,
+            7,
+            12.25,
+            7.2
+          ],
+          "texture": "#part"
+        }
+      }
+    }
+  ]
+}

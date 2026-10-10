@@ -85,6 +85,22 @@ def reactor_control():
     return t
 
 
+@gui("control_module")
+def control_module():
+    # Setup screen of a desk module: header, settings window, player inventory.
+    w, h = 200, 222
+    t = _plate(w, h, 405)
+    _recess(t, 6, 4, w - 7, 16)
+    _recess(t, 6, 18, w - 7, 124)
+    _recess(t, 12, 136, 187, 217)
+    for row in range(3):
+        for col in range(9):
+            _slot(t, 20 + col * 18, 140 + row * 18)
+    for col in range(9):
+        _slot(t, 20 + col * 18, 198)
+    return t
+
+
 @gui("tokamak_control")
 def tokamak_control():
     from palette import CRYO, CYAN

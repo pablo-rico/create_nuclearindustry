@@ -150,6 +150,7 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> CONTROL_MONITOR = ITEMS.register("control_monitor", () -> new BlockItem(AllNuclearBlocks.CONTROL_MONITOR.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> REACTOR_CONTROL_PANEL = ITEMS.register("reactor_control_panel", () -> new BlockItem(AllNuclearBlocks.REACTOR_CONTROL_PANEL.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> NUCLEAR_ALARM = ITEMS.register("nuclear_alarm", () -> new BlockItem(AllNuclearBlocks.NUCLEAR_ALARM.value(), new Item.Properties()));
+    public static final java.util.Map<org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType, DeferredHolder<Item, ? extends Item>> CONTROL_MODULES = controlModules();
     public static final DeferredHolder<Item, ? extends Item> CONTROL_ROOM_LINKER = ITEMS.register("control_room_linker",
             () -> new org.papiricoh.create_nuclearindustry.controlroom.ControlRoomLinkerItem(new Item.Properties().stacksTo(1)));
 
@@ -187,6 +188,14 @@ public class AllNuclearItems {
         return ITEMS.register(name, () -> new net.minecraft.world.item.ArmorItem(
                 org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.hazmat(), type,
                 org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.hazmatProperties(type)));
+    }
+
+    private static java.util.Map<org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType, DeferredHolder<Item, ? extends Item>> controlModules() {
+        java.util.Map<org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType, DeferredHolder<Item, ? extends Item>> modules = new java.util.EnumMap<>(org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType.class);
+        for (org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType type : org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType.values()) {
+            modules.put(type, ITEMS.register(type.itemId(), () -> new org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModuleItem(new Item.Properties(), type)));
+        }
+        return java.util.Collections.unmodifiableMap(modules);
     }
 
     private static DeferredHolder<Item, ? extends Item> simple(String name) {

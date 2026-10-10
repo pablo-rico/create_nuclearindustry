@@ -479,9 +479,74 @@ public final class LangEntries {
                 "El Yoduro potásico (algas secas y polvo de hueso, mezclados en caliente con agua) reduce a la mitad la radiación que absorbes durante 3 minutos: tómalo antes de acercarte a un núcleo caliente. El Azul de Prusia (pepitas de hierro y tinte azul en ácido sulfúrico) elimina 15 rad de dosis por segundo durante 30 segundos y cura el síndrome de irradiación. Ninguno baja el total acumulado. Ambos se toman aunque no tengas hambre; después hay que esperar 5 segundos.");
     }
 
+    private static void controlModules() {
+        item("push_button_module", "Push Button Module", "Módulo de pulsador");
+        item("lever_module", "Lever Module", "Módulo de palanca");
+        item("dial_module", "Dial Module", "Módulo de rueda");
+        item("lamp_module", "Indicator Lamp Module", "Módulo de piloto");
+        item("gauge_module", "Gauge Module", "Módulo de medidor");
+        item("key_switch_module", "Key Switch Module", "Módulo de interruptor de llave");
+        String m = "create_nuclearindustry.control_module.";
+        add(m + "title", "Control Module", "Módulo de control");
+        add(m + "tooltip", "Fits a Control Desk slot. Wrench it to set it up.",
+                "Va en un hueco de un Pupitre de control. Configúralo con la llave inglesa.");
+        add(m + "inactive", "This module does nothing with what the console is linked to",
+                "Este módulo no hace nada con lo que tiene enlazado la consola");
+        add(m + "inactive_short", "Not for this target", "No sirve para este objetivo");
+        add(m + "state", "%s%%  signal %s", "%s%%  señal %s");
+        add(m + "label", "Label", "Etiqueta");
+        add(m + "label.hint", "Label (optional)", "Etiqueta (opcional)");
+        add(m + "function", "Function: %s", "Función: %s");
+        add(m + "output", "Redstone: %s", "Redstone: %s");
+        add(m + "frequency", "Link frequency", "Frecuencia de enlace");
+        add(m + "type.push_button", "Push Button", "Pulsador");
+        add(m + "type.lever", "Lever", "Palanca");
+        add(m + "type.dial", "Dial", "Rueda");
+        add(m + "type.lamp", "Indicator Lamp", "Piloto");
+        add(m + "type.gauge", "Gauge", "Medidor");
+        add(m + "type.key_switch", "Key Switch", "Interruptor de llave");
+        add(m + "function.scram", "SCRAM / reset", "SCRAM / rearmar");
+        add(m + "function.pulse", "Redstone pulse", "Pulso de redstone");
+        add(m + "function.auto_scram", "Automatic SCRAM", "SCRAM automático");
+        add(m + "function.tokamak_fuel", "Tokamak fuel", "Combustible del tokamak");
+        add(m + "function.toggle", "Redstone on/off", "Redstone sí/no");
+        add(m + "function.rod_target", "Control rod target", "Objetivo de las barras");
+        add(m + "function.scram_threshold", "Auto SCRAM threshold", "Umbral del SCRAM automático");
+        add(m + "function.signal_level", "Redstone level", "Nivel de redstone");
+        add(m + "function.lamp_scram", "SCRAM signal", "Señal de SCRAM");
+        add(m + "function.lamp_running", "Running", "En marcha");
+        add(m + "function.lamp_no_signal", "No signal", "Sin señal");
+        add(m + "function.lamp_alarm", "Alarm", "Alarma");
+        add(m + "function.reading", "Reading", "Lectura");
+        add(m + "output.none", "none", "ninguna");
+        add(m + "output.below", "below the desk", "bajo el pupitre");
+        add(m + "output.link", "Redstone Link", "Redstone Link");
+        String r = m + "reading.";
+        add(r + "reactor_temperature", "Reactor temperature", "Temperatura del reactor");
+        add(r + "reactor_power", "Reactor power", "Potencia del reactor");
+        add(r + "reactor_rods", "Control rod insertion", "Inserción de las barras");
+        add(r + "reactor_xenon", "Xenon poisoning", "Envenenamiento por xenón");
+        add(r + "reactor_coolant", "Reactor coolant", "Refrigerante del reactor");
+        add(r + "reactor_steam", "Reactor steam", "Vapor del reactor");
+        add(r + "reactor_fuel", "Reactor fuel", "Combustible del reactor");
+        add(r + "turbine_speed", "Turbine speed", "Velocidad de la turbina");
+        add(r + "turbine_load", "Turbine load", "Carga de la turbina");
+        add(r + "tower_load", "Cooling tower load", "Carga de la torre");
+        add(r + "tower_water", "Cooling tower water", "Agua de la torre");
+        add(r + "plasma_temperature", "Plasma temperature", "Temperatura del plasma");
+        add(r + "fusion_power", "Fusion power", "Potencia de fusión");
+        add(r + "confinement", "Plasma confinement", "Confinamiento del plasma");
+        add(r + "instability", "Plasma instability", "Inestabilidad del plasma");
+        add(r + "area_exposure", "Radiation exposure", "Exposición a la radiación");
+        add(r + "area_ground", "Ground contamination", "Contaminación del suelo");
+        add("jei.create_nuclearindustry.info.control_desk",
+                "Control Desks placed side by side, or meeting at a corner, join into one console; link any of them with the Control Room Linker to link the whole console. Each straight desk holds four control modules: click a slot with a module to fit it, wrench the module to choose what it does and where its redstone goes, sneak-wrench to take it out, and click it with an empty hand to work it (sneak to turn a dial down). Push buttons SCRAM and reset the reactor or send a pulse; levers switch the automatic SCRAM, the tokamak fuel or a redstone output; dials set the rod target, the SCRAM threshold or a redstone level; lamps light on SCRAM, running, no signal or an alarm; gauges show any reading. Any module can put its state out as redstone below the desk or on a Create Redstone Link frequency.",
+                "Los Pupitres de control colocados uno junto a otro, o en esquina, se unen en una consola; enlaza cualquiera de ellos con el Enlazador de sala de control para enlazar la consola entera. Cada pupitre recto lleva cuatro módulos de control: haz clic en un hueco con un módulo para colocarlo, usa la llave inglesa sobre él para elegir qué hace y adónde va su redstone, agachado con la llave para quitarlo, y haz clic con la mano vacía para accionarlo (agachado baja una rueda). Los pulsadores hacen SCRAM y rearman el reactor o mandan un pulso; las palancas activan el SCRAM automático, el combustible del tokamak o una salida de redstone; las ruedas fijan el objetivo de barras, el umbral del SCRAM o un nivel de redstone; los pilotos se encienden con SCRAM, en marcha, sin señal o una alarma; los medidores muestran cualquier lectura. Cualquier módulo puede sacar su estado como redstone bajo el pupitre o por una frecuencia de Redstone Link de Create.");
+    }
+
     private static void controlRoom() {
         block("control_monitor", "Control Room Monitor", "Monitor de sala de control");
-        block("reactor_control_panel", "Reactor Control Panel", "Panel de control del reactor");
+        block("reactor_control_panel", "Control Desk", "Pupitre de control");
         block("nuclear_alarm", "Nuclear Alarm", "Alarma nuclear");
         item("control_room_linker", "Control Room Linker", "Enlazador de sala de control");
         String linker = "item.create_nuclearindustry.control_room_linker.";
@@ -540,16 +605,7 @@ public final class LangEntries {
         add(monitor + "fans", "Fans", "Ventiladores");
         add(monitor + "exposure", "Exposure", "Exposición");
         add(monitor + "ground", "Ground", "Suelo");
-        String panel = "create_nuclearindustry.control_panel.";
-        add(panel + "unlinked", "Unlinked", "Sin enlazar");
-        add(panel + "no_reactor", "No reactor linked", "Ningún reactor enlazado");
-        add(panel + "rods", "Rods %s", "Barras %s");
-        add(panel + "scram", "SCRAM", "SCRAM");
-        add(panel + "reset", "RESET", "REARMAR");
-        add(panel + "auto", "AUTO %s°", "AUTO %s°");
-        add(panel + "auto_off", "AUTO OFF", "AUTO NO");
-        add(panel + "rods_in", "RODS IN", "METER");
-        add(panel + "rods_out", "RODS OUT", "SACAR");
+        controlModules();
         String alarm = "create_nuclearindustry.alarm.";
         add(alarm + "metric", "Watch", "Vigilar");
         add(alarm + "threshold", "Threshold", "Umbral");
@@ -583,8 +639,8 @@ public final class LangEntries {
                 "Click a screen to change page. A comparator reads its main value; Display Links read a linked reactor too.",
                 "Haz clic en una pantalla para cambiar de página. Un comparador lee su valor principal; los Display Links también leen un reactor enlazado.");
         add("create_nuclearindustry.ponder.control_room.text_4",
-                "The Reactor Control Panel SCRAMs and resets the reactor, switches and tunes its automatic SCRAM, and sets a target for the control rods.",
-                "El Panel de control del reactor hace SCRAM y rearma el reactor, activa y ajusta su SCRAM automático y fija un objetivo para las barras de control.");
+                "Control Desks side by side join into one console. Fit control modules into their slots and set each up with a wrench: buttons, levers and dials SCRAM the reactor, switch its automatic SCRAM and set a target for the control rods.",
+                "Los Pupitres de control juntos forman una consola. Coloca módulos de control en sus huecos y configura cada uno con la llave inglesa: pulsadores, palancas y ruedas hacen SCRAM al reactor, activan su SCRAM automático y fijan un objetivo para las barras de control.");
         add("create_nuclearindustry.ponder.control_room.text_5",
                 "Rods still only move with pistons: Redstone Ports set to Insert rods or Withdraw rods light up until the rods reach the target. Wire them to the clutch and gearshift of the rod pistons.",
                 "Las barras solo se mueven con pistones: los Puertos de redstone en Insertar barras o Extraer barras se encienden hasta que las barras llegan al objetivo. Conéctalos al embrague y la caja de cambios de los pistones de las barras.");
@@ -592,8 +648,8 @@ public final class LangEntries {
                 "A Nuclear Alarm rings and powers every side once a reading passes its threshold. Pick the reading on its top and the threshold on its sides.",
                 "Una Alarma nuclear suena y da señal por todos sus lados cuando una lectura pasa su umbral. Elige la lectura en su cara superior y el umbral en sus laterales.");
         add("jei.create_nuclearindustry.info.control_room",
-                "Build a control room. Click a reactor, turbine or cooling tower (any of their blocks) with the Control Room Linker, or any other block to watch the radiation there, then click a Monitor, Reactor Control Panel or Nuclear Alarm to link it; sneak-click a device to unlink it. Monitors side by side join into one screen up to 8x8 that shows the readings and two minutes of history; click it to change page. The panel's buttons SCRAM and reset the reactor, switch its automatic SCRAM and set a rod target: Redstone Ports in Insert rods or Withdraw rods mode light up until the rods reach it, to drive the clutch and gearshift of the pistons. The alarm rings and powers every side past the threshold set on its sides, for the reading chosen on its top. Devices reach 128 blocks.",
-                "Monta una sala de control. Haz clic con el Enlazador de sala de control en un reactor, turbina o torre de refrigeración (en cualquiera de sus bloques), o en cualquier otro bloque para vigilar la radiación allí, y luego en un Monitor, Panel de control del reactor o Alarma nuclear para enlazarlo; agachado sobre un dispositivo lo desenlaza. Los monitores juntos forman una pantalla de hasta 8x8 que muestra las lecturas y dos minutos de historial; haz clic para cambiar de página. Los botones del panel hacen SCRAM y rearman el reactor, activan su SCRAM automático y fijan un objetivo de barras: los Puertos de redstone en modo Insertar barras o Extraer barras se encienden hasta que las barras llegan a él, para mover el embrague y la caja de cambios de los pistones. La alarma suena y da señal por todos sus lados al pasar el umbral fijado en sus caras, para la lectura elegida en su cara superior. Los dispositivos llegan a 128 bloques.");
+                "Build a control room. Click a reactor, turbine or cooling tower (any of their blocks) with the Control Room Linker, or any other block to watch the radiation there, then click a Monitor, Control Desk or Nuclear Alarm to link it; sneak-click a device to unlink it. Monitors side by side join into one screen up to 8x8 that shows the readings and two minutes of history; click it to change page. Control Desks carry modules that SCRAM the reactor, switch its automatic SCRAM and set a rod target: Redstone Ports in Insert rods or Withdraw rods mode light up until the rods reach it, to drive the clutch and gearshift of the pistons. The alarm rings and powers every side past the threshold set on its sides, for the reading chosen on its top. Devices reach 128 blocks.",
+                "Monta una sala de control. Haz clic con el Enlazador de sala de control en un reactor, turbina o torre de refrigeración (en cualquiera de sus bloques), o en cualquier otro bloque para vigilar la radiación allí, y luego en un Monitor, Pupitre de control o Alarma nuclear para enlazarlo; agachado sobre un dispositivo lo desenlaza. Los monitores juntos forman una pantalla de hasta 8x8 que muestra las lecturas y dos minutos de historial; haz clic para cambiar de página. Los Pupitres de control llevan módulos que hacen SCRAM al reactor, activan su SCRAM automático y fijan un objetivo de barras: los Puertos de redstone en modo Insertar barras o Extraer barras se encienden hasta que las barras llegan a él, para mover el embrague y la caja de cambios de los pistones. La alarma suena y da señal por todos sus lados al pasar el umbral fijado en sus caras, para la lectura elegida en su cara superior. Los dispositivos llegan a 128 bloques.");
     }
 
     private static void moderation() {

@@ -1130,16 +1130,6 @@ def control_monitor_front():
     return t
 
 
-@block("control_panel_front")
-def control_panel_front():
-    # Plain desk face; the renderer draws the status strip and the six lit buttons on it.
-    t = Tex(seed=122)
-    brushed(t, DARK, base=3.0, amp=0.5, seed=122)
-    bevel(t, 0, 0, 15, 15, DARK)
-    outline(t, 0, 0, 15, 15, DARK[0])
-    return t
-
-
 def _alarm(seed, lit, top):
     t = Tex(seed=seed)
     brushed(t, DARK, base=3.0, amp=0.5, seed=seed)
@@ -1226,4 +1216,255 @@ def dirty_bomb_top():
     t.disc(10.5, 5.5, 1.2, DARK[0])
     t.disc(8, 8, 2.2, RADIUM[4])
     glow(t, 8, 8, 5.0, RADIUM[6], 0.3)
+    return t
+
+
+# ======================================================================================
+# control desk
+# ======================================================================================
+
+from palette import CONSOLE, GLASS_OFF, GLASS_ON, MIMIC_BLUE  # noqa: E402
+
+
+@block("control_desk_surface")
+def control_desk_surface():
+    # The slanted desk top as the operator reads it: row 0 is the back edge (under the
+    # rail), row 14 the front edge, row 15 is never mapped. Module slots cover columns
+    # 1-6 / 9-14 and rows 1-6 / 8-13. Mimic lines run the full width so they continue
+    # into the next desk and mitre round corner pieces.
+    t = Tex(seed=140)
+    brushed(t, CONSOLE, base=3.4, amp=0.35, seed=140, axis="h")
+    t.hline(0, 15, 0, CONSOLE[1])
+    t.hline(0, 15, 14, CONSOLE[2])
+    t.hline(0, 15, 15, CONSOLE[1])
+    for u0, v0 in ((1, 1), (9, 1), (1, 8), (9, 8)):
+        u1, v1 = u0 + 5, v0 + 5
+        for x, y, dx, dy in ((u0, v0, 1, 1), (u1, v0, -1, 1), (u0, v1, 1, -1), (u1, v1, -1, -1)):
+            t.set(x, y, CONSOLE[1])
+            t.set(x + dx, y, CONSOLE[2])
+            t.set(x, y + dy, CONSOLE[2])
+    lines = ((3, MIMIC_BLUE), (7, DANGER), (11, RADIUM))
+    for y, ramp in lines:
+        t.hline(0, 15, y, ramp[4])
+        for x in range(16):
+            t.set(x, y + 1, shade(t.get(x, y + 1), 0.82))
+    t.vline(8, 4, 10, WARN[4])
+    t.set(7, 9, WARN[5])
+    t.set(8, 9, DARK[0])
+    t.set(7, 10, DARK[0])
+    t.set(8, 10, WARN[5])
+    for y, ramp in lines:
+        t.set(8, y, ramp[6])
+    return t
+
+
+@block("control_desk_body")
+def control_desk_body():
+    # Rows 0-6 dress the back of the rail; rows 7-14 the cabinet (front and rear doors).
+    # Door gaps sit on columns 0/15 so a merged console reads as a run of cabinets.
+    t = Tex(seed=141)
+    brushed(t, CONSOLE, base=3.0, amp=0.45, seed=141, axis="v")
+    t.hline(0, 15, 0, CONSOLE[4])
+    for y in (2, 4):
+        t.hline(2, 13, y, CONSOLE[0])
+        t.hline(2, 13, y + 1, CONSOLE[4])
+    t.hline(0, 15, 6, CONSOLE[1])
+    t.hline(0, 15, 7, CONSOLE[5])
+    for x0, x1 in ((1, 6), (9, 14)):
+        bevel(t, x0, 8, x1, 13, CONSOLE, hi=CONSOLE[5], lo=CONSOLE[1])
+    for x in (0, 15):
+        t.vline(x, 8, 13, CONSOLE[0])
+    t.vline(7, 8, 13, CONSOLE[2])
+    t.vline(8, 8, 13, CONSOLE[2])
+    for y in (10, 11):
+        t.set(7, y, STEEL[6])
+        t.set(8, y, STEEL[4])
+    t.hline(0, 15, 14, DARK[1])
+    t.hline(0, 15, 15, DARK[0])
+    return t
+
+
+@block("control_desk_side")
+def control_desk_side():
+    # End cheek: plain enamel; the bottom row lines up with the dark plinth.
+    t = Tex(seed=142)
+    brushed(t, CONSOLE, base=2.7, amp=0.4, seed=142, axis="h")
+    t.hline(0, 15, 15, DARK[1])
+    for x, y in ((2, 9), (12, 9)):
+        bolt(t, x, y, CONSOLE)
+    return t
+
+
+@block("control_desk_trim")
+def control_desk_trim():
+    # Near-black trim for the armrest, rails, plinth and cheek edges; uniform so any UV works.
+    t = Tex(seed=143)
+    brushed(t, DARK, base=2.0, amp=0.5, seed=143, axis="h")
+    return t
+
+
+# ------------------------------------------------------------------ desk modules
+# Partial-model atlases. Unused texels stay opaque. Up faces are drawn as the operator reads
+# them: row 0 = away from the operator.
+
+def _atlas(seed):
+    t = Tex(seed=seed)
+    t.rect(0, 0, 15, 15, DARK[1])
+    return t
+
+
+@block("desk_module_base")
+def desk_module_base():
+    # 6x6 mounting plate at texels 5..10; its dark bottom bevel row (10) dresses the plate sides.
+    t = Tex(seed=150)
+    brushed(t, DARK, base=1.6, amp=0.4, seed=150)
+    t.rect(5, 5, 10, 10, DARK[2])
+    bevel(t, 5, 5, 10, 10, DARK, hi=DARK[4], lo=DARK[0])
+    for x, y in ((6, 6), (9, 6), (6, 9), (9, 9)):
+        t.set(x, y, STEEL[5])
+    return t
+
+
+@block("desk_push_button")
+def desk_push_button():
+    # [0,0,5,5] guard collar top | [0,5,5,6] collar side | [6,0,8,1] stem
+    # [8,0,12,4] mushroom head top | [8,4,12,5] head side | [8,5,12,6] head underside
+    t = _atlas(151)
+    t.rect(0, 0, 4, 4, WARN[4])
+    bevel(t, 0, 0, 4, 4, WARN, hi=WARN[6], lo=WARN[1])
+    t.rect(1, 1, 3, 3, DARK[0])
+    for x in range(5):
+        t.set(x, 5, WARN[4] if x % 2 == 0 else DARK[0])
+    t.hline(6, 7, 0, STEEL[2])
+    t.rect(8, 0, 11, 3, DANGER[4])
+    for x, y in ((8, 0), (11, 0), (8, 3), (11, 3)):
+        t.set(x, y, DANGER[2])
+    t.set(9, 1, DANGER[6])
+    t.set(10, 1, DANGER[5])
+    t.set(9, 2, DANGER[5])
+    t.hline(9, 10, 3, DANGER[3])
+    t.vline(11, 1, 2, DANGER[3])
+    t.hline(8, 11, 4, DANGER[3])
+    t.set(8, 4, DANGER[4])
+    t.hline(8, 11, 5, DANGER[1])
+    return t
+
+
+@block("desk_lever")
+def desk_lever():
+    # [0,0,4,5] gate top with slot | [0,5,5,6] gate side | [6,0,7,4] stem | [6,4,7,5] stem top
+    # [8,0,10,2] knob side | [8,2,10,4] knob top
+    t = _atlas(152)
+    t.rect(0, 0, 3, 4, DARK[2])
+    bevel(t, 0, 0, 3, 4, DARK, hi=DARK[4], lo=DARK[0])
+    t.vline(1, 1, 3, DARK[0])
+    t.vline(2, 1, 3, DARK[0])
+    t.set(3, 0, RADIUM[5])
+    t.set(3, 4, DANGER[4])
+    t.hline(0, 4, 5, DARK[3])
+    for y, c in enumerate((STEEL[6], STEEL[5], STEEL[4], STEEL[3], STEEL[6])):
+        t.set(6, y, c)
+    t.hline(8, 9, 0, DARK[3])
+    t.hline(8, 9, 1, DARK[1])
+    t.rect(8, 2, 9, 3, DARK[2])
+    t.set(8, 2, DARK[5])
+    return t
+
+
+@block("desk_dial")
+def desk_dial():
+    # [0,0,6,6] scale plate | [0,6,6,7] plate edge | [8,0,11,2] knurled knob side
+    # [8,4,11,7] knob top with pointer | [12,0,16,1] skirt side | [12,1,16,5] skirt top | [14,6] tab
+    t = _atlas(153)
+    t.rect(0, 0, 5, 5, DARK[0])
+    outline(t, 0, 0, 5, 5, DARK[2])
+    for x, y in ((0, 4), (0, 1), (2, 0), (3, 0), (5, 1)):
+        t.set(x, y, LEAD[6])
+    t.set(5, 4, DANGER[5])
+    t.hline(0, 5, 6, DARK[2])
+    for x in range(8, 11):
+        t.vline(x, 0, 1, DARK[2] if x % 2 == 0 else DARK[0])
+    t.rect(8, 4, 10, 6, DARK[2])
+    t.set(8, 4, DARK[4])
+    t.vline(9, 4, 5, LEAD[6])
+    t.hline(12, 15, 0, DARK[2])
+    t.rect(12, 1, 15, 4, DARK[3])
+    t.set(14, 6, LEAD[6])
+    return t
+
+
+@block("desk_lamp")
+def desk_lamp():
+    # [0,0,4,4] chrome bezel top | [0,4,4,5] bezel side
+    t = _atlas(154)
+    t.rect(0, 0, 3, 3, STEEL[5])
+    bevel(t, 0, 0, 3, 3, STEEL, hi=STEEL[6], lo=STEEL[2])
+    t.rect(1, 1, 2, 2, DARK[0])
+    t.hline(0, 3, 4, STEEL[4])
+    return t
+
+
+def _lens(seed, glass):
+    # Whole sheet is glass so every lens UV lands on it. Neutral grey: tinted at render time.
+    t = Tex(seed=seed)
+    t.rect(0, 0, 15, 15, glass[3])
+    t.set(0, 0, glass[6])
+    t.set(1, 0, glass[5])
+    t.set(0, 1, glass[5])
+    t.set(2, 2, glass[1])
+    t.hline(0, 15, 3, glass[2])
+    return t
+
+
+@block("desk_lamp_lens_off")
+def desk_lamp_lens_off():
+    return _lens(157, GLASS_OFF)
+
+
+@block("desk_lamp_lens_on")
+def desk_lamp_lens_on():
+    return _lens(158, GLASS_ON)
+
+
+@block("desk_gauge")
+def desk_gauge():
+    # [0,0,10,8] dial face at 2 texels/px, pivot at texel (5,6) | [0,8,4,12] housing side
+    # [4,8,9,12] housing back | [10,0,16,5] hood | [10,6] hub | [12,7..9] needle
+    t = _atlas(155)
+    t.rect(0, 0, 9, 7, CRYO[5])
+    outline(t, 0, 0, 9, 7, DARK[0])
+    for x, y in ((1, 4), (2, 2), (4, 1), (5, 1)):
+        t.set(x, y, DARK[0])
+    for x, y in ((7, 2), (8, 3), (8, 4)):
+        t.set(x, y, DANGER[3])
+    t.hline(1, 8, 6, CRYO[4])
+    t.rect(0, 8, 8, 11, DARK[2])
+    t.hline(0, 8, 8, DARK[4])
+    t.hline(0, 8, 11, DARK[0])
+    t.rect(10, 0, 15, 4, DARK[3])
+    t.hline(10, 15, 0, DARK[5])
+    t.hline(10, 15, 5, DARK[1])
+    t.set(10, 6, DARK[0])
+    t.vline(12, 7, 9, DANGER[4])
+    t.set(12, 7, DANGER[5])
+    return t
+
+
+@block("desk_toggle")
+def desk_toggle():
+    # [0,0,5,5] red plate with ON/OFF marks | [0,5,5,6] plate side | [6,0,8,2] nut top
+    # [6,2,8,3] nut side | [9,0..2] bat | [10..11,0..1] bat tip | [12,0..2] guard posts
+    t = _atlas(156)
+    t.rect(0, 0, 4, 4, DANGER[3])
+    bevel(t, 0, 0, 4, 4, DANGER, hi=DANGER[5], lo=DANGER[1])
+    t.set(2, 0, LEAD[6])
+    t.set(2, 4, DARK[0])
+    t.hline(0, 4, 5, DANGER[2])
+    t.rect(6, 0, 7, 1, STEEL[5])
+    t.set(7, 1, STEEL[1])
+    t.hline(6, 7, 2, STEEL[3])
+    for y, c in enumerate((STEEL[6], STEEL[5], STEEL[4])):
+        t.set(9, y, c)
+    t.rect(10, 0, 11, 1, STEEL[6])
+    t.vline(12, 0, 2, STEEL[4])
     return t

@@ -1,0 +1,129 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_toggle",
+    "part": "create_nuclearindustry:block/desk_toggle"
+  },
+  "elements": [
+    {
+      "name": "bat",
+      "from": [
+        7.6,
+        1.5,
+        7.6
+      ],
+      "to": [
+        8.4,
+        4.5,
+        8.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            0,
+            9.8,
+            3
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            9,
+            0,
+            9.8,
+            3
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            9,
+            0,
+            9.8,
+            3
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            9,
+            0,
+            9.8,
+            3
+          ],
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "tip",
+      "from": [
+        7.4,
+        4.5,
+        7.4
+      ],
+      "to": [
+        8.6,
+        5,
+        8.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10,
+            0,
+            11.2,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            10,
+            0,
+            11.2,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            10,
+            0,
+            11.2,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            10,
+            0,
+            11.2,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            10,
+            0,
+            11.2,
+            1.2
+          ],
+          "texture": "#part"
+        },
+        "down": {
+          "uv": [
+            10,
+            0,
+            11.2,
+            1.2
+          ],
+          "texture": "#part"
+        }
+      }
+    }
+  ]
+}

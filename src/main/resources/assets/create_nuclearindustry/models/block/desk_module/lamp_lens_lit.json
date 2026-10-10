@@ -1,0 +1,7 @@
+{
+  "parent": "create_nuclearindustry:block/desk_module/lamp_lens",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_lamp_lens_on",
+    "lens": "create_nuclearindustry:block/desk_lamp_lens_on"
+  }
+}

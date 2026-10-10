@@ -1,0 +1,191 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_push_button",
+    "part": "create_nuclearindustry:block/desk_push_button"
+  },
+  "elements": [
+    {
+      "name": "stem",
+      "from": [
+        7,
+        1.5,
+        7
+      ],
+      "to": [
+        9,
+        2.5,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            0,
+            8,
+            1
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            6,
+            0,
+            8,
+            1
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            6,
+            0,
+            8,
+            1
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            8,
+            1
+          ],
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "head",
+      "from": [
+        6,
+        2.5,
+        6
+      ],
+      "to": [
+        10,
+        3.5,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            4,
+            12,
+            5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            8,
+            4,
+            12,
+            5
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            8,
+            4,
+            12,
+            5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            8,
+            4,
+            12,
+            5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            8,
+            0,
+            12,
+            4
+          ],
+          "rotation": 180,
+          "texture": "#part"
+        },
+        "down": {
+          "uv": [
+            8,
+            5,
+            12,
+            6
+          ],
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "dome",
+      "from": [
+        6.75,
+        3.5,
+        6.75
+      ],
+      "to": [
+        9.25,
+        4,
+        9.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            4,
+            10.5,
+            4.5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            8,
+            4,
+            10.5,
+            4.5
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            8,
+            4,
+            10.5,
+            4.5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            8,
+            4,
+            10.5,
+            4.5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            9,
+            1,
+            11.5,
+            3.5
+          ],
+          "rotation": 180,
+          "texture": "#part"
+        }
+      }
+    }
+  ]
+}

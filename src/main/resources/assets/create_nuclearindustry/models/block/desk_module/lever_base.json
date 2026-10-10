@@ -1,0 +1,132 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_module_base",
+    "plate": "create_nuclearindustry:block/desk_module_base",
+    "part": "create_nuclearindustry:block/desk_lever"
+  },
+  "elements": [
+    {
+      "name": "plate",
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        0.5,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "east": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "south": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "west": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "up": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "rotation": 180,
+          "texture": "#plate"
+        }
+      }
+    },
+    {
+      "name": "gate",
+      "from": [
+        6,
+        0.5,
+        5.5
+      ],
+      "to": [
+        10,
+        1.5,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            5,
+            4,
+            6
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            0,
+            5,
+            4,
+            6
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            0,
+            5,
+            5,
+            6
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            0,
+            5,
+            5,
+            6
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            5
+          ],
+          "rotation": 180,
+          "texture": "#part"
+        }
+      }
+    }
+  ]
+}

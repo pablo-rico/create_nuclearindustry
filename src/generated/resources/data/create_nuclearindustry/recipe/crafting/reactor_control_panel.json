@@ -2,29 +2,23 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "B": {
-      "item": "minecraft:stone_button"
-    },
-    "C": {
-      "item": "create_nuclearindustry:reactor_casing"
-    },
     "E": {
       "item": "create:electron_tube"
     },
     "P": {
-      "item": "create:brass_sheet"
+      "item": "create:iron_sheet"
     },
-    "R": {
-      "item": "minecraft:redstone"
+    "S": {
+      "item": "minecraft:smooth_stone_slab"
     }
   },
   "pattern": [
-    "BBB",
-    "ECE",
-    "PRP"
+    "SSS",
+    "PEP",
+    "P P"
   ],
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "create_nuclearindustry:reactor_control_panel"
   }
 }

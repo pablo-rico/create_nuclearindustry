@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
 
 import java.util.concurrent.CompletableFuture;
@@ -65,17 +66,16 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .define('R', Items.REDSTONE)
                 .unlockedBy("has_electron_tube", has(CreateItems.get("electron_tube")))
                 .save(output, id("crafting/control_monitor"));
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, AllNuclearItems.REACTOR_CONTROL_PANEL.get())
-                .pattern("BBB")
-                .pattern("ECE")
-                .pattern("PRP")
-                .define('B', Items.STONE_BUTTON)
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, AllNuclearItems.REACTOR_CONTROL_PANEL.get(), 2)
+                .pattern("SSS")
+                .pattern("PEP")
+                .pattern("P P")
+                .define('S', Items.SMOOTH_STONE_SLAB)
+                .define('P', CreateItems.get("iron_sheet"))
                 .define('E', CreateItems.get("electron_tube"))
-                .define('C', AllNuclearItems.REACTOR_CASING.get())
-                .define('P', CreateItems.get("brass_sheet"))
-                .define('R', Items.REDSTONE)
-                .unlockedBy("has_reactor_casing", has(AllNuclearItems.REACTOR_CASING.get()))
+                .unlockedBy("has_electron_tube", has(CreateItems.get("electron_tube")))
                 .save(output, id("crafting/reactor_control_panel"));
+        controlModules(output);
         ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, AllNuclearItems.NUCLEAR_ALARM.get())
                 .pattern(" L ")
                 .pattern("PNP")
@@ -94,6 +94,26 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .define('B', CreateItems.get("brass_sheet"))
                 .unlockedBy("has_electron_tube", has(CreateItems.get("electron_tube")))
                 .save(output, id("crafting/control_room_linker"));
+    }
+
+    /** Each module is a plate (iron sheet) with the control on it, two at a time. */
+    private void controlModules(RecipeOutput output) {
+        module(output, ModuleType.PUSH_BUTTON, Items.STONE_BUTTON, Items.RED_DYE);
+        module(output, ModuleType.LEVER, Items.LEVER, Items.LEVER);
+        module(output, ModuleType.DIAL, Items.COMPARATOR, CreateItems.get("andesite_alloy"));
+        module(output, ModuleType.LAMP, Items.GLOWSTONE_DUST, Items.GLASS_PANE);
+        module(output, ModuleType.GAUGE, Items.CLOCK, Items.GLASS_PANE);
+        module(output, ModuleType.KEY_SWITCH, Items.TRIPWIRE_HOOK, Items.REDSTONE_TORCH);
+    }
+
+    private static void module(RecipeOutput output, ModuleType type, net.minecraft.world.level.ItemLike first,
+                               net.minecraft.world.level.ItemLike second) {
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.REDSTONE, AllNuclearItems.CONTROL_MODULES.get(type).get(), 2)
+                .requires(CreateItems.get("iron_sheet"))
+                .requires(first)
+                .requires(second)
+                .unlockedBy("has_control_desk", has(AllNuclearItems.REACTOR_CONTROL_PANEL.get()))
+                .save(output, id("crafting/" + type.itemId()));
     }
 
     /** Graphite moderator columns and beryllium reflector lining for the fission core. */

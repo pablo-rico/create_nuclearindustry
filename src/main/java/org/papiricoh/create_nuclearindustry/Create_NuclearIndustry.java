@@ -49,6 +49,7 @@ public class Create_NuclearIndustry {
         AllNuclearRecipeTypes.register(modEventBus);
         AllNuclearRadiation.register(modEventBus);
         org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.register(modEventBus);
+        org.papiricoh.create_nuclearindustry.controlroom.desk.ConfigureModulePayload.register(modEventBus);
         AllNuclearParticles.register(modEventBus);
 
         AllNuclearIngredients.init();
@@ -132,7 +133,7 @@ public class Create_NuclearIndustry {
             event.registerBlockEntityRenderer(AllNuclearEntities.CONTROL_MONITOR.get(),
                     org.papiricoh.create_nuclearindustry.controlroom.client.ControlMonitorRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.REACTOR_CONTROL_PANEL.get(),
-                    org.papiricoh.create_nuclearindustry.controlroom.client.ReactorControlPanelRenderer::new);
+                    org.papiricoh.create_nuclearindustry.controlroom.desk.client.ControlDeskRenderer::new);
         }
 
         public static void onRegisterScreens(RegisterMenuScreensEvent event) {
@@ -140,6 +141,8 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlScreen::new);
             event.register(AllNuclearGUIs.NUCLEAR_BOMB_MENU.get(),
                     org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombScreen::new);
+            event.register(AllNuclearGUIs.CONTROL_MODULE_MENU.get(),
+                    org.papiricoh.create_nuclearindustry.controlroom.desk.client.ControlModuleScreen::new);
             event.register(AllNuclearGUIs.LAUNCH_PAD_MENU.get(),
                     org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadScreen::new);
             event.register(AllNuclearGUIs.TOKAMAK_MENU.get(),

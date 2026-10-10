@@ -13,7 +13,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 
 /**
  * A control room on the control_room schematic (tools/structgen/ponder_control_room.py): a 3x2
- * monitor wall, the reactor panel and an alarm, next to a block of reactor casing standing in for
+ * monitor wall, a console of two control desks and an alarm, next to a block of reactor casing standing in for
  * a reactor, with a Redstone Port in a rod mode on its west face.
  */
 public class ControlRoomScenes {
@@ -61,11 +61,11 @@ public class ControlRoomScenes {
         scene.idle(90);
         scene.addKeyframe();
 
-        scene.world().showSection(util.select().position(panel), Direction.DOWN);
+        scene.world().showSection(util.select().fromTo(1, 1, 3, 2, 1, 3), Direction.DOWN);
         scene.idle(15);
-        scene.overlay().showText(100)
-                .text("The Reactor Control Panel SCRAMs and resets the reactor, switches and tunes its automatic SCRAM, and sets a target for the control rods.")
-                .pointAt(util.vector().blockSurface(panel, Direction.NORTH))
+        scene.overlay().showText(110)
+                .text("Control Desks side by side join into one console. Fit control modules into their slots and set each up with a wrench: buttons, levers and dials SCRAM the reactor, switch its automatic SCRAM and set a target for the control rods.")
+                .pointAt(util.vector().topOf(panel))
                 .placeNearTarget();
         scene.idle(110);
         scene.overlay().showOutline(PonderPalette.RED, "port", util.select().position(port), 100);

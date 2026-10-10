@@ -1,0 +1,313 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_module_base",
+    "plate": "create_nuclearindustry:block/desk_module_base",
+    "part": "create_nuclearindustry:block/desk_toggle"
+  },
+  "elements": [
+    {
+      "name": "plate",
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        0.5,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "east": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "south": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "west": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "up": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "rotation": 180,
+          "texture": "#plate"
+        }
+      }
+    },
+    {
+      "name": "red_plate",
+      "from": [
+        5.5,
+        0.5,
+        5.5
+      ],
+      "to": [
+        10.5,
+        1,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            5,
+            5,
+            5.5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            0,
+            5,
+            5,
+            5.5
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            0,
+            5,
+            5,
+            5.5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            0,
+            5,
+            5,
+            5.5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            5,
+            5
+          ],
+          "rotation": 180,
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "nut",
+      "from": [
+        7,
+        1,
+        7
+      ],
+      "to": [
+        9,
+        1.75,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            2,
+            8,
+            2.75
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            6,
+            2,
+            8,
+            2.75
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            6,
+            2,
+            8,
+            2.75
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            6,
+            2,
+            8,
+            2.75
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            6,
+            0,
+            8,
+            2
+          ],
+          "rotation": 180,
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "guard_left",
+      "from": [
+        9.25,
+        1,
+        7.5
+      ],
+      "to": [
+        10,
+        2.5,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            0,
+            12.75,
+            1.5
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            12,
+            0,
+            12.75,
+            1.5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            12,
+            0,
+            13,
+            1.5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            12,
+            0,
+            13,
+            1.5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            12,
+            0,
+            12.75,
+            1
+          ],
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "guard_right",
+      "from": [
+        6,
+        1,
+        7.5
+      ],
+      "to": [
+        6.75,
+        2.5,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            0,
+            12.75,
+            1.5
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            12,
+            0,
+            12.75,
+            1.5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            12,
+            0,
+            13,
+            1.5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            12,
+            0,
+            13,
+            1.5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            12,
+            0,
+            12.75,
+            1
+          ],
+          "texture": "#part"
+        }
+      }
+    }
+  ]
+}

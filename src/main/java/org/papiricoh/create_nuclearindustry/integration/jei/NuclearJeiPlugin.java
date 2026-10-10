@@ -149,9 +149,11 @@ public class NuclearJeiPlugin implements IModPlugin {
         registration.addIngredientInfo(org.papiricoh.create_nuclearindustry.AllNuclearFluids.CONTAMINATED_WATER_BUCKET.get(),
                 Component.translatable("jei.create_nuclearindustry.info.contaminated_water"));
         registration.addIngredientInfo(List.of(new ItemStack(AllNuclearItems.CONTROL_ROOM_LINKER.get()),
-                        new ItemStack(AllNuclearItems.CONTROL_MONITOR.get()), new ItemStack(AllNuclearItems.REACTOR_CONTROL_PANEL.get()),
-                        new ItemStack(AllNuclearItems.NUCLEAR_ALARM.get())),
+                        new ItemStack(AllNuclearItems.CONTROL_MONITOR.get()), new ItemStack(AllNuclearItems.NUCLEAR_ALARM.get())),
                 VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.control_room"));
+        List<ItemStack> desk = new java.util.ArrayList<>(List.of(new ItemStack(AllNuclearItems.REACTOR_CONTROL_PANEL.get())));
+        AllNuclearItems.CONTROL_MODULES.values().forEach(module -> desk.add(new ItemStack(module.get())));
+        registration.addIngredientInfo(desk, VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.control_desk"));
         registration.addIngredientInfo(List.of(new ItemStack(AllNuclearItems.GRAPHITE.get()),
                         new ItemStack(AllNuclearItems.GRAPHITE_MODERATOR.get()), new ItemStack(AllNuclearItems.BERYLLIUM_REFLECTOR.get())),
                 VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.moderation"));
