@@ -328,7 +328,57 @@ below for what changes in existing worlds.
   generators and containments.
 
 ### Civil defense
-<!-- civildefense: filled by its work package -->
+- New Air Raid Siren: it wails while powered by redstone, and on its own (a
+  faster attack warning) while a missile is flying towards it, or a bomb or a
+  launch pad is counting down, within 96 blocks plus the weapon's fallout
+  radius. Goggles show the cause and the seconds to impact. Launch pads warn
+  the target before the missile even lifts off.
+- New Hand-Crank Siren: purely mechanical, it sounds while its shaft (from
+  below) turns at 32 RPM or more, higher-pitched the faster it turns.
+- Both sirens give a comparator signal of 15 while sounding and can be heard
+  128 blocks away.
+- New Seismic Detector: feels every nuclear and dirty detonation in its
+  dimension and keeps the last eight (power, distance, compass bearing, time),
+  shown with goggles and on a Display Link ("Latest Detonation"). A comparator
+  reads the strongest recent blast, fading back to 0 after five minutes.
+- New Blast Doors: frame a 2x2 to 4x4 opening of Steel or Lead Blast Door
+  leaves with Blast Door Frames and put a Blast Door Controller in the ring.
+  The panel slides into the wall towards the controller. Turn the
+  controller's shaft one way to open and the other to shut (faster with
+  speed), or use redstone: a rising signal opens, a falling one shuts. A
+  comparator reads how far open it is.
+- Shut blast doors stop blasts (explosion resistance 1500, so even nuclear
+  craters leave them, their frame and controller standing) and radiation
+  (steel lets 15% through, lead 2%). Open, the doorway lets people, blasts and
+  radiation through and the retracted panel survives. If the frame, a leaf or
+  the controller breaks, the door slams shut.
+- Nuclear detonations now send out a blast wave instead of one huge vanilla
+  explosion: a small fireball wrecks ground zero, the crater forms as before,
+  and a wave races outwards (8 blocks per tick) up to four crater radii, at
+  most 256 blocks. Its overpressure follows the real scaling of blasts with
+  distance and yield; it hurts and throws back whoever it reaches, and walls,
+  hills and blast doors between you and ground zero soak it up (stone lets
+  about a third through per block, obsidian and shut blast doors nothing).
+  It also shatters exposed glass, panes and leaves on its way. Dirty bombs
+  keep their small conventional blast.
+- New Shelter Filtration Unit (kinetic): put it inside a room and it surveys
+  the air around it. A closed room of up to 4096 blocks of air whose every
+  wall, floor and ceiling block is at least as strong as planks or concrete
+  against blasts and shields like a solid block is certified as a shelter
+  (doors and trapdoors leave it open: use a blast door). Inside, blast waves
+  lose 90% of their overpressure, and while the unit turns at 16 RPM or more
+  only 5% of the fallout and ground contamination dose gets in. Goggles show
+  the room's size, or the weak or open spot that keeps it from certifying.
+- Blast Protection protects against the blast wave.
+- All of it is in the config under `civilDefense.*` (reach and range of
+  sirens, the crank's minimum speed, the seismic scale, door speeds and
+  stress, the blast wave's speed, reach, yield and damage, and the shelter's
+  size, wall requirements and filter).
+- Upgrading: nuclear detonations no longer blow up terrain with a vanilla
+  explosion reaching up to about 100 blocks; beyond the crater and the small
+  fireball the blast wave hurts people and breaks glass and leaves instead.
+  Set `civilDefense.blastWave.breakFragileBlocks = false` to keep every block
+  outside the crater and fireball intact.
 
 ### Ponder: the nuclear power plant
 <!-- plantponder: filled by its work package -->

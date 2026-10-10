@@ -59,6 +59,14 @@
     "create_nuclearindustry:vitrification_melter",
     "create_nuclearindustry:chart_recorder",
     "create_nuclearindustry:annunciator_panel",
+    "create_nuclearindustry:air_raid_siren",
+    "create_nuclearindustry:hand_crank_siren",
+    "create_nuclearindustry:seismic_detector",
+    "create_nuclearindustry:blast_door_frame",
+    "create_nuclearindustry:steel_blast_door",
+    "create_nuclearindustry:lead_blast_door",
+    "create_nuclearindustry:blast_door_controller",
+    "create_nuclearindustry:shelter_filtration_unit",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

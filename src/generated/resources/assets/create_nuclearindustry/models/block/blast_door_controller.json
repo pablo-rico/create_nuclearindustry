@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "create_nuclearindustry:block/blast_door_controller",
+    "east": "create_nuclearindustry:block/blast_door_controller",
+    "north": "create_nuclearindustry:block/blast_door_controller_shaft",
+    "particle": "create_nuclearindustry:block/blast_door_controller",
+    "south": "create_nuclearindustry:block/blast_door_controller_shaft",
+    "up": "create_nuclearindustry:block/blast_door_controller",
+    "west": "create_nuclearindustry:block/blast_door_controller"
+  }
+}

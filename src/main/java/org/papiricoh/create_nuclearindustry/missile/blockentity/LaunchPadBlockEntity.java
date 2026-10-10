@@ -16,6 +16,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
+import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.FissileMaterial;
@@ -73,6 +75,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         if (!powered || !isReadyToLaunch()) {
             if (countdown >= 0) {
                 countdown = -1;
+                ThreatRegistry.withdraw(level, getBlockPos());
                 markDirtyAndSync();
             }
             return;
@@ -80,16 +83,50 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
 
         if (countdown < 0) {
             countdown = COUNTDOWN_TICKS;
+            reportThreat();
             markDirtyAndSync();
             return;
         }
 
         countdown--;
         if (countdown <= 0) {
+            // The missile reports itself from its first tick of flight.
+            ThreatRegistry.withdraw(level, getBlockPos());
             launch();
-        } else if (countdown % 20 == 0) {
-            markDirtyAndSync();
+        } else {
+            reportThreat();
+            if (countdown % 20 == 0) {
+                markDirtyAndSync();
+            }
         }
+    }
+
+    /**
+     * Warns the sirens around the target while counting down, ahead of the launch: the impact is the
+     * rest of the countdown plus the flight. Reported every tick, so it survives a reload.
+     */
+    private void reportThreat() {
+        BlockPos target = getTarget();
+        if (target == null) {
+            return;
+        }
+        int radius = isDirtyWarhead() ? DirtyWarheadStats.falloutRadius(getRadiologicalLoad())
+                : NuclearDetonation.falloutRadius(getEstimatedRadius());
+        int flight = MissileEntity.flightTicks(launchPoint(), Vec3.atCenterOf(target));
+        ThreatRegistry.report(level, getBlockPos(), target, radius, countdown + flight);
+    }
+
+    private Vec3 launchPoint() {
+        BlockPos pos = getBlockPos();
+        return new Vec3(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5);
+    }
+
+    @Override
+    public void setRemoved() {
+        if (level != null) {
+            ThreatRegistry.withdraw(level, getBlockPos());
+        }
+        super.setRemoved();
     }
 
     public boolean isReadyToLaunch() {
@@ -183,8 +220,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         consumeFuel();
         markDirtyAndSync();
 
-        BlockPos pos = getBlockPos();
-        Vec3 start = new Vec3(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5);
+        Vec3 start = launchPoint();
         Vec3 targetVec = new Vec3(target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
 
         MissileEntity missile = new MissileEntity(AllNuclearEntities.MISSILE.get(), serverLevel);

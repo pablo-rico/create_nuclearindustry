@@ -8,16 +8,23 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.Config;
+import org.papiricoh.create_nuclearindustry.civildefense.blast.BlastWaveManager;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.slf4j.Logger;
 
-/** Every nuclear detonation (bomb, missile, cannon shell): blast, crater and fallout. */
+/**
+ * Every nuclear detonation (bomb, missile, cannon shell): a small vanilla explosion as the fireball,
+ * the crater, the blast wave beyond it ({@link BlastWaveManager}) and fallout. Dirty bombs keep a
+ * plain conventional blast.
+ */
 public final class NuclearDetonation {
     private static final Logger LOGGER = LogUtils.getLogger();
     /** Fallout reaches this far beyond the crater rim, as a multiple of the crater radius. */
     public static final float FALLOUT_RADIUS_FACTOR = 1.5f;
     /** Ground contamination at ground zero per point of blast power. */
     public static final float FALLOUT_PER_POWER = 0.2f;
+    /** Strongest vanilla explosion a nuclear fireball makes; the blast wave does the rest. */
+    public static final float FIREBALL_MAX_POWER = 12.0f;
 
     private NuclearDetonation() {}
 
@@ -49,8 +56,9 @@ public final class NuclearDetonation {
 
         NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, horizontalRadius, false));
         NuclearExplosionSoundManager.playDelayedForWorld(level, impact);
-        level.explode(null, impact.x, impact.y, impact.z, Math.min(64.0f, power * 0.35f), Level.ExplosionInteraction.BLOCK);
+        level.explode(null, impact.x, impact.y, impact.z, fireballPower(power), Level.ExplosionInteraction.BLOCK);
         NuclearBlastManager.start(level, center, horizontalRadius, verticalRadius, intensity);
+        BlastWaveManager.start(level, impact, power, horizontalRadius);
         int radius = falloutRadius(horizontalRadius);
         float fallout = falloutIntensity(power);
         if (salting > 0) {
@@ -77,6 +85,11 @@ public final class NuclearDetonation {
                 DirtyWarheadStats.HOT_SPOT_TICKS);
         org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, center, Math.max(64, DirtyWarheadStats.falloutRadius(load)),
                 org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.DIRTY_DETONATION);
+    }
+
+    /** Power of the vanilla explosion at ground zero: the fireball, which wrecks the bomb's surroundings. */
+    public static float fireballPower(float power) {
+        return Math.min(FIREBALL_MAX_POWER, power * 0.35f);
     }
 
     public static int falloutRadius(int horizontalRadius) {

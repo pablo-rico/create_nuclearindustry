@@ -3,6 +3,12 @@
     "#c:storage_blocks/lead": {
       "transmission": 0.2
     },
+    "create_nuclearindustry:blast_door_controller": {
+      "transmission": 0.35
+    },
+    "create_nuclearindustry:blast_door_frame": {
+      "transmission": 0.15
+    },
     "create_nuclearindustry:contaminated_water": {
       "transmission": 0.85
     },
@@ -13,6 +19,9 @@
       "transmission": 0.1
     },
     "create_nuclearindustry:dry_cask": {
+      "transmission": 0.02
+    },
+    "create_nuclearindustry:lead_blast_door": {
       "transmission": 0.02
     },
     "create_nuclearindustry:reactor_casing": {
@@ -32,6 +41,9 @@
     },
     "create_nuclearindustry:reactor_temperature_sensor": {
       "transmission": 0.35
+    },
+    "create_nuclearindustry:steel_blast_door": {
+      "transmission": 0.15
     },
     "minecraft:crying_obsidian": {
       "transmission": 0.6

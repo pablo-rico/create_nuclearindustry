@@ -1,0 +1,141 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#base"
+        },
+        "east": {
+          "texture": "#base"
+        },
+        "north": {
+          "texture": "#base"
+        },
+        "south": {
+          "texture": "#base"
+        },
+        "up": {
+          "texture": "#base"
+        },
+        "west": {
+          "texture": "#base"
+        }
+      },
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        4,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cap"
+        },
+        "east": {
+          "texture": "#housing"
+        },
+        "north": {
+          "texture": "#housing"
+        },
+        "south": {
+          "texture": "#housing"
+        },
+        "up": {
+          "texture": "#cap"
+        },
+        "west": {
+          "texture": "#housing"
+        }
+      },
+      "from": [
+        3,
+        4,
+        3
+      ],
+      "to": [
+        13,
+        12,
+        13
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cap"
+        },
+        "east": {
+          "texture": "#cap"
+        },
+        "north": {
+          "texture": "#cap"
+        },
+        "south": {
+          "texture": "#cap"
+        },
+        "up": {
+          "texture": "#cap"
+        },
+        "west": {
+          "texture": "#cap"
+        }
+      },
+      "from": [
+        2,
+        12,
+        2
+      ],
+      "to": [
+        14,
+        14,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#cap"
+        },
+        "east": {
+          "texture": "#cap"
+        },
+        "north": {
+          "texture": "#cap"
+        },
+        "south": {
+          "texture": "#cap"
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#cap"
+        },
+        "west": {
+          "texture": "#cap"
+        }
+      },
+      "from": [
+        6,
+        14,
+        6
+      ],
+      "to": [
+        10,
+        16,
+        10
+      ]
+    }
+  ],
+  "textures": {
+    "base": "create_nuclearindustry:block/hand_crank_siren_base",
+    "cap": "create_nuclearindustry:block/air_raid_siren_cap",
+    "housing": "create_nuclearindustry:block/air_raid_siren_housing",
+    "particle": "create_nuclearindustry:block/air_raid_siren_housing"
+  }
+}

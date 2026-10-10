@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "POP",
+    "O O",
+    "POP"
+  ],
+  "result": {
+    "count": 8,
+    "id": "create_nuclearindustry:blast_door_frame"
+  }
+}

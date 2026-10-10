@@ -1,0 +1,8 @@
+{
+  "values": [
+    "create_nuclearindustry:blast_door_frame",
+    "create_nuclearindustry:steel_blast_door",
+    "create_nuclearindustry:lead_blast_door",
+    "create_nuclearindustry:blast_door_controller"
+  ]
+}
