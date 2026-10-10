@@ -3,6 +3,7 @@ package org.papiricoh.create_nuclearindustry.radiation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -11,10 +12,19 @@ import org.jetbrains.annotations.Nullable;
  * Fraction of radiation that crosses the blocks between two points: a voxel walk
  * (Amanatides-Woo) multiplying {@link RadiationTransmission} of every block crossed. The
  * source's and target's own blocks do not count, nor do blocks inside {@code ignore}
- * (a reactor's core, say). Never loads chunks: unloaded blocks count as air.
+ * (a reactor's core, say), nor {@link Passable} blocks in a passable state. Never loads chunks:
+ * unloaded blocks count as air.
  */
 public final class RadiationRay {
     private static final double CUTOFF = 1.0e-3;
+
+    /**
+     * A block whose shielding depends on its state, which a per-block data map cannot say: an open
+     * blast door lets everything through, a shut one shields by its {@code radiation_transmission}.
+     */
+    public interface Passable {
+        boolean letsRadiationThrough(BlockState state);
+    }
 
     private RadiationRay() {}
 
@@ -72,7 +82,11 @@ public final class RadiationRay {
             if ((ignore != null && ignore.isInside(pos)) || !level.isLoaded(pos)) {
                 continue;
             }
-            transmission *= RadiationTransmission.of(level.getBlockState(pos));
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() instanceof Passable passable && passable.letsRadiationThrough(state)) {
+                continue;
+            }
+            transmission *= RadiationTransmission.of(state);
             if (transmission < CUTOFF) {
                 return 0.0;
             }

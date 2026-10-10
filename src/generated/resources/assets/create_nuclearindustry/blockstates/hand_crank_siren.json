@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "sounding=false": {
+      "model": "create_nuclearindustry:block/hand_crank_siren"
+    },
+    "sounding=true": {
+      "model": "create_nuclearindustry:block/hand_crank_siren"
+    }
+  }
+}

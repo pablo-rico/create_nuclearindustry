@@ -9,7 +9,11 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.core.BlockPos;
+import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
+import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
+import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
 
 /**
  * Misil ICBM: vuela del punto de lanzamiento al objetivo describiendo un arco balistico
@@ -57,9 +61,15 @@ public class MissileEntity extends Entity {
 
         double horizontalDistance = Math.hypot(target.x - start.x, target.z - start.z);
         // Duracion y altura de arco escaladas con la distancia (con minimos para que se vea el arco).
-        this.flightTicks = (int) Mth.clamp(40 + horizontalDistance * 0.8, 60, 600);
+        this.flightTicks = flightTicks(start, target);
         this.arcHeight = Mth.clamp(40 + horizontalDistance * 0.5, 50, 180);
         setPos(start.x, start.y, start.z);
+    }
+
+    /** Ticks a missile takes from {@code start} to {@code target}; launch pads use it to warn ahead of the launch. */
+    public static int flightTicks(Vec3 start, Vec3 target) {
+        double horizontalDistance = Math.hypot(target.x - start.x, target.z - start.z);
+        return (int) Mth.clamp(40 + horizontalDistance * 0.8, 60, 600);
     }
 
     @Override
@@ -78,11 +88,18 @@ public class MissileEntity extends Entity {
             return;
         }
 
+        reportThreat();
         Vec3 previous = position();
         Vec3 next = trajectory(t);
         setPos(next.x, next.y, next.z);
         updateRotation(next.subtract(previous));
         followChunk(next);
+    }
+
+    /** Tells sirens near the target how long they have; reported every tick, so it survives a reload. */
+    private void reportThreat() {
+        int radius = dirty ? DirtyWarheadStats.falloutRadius(salting) : NuclearDetonation.falloutRadius(hRadius);
+        ThreatRegistry.report(level(), getUUID(), BlockPos.containing(targetX, targetY, targetZ), radius, flightTicks - age);
     }
 
     /** Mantiene cargado el chunk actual del misil (liberando el anterior) para que no deje de tickear. */
@@ -161,11 +178,12 @@ public class MissileEntity extends Entity {
             return;
         }
         releaseForcedChunk(serverLevel);
+        ThreatRegistry.withdraw(serverLevel, getUUID());
         Vec3 impact = new Vec3(targetX, targetY, targetZ);
         if (dirty) {
-            org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation.detonateDirty(serverLevel, impact, salting);
+            NuclearDetonation.detonateDirty(serverLevel, impact, salting);
         } else {
-            org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation.detonate(serverLevel,
+            NuclearDetonation.detonate(serverLevel,
                     impact, power, hRadius, vRadius, intensity, salting);
         }
         discard();
@@ -175,6 +193,7 @@ public class MissileEntity extends Entity {
     public void remove(RemovalReason reason) {
         if (level() instanceof ServerLevel serverLevel) {
             releaseForcedChunk(serverLevel);
+            ThreatRegistry.withdraw(serverLevel, getUUID());
         }
         super.remove(reason);
     }

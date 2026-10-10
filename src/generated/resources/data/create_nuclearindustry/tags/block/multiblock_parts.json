@@ -33,6 +33,10 @@
     "create_nuclearindustry:fusion_turbine_rotor",
     "create_nuclearindustry:fusion_turbine_fluid_port",
     "create_nuclearindustry:fusion_plasma_turbine",
-    "create_nuclearindustry:reinforced_turbine_glass"
+    "create_nuclearindustry:reinforced_turbine_glass",
+    "create_nuclearindustry:blast_door_frame",
+    "create_nuclearindustry:steel_blast_door",
+    "create_nuclearindustry:lead_blast_door",
+    "create_nuclearindustry:blast_door_controller"
   ]
 }

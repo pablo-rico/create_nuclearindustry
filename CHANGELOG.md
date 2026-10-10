@@ -241,7 +241,32 @@ below for what changes in existing worlds.
 <!-- controlroom2: filled by its work package -->
 
 ### Civil defense
-<!-- civildefense: filled by its work package -->
+- New Air Raid Siren: it wails while powered by redstone, and on its own (a
+  faster attack warning) while a missile is flying towards it, or a bomb or a
+  launch pad is counting down, within 96 blocks plus the weapon's fallout
+  radius. Goggles show the cause and the seconds to impact. Launch pads warn
+  the target before the missile even lifts off.
+- New Hand-Crank Siren: purely mechanical, it sounds while its shaft (from
+  below) turns at 32 RPM or more, higher-pitched the faster it turns.
+- Both sirens give a comparator signal of 15 while sounding and can be heard
+  128 blocks away.
+- New Seismic Detector: feels every nuclear and dirty detonation in its
+  dimension and keeps the last eight (power, distance, compass bearing, time),
+  shown with goggles and on a Display Link ("Latest Detonation"). A comparator
+  reads the strongest recent blast, fading back to 0 after five minutes.
+- New Blast Doors: frame a 2x2 to 4x4 opening of Steel or Lead Blast Door
+  leaves with Blast Door Frames and put a Blast Door Controller in the ring.
+  The panel slides into the wall towards the controller. Turn the
+  controller's shaft one way to open and the other to shut (faster with
+  speed), or use redstone: a rising signal opens, a falling one shuts. A
+  comparator reads how far open it is.
+- Shut blast doors stop blasts (explosion resistance 1500, so even nuclear
+  craters leave them, their frame and controller standing) and radiation
+  (steel lets 15% through, lead 2%). Open, the doorway lets people, blasts and
+  radiation through and the retracted panel survives. If the frame, a leaf or
+  the controller breaks, the door slams shut.
+- All of it is in the config under `civilDefense.*` (reach and range of
+  sirens, the crank's minimum speed, the seismic scale, door speeds and stress).
 
 ### Ponder: the nuclear power plant
 <!-- plantponder: filled by its work package -->

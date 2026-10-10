@@ -9,5 +9,14 @@
         "pitch": 1.0
       }
     ]
+  },
+  "air_raid_siren": {
+    "subtitle": "subtitle.create_nuclearindustry.air_raid_siren",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:air_raid_siren",
+        "stream": false
+      }
+    ]
   }
 }

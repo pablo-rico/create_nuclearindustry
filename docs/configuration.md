@@ -293,7 +293,78 @@ etiqueta `create_nuclearindustry:geologically_storable`.
 
 ## Defensa civil
 
-<!-- opciones civilDefense.*: las documenta su paquete de trabajo -->
+```toml
+[civilDefense.siren]
+threatRadius = 96
+audibleRange = 128
+crankMinSpeed = 32
+crankStress = 2.0
+
+[civilDefense.seismic]
+memorySeconds = 300
+falloff = 256.0
+fullScale = 100.0
+
+[civilDefense.blastDoor]
+blocksPerRevolution = 2.0
+redstoneTicksPerBlock = 10
+stress = 4.0
+```
+
+Sirenas:
+
+- La Sirena antiaérea suena mientras recibe redstone (alerta: un aullido largo
+  cada 8 s) o, sin redstone, mientras haya una amenaza a su alcance (aviso de
+  ataque: un aullido rápido cada 3 s). Una amenaza está a su alcance si su
+  objetivo está, en horizontal, a `siren.threatRadius` bloques o menos más el
+  radio de la propia amenaza (el radio de su lluvia radiactiva).
+- Son amenazas los misiles en vuelo (hacia su objetivo), las bombas en cuenta
+  atrás (sobre la propia bomba) y las plataformas de lanzamiento en cuenta atrás
+  (sobre el objetivo del designador, avisando antes del despegue). Se guardan
+  solo en memoria: tras recargar el mundo, cada fuente vuelve a avisar en su
+  siguiente tick. Al cancelar la cuenta atrás o al detonar, el aviso se retira.
+- La Sirena de manivela no usa redstone ni amenazas: suena mientras su eje
+  (por debajo) gira a `siren.crankMinSpeed` RPM o más y no está sobrecargado.
+  Cuanto más rápido gira, más aguda. Consume `siren.crankStress` SU por RPM.
+- Ambas dan 15 a un comparador mientras suenan. Se oyen a `siren.audibleRange`
+  bloques (opción leída en cada cliente).
+
+Detector sísmico:
+
+- Registra todas las detonaciones nucleares y sucias de su dimensión y guarda
+  las 8 últimas: distancia, potencia, rumbo (punto cardinal) y momento. Se
+  consultan con las gafas (agachado, las 8) y con un Display Link (la última).
+- La sacudida que siente es `potencia / (1 + (distancia / seismic.falloff)²)`:
+  la potencia entera cerca y la mitad a `seismic.falloff` bloques. El
+  comparador da `15 × sacudida / seismic.fullScale` (mínimo 1 si se sintió
+  algo, máximo 15) con la mayor sacudida de los últimos
+  `seismic.memorySeconds` segundos, y vuelve a 0 solo. Una cabeza nuclear
+  completa tiene potencia 160.
+
+Puertas blindadas:
+
+- Se construyen en una pared: un hueco de 2x2 a 4x4 lleno de hojas de Puerta
+  blindada (de acero o de plomo, se pueden mezclar), rodeado por un anillo
+  completo de Marcos de puerta blindada (esquinas incluidas). Uno de los marcos
+  del anillo, que no sea una esquina, se cambia por el Controlador, con su eje
+  atravesando la pared.
+- Al abrirse, el panel se desliza hacia el controlador si este está a un lado
+  de la puerta, o hacia +X/+Z si está arriba o abajo. Las columnas más alejadas
+  quedan libres primero; mientras el panel pasa por una celda, sigue siendo
+  sólida.
+- Con rotación manda el eje: girando en un sentido abre y en el otro cierra,
+  a `blastDoor.blocksPerRevolution` bloques por vuelta (a 64 RPM y 2 bloques
+  por vuelta, una puerta de 2 de ancho tarda poco menos de 1 s). Consume
+  `blastDoor.stress` SU por RPM. Sin rotación, un flanco de subida de
+  redstone la abre y uno de bajada la cierra, a `blastDoor.redstoneTicksPerBlock`
+  ticks por bloque. Un comparador lee cuánto está abierta (0 cerrada, 15
+  abierta).
+- Cerradas, las hojas tienen resistencia a explosiones 1500, de modo que los
+  cráteres nucleares las respetan (igual que al marco y al controlador), y
+  dejan pasar el 15 % (acero) o el 2 % (plomo) de la radiación
+  (`radiation_transmission`). Abiertas, no tienen colisión y dejan pasar la
+  radiación y las explosiones sin romperse. Si se rompe el marco, una hoja o
+  el controlador, la puerta se cierra de golpe.
 
 ## Uranio y litio de otros mods
 

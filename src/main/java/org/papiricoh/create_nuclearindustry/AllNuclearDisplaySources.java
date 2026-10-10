@@ -30,6 +30,9 @@ public class AllNuclearDisplaySources {
     public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.coolingtower.CoolingTowerDisplaySource> COOLING_TOWER =
             DISPLAY_SOURCES.register("cooling_tower", org.papiricoh.create_nuclearindustry.coolingtower.CoolingTowerDisplaySource::new);
 
+    public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.civildefense.seismic.SeismicDisplaySource> SEISMIC_DETECTOR =
+            DISPLAY_SOURCES.register("seismic_detector", org.papiricoh.create_nuclearindustry.civildefense.seismic.SeismicDisplaySource::new);
+
     /** One source per reactor reading, in {@link ReactorReadout} order. */
     public static final Map<ReactorReadout, DeferredHolder<DisplaySource, SingleLineDisplaySource>> REACTOR_READOUTS = readouts();
 
@@ -61,6 +64,8 @@ public class AllNuclearDisplaySources {
             DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.FUSION_PLASMA_TURBINE.get(), TURBINE.get());
             DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.FUSION_CONTROLLER.get(), TOKAMAK.get());
             DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.COOLING_TOWER_CONTROLLER.get(), COOLING_TOWER.get());
+            DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry.SEISMIC_DETECTOR_BE.get(),
+                    SEISMIC_DETECTOR.get());
         });
     }
 }

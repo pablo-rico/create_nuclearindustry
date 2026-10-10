@@ -16,6 +16,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
 import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.FissileMaterial;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
@@ -53,18 +54,23 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         if (!powered) {
             if (countdown >= 0) {
                 countdown = -1;
+                ThreatRegistry.withdraw(level, getBlockPos());
                 markDirtyAndSync();
             }
             return;
         }
 
         if (!hasCharge()) {
+            if (countdown >= 0) {
+                ThreatRegistry.withdraw(level, getBlockPos());
+            }
             countdown = -1;
             return;
         }
 
         if (countdown < 0) {
             countdown = COUNTDOWN_TICKS;
+            reportThreat();
             markDirtyAndSync();
             return;
         }
@@ -72,9 +78,27 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         countdown--;
         if (countdown <= 0) {
             detonate();
-        } else if (countdown % 20 == 0) {
-            markDirtyAndSync();
+        } else {
+            reportThreat();
+            if (countdown % 20 == 0) {
+                markDirtyAndSync();
+            }
         }
+    }
+
+    /** Warns the sirens around while counting down; reported every tick, so it survives a reload. */
+    private void reportThreat() {
+        int radius = isDirty() ? DirtyWarheadStats.falloutRadius(getRadiologicalLoad())
+                : NuclearDetonation.falloutRadius(getEstimatedRadius());
+        ThreatRegistry.report(level, getBlockPos(), getBlockPos(), radius, countdown);
+    }
+
+    @Override
+    public void setRemoved() {
+        if (level != null) {
+            ThreatRegistry.withdraw(level, getBlockPos());
+        }
+        super.setRemoved();
     }
 
     public ItemStackHandler getInventory() {
@@ -146,6 +170,7 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         }
 
         BlockPos center = getBlockPos();
+        ThreatRegistry.withdraw(level, center);
         if (isDirty()) {
             float load = getRadiologicalLoad();
             clearContent();

@@ -17,5 +17,13 @@ public class AllNuclearSounds {
                             "nuclear_explosion"
                     )));
 
+    /** One steady siren tone, looped; sirens bend its pitch into a wail as it plays. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> AIR_RAID_SIREN =
+            SOUNDS.register("air_raid_siren", () ->
+                    SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(
+                            Create_NuclearIndustry.MODID,
+                            "air_raid_siren"
+                    )));
+
     public static void init() {}
 }
