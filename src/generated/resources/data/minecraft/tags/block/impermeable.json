@@ -1,5 +1,6 @@
 {
   "values": [
-    "create_nuclearindustry:reinforced_turbine_glass"
+    "create_nuclearindustry:reinforced_turbine_glass",
+    "create_nuclearindustry:fusion_viewport"
   ]
 }

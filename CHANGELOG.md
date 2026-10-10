@@ -559,6 +559,35 @@ below for what changes in existing worlds.
   of it is configurable under `cryo.*`.
 
 ### Plasma heating, viewports and sound
+- Neutral Beam Injector: a tokamak shell block with a shaft on its outer
+  face. At 128 RPM it heats the plasma with 20 MW (nothing at 32 RPM or less,
+  rising linearly in between), at a heavy 32768 SU/RPM of stress: a megawatt
+  of beam costs about two and a half times what the plasma turbine gets back
+  from a megawatt of fusion, so a tokamak needs a gain above about 3 to make
+  net energy. The beams use 0.02 mB/t of the tokamak's deuterium per MW, and
+  lose power when the tank runs dry. They heat at any plasma density.
+- RF Heating Antenna: the cheaper heater, 12 MW at 64 RPM for 13312 SU/RPM
+  and no fuel, but the radio waves only couple to a plasma denser than about
+  15% of its limit, fully above about 35%.
+- Engineer's goggles on either heater show its speed, its power against the
+  rated power, the deuterium the beams use, what the plasma is doing and,
+  on the antenna, whether the plasma is dense enough to absorb the waves.
+- Tokamak Viewport: a quartz window that counts as a shell block. Through it
+  you see the plasma, and it is the only light of the hall: dark with no
+  plasma, a dim glow at breakdown, then brighter as the plasma heats.
+- The plasma is now drawn inside the tokamak: a glowing ring around the
+  solenoid that goes from dull red through orange and white to violet as it
+  nears the danger temperature, thicker with density, flickering when it
+  becomes unstable and flashing magenta at breakdown. It is seen through the
+  viewports (or from inside the chamber), even when the controller itself is
+  out of sight.
+- Frost forms on the outside of the shell while the coils are colder than
+  30 K, and steam puffs out of the plasma steam ports while the tokamak makes
+  power.
+- New sounds: the magnets hum, rising in pitch and loudness with the field;
+  the burning plasma roars, wavering when unstable; breakdown strikes with a
+  crack; and the cryogenic plant has a compressor sound. They play from the
+  part of the ring nearest to you.
 
 ### JEI
 - Info pages for every new block and item of the plant: pressurizer, steam

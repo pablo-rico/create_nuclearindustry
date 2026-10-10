@@ -89,6 +89,9 @@
     "create_nuclearindustry:cryoplant_compressor",
     "create_nuclearindustry:fusion_cryo_port",
     "create_nuclearindustry:fusion_vacuum_pump",
+    "create_nuclearindustry:fusion_neutral_beam_injector",
+    "create_nuclearindustry:fusion_rf_antenna",
+    "create_nuclearindustry:fusion_viewport",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false
