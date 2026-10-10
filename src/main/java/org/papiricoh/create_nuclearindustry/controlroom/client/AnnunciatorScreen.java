@@ -77,7 +77,7 @@ public class AnnunciatorScreen extends AbstractContainerScreen<DeviceMenu> {
         labelBox.setMaxLength(ControlModule.LABEL_MAX);
         labelBox.setHint(Component.translatable(KEY + "label.hint"));
         labelBox.setResponder(text -> {
-            if (!text.equals(panel().window(selected).label())) {
+            if (panel() != null && !text.equals(panel().window(selected).label())) {
                 CompoundTag config = new CompoundTag();
                 config.putString("Label", text);
                 send(config);
@@ -85,6 +85,9 @@ public class AnnunciatorScreen extends AbstractContainerScreen<DeviceMenu> {
         });
         addRenderableWidget(labelBox);
         metricButton = addRenderableWidget(Button.builder(Component.empty(), b -> {
+            if (panel() == null) {
+                return;
+            }
             List<AlarmMetric> options = metricsFor(panel().window(selected).kind());
             int at = options.indexOf(metric);
             metric = options.get(Math.floorMod(at + (hasShiftDown() ? -1 : 1), options.size()));
@@ -114,6 +117,9 @@ public class AnnunciatorScreen extends AbstractContainerScreen<DeviceMenu> {
     }
 
     private void select(int window) {
+        if (panel() == null) {
+            return;
+        }
         selected = window;
         AnnunciatorPanelBlockEntity.Window setup = panel().window(window);
         metric = setup.metric();
