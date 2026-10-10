@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PTP",
+    "CBC",
+    "PTP"
+  ],
+  "key": {
+    "B": {
+      "item": "create_nuclearindustry:radioactive_waste_barrel"
+    },
+    "C": {
+      "item": "create_nuclearindustry:reactor_casing"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "T": {
+      "item": "minecraft:tnt"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:dirty_bomb"
+  }
+}

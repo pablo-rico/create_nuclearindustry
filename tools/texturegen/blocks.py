@@ -1179,3 +1179,51 @@ def nuclear_alarm_top():
 @block("nuclear_alarm_top_lit")
 def nuclear_alarm_top_lit():
     return _alarm(124, True, True)
+
+
+# ======================================================================================
+# dirty bomb
+# ======================================================================================
+
+def _dirty_drum():
+    # A rusty, olive-green waste drum on the bomb's frame, leaking a sickly glow.
+    return STEEL.tinted(RADIUM[1], 0.45)
+
+
+@block("dirty_bomb_body")
+def dirty_bomb_body():
+    t = Tex(seed=130)
+    drum = _dirty_drum()
+    brushed(t, drum, base=3.0, amp=0.8, seed=130)
+    for x in range(16):
+        f = 0.75 + 0.5 * math.sin(math.pi * (x + 0.5) / 16)
+        for y in range(16):
+            t.set(x, y, shade(t.get(x, y), f))
+    for y in (3, 12):
+        t.hline(0, 15, y, drum[0])
+        t.hline(0, 15, y + 1, drum[5])
+    # rust streaks and leaks
+    for y in range(16):
+        for x in range(16):
+            if fbm(x, y, 131, 16, 16, 3, 4.0) > 0.70:
+                t.blend(x, y, COPPER[1], 0.6)
+    t.rect(5, 6, 10, 10, WARN[4])
+    outline(t, 5, 6, 10, 10, DARK[0])
+    trefoil(t, 7.5, 8, 2.0, DARK[0])
+    speckle(t, 0, 0, 15, 15, RADIUM[6], chance=0.03, seed=131)
+    return t
+
+
+@block("dirty_bomb_top")
+def dirty_bomb_top():
+    t = Tex(seed=132)
+    drum = _dirty_drum()
+    brushed(t, drum, base=3.0, amp=0.6, seed=132)
+    bevel(t, 0, 0, 15, 15, drum)
+    outline(t, 0, 0, 15, 15, drum[0])
+    t.disc(8, 8, 5.6, drum[1])
+    t.ring(8, 8, 5.6, 4.8, drum[5])
+    t.disc(10.5, 5.5, 1.2, DARK[0])
+    t.disc(8, 8, 2.2, RADIUM[4])
+    glow(t, 8, 8, 5.0, RADIUM[6], 0.3)
+    return t

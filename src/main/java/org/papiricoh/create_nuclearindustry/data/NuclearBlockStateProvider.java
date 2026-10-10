@@ -128,6 +128,11 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         simpleBlockWithItem(AllNuclearBlocks.BERYLLIUM_REFLECTOR.get(), cubeAll(AllNuclearBlocks.BERYLLIUM_REFLECTOR.get()));
         redstonePortStates();
         controlRoomStates();
+        ModelFile dirtyBomb = models().withExistingParent("dirty_bomb", modLoc("block/nuclear_bomb"))
+                .texture("body", modLoc("block/dirty_bomb_body")).texture("top", modLoc("block/dirty_bomb_top"))
+                .texture("particle", modLoc("block/dirty_bomb_body"));
+        getVariantBuilder(AllNuclearBlocks.DIRTY_BOMB.get()).forAllStates(state -> ConfiguredModel.builder().modelFile(dirtyBomb).build());
+        simpleBlockItem(AllNuclearBlocks.DIRTY_BOMB.get(), dirtyBomb);
         simpleBlockWithItem(AllNuclearBlocks.RADIATION_SCRUBBER.get(), models().cubeBottomTop("radiation_scrubber",
                 modLoc("block/radiation_scrubber_side"), modLoc("block/radiation_scrubber_bottom"), modLoc("block/radiation_scrubber_top")));
         // The RTG's model faces north with its shaft opening; the shaft points along FACING.

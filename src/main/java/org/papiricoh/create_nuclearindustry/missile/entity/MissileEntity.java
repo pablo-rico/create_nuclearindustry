@@ -24,6 +24,10 @@ public class MissileEntity extends Entity {
     private int hRadius;
     private int vRadius;
     private float intensity;
+    /** Radioactivity of non-fissile material in the warhead, in rad/s. */
+    private float salting;
+    /** No fissile core: the warhead only scatters {@link #salting}. */
+    private boolean dirty;
     private int flightTicks = 100;
     private int age;
     private double arcHeight = 60.0;
@@ -132,14 +136,38 @@ public class MissileEntity extends Entity {
         level().addParticle(ParticleTypes.FLAME, pos.x, pos.y, pos.z, 0.0, -0.05, 0.0);
     }
 
+    /** A dirty warhead: no fissile core, only {@code load} rad/s of radioactive material. */
+    public void configureDirty(Vec3 start, Vec3 target, float load) {
+        configure(start, target, 0, 0, 0, 0);
+        this.dirty = true;
+        this.salting = load;
+    }
+
+    public void setSalting(float load) {
+        this.salting = Math.max(0, load);
+    }
+
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    public float getSalting() {
+        return salting;
+    }
+
     private void detonate() {
         if (!(level() instanceof ServerLevel serverLevel)) {
             discard();
             return;
         }
         releaseForcedChunk(serverLevel);
-        org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation.detonate(serverLevel,
-                new Vec3(targetX, targetY, targetZ), power, hRadius, vRadius, intensity);
+        Vec3 impact = new Vec3(targetX, targetY, targetZ);
+        if (dirty) {
+            org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation.detonateDirty(serverLevel, impact, salting);
+        } else {
+            org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation.detonate(serverLevel,
+                    impact, power, hRadius, vRadius, intensity, salting);
+        }
         discard();
     }
 
@@ -168,6 +196,8 @@ public class MissileEntity extends Entity {
         hRadius = tag.getInt("HRadius");
         vRadius = tag.getInt("VRadius");
         intensity = tag.getFloat("Intensity");
+        salting = tag.getFloat("Salting");
+        dirty = tag.getBoolean("Dirty");
         flightTicks = tag.getInt("FlightTicks");
         age = tag.getInt("Age");
         arcHeight = tag.getDouble("ArcHeight");
@@ -185,6 +215,8 @@ public class MissileEntity extends Entity {
         tag.putInt("HRadius", hRadius);
         tag.putInt("VRadius", vRadius);
         tag.putFloat("Intensity", intensity);
+        tag.putFloat("Salting", salting);
+        tag.putBoolean("Dirty", dirty);
         tag.putInt("FlightTicks", flightTicks);
         tag.putInt("Age", age);
         tag.putDouble("ArcHeight", arcHeight);

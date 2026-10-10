@@ -47,6 +47,7 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> TURBINE_FLUID_PORT = ITEMS.register("turbine_fluid_port", () -> new BlockItem(AllNuclearBlocks.TURBINE_FLUID_PORT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> TURBINE_EXHAUST_PORT = ITEMS.register("turbine_exhaust_port", () -> new BlockItem(AllNuclearBlocks.TURBINE_EXHAUST_PORT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> NUCLEAR_BOMB = ITEMS.register("nuclear_bomb", () -> new BlockItem(AllNuclearBlocks.NUCLEAR_BOMB.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> DIRTY_BOMB = ITEMS.register("dirty_bomb", () -> new BlockItem(AllNuclearBlocks.DIRTY_BOMB.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> LAUNCH_PAD = ITEMS.register("launch_pad", () -> new BlockItem(AllNuclearBlocks.LAUNCH_PAD.value(), new Item.Properties()));
 
     // Fusion reactor blocks

@@ -29,6 +29,7 @@
     "create_nuclearindustry:turbine_fluid_port",
     "create_nuclearindustry:turbine_exhaust_port",
     "create_nuclearindustry:nuclear_bomb",
+    "create_nuclearindustry:dirty_bomb",
     "create_nuclearindustry:launch_pad",
     "create_nuclearindustry:control_monitor",
     "create_nuclearindustry:reactor_control_panel",

@@ -33,7 +33,9 @@ public class LaunchPadScreen extends AbstractContainerScreen<LaunchPadMenu> {
             int valid = pad.getValidUraniumCount();
             guiGraphics.drawString(font, "Missile: " + (pad.hasMissile() ? "ready" : "missing"), leftPos + 80, topPos + 30,
                     pad.hasMissile() ? 0x88FF88 : 0xFF7777);
-            guiGraphics.drawString(font, "Fissile: " + valid, leftPos + 80, topPos + 42, 0xDDDDDD);
+            float load = pad.getRadiologicalLoad();
+            guiGraphics.drawString(font, load > 0 && valid <= 0 ? "Dirty: " + Math.round(load) + " rad/s"
+                    : load > 0 ? "Fissile: " + valid + " +salted" : "Fissile: " + valid, leftPos + 80, topPos + 42, 0xDDDDDD);
 
             BlockPos target = pad.getTarget();
             if (target != null) {

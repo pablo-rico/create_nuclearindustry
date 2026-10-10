@@ -121,7 +121,8 @@ public class AllNuclearEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NuclearBombBlockEntity>> NUCLEAR_BOMB =
             ENTITIES.register("nuclear_bomb", () -> BlockEntityType.Builder.of(
                     NuclearBombBlockEntity::new,
-                    AllNuclearBlocks.NUCLEAR_BOMB.get()
+                    AllNuclearBlocks.NUCLEAR_BOMB.get(),
+                    AllNuclearBlocks.DIRTY_BOMB.get()
             ).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlockEntity>> CONTROL_MONITOR =

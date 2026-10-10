@@ -20,6 +20,7 @@ public final class LangEntries {
         moderation();
         controlRoom();
         medicine();
+        dirtyBomb();
         jei();
         ponder();
         commands();
@@ -444,6 +445,16 @@ public final class LangEntries {
         fluid("low_enriched_uranium_hexafluoride", "Low-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio poco enriquecido");
         fluid("high_enriched_uranium_hexafluoride", "High-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio altamente enriquecido");
         fluid("weapons_grade_uranium_hexafluoride", "Weapons-Grade Uranium Hexafluoride", "Hexafluoruro de uranio de grado militar");
+    }
+
+    private static void dirtyBomb() {
+        block("dirty_bomb", "Dirty Bomb", "Bomba sucia");
+        add("gui.create_nuclearindustry.dirty_bomb.load", "Radioactive load: %s rad/s", "Carga radiactiva: %s rad/s");
+        add("gui.create_nuclearindustry.dirty_bomb.radius", "Fallout radius: %s", "Radio de lluvia radiactiva: %s");
+        add("gui.create_nuclearindustry.dirty_bomb.intensity", "Ground zero: %s rad/s", "Zona cero: %s rad/s");
+        add("jei.create_nuclearindustry.info.dirty_bomb",
+                "A radiological weapon. Load it with anything radioactive that is not weapons-grade (waste, spent fuel, fragments, RTG pellets) and power it with redstone: after 10 seconds a small blast scatters the load. No crater, but the more radioactive the load, the wider the fallout (up to 128 blocks) and the hotter the spot left at ground zero. A launch pad also takes radioactive material: on its own it makes a dirty warhead, packed with fissile material it salts a nuclear one for dirtier fallout.",
+                "Un arma radiológica. Cárgala con cualquier cosa radiactiva que no sea de grado militar (residuos, combustible gastado, fragmentos, pastillas RTG) y dale señal de redstone: a los 10 segundos una pequeña explosión dispersa la carga. No deja cráter, pero cuanto más radiactiva es la carga, más lejos llega la lluvia radiactiva (hasta 128 bloques) y más caliente queda la zona cero. La plataforma de lanzamiento también acepta material radiactivo: solo, forma una cabeza sucia; junto a material fisible, \"sala\" una cabeza nuclear y su lluvia radiactiva es más sucia.");
     }
 
     private static void medicine() {

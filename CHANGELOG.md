@@ -161,6 +161,17 @@ below for what changes in existing worlds.
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit
   and Geiger counter. Configurable and can be disabled.
 
+### Dirty bomb
+- New Dirty Bomb: loaded with anything radioactive that is not weapons-grade
+  (waste, spent fuel, fragments, RTG pellets) and set off by redstone like the
+  nuclear bomb. A small blast with no crater scatters the load: the more
+  radioactive it is, the wider the fallout (24 to 128 blocks) and the hotter
+  the spot left at ground zero, which fades over a few days.
+- The launch pad's warhead slots also take radioactive material. On its own
+  it makes a dirty warhead; packed with fissile material it salts a nuclear
+  one, for dirtier and wider fallout.
+- The bomb's screen title is now translated.
+
 ### Anti-radiation medicine
 - Potassium Iodide (dried kelp and bone meal mixed hot in water): for 3
   minutes, the radiation taken up is halved.

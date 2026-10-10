@@ -72,7 +72,7 @@ public class NuclearBombBlock extends BaseEntityBlock {
             level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
             MenuProvider provider = new SimpleMenuProvider(
                     new NuclearBombMenuProvider(pos)::createMenu,
-                    Component.literal("Nuclear Bomb")
+                    Component.translatable(state.getBlock().getDescriptionId())
             );
             player.openMenu(provider);
             return InteractionResult.CONSUME;

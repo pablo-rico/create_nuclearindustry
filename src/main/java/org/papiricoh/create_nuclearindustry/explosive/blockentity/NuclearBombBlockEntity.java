@@ -15,6 +15,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.FissileMaterial;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
@@ -28,7 +30,7 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
     private final ItemStackHandler inventory = new ItemStackHandler(SLOT_COUNT) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return isValidFissile(stack);
+            return isValidCharge(stack);
         }
 
         @Override
@@ -56,7 +58,7 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
             return;
         }
 
-        if (getValidUraniumCount() <= 0) {
+        if (!hasCharge()) {
             countdown = -1;
             return;
         }
@@ -113,9 +115,28 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         return FissileMaterial.isWeaponsFissile(stack);
     }
 
-    /** Kept for callers from before plutonium: same as {@link #isValidFissile}. */
+    /** What this bomb takes: fissile material, or for a dirty bomb anything else radioactive. */
+    public boolean isValidCharge(ItemStack stack) {
+        return isDirty() ? DirtyWarheadStats.isRadiological(stack) : isValidFissile(stack);
+    }
+
+    /** Kept for callers from before plutonium: same as {@link #isValidCharge}. */
     public boolean isValidUranium(ItemStack stack) {
-        return isValidFissile(stack);
+        return isValidCharge(stack);
+    }
+
+    /** A Dirty Bomb block rather than a Nuclear Bomb. */
+    public boolean isDirty() {
+        return getBlockState().is(AllNuclearBlocks.DIRTY_BOMB.get());
+    }
+
+    public boolean hasCharge() {
+        return isDirty() ? getRadiologicalLoad() > 0 : getValidUraniumCount() > 0;
+    }
+
+    /** Radioactivity of a dirty bomb's load, in rad/s. */
+    public float getRadiologicalLoad() {
+        return DirtyWarheadStats.load(inventory, 0, SLOT_COUNT);
     }
 
     private void detonate() {
@@ -125,6 +146,13 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         }
 
         BlockPos center = getBlockPos();
+        if (isDirty()) {
+            float load = getRadiologicalLoad();
+            clearContent();
+            level.removeBlock(center, false);
+            NuclearDetonation.detonateDirty(serverLevel, center.getCenter(), load);
+            return;
+        }
         float power = getEstimatedPower();
         int horizontalRadius = getEstimatedRadius();
         int verticalRadius = getEstimatedVerticalRadius();

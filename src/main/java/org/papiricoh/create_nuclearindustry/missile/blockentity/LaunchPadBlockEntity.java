@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.FissileMaterial;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
@@ -60,7 +61,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         if (slot == DESIGNATOR_SLOT) {
             return stack.is(AllNuclearItems.TARGET_DESIGNATOR.get());
         }
-        return isValidFissile(stack);
+        return isValidFissile(stack) || DirtyWarheadStats.isRadiological(stack);
     }
 
     public void tick() {
@@ -92,7 +93,20 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
     }
 
     public boolean isReadyToLaunch() {
-        return hasMissile() && getValidUraniumCount() > 0 && getTarget() != null;
+        return hasMissile() && (getValidUraniumCount() > 0 || getRadiologicalLoad() > 0) && getTarget() != null;
+    }
+
+    /**
+     * Radioactivity of the non-fissile radioactive material in the warhead slots, in rad/s. With
+     * fissile material too it salts a nuclear warhead; on its own it makes a dirty one.
+     */
+    public float getRadiologicalLoad() {
+        return DirtyWarheadStats.load(inventory, FIRST_URANIUM_SLOT, SLOT_COUNT);
+    }
+
+    /** No fissile material, only radioactive: the missile carries a dirty warhead. */
+    public boolean isDirtyWarhead() {
+        return getValidUraniumCount() <= 0 && getRadiologicalLoad() > 0;
     }
 
     public boolean hasMissile() {
@@ -152,11 +166,13 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
             return;
         }
         BlockPos target = getTarget();
-        if (target == null || !hasMissile() || getValidUraniumCount() <= 0) {
+        if (target == null || !isReadyToLaunch()) {
             countdown = -1;
             return;
         }
 
+        float load = getRadiologicalLoad();
+        boolean dirty = isDirtyWarhead();
         int units = getValidUraniumCount();
         float avgEnrichment = getAverageEnrichment();
         float power = WarheadStats.power(units, avgEnrichment);
@@ -173,7 +189,12 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
 
         MissileEntity missile = new MissileEntity(AllNuclearEntities.MISSILE.get(), serverLevel);
         missile.setPos(start.x, start.y, start.z);
-        missile.configure(start, targetVec, power, horizontalRadius, verticalRadius, intensity);
+        if (dirty) {
+            missile.configureDirty(start, targetVec, load);
+        } else {
+            missile.configure(start, targetVec, power, horizontalRadius, verticalRadius, intensity);
+            missile.setSalting(load);
+        }
         serverLevel.addFreshEntity(missile);
     }
 

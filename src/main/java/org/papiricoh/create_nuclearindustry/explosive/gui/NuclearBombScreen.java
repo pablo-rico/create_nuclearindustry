@@ -4,6 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
 
 public class NuclearBombScreen extends AbstractContainerScreen<NuclearBombMenu> {
@@ -26,9 +27,20 @@ public class NuclearBombScreen extends AbstractContainerScreen<NuclearBombMenu> 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         renderBg(guiGraphics, partialTick, mouseX, mouseY);
-        guiGraphics.drawCenteredString(font, "Nuclear Bomb", leftPos + imageWidth / 2, topPos + 10, 0xFFE066);
+        guiGraphics.drawCenteredString(font, title, leftPos + imageWidth / 2, topPos + 10, 0xFFE066);
         NuclearBombBlockEntity bomb = menu.getBomb();
-        if (bomb != null) {
+        if (bomb != null && bomb.isDirty()) {
+            float load = bomb.getRadiologicalLoad();
+            guiGraphics.drawString(font, Component.translatable("gui.create_nuclearindustry.dirty_bomb.load",
+                    String.format("%.0f", load)), leftPos + 14, topPos + 28, 0xDDDDDD);
+            guiGraphics.drawString(font, Component.translatable("gui.create_nuclearindustry.dirty_bomb.radius",
+                    DirtyWarheadStats.falloutRadius(load)), leftPos + 14, topPos + 40, 0xFFAA77);
+            guiGraphics.drawString(font, Component.translatable("gui.create_nuclearindustry.dirty_bomb.intensity",
+                    String.format("%.1f", DirtyWarheadStats.falloutIntensity(load))), leftPos + 14, topPos + 52, 0xFF7777);
+            int countdown = bomb.getCountdown();
+            String state = countdown >= 0 ? String.format("Armed: %.1fs", countdown / 20.0f) : "Waiting for redstone";
+            guiGraphics.drawString(font, state, leftPos + 14, topPos + 82, countdown >= 0 ? 0xFF4444 : 0x88FF88);
+        } else if (bomb != null) {
             int valid = bomb.getValidUraniumCount();
             guiGraphics.drawString(font, "Fissile: " + valid + "/" + NuclearBombBlockEntity.MAX_URANIUM_UNITS, leftPos + 14, topPos + 28, 0xDDDDDD);
             guiGraphics.drawString(font, String.format("Avg enrichment: %.1f%%", bomb.getAverageEnrichment()), leftPos + 14, topPos + 40, 0xDDDDDD);

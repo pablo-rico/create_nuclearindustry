@@ -33,14 +33,42 @@ public final class NuclearDetonation {
     }
 
     public static void detonate(ServerLevel level, Vec3 impact, float power, int horizontalRadius, int verticalRadius, float intensity) {
+        detonate(level, impact, power, horizontalRadius, verticalRadius, intensity, 0.0f);
+    }
+
+    /**
+     * A nuclear detonation "salted" with {@code salting} rad/s of radioactive material packed
+     * around the core: same blast, dirtier and wider fallout.
+     */
+    public static void detonate(ServerLevel level, Vec3 impact, float power, int horizontalRadius, int verticalRadius,
+                                float intensity, float salting) {
         BlockPos center = BlockPos.containing(impact);
-        LOGGER.info("Nuclear detonation at {} with power={}, horizontalRadius={}, verticalRadius={}",
-                center, power, horizontalRadius, verticalRadius);
+        LOGGER.info("Nuclear detonation at {} with power={}, horizontalRadius={}, verticalRadius={}, salting={}",
+                center, power, horizontalRadius, verticalRadius, salting);
 
         NuclearExplosionSoundManager.playDelayedForWorld(level, impact);
         level.explode(null, impact.x, impact.y, impact.z, Math.min(64.0f, power * 0.35f), Level.ExplosionInteraction.BLOCK);
         NuclearBlastManager.start(level, center, horizontalRadius, verticalRadius, intensity);
-        Contamination.fallout(level, center, falloutRadius(horizontalRadius), falloutIntensity(power));
+        int radius = falloutRadius(horizontalRadius);
+        float fallout = falloutIntensity(power);
+        if (salting > 0) {
+            radius = Math.max(radius, DirtyWarheadStats.falloutRadius(salting));
+            fallout = (float) Math.min(Config.contaminationMax, fallout + DirtyWarheadStats.falloutIntensity(salting));
+        }
+        Contamination.fallout(level, center, radius, fallout);
+    }
+
+    /**
+     * A dirty bomb: a small conventional blast that scatters {@code load} rad/s of radioactive
+     * material. No crater, but wide fallout and a hot spot at ground zero that fades over days.
+     */
+    public static void detonateDirty(ServerLevel level, Vec3 impact, float load) {
+        BlockPos center = BlockPos.containing(impact);
+        LOGGER.info("Dirty bomb detonation at {} with load={}", center, load);
+        level.explode(null, impact.x, impact.y, impact.z, DirtyWarheadStats.blastPower(load), Level.ExplosionInteraction.BLOCK);
+        Contamination.fallout(level, center, DirtyWarheadStats.falloutRadius(load), DirtyWarheadStats.falloutIntensity(load));
+        org.papiricoh.create_nuclearindustry.radiation.FalloutData.contaminate(level, center, DirtyWarheadStats.hotSpot(load),
+                DirtyWarheadStats.HOT_SPOT_TICKS);
     }
 
     public static int falloutRadius(int horizontalRadius) {
