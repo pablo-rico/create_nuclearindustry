@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.coolingtower.blockentity.CoolingTowerControllerBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
@@ -18,7 +19,7 @@ import java.util.Optional;
 
 /**
  * Turns what a Control Room Linker points at into a target, and a stored target back into the live
- * machine. A click on any block of a formed reactor, turbine or cooling tower links its controller;
+ * machine. A click on any block of a formed reactor, turbine, cooling tower or tokamak links its controller;
  * a click anywhere else watches the radiation there. Server side only.
  */
 public final class LinkedTarget {
@@ -30,7 +31,7 @@ public final class LinkedTarget {
     private LinkedTarget() {}
 
     /** The live end of a link. */
-    public sealed interface Resolved permits Reactor, Turbine, Tower, Area, NoSignal {
+    public sealed interface Resolved permits Reactor, Turbine, Tower, Tokamak, Area, NoSignal {
         TargetKind kind();
     }
 
@@ -49,6 +50,12 @@ public final class LinkedTarget {
     public record Tower(CoolingTowerControllerBlockEntity tower) implements Resolved {
         public TargetKind kind() {
             return TargetKind.COOLING_TOWER;
+        }
+    }
+
+    public record Tokamak(FusionReactorBlockEntity tokamak) implements Resolved {
+        public TargetKind kind() {
+            return TargetKind.TOKAMAK;
         }
     }
 
@@ -97,6 +104,9 @@ public final class LinkedTarget {
         if (entity instanceof CoolingTowerControllerBlockEntity) {
             return TargetKind.COOLING_TOWER;
         }
+        if (entity instanceof FusionReactorBlockEntity) {
+            return TargetKind.TOKAMAK;
+        }
         return TargetKind.AREA;
     }
 
@@ -134,6 +144,9 @@ public final class LinkedTarget {
         if (entity instanceof CoolingTowerControllerBlockEntity tower) {
             return new Tower(tower);
         }
+        if (entity instanceof FusionReactorBlockEntity tokamak) {
+            return new Tokamak(tokamak);
+        }
         if (level instanceof ServerLevel serverLevel) {
             return new Area(serverLevel, target.pos());
         }
@@ -152,7 +165,7 @@ public final class LinkedTarget {
 
     private static boolean isMachineController(@Nullable BlockEntity entity) {
         return entity instanceof ReactorBlockEntity || entity instanceof AbstractTurbineControllerBlockEntity
-                || entity instanceof CoolingTowerControllerBlockEntity;
+                || entity instanceof CoolingTowerControllerBlockEntity || entity instanceof FusionReactorBlockEntity;
     }
 
     private static boolean isFormedMachine(MultiblockController controller) {
@@ -164,6 +177,9 @@ public final class LinkedTarget {
         }
         if (controller instanceof CoolingTowerControllerBlockEntity tower) {
             return tower.getStructure().isPresent();
+        }
+        if (controller instanceof FusionReactorBlockEntity tokamak) {
+            return tokamak.isFormed();
         }
         return false;
     }

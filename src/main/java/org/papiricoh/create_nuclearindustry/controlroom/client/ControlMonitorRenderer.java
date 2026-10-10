@@ -208,6 +208,19 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
                         r.value(C_STEAM) > 0.9f ? WARN : TEXT));
                 rows.add(row("fans", fmt("%.0f", r.value(C_FANS)), -1, TEXT));
             }
+            case TOKAMAK -> {
+                float plasma = r.value(K_TEMPERATURE);
+                rows.add(row("plasma", fmt("%.0f °", plasma), r.seriesA(),
+                        plasma >= 5000 ? BAD : plasma >= 1500 ? GOOD : TEXT));
+                rows.add(row("power", fmt("%.0f MW", r.value(K_POWER)), r.seriesB(), TEXT));
+                rows.add(row("confinement", fmt("%.0f%%", r.value(K_CONFINEMENT) * 100), r.value(K_CONFINEMENT),
+                        r.value(K_CONFINEMENT) < 0.65f ? WARN : TEXT));
+                rows.add(row("instability", fmt("%.0f%%", r.value(K_INSTABILITY)), r.value(K_INSTABILITY) / 100f,
+                        r.value(K_INSTABILITY) >= 60 ? BAD : TEXT));
+                rows.add(row("deuterium", fmt("%.0f%%", r.value(K_DEUTERIUM) * 100), r.value(K_DEUTERIUM), TEXT));
+                rows.add(row("tritium", fmt("%.0f%%", r.value(K_TRITIUM) * 100), r.value(K_TRITIUM), TEXT));
+                rows.add(new Row(label("fuel"), Component.translatable(KEY + (r.flag(K_FUEL) ? "yes" : "no")), -1, TEXT));
+            }
             case AREA -> {
                 float exposure = r.value(A_EXPOSURE);
                 rows.add(row("exposure", fmt("%.2f rad/s", exposure), r.seriesA(), exposure >= 1 ? BAD : exposure >= 0.05f ? WARN : GOOD));
@@ -223,6 +236,7 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
             case REACTOR -> new String[]{"temperature", "power"};
             case TURBINE -> new String[]{"steam_use", "speed"};
             case COOLING_TOWER -> new String[]{"condensing", "water"};
+            case TOKAMAK -> new String[]{"plasma", "power"};
             default -> new String[]{"exposure", "ground"};
         };
         return new Component[]{label(keys[0]), label(keys[1])};
@@ -250,7 +264,7 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
         if (status.contains("SCRAM") || status.equals("MELTING") || status.equals("Critical") || status.endsWith(".radiation")) {
             return BAD;
         }
-        if (status.equals("Running") || status.endsWith(".running") || status.endsWith(".clear")) {
+        if (status.equals("Running") || status.endsWith(".running") || status.endsWith(".clear") || status.endsWith(".burning")) {
             return GOOD;
         }
         return WARN;

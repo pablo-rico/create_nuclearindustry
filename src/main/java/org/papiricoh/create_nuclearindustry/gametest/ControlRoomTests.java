@@ -210,6 +210,21 @@ public class ControlRoomTests {
         });
     }
 
+    @GameTest(template = NuclearGameTests.TOKAMAK_ARENA)
+    public static void aTokamakCanBeWatched(GameTestHelper helper) {
+        TokamakTestBuilder.build(helper, 4, true, 0);
+        org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity tokamak = TokamakTestBuilder.tokamak(helper, 4);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(tokamak.isFormed(), "the tokamak should form");
+            BlockPos controller = tokamak.getBlockPos();
+            helper.assertTrue(LinkedTarget.kindAt(helper.getLevel(), controller) == TargetKind.TOKAMAK, "its controller is a tokamak target");
+            org.papiricoh.create_nuclearindustry.controlroom.MonitorReading reading = org.papiricoh.create_nuclearindustry.controlroom.MonitorReading
+                    .sample(LinkedTarget.resolve(helper.getLevel(), controller, GlobalPos.of(helper.getLevel().dimension(), controller)));
+            helper.assertTrue(reading.kind() == TargetKind.TOKAMAK && reading.flag(org.papiricoh.create_nuclearindustry.controlroom.MonitorReading.K_FORMED),
+                    "a monitor reads the formed tokamak, got " + reading.kind());
+        });
+    }
+
     private static int signal(RedstonePortMode mode, ReactorBlockEntity reactor) {
         return ReactorRedstonePortBlockEntity.signalFor(mode, reactor);
     }

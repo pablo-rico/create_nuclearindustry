@@ -285,6 +285,7 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         }
         return switch (reading.kind()) {
             case REACTOR -> 6;
+            case TOKAMAK -> 4;
             case TURBINE, COOLING_TOWER -> 3;
             case AREA -> 2;
             default -> 1;

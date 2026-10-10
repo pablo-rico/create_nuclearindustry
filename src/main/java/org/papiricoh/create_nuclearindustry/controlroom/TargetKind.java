@@ -9,6 +9,7 @@ public enum TargetKind {
     REACTOR,
     TURBINE,
     COOLING_TOWER,
+    TOKAMAK,
     /** Any other block: the radiation around it. */
     AREA;
 

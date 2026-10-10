@@ -561,6 +561,16 @@ public final class LangEntries {
         add(alarm + "metric.turbine_load", "Turbine load above", "Carga de la turbina por encima de");
         add(alarm + "metric.tower_load", "Cooling tower load above", "Carga de la torre por encima de");
         add(alarm + "metric.area_radiation", "Radiation above", "Radiación por encima de");
+        add(kind + "tokamak", "Tokamak", "Tokamak");
+        add(status + "burning", "Burning", "En fusión");
+        add(status + "cold", "Cold", "Frío");
+        add(monitor + "plasma", "Plasma", "Plasma");
+        add(monitor + "confinement", "Confinement", "Confinamiento");
+        add(monitor + "instability", "Instability", "Inestabilidad");
+        add(monitor + "deuterium", "Deuterium", "Deuterio");
+        add(monitor + "tritium", "Tritium", "Tritio");
+        add(alarm + "metric.plasma_temperature", "Plasma temperature above", "Temperatura del plasma por encima de");
+        add(alarm + "metric.plasma_instability", "Plasma instability above", "Inestabilidad del plasma por encima de");
         add("create_nuclearindustry.display_source.turbine", "Turbine Status", "Estado de la turbina");
         add("create_nuclearindustry.ponder.control_room.header", "Building a Control Room", "Montar una sala de control");
         add("create_nuclearindustry.ponder.control_room.text_1",

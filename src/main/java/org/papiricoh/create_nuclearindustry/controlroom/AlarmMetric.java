@@ -102,6 +102,28 @@ public enum AlarmMetric implements INamedIconOptions {
         float reading(MonitorReading reading) {
             return reading.value(MonitorReading.A_EXPOSURE);
         }
+    },
+    PLASMA_TEMPERATURE(AllIcons.I_FX_SURFACE_ON, TargetKind.TOKAMAK) {
+        @Override
+        public float scaled(int setting) {
+            return setting * 60f;
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.0f°", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.K_TEMPERATURE);
+        }
+    },
+    PLASMA_INSTABILITY(AllIcons.I_DICE, TargetKind.TOKAMAK) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.K_INSTABILITY);
+        }
     };
 
     private final AllIcons icon;

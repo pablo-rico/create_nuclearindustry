@@ -31,9 +31,14 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     public static final int C_USE = 0, C_CAPACITY = 1, C_WATER = 2, C_STEAM = 3, C_FANS = 4, C_FORMED = 5;
     // Area
     public static final int A_GROUND = 0, A_EXPOSURE = 1;
+    // Tokamak
+    public static final int K_TEMPERATURE = 0, K_POWER = 1, K_CONFINEMENT = 2, K_INSTABILITY = 3, K_DEUTERIUM = 4,
+            K_TRITIUM = 5, K_FORMED = 6, K_FUEL = 7;
 
     /** Graph ceiling for area exposure, in rad/s. */
     public static final float AREA_GRAPH_MAX = 10.0f;
+    /** Graph ceiling for tokamak power, in MW. */
+    public static final float TOKAMAK_GRAPH_POWER = 1000.0f;
     private static final String STATUS = "create_nuclearindustry.control_room.status.";
 
     public float value(int index) {
@@ -57,6 +62,7 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
             case LinkedTarget.Reactor reactor -> reactor(reactor.reactor());
             case LinkedTarget.Turbine turbine -> turbine(turbine.turbine());
             case LinkedTarget.Tower tower -> tower(tower.tower());
+            case LinkedTarget.Tokamak tokamak -> tokamak(tokamak.tokamak());
             case LinkedTarget.Area area -> area(area);
             case LinkedTarget.NoSignal noSignal -> new MonitorReading(noSignal.kind(), noSignal.reason(), new float[0], 0, 0);
         };
@@ -112,6 +118,26 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
         String status = tower.getStructure().isEmpty() ? STATUS + "unformed"
                 : v[C_USE] > 0 ? STATUS + "running" : STATUS + "idle";
         return new MonitorReading(TargetKind.COOLING_TOWER, status, v, fraction(v[C_USE], v[C_CAPACITY]), v[C_WATER]);
+    }
+
+    private static MonitorReading tokamak(org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity tokamak) {
+        var physics = tokamak.getPhysics();
+        float[] v = new float[8];
+        v[K_TEMPERATURE] = (float) physics.getPlasmaTemperature();
+        v[K_POWER] = (float) physics.getFusionPower();
+        v[K_CONFINEMENT] = (float) physics.getConfinement();
+        v[K_INSTABILITY] = (float) physics.getInstability();
+        v[K_DEUTERIUM] = fraction(tokamak.getDeuteriumTank().getFluidAmount(), tokamak.getDeuteriumTank().getCapacity());
+        v[K_TRITIUM] = fraction(tokamak.getTritiumTank().getFluidAmount(), tokamak.getTritiumTank().getCapacity());
+        v[K_FORMED] = tokamak.isFormed() ? 1 : 0;
+        v[K_FUEL] = tokamak.isFuelEnabled() ? 1 : 0;
+        String status = !tokamak.isFormed() ? STATUS + "unformed"
+                : tokamak.getStatus() == org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity.Status.SUSPENDED
+                ? STATUS + "suspended"
+                : physics.isBurning() ? STATUS + "burning" : STATUS + "cold";
+        return new MonitorReading(TargetKind.TOKAMAK, status, v,
+                clamp01(v[K_TEMPERATURE] / (float) org.papiricoh.create_nuclearindustry.fusion.physics.TokamakPhysicsSimulator.MAX_TEMP),
+                clamp01(v[K_POWER] / TOKAMAK_GRAPH_POWER));
     }
 
     private static MonitorReading area(LinkedTarget.Area area) {
