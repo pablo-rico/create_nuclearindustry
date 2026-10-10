@@ -19,13 +19,16 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellBlock;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionMagnetInputBlockEntity;
 
 /**
  * Kinetic drive for the confinement field: takes a Create shaft on its facing axis and converts
  * rotational speed into a confinement contribution the controller reads each tick.
  */
-public class FusionMagnetInputBlock extends KineticBlock implements EntityBlock {
+public class FusionMagnetInputBlock extends KineticBlock implements EntityBlock, TokamakShellBlock {
+
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final MapCodec<FusionMagnetInputBlock> CODEC = simpleCodec(FusionMagnetInputBlock::new);
 
@@ -81,5 +84,10 @@ public class FusionMagnetInputBlock extends KineticBlock implements EntityBlock 
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    @Override
+    public TokamakShellRole tokamakRole(BlockState state) {
+        return TokamakShellRole.MAGNET_DRIVE;
     }
 }

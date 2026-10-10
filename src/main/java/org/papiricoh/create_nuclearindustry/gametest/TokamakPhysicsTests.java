@@ -12,8 +12,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
-import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.fusion.FusionConfig;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.fusion.physics.TokamakPhysicsSimulator;
 
@@ -59,13 +59,13 @@ public class TokamakPhysicsTests {
     public static void dryTokamakOverheatsAndDisrupts(GameTestHelper helper) {
         TokamakTestBuilder.build(helper, 4, true, 256);
         FusionReactorBlockEntity tokamak = TokamakTestBuilder.tokamak(helper, 4);
-        boolean explosions = Config.fusionDisruptionExplosions;
-        Config.fusionDisruptionExplosions = false;
+        boolean explosions = FusionConfig.disruptionExplosions;
+        FusionConfig.disruptionExplosions = false;
         helper.runAfterDelay(5, () -> fuel(tokamak, 8000, 8000, 0));
         helper.onEachTick(() -> {
             if (tokamak.getPhysics().getPlasmaTemperature() > TokamakPhysicsSimulator.DANGER_TEMP) {
                 helper.runAfterDelay(80, () -> {
-                    Config.fusionDisruptionExplosions = explosions;
+                    FusionConfig.disruptionExplosions = explosions;
                     helper.assertTrue(tokamak.getTritiumTank().isEmpty(), "a disruption should lose the tritium inventory");
                     helper.succeed();
                 });

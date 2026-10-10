@@ -4,8 +4,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** A validated tokamak: where it is, how big it is and what its shell is made of. */
@@ -17,6 +20,10 @@ public final class TokamakStructure {
     public final Set<BlockPos> magnetInputs = new HashSet<>();
     public final Set<BlockPos> fluidPorts = new HashSet<>();
     public final Set<BlockPos> injectors = new HashSet<>();
+    /** Every shell block by role, except plain vessel blocks. */
+    private final Map<TokamakShellRole, List<BlockPos>> parts = new EnumMap<>(TokamakShellRole.class);
+    /** Shell blocks with a job (anything but vessel, coil and blanket), which may hold a linked block entity. */
+    private final Set<BlockPos> functionalParts = new HashSet<>();
     public int coilCount;
     public int blanketCount;
     public int coolantPortCount;
@@ -63,6 +70,34 @@ public final class TokamakStructure {
             positions.add(center.offset(0, dy, 0));
         }
         return positions;
+    }
+
+    void addPart(TokamakShellRole role, BlockPos pos) {
+        if (role == TokamakShellRole.VESSEL) {
+            return;
+        }
+        parts.computeIfAbsent(role, r -> new ArrayList<>()).add(pos.immutable());
+        if (role != TokamakShellRole.COIL && role != TokamakShellRole.BLANKET) {
+            functionalParts.add(pos.immutable());
+        }
+    }
+
+    /** Positions of every shell block with this role (none for {@link TokamakShellRole#VESSEL}). */
+    public List<BlockPos> parts(TokamakShellRole role) {
+        return Collections.unmodifiableList(parts.getOrDefault(role, List.of()));
+    }
+
+    public int count(TokamakShellRole role) {
+        return parts.getOrDefault(role, List.of()).size();
+    }
+
+    /** Shell blocks with a job: ports, injectors, drives, pumps, heaters, viewports. */
+    public Set<BlockPos> functionalParts() {
+        return Collections.unmodifiableSet(functionalParts);
+    }
+
+    public boolean containsPart(BlockPos pos) {
+        return functionalParts.contains(pos);
     }
 
     public boolean containsFluidPort(BlockPos pos) {

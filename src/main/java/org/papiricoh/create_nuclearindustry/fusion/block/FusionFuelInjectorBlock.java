@@ -28,10 +28,13 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellBlock;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFuelInjectorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
-public class FusionFuelInjectorBlock extends BaseEntityBlock {
+public class FusionFuelInjectorBlock extends BaseEntityBlock implements TokamakShellBlock {
+
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final EnumProperty<ReactorFluidPortMode> MODE = EnumProperty.create("mode", ReactorFluidPortMode.class);
     public static final MapCodec<FusionFuelInjectorBlock> CODEC = simpleCodec(FusionFuelInjectorBlock::new);
@@ -110,5 +113,10 @@ public class FusionFuelInjectorBlock extends BaseEntityBlock {
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    @Override
+    public TokamakShellRole tokamakRole(BlockState state) {
+        return state.getValue(MODE) == ReactorFluidPortMode.INPUT ? TokamakShellRole.FUEL_IN : TokamakShellRole.FUEL_OUT;
     }
 }

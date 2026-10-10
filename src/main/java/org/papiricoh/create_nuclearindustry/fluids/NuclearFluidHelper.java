@@ -83,6 +83,22 @@ public final class NuclearFluidHelper {
         return stack.getFluid() == AllNuclearFluids.PLASMA_STEAM.get();
     }
 
+    public static boolean isHelium(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.HELIUM.get();
+    }
+
+    public static boolean isLiquidHelium(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.LIQUID_HELIUM.get();
+    }
+
+    public static boolean isLiquidAir(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.LIQUID_AIR.get();
+    }
+
+    public static boolean isLiquidNitrogen(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.LIQUID_NITROGEN.get();
+    }
+
     /** Working fluid accepted by the fusion plasma turbine. */
     public static boolean isPlasmaTurbineFluid(FluidStack stack) {
         return isPlasmaSteam(stack);

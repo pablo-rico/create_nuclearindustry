@@ -51,9 +51,6 @@ public class FusionReactorControllerBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide) {
-            return null;
-        }
         return type == AllNuclearEntities.FUSION_CONTROLLER.get() ? (lvl, pos, blockState, blockEntity) -> {
             if (blockEntity instanceof FusionReactorBlockEntity reactor) {
                 FusionReactorBlockEntity.tick(lvl, pos, blockState, reactor);

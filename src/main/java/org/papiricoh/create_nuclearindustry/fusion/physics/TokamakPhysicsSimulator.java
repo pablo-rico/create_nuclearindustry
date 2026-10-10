@@ -1,7 +1,6 @@
 package org.papiricoh.create_nuclearindustry.fusion.physics;
 
 import net.minecraft.nbt.CompoundTag;
-import org.papiricoh.create_nuclearindustry.Config;
 
 /**
  * Zero-dimensional plasma model of a tokamak.
@@ -60,7 +59,8 @@ public class TokamakPhysicsSimulator {
             double deuterium,
             double tritium,
             double coolant,
-            double steamCapacity) {}
+            double steamCapacity,
+            double burnRatePerCell) {}
 
     /** What the controller must move between its tanks after the tick. */
     public record Outputs(double deuteriumUsed, double tritiumUsed, double tritiumBred, double steamProduced) {
@@ -82,7 +82,7 @@ public class TokamakPhysicsSimulator {
         if (in.fuelEnabled() && confinement >= MIN_BURN_CONFINEMENT && plasmaTemperature >= IGNITION_TEMP
                 && in.plasmaVolume() > 0 && in.deuterium() > 0) {
             double heat = clamp((plasmaTemperature - IGNITION_TEMP) / FULL_BURN_SPAN, 0.05, 1);
-            double potential = Config.deuteriumTritiumBurnRate * in.plasmaVolume() * heat;
+            double potential = in.burnRatePerCell() * in.plasmaVolume() * heat;
             double steamWanted;
             double tritiumBred;
             double tritiumUsed;

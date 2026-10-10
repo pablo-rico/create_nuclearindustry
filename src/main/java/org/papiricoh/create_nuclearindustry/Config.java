@@ -59,23 +59,6 @@ public class Config
     private static final ModConfigSpec.IntValue DECAY_HEAT_TIME = BUILDER
             .comment("Ticks for decay heat to fall to about a third once fission stops (it also takes this long to build up).")
             .defineInRange("fission.decayHeatTimeTicks", 2400, 1, 1_000_000);
-    private static final ModConfigSpec.DoubleValue DT_BURN_RATE = BUILDER
-            .comment("mB of deuterium (and of tritium) burnt per plasma cell per tick at full temperature.",
-                    "A tokamak of major radius R has about 56*R plasma cells. Fusion power is 1000 MW per mB/t burnt.")
-            .defineInRange("fusion.deuteriumTritiumBurnRate", 0.0011, 0.0, 1.0);
-    private static final ModConfigSpec.IntValue MAX_MAJOR_RADIUS = BUILDER
-            .comment("Largest tokamak major radius (distance from the central solenoid to the plasma centre).")
-            .defineInRange("fusion.maxMajorRadius", 16, 4, 32);
-    private static final ModConfigSpec.IntValue COILS_PER_SECTOR = BUILDER
-            .comment("Electromagnets a toroidal sector needs for full field coverage. A tokamak has 4*R sectors.")
-            .defineInRange("fusion.coilsPerSector", 4, 1, 25);
-    private static final ModConfigSpec.DoubleValue MAGNET_STRESS = BUILDER
-            .comment("Stress impact (SU per RPM) of each confinement magnet drive.")
-            .defineInRange("fusion.magnetInputStress", 1024.0, 0.0, 1.0e6);
-    private static final ModConfigSpec.BooleanValue DISRUPTION_EXPLOSIONS = BUILDER
-            .comment("Whether a plasma disruption blows holes in the tokamak. If false, the plasma just quenches.")
-            .define("fusion.disruptionExplosions", true);
-
     private static final ModConfigSpec.BooleanValue RADIATION_ENABLED = BUILDER
             .comment("Whether carrying or standing near radioactive material gives players a radiation dose.")
             .define("radiation.enabled", true);
@@ -170,6 +153,9 @@ public class Config
         org.papiricoh.create_nuclearindustry.waste.WasteConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config.define(BUILDER);
         org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.fusion.FusionConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.fusion.cryo.CryoConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.fusion.heating.PlasmaHeatingConfig.define(BUILDER);
     }
 
     static final ModConfigSpec SPEC = BUILDER.build();
@@ -188,11 +174,6 @@ public class Config
     public static int xenonHalfLifeTicks = 5400;
     public static double decayHeatFraction = 0.07;
     public static int decayHeatTimeTicks = 2400;
-    public static double deuteriumTritiumBurnRate = 0.0011;
-    public static int fusionMaxMajorRadius = 16;
-    public static int fusionCoilsPerSector = 4;
-    public static double fusionMagnetStress = 1024.0;
-    public static boolean fusionDisruptionExplosions = true;
     public static boolean radiationEnabled = true;
     public static double radiationDoseMultiplier = 1.0;
     public static double radiationDecayPerSecond = 1.0;
@@ -251,11 +232,6 @@ public class Config
         xenonHalfLifeTicks = XENON_HALF_LIFE.get();
         decayHeatFraction = DECAY_HEAT_FRACTION.get();
         decayHeatTimeTicks = DECAY_HEAT_TIME.get();
-        deuteriumTritiumBurnRate = DT_BURN_RATE.get();
-        fusionMaxMajorRadius = MAX_MAJOR_RADIUS.get();
-        fusionCoilsPerSector = COILS_PER_SECTOR.get();
-        fusionMagnetStress = MAGNET_STRESS.get();
-        fusionDisruptionExplosions = DISRUPTION_EXPLOSIONS.get();
         radiationEnabled = RADIATION_ENABLED.get();
         radiationDoseMultiplier = RADIATION_MULTIPLIER.get();
         radiationDecayPerSecond = RADIATION_DECAY.get();
@@ -289,5 +265,8 @@ public class Config
         org.papiricoh.create_nuclearindustry.waste.WasteConfig.bake();
         org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config.bake();
         org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.bake();
+        org.papiricoh.create_nuclearindustry.fusion.FusionConfig.bake();
+        org.papiricoh.create_nuclearindustry.fusion.cryo.CryoConfig.bake();
+        org.papiricoh.create_nuclearindustry.fusion.heating.PlasmaHeatingConfig.bake();
     }
 }

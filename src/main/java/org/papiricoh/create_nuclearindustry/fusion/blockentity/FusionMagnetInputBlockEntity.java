@@ -37,7 +37,7 @@ public class FusionMagnetInputBlockEntity extends KineticBlockEntity {
 
     @Override
     public float calculateStressApplied() {
-        return (float) org.papiricoh.create_nuclearindustry.Config.fusionMagnetStress;
+        return (float) org.papiricoh.create_nuclearindustry.fusion.FusionConfig.magnetInputStress;
     }
 
     @Override

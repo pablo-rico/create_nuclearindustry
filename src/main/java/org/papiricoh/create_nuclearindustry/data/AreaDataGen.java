@@ -22,7 +22,10 @@ abstract class AreaDataGen {
             ControlRoom2DataGen.INSTANCE,
             CivilDefenseDataGen.INSTANCE,
             PlantPonderDataGen.INSTANCE,
-            PlantJeiDataGen.INSTANCE);
+            PlantJeiDataGen.INSTANCE,
+            FusionDataGen.INSTANCE,
+            CryoDataGen.INSTANCE,
+            PlasmaHeatingDataGen.INSTANCE);
 
     void lang() {}
 

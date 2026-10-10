@@ -160,6 +160,12 @@ combustible gastado conserva el enriquecimiento con el que entro.
 - `disruptionExplosions`: si una disrupcion abre agujeros en la camara. Con `false`
   el plasma simplemente se apaga.
 
+## Tokamak: arranque y control del plasma
+
+## Planta criogénica y vacío del tokamak
+
+## Calentamiento del plasma, ventanas y sonido
+
 ## Radiacion
 
 La dosis se acumula con los objetos que lleva el jugador, los bloques

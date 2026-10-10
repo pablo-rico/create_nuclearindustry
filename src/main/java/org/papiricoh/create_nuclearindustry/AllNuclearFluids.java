@@ -101,6 +101,13 @@ public class AllNuclearFluids {
     // The same water leaving the core: it only exists inside the loop, a leak flashes it away.
     public static final NuclearFluid HOT_PRIMARY_COOLANT_FLUID = liquid("hot_primary_coolant", 0xE0E08A5A, 700, 800, 600);
 
+    // ---------------------------------------------------------------- cryogenics: the tokamak's helium loop and the air it is first won from
+    // Warm helium gas: what the coils hand back to the cryogenic plant, and the plasma's ash.
+    public static final NuclearFluid HELIUM_FLUID = gas("helium", 0x90FFE2C8, -120, 20, 300, 0);
+    public static final NuclearFluid LIQUID_HELIUM_FLUID = liquid("liquid_helium", 0xB0DDF6FF, 125, 3, 4);
+    public static final NuclearFluid LIQUID_AIR_FLUID = liquid("liquid_air", 0xC0BFD9F2, 870, 170, 80);
+    public static final NuclearFluid LIQUID_NITROGEN_FLUID = liquid("liquid_nitrogen", 0xC0E6F0FA, 808, 160, 77);
+
     // ---------------------------------------------------------------- short accessors used across the mod
     public static final Supplier<FluidType> STEAM_TYPE = STEAM_FLUID.type();
     public static final Supplier<FluidType> HEAVY_WATER_TYPE = HEAVY_WATER_FLUID.type();
@@ -136,6 +143,10 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> CONTAMINATED_WATER = CONTAMINATED_WATER_FLUID.source();
     public static final Supplier<FlowingFluid> PRIMARY_COOLANT = PRIMARY_COOLANT_FLUID.source();
     public static final Supplier<FlowingFluid> HOT_PRIMARY_COOLANT = HOT_PRIMARY_COOLANT_FLUID.source();
+    public static final Supplier<FlowingFluid> HELIUM = HELIUM_FLUID.source();
+    public static final Supplier<FlowingFluid> LIQUID_HELIUM = LIQUID_HELIUM_FLUID.source();
+    public static final Supplier<FlowingFluid> LIQUID_AIR = LIQUID_AIR_FLUID.source();
+    public static final Supplier<FlowingFluid> LIQUID_NITROGEN = LIQUID_NITROGEN_FLUID.source();
 
     // ---------------------------------------------------------------- world block and bucket (steam only)
     public static final Supplier<LiquidBlock> STEAM_BLOCK = BLOCKS.register("steam", () -> new LiquidBlock(

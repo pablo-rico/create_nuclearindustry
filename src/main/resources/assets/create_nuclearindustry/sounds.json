@@ -18,5 +18,41 @@
         "stream": false
       }
     ]
+  },
+  "magnet_hum": {
+    "subtitle": "subtitle.create_nuclearindustry.magnet_hum",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:magnet_hum",
+        "stream": false
+      }
+    ]
+  },
+  "plasma_rumble": {
+    "subtitle": "subtitle.create_nuclearindustry.plasma_rumble",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:plasma_rumble",
+        "stream": false
+      }
+    ]
+  },
+  "plasma_breakdown": {
+    "subtitle": "subtitle.create_nuclearindustry.plasma_breakdown",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:plasma_breakdown",
+        "stream": false
+      }
+    ]
+  },
+  "cryoplant_hum": {
+    "subtitle": "subtitle.create_nuclearindustry.cryoplant_hum",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:cryoplant_hum",
+        "stream": false
+      }
+    ]
   }
 }

@@ -481,6 +481,12 @@ below for what changes in existing worlds.
   "below Y=0" rule, and the scrubber scene shows that it makes Low-Level
   Waste.
 
+### Tokamak startup and plasma control
+
+### Cryogenic plant and vacuum
+
+### Plasma heating, viewports and sound
+
 ### JEI
 - Info pages for every new block and item of the plant: pressurizer, steam
   generator, containment, corium, spent fuel storage, the three waste classes

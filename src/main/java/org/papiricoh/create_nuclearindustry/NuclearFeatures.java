@@ -5,6 +5,9 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
+import org.papiricoh.create_nuclearindustry.fusion.FusionRegistry;
+import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
+import org.papiricoh.create_nuclearindustry.fusion.heating.PlasmaHeatingRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelRegistry;
 import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
@@ -18,7 +21,10 @@ public final class NuclearFeatures {
             SpentFuelRegistry.INSTANCE,
             WasteRegistry.INSTANCE,
             ControlRoom2Registry.INSTANCE,
-            CivilDefenseRegistry.INSTANCE);
+            CivilDefenseRegistry.INSTANCE,
+            FusionRegistry.INSTANCE,
+            CryoRegistry.INSTANCE,
+            PlasmaHeatingRegistry.INSTANCE);
 
     private NuclearFeatures() {}
 

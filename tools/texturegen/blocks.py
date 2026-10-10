@@ -1476,3 +1476,6 @@ import tex_spentfuel  # noqa: E402,F401
 import tex_waste  # noqa: E402,F401
 import tex_controlroom2  # noqa: E402,F401
 import tex_civildefense  # noqa: E402,F401
+import tex_fusion  # noqa: E402,F401
+import tex_cryo  # noqa: E402,F401
+import tex_heating  # noqa: E402,F401

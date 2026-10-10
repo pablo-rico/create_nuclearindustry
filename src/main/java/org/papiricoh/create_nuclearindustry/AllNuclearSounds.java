@@ -25,5 +25,20 @@ public class AllNuclearSounds {
                             "air_raid_siren"
                     )));
 
+    // ---------------------------------------------------------------- tokamak (sounds made by tools/soundgen)
+    /** The coils' hum, looped; the tokamak raises its pitch and volume with the field. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> MAGNET_HUM = variableRange("magnet_hum");
+    /** The burning plasma's low roar, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLASMA_RUMBLE = variableRange("plasma_rumble");
+    /** The crack of the central solenoid pulse that breaks the gas down into plasma. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLASMA_BREAKDOWN = variableRange("plasma_breakdown");
+    /** The cryogenic plant's compressors, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CRYOPLANT_HUM = variableRange("cryoplant_hum");
+
+    private static DeferredHolder<SoundEvent, SoundEvent> variableRange(String name) {
+        return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(
+                ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, name)));
+    }
+
     public static void init() {}
 }

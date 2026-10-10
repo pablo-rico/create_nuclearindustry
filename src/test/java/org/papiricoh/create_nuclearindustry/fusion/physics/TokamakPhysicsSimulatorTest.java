@@ -12,10 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Long-run behaviour of the plasma model, with unlimited fuel unless stated. */
 class TokamakPhysicsSimulatorTest {
     private static final int TEN_MINUTES = 12_000;
+    private static final double BURN_RATE = 0.0011;
 
     private static TokamakPhysicsSimulator.Inputs inputs(int radius, double coolant, double tritium, double blankets) {
         return new TokamakPhysicsSimulator.Inputs(1.0, 1.0, true, TokamakGeometry.of(radius).plasmaCount(),
-                blankets, true, 1e9, tritium, coolant, 1e9);
+                blankets, true, 1e9, tritium, coolant, 1e9, BURN_RATE);
     }
 
     @ParameterizedTest
@@ -55,7 +56,7 @@ class TokamakPhysicsSimulatorTest {
         assertTrue(physics.isBurning());
         for (int tick = 0; tick < 400; tick++) {
             physics.tick(new TokamakPhysicsSimulator.Inputs(1.0, 0.0, true, TokamakGeometry.of(4).plasmaCount(),
-                    0.4, true, 1e9, 1e9, 1e9, 1e9));
+                    0.4, true, 1e9, 1e9, 1e9, 1e9, BURN_RATE));
             assertFalse(physics.isDisrupting(), "losing the magnet drive should cool the plasma, not explode it");
         }
         assertFalse(physics.isBurning());
@@ -77,7 +78,7 @@ class TokamakPhysicsSimulatorTest {
         TokamakPhysicsSimulator physics = new TokamakPhysicsSimulator();
         for (int tick = 0; tick < TEN_MINUTES; tick++) {
             physics.tick(new TokamakPhysicsSimulator.Inputs(0.5, 1.0, true, TokamakGeometry.of(4).plasmaCount(),
-                    0.4, true, 1e9, 1e9, 1e9, 1e9));
+                    0.4, true, 1e9, 1e9, 1e9, 1e9, BURN_RATE));
         }
         assertFalse(physics.isBurning(), "half coil coverage cannot reach the burn confinement");
     }
