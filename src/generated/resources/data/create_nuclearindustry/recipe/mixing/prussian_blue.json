@@ -1,0 +1,27 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "minecraft:iron_nugget"
+    },
+    {
+      "item": "minecraft:iron_nugget"
+    },
+    {
+      "item": "minecraft:iron_nugget"
+    },
+    {
+      "item": "minecraft:blue_dye"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 100,
+      "fluid": "create_nuclearindustry:sulfuric_acid"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:prussian_blue"
+    }
+  ]
+}

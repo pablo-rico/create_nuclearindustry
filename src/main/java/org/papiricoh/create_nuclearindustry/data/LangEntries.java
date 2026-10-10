@@ -19,6 +19,7 @@ public final class LangEntries {
         materials();
         moderation();
         controlRoom();
+        medicine();
         jei();
         ponder();
         commands();
@@ -443,6 +444,20 @@ public final class LangEntries {
         fluid("low_enriched_uranium_hexafluoride", "Low-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio poco enriquecido");
         fluid("high_enriched_uranium_hexafluoride", "High-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio altamente enriquecido");
         fluid("weapons_grade_uranium_hexafluoride", "Weapons-Grade Uranium Hexafluoride", "Hexafluoruro de uranio de grado militar");
+    }
+
+    private static void medicine() {
+        item("potassium_iodide", "Potassium Iodide", "Yoduro potásico");
+        item("prussian_blue", "Prussian Blue", "Azul de Prusia");
+        add("item.create_nuclearindustry.potassium_iodide.tooltip", "Halves the radiation you take up for 3 minutes",
+                "Reduce a la mitad la radiación que absorbes durante 3 minutos");
+        add("item.create_nuclearindustry.prussian_blue.tooltip", "Flushes 15 rad of dose a second for 30 seconds",
+                "Elimina 15 rad de dosis por segundo durante 30 segundos");
+        add("effect.create_nuclearindustry.radioprotection", "Radioprotection", "Radioprotección");
+        add("effect.create_nuclearindustry.radiation_purge", "Radiation Purge", "Purga de radiación");
+        add("jei.create_nuclearindustry.info.medicine",
+                "Potassium Iodide (dried kelp and bone meal, mixed hot in water) halves the radiation you take up for 3 minutes: take it before going near a hot core. Prussian Blue (iron nuggets and blue dye in sulfuric acid) flushes 15 rad of dose a second for 30 seconds, curing radiation sickness. Neither lowers the lifetime total. Both are eaten whatever your hunger, then wait 5 seconds.",
+                "El Yoduro potásico (algas secas y polvo de hueso, mezclados en caliente con agua) reduce a la mitad la radiación que absorbes durante 3 minutos: tómalo antes de acercarte a un núcleo caliente. El Azul de Prusia (pepitas de hierro y tinte azul en ácido sulfúrico) elimina 15 rad de dosis por segundo durante 30 segundos y cura el síndrome de irradiación. Ninguno baja el total acumulado. Ambos se toman aunque no tengas hambre; después hay que esperar 5 segundos.");
     }
 
     private static void controlRoom() {

@@ -45,6 +45,8 @@ public class NuclearItemModelProvider extends ItemModelProvider {
                 AllNuclearItems.FLUORITE,
                 AllNuclearItems.GRAPHITE,
                 AllNuclearItems.CONTROL_ROOM_LINKER,
+                AllNuclearItems.POTASSIUM_IODIDE,
+                AllNuclearItems.PRUSSIAN_BLUE,
                 AllNuclearItems.RAW_SPODUMENE,
                 AllNuclearItems.CRUSHED_SPODUMENE,
                 AllNuclearItems.SPODUMENE_CONCENTRATE,

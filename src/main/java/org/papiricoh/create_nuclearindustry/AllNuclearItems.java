@@ -155,6 +155,14 @@ public class AllNuclearItems {
 
 
     // Radiation protection
+    public static final DeferredHolder<Item, ? extends Item> POTASSIUM_IODIDE = ITEMS.register("potassium_iodide",
+            () -> new org.papiricoh.create_nuclearindustry.radiation.RadiationMedicineItem(new Item.Properties().stacksTo(16),
+                    () -> org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.RADIOPROTECTION, 3600,
+                    "item.create_nuclearindustry.potassium_iodide.tooltip"));
+    public static final DeferredHolder<Item, ? extends Item> PRUSSIAN_BLUE = ITEMS.register("prussian_blue",
+            () -> new org.papiricoh.create_nuclearindustry.radiation.RadiationMedicineItem(new Item.Properties().stacksTo(16),
+                    () -> org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.RADIATION_PURGE, 600,
+                    "item.create_nuclearindustry.prussian_blue.tooltip"));
     public static final DeferredHolder<Item, ? extends Item> GEIGER_COUNTER = ITEMS.register("geiger_counter",
             () -> new org.papiricoh.create_nuclearindustry.radiation.GeigerCounterItem(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<Item, ? extends Item> HAZMAT_HELMET = hazmat("hazmat_helmet", net.minecraft.world.item.ArmorItem.Type.HELMET);

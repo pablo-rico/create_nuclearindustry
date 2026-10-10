@@ -44,6 +44,26 @@ public class NuclearMixingRecipes extends MixingRecipeGen {
             .output(AllNuclearItems.GRAPHITE.get())
             .requiresHeat(HeatCondition.HEATED));
 
+    // ------------------------------------------------------------------ medicine
+
+    // Kelp is the iodine source; bone meal brings the potassium.
+    GeneratedRecipe POTASSIUM_IODIDE = create("potassium_iodide", b -> b
+            .require(Items.DRIED_KELP)
+            .require(Items.DRIED_KELP)
+            .require(Items.BONE_MEAL)
+            .require(Fluids.WATER, 250)
+            .output(AllNuclearItems.POTASSIUM_IODIDE.get(), 2)
+            .requiresHeat(HeatCondition.HEATED));
+
+    // Iron(III) hexacyanoferrate: iron leached in acid with a blue pigment.
+    GeneratedRecipe PRUSSIAN_BLUE = create("prussian_blue", b -> b
+            .require(Items.IRON_NUGGET)
+            .require(Items.IRON_NUGGET)
+            .require(Items.IRON_NUGGET)
+            .require(Items.BLUE_DYE)
+            .require(AllNuclearFluids.SULFURIC_ACID.get(), 100)
+            .output(AllNuclearItems.PRUSSIAN_BLUE.get()));
+
     // ------------------------------------------------------------------ uranium front end
 
     // Acid leaching of the washed concentrate precipitates U3O8.

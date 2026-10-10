@@ -1092,3 +1092,35 @@ def control_room_linker():
     glow(t, 10.5, 4.5, 4.0, CYAN[6], 0.3)
     item_outline(t, DARK[0])
     return t
+
+
+# ======================================================================================
+# medicine
+# ======================================================================================
+
+@item("potassium_iodide")
+def potassium_iodide():
+    # A blister strip of white tablets.
+    t = Tex(16, 16, 242)
+    foil = STEEL.tinted(WHITE, 0.25)
+    pts = rect_pts(2, 4, 13, 11)
+    sculpt(t, pts, foil, base=4.6, seed=242, grain=0.3)
+    for cx, cy in ((4.5, 6.5), (8, 6.5), (11.5, 6.5), (4.5, 9.5), (8, 9.5), (11.5, 9.5)):
+        t.disc(cx, cy, 1.4, CARBONATE[5])
+        t.set(int(cx - 0.5), int(cy - 0.5), WHITE)
+    t.hline(2, 13, 8, foil[2])
+    item_outline(t, foil[0])
+    return t
+
+
+@item("prussian_blue")
+def prussian_blue():
+    # A two-tone capsule, deep blue and white.
+    blue = Ramp("#14183a", "#1f2a63", "#2b3d8c", "#3a55b0", "#5577cc", "#7f9be0", "#b5c6f2")
+    t = Tex(16, 16, 243)
+    left = capsule_pts(4, 11, 8, 7, 2.6)
+    right = capsule_pts(8, 7, 12, 3, 2.6)
+    sculpt(t, left, blue, base=4.0, seed=243, grain=0.3)
+    sculpt(t, right, CARBONATE, base=4.4, seed=244, grain=0.3)
+    item_outline(t, blue[0])
+    return t

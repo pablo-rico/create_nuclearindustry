@@ -133,6 +133,9 @@ public class NuclearJeiPlugin implements IModPlugin {
                 Component.translatable("jei.create_nuclearindustry.info.turbine"));
         registration.addIngredientInfo(AllNuclearItems.FUSION_PLASMA_TURBINE.get(),
                 Component.translatable("jei.create_nuclearindustry.info.turbine"));
+        registration.addIngredientInfo(List.of(new ItemStack(AllNuclearItems.POTASSIUM_IODIDE.get()),
+                        new ItemStack(AllNuclearItems.PRUSSIAN_BLUE.get())),
+                VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.medicine"));
         registration.addIngredientInfo(AllNuclearItems.GEIGER_COUNTER.get(),
                 Component.translatable("jei.create_nuclearindustry.info.radiation"));
         registration.addIngredientInfo(AllNuclearItems.RADIOACTIVE_WASTE.get(),

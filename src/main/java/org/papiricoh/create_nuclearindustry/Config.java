@@ -95,6 +95,12 @@ public class Config
             .comment("Dose at which radiation sickness (damage) starts; it worsens at twice this dose.")
             .defineInRange("radiation.sicknessThreshold", 600.0, 0.0, 1.0e6);
 
+    private static final ModConfigSpec.DoubleValue IODIDE_ABSORPTION = BUILDER
+            .comment("Fraction of the dose rate taken up while under Potassium Iodide. 0.5 halves it.")
+            .defineInRange("radiation.iodideAbsorption", 0.5, 0.0, 1.0);
+    private static final ModConfigSpec.DoubleValue PURGE_PER_SECOND = BUILDER
+            .comment("Dose Prussian Blue flushes each second while it lasts. The lifetime total is never lowered.")
+            .defineInRange("radiation.purgePerSecond", 15.0, 0.0, 10000.0);
     private static final ModConfigSpec.DoubleValue REACTOR_EMISSION = BUILDER
             .comment("Dose per second next to a running fission reactor, per neutron of its activity (0-2000). Zero stops reactors irradiating.")
             .defineInRange("radiation.reactorEmissionPerNeutron", 0.002, 0.0, 10.0);
@@ -186,6 +192,8 @@ public class Config
     public static double radiationWeaknessThreshold = 300.0;
     public static double radiationSicknessThreshold = 600.0;
     public static double reactorEmissionPerNeutron = 0.002;
+    public static double iodideAbsorption = 0.5;
+    public static double purgePerSecond = 15.0;
     public static double radiationSolidTransmission = 0.9;
     public static double radiationBackgroundRate = 0.05;
     public static double radiationMaxShielding = 0.98;
@@ -247,6 +255,8 @@ public class Config
         radiationWeaknessThreshold = WEAKNESS_THRESHOLD.get();
         radiationSicknessThreshold = SICKNESS_THRESHOLD.get();
         reactorEmissionPerNeutron = REACTOR_EMISSION.get();
+        iodideAbsorption = IODIDE_ABSORPTION.get();
+        purgePerSecond = PURGE_PER_SECOND.get();
         radiationSolidTransmission = SOLID_TRANSMISSION.get();
         radiationBackgroundRate = BACKGROUND_RATE.get();
         radiationMaxShielding = MAX_SHIELDING.get();

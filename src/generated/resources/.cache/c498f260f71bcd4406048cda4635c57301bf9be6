@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-10T02:21:03.7013243	create_nuclearindustry's processing recipes: mixing
+// 1.21.1	2026-10-10T02:52:09.69977	create_nuclearindustry's processing recipes: mixing
 c305c8fc7576e43806108e339618a209016c40f2 data/create_nuclearindustry/recipe/mixing/depleted_uranium_dioxide.json
 6b363bbd5399eaa49b5ddec1ea38a0eea573e4ec data/create_nuclearindustry/recipe/mixing/depleted_uranium_dioxide_from_uranyl_nitrate.json
 fe25c2c355176062db5fa82cf0958dd0f113afeb data/create_nuclearindustry/recipe/mixing/depleted_uranium_hexafluoride_from_metal.json
@@ -24,6 +24,8 @@ df9a4e3f506b05e3a0b39a4fb092670b1a4f9e59 data/create_nuclearindustry/recipe/mixi
 0a781d9378efee61eb894c7e7a97d8301355122c data/create_nuclearindustry/recipe/mixing/nitric_acid_from_saltpeter.json
 eed56a46c51f7be01ff1209f45935da8ca0a1a29 data/create_nuclearindustry/recipe/mixing/plutonium.json
 706a8ca12baa5e9098cdec42517b3865ec59c74b data/create_nuclearindustry/recipe/mixing/plutonium_dioxide.json
+6e580ccddcf0ac4a7df673563ed3681e96328fcb data/create_nuclearindustry/recipe/mixing/potassium_iodide.json
+80f8e31f786e46391755eea38b8f8b250a8c838b data/create_nuclearindustry/recipe/mixing/prussian_blue.json
 5918a8c350f8e19b608c39ffe31cc203ccbdff72 data/create_nuclearindustry/recipe/mixing/sulfuric_acid.json
 4c348a90036c5fa18fd20949c430001920b3f460 data/create_nuclearindustry/recipe/mixing/uranium_hexafluoride.json
 a33779c8e1cdf498c0938b0ec266fbec25730b90 data/create_nuclearindustry/recipe/mixing/weapons_uranium_dioxide.json

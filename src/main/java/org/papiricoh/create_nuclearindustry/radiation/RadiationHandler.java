@@ -44,12 +44,13 @@ public final class RadiationHandler {
             publish(player, 0, player.getData(AllNuclearRadiation.DOSE), player.getData(AllNuclearRadiation.TOTAL_DOSE));
             return;
         }
-        float rate = (float) (exposureRate(player) * (1.0 - shielding(player)) * Config.radiationDoseMultiplier);
+        float rate = (float) (exposureRate(player) * (1.0 - shielding(player)) * absorption(player) * Config.radiationDoseMultiplier);
         if (rate < Config.radiationBackgroundRate) {
             rate = 0;
         }
         float dose = player.getData(AllNuclearRadiation.DOSE);
         dose = rate > 0 ? dose + rate : Math.max(0.0f, dose - (float) Config.radiationDecayPerSecond);
+        dose = Math.max(0.0f, dose - purge(player));
         player.setData(AllNuclearRadiation.DOSE, dose);
         player.setData(AllNuclearRadiation.RATE, rate);
         float total = player.getData(AllNuclearRadiation.TOTAL_DOSE) + rate;
@@ -227,6 +228,18 @@ public final class RadiationHandler {
                                        @org.jetbrains.annotations.Nullable net.minecraft.world.level.levelgen.structure.BoundingBox ignore) {
         double distance = origin.distanceTo(body);
         return strength / (1.0 + (distance / 4.0) * (distance / 4.0)) * RadiationRay.transmission(level, origin, body, ignore);
+    }
+
+    /** Fraction of the dose rate that is taken up: potassium iodide halves it, each level again. */
+    public static double absorption(Player player) {
+        var effect = player.getEffect(AllNuclearRadiation.RADIOPROTECTION);
+        return effect == null ? 1.0 : Math.pow(Config.iodideAbsorption, effect.getAmplifier() + 1);
+    }
+
+    /** Dose Prussian blue flushes this second; it never touches the lifetime total. */
+    public static float purge(Player player) {
+        var effect = player.getEffect(AllNuclearRadiation.RADIATION_PURGE);
+        return effect == null ? 0.0f : (float) (Config.purgePerSecond * (effect.getAmplifier() + 1));
     }
 
     /** Fraction of radiation stopped by worn armour, from the radiation_shielding data map. */

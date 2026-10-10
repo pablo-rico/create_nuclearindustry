@@ -79,6 +79,12 @@ public final class AllNuclearRadiation {
 
     public static final DeferredHolder<MobEffect, RadiationSicknessEffect> RADIATION_SICKNESS =
             EFFECTS.register("radiation_sickness", RadiationSicknessEffect::new);
+    /** Potassium iodide: cuts the dose taken while it lasts. */
+    public static final DeferredHolder<MobEffect, RadiationMedicineEffect> RADIOPROTECTION =
+            EFFECTS.register("radioprotection", () -> new RadiationMedicineEffect(0x5B8FD0));
+    /** Prussian blue: flushes dose already taken, every second while it lasts. */
+    public static final DeferredHolder<MobEffect, RadiationMedicineEffect> RADIATION_PURGE =
+            EFFECTS.register("radiation_purge", () -> new RadiationMedicineEffect(0x2E4FA8));
 
     public static final ResourceKey<DamageType> RADIATION_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, id("radiation"));
     /** Decay heat of plutonium carried without protection. */

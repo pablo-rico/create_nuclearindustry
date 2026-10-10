@@ -4,7 +4,7 @@ Armor layers follow the vanilla 64x32 humanoid UV layout: layer 1 is drawn for h
 chestplate and boots, layer 2 for leggings.
 """
 
-from palette import DARK, LEAD, RADIUM, URANIUM, WARN
+from palette import CYAN, DARK, LEAD, RADIUM, URANIUM, WARN, WHITE
 from pixelkit import Tex, fbm
 from common import trefoil
 
@@ -150,3 +150,31 @@ def radiation_sickness():
 
 
 EFFECTS["radiation_sickness"] = radiation_sickness
+
+
+def radioprotection():
+    t = Tex(18, 18, 453)
+    t.disc(9, 9, 8.5, DARK[1])
+    t.disc(9, 9, 7.5, CYAN[3])
+    # shield
+    for y in range(4, 14):
+        half = 5 if y < 10 else 5 - (y - 9)
+        t.hline(9 - half, 8 + half, y, CYAN[5])
+    t.vline(9, 5, 12, WHITE)
+    t.hline(6, 12, 8, WHITE)
+    return t
+
+
+def radiation_purge():
+    t = Tex(18, 18, 454)
+    t.disc(9, 9, 8.5, DARK[1])
+    t.disc(9, 9, 7.5, CYAN[1])
+    # falling drops
+    for cx, cy in ((6, 6), (12, 8), (8, 12)):
+        t.disc(cx, cy, 1.8, WHITE)
+        t.set(cx, cy - 2, WHITE)
+    return t
+
+
+EFFECTS["radioprotection"] = radioprotection
+EFFECTS["radiation_purge"] = radiation_purge

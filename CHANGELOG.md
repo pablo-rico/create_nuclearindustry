@@ -161,6 +161,15 @@ below for what changes in existing worlds.
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit
   and Geiger counter. Configurable and can be disabled.
 
+### Anti-radiation medicine
+- Potassium Iodide (dried kelp and bone meal mixed hot in water): for 3
+  minutes, the radiation taken up is halved.
+- Prussian Blue (iron nuggets and blue dye in sulfuric acid): for 30 seconds,
+  flushes 15 rad of dose a second, curing radiation sickness. The lifetime
+  total is never lowered.
+- Both are eaten whatever the hunger, with a 5-second cooldown. Configurable
+  in `radiation.iodideAbsorption` and `radiation.purgePerSecond`.
+
 ### Ground contamination
 - Accidents can leave lasting ground contamination, stored per chunk. It
   decays very slowly (half every ten in-game days by default), irradiates
