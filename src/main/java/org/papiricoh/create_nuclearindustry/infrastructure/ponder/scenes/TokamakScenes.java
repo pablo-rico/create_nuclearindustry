@@ -168,8 +168,8 @@ public class TokamakScenes {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         scene.title("tokamak_startup", "Starting a Tokamak");
         scene.configureBasePlate(0, 0, 15);
-        scene.scaleSceneView(0.55f);
-        scene.setSceneOffsetY(-1.0f);
+        scene.scaleSceneView(0.45f);
+        scene.setSceneOffsetY(0.0f);
 
         BlockPos axis = util.grid().at(7, 3, 7);
         BlockPos controller = util.grid().at(1, 3, 7);
@@ -241,6 +241,11 @@ public class TokamakScenes {
         scene.idle(110);
         scene.addKeyframe();
 
+        // Lift the roof so the plasma shows.
+        ElementLink<WorldSectionElement> roof = scene.world().makeSectionIndependent(
+                util.select().layer(5).substract(util.select().position(7, 5, 7)));
+        scene.world().moveSection(roof, util.vector().of(0, 3, 0), 20);
+        scene.idle(20);
         scene.world().modifyBlock(controller, state -> state.setValue(FusionReactorControllerBlock.ON, true), false);
         showPlasma(scene, controller, axis, plasma(TokamakPhase.BREAKDOWN, 300, 0.2, 0));
         scene.world().modifyBlocks(viewports, state -> state.setValue(FusionViewportBlock.GLOW, 4), false);
@@ -269,10 +274,21 @@ public class TokamakScenes {
                 .pointAt(util.vector().centerOf(util.grid().at(7, 3, 7 - RADIUS)))
                 .placeNearTarget();
         scene.idle(120);
+        scene.world().moveSection(roof, util.vector().of(0, -3, 0), 20);
+        scene.idle(25);
     }
 
     private static void showPlasma(CreateSceneBuilder scene, BlockPos controller, BlockPos axis, TokamakReadings readings) {
         scene.world().modifyBlockEntity(controller, FusionReactorBlockEntity.class, tokamak -> tokamak.previewPlasma(axis, readings));
+        // A ring of sparks traces the plasma as well, as in the assembly scene.
+        var particle = readings.phase() == TokamakPhase.BREAKDOWN ? ParticleTypes.WITCH
+                : readings.phase() == TokamakPhase.HEATING ? ParticleTypes.FLAME : ParticleTypes.END_ROD;
+        Vec3 centre = Vec3.atCenterOf(axis);
+        for (int step = 0; step < 24; step++) {
+            double angle = step * Math.PI / 12;
+            Vec3 point = centre.add(Math.cos(angle) * RADIUS, 0, Math.sin(angle) * RADIUS);
+            scene.effects().emitParticles(point, scene.effects().simpleParticleEmitter(particle, Vec3.ZERO), 1, 60);
+        }
     }
 
     /** What an R=4 tokamak reads in a phase, for the scene's plasma. */

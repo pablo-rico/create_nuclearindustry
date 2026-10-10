@@ -207,8 +207,22 @@ public class ControlModuleScreen extends AbstractContainerScreen<ControlModuleMe
             Component state = live != null && module.engaged() && live.function() == module.function()
                     ? live.describeDemand()
                     : Component.translatable(KEY + "standby");
-            graphics.drawString(font, Component.translatable(KEY + "setpoint", module.formatSetpoint(), state), 10, 114, 0xFFB0B8B0, false);
+            drawFitted(graphics, Component.translatable(KEY + "setpoint", module.formatSetpoint(), state), 10, 114, imageWidth - 20, 0xFFB0B8B0);
         }
         graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFFCCCCCC, false);
+    }
+
+    /** Draws a line, squeezed sideways if it is wider than {@code maxWidth} (long demands, longer translations). */
+    private void drawFitted(GuiGraphics graphics, Component text, int x, int y, int maxWidth, int color) {
+        int width = font.width(text);
+        if (width <= maxWidth) {
+            graphics.drawString(font, text, x, y, color, false);
+            return;
+        }
+        graphics.pose().pushPose();
+        graphics.pose().translate(x, y, 0);
+        graphics.pose().scale(maxWidth / (float) width, 1.0f, 1.0f);
+        graphics.drawString(font, text, 0, 0, color, false);
+        graphics.pose().popPose();
     }
 }

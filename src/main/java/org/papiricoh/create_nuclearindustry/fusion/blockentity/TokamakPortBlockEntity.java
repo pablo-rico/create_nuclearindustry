@@ -130,7 +130,7 @@ public abstract class TokamakPortBlockEntity extends BlockEntity implements IHav
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         ReactorFluidPortMode mode = getMode();
-        tooltip.add(portName().copy().withStyle(ChatFormatting.AQUA));
+        tooltip.add(Component.literal("    ").append(portName()).withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.literal("  ").append(modeDescription(mode))
                 .withStyle(mode == ReactorFluidPortMode.INPUT ? ChatFormatting.AQUA : ChatFormatting.GOLD));
         tooltip.add(Component.literal("  ").append(Component.translatable("create_nuclearindustry.tokamak.port.hint"))

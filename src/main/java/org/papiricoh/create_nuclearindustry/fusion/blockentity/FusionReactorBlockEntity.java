@@ -139,6 +139,8 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
     private String dispValidationMessage = TokamakStructureValidator.NOT_FORMED;
     private BlockPos dispCenter = BlockPos.ZERO;
     private TokamakReadings clientReadings = TokamakReadings.NONE;
+    /** Set by a Ponder scene: the readings and centre are a preview, whatever side the Ponder world claims to be. */
+    private boolean ponderPreview;
 
     private final FluidTank deuteriumTank = tank(FUEL_TANK_CAPACITY, NuclearFluidHelper::isDeuterium);
     private final FluidTank tritiumTank = tank(FUEL_TANK_CAPACITY, NuclearFluidHelper::isTritium);
@@ -170,6 +172,9 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
     // ------------------------------------------------------------------ ticking
 
     public static void tick(Level level, BlockPos pos, BlockState state, FusionReactorBlockEntity entity) {
+        if (entity.ponderPreview) {
+            return;
+        }
         if (level.isClientSide) {
             TokamakClientHooks.clientTick.accept(entity);
             return;
@@ -753,7 +758,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
 
     @Override
     public TokamakReadings readings() {
-        if (level != null && level.isClientSide) {
+        if (ponderPreview || level != null && level.isClientSide) {
             return clientReadings;
         }
         if (structure.isEmpty()) {
@@ -802,11 +807,12 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         dispCenter = center.immutable();
         dispRadius = readings.majorRadius();
         clientReadings = readings;
+        ponderPreview = true;
     }
 
     /** The point on the axis at the plasma's mid-plane; synced to clients for the renderer. */
     public BlockPos getCenter() {
-        return level != null && level.isClientSide ? dispCenter : structure.map(s -> s.center).orElse(BlockPos.ZERO);
+        return ponderPreview || level != null && level.isClientSide ? dispCenter : structure.map(s -> s.center).orElse(BlockPos.ZERO);
     }
 
     public Status getStatus() {
@@ -827,11 +833,11 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
     }
 
     public boolean isFormed() {
-        return level != null && level.isClientSide ? dispRadius > 0 : structure.isPresent();
+        return ponderPreview || level != null && level.isClientSide ? dispRadius > 0 : structure.isPresent();
     }
 
     public int getMajorRadius() {
-        return level != null && level.isClientSide ? dispRadius : structure.map(TokamakStructure::majorRadius).orElse(0);
+        return ponderPreview || level != null && level.isClientSide ? dispRadius : structure.map(TokamakStructure::majorRadius).orElse(0);
     }
 
     public int getCoilCount() {
@@ -911,7 +917,8 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        tooltip.add(Component.translatable("create_nuclearindustry.tokamak.goggles.title").withStyle(ChatFormatting.AQUA));
+        tooltip.add(Component.literal("    ").append(Component.translatable("create_nuclearindustry.tokamak.goggles.title"))
+                .withStyle(ChatFormatting.AQUA));
         if (!isFormed()) {
             tooltip.add(Component.literal("  ").append(getValidationText()).withStyle(ChatFormatting.RED));
             return true;
