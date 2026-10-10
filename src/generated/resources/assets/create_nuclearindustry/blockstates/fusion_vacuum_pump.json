@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "create_nuclearindustry:block/fusion_vacuum_pump",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "create_nuclearindustry:block/fusion_vacuum_pump",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/fusion_vacuum_pump"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/fusion_vacuum_pump",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "create_nuclearindustry:block/fusion_vacuum_pump",
+      "x": 270
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/fusion_vacuum_pump",
+      "y": 270
+    }
+  }
+}

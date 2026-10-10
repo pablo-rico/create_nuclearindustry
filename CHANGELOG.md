@@ -525,6 +525,38 @@ below for what changes in existing worlds.
   `fusion.*` keys are documented in `docs/configuration.md`.
 
 ### Cryogenic plant and vacuum
+- New Cryogenic Plant multiblock that makes the liquid helium a tokamak's
+  superconducting coils need. Build a 3x3 block of Cryogenic Plant Casing 3 to
+  5 high, put the Cryogenic Plant Controller in the middle of a side wall
+  facing out and right-click it. The plant needs at least one Helium
+  Compressor in its walls (shaft side facing out) and Cryogenic Plant Ports;
+  the wrench sets each port to Warm helium in, Liquid helium out, Liquid
+  nitrogen in or Air intake / liquid air out.
+- At 128 RPM a plant liquefies 2 mB/t of helium per layer of height (6 mB/t
+  for a 3x3x3 plant, enough for an R=4 tokamak); slower compressors make less
+  and below 32 RPM they do nothing. Its compressors share a stress impact of
+  10240 SU/RPM per layer, about a quarter of what an R=4 tokamak's plasma
+  turbine gives. About 1% of the helium leaks out on every pass, so the loop
+  needs topping up from the plasma's helium ash or from liquid air.
+- Liquid nitrogen fed to the plant pre-cools it: 50% more liquid helium while
+  it lasts, boiling off 1 mB of nitrogen per mB of helium.
+- A plant with a Liquid Air port liquefies air instead (5 mB/t per layer).
+  Centrifuging 1000 mB of liquid air gives 990 mB of liquid nitrogen and
+  10 mB of helium: the first charge for the helium loop.
+- Plant ports push into and pull from tanks or ports right next to them, so a
+  plant can stand against the tokamak. The controller lights up while it
+  runs; frost forms on the casing, cold vapour rolls off the top and the
+  compressors hum. Goggles show the plant's size, compressor speed, output
+  and tanks, or what keeps it from forming.
+- New Tokamak Cryogenic Port for the tokamak shell: in input mode it takes
+  liquid helium in for the coils, in output mode it gives the boiled-off warm
+  helium back to the plant (the wrench toggles it).
+- New Tokamak Vacuum Pump for the tokamak shell (kinetic, 2048 SU/RPM): one
+  pump at 128 RPM holds the vacuum of an R=4 tokamak, and every 4 blocks more
+  of major radius need another. Goggles show its pumping speed and the
+  chamber pressure.
+- JEI info pages for the plant, the cryogenic port and the vacuum pump. All
+  of it is configurable under `cryo.*`.
 
 ### Plasma heating, viewports and sound
 

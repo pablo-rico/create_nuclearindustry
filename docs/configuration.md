@@ -239,6 +239,74 @@ auxiliar se reduce solo entre 4500° y 5000° para no sobrecalentar el plasma.
 
 ## Planta criogénica y vacío del tokamak
 
+Las bobinas superconductoras del tokamak se enfrían con helio líquido. La
+**planta criogénica** lo licúa y la **bomba de vacío** mantiene el vacío de la
+cámara del plasma.
+
+- **Planta criogénica**: bloque de 3x3 de Carcasa de la planta criogénica, de
+  3 a 5 bloques de alto. El controlador va en el centro de una pared lateral
+  mirando hacia fuera; se forma con clic derecho. El centro de las capas
+  interiores (la caja fría) debe ser carcasa. Necesita al menos un Compresor
+  de helio en las paredes, con el lado del eje hacia fuera, y Puertos de la
+  planta criogénica. La llave inglesa cambia el modo de cada puerto:
+  - *Entrada de helio caliente* y *Salida de helio líquido*: el circuito de
+    helio. Hacen falta las dos para que se forme.
+  - *Entrada de nitrógeno líquido*: preenfriamiento opcional.
+  - *Toma de aire / salida de aire líquido*: con uno de estos puertos la
+    planta licúa aire en lugar de helio y no necesita los de helio.
+
+  Los puertos de entrada tiran de los tanques o puertos que tengan justo al
+  lado y los de salida empujan hacia ellos (`cryo.plant.portTransfer` mB por
+  tick); también se conectan a tuberías.
+- **Producción**: cada capa de altura licúa `cryo.plant.heliumPerLayer` mB/t
+  de helio a la velocidad nominal (`cryo.plant.ratedSpeed`). Por debajo de
+  ella la producción es proporcional a las RPM y por debajo de
+  `cryo.plant.minSpeed` es nula. Un compresor sobrecargado no cuenta, y la
+  velocidad de la planta es la media de sus compresores. Con los valores por
+  defecto, una planta de 3x3x3 a 128 RPM da 6 mB/t, suficiente para las
+  bobinas de un tokamak de R=4 (unos 4 mB/t con el campo al máximo).
+- **Pérdidas**: en cada paso se escapa la fracción `cryo.plant.loopLoss` del
+  helio que entra. Las cenizas de helio del plasma y el aire líquido
+  centrifugado reponen el circuito.
+- **Preenfriamiento**: mientras haya nitrógeno líquido, la planta produce
+  `cryo.plant.nitrogenBonus` más (0,5 = +50 %) y gasta
+  `cryo.plant.nitrogenPerHelium` mB de nitrógeno por cada mB de helio
+  líquido. Si el nitrógeno se agota a mitad de tick, solo se aplica una parte
+  de la bonificación.
+- **Aire líquido**: cada capa da `cryo.plant.airPerLayer` mB/t. En la
+  centrifugadora, 1000 mB de aire líquido dan 990 mB de nitrógeno líquido y
+  10 mB de helio, la primera carga del circuito.
+- **Estrés**: la planta carga la red con `cryo.plant.compressorStressPerLayer`
+  SU/RPM por capa, repartidas a partes iguales entre sus compresores. Un
+  compresor que no forma parte de una planta formada carga una capa.
+- **Puerto criogénico del tokamak**: va en la carcasa del tokamak. En modo
+  entrada (rol `CRYO_IN`) llena el tanque de helio líquido del controlador; en
+  modo salida (rol `CRYO_OUT`) vacía su tanque de helio caliente. La llave
+  inglesa cambia el modo. Intercambia con los tanques que tenga al lado como
+  los demás puertos del tokamak.
+- **Bomba de vacío del tokamak**: va en la carcasa con el lado del eje hacia
+  fuera. A `cryo.vacuumPump.ratedSpeed` RPM cuenta como una bomba completa;
+  por debajo, en proporción a las RPM, y por debajo de
+  `cryo.vacuumPump.minSpeed` no bombea. Carga la red con
+  `cryo.vacuumPump.stress` SU/RPM. Un tokamak de R=4 necesita una bomba a la
+  velocidad nominal y cada 4 bloques más de radio, otra. Las gafas muestran
+  la velocidad de bombeo y la presión de la cámara.
+
+| Clave | Por defecto | Qué hace |
+|---|---|---|
+| `cryo.plant.heliumPerLayer` | 2.0 | Helio líquido por capa a la velocidad nominal, mB/t |
+| `cryo.plant.airPerLayer` | 5.0 | Aire líquido por capa a la velocidad nominal, mB/t |
+| `cryo.plant.loopLoss` | 0.01 | Fracción del helio que se escapa en cada paso |
+| `cryo.plant.nitrogenBonus` | 0.5 | Producción extra con preenfriamiento de nitrógeno |
+| `cryo.plant.nitrogenPerHelium` | 1.0 | Nitrógeno gastado por mB de helio líquido |
+| `cryo.plant.minSpeed` | 32 | RPM mínimas de los compresores |
+| `cryo.plant.ratedSpeed` | 128 | RPM de producción completa |
+| `cryo.plant.compressorStressPerLayer` | 10240 | Estrés por capa, SU/RPM, repartido entre los compresores |
+| `cryo.plant.portTransfer` | 160 | mB por tick que un puerto de la planta mueve con lo que tiene al lado |
+| `cryo.vacuumPump.minSpeed` | 32 | RPM mínimas de la bomba de vacío |
+| `cryo.vacuumPump.ratedSpeed` | 128 | RPM a las que cuenta como una bomba completa |
+| `cryo.vacuumPump.stress` | 2048 | Estrés de la bomba de vacío, SU/RPM |
+
 ## Calentamiento del plasma, ventanas y sonido
 
 ## Radiacion

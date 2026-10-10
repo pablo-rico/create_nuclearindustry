@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "P": {
+      "item": "create:fluid_pipe"
+    },
+    "X": {
+      "item": "create_nuclearindustry:fusion_cryostat_casing"
+    }
+  },
+  "pattern": [
+    "ICI",
+    "PXP",
+    "ICI"
+  ],
+  "result": {
+    "count": 4,
+    "id": "create_nuclearindustry:cryoplant_casing"
+  }
+}

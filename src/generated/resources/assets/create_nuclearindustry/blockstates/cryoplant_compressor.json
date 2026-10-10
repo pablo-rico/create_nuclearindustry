@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "create_nuclearindustry:block/cryoplant_compressor",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "create_nuclearindustry:block/cryoplant_compressor",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/cryoplant_compressor"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/cryoplant_compressor",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "create_nuclearindustry:block/cryoplant_compressor",
+      "x": 270
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/cryoplant_compressor",
+      "y": 270
+    }
+  }
+}

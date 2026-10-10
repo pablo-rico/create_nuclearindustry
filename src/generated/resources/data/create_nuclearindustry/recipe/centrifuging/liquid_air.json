@@ -1,0 +1,21 @@
+{
+  "type": "create_nuclearindustry:centrifuging",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 1000,
+      "fluid": "create_nuclearindustry:liquid_air"
+    }
+  ],
+  "processing_time": 200,
+  "results": [
+    {
+      "amount": 990,
+      "id": "create_nuclearindustry:liquid_nitrogen"
+    },
+    {
+      "amount": 10,
+      "id": "create_nuclearindustry:helium"
+    }
+  ]
+}

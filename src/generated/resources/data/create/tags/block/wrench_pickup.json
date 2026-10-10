@@ -83,6 +83,12 @@
     "create_nuclearindustry:lead_blast_door",
     "create_nuclearindustry:blast_door_controller",
     "create_nuclearindustry:shelter_filtration_unit",
+    "create_nuclearindustry:cryoplant_controller",
+    "create_nuclearindustry:cryoplant_casing",
+    "create_nuclearindustry:cryoplant_port",
+    "create_nuclearindustry:cryoplant_compressor",
+    "create_nuclearindustry:fusion_cryo_port",
+    "create_nuclearindustry:fusion_vacuum_pump",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false
