@@ -11,6 +11,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelRegistry;
 import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
@@ -80,6 +81,14 @@ public final class PlantJeiInfo {
         pages.add(items("blast_door", CivilDefenseRegistry.BLAST_DOOR_CONTROLLER_ITEM, CivilDefenseRegistry.BLAST_DOOR_FRAME_ITEM,
                 CivilDefenseRegistry.STEEL_BLAST_DOOR_ITEM, CivilDefenseRegistry.LEAD_BLAST_DOOR_ITEM));
         pages.add(items("shelter", CivilDefenseRegistry.SHELTER_FILTRATION_UNIT_ITEM));
+
+        // Cryogenic plant and the tokamak's vacuum
+        pages.add(new Page("cryoplant", stacks(CryoRegistry.CRYOPLANT_CONTROLLER_ITEM, CryoRegistry.CRYOPLANT_CASING_ITEM,
+                CryoRegistry.CRYOPLANT_PORT_ITEM, CryoRegistry.CRYOPLANT_COMPRESSOR_ITEM),
+                fluids(AllNuclearFluids.LIQUID_AIR, AllNuclearFluids.LIQUID_NITROGEN)));
+        pages.add(new Page("tokamak_cryo_port", stacks(CryoRegistry.FUSION_CRYO_PORT_ITEM),
+                fluids(AllNuclearFluids.LIQUID_HELIUM, AllNuclearFluids.HELIUM)));
+        pages.add(items("tokamak_vacuum_pump", CryoRegistry.FUSION_VACUUM_PUMP_ITEM));
         return pages;
     }
 

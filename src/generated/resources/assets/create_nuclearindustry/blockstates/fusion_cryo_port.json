@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "mode=input": {
+      "model": "create_nuclearindustry:block/fusion_cryo_port_input"
+    },
+    "mode=output": {
+      "model": "create_nuclearindustry:block/fusion_cryo_port_output"
+    }
+  }
+}
