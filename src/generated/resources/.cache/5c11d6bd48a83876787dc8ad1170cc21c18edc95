@@ -1,4 +1,5 @@
-// 1.21.1	2026-10-10T02:52:09.6963843	Item Models: create_nuclearindustry
+// 1.21.1	2026-10-10T18:01:26.1579336	Item Models: create_nuclearindustry
+fccc0b3906cad2d70c08267cc63e216be0021679 assets/create_nuclearindustry/models/item/chart_roll.json
 571ca5ad9a973c95eac9b714e4273a844ec20250 assets/create_nuclearindustry/models/item/contaminated_water_bucket.json
 08eb3294d141d9b8bb037016ff8d2b4619695648 assets/create_nuclearindustry/models/item/control_room_linker.json
 a10e5cdf5dbfb869f3c0473146440432e42eac63 assets/create_nuclearindustry/models/item/crushed_raw_uranium.json

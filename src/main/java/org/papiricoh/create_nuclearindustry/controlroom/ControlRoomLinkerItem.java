@@ -47,7 +47,7 @@ public class ControlRoomLinkerItem extends Item {
         BlockPos clicked = context.getClickedPos();
         if (level.getBlockEntity(clicked) instanceof ControlRoomDevice device) {
             if (player.isShiftKeyDown()) {
-                device.setTarget(null);
+                device.setTarget(null, context.getClickLocation());
                 message(player, Component.translatable(KEY + "unlinked"), ChatFormatting.YELLOW);
                 return InteractionResult.SUCCESS;
             }
@@ -61,7 +61,7 @@ public class ControlRoomLinkerItem extends Item {
                 message(player, Component.translatable(KEY + "out_of_range", Config.controlRoomLinkRange), ChatFormatting.RED);
                 return InteractionResult.SUCCESS;
             }
-            device.setTarget(link);
+            device.setTarget(link, context.getClickLocation());
             org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.award(player, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.CONTROL_ROOM_LINKED);
             message(player, Component.translatable(KEY + "applied", describe(level, link)), ChatFormatting.GREEN);
             return InteractionResult.SUCCESS;

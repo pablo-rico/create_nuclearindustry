@@ -1,0 +1,130 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_controller",
+    "part": "create_nuclearindustry:block/desk_controller"
+  },
+  "elements": [
+    {
+      "name": "knob",
+      "from": [
+        7,
+        0.75,
+        5.75
+      ],
+      "to": [
+        9,
+        2,
+        7.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10,
+            6,
+            12,
+            7.25
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            10,
+            6,
+            12,
+            7.25
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            10,
+            6,
+            12,
+            7.25
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            10,
+            6,
+            12,
+            7.25
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            12,
+            6,
+            14,
+            8
+          ],
+          "texture": "#part",
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "pointer",
+      "from": [
+        7.75,
+        0.75,
+        7.75
+      ],
+      "to": [
+        8.25,
+        1.5,
+        8.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14,
+            6,
+            14.5,
+            6.75
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            14,
+            6,
+            14.5,
+            6.75
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            14,
+            6,
+            14.5,
+            6.75
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            14,
+            6,
+            14.5,
+            6.75
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            14,
+            6,
+            14.5,
+            6.5
+          ],
+          "texture": "#part"
+        }
+      }
+    }
+  ]
+}

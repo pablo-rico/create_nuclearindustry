@@ -238,7 +238,39 @@ below for what changes in existing worlds.
 <!-- waste: filled by its work package -->
 
 ### Control room instruments
-<!-- controlroom2: filled by its work package -->
+- Chart Recorder: up to three pens (red, blue, green) draw readings of the
+  linked machine on a strip of paper that scrolls across its front, at one
+  sample every 1, 5 or 20 ticks. Feed it paper by hand or with a hopper; it
+  stops when the paper runs out, and a comparator reads how full the tray
+  is. Wrench it to choose the pens and the speed. Sneak-click it with an
+  empty hand to tear the chart off as a Chart Roll you can open and read
+  later.
+- Annunciator Panel: six alarm windows, each linked to its own machine
+  (click a window with the Control Room Linker, or the frame to link them
+  all) and set up with a wrench: alarm, threshold and label. Windows follow
+  the ISA-18.1 sequence: an alarm flashes fast with a horn until
+  acknowledged, stays lit while the condition lasts, flashes slowly once it
+  clears and goes dark on reset; the first window to trip in a burst is
+  framed in white. Press the ACK and RESET buttons on the panel, or pulse
+  redstone into its left (ACK) and right (RESET) sides, for example from a
+  desk pulse button. The back and bottom give full power while an alarm
+  waits for acknowledgement; a comparator counts the lit windows.
+- Rod Controller Module for control desks: a PID loop that holds the
+  reactor's power or core temperature at a setpoint by moving the rod
+  target, in whole rod segments, so the Insert rods and Withdraw rods ports
+  drive the pistons. Click it like a dial to change the setpoint; its wrench
+  screen sets the setpoint finely and switches it between automatic and
+  standby. A SCRAM always wins. Its lamp
+  shows when it is driving the rods. Tuning is in the config.
+- New alarms for pressurized water reactors, steam generators and
+  containments: primary pressure high and low, low subcooling margin, low
+  pressurizer level, loss of primary flow, low steam generator level,
+  containment pressure and hydrogen. They never sound on a reactor that
+  boils its water directly.
+- Monitors, gauges and pens show the pressurized loop of a reactor
+  (pressure, hot and cold leg, subcooling, pressurizer level, flow, vessel
+  level, containment pressure, hydrogen) and can be linked to steam
+  generators and containments.
 
 ### Civil defense
 <!-- civildefense: filled by its work package -->

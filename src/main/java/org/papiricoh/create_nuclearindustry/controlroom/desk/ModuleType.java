@@ -11,7 +11,9 @@ public enum ModuleType {
     LAMP("lamp_module", List.of(ModuleFunction.LAMP_SCRAM, ModuleFunction.LAMP_RUNNING, ModuleFunction.LAMP_NO_SIGNAL,
             ModuleFunction.LAMP_ALARM)),
     GAUGE("gauge_module", List.of(ModuleFunction.READING)),
-    KEY_SWITCH("key_switch_module", List.of(ModuleFunction.TOGGLE));
+    KEY_SWITCH("key_switch_module", List.of(ModuleFunction.TOGGLE)),
+    /** Automatic rod control: a PID loop holding power or temperature at a setpoint. */
+    CONTROLLER("controller_module", List.of(ModuleFunction.AUTO_POWER, ModuleFunction.AUTO_TEMPERATURE));
 
     private final String itemId;
     private final List<ModuleFunction> functions;

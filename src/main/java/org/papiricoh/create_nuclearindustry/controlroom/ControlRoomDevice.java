@@ -15,6 +15,15 @@ public interface ControlRoomDevice {
     /** Links the device to {@code target}, or unlinks it when null. */
     void setTarget(@Nullable GlobalPos target);
 
+    /**
+     * A Control Room Linker clicked the device at {@code hit} (world coordinates) to link or, with a
+     * null target, unlink it. Devices with several links, like an annunciator panel's windows, pick
+     * the one under the click; the rest have just one.
+     */
+    default void setTarget(@Nullable GlobalPos target, net.minecraft.world.phys.Vec3 hit) {
+        setTarget(target);
+    }
+
     static void writeTarget(CompoundTag tag, @Nullable GlobalPos target) {
         if (target != null) {
             GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, target).result().ifPresent(encoded -> tag.put("Target", encoded));

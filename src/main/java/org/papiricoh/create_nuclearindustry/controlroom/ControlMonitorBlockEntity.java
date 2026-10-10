@@ -278,13 +278,17 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         notifyUpdate();
     }
 
-    /** Big screens switch between readings and the graph; a single block steps through its readings. */
+    /**
+     * Big screens switch between readings and the graph; a single block steps through its most
+     * important readings, the first rows the renderer lists for the kind of target.
+     */
     public int pageCount() {
         if (width > 1 || height > 1) {
             return 2;
         }
         return switch (reading.kind()) {
-            case REACTOR -> 6;
+            case REACTOR -> reading.flag(MonitorReading.R_PWR) ? 10 : 6;
+            case STEAM_GENERATOR, CONTAINMENT -> 4;
             case TOKAMAK -> 4;
             case TURBINE, COOLING_TOWER -> 3;
             case AREA -> 2;

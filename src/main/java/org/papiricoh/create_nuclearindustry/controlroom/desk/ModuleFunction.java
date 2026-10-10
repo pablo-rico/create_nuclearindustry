@@ -36,7 +36,11 @@ public enum ModuleFunction {
     /** Lamp: lit while an alarm metric passes its threshold. */
     LAMP_ALARM(null),
     /** Gauge: a needle showing one reading. */
-    READING(null);
+    READING(null),
+    /** Controller: moves the rod target to hold the reactor's power at the setpoint. */
+    AUTO_POWER(TargetKind.REACTOR),
+    /** Controller: moves the rod target to hold the core temperature at the setpoint. */
+    AUTO_TEMPERATURE(TargetKind.REACTOR);
 
     @Nullable
     private final TargetKind needs;
