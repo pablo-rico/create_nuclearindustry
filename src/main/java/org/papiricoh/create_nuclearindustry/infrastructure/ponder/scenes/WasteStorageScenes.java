@@ -10,10 +10,12 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearParticles;
+import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 
 /**
- * A cut through the ground: a waste barrel at the surface contaminates its surroundings; the
- * same barrel deep in a gallery below Y=0 is inert.
+ * A cut through the ground: a waste barrel at the surface contaminates its surroundings; deep in a
+ * gallery of deepslate, backfilled with bentonite, the same barrels can score as a geological
+ * repository and go inert. The gallery is not to scale: the text gives the real depth.
  */
 public class WasteStorageScenes {
 
@@ -47,7 +49,7 @@ public class WasteStorageScenes {
         Selection depth = util.select().fromTo(0, 3, 0, 6, 3, 0);
         scene.overlay().showOutline(PonderPalette.WHITE, "depth", depth, 90);
         scene.overlay().showText(90)
-                .text("Waste stored at Y=0 or lower counts as geologically stored.")
+                .text("Underground, a repository score decides: depth below the surface, host rock such as deepslate around it, Bentonite backfill on its faces and the waste form. Water within 4 blocks spoils it.")
                 .pointAt(util.vector().blockSurface(util.grid().at(0, 3, 0), Direction.WEST))
                 .placeNearTarget();
         scene.idle(100);
@@ -59,12 +61,24 @@ public class WasteStorageScenes {
         scene.world().setBlocks(stored, AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get().defaultBlockState(), false);
         scene.world().showSection(stored, Direction.DOWN);
         scene.idle(15);
+        // Bentonite packed round the barrels; the cut face (z 0) stays open to look in.
+        Selection backfill = backfill(util);
+        scene.world().setBlocks(backfill, WasteRegistry.BENTONITE.get().defaultBlockState(), false);
+        scene.world().showSection(backfill(util), Direction.DOWN);
+        scene.idle(15);
         scene.overlay().showText(100)
-                .text("Down there barrels neither irradiate nor leak. Dig a deep gallery, fill it and seal it off: only the depth matters.")
+                .text("From a score of 80% a package neither irradiates nor leaks. Raw barrels score lowest: bury them deep in host rock, pack them in Bentonite, or treat the waste first. The old Y=0 rule is a config option.")
                 .colored(PonderPalette.GREEN)
                 .pointAt(util.vector().topOf(util.grid().at(2, 1, 1)))
                 .placeNearTarget();
         scene.idle(110);
         PonderCamera.turn(scene, 30);
+    }
+
+    /** The gallery around the stored barrels, behind and above them. */
+    private static Selection backfill(SceneBuildingUtil util) {
+        return util.select().fromTo(1, 1, 1, 5, 2, 3)
+                .substract(util.select().fromTo(1, 1, 1, 4, 1, 1))
+                .substract(util.select().fromTo(1, 1, 2, 2, 1, 2));
     }
 }

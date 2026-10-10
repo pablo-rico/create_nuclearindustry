@@ -445,7 +445,29 @@ below for what changes in existing worlds.
   outside the crater and fireball intact.
 
 ### Ponder: the nuclear power plant
-<!-- plantponder: filled by its work package -->
+- New Ponder tag "Nuclear Power Plant" in the Ponder index, listing every
+  part of a plant: reactor, pressurizer, steam generator, turbine, cooling
+  tower, control room, containment, spent fuel storage and waste packages.
+- Four new chained scenes, reachable from the reactor and steam generator
+  controllers (all four, in order) and from each part they show:
+  - The Pressurized Primary Loop: the pressurizer on the lid with its heaters
+    and relief valve, hot and cold leg ports, the steam generator and its
+    port roles, the Create pumps that drive the loop, and what a stopped pump
+    or a broken pipe does.
+  - Steam, Turbine and Cooling Tower: steam to the turbine, the exhaust port,
+    the cooling tower and the condensate pumped back as feedwater.
+  - Control Room and Containment: desk modules (rod target dial, rod
+    controller, SCRAM), the Insert and Withdraw rods ports driving the rod
+    piston, the annunciator panel and chart recorder, then the containment
+    building with penetrations, its weakest wall, the containment monitor,
+    recombiners, the filtered vent, and corium stopped by a core catcher.
+  - Spent Fuel and Waste: the pool racks, cooling grades and pool cooler, the
+    dry cask, PUREX, the three waste classes and their packages, and the
+    geological repository score with bentonite and the repository inspector.
+- The geological storage scene now explains the repository score (depth,
+  host rock, bentonite, waste form, no water nearby) instead of the old
+  "below Y=0" rule, and the scrubber scene shows that it makes Low-Level
+  Waste.
 
 ### Technical
 - Ground contamination and the dose HUD reach clients through NeoForge's

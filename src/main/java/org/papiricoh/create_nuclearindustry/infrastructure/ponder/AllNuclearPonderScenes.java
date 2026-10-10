@@ -1,11 +1,15 @@
 package org.papiricoh.create_nuclearindustry.infrastructure.ponder;
 
 import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
+import net.createmod.ponder.api.registration.PonderTagRegistrationHelper;
+import net.createmod.ponder.api.scene.PonderStoryBoard;
 import net.minecraft.resources.ResourceLocation;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ControlRoomScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CoolingTowerScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.PlantScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorModerationScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorRedstoneScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.RtgScenes;
@@ -16,6 +20,9 @@ import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.Turbine
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.WasteStorageScenes;
 
 public class AllNuclearPonderScenes {
+    /** The ponder tag of the "Nuclear power plant" series. */
+    public static final ResourceLocation PLANT_TAG = id(PlantPonderText.TAG_ID);
+
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path);
     }
@@ -63,6 +70,40 @@ public class AllNuclearPonderScenes {
         for (String part : new String[]{"fusion_plasma_turbine", "fusion_turbine_rotor", "fusion_turbine_casing",
                 "fusion_turbine_fluid_port", "reinforced_turbine_glass"}) {
             helper.addStoryBoard(id(part), "fusion_turbine", TurbineScenes::plasma);
+        }
+        registerPlantSeries(helper);
+    }
+
+    /**
+     * The "Nuclear power plant" series. Ponder chains the scenes of one item in the order they are
+     * registered, so registering scene by scene keeps the series in order on every item that has more
+     * than one of them; the hubs (reactor and steam generator controllers) show all four.
+     */
+    private static void registerPlantSeries(PonderSceneRegistrationHelper<ResourceLocation> helper) {
+        storyBoard(helper, PlantPonderText.HEAT_LOOP, PlantScenes::heatLoop);
+        storyBoard(helper, PlantPonderText.GENERATION, PlantScenes::generation);
+        storyBoard(helper, PlantPonderText.CONTROL_SAFETY, PlantScenes::controlSafety);
+        storyBoard(helper, PlantPonderText.WASTE, PlantScenes::waste);
+    }
+
+    private static void storyBoard(PonderSceneRegistrationHelper<ResourceLocation> helper, PlantPonderText.Scene scene,
+                                   PonderStoryBoard board) {
+        for (String component : PlantPonderText.componentsOf(scene)) {
+            helper.addStoryBoard(id(component), scene.schematic(), board, PLANT_TAG);
+        }
+    }
+
+    /** Puts every part of the plant under the series' tag, with the reactor controller as its icon. */
+    public static void registerTags(PonderTagRegistrationHelper<ResourceLocation> helper) {
+        helper.registerTag(PLANT_TAG)
+                .title(PlantPonderText.TAG_TITLE.english())
+                .description(PlantPonderText.TAG_DESCRIPTION.english())
+                .item(AllNuclearBlocks.REACTOR_CONTROLLER.get(), true, false)
+                .addToIndex()
+                .register();
+        var tag = helper.addToTag(PLANT_TAG);
+        for (String component : PlantPonderText.tagComponents()) {
+            tag.add(id(component));
         }
     }
 }

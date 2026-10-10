@@ -14,10 +14,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
-import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.AllNuclearParticles;
+import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 
-/** The Radiation Scrubber on contaminated ground: rotation in, clean ground and waste out. */
+/** The Radiation Scrubber on contaminated ground: rotation in, clean ground and low-level waste out. */
 public class ScrubberScenes {
 
     public static void scrubber(SceneBuilder builder, SceneBuildingUtil util) {
@@ -61,9 +61,9 @@ public class ScrubberScenes {
         scene.addKeyframe();
 
         scene.overlay().showControls(util.vector().blockSurface(scrubber, Direction.WEST), Pointing.LEFT, 60)
-                .withItem(new ItemStack(AllNuclearItems.RADIOACTIVE_WASTE.get()));
+                .withItem(new ItemStack(WasteRegistry.LOW_LEVEL_WASTE.get()));
         scene.overlay().showText(100)
-                .text("What it absorbs comes out as Radioactive Waste. Take it out with a funnel or hopper: full, it stops, and the waste inside irradiates.")
+                .text("What it absorbs comes out as Low-Level Waste, for a Compacted Waste Drum. Take it out with a funnel or hopper: full, it stops, and the waste inside irradiates.")
                 .colored(PonderPalette.GREEN)
                 .pointAt(util.vector().blockSurface(scrubber, Direction.WEST))
                 .placeNearTarget();
