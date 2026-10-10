@@ -108,9 +108,23 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
             Row row = rows.get(i);
             float lineY = y + i * LINE;
             ScreenDraw.text(ms, buffers, font, row.label(), x, lineY, DIM);
-            float valueRight = row.gauge() >= 0 ? x + width - barWidth - 4 : x + width;
-            ScreenDraw.textRight(ms, buffers, font, row.value(), valueRight, lineY, row.color());
-            if (row.gauge() >= 0) {
+            // Room left of the label; the gauge goes first when it does not fit, then the value shrinks.
+            float room = width - font.width(row.label()) - 6;
+            float valueWidth = font.width(row.value());
+            boolean bar = row.gauge() >= 0 && valueWidth + barWidth + 4 <= room;
+            float valueRight = bar ? x + width - barWidth - 4 : x + width;
+            float valueRoom = bar ? room - barWidth - 4 : room;
+            if (valueWidth > valueRoom && valueRoom > 4) {
+                float scale = valueRoom / valueWidth;
+                ms.pushPose();
+                ms.translate(valueRight, lineY + (1 - scale) * 4, 0);
+                ms.scale(scale, scale, 1);
+                ScreenDraw.textRight(ms, buffers, font, row.value(), 0, 0, row.color());
+                ms.popPose();
+            } else {
+                ScreenDraw.textRight(ms, buffers, font, row.value(), valueRight, lineY, row.color());
+            }
+            if (bar) {
                 ScreenDraw.bar(ms, buffers, x + width - barWidth, lineY + 1, barWidth, 6, row.gauge());
             }
         }

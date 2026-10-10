@@ -1,7 +1,6 @@
 package org.papiricoh.create_nuclearindustry.controlroom.desk.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.Minecraft;
@@ -29,6 +28,8 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
  */
 public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlockEntity> {
     private static final float PX = 1 / 16f;
+    /** Name-tag text is 0.025; module labels are read from arm's length, so smaller. */
+    private static final float LABEL_SCALE = 0.01f;
     private final Font font;
 
     public ControlDeskRenderer(BlockEntityRendererProvider.Context context) {
@@ -41,8 +42,6 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
             return;
         }
         BlockState state = desk.getBlockState();
-        VertexConsumer solid = buffers.getBuffer(RenderType.solid());
-        int hovered = hoveredSlot(desk);
         for (int slot = 0; slot < ControlDeskBlockEntity.SLOTS; slot++) {
             ControlModule module = desk.module(slot);
             if (module == null) {
@@ -52,16 +51,19 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
             DeskGeometry.toModel(ms, state);
             DeskGeometry.toSlot(ms, slot);
             ms.translate(-0.5, 0, -0.5);
-            renderModule(module, state, ms, solid, light);
+            renderModule(module, state, ms, buffers, light);
             ms.popPose();
-            if (slot == hovered) {
-                renderLabel(desk, state, slot, module, ms, buffers);
-            }
+        }
+        // Text goes last: the font takes its own buffer, which closes the shared one the modules draw into.
+        int hovered = Minecraft.getInstance().options.hideGui ? -1 : hoveredSlot(desk);
+        if (hovered >= 0 && desk.module(hovered) != null) {
+            renderLabel(desk, state, hovered, desk.module(hovered), ms, buffers);
         }
     }
 
-    private static void renderModule(ControlModule module, BlockState state, PoseStack ms, VertexConsumer solid, int light) {
-        CachedBuffers.partial(DeskPartials.base(module.type()), state).light(light).renderInto(ms, solid);
+    /** Draws a module's base and moving part, asking for the buffer right before each draw. */
+    private static void renderModule(ControlModule module, BlockState state, PoseStack ms, MultiBufferSource buffers, int light) {
+        CachedBuffers.partial(DeskPartials.base(module.type()), state).light(light).renderInto(ms, buffers.getBuffer(RenderType.solid()));
         float value = module.shown();
         boolean on = value > 0.5f;
         SuperByteBuffer part = switch (module.type()) {
@@ -78,7 +80,8 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
             case LAMP -> CachedBuffers.partial(on ? DeskPartials.LAMP_LENS_LIT : DeskPartials.LAMP_LENS, state)
                     .color(lampColor(module.function()));
         };
-        part.light(module.type() == ModuleType.LAMP && on ? LightTexture.FULL_BRIGHT : light).renderInto(ms, solid);
+        part.light(module.type() == ModuleType.LAMP && on ? LightTexture.FULL_BRIGHT : light)
+                .renderInto(ms, buffers.getBuffer(RenderType.solid()));
     }
 
     private static SuperByteBuffer pivot(SuperByteBuffer buffer, float x, float y, float z) {
@@ -108,11 +111,11 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
         PoseStack local = new PoseStack();
         DeskGeometry.toModel(local, state);
         DeskGeometry.toSlot(local, slot);
-        Vector3f above = local.last().pose().transformPosition(new Vector3f(0, 0.45f, 0));
+        Vector3f above = local.last().pose().transformPosition(new Vector3f(0, 0.5f, 0));
         ms.pushPose();
         ms.translate(above.x(), above.y(), above.z());
         ms.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
-        ms.scale(0.02f, -0.02f, 0.02f);
+        ms.scale(LABEL_SCALE, -LABEL_SCALE, LABEL_SCALE);
         MutableComponent title = module.label().isEmpty()
                 ? Component.translatable(module.function().translationKey())
                 : Component.literal(module.label());
