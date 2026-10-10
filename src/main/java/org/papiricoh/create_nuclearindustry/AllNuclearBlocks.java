@@ -83,6 +83,15 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> NUCLEAR_BOMB = BLOCKS.register("nuclear_bomb", () -> new NuclearBombBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0f, 12.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> LAUNCH_PAD = BLOCKS.register("launch_pad", () -> new LaunchPadBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0f, 12.0f).noOcclusion()));
 
+    // ---- Control room ----
+    public static final DeferredHolder<Block, ? extends Block> CONTROL_MONITOR = BLOCKS.register("control_monitor", () -> new org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlock(
+            BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f).lightLevel(state -> 4)));
+    public static final DeferredHolder<Block, ? extends Block> REACTOR_CONTROL_PANEL = BLOCKS.register("reactor_control_panel", () -> new org.papiricoh.create_nuclearindustry.controlroom.ReactorControlPanelBlock(
+            BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f).lightLevel(state -> 4)));
+    public static final DeferredHolder<Block, ? extends Block> NUCLEAR_ALARM = BLOCKS.register("nuclear_alarm", () -> new org.papiricoh.create_nuclearindustry.controlroom.NuclearAlarmBlock(
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(2.0f, 6.0f)
+                    .lightLevel(state -> state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT) ? 12 : 0)));
+
     // ---- Fusion reactor (independent ring multiblock) ----
     public static final DeferredHolder<Block, ? extends Block> FUSION_CONTROLLER = BLOCKS.register("fusion_controller", () -> new FusionReactorControllerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_BLUE).strength(4.0f, 8.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> FUSION_ACCELERATOR_SEGMENT = BLOCKS.register("fusion_accelerator_segment", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f)));

@@ -99,6 +99,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     /** A reactor saved in manual SCRAM when that still forced the rods in keeps them in until reset. */
     private boolean legacyScramHold;
     private final AutoScram autoScram = new AutoScram();
+    /** Rod insertion a control panel asks for, 0-1, or below 0 while no panel has set one. */
+    private float rodTarget = -1.0f;
     /** A meltdown leaves fallout that fades over a few in-game days. */
     private static final int MELTDOWN_CONTAMINATION_TICKS = 72_000;
     private static final double MELTDOWN_RADIATION = 40.0;
@@ -460,6 +462,52 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     public AutoScram getAutoScram() {
         return autoScram;
+    }
+
+    /** Rod insertion a control panel asked for, 0-1, or below 0 when none has. */
+    public float getRodTarget() {
+        return rodTarget;
+    }
+
+    /** What the rods should be driven to: fully in while a SCRAM is requested, otherwise the panel target. */
+    public float getEffectiveRodTarget() {
+        return isScramRequested() ? 1.0f : rodTarget;
+    }
+
+    public void setRodTarget(float target) {
+        float clamped = target < 0 ? -1.0f : Math.max(0.0f, Math.min(1.0f, target));
+        if (clamped == rodTarget) {
+            return;
+        }
+        rodTarget = clamped;
+        refreshRedstonePorts();
+        markDirtyAndSync();
+    }
+
+    /** Moves the panel target by {@code delta}, starting from where the rods are now if none is set. */
+    public void adjustRodTarget(float delta) {
+        float base = rodTarget >= 0 ? rodTarget : Math.round(lastControlRodScan.insertionRatio() * 10.0f) / 10.0f;
+        setRodTarget(Math.round((base + delta) * 100.0f) / 100.0f);
+    }
+
+    /**
+     * Which way the rods must move to reach {@link #getEffectiveRodTarget()}: 1 in, -1 out, 0 hold.
+     * Pistons stop on whole blocks, so the rods count as there once within half a rod segment.
+     */
+    public int rodDrive() {
+        float target = getEffectiveRodTarget();
+        if (target < 0 || currentStructure.isEmpty() || status == ReactorStatus.UNFORMED) {
+            return 0;
+        }
+        float tolerance = 0.5f / Math.max(1, currentStructure.get().innerHeight()) + 0.01f;
+        float insertion = lastControlRodScan.insertionRatio();
+        if (insertion < target - tolerance) {
+            return 1;
+        }
+        if (insertion > target + tolerance) {
+            return -1;
+        }
+        return 0;
     }
 
     private void checkAutoScram() {
@@ -944,6 +992,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tooltip.add(Component.literal("  Steam output ports: " + snapshot.steamOutputPortCount()).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Fuel ports: " + snapshot.fuelPortCount()).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal(String.format("  Control rod insertion: %.0f%%", snapshot.controlRodInsertionRatio() * 100.0f)).withStyle(ChatFormatting.GRAY));
+        if (rodTarget >= 0) {
+            tooltip.add(Component.literal(String.format("  Panel rod target: %.0f%%", rodTarget * 100.0f)).withStyle(ChatFormatting.AQUA));
+        }
         tooltip.add(Component.literal("  Static rods: " + snapshot.staticControlRodSegments()).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Moving rods: " + snapshot.movingControlRodSegments()).withStyle(ChatFormatting.GRAY));
 
@@ -1042,6 +1093,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.putBoolean("manualScram", manualScram);
         tag.putInt("scramVersion", SCRAM_VERSION);
         tag.putBoolean("legacyScramHold", legacyScramHold);
+        tag.putFloat("rodTarget", rodTarget);
         autoScram.save(tag);
     }
 
@@ -1097,6 +1149,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         readPendingDepleted(tag);
         manualScram = tag.getBoolean("manualScram");
         legacyScramHold = tag.contains("scramVersion") ? tag.getBoolean("legacyScramHold") : manualScram;
+        rodTarget = tag.contains("rodTarget") ? tag.getFloat("rodTarget") : -1.0f;
         autoScram.load(tag);
         pendingRevalidation = true;
     }
@@ -1112,6 +1165,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         writePendingDepleted(tag);
         tag.putBoolean("manualScram", manualScram);
         tag.putBoolean("legacyScramHold", legacyScramHold);
+        tag.putFloat("rodTarget", rodTarget);
         autoScram.save(tag);
         currentStructure.ifPresent(structure -> {
             tag.put("structure", writeStructureTag(structure));
@@ -1151,6 +1205,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         readPendingDepleted(tag);
         manualScram = tag.getBoolean("manualScram");
         legacyScramHold = tag.getBoolean("legacyScramHold");
+        rodTarget = tag.contains("rodTarget") ? tag.getFloat("rodTarget") : -1.0f;
         autoScram.load(tag);
         currentStructure = tag.contains("structure")
                 ? readStructureTag(tag.getCompound("structure"))

@@ -4,6 +4,7 @@ import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
 import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ControlRoomScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CoolingTowerScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorModerationScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorRedstoneScenes;
@@ -48,6 +49,10 @@ public class AllNuclearPonderScenes {
         }
         for (String part : new String[]{"graphite_moderator", "beryllium_reflector", "reactor_controller"}) {
             helper.addStoryBoard(id(part), "reactor_controller", ReactorModerationScenes::moderation);
+        }
+        for (String part : new String[]{"control_monitor", "reactor_control_panel", "nuclear_alarm", "control_room_linker",
+                "reactor_redstone_port"}) {
+            helper.addStoryBoard(id(part), "control_room", ControlRoomScenes::controlRoom);
         }
         helper.addStoryBoard(id("electrolyzer"), "centrifuge", CentrifugeScenes::electrolysis);
         // Turbine storyboards are reachable from every block they are built from.

@@ -69,6 +69,25 @@ below for what changes in existing worlds.
 - New readouts for reactivity, xenon and decay heat in the control panel,
   goggles and three new Display Link sources.
 
+### Control room
+- Control Room Linker: click any block of a reactor, turbine or cooling tower
+  (or any other block, to watch the radiation there), then click a device to
+  link it. Devices reach 128 blocks (configurable) in the same dimension.
+- Control Room Monitors join side by side into one screen up to 8x8, drawn in
+  the world: readings with gauges for the linked machine and, on bigger
+  screens, a two-minute graph. Click to change page; comparators read the
+  main value.
+- Reactor Control Panel: SCRAM and reset, automatic SCRAM on/off and its
+  threshold, and a control rod target. Rods still move only physically: two
+  new Redstone Port modes, Insert rods and Withdraw rods, light up until the
+  rods reach the target, to drive the clutch and gearshift of the pistons.
+- Nuclear Alarm: rings, lights up and powers every side when the chosen
+  reading (reactor temperature, power, xenon, low coolant, SCRAM, turbine or
+  cooling tower load, area radiation) passes the threshold set on it with
+  Create's value boxes.
+- New Display Link source for turbines; reactor sources also work on linked
+  monitors and panels. Ponder scene and JEI page for the whole room.
+
 ### Fusion
 - The flat fusion ring is replaced by a tokamak: a toroidal multiblock of
   radius 4 to 16 around a new central solenoid, with toroidal field coils,

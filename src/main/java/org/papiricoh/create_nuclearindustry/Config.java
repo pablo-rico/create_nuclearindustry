@@ -141,6 +141,10 @@ public class Config
     private static final ModConfigSpec.DoubleValue SCRUBBER_STRESS = BUILDER
             .comment("Stress impact of a Radiation Scrubber, in SU per RPM.")
             .defineInRange("contamination.scrubberStress", 8.0, 0.0, 1.0e6);
+    private static final ModConfigSpec.IntValue CONTROL_ROOM_RANGE = BUILDER
+            .comment("Farthest, in blocks, a control room monitor, panel or alarm can be from what it is linked to.",
+                    "The target must also be in a loaded chunk of the same dimension.")
+            .defineInRange("controlRoom.linkRange", 128, 8, 4096);
     private static final ModConfigSpec.DoubleValue COOLING_TOWER_PASSIVE = BUILDER
             .comment("Steam a cooling tower condenses without fans, in mB/t per block of base radius per layer of height.")
             .defineInRange("coolingTower.passivePerBlock", 1.0, 0.0, 100.0);
@@ -196,6 +200,7 @@ public class Config
     public static int scrubberRadius = 1;
     public static double scrubberWastePer = 2.0;
     public static double scrubberStress = 8.0;
+    public static int controlRoomLinkRange = 128;
     public static double coolingTowerPassivePerBlock = 1.0;
     public static double coolingTowerFanStress = 8.0;
     public static double coolingTowerFanBoost = 0.25;
@@ -256,6 +261,7 @@ public class Config
         scrubberRadius = SCRUBBER_RADIUS.get();
         scrubberWastePer = SCRUBBER_WASTE_PER.get();
         scrubberStress = SCRUBBER_STRESS.get();
+        controlRoomLinkRange = CONTROL_ROOM_RANGE.get();
         coolingTowerPassivePerBlock = COOLING_TOWER_PASSIVE.get();
         coolingTowerFanStress = COOLING_TOWER_FAN_STRESS.get();
         coolingTowerFanBoost = COOLING_TOWER_FAN_BOOST.get();

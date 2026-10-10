@@ -44,6 +44,7 @@ public class NuclearItemModelProvider extends ItemModelProvider {
                 AllNuclearItems.RADIOACTIVE_WASTE,
                 AllNuclearItems.FLUORITE,
                 AllNuclearItems.GRAPHITE,
+                AllNuclearItems.CONTROL_ROOM_LINKER,
                 AllNuclearItems.RAW_SPODUMENE,
                 AllNuclearItems.CRUSHED_SPODUMENE,
                 AllNuclearItems.SPODUMENE_CONCENTRATE,

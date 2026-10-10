@@ -24,6 +24,9 @@ public class AllNuclearDisplaySources {
     public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.fusion.display.TokamakDisplaySource> TOKAMAK =
             DISPLAY_SOURCES.register("tokamak", org.papiricoh.create_nuclearindustry.fusion.display.TokamakDisplaySource::new);
 
+    public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.turbine.TurbineDisplaySource> TURBINE =
+            DISPLAY_SOURCES.register("turbine", org.papiricoh.create_nuclearindustry.turbine.TurbineDisplaySource::new);
+
     public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.coolingtower.CoolingTowerDisplaySource> COOLING_TOWER =
             DISPLAY_SOURCES.register("cooling_tower", org.papiricoh.create_nuclearindustry.coolingtower.CoolingTowerDisplaySource::new);
 
@@ -50,7 +53,12 @@ public class AllNuclearDisplaySources {
                 DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR.get(), source.get());
                 DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_TEMPERATURE_SENSOR.get(), source.get());
                 DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_REDSTONE_PORT.get(), source.get());
+                // Control room devices linked to a reactor pass its readings on too.
+                DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.CONTROL_MONITOR.get(), source.get());
+                DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_CONTROL_PANEL.get(), source.get());
             }
+            DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.TURBINE_OUTPUT.get(), TURBINE.get());
+            DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.FUSION_PLASMA_TURBINE.get(), TURBINE.get());
             DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.FUSION_CONTROLLER.get(), TOKAMAK.get());
             DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.COOLING_TOWER_CONTROLLER.get(), COOLING_TOWER.get());
         });

@@ -63,6 +63,23 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         simpleBlockItem(AllNuclearBlocks.REACTOR_REDSTONE_PORT.get(), normal);
     }
 
+    /** Monitors and panels face the player; the alarm swaps to its lit textures while it sounds. */
+    private void controlRoomStates() {
+        ResourceLocation housing = modLoc("block/control_monitor_side");
+        ModelFile monitor = models().orientable("control_monitor", housing, modLoc("block/control_monitor_front"), housing);
+        horizontalBlock(AllNuclearBlocks.CONTROL_MONITOR.get(), monitor);
+        simpleBlockItem(AllNuclearBlocks.CONTROL_MONITOR.get(), monitor);
+        ModelFile panel = models().orientable("reactor_control_panel", housing, modLoc("block/control_panel_front"), housing);
+        horizontalBlock(AllNuclearBlocks.REACTOR_CONTROL_PANEL.get(), panel);
+        simpleBlockItem(AllNuclearBlocks.REACTOR_CONTROL_PANEL.get(), panel);
+        ModelFile alarm = models().cubeBottomTop("nuclear_alarm", modLoc("block/nuclear_alarm_side"), housing, modLoc("block/nuclear_alarm_top"));
+        ModelFile alarmLit = models().cubeBottomTop("nuclear_alarm_lit", modLoc("block/nuclear_alarm_side_lit"), housing,
+                modLoc("block/nuclear_alarm_top_lit"));
+        getVariantBuilder(AllNuclearBlocks.NUCLEAR_ALARM.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(BlockStateProperties.LIT) ? alarmLit : alarm).build());
+        simpleBlockItem(AllNuclearBlocks.NUCLEAR_ALARM.get(), alarm);
+    }
+
     /** Concrete casing for the tower, with a front texture on the faces that have one. */
     private void coolingTowerStates() {
         ResourceLocation concrete = modLoc("block/cooling_tower_casing");
@@ -110,6 +127,7 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         simpleBlockWithItem(AllNuclearBlocks.GRAPHITE_MODERATOR.get(), cubeAll(AllNuclearBlocks.GRAPHITE_MODERATOR.get()));
         simpleBlockWithItem(AllNuclearBlocks.BERYLLIUM_REFLECTOR.get(), cubeAll(AllNuclearBlocks.BERYLLIUM_REFLECTOR.get()));
         redstonePortStates();
+        controlRoomStates();
         simpleBlockWithItem(AllNuclearBlocks.RADIATION_SCRUBBER.get(), models().cubeBottomTop("radiation_scrubber",
                 modLoc("block/radiation_scrubber_side"), modLoc("block/radiation_scrubber_bottom"), modLoc("block/radiation_scrubber_top")));
         // The RTG's model faces north with its shaft opening; the shaft points along FACING.

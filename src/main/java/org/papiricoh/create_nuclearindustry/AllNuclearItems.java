@@ -145,6 +145,13 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> MISSILE = ITEMS.register("missile", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> TARGET_DESIGNATOR = ITEMS.register("target_designator", () -> new TargetDesignatorItem(new Item.Properties().stacksTo(1)));
 
+    // Control room
+    public static final DeferredHolder<Item, ? extends Item> CONTROL_MONITOR = ITEMS.register("control_monitor", () -> new BlockItem(AllNuclearBlocks.CONTROL_MONITOR.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> REACTOR_CONTROL_PANEL = ITEMS.register("reactor_control_panel", () -> new BlockItem(AllNuclearBlocks.REACTOR_CONTROL_PANEL.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> NUCLEAR_ALARM = ITEMS.register("nuclear_alarm", () -> new BlockItem(AllNuclearBlocks.NUCLEAR_ALARM.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> CONTROL_ROOM_LINKER = ITEMS.register("control_room_linker",
+            () -> new org.papiricoh.create_nuclearindustry.controlroom.ControlRoomLinkerItem(new Item.Properties().stacksTo(1)));
+
 
 
     // Radiation protection

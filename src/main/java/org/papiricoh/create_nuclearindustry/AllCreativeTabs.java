@@ -75,6 +75,10 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.REACTOR_FUEL_PORT.value());
                 output.accept(AllNuclearItems.REACTOR_TEMPERATURE_SENSOR.value());
                 output.accept(AllNuclearItems.REACTOR_REDSTONE_PORT.value());
+                output.accept(AllNuclearItems.CONTROL_ROOM_LINKER.value());
+                output.accept(AllNuclearItems.CONTROL_MONITOR.value());
+                output.accept(AllNuclearItems.REACTOR_CONTROL_PANEL.value());
+                output.accept(AllNuclearItems.NUCLEAR_ALARM.value());
                 output.accept(AllNuclearItems.RADIATION_SCRUBBER.value());
                 output.accept(AllNuclearItems.RTG.value());
                 output.accept(AllNuclearItems.PLUTONIUM_RTG_PELLET.value());

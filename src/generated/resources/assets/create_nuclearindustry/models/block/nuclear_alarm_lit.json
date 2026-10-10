@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "create_nuclearindustry:block/control_monitor_side",
+    "side": "create_nuclearindustry:block/nuclear_alarm_side_lit",
+    "top": "create_nuclearindustry:block/nuclear_alarm_top_lit"
+  }
+}

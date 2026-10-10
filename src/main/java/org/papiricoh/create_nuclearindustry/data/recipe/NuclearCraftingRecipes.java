@@ -53,6 +53,49 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .save(output, id("crafting/" + net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(result).getPath()));
     }
 
+    /** Screens, the reactor panel, the alarm and the linker that ties them to machines. */
+    private void controlRoom(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, AllNuclearItems.CONTROL_MONITOR.get(), 2)
+                .pattern("PGP")
+                .pattern("GEG")
+                .pattern("PRP")
+                .define('P', CreateItems.get("iron_sheet"))
+                .define('G', Items.GLASS_PANE)
+                .define('E', CreateItems.get("electron_tube"))
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_electron_tube", has(CreateItems.get("electron_tube")))
+                .save(output, id("crafting/control_monitor"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, AllNuclearItems.REACTOR_CONTROL_PANEL.get())
+                .pattern("BBB")
+                .pattern("ECE")
+                .pattern("PRP")
+                .define('B', Items.STONE_BUTTON)
+                .define('E', CreateItems.get("electron_tube"))
+                .define('C', AllNuclearItems.REACTOR_CASING.get())
+                .define('P', CreateItems.get("brass_sheet"))
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_reactor_casing", has(AllNuclearItems.REACTOR_CASING.get()))
+                .save(output, id("crafting/reactor_control_panel"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, AllNuclearItems.NUCLEAR_ALARM.get())
+                .pattern(" L ")
+                .pattern("PNP")
+                .pattern(" E ")
+                .define('L', Items.REDSTONE_LAMP)
+                .define('P', CreateItems.get("iron_sheet"))
+                .define('N', Items.NOTE_BLOCK)
+                .define('E', CreateItems.get("electron_tube"))
+                .unlockedBy("has_electron_tube", has(CreateItems.get("electron_tube")))
+                .save(output, id("crafting/nuclear_alarm"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, AllNuclearItems.CONTROL_ROOM_LINKER.get())
+                .pattern("  E")
+                .pattern(" B ")
+                .pattern("B  ")
+                .define('E', CreateItems.get("electron_tube"))
+                .define('B', CreateItems.get("brass_sheet"))
+                .unlockedBy("has_electron_tube", has(CreateItems.get("electron_tube")))
+                .save(output, id("crafting/control_room_linker"));
+    }
+
     /** Graphite moderator columns and beryllium reflector lining for the fission core. */
     private void moderation(RecipeOutput output) {
         ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.GRAPHITE_MODERATOR.get())
@@ -208,6 +251,7 @@ public class NuclearCraftingRecipes extends RecipeProvider {
         coolingTower(output);
         depletedUranium(output);
         moderation(output);
+        controlRoom(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AllNuclearItems.RTG.get())
                 .pattern("PPP")

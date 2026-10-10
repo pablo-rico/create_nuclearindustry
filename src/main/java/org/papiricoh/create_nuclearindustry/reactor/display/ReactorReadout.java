@@ -50,7 +50,7 @@ public enum ReactorReadout {
         return reading.apply(reactor);
     }
 
-    /** The reactor behind a Display Link source: the controller itself, or a linked sensor or redstone port. */
+    /** The reactor behind a Display Link source: the controller itself, a linked sensor or redstone port, or a control room device. */
     public static Optional<ReactorBlockEntity> reactorOf(BlockEntity source) {
         if (source instanceof ReactorBlockEntity reactor) {
             return Optional.of(reactor);
@@ -60,6 +60,9 @@ public enum ReactorReadout {
         }
         if (source instanceof ReactorRedstonePortBlockEntity port) {
             return port.getLinkedReactor();
+        }
+        if (source instanceof org.papiricoh.create_nuclearindustry.controlroom.ControlRoomDevice device) {
+            return org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget.reactorOf(source, device.getTarget());
         }
         return Optional.empty();
     }

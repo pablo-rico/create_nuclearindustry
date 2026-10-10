@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "L": {
+      "item": "minecraft:redstone_lamp"
+    },
+    "N": {
+      "item": "minecraft:note_block"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    " L ",
+    "PNP",
+    " E "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:nuclear_alarm"
+  }
+}

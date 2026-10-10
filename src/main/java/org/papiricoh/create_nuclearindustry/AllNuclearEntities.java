@@ -124,6 +124,24 @@ public class AllNuclearEntities {
                     AllNuclearBlocks.NUCLEAR_BOMB.get()
             ).build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlockEntity>> CONTROL_MONITOR =
+            ENTITIES.register("control_monitor", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlockEntity(AllNuclearEntities.CONTROL_MONITOR.get(), pos, state),
+                    AllNuclearBlocks.CONTROL_MONITOR.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.controlroom.ReactorControlPanelBlockEntity>> REACTOR_CONTROL_PANEL =
+            ENTITIES.register("reactor_control_panel", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new org.papiricoh.create_nuclearindustry.controlroom.ReactorControlPanelBlockEntity(AllNuclearEntities.REACTOR_CONTROL_PANEL.get(), pos, state),
+                    AllNuclearBlocks.REACTOR_CONTROL_PANEL.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.controlroom.NuclearAlarmBlockEntity>> NUCLEAR_ALARM =
+            ENTITIES.register("nuclear_alarm", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new org.papiricoh.create_nuclearindustry.controlroom.NuclearAlarmBlockEntity(AllNuclearEntities.NUCLEAR_ALARM.get(), pos, state),
+                    AllNuclearBlocks.NUCLEAR_ALARM.get()
+            ).build(null));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LaunchPadBlockEntity>> LAUNCH_PAD =
             ENTITIES.register("launch_pad", () -> BlockEntityType.Builder.of(
                     LaunchPadBlockEntity::new,

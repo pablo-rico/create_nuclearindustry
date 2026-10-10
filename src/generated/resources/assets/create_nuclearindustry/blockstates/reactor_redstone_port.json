@@ -12,6 +12,14 @@
       "model": "create_nuclearindustry:block/reactor_redstone_port",
       "x": 90
     },
+    "facing=down,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 90
+    },
+    "facing=down,mode=rod_withdraw": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 90
+    },
     "facing=down,mode=scram": {
       "model": "create_nuclearindustry:block/reactor_redstone_port_scram",
       "x": 90
@@ -36,6 +44,14 @@
       "model": "create_nuclearindustry:block/reactor_redstone_port",
       "y": 90
     },
+    "facing=east,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 90
+    },
+    "facing=east,mode=rod_withdraw": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 90
+    },
     "facing=east,mode=scram": {
       "model": "create_nuclearindustry:block/reactor_redstone_port_scram",
       "y": 90
@@ -57,6 +73,12 @@
     "facing=north,mode=power": {
       "model": "create_nuclearindustry:block/reactor_redstone_port"
     },
+    "facing=north,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port"
+    },
+    "facing=north,mode=rod_withdraw": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port"
+    },
     "facing=north,mode=scram": {
       "model": "create_nuclearindustry:block/reactor_redstone_port_scram"
     },
@@ -75,6 +97,14 @@
       "y": 180
     },
     "facing=south,mode=power": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 180
+    },
+    "facing=south,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 180
+    },
+    "facing=south,mode=rod_withdraw": {
       "model": "create_nuclearindustry:block/reactor_redstone_port",
       "y": 180
     },
@@ -102,6 +132,14 @@
       "model": "create_nuclearindustry:block/reactor_redstone_port",
       "x": 270
     },
+    "facing=up,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 270
+    },
+    "facing=up,mode=rod_withdraw": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 270
+    },
     "facing=up,mode=scram": {
       "model": "create_nuclearindustry:block/reactor_redstone_port_scram",
       "x": 270
@@ -123,6 +161,14 @@
       "y": 270
     },
     "facing=west,mode=power": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 270
+    },
+    "facing=west,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 270
+    },
+    "facing=west,mode=rod_withdraw": {
       "model": "create_nuclearindustry:block/reactor_redstone_port",
       "y": 270
     },

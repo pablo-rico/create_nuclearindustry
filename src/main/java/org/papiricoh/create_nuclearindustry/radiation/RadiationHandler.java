@@ -116,6 +116,17 @@ public final class RadiationHandler {
                 + groundRate(player, body);
     }
 
+    /**
+     * Dose rate a bare body at {@code body} would take from its surroundings: radioactive blocks,
+     * fallout, emitters and contaminated ground, without anything carried. Used by control room monitors.
+     */
+    public static double ambientRate(ServerLevel level, Vec3 body) {
+        double ground = Config.contaminationEnabled
+                ? org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination.exposure(level, body, body.y - 0.9)
+                : 0;
+        return blockRate(level, BlockPos.containing(body), body) + falloutRate(level, body) + emitterRate(level, body) + ground;
+    }
+
     /** Contaminated ground under and around the player. */
     public static double groundRate(Player player, Vec3 body) {
         if (!Config.contaminationEnabled || !(player.level() instanceof ServerLevel level)) {

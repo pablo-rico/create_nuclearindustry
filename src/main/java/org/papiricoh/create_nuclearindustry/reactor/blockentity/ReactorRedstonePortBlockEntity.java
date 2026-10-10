@@ -90,6 +90,8 @@ public class ReactorRedstonePortBlockEntity extends BlockEntity implements IHave
             case COOLANT -> comparator(reactor.getCoolantAmount(), reactor.getTankCapacity());
             case STEAM -> comparator(reactor.getSteamAmount(), reactor.getTankCapacity());
             case SCRAM -> reactor.isScramRequested() ? 15 : 0;
+            case ROD_INSERT -> reactor.rodDrive() > 0 ? 15 : 0;
+            case ROD_WITHDRAW -> reactor.rodDrive() < 0 ? 15 : 0;
         };
     }
 

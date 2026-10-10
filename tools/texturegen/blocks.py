@@ -1094,3 +1094,88 @@ def beryllium_reflector():
     for x, y in ((1, 1), (14, 1), (1, 14), (14, 14)):
         rivet(t, x, y, STEEL)
     return t
+
+
+# ======================================================================================
+# control room
+# ======================================================================================
+
+@block("control_monitor_side")
+def control_monitor_side():
+    # Dark brushed housing with a vent strip, matching the control desk.
+    t = Tex(seed=120)
+    brushed(t, DARK, base=3.2, amp=0.5, seed=120)
+    bevel(t, 0, 0, 15, 15, DARK)
+    outline(t, 0, 0, 15, 15, DARK[0])
+    for y in (5, 7, 9):
+        t.hline(4, 11, y, DARK[0])
+        t.hline(4, 11, y + 1, DARK[4])
+    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        bolt(t, x, y, DARK)
+    return t
+
+
+@block("control_monitor_front")
+def control_monitor_front():
+    # A thin bezel round dark glass; the renderer draws the live screen over it.
+    t = Tex(seed=121)
+    t.rect(0, 0, 15, 15, DARK[2])
+    outline(t, 0, 0, 15, 15, DARK[0])
+    t.rect(1, 1, 14, 14, BLACK)
+    for y in range(1, 15):
+        for x in range(1, 15):
+            t.set(x, y, mix(DARK[0], CYAN[0], 0.18 if (y % 2) else 0.10))
+    for i in range(10):
+        t.blend(2 + i, 13 - i, DARK[4], 0.18)
+    return t
+
+
+@block("control_panel_front")
+def control_panel_front():
+    # Plain desk face; the renderer draws the status strip and the six lit buttons on it.
+    t = Tex(seed=122)
+    brushed(t, DARK, base=3.0, amp=0.5, seed=122)
+    bevel(t, 0, 0, 15, 15, DARK)
+    outline(t, 0, 0, 15, 15, DARK[0])
+    return t
+
+
+def _alarm(seed, lit, top):
+    t = Tex(seed=seed)
+    brushed(t, DARK, base=3.0, amp=0.5, seed=seed)
+    outline(t, 0, 0, 15, 15, DARK[0])
+    lamp = DANGER if lit else DARK
+    if top:
+        t.disc(7.5, 7.5, 5.6, DARK[0])
+        t.disc(7.5, 7.5, 4.8, lamp[4] if lit else lamp[2])
+        t.disc(6.5, 6.5, 1.6, lamp[6] if lit else lamp[4])
+    else:
+        t.rect(3, 2, 12, 13, DARK[0])
+        t.rect(4, 3, 11, 12, lamp[4] if lit else lamp[2])
+        for y in range(4, 12, 2):
+            t.hline(4, 11, y, DARK[1])
+        t.set(5, 4, lamp[6] if lit else lamp[4])
+        hazard(t, 1, 14, 14, 15, WARN[4], DARK[0], period=4, seed=seed)
+    if lit:
+        glow(t, 7.5, 7.5, 8.0, DANGER[6], 0.25)
+    return t
+
+
+@block("nuclear_alarm_side")
+def nuclear_alarm_side():
+    return _alarm(123, False, False)
+
+
+@block("nuclear_alarm_side_lit")
+def nuclear_alarm_side_lit():
+    return _alarm(123, True, False)
+
+
+@block("nuclear_alarm_top")
+def nuclear_alarm_top():
+    return _alarm(124, False, True)
+
+
+@block("nuclear_alarm_top_lit")
+def nuclear_alarm_top_lit():
+    return _alarm(124, True, True)

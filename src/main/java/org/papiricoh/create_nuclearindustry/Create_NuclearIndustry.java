@@ -128,6 +128,10 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.turbine.client.TurbineRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.FUSION_PLASMA_TURBINE.get(),
                     org.papiricoh.create_nuclearindustry.turbine.client.TurbineRenderer::new);
+            event.registerBlockEntityRenderer(AllNuclearEntities.CONTROL_MONITOR.get(),
+                    org.papiricoh.create_nuclearindustry.controlroom.client.ControlMonitorRenderer::new);
+            event.registerBlockEntityRenderer(AllNuclearEntities.REACTOR_CONTROL_PANEL.get(),
+                    org.papiricoh.create_nuclearindustry.controlroom.client.ReactorControlPanelRenderer::new);
         }
 
         public static void onRegisterScreens(RegisterMenuScreensEvent event) {

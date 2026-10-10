@@ -30,6 +30,9 @@ coilsPerSector = 4
 magnetInputStress = 1024.0
 disruptionExplosions = true
 
+[controlRoom]
+linkRange = 128
+
 [coolingTower]
 passivePerBlock = 1.0
 fanStress = 8.0
@@ -133,6 +136,12 @@ cuando el núcleo está 200 °C por debajo.
 Cada canal de combustible aloja un elemento. El reactor solo acepta elementos
 combustibles al 3% o mas; el uranio metalico suelto ya no es combustible. El
 combustible gastado conserva el enriquecimiento con el que entro.
+
+## Sala de control
+
+- `linkRange`: distancia maxima, en bloques, entre un monitor, panel o alarma y
+  lo que tiene enlazado. El objetivo ademas tiene que estar en un chunk cargado
+  de la misma dimension; si no, la pantalla muestra "Sin señal".
 
 ## Fusion (tokamak)
 
