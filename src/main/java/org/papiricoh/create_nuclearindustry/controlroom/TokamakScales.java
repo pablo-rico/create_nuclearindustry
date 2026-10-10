@@ -2,7 +2,9 @@ package org.papiricoh.create_nuclearindustry.controlroom;
 
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
 import org.papiricoh.create_nuclearindustry.fusion.api.TripCause;
-import org.papiricoh.create_nuclearindustry.fusion.physics.TokamakPhysicsSimulator;
+import org.papiricoh.create_nuclearindustry.fusion.physics.MagnetModel;
+import org.papiricoh.create_nuclearindustry.fusion.physics.PlasmaModel;
+import org.papiricoh.create_nuclearindustry.fusion.physics.VacuumModel;
 
 import java.util.Locale;
 
@@ -15,19 +17,19 @@ import java.util.Locale;
 public final class TokamakScales {
     // ------------------------------------------------------------------ from the fusion code
     /** Plasma temperature, in the model's degrees, where fusion starts. */
-    public static final float IGNITION_TEMPERATURE = (float) TokamakPhysicsSimulator.IGNITION_TEMP;
+    public static final float IGNITION_TEMPERATURE = (float) PlasmaModel.IGNITION_TEMP;
     /** Plasma temperature above which instability builds up. */
-    public static final float DANGER_TEMPERATURE = (float) TokamakPhysicsSimulator.DANGER_TEMP;
+    public static final float DANGER_TEMPERATURE = (float) PlasmaModel.DANGER_TEMP;
     /** Hottest the plasma gets: the full scale of temperature gauges. */
-    public static final float MAX_TEMPERATURE = (float) TokamakPhysicsSimulator.MAX_TEMP;
-    /** Confinement below which the plasma cannot burn well. */
-    public static final float MIN_BURN_CONFINEMENT = (float) TokamakPhysicsSimulator.MIN_BURN_CONFINEMENT;
+    public static final float MAX_TEMPERATURE = (float) PlasmaModel.MAX_TEMP;
+    /** Confinement below which a hot plasma grows unstable. */
+    public static final float MIN_BURN_CONFINEMENT = (float) PlasmaModel.STABLE_CONFINEMENT;
     /** Instability, 0-100, at which the plasma disrupts. */
-    public static final float DISRUPTION_INSTABILITY = (float) TokamakPhysicsSimulator.DISRUPTION_INSTABILITY;
+    public static final float DISRUPTION_INSTABILITY = (float) PlasmaModel.DISRUPTION_INSTABILITY;
     /** Coils stop superconducting above this, in kelvin; above it with field on the tokamak trips. */
-    public static final float SUPERCONDUCTING_LIMIT = 20.0f;
-    /** Chamber pressure, log10 of pascals, a plasma needs at most (the default of the fusion config). */
-    public static final float PLASMA_VACUUM_LIMIT = -3.0f;
+    public static final float SUPERCONDUCTING_LIMIT = (float) MagnetModel.SUPERCONDUCTING_TEMPERATURE;
+    /** Chamber pressure, log10 of pascals, a plasma needs at most by default ({@code fusion.vacuumLimit} may change it). */
+    public static final float PLASMA_VACUUM_LIMIT = (float) VacuumModel.Params.DEFAULT.plasmaLimit();
 
     // ------------------------------------------------------------------ full scales and warnings
     /** Instability that already shows red on a monitor: well before the disruption. */

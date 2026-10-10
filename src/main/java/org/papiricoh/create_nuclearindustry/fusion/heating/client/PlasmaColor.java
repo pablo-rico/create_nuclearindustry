@@ -1,5 +1,7 @@
 package org.papiricoh.create_nuclearindustry.fusion.heating.client;
 
+import org.papiricoh.create_nuclearindustry.fusion.physics.PlasmaModel;
+
 /**
  * The colour of the plasma for its temperature, in the model's degrees: a dull red glow while cold,
  * orange as it heats, white around burning temperature and violet near the danger temperature,
@@ -7,9 +9,9 @@ package org.papiricoh.create_nuclearindustry.fusion.heating.client;
  */
 public final class PlasmaColor {
     /** Plasma temperature, in the model's degrees, past which the plasma overheats (the core's danger mark). */
-    public static final double DANGER_TEMPERATURE = 5000.0;
+    public static final double DANGER_TEMPERATURE = PlasmaModel.DANGER_TEMP;
     /** The model's ceiling. */
-    public static final double MAX_TEMPERATURE = 6000.0;
+    public static final double MAX_TEMPERATURE = PlasmaModel.MAX_TEMP;
     /** The pink-magenta flash of the gas breaking down into plasma. */
     public static final float[] BREAKDOWN = {1.0f, 0.3f, 0.85f};
 

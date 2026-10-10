@@ -304,7 +304,7 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
         float vacuum = r.value(K_VACUUM);
         rows.add(row("vacuum", TokamakScales.formatPressure(vacuum),
                 (vacuum - TokamakScales.VACUUM_MIN) / (TokamakScales.VACUUM_MAX - TokamakScales.VACUUM_MIN),
-                vacuum <= TokamakScales.PLASMA_VACUUM_LIMIT ? GOOD : phase.hasPlasma() ? BAD : TEXT));
+                vacuum <= org.papiricoh.create_nuclearindustry.fusion.FusionConfig.vacuumLimit ? GOOD : phase.hasPlasma() ? BAD : TEXT));
         float heating = r.value(K_HEATING);
         rows.add(r.flag(K_HEATING_ON)
                 ? row("heating", fmt("%.1f MW", heating), heating / TokamakScales.HEATING_MAX, TEXT)
