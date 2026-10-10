@@ -6,6 +6,7 @@ import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -26,6 +27,10 @@ import org.papiricoh.create_nuclearindustry.processing.AllNuclearRecipeTypes;
 import org.papiricoh.create_nuclearindustry.processing.recipe.CentrifugingRecipe;
 import org.papiricoh.create_nuclearindustry.processing.recipe.ElectrolysisRecipe;
 import org.papiricoh.create_nuclearindustry.processing.recipe.ProcessingInput;
+import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
+import org.papiricoh.create_nuclearindustry.waste.vitrification.VitrificationInput;
+import org.papiricoh.create_nuclearindustry.waste.vitrification.VitrificationRecipe;
+import org.papiricoh.create_nuclearindustry.waste.vitrification.WasteRecipeTypes;
 
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +42,8 @@ public class NuclearJeiPlugin implements IModPlugin {
             RecipeType.create(Create_NuclearIndustry.MODID, "centrifuging", CentrifugingRecipe.class);
     public static final RecipeType<ElectrolysisRecipe> ELECTROLYSIS =
             RecipeType.create(Create_NuclearIndustry.MODID, "electrolysis", ElectrolysisRecipe.class);
+    public static final RecipeType<VitrificationRecipe> VITRIFICATION =
+            RecipeType.create(Create_NuclearIndustry.MODID, "vitrification", VitrificationRecipe.class);
     private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "jei_plugin");
 
     /** Items whose enrichment component makes them distinct entries. */
@@ -79,7 +86,8 @@ public class NuclearJeiPlugin implements IModPlugin {
                 new ProcessingJeiCategory<>(gui, CENTRIFUGING,
                         Component.translatable("jei.create_nuclearindustry.category.centrifuging"), AllNuclearBlocks.CENTRIFUGE.get(), 32),
                 new ProcessingJeiCategory<>(gui, ELECTROLYSIS,
-                        Component.translatable("jei.create_nuclearindustry.category.electrolysis"), AllNuclearBlocks.ELECTROLYZER.get(), 32));
+                        Component.translatable("jei.create_nuclearindustry.category.electrolysis"), AllNuclearBlocks.ELECTROLYZER.get(), 32),
+                new VitrificationJeiCategory(gui, VITRIFICATION));
     }
 
     @Override
@@ -89,13 +97,31 @@ public class NuclearJeiPlugin implements IModPlugin {
                 .stream().map(RecipeHolder::value).toList());
         registration.addRecipes(ELECTROLYSIS, recipes.getAllRecipesFor(AllNuclearRecipeTypes.ELECTROLYSIS.<ProcessingInput, ElectrolysisRecipe>getType())
                 .stream().map(RecipeHolder::value).toList());
+        registration.addRecipes(VITRIFICATION, recipes.getAllRecipesFor(WasteRecipeTypes.VITRIFICATION.<VitrificationInput, VitrificationRecipe>getType())
+                .stream().map(RecipeHolder::value).toList());
         addInfo(registration);
+        addPlantInfo(registration);
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(AllNuclearBlocks.CENTRIFUGE.get(), CENTRIFUGING);
         registration.addRecipeCatalyst(AllNuclearBlocks.ELECTROLYZER.get(), ELECTROLYSIS);
+        registration.addRecipeCatalyst(WasteRegistry.VITRIFICATION_MELTER.get(), VITRIFICATION);
+        registration.addRecipeCatalyst(VitrificationJeiCategory.createStack("blaze_burner"), VITRIFICATION);
+    }
+
+    /** The pages of the power plant areas, listed in {@link PlantJeiInfo}. */
+    private static void addPlantInfo(IRecipeRegistration registration) {
+        for (PlantJeiInfo.Page page : PlantJeiInfo.pages()) {
+            Component text = Component.translatable(page.key());
+            if (!page.items().isEmpty()) {
+                registration.addIngredientInfo(page.items(), VanillaTypes.ITEM_STACK, text);
+            }
+            if (!page.fluids().isEmpty()) {
+                registration.addIngredientInfo(page.fluids(), NeoForgeTypes.FLUID_STACK, text);
+            }
+        }
     }
 
     private static void addInfo(IRecipeRegistration registration) {
@@ -144,8 +170,6 @@ public class NuclearJeiPlugin implements IModPlugin {
                 Component.translatable("jei.create_nuclearindustry.info.radiation"));
         registration.addIngredientInfo(AllNuclearItems.RADIATION_SCRUBBER.get(),
                 Component.translatable("jei.create_nuclearindustry.info.radiation_scrubber"));
-        registration.addIngredientInfo(AllNuclearItems.RADIOACTIVE_WASTE_BARREL.get(),
-                Component.translatable("jei.create_nuclearindustry.info.waste_storage"));
         registration.addIngredientInfo(org.papiricoh.create_nuclearindustry.AllNuclearFluids.CONTAMINATED_WATER_BUCKET.get(),
                 Component.translatable("jei.create_nuclearindustry.info.contaminated_water"));
         registration.addIngredientInfo(List.of(new ItemStack(AllNuclearItems.CONTROL_ROOM_LINKER.get()),
