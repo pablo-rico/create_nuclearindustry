@@ -1,5 +1,10 @@
 package org.papiricoh.create_nuclearindustry.civildefense;
 
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -15,7 +20,9 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.NuclearFeature;
+import org.papiricoh.create_nuclearindustry.civildefense.blast.BlastWaveManager;
 import org.papiricoh.create_nuclearindustry.civildefense.blastdoor.BlastDoorBlock;
 import org.papiricoh.create_nuclearindustry.civildefense.blastdoor.BlastDoorControllerBlock;
 import org.papiricoh.create_nuclearindustry.civildefense.blastdoor.BlastDoorControllerBlockEntity;
@@ -25,6 +32,8 @@ import org.papiricoh.create_nuclearindustry.civildefense.seismic.SeismicNetwork;
 import org.papiricoh.create_nuclearindustry.civildefense.siren.AirRaidSirenBlock;
 import org.papiricoh.create_nuclearindustry.civildefense.siren.AirRaidSirenBlockEntity;
 import org.papiricoh.create_nuclearindustry.civildefense.siren.HandCrankSirenBlock;
+import org.papiricoh.create_nuclearindustry.civildefense.shelter.ShelterFiltrationUnitBlock;
+import org.papiricoh.create_nuclearindustry.civildefense.shelter.ShelterFiltrationUnitBlockEntity;
 import org.papiricoh.create_nuclearindustry.civildefense.siren.HandCrankSirenBlockEntity;
 
 import java.util.List;
@@ -35,6 +44,12 @@ public final class CivilDefenseRegistry implements NuclearFeature {
     public static final CivilDefenseRegistry INSTANCE = new CivilDefenseRegistry();
     /** Explosion resistance of blast door parts: above the 1200 a nuclear crater spares. */
     public static final float BLAST_RESISTANCE = 1500.0f;
+    /** Damage dealt by the blast wave of a nuclear detonation; an explosion, so blast protection helps. */
+    public static final ResourceKey<DamageType> BLAST_WAVE_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE,
+            ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "blast_wave"));
+    /** Blocks a passing blast wave shatters: glass, panes and leaves by default. */
+    public static final TagKey<Block> BLAST_FRAGILE = TagKey.create(Registries.BLOCK,
+            ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "blast_fragile"));
 
     public static final DeferredHolder<Block, AirRaidSirenBlock> AIR_RAID_SIREN = AllNuclearBlocks.BLOCKS.register("air_raid_siren",
             () -> new AirRaidSirenBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(3.0f, 6.0f)
@@ -53,6 +68,9 @@ public final class CivilDefenseRegistry implements NuclearFeature {
             () -> new BlastDoorBlock(leaf(MapColor.COLOR_BLUE)));
     public static final DeferredHolder<Block, BlastDoorControllerBlock> BLAST_DOOR_CONTROLLER = AllNuclearBlocks.BLOCKS.register("blast_door_controller",
             () -> new BlastDoorControllerBlock(blastProof(MapColor.COLOR_GRAY)));
+    public static final DeferredHolder<Block, ShelterFiltrationUnitBlock> SHELTER_FILTRATION_UNIT = AllNuclearBlocks.BLOCKS.register(
+            "shelter_filtration_unit", () -> new ShelterFiltrationUnitBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GREEN)
+                    .strength(3.5f, 6.0f).sound(SoundType.METAL).requiresCorrectToolForDrops()));
 
     public static final DeferredHolder<Item, BlockItem> AIR_RAID_SIREN_ITEM = blockItem("air_raid_siren", AIR_RAID_SIREN);
     public static final DeferredHolder<Item, BlockItem> HAND_CRANK_SIREN_ITEM = blockItem("hand_crank_siren", HAND_CRANK_SIREN);
@@ -61,6 +79,7 @@ public final class CivilDefenseRegistry implements NuclearFeature {
     public static final DeferredHolder<Item, BlockItem> STEEL_BLAST_DOOR_ITEM = blockItem("steel_blast_door", STEEL_BLAST_DOOR);
     public static final DeferredHolder<Item, BlockItem> LEAD_BLAST_DOOR_ITEM = blockItem("lead_blast_door", LEAD_BLAST_DOOR);
     public static final DeferredHolder<Item, BlockItem> BLAST_DOOR_CONTROLLER_ITEM = blockItem("blast_door_controller", BLAST_DOOR_CONTROLLER);
+    public static final DeferredHolder<Item, BlockItem> SHELTER_FILTRATION_UNIT_ITEM = blockItem("shelter_filtration_unit", SHELTER_FILTRATION_UNIT);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AirRaidSirenBlockEntity>> AIR_RAID_SIREN_BE =
             AllNuclearEntities.ENTITIES.register("air_raid_siren", () -> BlockEntityType.Builder.of(
@@ -78,6 +97,10 @@ public final class CivilDefenseRegistry implements NuclearFeature {
             AllNuclearEntities.ENTITIES.register("blast_door_controller", () -> BlockEntityType.Builder.of(
                     (pos, state) -> new BlastDoorControllerBlockEntity(CivilDefenseRegistry.BLAST_DOOR_CONTROLLER_BE.get(), pos, state),
                     BLAST_DOOR_CONTROLLER.get()).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShelterFiltrationUnitBlockEntity>> SHELTER_FILTRATION_UNIT_BE =
+            AllNuclearEntities.ENTITIES.register("shelter_filtration_unit", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new ShelterFiltrationUnitBlockEntity(CivilDefenseRegistry.SHELTER_FILTRATION_UNIT_BE.get(), pos, state),
+                    SHELTER_FILTRATION_UNIT.get()).build(null));
 
     private CivilDefenseRegistry() {}
 
@@ -102,12 +125,14 @@ public final class CivilDefenseRegistry implements NuclearFeature {
     /** Every block of this area, for datagen and the creative tab. */
     public static List<DeferredHolder<Item, BlockItem>> items() {
         return List.of(AIR_RAID_SIREN_ITEM, HAND_CRANK_SIREN_ITEM, SEISMIC_DETECTOR_ITEM, BLAST_DOOR_FRAME_ITEM,
-                STEEL_BLAST_DOOR_ITEM, LEAD_BLAST_DOOR_ITEM, BLAST_DOOR_CONTROLLER_ITEM);
+                STEEL_BLAST_DOOR_ITEM, LEAD_BLAST_DOOR_ITEM, BLAST_DOOR_CONTROLLER_ITEM, SHELTER_FILTRATION_UNIT_ITEM);
     }
 
     @Override
     public void register(IEventBus modEventBus) {
         NeoForge.EVENT_BUS.addListener(SeismicNetwork::onDetonation);
+        NeoForge.EVENT_BUS.addListener(BlastWaveManager::onLevelTick);
+        NeoForge.EVENT_BUS.addListener(BlastWaveManager::onServerStopping);
     }
 
     @Override

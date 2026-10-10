@@ -8,6 +8,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -21,7 +22,7 @@ import org.papiricoh.create_nuclearindustry.enrichment.recipe.MinEnrichmentIngre
 
 import java.util.concurrent.CompletableFuture;
 
-/** Crafting recipes for sirens, the seismic detector and blast doors. */
+/** Crafting recipes for sirens, the seismic detector, blast doors and the shelter filtration unit. */
 public class CivilDefenseRecipes extends RecipeProvider {
     private static final TagKey<Item> LEAD_INGOTS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "ingots/lead"));
 
@@ -62,6 +63,16 @@ public class CivilDefenseRecipes extends RecipeProvider {
                 .unlockedBy("has_electron_tube", has(CreateItems.get("electron_tube")))
                 .save(output, id("crafting/seismic_detector"));
         blastDoors(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, CivilDefenseRegistry.SHELTER_FILTRATION_UNIT_ITEM.get())
+                .pattern("PWP")
+                .pattern("PFP")
+                .pattern("PCP")
+                .define('P', CreateItems.get("iron_sheet"))
+                .define('W', ItemTags.WOOL)
+                .define('F', CreateItems.get("encased_fan"))
+                .define('C', Items.CHARCOAL)
+                .unlockedBy("has_encased_fan", has(CreateItems.get("encased_fan")))
+                .save(output, id("crafting/shelter_filtration_unit"));
     }
 
     /** Reinforced frames around obsidian, plate leaves, and lead (or depleted uranium) lining for the shielded ones. */

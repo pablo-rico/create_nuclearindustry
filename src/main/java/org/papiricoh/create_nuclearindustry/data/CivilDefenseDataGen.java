@@ -17,6 +17,11 @@ import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import com.simibubi.create.content.kinetics.base.HorizontalAxisKineticBlock;
+import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock;
+import net.minecraft.data.tags.TagsProvider;
+import net.minecraft.world.damagesource.DamageType;
+import net.neoforged.neoforge.common.Tags;
+import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
 import org.papiricoh.create_nuclearindustry.data.recipe.CivilDefenseRecipes;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockTags;
@@ -76,6 +81,31 @@ final class CivilDefenseDataGen extends AreaDataGen {
         LangEntries.add("create_nuclearindustry.blast_door.shut", "Shut", "Cerrada");
         LangEntries.add("create_nuclearindustry.blast_door.open", "Open", "Abierta");
         LangEntries.add("create_nuclearindustry.blast_door.stopped", "Stopped at %s%% open", "Detenida al %s%% abierta");
+
+        LangEntries.block("shelter_filtration_unit", "Shelter Filtration Unit", "Unidad de filtración de refugio");
+        LangEntries.add("death.attack.create_nuclearindustry.blast_wave", "%1$s was flattened by a blast wave",
+                "%1$s fue aplastado por una onda expansiva");
+        LangEntries.add("death.attack.create_nuclearindustry.blast_wave.player", "%1$s was flattened by a blast wave while fighting %2$s",
+                "%1$s fue aplastado por una onda expansiva mientras luchaba contra %2$s");
+        LangEntries.add("create_nuclearindustry.shelter.scanning", "Surveying the room...", "Inspeccionando la sala...");
+        LangEntries.add("create_nuclearindustry.shelter.no_room", "No air next to it: place it inside the shelter",
+                "Sin aire al lado: colócala dentro del refugio");
+        LangEntries.add("create_nuclearindustry.shelter.open", "Not sealed: the air gets out",
+                "Sin sellar: el aire se escapa");
+        LangEntries.add("create_nuclearindustry.shelter.too_big", "Not sealed: open, or over %s blocks of air",
+                "Sin sellar: abierta o con más de %s bloques de aire");
+        LangEntries.add("create_nuclearindustry.shelter.weak_wall", "Weak wall at %s: blast resistance %s, needs %s",
+                "Pared débil en %s: resistencia %s, necesita %s");
+        LangEntries.add("create_nuclearindustry.shelter.leaky_wall", "Wall at %s lets %s%% of radiation through, at most %s%%",
+                "La pared en %s deja pasar el %s%% de la radiación, máximo %s%%");
+        LangEntries.add("create_nuclearindustry.shelter.certified", "Certified shelter: %s blocks of air",
+                "Refugio certificado: %s bloques de aire");
+        LangEntries.add("create_nuclearindustry.shelter.filtering", "Filtering: %s%% of fallout and ground dose gets in",
+                "Filtrando: entra el %s%% de la dosis de lluvia radiactiva y del suelo");
+        LangEntries.add("create_nuclearindustry.shelter.not_filtering", "Not filtering: turn it at %s RPM or more",
+                "Sin filtrar: gírala a %s RPM o más");
+        LangEntries.add("create_nuclearindustry.shelter.blast", "Blast waves inside: %s%% of the overpressure",
+                "Ondas expansivas dentro: %s%% de la sobrepresión");
     }
 
     @Override
@@ -100,6 +130,18 @@ final class CivilDefenseDataGen extends AreaDataGen {
                 .rotationY(state.getValue(HorizontalAxisKineticBlock.HORIZONTAL_AXIS) == Direction.Axis.X ? 90 : 0)
                 .build());
         provider.simpleBlockItem(CivilDefenseRegistry.BLAST_DOOR_CONTROLLER.get(), controller);
+
+        // Shaft sockets on the ends, filter grilles around; lying down for the horizontal axes.
+        ModelFile unit = provider.models().cubeColumn("shelter_filtration_unit", provider.modLoc("block/shelter_filtration_unit_side"),
+                provider.modLoc("block/shelter_filtration_unit_end"));
+        provider.getVariantBuilder(CivilDefenseRegistry.SHELTER_FILTRATION_UNIT.get()).forAllStates(state -> {
+            Direction.Axis axis = state.getValue(RotatedPillarKineticBlock.AXIS);
+            return ConfiguredModel.builder().modelFile(unit)
+                    .rotationX(axis == Direction.Axis.Y ? 0 : 90)
+                    .rotationY(axis == Direction.Axis.X ? 90 : 0)
+                    .build();
+        });
+        provider.simpleBlockItem(CivilDefenseRegistry.SHELTER_FILTRATION_UNIT.get(), unit);
     }
 
     /** A leaf looks the same in every state; moving and open leaves are not drawn at all. */
@@ -144,6 +186,7 @@ final class CivilDefenseDataGen extends AreaDataGen {
         provider.tagFor(MultiblockTags.MULTIBLOCK_PARTS).add(door);
         provider.tagFor(NON_MOVABLE).add(door);
         provider.tagFor(BlockTags.NEEDS_IRON_TOOL).add(door);
+        provider.tagFor(CivilDefenseRegistry.BLAST_FRAGILE).addTags(BlockTags.LEAVES, Tags.Blocks.GLASS_BLOCKS, Tags.Blocks.GLASS_PANES);
     }
 
     @Override
@@ -159,6 +202,24 @@ final class CivilDefenseDataGen extends AreaDataGen {
     void addProviders(GatherDataEvent event, DataGenerator generator, PackOutput output,
                       CompletableFuture<HolderLookup.Provider> lookup, ExistingFileHelper existingFiles) {
         generator.addProvider(event.includeServer(), new Renamed("Civil defense recipes", new CivilDefenseRecipes(output, lookup)));
+        generator.addProvider(event.includeServer(), new DamageTypeTags(output, lookup, existingFiles));
+    }
+
+    /** The blast wave counts as an explosion, so Blast Protection softens it. */
+    private static final class DamageTypeTags extends TagsProvider<DamageType> {
+        private DamageTypeTags(PackOutput output, CompletableFuture<HolderLookup.Provider> lookup, ExistingFileHelper existingFiles) {
+            super(output, Registries.DAMAGE_TYPE, lookup, Create_NuclearIndustry.MODID, existingFiles);
+        }
+
+        @Override
+        protected void addTags(HolderLookup.Provider provider) {
+            tag(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION).add(CivilDefenseRegistry.BLAST_WAVE_DAMAGE);
+        }
+
+        @Override
+        public String getName() {
+            return "Civil defense damage type tags";
+        }
     }
 
     /** Data providers need unique names, and every vanilla recipe provider is called "Recipes" (final). */

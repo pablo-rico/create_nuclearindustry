@@ -8,12 +8,15 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.ToDoubleFunction;
+
 /**
  * Fraction of radiation that crosses the blocks between two points: a voxel walk
  * (Amanatides-Woo) multiplying {@link RadiationTransmission} of every block crossed. The
  * source's and target's own blocks do not count, nor do blocks inside {@code ignore}
  * (a reactor's core, say), nor {@link Passable} blocks in a passable state. Never loads chunks:
- * unloaded blocks count as air.
+ * unloaded blocks count as air. The same {@link #walk} carries a blast wave, with its own
+ * per-block factor.
  */
 public final class RadiationRay {
     private static final double CUTOFF = 1.0e-3;
@@ -33,6 +36,14 @@ public final class RadiationRay {
     }
 
     public static double transmission(Level level, Vec3 from, Vec3 to, @Nullable BoundingBox ignore) {
+        return walk(level, from, to, ignore, RadiationTransmission::of);
+    }
+
+    /**
+     * Product of {@code perBlock} over every block between {@code from} and {@code to}, with the
+     * same exclusions as {@link #transmission}; 0 once it falls below a thousandth.
+     */
+    public static double walk(Level level, Vec3 from, Vec3 to, @Nullable BoundingBox ignore, ToDoubleFunction<BlockState> perBlock) {
         int x = Mth.floor(from.x);
         int y = Mth.floor(from.y);
         int z = Mth.floor(from.z);
@@ -86,7 +97,7 @@ public final class RadiationRay {
             if (state.getBlock() instanceof Passable passable && passable.letsRadiationThrough(state)) {
                 continue;
             }
-            transmission *= RadiationTransmission.of(state);
+            transmission *= perBlock.applyAsDouble(state);
             if (transmission < CUTOFF) {
                 return 0.0;
             }

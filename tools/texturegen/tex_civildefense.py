@@ -9,7 +9,7 @@ from gui import gui  # noqa: F401
 from items import item  # noqa: F401
 
 from common import bolt, casing, panel_screen
-from palette import BRASS, CARBONATE, DANGER, DARK, LEAD, RADIUM, STEEL, WARN
+from palette import BRASS, CARBONATE, DANGER, DARK, LEAD, RADIUM, STEEL, URANIUM, WARN
 from pixelkit import Tex, bevel, brushed, hazard, inset, mix, outline, rivet, shade, speckle
 
 
@@ -212,4 +212,44 @@ def lead_blast_door():
     t.vline(11, 7, 9, LEAD[1])
     t.vline(4, 12, 15, LEAD[1])
     outline(t, 0, 0, 15, 15, LEAD[0])
+    return t
+
+
+# ======================================================================================
+# shelter filtration unit
+# ======================================================================================
+
+# Civil defence olive drab over steel.
+SHELTER_OLIVE = URANIUM.tinted(STEEL[2], 0.55)
+
+
+@block("shelter_filtration_unit_side")
+def shelter_filtration_unit_side():
+    # Olive casing around the intake grille: louvres over the pale filter mat, and a white
+    # stencil band above them.
+    t = Tex(seed=540)
+    casing(t, SHELTER_OLIVE, seed=540, base=3.2, amp=0.6, seam=False)
+    t.rect(4, 5, 11, 12, DARK[0])
+    for y in range(6, 12, 2):
+        t.hline(4, 11, y, CARBONATE[3])
+        t.hline(5, 10, y + 1, DARK[1])
+        t.set(4, y, CARBONATE[4])
+    inset(t, 3, 4, 12, 13, SHELTER_OLIVE)
+    t.hline(4, 11, 3, CARBONATE[5])
+    for x in (5, 7, 9):
+        t.set(x, 3, SHELTER_OLIVE[1])
+    return t
+
+
+@block("shelter_filtration_unit_end")
+def shelter_filtration_unit_end():
+    # The blower's shaft end: a brass-bushed socket in the olive casing.
+    t = Tex(seed=541)
+    casing(t, SHELTER_OLIVE, seed=541, base=3.2, amp=0.6, seam=False)
+    t.rect(4, 4, 11, 11, SHELTER_OLIVE[1])
+    t.disc(7.5, 7.5, 3.6, DARK[0])
+    t.ring(7.5, 7.5, 3.6, 2.6, BRASS[4])
+    t.ring(7.5, 7.5, 2.6, 2.0, BRASS[2])
+    t.rect(6, 6, 9, 9, DARK[2])
+    t.hline(6, 9, 6, DARK[4])
     return t

@@ -55,6 +55,7 @@
     "create_nuclearindustry:steel_blast_door",
     "create_nuclearindustry:lead_blast_door",
     "create_nuclearindustry:blast_door_controller",
+    "create_nuclearindustry:shelter_filtration_unit",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

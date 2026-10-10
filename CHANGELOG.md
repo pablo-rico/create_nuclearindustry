@@ -265,8 +265,33 @@ below for what changes in existing worlds.
   (steel lets 15% through, lead 2%). Open, the doorway lets people, blasts and
   radiation through and the retracted panel survives. If the frame, a leaf or
   the controller breaks, the door slams shut.
+- Nuclear detonations now send out a blast wave instead of one huge vanilla
+  explosion: a small fireball wrecks ground zero, the crater forms as before,
+  and a wave races outwards (8 blocks per tick) up to four crater radii, at
+  most 256 blocks. Its overpressure follows the real scaling of blasts with
+  distance and yield; it hurts and throws back whoever it reaches, and walls,
+  hills and blast doors between you and ground zero soak it up (stone lets
+  about a third through per block, obsidian and shut blast doors nothing).
+  It also shatters exposed glass, panes and leaves on its way. Dirty bombs
+  keep their small conventional blast.
+- New Shelter Filtration Unit (kinetic): put it inside a room and it surveys
+  the air around it. A closed room of up to 4096 blocks of air whose every
+  wall, floor and ceiling block is at least as strong as planks or concrete
+  against blasts and shields like a solid block is certified as a shelter
+  (doors and trapdoors leave it open: use a blast door). Inside, blast waves
+  lose 90% of their overpressure, and while the unit turns at 16 RPM or more
+  only 5% of the fallout and ground contamination dose gets in. Goggles show
+  the room's size, or the weak or open spot that keeps it from certifying.
+- Blast Protection protects against the blast wave.
 - All of it is in the config under `civilDefense.*` (reach and range of
-  sirens, the crank's minimum speed, the seismic scale, door speeds and stress).
+  sirens, the crank's minimum speed, the seismic scale, door speeds and
+  stress, the blast wave's speed, reach, yield and damage, and the shelter's
+  size, wall requirements and filter).
+- Upgrading: nuclear detonations no longer blow up terrain with a vanilla
+  explosion reaching up to about 100 blocks; beyond the crater and the small
+  fireball the blast wave hurts people and breaks glass and leaves instead.
+  Set `civilDefense.blastWave.breakFragileBlocks = false` to keep every block
+  outside the crater and fireball intact.
 
 ### Ponder: the nuclear power plant
 <!-- plantponder: filled by its work package -->

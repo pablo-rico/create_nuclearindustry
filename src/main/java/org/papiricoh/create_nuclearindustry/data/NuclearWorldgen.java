@@ -34,7 +34,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Datapack registry entries: ore generation and the radiation and plutonium burn damage types. */
+/** Datapack registry entries: ore generation and the radiation, plutonium burn and blast wave damage types. */
 public final class NuclearWorldgen {
 
     private static final List<Ore> ORES = List.of(
@@ -58,6 +58,9 @@ public final class NuclearWorldgen {
                     context.register(org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.PLUTONIUM_BURN,
                             new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".plutonium_burn", 0.1f,
                                     net.minecraft.world.damagesource.DamageEffects.BURNING));
+                    context.register(org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry.BLAST_WAVE_DAMAGE,
+                            new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".blast_wave",
+                                    net.minecraft.world.damagesource.DamageScaling.NEVER, 0.1f));
                 });
     }
 

@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-10T18:02:51.0173994	Loot Tables
+// 1.21.1	2026-10-10T18:26:46.2316179	Loot Tables
 13c05f487af479a2691bf45b4d60b1e69d36ac47 data/create_nuclearindustry/loot_table/blocks/air_raid_siren.json
 bd3d940fd514861d5aea3b218fc57e67da87d53e data/create_nuclearindustry/loot_table/blocks/beryllium_reflector.json
 949041490b6fc99679339b6cf288a65728089710 data/create_nuclearindustry/loot_table/blocks/blast_door_controller.json
@@ -48,6 +48,7 @@ a863ac56e10e3448a9aa43ba5f188534d503abd7 data/create_nuclearindustry/loot_table/
 bf01e8fb59d80618e84b93ed386dd072642b0b14 data/create_nuclearindustry/loot_table/blocks/reinforced_turbine_glass.json
 9907a7b116d8e0caae98efcfe81cc6c0efe24b98 data/create_nuclearindustry/loot_table/blocks/rtg.json
 d342baf5ff79c9f489a48bbc5b997b2230295247 data/create_nuclearindustry/loot_table/blocks/seismic_detector.json
+caf5fb94de42cafb1019fe775794ec501635289a data/create_nuclearindustry/loot_table/blocks/shelter_filtration_unit.json
 f53f9e37b07864dc9f771758c8e683beea475c82 data/create_nuclearindustry/loot_table/blocks/spodumene_ore.json
 8d2128ca4132cdb52f7b568e0c26b5f70ced9457 data/create_nuclearindustry/loot_table/blocks/steel_blast_door.json
 941357a06cf7caac87c28d9691452a39dfb34cfe data/create_nuclearindustry/loot_table/blocks/turbine_casing.json
