@@ -102,6 +102,7 @@ public class Create_NuclearIndustry {
             org.papiricoh.create_nuclearindustry.turbine.client.NuclearClient.init(modEventBus);
             modEventBus.addListener(ClientModEvents::onRegisterScreens);
             modEventBus.addListener(ClientModEvents::onRegisterRenderers);
+            modEventBus.addListener(ClientModEvents::onRegisterGeometryLoaders);
             modEventBus.addListener(AllNuclearFluids::registerClientExtensions);
             modEventBus.addListener(ClientConfig::onLoad);
             modEventBus.addListener(ClientConfig::onReload);
@@ -134,6 +135,11 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.controlroom.client.ControlMonitorRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.REACTOR_CONTROL_PANEL.get(),
                     org.papiricoh.create_nuclearindustry.controlroom.desk.client.ControlDeskRenderer::new);
+        }
+
+        public static void onRegisterGeometryLoaders(net.neoforged.neoforge.client.event.ModelEvent.RegisterGeometryLoaders event) {
+            event.register(org.papiricoh.create_nuclearindustry.controlroom.desk.client.DeskCornerModel.LOADER_ID,
+                    org.papiricoh.create_nuclearindustry.controlroom.desk.client.DeskCornerModel.Loader.INSTANCE);
         }
 
         public static void onRegisterScreens(RegisterMenuScreensEvent event) {
