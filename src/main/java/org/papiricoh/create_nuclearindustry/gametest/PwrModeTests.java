@@ -117,6 +117,8 @@ public class PwrModeTests {
             helper.assertTrue(reactor.plantReadings() == PlantReadings.NONE, "no pressurized loop readings");
             helper.assertTrue(reactor.getPhysicsSimulator().getCoolantFeedback() == 1.0, "and no coolant feedback");
             helper.assertTrue(ReactorReadout.PRESSURE.read(reactor).getString().equals("-"), "the pressure readout shows a dash");
+            // nothing drains its steam and its rods are out: take it apart before it melts down beside other tests
+            ContainmentTestBuilder.clearArena(helper);
         });
     }
 

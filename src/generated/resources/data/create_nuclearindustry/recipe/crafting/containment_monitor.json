@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:containment_concrete"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "R": {
+      "item": "minecraft:comparator"
+    }
+  },
+  "pattern": [
+    " E ",
+    "PCP",
+    " R "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:containment_monitor"
+  }
+}

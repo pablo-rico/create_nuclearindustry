@@ -55,6 +55,15 @@
     "create_nuclearindustry:steam_generator_tube_bundle",
     "create_nuclearindustry:steam_generator_controller",
     "create_nuclearindustry:steam_generator_port",
+    "create_nuclearindustry:containment_concrete",
+    "create_nuclearindustry:steel_liner",
+    "create_nuclearindustry:containment_monitor",
+    "create_nuclearindustry:containment_penetration",
+    "create_nuclearindustry:recombiner",
+    "create_nuclearindustry:filtered_vent",
+    "create_nuclearindustry:corium",
+    "create_nuclearindustry:solidified_corium",
+    "create_nuclearindustry:core_catcher",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

@@ -7,11 +7,11 @@ with ``@gui``; this module is imported at the end of ``blocks.py``.
 import math
 
 from blocks import block  # noqa: F401
-from common import bolt, casing, port_face
+from common import bolt, casing, cracks, port_face
 from gui import gui  # noqa: F401
 from items import item  # noqa: F401
-from palette import BRASS, COPPER, CYAN, DANGER, DARK, MIMIC_BLUE, PLASMA, RADIUM, STEEL, WARN, WHITE
-from pixelkit import Tex, bevel, fbm, glow, outline, rivet
+from palette import BRASS, CONCRETE, COPPER, CYAN, DANGER, DARK, MIMIC_BLUE, PLASMA, RADIUM, STEEL, WARN, WHITE
+from pixelkit import Tex, bevel, brushed, fbm, glow, mix, outline, plate, rivet, vents
 from reactor_materials import STEEL as REACTOR_STEEL
 
 
@@ -246,4 +246,258 @@ def steam_generator_port_feed_in():
 def steam_generator_port_steam_out():
     t = port_face(Tex(seed=317), STEEL, RADIUM, seed=317, out=True, square=True)
     bolt(t, 7, 12, STEEL)
+    return t
+
+
+# ======================================================================================
+# containment building: reinforced concrete, a steel liner and its fittings
+# ======================================================================================
+
+def _concrete(t, seed, base=3.2):
+    """Poured concrete: mottled grey with aggregate specks."""
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, seed, 16, 16, 3, 4.0) - 0.5
+            v = base + n * 1.8
+            t.set(x, y, CONCRETE[max(1, min(5, int(round(v))))])
+    rng = t.rng
+    for _ in range(14):
+        x, y = rng.randrange(16), rng.randrange(16)
+        t.set(x, y, CONCRETE[rng.choice((1, 2, 5))])
+    return t
+
+
+@block("containment_concrete")
+def containment_concrete():
+    t = _concrete(Tex(seed=330), 330)
+    # formwork joints and tie holes of a heavy pour
+    for x in range(16):
+        t.set(x, 7, mix(t.get(x, 7), CONCRETE[1], 0.45))
+        t.set(x, 15, mix(t.get(x, 15), CONCRETE[1], 0.55))
+    for x, y in ((3, 3), (12, 3), (3, 11), (12, 11)):
+        t.set(x, y, CONCRETE[0])
+        t.set(x + 1, y + 1, CONCRETE[4])
+    return t
+
+
+@block("steel_liner")
+def steel_liner():
+    t = Tex(seed=331)
+    brushed(t, STEEL, base=3.6, amp=0.7, seed=331, axis="v")
+    # welded plates: seams and studs where the liner is anchored into the concrete
+    for x in range(16):
+        t.set(x, 0, STEEL[1])
+        t.set(x, 8, STEEL[1])
+        t.set(x, 9, STEEL[5])
+    for y in range(16):
+        t.set(0, y, STEEL[1])
+        t.set(15, y, STEEL[2])
+    for x in (3, 8, 13):
+        rivet(t, x, 4, STEEL)
+        rivet(t, x, 12, STEEL)
+    return t
+
+
+@block("containment_monitor")
+def containment_monitor():
+    t = steel_liner()
+    t.seed = 332
+    # pressure dial beside a hydrogen bar gauge, and status lamps
+    t.rect(2, 2, 13, 13, STEEL[3])
+    bevel(t, 2, 2, 13, 13, STEEL)
+    outline(t, 2, 2, 13, 13, STEEL[0])
+    t.disc(6.0, 6.5, 3.4, DARK[1])
+    t.ring(6.0, 6.5, 3.4, 2.8, BRASS[4])
+    for a in range(200, 341, 20):
+        r = math.radians(a)
+        c = RADIUM[5] if a < 280 else WARN[5] if a < 320 else DANGER[5]
+        t.set(round(6.0 + math.cos(r) * 2.2 - 0.5), round(6.5 + math.sin(r) * 2.2 - 0.5), c)
+    t.line(6, 6, 4, 5, WHITE)
+    t.rect(10, 3, 12, 9, DARK[0])
+    t.rect(11, 6, 11, 9, CYAN[4])
+    t.set(11, 6, CYAN[6])
+    t.rect(4, 11, 5, 12, RADIUM[5])
+    t.set(4, 11, RADIUM[6])
+    t.rect(8, 11, 9, 12, DANGER[2])
+    t.rect(11, 11, 12, 12, DARK[2])
+    return t
+
+
+@block("containment_penetration_side")
+def containment_penetration_side():
+    t = _concrete(Tex(seed=333), 333)
+    # a steel sleeve runs through the wall, flanged at both faces
+    t.rect(0, 5, 15, 10, STEEL[3])
+    t.hline(0, 15, 5, STEEL[5])
+    t.hline(0, 15, 10, STEEL[1])
+    for x in (0, 1, 14, 15):
+        t.vline(x, 4, 11, STEEL[4])
+    t.vline(1, 4, 11, STEEL[1])
+    t.vline(14, 4, 11, STEEL[5])
+    for x in range(3, 13, 3):
+        t.set(x, 7, STEEL[4])
+        t.set(x, 8, STEEL[2])
+    return t
+
+
+@block("containment_penetration_end")
+def containment_penetration_end():
+    t = _concrete(Tex(seed=334), 334)
+    # sleeve flange with the pipe bore through the middle
+    t.disc(8, 8, 6.4, STEEL[2])
+    t.ring(8, 8, 6.4, 5.6, STEEL[5])
+    for a in range(0, 360, 90):
+        r = math.radians(a + 45)
+        bolt(t, round(8 + math.cos(r) * 4.6 - 1), round(8 + math.sin(r) * 4.6 - 1), STEEL)
+    t.disc(8, 8, 3.2, DARK[1])
+    t.ring(8, 8, 3.2, 2.5, COPPER[3])
+    t.disc(8, 8, 1.6, DARK[0])
+    return t
+
+
+@block("recombiner_side")
+def recombiner_side():
+    t = Tex(seed=335)
+    plate(t, STEEL, seed=335, base=3.2)
+    # louvred housing over the copper catalyst plates
+    t.rect(3, 3, 12, 12, DARK[1])
+    for y in range(4, 12, 2):
+        t.hline(3, 12, y, STEEL[4])
+        t.hline(4, 11, y + 1, COPPER[2])
+    t.set(4, 5, COPPER[4])
+    t.set(9, 9, COPPER[4])
+    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        rivet(t, x, y, STEEL)
+    return t
+
+
+@block("recombiner_top")
+def recombiner_top():
+    t = Tex(seed=336)
+    plate(t, STEEL, seed=336, base=3.4)
+    # chimney outlet where the warm air rises out
+    t.rect(4, 4, 11, 11, STEEL[1])
+    vents(t, 5, 5, 10, 10, STEEL, step=1)
+    outline(t, 4, 4, 11, 11, STEEL[0])
+    return t
+
+
+def _vent(open_):
+    t = _concrete(Tex(seed=337), 337)
+    # filter housing with a valve wheel; open, the stack breathes white
+    t.rect(2, 2, 13, 13, STEEL[2])
+    bevel(t, 2, 2, 13, 13, STEEL, hi=STEEL[5], lo=STEEL[0])
+    vents(t, 4, 3, 11, 8, STEEL, step=1, dark=DARK[0], lite=STEEL[4])
+    t.ring(8, 11, 2.8, 2.0, DANGER[3])
+    t.line(6, 11, 10, 11, DANGER[2])
+    t.line(8, 9, 8, 13, DANGER[2])
+    t.set(8, 11, DANGER[5])
+    lamp = RADIUM if open_ else DARK
+    t.rect(12, 3, 12, 4, lamp[5])
+    if open_:
+        for x, y in ((5, 4), (8, 4), (10, 6), (6, 6)):
+            t.set(x, y, WHITE)
+        t.set(7, 3, CYAN[6])
+    return t
+
+
+@block("filtered_vent")
+def filtered_vent():
+    return _vent(False)
+
+
+@block("filtered_vent_open")
+def filtered_vent_open():
+    return _vent(True)
+
+
+# ======================================================================================
+# accidents: molten core, its slag, and the floor that catches it
+# ======================================================================================
+
+def _melt(seed, hot):
+    t = Tex(seed=seed)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, seed, 16, 16, 3, 3.5)
+            if hot:
+                ramp = PLASMA if n > 0.45 else DANGER
+                v = 2.0 + (n - 0.3) * 6.0
+            else:
+                ramp = DANGER if n > 0.55 else DARK
+                v = 1.0 + (n - 0.3) * 4.0
+            t.set(x, y, ramp[max(0, min(6, int(round(v))))])
+    # dark crust plates floating on the melt
+    rng = t.rng
+    for _ in range(4 if hot else 7):
+        cx, cy = rng.randrange(16), rng.randrange(16)
+        for dx in range(-1, 2):
+            for dy in range(-1, 1):
+                if rng.random() < 0.7:
+                    t.set((cx + dx) % 16, (cy + dy) % 16, DARK[1] if hot else DARK[0])
+    return t
+
+
+@block("corium")
+def corium():
+    return _melt(340, True)
+
+
+@block("corium_cooling")
+def corium_cooling():
+    return _melt(341, False)
+
+
+@block("solidified_corium")
+def solidified_corium():
+    t = Tex(seed=342)
+    # glassy black slag with metal inclusions and a sickly green sheen
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 342, 16, 16, 3, 3.0)
+            v = 0.6 + n * 3.0
+            t.set(x, y, DARK[max(0, min(3, int(round(v))))])
+    rng = t.rng
+    for _ in range(10):
+        x, y = rng.randrange(16), rng.randrange(16)
+        t.set(x, y, STEEL[rng.choice((4, 5))])
+    for _ in range(6):
+        x, y = rng.randrange(16), rng.randrange(16)
+        t.set(x, y, RADIUM[rng.choice((2, 3))])
+    cracks(t, DARK, seed=342, count=3)
+    return t
+
+
+@block("core_catcher_side")
+def core_catcher_side():
+    t = _concrete(Tex(seed=343), 343, base=2.6)
+    # refractory brick courses over sacrificial concrete
+    for y in range(0, 8):
+        for x in range(16):
+            n = fbm(x, y, 344, 16, 16, 2, 3.0) - 0.5
+            t.set(x, y, DANGER[max(1, min(4, int(round(2.4 + n * 1.6))))])
+    for x in range(16):
+        t.set(x, 3, CONCRETE[4])
+        t.set(x, 7, CONCRETE[1])
+    for x in (2, 10):
+        t.vline(x, 0, 2, CONCRETE[4])
+    for x in (6, 14):
+        t.vline(x, 4, 6, CONCRETE[4])
+    return t
+
+
+@block("core_catcher_top")
+def core_catcher_top():
+    t = Tex(seed=345)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 345, 16, 16, 2, 3.0) - 0.5
+            t.set(x, y, DANGER[max(1, min(4, int(round(2.6 + n * 1.6))))])
+    # a grid of refractory bricks, staggered
+    for i in range(0, 16, 4):
+        t.hline(0, 15, i, CONCRETE[4])
+    for row in range(4):
+        for x in range(0, 16, 4):
+            t.vline(x + (2 if row % 2 else 0), row * 4 + 1, row * 4 + 3, CONCRETE[3])
+    outline(t, 0, 0, 15, 15, CONCRETE[1])
     return t

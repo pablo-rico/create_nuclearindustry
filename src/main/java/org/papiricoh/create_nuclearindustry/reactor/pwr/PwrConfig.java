@@ -22,6 +22,27 @@ public final class PwrConfig {
     private static ModConfigSpec.DoubleValue SG_UA_PER_TUBE;
     private static ModConfigSpec.DoubleValue SG_MIN_PRESSURE;
     private static ModConfigSpec.DoubleValue SG_MAX_PRESSURE;
+    private static ModConfigSpec.IntValue CONTAINMENT_MAX_VOLUME;
+    private static ModConfigSpec.IntValue CONTAINMENT_CELLS_PER_TICK;
+    private static ModConfigSpec.DoubleValue MOLES_PER_MB;
+    private static ModConfigSpec.DoubleValue CONDENSATION;
+    private static ModConfigSpec.DoubleValue RECOMBINER_RATE;
+    private static ModConfigSpec.DoubleValue VENT_FLOW;
+    private static ModConfigSpec.DoubleValue VENT_DECONTAMINATION;
+    private static ModConfigSpec.DoubleValue IGNITION_CHANCE;
+    private static ModConfigSpec.BooleanValue BLOCK_DESTRUCTION;
+    private static ModConfigSpec.BooleanValue HYDROGEN;
+    private static ModConfigSpec.BooleanValue CORIUM;
+    private static ModConfigSpec.BooleanValue STEAM_EXPLOSIONS;
+    private static ModConfigSpec.BooleanValue CONTAINMENT_RUPTURE;
+    private static ModConfigSpec.BooleanValue LEGACY_MELTDOWN;
+    private static ModConfigSpec.DoubleValue OXIDATION_TEMPERATURE;
+    private static ModConfigSpec.DoubleValue OXIDATION_RATE;
+    private static ModConfigSpec.DoubleValue ZIRCONIUM_PER_ROD;
+    private static ModConfigSpec.DoubleValue OXIDATION_HEAT;
+    private static ModConfigSpec.DoubleValue VESSEL_FAILURE_PRESSURE;
+    private static ModConfigSpec.IntValue VESSEL_FAILURE_TICKS;
+    private static ModConfigSpec.DoubleValue STEAM_EXPLOSION_TEMPERATURE;
 
     public static double coldLegTemperature = 290.0;
     public static double coreTemperatureRise = 35.0;
@@ -38,6 +59,27 @@ public final class PwrConfig {
     public static double steamGeneratorUaPerTube = 0.3;
     public static double steamGeneratorMinPressure = 50.0;
     public static double steamGeneratorMaxPressure = 120.0;
+    public static int containmentMaxVolume = 32_768;
+    public static int containmentCellsPerTick = 4_096;
+    public static double molesPerMb = 10.0;
+    public static double condensation = 0.05;
+    public static double recombinerRate = 40.0;
+    public static double ventFlow = 0.002;
+    public static double ventDecontamination = 100.0;
+    public static double hydrogenIgnitionChance = 0.1;
+    public static boolean blockDestruction = true;
+    public static boolean hydrogen = true;
+    public static boolean corium = true;
+    public static boolean steamExplosions = true;
+    public static boolean containmentRupture = true;
+    public static boolean legacyMeltdown = false;
+    public static double oxidationTemperature = 1200.0;
+    public static double oxidationRate = 0.5;
+    public static double zirconiumPerRod = 500.0;
+    public static double oxidationHeat = 4.0;
+    public static double vesselFailurePressure = 250.0;
+    public static int vesselFailureTicks = 100;
+    public static double steamExplosionTemperature = 2800.0;
 
     private PwrConfig() {}
 
@@ -90,6 +132,75 @@ public final class PwrConfig {
                 .comment("Secondary pressure of a steam generator with a full steam tank, in bar. Near the hot leg's boiling",
                         "pressure the generator stops taking heat.")
                 .defineInRange("pwr.steamGenerator.maxPressure", 120.0, 2.0, 220.0);
+
+        CONTAINMENT_MAX_VOLUME = builder
+                .comment("Most blocks of air a containment may enclose; a bigger space counts as open to the outside.")
+                .defineInRange("pwr.containment.maxVolume", 32_768, 64, 262_144);
+        CONTAINMENT_CELLS_PER_TICK = builder
+                .comment("Blocks a Containment Monitor checks per tick while it measures its building, to spread the work.")
+                .defineInRange("pwr.containment.cellsPerTick", 4_096, 64, 65_536);
+        MOLES_PER_MB = builder
+                .comment("Gas one mB of reactor coolant makes when it flashes to steam in a containment, in mol.",
+                        "Real water makes 55; the default keeps game-sized buildings within their ratings.")
+                .defineInRange("pwr.containment.molesPerMb", 10.0, 0.1, 100.0);
+        CONDENSATION = builder
+                .comment("Steam the walls condense, in mol per tick per block face of wall per bar of steam.")
+                .defineInRange("pwr.containment.condensation", 0.05, 0.0, 10.0);
+        RECOMBINER_RATE = builder
+                .comment("Hydrogen one Passive Autocatalytic Recombiner removes per tick, in mol, times the hydrogen",
+                        "fraction (at 4% it removes 4% of this). Recombiners start working above 0.5%.")
+                .defineInRange("pwr.containment.recombinerRate", 40.0, 0.0, 10_000.0);
+        VENT_FLOW = builder
+                .comment("Share of the containment's gas one open Filtered Vent lets out per tick, per bar above the outside.")
+                .defineInRange("pwr.containment.ventFlow", 0.002, 0.0, 0.5);
+        VENT_DECONTAMINATION = builder
+                .comment("Decontamination factor of the Filtered Vent: the activity it lets out is divided by this.")
+                .defineInRange("pwr.containment.ventDecontamination", 100.0, 1.0, 1.0e6);
+        IGNITION_CHANCE = builder
+                .comment("Chance per second that a containment with 4-8% hydrogen ignites. From 8% it always does.")
+                .defineInRange("pwr.containment.hydrogenIgnitionChance", 0.1, 0.0, 1.0);
+
+        BLOCK_DESTRUCTION = builder
+                .comment("Accidents may break blocks: explosions, corium melting through floors, a ruptured containment wall.",
+                        "False keeps every effect but leaves the world's blocks alone; only the molten fuel itself changes.")
+                .define("pwr.accidents.blockDestruction", true);
+        HYDROGEN = builder
+                .comment("Hot fuel cladding makes hydrogen, which can burn inside a containment.")
+                .define("pwr.accidents.hydrogen", true);
+        CORIUM = builder
+                .comment("A meltdown leaves molten corium that melts its way down and freezes into radioactive slag.",
+                        "False turns the fuel straight into slag where it stands.")
+                .define("pwr.accidents.corium", true);
+        STEAM_EXPLOSIONS = builder
+                .comment("Water reaching a core hotter than steamExplosionTemperature, or corium touching water, explodes.")
+                .define("pwr.accidents.steamExplosions", true);
+        CONTAINMENT_RUPTURE = builder
+                .comment("A containment whose pressure passes its weakest wall's rating bursts there and releases everything inside.")
+                .define("pwr.accidents.containmentRupture", true);
+        LEGACY_MELTDOWN = builder
+                .comment("Brings back the old meltdown: a power 80 explosion and wide fallout, instead of the realistic chain.")
+                .define("pwr.accidents.legacyMeltdown", false);
+        OXIDATION_TEMPERATURE = builder
+                .comment("Core temperature where the zirconium cladding starts reacting with steam, in °C.")
+                .defineInRange("pwr.accidents.oxidationTemperature", 1200.0, 300.0, 4000.0);
+        OXIDATION_RATE = builder
+                .comment("Zirconium each fuel rod loses per tick 300 °C above that, in mol. It grows with the square of the excess.")
+                .defineInRange("pwr.accidents.oxidationRate", 0.5, 0.0, 100.0);
+        ZIRCONIUM_PER_ROD = builder
+                .comment("Zirconium in the cladding of one fuel rod, in mol: each mol makes two mol of hydrogen.")
+                .defineInRange("pwr.accidents.zirconiumPerRod", 500.0, 0.0, 100_000.0);
+        OXIDATION_HEAT = builder
+                .comment("Core heating per mol of zirconium oxidised per rod, in °C.")
+                .defineInRange("pwr.accidents.oxidationHeat", 4.0, 0.0, 100.0);
+        VESSEL_FAILURE_PRESSURE = builder
+                .comment("Primary pressure a pressurized reactor's vessel fails above, in bar, if held long enough.")
+                .defineInRange("pwr.accidents.vesselFailurePressure", 250.0, 50.0, 400.0);
+        VESSEL_FAILURE_TICKS = builder
+                .comment("Ticks above that pressure before the vessel breaks.")
+                .defineInRange("pwr.accidents.vesselFailureTicks", 100, 1, 72_000);
+        STEAM_EXPLOSION_TEMPERATURE = builder
+                .comment("Core temperature above which water pumped back into a dried-out core explodes, in °C.")
+                .defineInRange("pwr.accidents.steamExplosionTemperature", 2800.0, 500.0, 4000.0);
     }
 
     public static void bake() {
@@ -108,6 +219,27 @@ public final class PwrConfig {
         steamGeneratorUaPerTube = SG_UA_PER_TUBE.get();
         steamGeneratorMinPressure = SG_MIN_PRESSURE.get();
         steamGeneratorMaxPressure = Math.max(SG_MAX_PRESSURE.get(), SG_MIN_PRESSURE.get());
+        containmentMaxVolume = CONTAINMENT_MAX_VOLUME.get();
+        containmentCellsPerTick = CONTAINMENT_CELLS_PER_TICK.get();
+        molesPerMb = MOLES_PER_MB.get();
+        condensation = CONDENSATION.get();
+        recombinerRate = RECOMBINER_RATE.get();
+        ventFlow = VENT_FLOW.get();
+        ventDecontamination = VENT_DECONTAMINATION.get();
+        hydrogenIgnitionChance = IGNITION_CHANCE.get();
+        blockDestruction = BLOCK_DESTRUCTION.get();
+        hydrogen = HYDROGEN.get();
+        corium = CORIUM.get();
+        steamExplosions = STEAM_EXPLOSIONS.get();
+        containmentRupture = CONTAINMENT_RUPTURE.get();
+        legacyMeltdown = LEGACY_MELTDOWN.get();
+        oxidationTemperature = OXIDATION_TEMPERATURE.get();
+        oxidationRate = OXIDATION_RATE.get();
+        zirconiumPerRod = ZIRCONIUM_PER_ROD.get();
+        oxidationHeat = OXIDATION_HEAT.get();
+        vesselFailurePressure = VESSEL_FAILURE_PRESSURE.get();
+        vesselFailureTicks = VESSEL_FAILURE_TICKS.get();
+        steamExplosionTemperature = STEAM_EXPLOSION_TEMPERATURE.get();
     }
 
     /** Hot leg temperature at full flow, °C. */

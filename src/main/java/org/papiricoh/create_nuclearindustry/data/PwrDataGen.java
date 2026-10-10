@@ -6,13 +6,20 @@ import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.conditions.ItemExistsCondition;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
+import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.data.recipe.ContainmentCraftingRecipes;
 import org.papiricoh.create_nuclearindustry.data.recipe.PwrCraftingRecipes;
 import org.papiricoh.create_nuclearindustry.data.recipe.PwrMixingRecipes;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockTags;
@@ -20,6 +27,10 @@ import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationTransmission;
 import org.papiricoh.create_nuclearindustry.radiation.Radioactivity;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrTags;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.CoriumBlock;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.ContainmentRating;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.FilteredVentBlock;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.block.PressurizerHeaterPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.block.ReliefValveBlock;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.steamgen.SteamGeneratorPortBlock;
@@ -78,6 +89,8 @@ final class PwrDataGen extends AreaDataGen {
         LangEntries.add(goggles + "no_pressurizer", "Primary coolant without a pressurizer on the lid: the loop is not running",
                 "Refrigerante primario sin presionador en la tapa: el circuito no funciona");
 
+        containmentLang();
+
         String sg = "create_nuclearindustry.steam_generator.";
         LangEntries.add(sg + "role.primary_in", "Primary in", "Entrada del primario");
         LangEntries.add(sg + "role.primary_out", "Primary out", "Salida del primario");
@@ -106,6 +119,52 @@ final class PwrDataGen extends AreaDataGen {
         LangEntries.add(error + "casing", "Casing missing at %s %s %s", "Falta carcasa en %s %s %s");
         LangEntries.add(error + "two_controllers", "Second controller at %s %s %s", "Segundo controlador en %s %s %s");
         LangEntries.add(error + "missing_port", "Needs a port set to %s", "Necesita un puerto en modo %s");
+    }
+
+    private static void containmentLang() {
+        LangEntries.block("containment_concrete", "Containment Concrete", "Hormigón de contención");
+        LangEntries.block("steel_liner", "Steel Liner", "Revestimiento de acero");
+        LangEntries.block("containment_monitor", "Containment Monitor", "Monitor de contención");
+        LangEntries.block("containment_penetration", "Containment Penetration", "Penetración de contención");
+        LangEntries.block("recombiner", "Passive Autocatalytic Recombiner", "Recombinador autocatalítico pasivo");
+        LangEntries.block("filtered_vent", "Filtered Containment Vent", "Venteo filtrado de contención");
+        LangEntries.block("corium", "Corium", "Corium");
+        LangEntries.block("solidified_corium", "Solidified Corium", "Corium solidificado");
+        LangEntries.block("core_catcher", "Core Catcher", "Recogedor del núcleo");
+        LangEntries.add("create_nuclearindustry.control_room.kind.containment", "Containment", "Contención");
+
+        String source = "create_nuclearindustry.display_source.";
+        LangEntries.add(source + "reactor_containment_pressure", "Containment Pressure", "Presión de la contención");
+        LangEntries.add(source + "reactor_hydrogen", "Containment Hydrogen", "Hidrógeno en la contención");
+
+        String c = "create_nuclearindustry.containment.";
+        LangEntries.add(c + "status.sealed", "SEALED", "ESTANCA");
+        LangEntries.add(c + "status.ruptured", "RUPTURED", "ROTA");
+        LangEntries.add(c + "status.hydrogen", "HYDROGEN", "HIDRÓGENO");
+        LangEntries.add(c + "status.venting", "VENTING", "VENTEANDO");
+        LangEntries.add(c + "goggles.surveying", "Measuring the building...", "Midiendo el edificio...");
+        LangEntries.add(c + "goggles.open", "Not sealed: the air inside reaches the outside",
+                "Sin sellar: el aire de dentro llega al exterior");
+        LangEntries.add(c + "goggles.volume", "Sealed: %s m³, weakest wall holds %s bar",
+                "Estanca: %s m³, la pared más débil aguanta %s bar");
+        LangEntries.add(c + "goggles.pressure", "Pressure: %s bar at %s °C", "Presión: %s bar a %s °C");
+        LangEntries.add(c + "goggles.gas", "Hydrogen: %s%%, steam %s%%", "Hidrógeno: %s%%, vapor %s%%");
+        LangEntries.add(c + "goggles.devices", "Recombiners: %s, vents: %s (%s open)",
+                "Recombinadores: %s, venteos: %s (%s abiertos)");
+        LangEntries.add(c + "goggles.activity", "Airborne activity: %s", "Actividad en el aire: %s");
+        LangEntries.add(c + "goggles.burn", "HYDROGEN BURN", "COMBUSTIÓN DE HIDRÓGENO");
+        LangEntries.add(c + "penetration.buffer", "Toward %s: %s, %s / %s mB", "Hacia %s: %s, %s / %s mB");
+        LangEntries.add(c + "penetration.empty", "empty", "vacío");
+        String[][] directions = {{"down", "below", "abajo"}, {"up", "above", "arriba"}, {"north", "north", "el norte"},
+                {"south", "south", "el sur"}, {"west", "west", "el oeste"}, {"east", "east", "el este"}};
+        for (String[] direction : directions) {
+            LangEntries.add(c + "direction." + direction[0], direction[1], direction[2]);
+        }
+
+        String a = "create_nuclearindustry.accident.goggles.";
+        LangEntries.add(a + "containment", " Containment: %s bar, hydrogen %s%%", " Contención: %s bar, hidrógeno %s%%");
+        LangEntries.add(a + "cladding", " Fuel cladding oxidised: %s%%", " Vainas del combustible oxidadas: %s%%");
+        LangEntries.add(a + "breached", " VESSEL BREACHED: rebuild and form it again", " VASIJA ROTA: reconstrúyela y vuelve a formarla");
     }
 
     @Override
@@ -151,6 +210,43 @@ final class PwrDataGen extends AreaDataGen {
         provider.getVariantBuilder(PwrRegistry.STEAM_GENERATOR_PORT.get()).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(ports.get(state.getValue(SteamGeneratorPortBlock.ROLE))).build());
         provider.simpleBlockItem(PwrRegistry.STEAM_GENERATOR_PORT.get(), ports.get(SteamGeneratorPortRole.PRIMARY_IN));
+
+        containmentStates(provider);
+    }
+
+    private static void containmentStates(NuclearBlockStateProvider provider) {
+        ResourceLocation concrete = provider.modLoc("block/containment_concrete");
+        provider.simpleBlockWithItem(PwrRegistry.CONTAINMENT_CONCRETE.get(), provider.models().cubeAll("containment_concrete", concrete));
+        ResourceLocation liner = provider.modLoc("block/steel_liner");
+        provider.simpleBlockWithItem(PwrRegistry.STEEL_LINER.get(), provider.models().cubeAll("steel_liner", liner));
+
+        ModelFile monitor = provider.models().orientable("containment_monitor", liner, provider.modLoc("block/containment_monitor"), liner);
+        provider.horizontalBlock(PwrRegistry.CONTAINMENT_MONITOR.get(), monitor);
+        provider.simpleBlockItem(PwrRegistry.CONTAINMENT_MONITOR.get(), monitor);
+
+        provider.axisBlock(PwrRegistry.CONTAINMENT_PENETRATION.get(), provider.modLoc("block/containment_penetration_side"),
+                provider.modLoc("block/containment_penetration_end"));
+        provider.simpleBlockItem(PwrRegistry.CONTAINMENT_PENETRATION.get(),
+                provider.models().getExistingFile(provider.modLoc("block/containment_penetration")));
+
+        provider.simpleBlockWithItem(PwrRegistry.RECOMBINER.get(), provider.models().cubeColumn("recombiner",
+                provider.modLoc("block/recombiner_side"), provider.modLoc("block/recombiner_top")));
+
+        ModelFile ventShut = provider.models().cubeColumn("filtered_vent", provider.modLoc("block/filtered_vent"), concrete);
+        ModelFile ventOpen = provider.models().cubeColumn("filtered_vent_open", provider.modLoc("block/filtered_vent_open"), concrete);
+        provider.getVariantBuilder(PwrRegistry.FILTERED_VENT.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(FilteredVentBlock.OPEN) ? ventOpen : ventShut).build());
+        provider.simpleBlockItem(PwrRegistry.FILTERED_VENT.get(), ventShut);
+
+        ModelFile coriumHot = provider.models().cubeAll("corium", provider.modLoc("block/corium"));
+        ModelFile coriumCooling = provider.models().cubeAll("corium_cooling", provider.modLoc("block/corium_cooling"));
+        provider.getVariantBuilder(PwrRegistry.CORIUM.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(CoriumBlock.HEAT) >= 3 ? coriumHot : coriumCooling).build());
+        provider.simpleBlockItem(PwrRegistry.CORIUM.get(), coriumHot);
+        provider.simpleBlockWithItem(PwrRegistry.SOLIDIFIED_CORIUM.get(),
+                provider.models().cubeAll("solidified_corium", provider.modLoc("block/solidified_corium")));
+        provider.simpleBlockWithItem(PwrRegistry.CORE_CATCHER.get(), provider.models().cubeColumn("core_catcher",
+                provider.modLoc("block/core_catcher_side"), provider.modLoc("block/core_catcher_top")));
     }
 
     @Override
@@ -164,6 +260,8 @@ final class PwrDataGen extends AreaDataGen {
     void blockTags(NuclearBlockTagsProvider provider, HolderLookup.Provider lookup) {
         var parts = provider.tagFor(MultiblockTags.MULTIBLOCK_PARTS);
         PwrRegistry.PARTS.forEach(block -> parts.add(block.get()));
+        provider.tagFor(PwrTags.CORIUM_RESISTANT).add(PwrRegistry.CORE_CATCHER.get());
+        provider.tagFor(BlockTags.NEEDS_IRON_TOOL).add(PwrRegistry.SOLIDIFIED_CORIUM.get(), PwrRegistry.CORE_CATCHER.get());
     }
 
     @Override
@@ -176,6 +274,42 @@ final class PwrDataGen extends AreaDataGen {
         for (var block : PwrRegistry.PARTS) {
             transmission.add(((Block) block.get()).builtInRegistryHolder(), new RadiationTransmission(0.5f), false);
         }
+        // Thick concrete and steel shield well; the slag of a melted core is as dense as it gets.
+        transmission.add(PwrRegistry.CONTAINMENT_CONCRETE.get().builtInRegistryHolder(), new RadiationTransmission(0.3f), false);
+        transmission.add(PwrRegistry.STEEL_LINER.get().builtInRegistryHolder(), new RadiationTransmission(0.4f), false);
+        transmission.add(PwrRegistry.CONTAINMENT_PENETRATION.get().builtInRegistryHolder(), new RadiationTransmission(0.35f), false);
+        transmission.add(PwrRegistry.FILTERED_VENT.get().builtInRegistryHolder(), new RadiationTransmission(0.35f), false);
+        transmission.add(PwrRegistry.CORE_CATCHER.get().builtInRegistryHolder(), new RadiationTransmission(0.3f), false);
+        transmission.add(PwrRegistry.CORIUM.get().builtInRegistryHolder(), new RadiationTransmission(0.2f), false);
+        transmission.add(PwrRegistry.SOLIDIFIED_CORIUM.get().builtInRegistryHolder(), new RadiationTransmission(0.2f), false);
+
+        // Molten and frozen core: by far the most radioactive blocks there are.
+        var radioactivity = provider.builderFor(AllNuclearRadiation.RADIOACTIVITY);
+        radioactivity.add(PwrRegistry.CORIUM_ITEM.get().builtInRegistryHolder(), new Radioactivity(20.0f, false, 2.0f), false);
+        radioactivity.add(PwrRegistry.SOLIDIFIED_CORIUM_ITEM.get().builtInRegistryHolder(), new Radioactivity(8.0f, false, 0.5f), false);
+
+        // Absolute pressure a block holds in a containment wall, bar. Unlisted full blocks hold 1.5.
+        var rating = provider.builderFor(ContainmentRating.TYPE);
+        rating.add(PwrRegistry.CONTAINMENT_CONCRETE.get().builtInRegistryHolder(), new ContainmentRating(6.0f), false);
+        rating.add(PwrRegistry.STEEL_LINER.get().builtInRegistryHolder(), new ContainmentRating(8.0f), false);
+        rating.add(PwrRegistry.CONTAINMENT_PENETRATION.get().builtInRegistryHolder(), new ContainmentRating(6.0f), false);
+        rating.add(PwrRegistry.FILTERED_VENT.get().builtInRegistryHolder(), new ContainmentRating(6.0f), false);
+        rating.add(PwrRegistry.CORE_CATCHER.get().builtInRegistryHolder(), new ContainmentRating(8.0f), false);
+        // Fittings that stand inside: never the weak point.
+        rating.add(PwrRegistry.CONTAINMENT_MONITOR.get().builtInRegistryHolder(), new ContainmentRating(10.0f), false);
+        rating.add(PwrRegistry.RECOMBINER.get().builtInRegistryHolder(), new ContainmentRating(10.0f), false);
+        rating.add(Tags.Blocks.GLASS_BLOCKS, new ContainmentRating(1.05f), false);
+        rating.add(Blocks.OBSIDIAN.builtInRegistryHolder(), new ContainmentRating(6.0f), false);
+        rating.add(Blocks.IRON_BLOCK.builtInRegistryHolder(), new ContainmentRating(4.0f), false);
+        // Blast doors belong to civil defense; a closed one is the strongest wall there is.
+        rating.add(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "blast_door"), new ContainmentRating(10.0f), false,
+                new ItemExistsCondition(Create_NuclearIndustry.MODID, "blast_door"));
+    }
+
+    @Override
+    void blockLoot(NuclearBlockLoot loot) {
+        // Molten fuel cannot be picked up; it has to freeze first.
+        loot.addTable(PwrRegistry.CORIUM.get(), LootTable.lootTable());
     }
 
     @Override
@@ -185,6 +319,8 @@ final class PwrDataGen extends AreaDataGen {
                 new PwrCraftingRecipes(output, lookup)));
         generator.addProvider(event.includeServer(), new Named("Pressurized water reactor mixing recipes",
                 new PwrMixingRecipes(output, lookup)));
+        generator.addProvider(event.includeServer(), new Named("Containment crafting recipes",
+                new ContainmentCraftingRecipes(output, lookup)));
     }
 
     /** Providers need unique names, and the shared recipe providers already hold the default ones. */
