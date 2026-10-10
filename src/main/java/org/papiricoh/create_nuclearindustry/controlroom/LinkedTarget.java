@@ -57,6 +57,11 @@ public final class LinkedTarget {
         public TargetKind kind() {
             return TargetKind.TOKAMAK;
         }
+
+        /** How desk modules drive it: start, shutdown, fuelling and heating. */
+        public org.papiricoh.create_nuclearindustry.fusion.api.TokamakControl control() {
+            return tokamak;
+        }
     }
 
     /** Steam generators, containments and other {@link PlantReadable} machines. */

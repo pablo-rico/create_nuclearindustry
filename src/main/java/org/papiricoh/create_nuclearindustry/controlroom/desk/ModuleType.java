@@ -5,17 +5,22 @@ import java.util.Locale;
 
 /** The kinds of control module that fit a desk slot, and the functions each can be set to. */
 public enum ModuleType {
-    PUSH_BUTTON("push_button_module", List.of(ModuleFunction.SCRAM, ModuleFunction.PULSE)),
+    PUSH_BUTTON("push_button_module", List.of(ModuleFunction.SCRAM, ModuleFunction.PULSE, ModuleFunction.TOKAMAK_START,
+            ModuleFunction.TOKAMAK_SHUTDOWN)),
     LEVER("lever_module", List.of(ModuleFunction.AUTO_SCRAM, ModuleFunction.TOKAMAK_FUEL, ModuleFunction.TOGGLE,
-            ModuleFunction.PZR_HEATERS, ModuleFunction.PZR_SPRAY)),
+            ModuleFunction.PZR_HEATERS, ModuleFunction.PZR_SPRAY, ModuleFunction.TOKAMAK_START, ModuleFunction.TOKAMAK_SHUTDOWN,
+            ModuleFunction.TOKAMAK_HEATING)),
     DIAL("dial_module", List.of(ModuleFunction.ROD_TARGET, ModuleFunction.SCRAM_THRESHOLD, ModuleFunction.SIGNAL_LEVEL)),
     LAMP("lamp_module", List.of(ModuleFunction.LAMP_SCRAM, ModuleFunction.LAMP_RUNNING, ModuleFunction.LAMP_NO_SIGNAL,
             ModuleFunction.LAMP_ALARM, ModuleFunction.LAMP_RELIEF_OPEN)),
     GAUGE("gauge_module", List.of(ModuleFunction.READING)),
     KEY_SWITCH("key_switch_module", List.of(ModuleFunction.TOGGLE)),
-    /** Automatic control: a PID loop holding power or temperature (with the rods) or primary pressure (with the pressurizer). */
+    /**
+     * Automatic control: a PID loop holding power or temperature (with the rods), primary pressure (with
+     * the pressurizer) or a tokamak's fusion power (with its fuelling and heating).
+     */
     CONTROLLER("controller_module", List.of(ModuleFunction.AUTO_POWER, ModuleFunction.AUTO_TEMPERATURE,
-            ModuleFunction.AUTO_PRESSURE));
+            ModuleFunction.AUTO_PRESSURE, ModuleFunction.AUTO_FUSION_POWER));
 
     private final String itemId;
     private final List<ModuleFunction> functions;

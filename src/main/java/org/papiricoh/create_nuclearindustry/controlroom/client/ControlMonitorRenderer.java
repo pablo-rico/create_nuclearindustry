@@ -13,6 +13,8 @@ import net.minecraft.world.phys.AABB;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
+import org.papiricoh.create_nuclearindustry.controlroom.TokamakScales;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,7 +145,14 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
         if (row.gauge() >= 0) {
             ScreenDraw.bar(ms, buffers, 6, height - 22, width - 12, 6, row.gauge());
         }
-        ScreenDraw.textCentered(ms, buffers, font, status(reading), width / 2, height - 12, statusColor(reading));
+        // A long status ("Cooling magnets") shrinks to fit the block.
+        Component status = status(reading);
+        float statusScale = Math.min(1.0f, (width - 4) / Math.max(1, font.width(status)));
+        ms.pushPose();
+        ms.translate(width / 2, height - 12 + (1 - statusScale) * 4, 0);
+        ms.scale(statusScale, statusScale, 1);
+        ScreenDraw.textCentered(ms, buffers, font, status, 0, 0, statusColor(reading));
+        ms.popPose();
     }
 
     private void drawGraph(ControlMonitorBlockEntity monitor, PoseStack ms, MultiBufferSource buffers, MonitorReading reading,
@@ -229,19 +238,7 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
                         r.value(C_STEAM) > 0.9f ? WARN : TEXT));
                 rows.add(row("fans", fmt("%.0f", r.value(C_FANS)), -1, TEXT));
             }
-            case TOKAMAK -> {
-                float plasma = r.value(K_TEMPERATURE);
-                rows.add(row("plasma", fmt("%.0f °", plasma), r.seriesA(),
-                        plasma >= 5000 ? BAD : plasma >= 1500 ? GOOD : TEXT));
-                rows.add(row("power", fmt("%.0f MW", r.value(K_POWER)), r.seriesB(), TEXT));
-                rows.add(row("confinement", fmt("%.0f%%", r.value(K_CONFINEMENT) * 100), r.value(K_CONFINEMENT),
-                        r.value(K_CONFINEMENT) < 0.65f ? WARN : TEXT));
-                rows.add(row("instability", fmt("%.0f%%", r.value(K_INSTABILITY)), r.value(K_INSTABILITY) / 100f,
-                        r.value(K_INSTABILITY) >= 60 ? BAD : TEXT));
-                rows.add(row("deuterium", fmt("%.0f%%", r.value(K_DEUTERIUM) * 100), r.value(K_DEUTERIUM), TEXT));
-                rows.add(row("tritium", fmt("%.0f%%", r.value(K_TRITIUM) * 100), r.value(K_TRITIUM), TEXT));
-                rows.add(new Row(label("fuel"), Component.translatable(KEY + (r.flag(K_FUEL) ? "yes" : "no")), -1, TEXT));
-            }
+            case TOKAMAK -> tokamakRows(r, rows);
             case AREA -> {
                 float exposure = r.value(A_EXPOSURE);
                 rows.add(row("exposure", fmt("%.2f rad/s", exposure), r.seriesA(), exposure >= 1 ? BAD : exposure >= 0.05f ? WARN : GOOD));
@@ -274,6 +271,54 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
             default -> rows.add(new Row(Component.empty(), Component.empty(), -1, TEXT));
         }
         return rows;
+    }
+
+    /**
+     * A tokamak's readings, most watched first so a small screen keeps them: why it tripped, the plasma
+     * and what it gives, then what holds it (field, magnets, vacuum) and what feeds it.
+     */
+    private static void tokamakRows(MonitorReading r, List<Row> rows) {
+        TokamakPhase phase = TokamakScales.phase(r.value(K_PHASE));
+        if (r.flag(K_TRIPPED)) {
+            rows.add(new Row(label("trip"), Component.translatable(TokamakScales.trip(r.value(K_TRIP)).langKey()), -1, BAD));
+        }
+        float plasma = r.value(K_TEMPERATURE);
+        rows.add(row("plasma", fmt("%.0f °", plasma), r.seriesA(),
+                plasma >= TokamakScales.DANGER_TEMPERATURE ? BAD : plasma >= TokamakScales.IGNITION_TEMPERATURE ? GOOD : TEXT));
+        rows.add(row("power", fmt("%.0f MW", r.value(K_POWER)), r.seriesB(), TEXT));
+        float gain = r.value(K_GAIN);
+        rows.add(row("gain", TokamakScales.formatGain(gain), gain / TokamakScales.GAIN_MAX,
+                phase != TokamakPhase.BURN ? TEXT : TokamakScales.ignited(gain) ? GOOD : gain < TokamakScales.NET_GAIN ? WARN : TEXT));
+        float density = r.value(K_DENSITY);
+        rows.add(row("density", fmt("%.0f%%", density * 100), density / TokamakScales.DENSITY_MAX,
+                density >= 1.0f ? BAD : density >= 0.9f ? WARN : TEXT));
+        float instability = r.value(K_INSTABILITY);
+        rows.add(row("instability", fmt("%.0f%%", instability), instability / TokamakScales.DISRUPTION_INSTABILITY,
+                instability >= TokamakScales.INSTABILITY_WARNING ? BAD : TEXT));
+        float field = r.value(K_FIELD);
+        rows.add(row("field", fmt("%.0f%%", field * 100), field, TEXT));
+        float magnets = r.value(K_MAGNET_TEMPERATURE);
+        boolean superconducting = magnets <= TokamakScales.SUPERCONDUCTING_LIMIT;
+        rows.add(row("magnets", fmt(magnets < 100 ? "%.1f K" : "%.0f K", magnets), magnets / TokamakScales.MAGNET_TEMPERATURE_MAX,
+                superconducting ? GOOD : field > 0.01f ? BAD : TEXT));
+        float vacuum = r.value(K_VACUUM);
+        rows.add(row("vacuum", TokamakScales.formatPressure(vacuum),
+                (vacuum - TokamakScales.VACUUM_MIN) / (TokamakScales.VACUUM_MAX - TokamakScales.VACUUM_MIN),
+                vacuum <= TokamakScales.PLASMA_VACUUM_LIMIT ? GOOD : phase.hasPlasma() ? BAD : TEXT));
+        float heating = r.value(K_HEATING);
+        rows.add(r.flag(K_HEATING_ON)
+                ? row("heating", fmt("%.1f MW", heating), heating / TokamakScales.HEATING_MAX, TEXT)
+                : new Row(label("heating"), Component.translatable(KEY + "off"), -1, DIM));
+        float maxFuel = r.value(K_FUEL_RATE_MAX);
+        rows.add(row("fuel_rate", fmt("%.2f mB/t", r.value(K_FUEL_RATE)), maxFuel > 0 ? r.value(K_FUEL_RATE) / maxFuel : 0, TEXT));
+        float helium = r.value(K_LIQUID_HELIUM);
+        rows.add(row("helium", fmt("%.0f%%", helium * 100), helium, helium < 0.1f ? WARN : TEXT));
+        rows.add(row("confinement", fmt("%.0f%%", r.value(K_CONFINEMENT) * 100), r.value(K_CONFINEMENT),
+                r.value(K_CONFINEMENT) < TokamakScales.MIN_BURN_CONFINEMENT ? WARN : TEXT));
+        float ash = r.value(K_ASH);
+        rows.add(row("ash", fmt("%.1f%%", ash * 100), ash / TokamakScales.ASH_MAX, ash >= 0.1f ? WARN : TEXT));
+        rows.add(row("deuterium", fmt("%.0f%%", r.value(K_DEUTERIUM) * 100), r.value(K_DEUTERIUM), TEXT));
+        rows.add(row("tritium", fmt("%.0f%%", r.value(K_TRITIUM) * 100), r.value(K_TRITIUM), TEXT));
     }
 
     /** Primary loop readings that need watching most: pressure, subcooling, pressurizer and flow. */
@@ -337,7 +382,8 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
 
     private static int statusColor(MonitorReading reading) {
         String status = reading.status();
-        if (status.contains("SCRAM") || status.equals("MELTING") || status.equals("Critical") || status.endsWith(".radiation")) {
+        if (status.contains("SCRAM") || status.equals("MELTING") || status.equals("Critical") || status.endsWith(".radiation")
+                || status.endsWith(".tripped")) {
             return BAD;
         }
         if (status.equals("Running") || status.endsWith(".running") || status.endsWith(".clear") || status.endsWith(".burning")) {

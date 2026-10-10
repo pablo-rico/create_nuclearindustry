@@ -2,6 +2,7 @@ package org.papiricoh.create_nuclearindustry.controlroom;
 
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
 import com.simibubi.create.foundation.gui.AllIcons;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReleasePath;
 
 import java.util.Locale;
@@ -106,9 +107,10 @@ public enum AlarmMetric implements INamedIconOptions {
         }
     },
     PLASMA_TEMPERATURE(AllIcons.I_FX_SURFACE_ON, TargetKind.TOKAMAK) {
+        /** Up to the hottest a plasma gets (60° a step). */
         @Override
         public float scaled(int setting) {
-            return setting * 60f;
+            return setting * TokamakScales.MAX_TEMPERATURE / 100f;
         }
 
         @Override
@@ -422,6 +424,121 @@ public enum AlarmMetric implements INamedIconOptions {
         float reading(MonitorReading reading) {
             return reading.value(MonitorReading.N_ACTIVITY);
         }
+    },
+    // Tokamak startup and plasma control. Saved by ordinal: new metrics go after these.
+    /** Chamber pressure above the threshold while the plasma needs vacuum. */
+    VACUUM_POOR(AllIcons.I_PATTERN_CHANCE_75, TargetKind.TOKAMAK) {
+        @Override
+        public float scaled(int setting) {
+            return TokamakScales.vacuumThreshold(setting);
+        }
+
+        @Override
+        public String format(int setting) {
+            return TokamakScales.formatPressure(scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.K_VACUUM);
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return tokamakPhase(sample) != null && tokamakPhase(sample).hasPlasma();
+        }
+    },
+    /** Coil temperature above the threshold while the magnets carry, or are about to carry, current. */
+    MAGNET_TEMPERATURE(AllIcons.I_FX_SURFACE_OFF, TargetKind.TOKAMAK) {
+        @Override
+        public float scaled(int setting) {
+            return TokamakScales.magnetThreshold(setting);
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.1f K", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.K_MAGNET_TEMPERATURE);
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            TokamakPhase phase = tokamakPhase(sample);
+            return phase != null && TokamakScales.magnetsInUse(phase, sample.value(MonitorReading.K_FIELD));
+        }
+    },
+    /** A burning plasma's gain Q at or below the threshold: the heating eats the profit. */
+    FUSION_GAIN_LOW(AllIcons.I_MOVE_GAUGE, TargetKind.TOKAMAK) {
+        @Override
+        public float scaled(int setting) {
+            return TokamakScales.gainThreshold(setting);
+        }
+
+        @Override
+        public String format(int setting) {
+            return TokamakScales.formatGain(scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.K_GAIN);
+        }
+
+        @Override
+        public boolean tripped(MonitorReading sample, int setting) {
+            TokamakPhase phase = tokamakPhase(sample);
+            return phase != null && TokamakScales.gainLow(phase, reading(sample), scaled(setting));
+        }
+    },
+    /** Plasma density above the threshold, in percent of the Greenwald limit. */
+    PLASMA_DENSITY(AllIcons.I_PATTERN_SOLID, TargetKind.TOKAMAK) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.K_DENSITY) * 100f;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return tokamakPhase(sample) != null && tokamakPhase(sample).hasPlasma();
+        }
+    },
+    /** Tritium tank at or below the threshold. */
+    TRITIUM_LOW(AllIcons.I_PRIORITY_VERY_LOW, TargetKind.TOKAMAK) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.K_TRITIUM) * 100f;
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return tokamakPhase(sample) != null;
+        }
+    },
+    /** The plasma went out, or a start was refused, for a reason other than the operator's shutdown. */
+    TOKAMAK_TRIP(AllIcons.I_CONFIG_DISCARD, TargetKind.TOKAMAK) {
+        @Override
+        public String format(int setting) {
+            return "-";
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.flag(MonitorReading.K_TRIPPED) ? 1 : 0;
+        }
+
+        @Override
+        boolean tripped(float reading, int setting) {
+            return reading > 0;
+        }
     };
 
     private final AllIcons icon;
@@ -463,6 +580,13 @@ public enum AlarmMetric implements INamedIconOptions {
 
     private static boolean pressurized(MonitorReading sample) {
         return sample.kind() == TargetKind.REACTOR && sample.flag(MonitorReading.R_PWR);
+    }
+
+    /** The phase of a formed tokamak's sample, or null for anything else. */
+    @org.jetbrains.annotations.Nullable
+    private static TokamakPhase tokamakPhase(MonitorReading sample) {
+        return sample.kind() == TargetKind.TOKAMAK && sample.flag(MonitorReading.K_FORMED)
+                ? TokamakScales.phase(sample.value(MonitorReading.K_PHASE)) : null;
     }
 
     private static boolean steamGeneratorFormed(MonitorReading sample) {

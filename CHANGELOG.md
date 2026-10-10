@@ -403,6 +403,37 @@ below for what changes in existing worlds.
   leg and pressurizer level for a pressurized reactor, level, steam and
   primary temperature drop for a steam generator, pressure, hydrogen and
   airborne activity for a containment.
+- The tokamak in the control room: monitors show its startup phase (or
+  "Tripped" and why), fusion gain Q ("∞" once ignited), plasma density,
+  helium ash, magnetic field, magnet temperature, chamber vacuum, heating
+  power, fuelling rate and liquid helium, most important first so small
+  screens keep them. Gauges and chart recorder pens can follow all of these
+  (vacuum on a logarithmic scale), and a recorder linked to a tokamak starts
+  with fusion power, plasma temperature and density.
+- The tokamak's Display Link readout is translated and shows the phase or
+  trip, plasma, power and Q, density and ash, field and magnet temperature,
+  vacuum, heating, fuelling, helium, instability and TBR.
+- New tokamak alarms: poor chamber vacuum and warm magnets (only while they
+  matter: plasma lit, magnets energised), low fusion gain (judged only while
+  burning), high plasma density, low tritium and a tokamak trip, which lights
+  when the plasma went out or a start was refused for any reason but the
+  operator's own shutdown.
+- Tokamak annunciator preset: instability, density, vacuum, magnet
+  temperature, Q below 3 and trip, each lighting before the tokamak's own
+  protection acts.
+- Tokamak desk modules: Tokamak start and Tokamak shutdown on push buttons or
+  levers (a lever acts when thrown up; a refused start says why on the action
+  bar and the lever springs back), and a Tokamak heating lever. The old
+  Tokamak fuel lever, now called Tokamak on/off, keeps working in existing
+  desks.
+- Automatic fusion power for the controller module: holds the tokamak's
+  fusion power at a setpoint (0-1000 MW, 250 MW to start) by setting its
+  fuelling, and only once the fuelling is at its most raises the heating
+  above the level the operator left, which it never goes below. It acts on a
+  burning plasma only; the startup is the operator's. Tuning is in the
+  config.
+- Monitor colours for the tokamak follow the plasma model's own thresholds
+  instead of copies of them.
 
 ### Civil defense
 - New Air Raid Siren: it wails while powered by redstone, and on its own (a

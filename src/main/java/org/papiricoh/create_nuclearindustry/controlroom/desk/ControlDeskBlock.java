@@ -258,6 +258,10 @@ public class ControlDeskBlock extends HorizontalDirectionalBlock implements IBE<
         if (!level.isClientSide) {
             if (desk.press(slot, player.isShiftKeyDown())) {
                 level.playSound(null, pos, SoundEvents.STONE_BUTTON_CLICK_ON, SoundSource.BLOCKS, 0.4f, 1.2f);
+                Component feedback = desk.takeFeedback(slot);
+                if (feedback != null) {
+                    player.displayClientMessage(feedback, true);
+                }
             } else {
                 player.displayClientMessage(Component.translatable("create_nuclearindustry.control_module.inactive")
                         .withStyle(ChatFormatting.RED), true);

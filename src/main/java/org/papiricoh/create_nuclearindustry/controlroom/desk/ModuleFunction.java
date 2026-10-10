@@ -17,7 +17,7 @@ public enum ModuleFunction {
     PULSE(null),
     /** Lever: the reactor's automatic SCRAM on or off. */
     AUTO_SCRAM(TargetKind.REACTOR),
-    /** Lever: the tokamak's fuel injection on or off. */
+    /** Lever: the tokamak on or off, through the controller's old fuel switch (start and shutdown now). */
     TOKAMAK_FUEL(TargetKind.TOKAMAK),
     /** Lever or key switch: a redstone output on or off. */
     TOGGLE(null),
@@ -49,7 +49,16 @@ public enum ModuleFunction {
     /** Controller: runs the pressurizer heaters and spray to hold the primary pressure at the setpoint. */
     AUTO_PRESSURE(TargetKind.REACTOR, true),
     /** Lamp: lit while the pressurizer's relief valve is open. */
-    LAMP_RELIEF_OPEN(TargetKind.REACTOR, true);
+    LAMP_RELIEF_OPEN(TargetKind.REACTOR, true),
+    // Tokamak startup and plasma control.
+    /** Button or lever: starts the tokamak's startup sequence (a lever on its way up); a refusal says why. */
+    TOKAMAK_START(TargetKind.TOKAMAK),
+    /** Button or lever: shuts the tokamak down safely (a lever on its way up). */
+    TOKAMAK_SHUTDOWN(TargetKind.TOKAMAK),
+    /** Lever: the tokamak's auxiliary heating on or off, at the level it was set to. */
+    TOKAMAK_HEATING(TargetKind.TOKAMAK),
+    /** Controller: sets the tokamak's fuelling, then its heating, to hold the fusion power at the setpoint. */
+    AUTO_FUSION_POWER(TargetKind.TOKAMAK);
 
     @Nullable
     private final TargetKind needs;
