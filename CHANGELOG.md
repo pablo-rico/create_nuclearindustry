@@ -229,7 +229,34 @@ below for what changes in existing worlds.
   only sent to its own player when its rounded values change.
 
 ### Pressurized water reactors and accidents
-<!-- pwr: filled by its work package -->
+- Pressurized water reactors: put primary coolant (water and boron in a
+  mixer) in a fission reactor with a Pressurizer on its lid and it no longer
+  boils its water. Its output port gives hot primary coolant, which Create
+  pumps carry to a Steam Generator and back cooled into the coolant port.
+  Without a pressurizer the reactor boils water exactly as before and its
+  ports refuse primary coolant.
+- The Pressurizer is a stack of 2 to 4 Pressurizer and Pressurizer Heater
+  Port blocks capped by a Relief Valve. Its steam bubble sets the loop's
+  pressure (155 bar by default); heaters raise it (automatic, or manual with
+  redstone after a wrench click) and spray from the cold leg lowers it.
+- The Relief Valve opens at 170 bar and closes at 160, and can stick open.
+  A redstone signal shuts its block valve; comparators read it open.
+- Real thermal hydraulics: the flow is whatever the pumps move. Each mB carries
+  less heat than boiling water, so a pressurized reactor needs more flow. A
+  stopped pump lets the core heat up and boil, the pressure rises and the
+  relief valve lifts; a broken pipe drains the loop until the core uncovers.
+  Steam voids, an uncovered core and hotter water slow the chain reaction.
+- Steam Generator: a 3x3 column, 4 to 8 high, of casing around Tube Bundles,
+  with a controller and four kinds of port (primary in and out, feedwater in,
+  steam out). More tubes move more heat; steam left inside raises its pressure
+  until it stops taking heat, and it dries out without feedwater. It makes
+  the same steam turbines already use, and control room monitors can link it.
+- Primary coolant is radioactive: a bucket or a puddle from a leak irradiates.
+- New Display Link sources and goggle lines for the primary pressure, hot and
+  cold leg temperatures, subcooling margin and pressurizer level; all of them
+  are configurable under `pwr.*`.
+- Upgrading: existing reactors keep boiling water as before; nothing changes
+  until a pressurizer and primary coolant are added.
 
 ### Spent fuel
 <!-- spentfuel: filled by its work package -->

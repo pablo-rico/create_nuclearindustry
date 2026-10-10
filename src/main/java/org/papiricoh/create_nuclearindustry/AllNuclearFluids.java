@@ -91,6 +91,16 @@ public class AllNuclearFluids {
                     .sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL)
                     .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY), 4);
 
+    // ---------------------------------------------------------------- pressurized water loop
+    // Borated water under pressure, activated by the core: a leak leaves a radioactive puddle.
+    public static final NuclearFluid PRIMARY_COOLANT_FLUID = register("primary_coolant", Look.LIQUID, 0xE05AA9D6,
+            FluidType.Properties.create().density(1000).viscosity(1000).temperature(560)
+                    .canDrown(true).canSwim(true).supportsBoating(true).canExtinguish(true).canHydrate(false)
+                    .sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL)
+                    .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY), 4);
+    // The same water leaving the core: it only exists inside the loop, a leak flashes it away.
+    public static final NuclearFluid HOT_PRIMARY_COOLANT_FLUID = liquid("hot_primary_coolant", 0xE0E08A5A, 700, 800, 600);
+
     // ---------------------------------------------------------------- short accessors used across the mod
     public static final Supplier<FluidType> STEAM_TYPE = STEAM_FLUID.type();
     public static final Supplier<FluidType> HEAVY_WATER_TYPE = HEAVY_WATER_FLUID.type();
@@ -124,6 +134,8 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> HIGH_ENRICHED_URANIUM_HEXAFLUORIDE = HIGH_ENRICHED_URANIUM_HEXAFLUORIDE_FLUID.source();
     public static final Supplier<FlowingFluid> WEAPONS_GRADE_URANIUM_HEXAFLUORIDE = WEAPONS_GRADE_URANIUM_HEXAFLUORIDE_FLUID.source();
     public static final Supplier<FlowingFluid> CONTAMINATED_WATER = CONTAMINATED_WATER_FLUID.source();
+    public static final Supplier<FlowingFluid> PRIMARY_COOLANT = PRIMARY_COOLANT_FLUID.source();
+    public static final Supplier<FlowingFluid> HOT_PRIMARY_COOLANT = HOT_PRIMARY_COOLANT_FLUID.source();
 
     // ---------------------------------------------------------------- world block and bucket (steam only)
     public static final Supplier<LiquidBlock> STEAM_BLOCK = BLOCKS.register("steam", () -> new LiquidBlock(
@@ -145,8 +157,16 @@ public class AllNuclearFluids {
     public static final DeferredHolder<Item, BucketItem> CONTAMINATED_WATER_BUCKET = ITEMS.register("contaminated_water_bucket",
             () -> new BucketItem(CONTAMINATED_WATER.get(), new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
 
+    // ---------------------------------------------------------------- primary coolant: spills and buckets
+    public static final DeferredHolder<Block, LiquidBlock> PRIMARY_COOLANT_BLOCK = BLOCKS.register("primary_coolant",
+            () -> new LiquidBlock(PRIMARY_COOLANT.get(), BlockBehaviour.Properties.ofFullCopy(Blocks.WATER).mapColor(MapColor.COLOR_LIGHT_BLUE)));
+
+    public static final DeferredHolder<Item, BucketItem> PRIMARY_COOLANT_BUCKET = ITEMS.register("primary_coolant_bucket",
+            () -> new BucketItem(PRIMARY_COOLANT.get(), new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
+
     static {
         CONTAMINATED_WATER_FLUID.placeable(CONTAMINATED_WATER_BLOCK, CONTAMINATED_WATER_BUCKET);
+        PRIMARY_COOLANT_FLUID.placeable(PRIMARY_COOLANT_BLOCK, PRIMARY_COOLANT_BUCKET);
     }
 
     public static List<NuclearFluid> all() {

@@ -48,6 +48,13 @@
     "create_nuclearindustry:fusion_turbine_rotor",
     "create_nuclearindustry:fusion_turbine_fluid_port",
     "create_nuclearindustry:fusion_plasma_turbine",
+    "create_nuclearindustry:pressurizer",
+    "create_nuclearindustry:pressurizer_heater_port",
+    "create_nuclearindustry:relief_valve",
+    "create_nuclearindustry:steam_generator_casing",
+    "create_nuclearindustry:steam_generator_tube_bundle",
+    "create_nuclearindustry:steam_generator_controller",
+    "create_nuclearindustry:steam_generator_port",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

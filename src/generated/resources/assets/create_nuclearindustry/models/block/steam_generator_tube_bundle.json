@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "create_nuclearindustry:block/steam_generator_tube_bundle_top",
+    "side": "create_nuclearindustry:block/steam_generator_tube_bundle"
+  }
+}

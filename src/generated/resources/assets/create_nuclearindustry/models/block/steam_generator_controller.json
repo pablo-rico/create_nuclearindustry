@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "create_nuclearindustry:block/steam_generator_controller",
+    "side": "create_nuclearindustry:block/steam_generator_casing",
+    "top": "create_nuclearindustry:block/steam_generator_casing"
+  }
+}

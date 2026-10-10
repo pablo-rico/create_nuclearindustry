@@ -58,6 +58,7 @@ public class ReactorPhysicsSimulator {
     private boolean thermalExcursionActive;                         // True while stress is forcing a power excursion
     private final XenonModel poisons = new XenonModel();            // iodine-135 / xenon-135
     private final DecayHeatModel decayHeat = new DecayHeatModel();  // heat of the fission products
+    private double coolantFeedback = 1.0;                           // moderation by a pressurized loop's water
 
     // Derived values for display
     private double powerOutput;                                     // MW equivalent
@@ -166,7 +167,7 @@ public class ReactorPhysicsSimulator {
         // If no control rods are present, there's nothing to absorb neutrons - MELTDOWN RISK
         if (controlRodCount == 0) {
             // With no physical control rods, neutron absorption is 0 regardless of position
-            return uraniumRodCount * BASE_FISSION_RATE * getModerationFactor() * (1.0 - getXenonPenalty());
+            return uraniumRodCount * BASE_FISSION_RATE * getModerationFactor() * (1.0 - getXenonPenalty()) * coolantFeedback;
         }
 
         // The ratio of control rods to uranium rods determines absorption capacity
@@ -178,7 +179,19 @@ public class ReactorPhysicsSimulator {
 
         // Base fission multiplied by number of uranium rods and absorption factor
         return uraniumRodCount * BASE_FISSION_RATE * absorptionFactor * getFuelReactivity() * getModerationFactor()
-                * (1.0 - getXenonPenalty());
+                * (1.0 - getXenonPenalty()) * coolantFeedback;
+    }
+
+    /**
+     * Multiplier on neutron production from the water of a pressurized loop: steam voids, an uncovered
+     * core and hot water moderate less. 1 for a reactor that boils its water directly, which is the default.
+     */
+    public void setCoolantFeedback(double feedback) {
+        this.coolantFeedback = Double.isFinite(feedback) ? Math.max(0.0, feedback) : 1.0;
+    }
+
+    public double getCoolantFeedback() {
+        return coolantFeedback;
     }
 
     /** Advances iodine, xenon and decay heat by one tick, given this tick's fission heat. */
@@ -213,10 +226,10 @@ public class ReactorPhysicsSimulator {
 
     /**
      * The core's multiplication relative to a bare, clean core of low-enriched fuel, regardless of
-     * the rods: fuel enrichment, graphite and beryllium raise it, xenon lowers it.
+     * the rods: fuel enrichment, graphite and beryllium raise it, xenon and a voided pressurized loop lower it.
      */
     public double getReactivity() {
-        return getFuelReactivity() * getModerationFactor() * (1.0 - getXenonPenalty()) / getLeakageFactor();
+        return getFuelReactivity() * getModerationFactor() * (1.0 - getXenonPenalty()) * coolantFeedback / getLeakageFactor();
     }
 
     /** Sets the fission products directly, for tests and commands. */
@@ -483,6 +496,7 @@ public class ReactorPhysicsSimulator {
         thermalExcursionActive = previous.thermalExcursionActive;
         poisons.set(previous.poisons.iodine(), previous.poisons.xenon());
         decayHeat.set(previous.decayHeat.heat());
+        coolantFeedback = previous.coolantFeedback;
     }
 
     /** Every assembly burnt out since the last call. */

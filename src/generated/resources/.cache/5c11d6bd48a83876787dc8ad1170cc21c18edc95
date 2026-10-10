@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-10T02:52:09.6963843	Item Models: create_nuclearindustry
+// 1.21.1	2026-10-10T18:08:30.9932837	Item Models: create_nuclearindustry
 571ca5ad9a973c95eac9b714e4273a844ec20250 assets/create_nuclearindustry/models/item/contaminated_water_bucket.json
 08eb3294d141d9b8bb037016ff8d2b4619695648 assets/create_nuclearindustry/models/item/control_room_linker.json
 a10e5cdf5dbfb869f3c0473146440432e42eac63 assets/create_nuclearindustry/models/item/crushed_raw_uranium.json
@@ -26,6 +26,7 @@ aceb29b5e8332b11cc59434c25b21becaeb5c537 assets/create_nuclearindustry/models/it
 a94416806290a8e1545b417cce3a6d0d251fb65c assets/create_nuclearindustry/models/item/plutonium_dioxide.json
 4e74631d4d0a8f2db43e4ae418e1990ded5e714d assets/create_nuclearindustry/models/item/plutonium_rtg_pellet.json
 a476bc938d0f99a56694aafb4847c822283fb4a4 assets/create_nuclearindustry/models/item/potassium_iodide.json
+7a4343d6b8cd432b25351fc02c94810cc3042177 assets/create_nuclearindustry/models/item/primary_coolant_bucket.json
 8791236a67e5e1221e132ce5b968ddd80552bec3 assets/create_nuclearindustry/models/item/prussian_blue.json
 f7228c9e3f5dd0bd7108d56c33f1dc787dd5e11c assets/create_nuclearindustry/models/item/radioactive_waste.json
 1c7c823d14c50ade1239ec631dda4239dc1bfa96 assets/create_nuclearindustry/models/item/raw_spodumene.json

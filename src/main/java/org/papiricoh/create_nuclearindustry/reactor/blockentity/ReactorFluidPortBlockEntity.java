@@ -92,6 +92,10 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
         findLinkedReactor().ifPresent(reactor -> {
             tooltip.add(Component.literal("  Coolant: " + reactor.getCoolantAmount() + "/" + reactor.getTankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("  Steam: " + reactor.getSteamAmount() + "/" + reactor.getTankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
+            if (reactor.plantReadings().pwr()) {
+                tooltip.add(Component.literal("  ").append(Component.translatable(mode == ReactorFluidPortMode.INPUT
+                        ? "create_nuclearindustry.pwr.port.cold_leg" : "create_nuclearindustry.pwr.port.hot_leg")).withStyle(ChatFormatting.AQUA));
+            }
         });
         return true;
     }
@@ -122,12 +126,13 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
 
         @Override
         public boolean isFluidValid(int tank, FluidStack stack) {
-            return handlerMode == ReactorFluidPortMode.INPUT && NuclearFluidHelper.isCoolant(stack);
+            return handlerMode == ReactorFluidPortMode.INPUT
+                    && findLinkedReactor().map(reactor -> reactor.acceptsCoolant(stack)).orElse(NuclearFluidHelper.isCoolant(stack));
         }
 
         @Override
         public int fill(FluidStack resource, FluidAction action) {
-            if (handlerMode != ReactorFluidPortMode.INPUT || !NuclearFluidHelper.isCoolant(resource)) {
+            if (handlerMode != ReactorFluidPortMode.INPUT || !NuclearFluidHelper.isReactorCoolant(resource) && !NuclearFluidHelper.isHotPrimary(resource)) {
                 return 0;
             }
             return findLinkedReactor().map(reactor -> reactor.fillCoolant(resource, action)).orElse(0);
@@ -135,7 +140,7 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
 
         @Override
         public FluidStack drain(FluidStack resource, FluidAction action) {
-            if (handlerMode != ReactorFluidPortMode.OUTPUT || !NuclearFluidHelper.isTurbineSteam(resource)) {
+            if (handlerMode != ReactorFluidPortMode.OUTPUT || !NuclearFluidHelper.isReactorOutput(resource)) {
                 return FluidStack.EMPTY;
             }
             return findLinkedReactor().map(reactor -> reactor.drainSteam(resource, action)).orElse(FluidStack.EMPTY);

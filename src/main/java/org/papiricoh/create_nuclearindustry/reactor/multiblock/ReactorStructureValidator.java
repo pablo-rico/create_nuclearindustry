@@ -15,6 +15,7 @@ import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFuelPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodGeometry;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PressurizerStack;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -34,6 +35,14 @@ public class ReactorStructureValidator {
     }
 
     public static MultiblockValidationResult<ReactorStructure> validate(Level level, BlockPos controllerPos, Optional<ReactorStructure> previousStructure) {
+        return validate(level, controllerPos, previousStructure, false);
+    }
+
+    /**
+     * @param primaryCoolant the reactor holds pressurized loop coolant, so a missing pressurizer is worth a warning
+     */
+    public static MultiblockValidationResult<ReactorStructure> validate(Level level, BlockPos controllerPos, Optional<ReactorStructure> previousStructure,
+                                                                        boolean primaryCoolant) {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
@@ -60,6 +69,10 @@ public class ReactorStructureValidator {
         }
         validateShell(level, structure, errors);
         validateInterior(level, structure, errors, warnings);
+        detectPressurizer(level, structure, warnings);
+        if (primaryCoolant && structure.pressurizer == null) {
+            warnings.add("Primary coolant needs a pressurizer on the lid: the loop is not pressurized");
+        }
 
         if (!errors.isEmpty()) {
             return MultiblockValidationResult.invalid(errors, warnings);
@@ -363,6 +376,34 @@ public class ReactorStructureValidator {
         structure.controlRodCount += inserted;
     }
 
+    /**
+     * Finds the pressurizer standing on the lid, away from the controller and the control rod channels.
+     * A reactor works without one (it boils its water directly); a broken stack only earns a warning.
+     */
+    private static void detectPressurizer(Level level, ReactorStructure structure, List<String> warnings) {
+        int halfWidth = structure.width / 2;
+        for (int x = structure.controllerPos.getX() - halfWidth; x <= structure.controllerPos.getX() + halfWidth; x++) {
+            for (int z = structure.controllerPos.getZ() - halfWidth; z <= structure.controllerPos.getZ() + halfWidth; z++) {
+                if (!structure.isPressurizerColumn(x, z)) {
+                    continue;
+                }
+                BlockPos base = new BlockPos(x, structure.topY + 1, z);
+                if (!PressurizerStack.isSegment(level.getBlockState(base))) {
+                    continue;
+                }
+                PressurizerStack stack = PressurizerStack.read(level, base, warnings);
+                if (stack == null) {
+                    continue;
+                }
+                if (structure.pressurizer == null) {
+                    structure.pressurizer = stack;
+                } else {
+                    warnings.add("A reactor takes one pressurizer; the one at " + shortPos(base) + " is ignored");
+                }
+            }
+        }
+    }
+
     private static boolean isAllowedInteriorColumnBlock(Block block) {
         return block == AllNuclearBlocks.URANIUM_ROD.get()
                 || block == AllNuclearBlocks.HEAT_EXCHANGER.get()
@@ -411,6 +452,8 @@ public class ReactorStructureValidator {
         /** See {@link ReactorStructureValidator#moderation} and {@link ReactorStructureValidator#reflection}. */
         public double moderation;
         public double reflection;
+        /** The pressurizer on the lid, or null for a reactor that boils its water directly. */
+        public PressurizerStack pressurizer;
         public int uraniumRodCount;
         public int controlRodCount;
         public int heatExchangerCount;
@@ -498,6 +541,43 @@ public class ReactorStructureValidator {
 
         public int innerHeight() {
             return height - 2;
+        }
+
+        public boolean hasPressurizer() {
+            return pressurizer != null;
+        }
+
+        /** Lid columns a pressurizer may stand on: all but the controller's and the control rod channels'. */
+        public boolean isPressurizerColumn(int x, int z) {
+            int halfWidth = width / 2;
+            if (Math.abs(x - controllerPos.getX()) > halfWidth || Math.abs(z - controllerPos.getZ()) > halfWidth) {
+                return false;
+            }
+            return !(x == controllerPos.getX() && z == controllerPos.getZ()) && !isControlChannel(x, z);
+        }
+
+        /** Space above the lid where a pressurizer can stand; placing or breaking anything here can change it. */
+        public List<BlockPos> pressurizerZone() {
+            List<BlockPos> zone = new ArrayList<>();
+            int halfWidth = width / 2;
+            for (int x = controllerPos.getX() - halfWidth; x <= controllerPos.getX() + halfWidth; x++) {
+                for (int z = controllerPos.getZ() - halfWidth; z <= controllerPos.getZ() + halfWidth; z++) {
+                    if (!isPressurizerColumn(x, z)) {
+                        continue;
+                    }
+                    for (int dy = 1; dy <= PressurizerStack.ZONE_HEIGHT; dy++) {
+                        zone.add(new BlockPos(x, topY + dy, z));
+                    }
+                }
+            }
+            return zone;
+        }
+
+        /** {@link #bounds()} plus the space a pressurizer may take above the lid. */
+        public net.minecraft.world.level.levelgen.structure.BoundingBox interestBounds() {
+            net.minecraft.world.level.levelgen.structure.BoundingBox box = bounds();
+            return new net.minecraft.world.level.levelgen.structure.BoundingBox(box.minX(), box.minY(), box.minZ(),
+                    box.maxX(), Math.max(box.maxY(), topY + PressurizerStack.ZONE_HEIGHT), box.maxZ());
         }
 
         public int getUraniumRodCount() {

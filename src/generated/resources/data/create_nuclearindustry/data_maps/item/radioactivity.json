@@ -38,6 +38,9 @@
     "create_nuclearindustry:plutonium_rtg_pellet": {
       "per_second": 4.0
     },
+    "create_nuclearindustry:primary_coolant_bucket": {
+      "per_second": 0.5
+    },
     "create_nuclearindustry:radioactive_waste": {
       "per_second": 6.0
     },

@@ -277,7 +277,65 @@ etiqueta `create_nuclearindustry:geologically_storable`.
 
 ## Reactor de agua a presión y accidentes
 
-<!-- opciones pwr.*: las documenta su paquete de trabajo -->
+Un reactor de fisión con **refrigerante primario** (agua con boro: agua y boro
+en la mezcladora) y un **presionador** sobre la tapa funciona como un reactor de
+agua a presión en lugar de hervir el agua. Sin presionador sigue hirviendo agua
+como antes, y sus puertos rechazan el refrigerante primario.
+
+- **Presionador**: de 2 a 4 bloques de Presionador o Puerto calefactor apilados
+  sobre la tapa (no sobre el controlador ni sobre un canal de barras), con una
+  Válvula de alivio encima. Su burbuja de vapor fija la presión del circuito.
+  Los calentadores la suben y el rociado desde la rama fría la baja. En modo
+  automático los calentadores mantienen `pressureSetpoint`; la llave inglesa
+  los pasa a manual, y entonces funcionan con señal de redstone.
+- **Válvula de alivio**: abre a `reliefOpenPressure` y cierra a
+  `reliefClosePressure`, dejando salir vapor (y refrigerante). Cada vez que
+  debería cerrar puede quedarse atascada abierta (`reliefStickChance`). Una
+  señal de redstone cierra su válvula de bloqueo, que la libera y también le
+  impide aliviar. Los comparadores leen 15 mientras está abierta.
+- **Circuito primario**: el puerto de entrada es la rama fría (acepta
+  refrigerante primario) y el de salida la rama caliente (ofrece refrigerante
+  primario caliente). El caudal es el que mueven las bombas de Create; cada mB
+  que pasa del frío al caliente se lleva `enthalpyPerMb` de calor, menos que el
+  agua que hierve directamente (0,225), así que hace falta más caudal. Con las
+  bombas paradas solo queda `naturalCirculation`: el calor se queda en la
+  vasija, el agua hierve, sube la presión y abre la válvula de alivio. Una
+  tubería rota vacía el circuito hasta descubrir el núcleo, que se enfría mucho
+  peor.
+- **Realimentación**: el vapor en el núcleo, un núcleo descubierto
+  (`voidWorth`) y el agua más caliente de lo normal (`temperatureCoefficient`)
+  frenan la reacción en cadena.
+- **Generador de vapor**: columna de 3x3 y de 4 a 8 bloques de alto, de
+  Carcasa del generador de vapor con Haces de tubos dentro; el controlador va
+  en una pared lateral mirando hacia fuera, delante de los tubos. Necesita un
+  Puerto del generador de vapor de cada tipo (la llave inglesa los cambia):
+  entrada y salida del primario, entrada de agua de alimentación y salida de
+  vapor. Cada haz de tubos mueve `steamGenerator.uaPerTube` de calor por °C
+  entre el primario y el punto de ebullición del secundario. El vapor que no se
+  saca sube la presión del secundario (de `minPressure` a `maxPressure`) hasta
+  que deja de tomar calor; sin agua de alimentación los tubos se secan.
+- Lecturas: las gafas, los monitores y el Display Link muestran la presión,
+  las temperaturas de las ramas caliente y fría, el margen de subenfriamiento
+  y el nivel del presionador. El controlador del generador de vapor se enlaza
+  desde la sala de control.
+
+| Opción | Por defecto | Qué hace |
+|---|---|---|
+| `pwr.coldLegTemperature` | 290 | Temperatura (°C) del refrigerante que devuelve el generador de vapor |
+| `pwr.coreTemperatureRise` | 35 | Subida de temperatura (°C) al cruzar el núcleo con caudal completo; la rama caliente es la fría más esto |
+| `pwr.enthalpyPerMb` | 0,12 | Calor que lleva cada mB de refrigerante primario del núcleo al generador |
+| `pwr.heatTransfer` | 0,02 | Enfriamiento del núcleo por °C entre el núcleo y la rama fría, en °C por tick, con el núcleo cubierto |
+| `pwr.naturalCirculation` | 8 | Caudal (mB/t) que sigue cruzando el núcleo con todas las bombas paradas |
+| `pwr.pressureSetpoint` | 155 | Presión (bar) que mantienen los calentadores y el rociado automáticos |
+| `pwr.heaterRate` | 0,25 | °C por tick que cada puerto calefactor encendido suma a la burbuja del presionador |
+| `pwr.reliefOpenPressure` | 170 | Presión (bar) a la que abre la válvula de alivio |
+| `pwr.reliefClosePressure` | 160 | Presión (bar) a la que vuelve a cerrar; siempre por debajo de la de apertura |
+| `pwr.reliefStickChance` | 0,05 | Probabilidad de que la válvula se quede atascada abierta cada vez que debería cerrar |
+| `pwr.voidWorth` | 0,6 | Parte de la reacción en cadena que se pierde con el núcleo sin agua |
+| `pwr.temperatureCoefficient` | 0,002 | Parte de la reacción que se pierde por cada °C por encima de la temperatura media normal |
+| `pwr.steamGenerator.uaPerTube` | 0,3 | Calor por tick y por °C que mueve cada haz de tubos |
+| `pwr.steamGenerator.minPressure` | 50 | Presión (bar) del secundario cuando se saca el vapor según se produce |
+| `pwr.steamGenerator.maxPressure` | 120 | Presión (bar) del secundario con el depósito de vapor lleno; cerca de la ebullición de la rama caliente deja de tomar calor |
 
 ## Combustible gastado
 
