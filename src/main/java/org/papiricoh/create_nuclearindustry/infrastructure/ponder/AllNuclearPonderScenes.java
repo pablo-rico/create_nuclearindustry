@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CoolingTowerScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorModerationScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorRedstoneScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.RtgScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ScrubberScenes;
@@ -44,6 +45,9 @@ public class AllNuclearPonderScenes {
                 "fusion_electromagnet", "fusion_breeding_blanket", "fusion_cryostat_casing", "fusion_magnet_input",
                 "fusion_fluid_port", "fusion_fuel_injector"}) {
             helper.addStoryBoard(id(part), "tokamak", TokamakScenes::assembly);
+        }
+        for (String part : new String[]{"graphite_moderator", "beryllium_reflector", "reactor_controller"}) {
+            helper.addStoryBoard(id(part), "reactor_controller", ReactorModerationScenes::moderation);
         }
         helper.addStoryBoard(id("electrolyzer"), "centrifuge", CentrifugeScenes::electrolysis);
         // Turbine storyboards are reachable from every block they are built from.

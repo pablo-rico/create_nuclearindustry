@@ -4,6 +4,8 @@
     "create_nuclearindustry:control_rod",
     "create_nuclearindustry:uranium_rod",
     "create_nuclearindustry:heat_exchanger",
+    "create_nuclearindustry:graphite_moderator",
+    "create_nuclearindustry:beryllium_reflector",
     "create_nuclearindustry:reactor_controller",
     "create_nuclearindustry:reactor_fluid_port",
     "create_nuclearindustry:reactor_fuel_port",

@@ -17,6 +17,7 @@ public final class LangEntries {
     static {
         content();
         materials();
+        moderation();
         jei();
         ponder();
         commands();
@@ -435,6 +436,30 @@ public final class LangEntries {
         fluid("low_enriched_uranium_hexafluoride", "Low-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio poco enriquecido");
         fluid("high_enriched_uranium_hexafluoride", "High-Enriched Uranium Hexafluoride", "Hexafluoruro de uranio altamente enriquecido");
         fluid("weapons_grade_uranium_hexafluoride", "Weapons-Grade Uranium Hexafluoride", "Hexafluoruro de uranio de grado militar");
+    }
+
+    private static void moderation() {
+        item("graphite", "Graphite", "Grafito");
+        block("graphite_moderator", "Graphite Moderator", "Moderador de grafito");
+        block("beryllium_reflector", "Beryllium Reflector", "Reflector de berilio");
+        add("create_nuclearindustry.ponder.reactor_moderation.header",
+                "Moderating and Reflecting the Core",
+                "Moderar y reflejar el núcleo");
+        add("create_nuclearindustry.ponder.reactor_moderation.text_1",
+                "Graphite Moderator fills whole interior columns. It slows neutrons, so the Fuel Channels sharing a face with it split more often.",
+                "El Moderador de grafito llena columnas interiores enteras. Frena los neutrones, así que los Canales de combustible pegados a sus caras se fisionan más.");
+        add("create_nuclearindustry.ponder.reactor_moderation.text_2",
+                "A fuel column with two graphite neighbours is fully moderated; one with a single neighbour, half. A fully moderated core is 35% more reactive.",
+                "Una columna de combustible con dos vecinas de grafito está totalmente moderada; con una sola, a medias. Un núcleo totalmente moderado es un 35% más reactivo.");
+        add("create_nuclearindustry.ponder.reactor_moderation.text_3",
+                "Beryllium Reflector belongs in the columns that touch the shell: it bounces escaping neutrons back into the core.",
+                "El Reflector de berilio va en las columnas que tocan la carcasa: devuelve al núcleo los neutrones que escapan.");
+        add("create_nuclearindustry.ponder.reactor_moderation.text_4",
+                "A ring lined all round loses a quarter fewer neutrons. Both make more power from the same fuel, so leave room for enough Control Rods.",
+                "Un anillo revestido por completo pierde una cuarta parte menos de neutrones. Ambos sacan más potencia del mismo combustible, así que deja sitio para suficientes Barras de control.");
+        add("jei.create_nuclearindustry.info.moderation",
+                "Graphite Moderator and Beryllium Reflector fill whole interior columns of a fission reactor, like Fuel Channels. Graphite slows neutrons so the fuel beside it splits more: a Fuel Channel with two graphite columns sharing a face with it is fully moderated, and a fully moderated core is 35% more reactive. Beryllium lining the columns that touch the shell bounces escaping neutrons back: a complete ring cuts losses by a quarter. Both make more power from the same fuel, so they also need more control rods.",
+                "El Moderador de grafito y el Reflector de berilio llenan columnas interiores enteras de un reactor de fisión, como los Canales de combustible. El grafito frena los neutrones para que el combustible de al lado se fisione más: un Canal de combustible con dos columnas de grafito pegadas a sus caras está totalmente moderado, y un núcleo totalmente moderado es un 35% más reactivo. El berilio que reviste las columnas que tocan la carcasa devuelve los neutrones que escapan: un anillo completo reduce las pérdidas en una cuarta parte. Ambos sacan más potencia del mismo combustible, así que también necesitan más barras de control.");
     }
 
     private static void item(String id, String english, String spanish) {

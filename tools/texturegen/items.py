@@ -1040,3 +1040,14 @@ def waste_rtg_pellet():
 @item("depleted_rtg_pellet")
 def depleted_rtg_pellet():
     return _rtg_pellet(272, LEAD)
+
+
+# ======================================================================================
+# moderator
+# ======================================================================================
+
+@item("graphite")
+def graphite():
+    # Dull, slightly glossy graphite bar.
+    graphite = LEAD.tinted(DARK[0], 0.6)
+    return _ingot(240, graphite)

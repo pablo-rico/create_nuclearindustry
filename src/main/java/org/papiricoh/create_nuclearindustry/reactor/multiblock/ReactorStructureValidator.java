@@ -248,6 +248,49 @@ public class ReactorStructureValidator {
             warnings.add("No control rod columns; reactor will be difficult to control");
         }
         structure.controlRodCount = structure.controlChannels.size() * structure.innerHeight();
+        structure.moderation = moderation(structure);
+        structure.reflection = reflection(structure);
+    }
+
+    /**
+     * How well graphite surrounds the fuel: each fuel column counts fully with two Graphite
+     * Moderator columns beside it (sharing a face), half with one. Averaged over the fuel columns.
+     */
+    static double moderation(ReactorStructure structure) {
+        if (structure.fuelColumns.isEmpty() || structure.moderatorColumns.isEmpty()) {
+            return 0.0;
+        }
+        double total = 0.0;
+        for (BlockPos fuel : structure.fuelColumns) {
+            int beside = 0;
+            for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                if (structure.moderatorColumns.contains(fuel.relative(direction))) {
+                    beside++;
+                }
+            }
+            total += Math.min(2, beside) / 2.0;
+        }
+        return total / structure.fuelColumns.size();
+    }
+
+    /** Fraction of the core's inner ring (the columns touching the shell) taken by Beryllium Reflector. */
+    static double reflection(ReactorStructure structure) {
+        int ring = 0;
+        int reflectors = 0;
+        int inner = structure.width / 2 - 1;
+        for (int dx = -inner; dx <= inner; dx++) {
+            for (int dz = -inner; dz <= inner; dz++) {
+                if (Math.abs(dx) != inner && Math.abs(dz) != inner) {
+                    continue;
+                }
+                ring++;
+                BlockPos column = new BlockPos(structure.controllerPos.getX() + dx, structure.bottomY + 1, structure.controllerPos.getZ() + dz);
+                if (structure.reflectorColumns.contains(column)) {
+                    reflectors++;
+                }
+            }
+        }
+        return ring == 0 ? 0.0 : (double) reflectors / ring;
     }
 
     private static void validateInteriorColumn(Level level, ReactorStructure structure, int x, int z, List<String> errors) {
@@ -290,9 +333,14 @@ public class ReactorStructureValidator {
         if (sample == AllNuclearBlocks.URANIUM_ROD.get()) {
             structure.uraniumColumnCount++;
             structure.uraniumRodCount += blockCount;
+            structure.fuelColumns.add(samplePos);
         } else if (sample == AllNuclearBlocks.HEAT_EXCHANGER.get()) {
             structure.heatExchangerColumnCount++;
             structure.heatExchangerCount += blockCount;
+        } else if (sample == AllNuclearBlocks.GRAPHITE_MODERATOR.get()) {
+            structure.moderatorColumns.add(samplePos);
+        } else if (sample == AllNuclearBlocks.BERYLLIUM_REFLECTOR.get()) {
+            structure.reflectorColumns.add(samplePos);
         }
     }
 
@@ -317,7 +365,9 @@ public class ReactorStructureValidator {
 
     private static boolean isAllowedInteriorColumnBlock(Block block) {
         return block == AllNuclearBlocks.URANIUM_ROD.get()
-                || block == AllNuclearBlocks.HEAT_EXCHANGER.get();
+                || block == AllNuclearBlocks.HEAT_EXCHANGER.get()
+                || block == AllNuclearBlocks.GRAPHITE_MODERATOR.get()
+                || block == AllNuclearBlocks.BERYLLIUM_REFLECTOR.get();
     }
 
     private static boolean isAllowedControlChannelTop(Block block) {
@@ -354,6 +404,13 @@ public class ReactorStructureValidator {
         public final Set<BlockPos> fuelPorts = new HashSet<>();
         public final Set<BlockPos> temperatureSensors = new HashSet<>();
         public final Set<BlockPos> redstonePorts = new HashSet<>();
+        /** Bottom block of each interior column, by what fills it. */
+        public final Set<BlockPos> fuelColumns = new HashSet<>();
+        public final Set<BlockPos> moderatorColumns = new HashSet<>();
+        public final Set<BlockPos> reflectorColumns = new HashSet<>();
+        /** See {@link ReactorStructureValidator#moderation} and {@link ReactorStructureValidator#reflection}. */
+        public double moderation;
+        public double reflection;
         public int uraniumRodCount;
         public int controlRodCount;
         public int heatExchangerCount;

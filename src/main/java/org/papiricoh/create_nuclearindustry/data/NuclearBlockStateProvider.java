@@ -107,6 +107,8 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         rotorStates(AllNuclearBlocks.FUSION_TURBINE_ROTOR.get(), "fusion_turbine_rotor");
         facingStates(AllNuclearBlocks.TURBINE_OUTPUT.get(), "turbine_output");
         simpleBlockWithItem(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get(), cubeAll(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get()));
+        simpleBlockWithItem(AllNuclearBlocks.GRAPHITE_MODERATOR.get(), cubeAll(AllNuclearBlocks.GRAPHITE_MODERATOR.get()));
+        simpleBlockWithItem(AllNuclearBlocks.BERYLLIUM_REFLECTOR.get(), cubeAll(AllNuclearBlocks.BERYLLIUM_REFLECTOR.get()));
         redstonePortStates();
         simpleBlockWithItem(AllNuclearBlocks.RADIATION_SCRUBBER.get(), models().cubeBottomTop("radiation_scrubber",
                 modLoc("block/radiation_scrubber_side"), modLoc("block/radiation_scrubber_bottom"), modLoc("block/radiation_scrubber_top")));

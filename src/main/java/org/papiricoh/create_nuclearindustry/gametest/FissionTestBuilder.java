@@ -58,6 +58,16 @@ public final class FissionTestBuilder {
         helper.setBlock(CONTROLLER, AllNuclearBlocks.REACTOR_CONTROLLER.get());
     }
 
+    /**
+     * Fills a free interior column with {@code block}. The built core uses (1,1) and (3,3) for fuel,
+     * (2,2) for the heat exchanger and (1,3) for control rods; (1,2), (2,1), (2,3), (3,1) and (3,2) are free.
+     */
+    public static void column(GameTestHelper helper, int x, int z, net.minecraft.world.level.block.Block block) {
+        for (int y = 1; y < SIZE - 1; y++) {
+            helper.setBlock(ORIGIN.offset(x, y, z), block);
+        }
+    }
+
     public static ReactorBlockEntity controller(GameTestHelper helper) {
         return helper.getBlockEntity(CONTROLLER);
     }

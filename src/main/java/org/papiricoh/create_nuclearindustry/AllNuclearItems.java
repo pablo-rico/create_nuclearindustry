@@ -24,6 +24,8 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> CONTROL_ROD = ITEMS.register("control_rod", () -> new BlockItem(AllNuclearBlocks.CONTROL_ROD.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> URANIUM_ROD = ITEMS.register("uranium_rod", () -> new BlockItem(AllNuclearBlocks.URANIUM_ROD.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> HEAT_EXCHANGER = ITEMS.register("heat_exchanger", () -> new BlockItem(AllNuclearBlocks.HEAT_EXCHANGER.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> GRAPHITE_MODERATOR = ITEMS.register("graphite_moderator", () -> new BlockItem(AllNuclearBlocks.GRAPHITE_MODERATOR.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> BERYLLIUM_REFLECTOR = ITEMS.register("beryllium_reflector", () -> new BlockItem(AllNuclearBlocks.BERYLLIUM_REFLECTOR.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> REACTOR_CASING = ITEMS.register("reactor_casing", () -> new BlockItem(AllNuclearBlocks.REACTOR_CASING.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> REACTOR_CONTROLLER = ITEMS.register("reactor_controller", () -> new BlockItem(AllNuclearBlocks.REACTOR_CONTROLLER.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> REACTOR_FLUID_PORT = ITEMS.register("reactor_fluid_port", () -> new BlockItem(AllNuclearBlocks.REACTOR_FLUID_PORT.value(), new Item.Properties()));
@@ -130,6 +132,7 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> MOX_REACTOR_FUEL = ITEMS.register("mox_reactor_fuel", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> DEPLETED_MOX_REACTOR_FUEL = ITEMS.register("depleted_mox_reactor_fuel", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> FLUORITE = simple("fluorite");
+    public static final DeferredHolder<Item, ? extends Item> GRAPHITE = simple("graphite");
 
     // Lithium chain
     public static final DeferredHolder<Item, ? extends Item> RAW_SPODUMENE = simple("raw_spodumene");

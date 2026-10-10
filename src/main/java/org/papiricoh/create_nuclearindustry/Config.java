@@ -30,6 +30,14 @@ public class Config
             .comment("Extra neutron production per doubling of fuel enrichment above 5%.",
                     "0.25 makes 20% fuel 1.5 times as reactive. Zero makes enrichment affect only fuel life.")
             .defineInRange("fission.enrichmentReactivity", 0.25, 0.0, 10.0);
+    private static final ModConfigSpec.DoubleValue GRAPHITE_MODERATOR_BONUS = BUILDER
+            .comment("Extra neutron production of a fully moderated core: every fuel column with two Graphite Moderator",
+                    "columns beside it. 0.35 makes such a core 35% more reactive. Zero makes graphite inert.")
+            .defineInRange("fission.graphiteModeratorBonus", 0.35, 0.0, 10.0);
+    private static final ModConfigSpec.DoubleValue BERYLLIUM_REFLECTOR_BONUS = BUILDER
+            .comment("Fraction of neutron leakage a core whose whole inner ring is Beryllium Reflector bounces back.",
+                    "0.25 cuts losses by a quarter. Zero makes reflectors inert.")
+            .defineInRange("fission.berylliumReflectorBonus", 0.25, 0.0, 0.9);
     private static final ModConfigSpec.DoubleValue DT_BURN_RATE = BUILDER
             .comment("mB of deuterium (and of tritium) burnt per plasma cell per tick at full temperature.",
                     "A tokamak of major radius R has about 56*R plasma cells. Fusion power is 1000 MW per mB/t burnt.")
@@ -133,6 +141,8 @@ public class Config
     public static double uraniumBurnPerNeutron = 0.0000045;
     public static double fuelUnitsPerAssembly = 100.0;
     public static double enrichmentReactivity = 0.25;
+    public static double graphiteModeratorBonus = 0.35;
+    public static double berylliumReflectorBonus = 0.25;
     public static double deuteriumTritiumBurnRate = 0.0011;
     public static int fusionMaxMajorRadius = 16;
     public static int fusionCoilsPerSector = 4;
@@ -185,6 +195,8 @@ public class Config
         uraniumBurnPerNeutron = URANIUM_BURN_RATE.get();
         fuelUnitsPerAssembly = FUEL_UNITS.get();
         enrichmentReactivity = ENRICHMENT_REACTIVITY.get();
+        graphiteModeratorBonus = GRAPHITE_MODERATOR_BONUS.get();
+        berylliumReflectorBonus = BERYLLIUM_REFLECTOR_BONUS.get();
         deuteriumTritiumBurnRate = DT_BURN_RATE.get();
         fusionMaxMajorRadius = MAX_MAJOR_RADIUS.get();
         fusionCoilsPerSector = COILS_PER_SECTOR.get();

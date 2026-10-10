@@ -43,6 +43,7 @@ public class NuclearItemModelProvider extends ItemModelProvider {
                 AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL,
                 AllNuclearItems.RADIOACTIVE_WASTE,
                 AllNuclearItems.FLUORITE,
+                AllNuclearItems.GRAPHITE,
                 AllNuclearItems.RAW_SPODUMENE,
                 AllNuclearItems.CRUSHED_SPODUMENE,
                 AllNuclearItems.SPODUMENE_CONCENTRATE,

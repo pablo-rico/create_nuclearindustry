@@ -306,7 +306,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                     : ReactorStatus.FORMED;
             if (structureChanged && !loadedStructureWithoutSnapshot) {
                 ReactorPhysicsSimulator previousSimulator = physicsSimulator;
-                physicsSimulator = new ReactorPhysicsSimulator(newStructure.getUraniumRodCount(), newStructure.getControlRodCount());
+                physicsSimulator = new ReactorPhysicsSimulator(newStructure.getUraniumRodCount(), newStructure.getControlRodCount(),
+                        newStructure.moderation, newStructure.reflection);
                 physicsSimulator.inheritFuel(previousSimulator);
                 physicsSimulator.inheritThermalState(previousSimulator);
                 collectSpentFuel();
@@ -371,7 +372,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 && oldStructure.fluidPorts.equals(newStructure.fluidPorts)
                 && oldStructure.fuelPorts.equals(newStructure.fuelPorts)
                 && oldStructure.temperatureSensors.equals(newStructure.temperatureSensors)
-                && oldStructure.redstonePorts.equals(newStructure.redstonePorts);
+                && oldStructure.redstonePorts.equals(newStructure.redstonePorts)
+                && oldStructure.fuelColumns.equals(newStructure.fuelColumns)
+                && oldStructure.moderatorColumns.equals(newStructure.moderatorColumns)
+                && oldStructure.reflectorColumns.equals(newStructure.reflectorColumns);
     }
 
     private void linkStructureParts(ReactorStructureValidator.ReactorStructure structure) {
@@ -912,6 +916,14 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tooltip.add(Component.literal("  Uranium columns: " + snapshot.uraniumColumnCount()).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Heat exchanger columns: " + snapshot.heatExchangerColumnCount()).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Control rod columns: " + snapshot.controlRodColumnCount()).withStyle(ChatFormatting.GRAY));
+        if (snapshot.moderatorColumnCount() > 0) {
+            tooltip.add(Component.literal(String.format("  Graphite columns: %d (moderation %.0f%%)",
+                    snapshot.moderatorColumnCount(), snapshot.moderation() * 100.0)).withStyle(ChatFormatting.GRAY));
+        }
+        if (snapshot.reflectorColumnCount() > 0) {
+            tooltip.add(Component.literal(String.format("  Reflector columns: %d (ring %.0f%%)",
+                    snapshot.reflectorColumnCount(), snapshot.reflection() * 100.0)).withStyle(ChatFormatting.GRAY));
+        }
         tooltip.add(Component.literal("  Control rod segments: " + snapshot.insertedControlRodSegments() + "/" + snapshot.expectedControlRodSegments()).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Coolant input ports: " + snapshot.coolantInputPortCount()).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Steam output ports: " + snapshot.steamOutputPortCount()).withStyle(ChatFormatting.GRAY));
@@ -1176,7 +1188,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 countOutputFuel(),
                 pendingDepletedFuel.size(),
                 physicsSimulator.getAverageFuelEnrichment(),
-                manualScram
+                manualScram,
+                structure.moderatorColumns.size(),
+                structure.reflectorColumns.size(),
+                physicsSimulator.getModeration(),
+                physicsSimulator.getReflection()
         );
     }
 
@@ -1224,6 +1240,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.putInt("pendingDepletedFuel", snapshot.pendingDepletedFuel());
         tag.putFloat("fuelEnrichment", snapshot.fuelEnrichment());
         tag.putBoolean("manualScram", snapshot.manualScram());
+        tag.putInt("moderatorColumnCount", snapshot.moderatorColumnCount());
+        tag.putInt("reflectorColumnCount", snapshot.reflectorColumnCount());
+        tag.putDouble("moderation", snapshot.moderation());
+        tag.putDouble("reflection", snapshot.reflection());
         return tag;
     }
 
@@ -1266,7 +1286,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 Math.max(0, tag.getInt("outputFuelCount")),
                 Math.max(0, tag.getInt("pendingDepletedFuel")),
                 Math.max(0.0f, tag.getFloat("fuelEnrichment")),
-                tag.getBoolean("manualScram")
+                tag.getBoolean("manualScram"),
+                Math.max(0, tag.getInt("moderatorColumnCount")),
+                Math.max(0, tag.getInt("reflectorColumnCount")),
+                Math.max(0.0, Math.min(1.0, tag.getDouble("moderation"))),
+                Math.max(0.0, Math.min(1.0, tag.getDouble("reflection")))
         );
     }
 
@@ -1297,6 +1321,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         structureTag.putLongArray("fuelPorts", writePositions(structure.fuelPorts));
         structureTag.putLongArray("temperatureSensors", writePositions(structure.temperatureSensors));
         structureTag.putLongArray("redstonePorts", writePositions(structure.redstonePorts));
+        structureTag.putLongArray("fuelColumns", writePositions(structure.fuelColumns));
+        structureTag.putLongArray("moderatorColumns", writePositions(structure.moderatorColumns));
+        structureTag.putLongArray("reflectorColumns", writePositions(structure.reflectorColumns));
+        structureTag.putDouble("moderation", structure.moderation);
+        structureTag.putDouble("reflection", structure.reflection);
         return structureTag;
     }
 
@@ -1327,6 +1356,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         readPositions(structureTag.getLongArray("fuelPorts"), structure.fuelPorts);
         readPositions(structureTag.getLongArray("temperatureSensors"), structure.temperatureSensors);
         readPositions(structureTag.getLongArray("redstonePorts"), structure.redstonePorts);
+        readPositions(structureTag.getLongArray("fuelColumns"), structure.fuelColumns);
+        readPositions(structureTag.getLongArray("moderatorColumns"), structure.moderatorColumns);
+        readPositions(structureTag.getLongArray("reflectorColumns"), structure.reflectorColumns);
+        structure.moderation = structureTag.getDouble("moderation");
+        structure.reflection = structureTag.getDouble("reflection");
         return Optional.of(structure);
     }
 
@@ -1452,7 +1486,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             int outputFuelCount,
             int pendingDepletedFuel,
             float fuelEnrichment,
-            boolean manualScram
+            boolean manualScram,
+            int moderatorColumnCount,
+            int reflectorColumnCount,
+            double moderation,
+            double reflection
     ) {
         public static ReactorDisplaySnapshot empty() {
             return empty("Incomplete", ReactorPhysicsSimulator.ReactorState.IDLE, "Not formed");
@@ -1501,7 +1539,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                     0,
                     0,
                     0.0f,
-                    false
+                    false,
+                    0,
+                    0,
+                    0.0,
+                    0.0
             );
         }
     }

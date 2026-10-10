@@ -51,6 +51,8 @@ public class ReactorPhysicsSimulator {
     private float controlRodInsertion;                              // 0.0 = withdrawn, 1.0 = fully inserted
     private int uraniumRodCount;                                    // Number of fuel rods in reactor
     private int controlRodCount;                                    // Number of control rods (PHYSICAL blocks)
+    private double moderation;                                      // 0-1, graphite beside the fuel columns
+    private double reflection;                                      // 0-1, beryllium lining the core's inner ring
     private int meltdownTickCounter;                                // Ticks spent above meltdown temp
     private double thermalStress;                                   // 0-100, logarithmic heat stress
     private boolean thermalExcursionActive;                         // True while stress is forcing a power excursion
@@ -64,11 +66,21 @@ public class ReactorPhysicsSimulator {
     }
 
     public ReactorPhysicsSimulator(int uraniumRodCount, int controlRodCount) {
+        this(uraniumRodCount, controlRodCount, 0.0, 0.0);
+    }
+
+    /**
+     * @param moderation how well graphite surrounds the fuel columns, 0-1
+     * @param reflection how much of the core's inner ring is beryllium reflector, 0-1
+     */
+    public ReactorPhysicsSimulator(int uraniumRodCount, int controlRodCount, double moderation, double reflection) {
         this.coreTemperature = 20.0;                                // Start at room temperature
         this.neutronLevel = 0.0;
         this.controlRodInsertion = 1.0f;                            // Start fully inserted (safe state)
         this.uraniumRodCount = uraniumRodCount;
         this.controlRodCount = controlRodCount;
+        this.moderation = clamp(moderation, 0.0, 1.0);
+        this.reflection = clamp(reflection, 0.0, 1.0);
         this.meltdownTickCounter = 0;
         this.thermalStress = 0.0;
         this.thermalExcursionActive = false;
@@ -95,8 +107,8 @@ public class ReactorPhysicsSimulator {
         // Calculate neutron production from fission
         double neutronProduction = calculateNeutronProduction();
 
-        // Calculate neutron consumption from fuel
-        double neutronConsumption = uraniumRodCount * FUEL_CONSUMPTION_RATE * neutronLevel;
+        // Calculate neutron consumption from fuel; a reflector bounces part of the leakage back
+        double neutronConsumption = uraniumRodCount * FUEL_CONSUMPTION_RATE * neutronLevel * getLeakageFactor();
 
         // Update neutron level
         neutronLevel += (neutronProduction - neutronConsumption);
@@ -149,7 +161,7 @@ public class ReactorPhysicsSimulator {
         // If no control rods are present, there's nothing to absorb neutrons - MELTDOWN RISK
         if (controlRodCount == 0) {
             // With no physical control rods, neutron absorption is 0 regardless of position
-            return uraniumRodCount * BASE_FISSION_RATE;
+            return uraniumRodCount * BASE_FISSION_RATE * getModerationFactor();
         }
 
         // The ratio of control rods to uranium rods determines absorption capacity
@@ -160,7 +172,27 @@ public class ReactorPhysicsSimulator {
         double absorptionFactor = 1.0 - actualAbsorption;
 
         // Base fission multiplied by number of uranium rods and absorption factor
-        return uraniumRodCount * BASE_FISSION_RATE * absorptionFactor * getFuelReactivity();
+        return uraniumRodCount * BASE_FISSION_RATE * absorptionFactor * getFuelReactivity() * getModerationFactor();
+    }
+
+    /** Multiplier on neutron production from graphite beside the fuel columns. */
+    public double getModerationFactor() {
+        return 1.0 + Config.graphiteModeratorBonus * moderation;
+    }
+
+    /** Multiplier on neutron losses: below 1 when beryllium lines the core. */
+    public double getLeakageFactor() {
+        return 1.0 - Config.berylliumReflectorBonus * reflection;
+    }
+
+    /** How well graphite surrounds the fuel columns, 0-1. */
+    public double getModeration() {
+        return moderation;
+    }
+
+    /** How much of the core's inner ring is beryllium reflector, 0-1. */
+    public double getReflection() {
+        return reflection;
     }
 
     /**
@@ -566,6 +598,8 @@ public class ReactorPhysicsSimulator {
         tag.putFloat("controlRodInsertion", controlRodInsertion);
         tag.putInt("uraniumRodCount", uraniumRodCount);
         tag.putInt("controlRodCount", controlRodCount);
+        tag.putDouble("moderation", moderation);
+        tag.putDouble("reflection", reflection);
         tag.putInt("meltdownTickCounter", meltdownTickCounter);
         tag.putDouble("thermalStress", thermalStress);
         tag.putBoolean("thermalExcursionActive", thermalExcursionActive);
@@ -580,6 +614,8 @@ public class ReactorPhysicsSimulator {
         this.controlRodInsertion = Math.max(0.0f, Math.min(1.0f, controlRodInsertion));
         this.uraniumRodCount = Math.max(0, tag.getInt("uraniumRodCount"));
         this.controlRodCount = Math.max(0, tag.getInt("controlRodCount"));
+        this.moderation = clamp(tag.getDouble("moderation"), 0.0, 1.0);
+        this.reflection = clamp(tag.getDouble("reflection"), 0.0, 1.0);
         readFuel(tag);
         this.meltdownTickCounter = Math.max(0, Math.min(100, tag.getInt("meltdownTickCounter")));
         this.thermalStress = calculateThermalStress();

@@ -1,4 +1,5 @@
-// 1.21.1	2026-10-07T01:35:33.809554	Loot Tables
+// 1.21.1	2026-10-10T02:21:03.6944314	Loot Tables
+bd3d940fd514861d5aea3b218fc57e67da87d53e data/create_nuclearindustry/loot_table/blocks/beryllium_reflector.json
 f7cd641dbc79fbdeb47db13d2fa7c6feb5d91098 data/create_nuclearindustry/loot_table/blocks/borax_ore.json
 774896dc0efff85c2635e35050dca047eb134e83 data/create_nuclearindustry/loot_table/blocks/centrifuge.json
 ff6f6eb4e0855da677f03f5fd4e3d1034be17374 data/create_nuclearindustry/loot_table/blocks/control_rod.json
@@ -23,6 +24,7 @@ fefcf3b12ca82abd47137c75407084d0f273b5bb data/create_nuclearindustry/loot_table/
 abb1a36ef78a80a0f1937e0602590e36dcd4d605 data/create_nuclearindustry/loot_table/blocks/fusion_turbine_casing.json
 c2c3296d7d78edd4d230e5f79833fac0f102d01a data/create_nuclearindustry/loot_table/blocks/fusion_turbine_fluid_port.json
 b2369637d3fcb72cf72990866e53ca73fbbfbc6e data/create_nuclearindustry/loot_table/blocks/fusion_turbine_rotor.json
+f9cc7a87bafa47ac193b83add998957226816065 data/create_nuclearindustry/loot_table/blocks/graphite_moderator.json
 c43d10630d20ff8fc98097ea62dc566ba5774478 data/create_nuclearindustry/loot_table/blocks/heat_exchanger.json
 ce7e23980fa7c56de2a27d4091a0d389093cbbe1 data/create_nuclearindustry/loot_table/blocks/launch_pad.json
 d614592cfc7377ffa8597d2b25d2c26297c29ff7 data/create_nuclearindustry/loot_table/blocks/nuclear_bomb.json

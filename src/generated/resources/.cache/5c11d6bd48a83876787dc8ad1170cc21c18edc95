@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-07T01:30:40.817491	Item Models: create_nuclearindustry
+// 1.21.1	2026-10-10T02:21:03.6966242	Item Models: create_nuclearindustry
 571ca5ad9a973c95eac9b714e4273a844ec20250 assets/create_nuclearindustry/models/item/contaminated_water_bucket.json
 a10e5cdf5dbfb869f3c0473146440432e42eac63 assets/create_nuclearindustry/models/item/crushed_raw_uranium.json
 41c482f223bbf9f6c7fee49e9e34304a0d6b5a45 assets/create_nuclearindustry/models/item/crushed_spodumene.json
@@ -11,6 +11,7 @@ b81ba50468cfccb2e32e8871f9f97ac82dc9d713 assets/create_nuclearindustry/models/it
 d9c8cae17bd3997bbe5fdf78b1bf423cc7a251dc assets/create_nuclearindustry/models/item/empty_gas_cell.json
 af8438ffcd03543b1793435acdf02728908f646d assets/create_nuclearindustry/models/item/fluorite.json
 56082f436b0c532824a4985ce91bf5e9119396b6 assets/create_nuclearindustry/models/item/geiger_counter.json
+68a151dfabbc79689371bbeaff01de2da74b04e1 assets/create_nuclearindustry/models/item/graphite.json
 68fa28c4240b0789853be86e8ccb4c1c98de16ea assets/create_nuclearindustry/models/item/hazmat_boots.json
 8c88a35519007a21a494a0652ce1e6b93ba67fe8 assets/create_nuclearindustry/models/item/hazmat_chestplate.json
 0da82b27dfe287c9bc9409afedb7c77de9e3abcb assets/create_nuclearindustry/models/item/hazmat_helmet.json

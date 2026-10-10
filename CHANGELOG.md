@@ -53,6 +53,12 @@ below for what changes in existing worlds.
   Sensors and Redstone Ports. Numeric ones work on nixie tubes.
 - The Temperature Sensor now outputs on its panel side, as its tooltip says;
   it used to power the block behind it.
+- New Graphite Moderator and Beryllium Reflector core columns. Graphite
+  (baked from coal in a heated mixer) beside a Fuel Channel makes it split
+  more: a fuel column touching two graphite columns is fully moderated, and a
+  fully moderated core is 35% more reactive. Beryllium lining the columns
+  that touch the shell bounces neutrons back: a full ring cuts losses by a
+  quarter. Both are configurable and have a Ponder scene.
 
 ### Fusion
 - The flat fusion ring is replaced by a tokamak: a toroidal multiblock of

@@ -66,6 +66,9 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.EMPTY_GAS_CELL.value());
                 output.accept(AllNuclearItems.CONTROL_ROD.value());
                 output.accept(AllNuclearItems.HEAT_EXCHANGER.value());
+                output.accept(AllNuclearItems.GRAPHITE.value());
+                output.accept(AllNuclearItems.GRAPHITE_MODERATOR.value());
+                output.accept(AllNuclearItems.BERYLLIUM_REFLECTOR.value());
                 output.accept(AllNuclearItems.REACTOR_CASING.value());
                 output.accept(AllNuclearItems.REACTOR_CONTROLLER.value());
                 output.accept(AllNuclearItems.REACTOR_FLUID_PORT.value());

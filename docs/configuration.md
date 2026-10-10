@@ -14,6 +14,8 @@ boronAbsorption = 1.5
 uraniumBurnPerNeutron = 0.0000045
 fuelUnitsPerAssembly = 100.0
 enrichmentReactivity = 0.25
+graphiteModeratorBonus = 0.35
+berylliumReflectorBonus = 0.25
 
 [fusion]
 deuteriumTritiumBurnRate = 0.0011
@@ -91,6 +93,14 @@ SU por RPM. El radio va de 4 a 16 y la altura de `2*Rb + 4` a `5*Rb` (máximo 64
 - `enrichmentReactivity`: produccion extra de neutrones por cada vez que se dobla
   el enriquecimiento por encima del 5%. Con 0,25, el combustible al 20% es 1,5
   veces mas reactivo. Cero hace que el enriquecimiento solo afecte a la duracion.
+- `graphiteModeratorBonus`: produccion extra de neutrones de un nucleo totalmente
+  moderado, es decir, con cada columna de combustible tocando dos columnas de
+  Moderador de grafito. Con 0,35 es un 35% mas reactivo; una sola vecina cuenta
+  la mitad. Cero hace el grafito inerte.
+- `berylliumReflectorBonus`: fraccion de las perdidas de neutrones que devuelve
+  un anillo interior (las columnas que tocan la carcasa) revestido por completo
+  de Reflector de berilio. Con 0,25 se pierde una cuarta parte menos. Cero hace
+  el reflector inerte.
 
 Las barras de control solo se mueven físicamente, con pistones de Create. El
 SCRAM (botón del panel o SCRAM automático, activado por defecto a 2800 °C) no

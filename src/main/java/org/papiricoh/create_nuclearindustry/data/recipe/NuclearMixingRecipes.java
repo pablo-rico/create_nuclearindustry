@@ -37,6 +37,13 @@ public class NuclearMixingRecipes extends MixingRecipeGen {
             .output(AllNuclearFluids.HYDROFLUORIC_ACID.get(), 500)
             .requiresHeat(HeatCondition.HEATED));
 
+    // Baking coal drives off everything but carbon; two coal make one bar of graphite.
+    GeneratedRecipe GRAPHITE = create("graphite", b -> b
+            .require(net.minecraft.tags.ItemTags.COALS)
+            .require(net.minecraft.tags.ItemTags.COALS)
+            .output(AllNuclearItems.GRAPHITE.get())
+            .requiresHeat(HeatCondition.HEATED));
+
     // ------------------------------------------------------------------ uranium front end
 
     // Acid leaching of the washed concentrate precipitates U3O8.

@@ -1045,3 +1045,52 @@ def radiation_scrubber_bottom():
     t.ring(7.5, 7.5, 3.2, 2.4, STEEL[5])
     t.rect(6, 6, 9, 9, DARK[2])
     return t
+
+
+# ======================================================================================
+# fission tier - moderator and reflector
+# ======================================================================================
+
+GRAPHITE = LEAD.tinted(DARK[0], 0.35)
+
+
+
+@block("graphite_moderator")
+def graphite_moderator():
+    # Stacked graphite bricks with a bored channel through the middle, RBMK style.
+    t = Tex(seed=110)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 110, 16, 16, 3, 5.0)
+            t.set(x, y, GRAPHITE[int(round(1.8 + n * 2.0))])
+    for y in (0, 5, 10, 15):
+        t.hline(0, 15, y, GRAPHITE[0])
+    for row, y0 in enumerate((0, 5, 10)):
+        for x in ((5, 11) if row % 2 == 0 else (2, 8, 14)):
+            t.vline(x, y0, min(15, y0 + 5), GRAPHITE[0])
+    for y in (1, 6, 11):
+        t.hline(0, 15, y, GRAPHITE[4])
+    t.disc(7.5, 7.5, 2.6, GRAPHITE[0])
+    t.ring(7.5, 7.5, 3.3, 2.6, GRAPHITE[5])
+    speckle(t, 0, 0, 15, 15, GRAPHITE[6], chance=0.04, seed=110)
+    return t
+
+
+@block("beryllium_reflector")
+def beryllium_reflector():
+    # Pale beryllium plates in a steel frame: bright face that bounces neutrons back.
+    from pixelkit import Ramp
+    ber = Ramp("#354039", "#546257", "#758777", "#98aa92", "#b6c9aa", "#d4e0c5", "#eff2dd")
+    t = Tex(seed=111)
+    brushed(t, ber, base=4.0, amp=0.6, seed=111)
+    outline(t, 0, 0, 15, 15, STEEL[0])
+    bevel(t, 1, 1, 14, 14, STEEL)
+    for x0, y0 in ((2, 2), (8, 2), (2, 8), (8, 8)):
+        t.rect(x0, y0, x0 + 5, y0 + 5, ber[4])
+        bevel(t, x0, y0, x0 + 5, y0 + 5, ber)
+        t.set(x0 + 1, y0 + 1, ber[6])
+    for x, y in ((7, 7), (8, 7), (7, 8), (8, 8)):
+        t.set(x, y, STEEL[1])
+    for x, y in ((1, 1), (14, 1), (1, 14), (14, 14)):
+        rivet(t, x, y, STEEL)
+    return t

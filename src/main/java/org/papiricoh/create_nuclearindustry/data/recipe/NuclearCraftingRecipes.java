@@ -53,6 +53,26 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .save(output, id("crafting/" + net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(result).getPath()));
     }
 
+    /** Graphite moderator columns and beryllium reflector lining for the fission core. */
+    private void moderation(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.GRAPHITE_MODERATOR.get())
+                .pattern("GGG")
+                .pattern("GGG")
+                .pattern("GGG")
+                .define('G', AllNuclearItems.GRAPHITE.get())
+                .unlockedBy("has_graphite", has(AllNuclearItems.GRAPHITE.get()))
+                .save(output, id("crafting/graphite_moderator"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.BERYLLIUM_REFLECTOR.get(), 2)
+                .pattern("BPB")
+                .pattern("PCP")
+                .pattern("BPB")
+                .define('B', AllNuclearItems.BERYLLIUM.get())
+                .define('P', CreateItems.get("copper_sheet"))
+                .define('C', AllNuclearItems.REACTOR_CASING.get())
+                .unlockedBy("has_beryllium", has(AllNuclearItems.BERYLLIUM.get()))
+                .save(output, id("crafting/beryllium_reflector"));
+    }
+
     /** Concrete and andesite for the shell; Create parts for the controller, ports and fans. */
     private void coolingTower(RecipeOutput output) {
         ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.COOLING_TOWER_CASING.get(), 8)
@@ -187,6 +207,7 @@ public class NuclearCraftingRecipes extends RecipeProvider {
 
         coolingTower(output);
         depletedUranium(output);
+        moderation(output);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AllNuclearItems.RTG.get())
                 .pattern("PPP")

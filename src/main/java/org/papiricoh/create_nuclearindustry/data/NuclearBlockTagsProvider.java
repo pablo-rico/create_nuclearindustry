@@ -60,6 +60,8 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
                 AllNuclearBlocks.COOLING_TOWER_FAN.get(),
                 AllNuclearBlocks.URANIUM_ROD.get(),
                 AllNuclearBlocks.HEAT_EXCHANGER.get(),
+                AllNuclearBlocks.GRAPHITE_MODERATOR.get(),
+                AllNuclearBlocks.BERYLLIUM_REFLECTOR.get(),
                 AllNuclearBlocks.CONTROL_ROD.get(),
                 AllNuclearBlocks.FUSION_ACCELERATOR_SEGMENT.get(),
                 AllNuclearBlocks.FUSION_ACCELERATOR_CORNER.get(),
