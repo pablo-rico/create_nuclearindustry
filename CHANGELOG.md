@@ -301,12 +301,6 @@ below for what changes in existing worlds.
   sets off every siren within its reach for two minutes.
 - A shut blast door in a containment wall keeps the building sealed; opening
   it unseals the building, and the monitor notices right away.
-- Upgrading: existing reactors keep boiling water as before; nothing changes
-  until a pressurizer and primary coolant are added.
-- Upgrading: meltdowns in existing worlds no longer make the power 80
-  explosion; they leave corium and a release scaled to the core. Set
-  `pwr.accidents.legacyMeltdown = true` to get the old meltdown back. Reactors
-  running hotter than 1200 °C now oxidise their cladding, which adds heat.
 
 ### Spent fuel
 - Spent fuel now has a cooling history: assemblies leave the reactor Hot and
@@ -335,10 +329,6 @@ below for what changes in existing worlds.
   Radioactive Waste.
 - Comparators read how full a rack or cask is. Recipes for the rack, the
   cooler and the cask.
-- Upgrading: spent fuel from older worlds has no history and counts as Warm,
-  with the same dose as before; once carried or stored it gets a history and
-  goes on cooling. Hot and Warm spent fuel now gives a chance of Radioactive
-  Waste when crushed.
 
 ### Waste management
 - Waste now comes in three classes. The old Radioactive Waste keeps its id
@@ -360,14 +350,6 @@ below for what changes in existing worlds.
 - New Repository Inspector: shows the stored packages within 8 blocks and the
   score breakdown of the weakest one on goggles, feeds a Display Link and puts
   the stored share out to comparators.
-- Upgrading: waste barrels below Y=0 that are not in a proper repository (no
-  bentonite, open caves, water nearby) now leak slightly and irradiate a
-  little. Set `waste.repository.legacyDepthRule = true` to keep the old
-  "below Y=0 is stored" rule.
-- Upgrading: PUREX now gives High-Level Waste and the scrubber Low-Level
-  Waste. Barrel compacting still takes intermediate- and high-level waste;
-  low-level waste goes into its own drum. A scrubber holding old waste waits
-  until it is emptied.
 
 ### Control room instruments
 - Chart Recorder: up to three pens (red, blue, green) draw readings of the
@@ -387,7 +369,7 @@ below for what changes in existing worlds.
   redstone into its left (ACK) and right (RESET) sides, for example from a
   desk pulse button. The back and bottom give full power while an alarm
   waits for acknowledgement; a comparator counts the lit windows.
-- Rod Controller Module for control desks: a PID loop that holds the
+- Controller Module for control desks: a PID loop that holds the
   reactor's power or core temperature at a setpoint by moving the rod
   target, in whole rod segments, so the Insert rods and Withdraw rods ports
   drive the pistons. Click it like a dial to change the setpoint; its wrench
@@ -473,11 +455,6 @@ below for what changes in existing worlds.
   sirens, the crank's minimum speed, the seismic scale, door speeds and
   stress, the blast wave's speed, reach, yield and damage, and the shelter's
   size, wall requirements and filter).
-- Upgrading: nuclear detonations no longer blow up terrain with a vanilla
-  explosion reaching up to about 100 blocks; beyond the crater and the small
-  fireball the blast wave hurts people and breaks glass and leaves instead.
-  Set `civilDefense.blastWave.breakFragileBlocks = false` to keep every block
-  outside the crater and fireball intact.
 
 ### Ponder: the nuclear power plant
 - New Ponder tag "Nuclear Power Plant" in the Ponder index, listing every
@@ -491,8 +468,8 @@ below for what changes in existing worlds.
     or a broken pipe does.
   - Steam, Turbine and Cooling Tower: steam to the turbine, the exhaust port,
     the cooling tower and the condensate pumped back as feedwater.
-  - Control Room and Containment: desk modules (rod target dial, rod
-    controller, SCRAM), the Insert and Withdraw rods ports driving the rod
+  - Control Room and Containment: desk modules (rod target dial, controller
+    module, SCRAM), the Insert and Withdraw rods ports driving the rod
     piston, the annunciator panel and chart recorder, then the containment
     building with penetrations, its weakest wall, the containment monitor,
     recombiners, the filtered vent, and corium stopped by a core catcher.
@@ -503,6 +480,13 @@ below for what changes in existing worlds.
   host rock, bentonite, waste form, no water nearby) instead of the old
   "below Y=0" rule, and the scrubber scene shows that it makes Low-Level
   Waste.
+
+### JEI
+- Info pages for every new block and item of the plant: pressurizer, steam
+  generator, containment, corium, spent fuel storage, the three waste classes
+  and their packages, control room instruments and civil defense.
+- New Vitrification category, with the melter and the Blaze Burner as
+  catalysts and the heat it needs.
 
 ### Technical
 - Ground contamination and the dose HUD reach clients through NeoForge's
@@ -536,6 +520,29 @@ below for what changes in existing worlds.
   SCRAM state); loading them in an older version is not supported.
 - `fusion.deuteriumTritiumBurnRate` changed meaning (see
   `docs/configuration.md`); an existing config keeps its old value.
+- Existing reactors keep boiling water as before; nothing changes
+  until a pressurizer and primary coolant are added.
+- Meltdowns in existing worlds no longer make the power 80
+  explosion; they leave corium and a release scaled to the core. Set
+  `pwr.accidents.legacyMeltdown = true` to get the old meltdown back. Reactors
+  running hotter than 1200 °C now oxidise their cladding, which adds heat.
+- Spent fuel from older worlds has no history and counts as Warm,
+  with the same dose as before; once carried or stored it gets a history and
+  goes on cooling. Hot and Warm spent fuel now gives a chance of
+  Intermediate-Level Waste when crushed.
+- Waste barrels below Y=0 that are not in a proper repository (no
+  bentonite, open caves, water nearby) now leak slightly and irradiate a
+  little. Set `waste.repository.legacyDepthRule = true` to keep the old
+  "below Y=0 is stored" rule.
+- PUREX now gives High-Level Waste and the scrubber Low-Level
+  Waste. Barrel compacting still takes intermediate- and high-level waste;
+  low-level waste goes into its own drum. A scrubber holding old waste waits
+  until it is emptied.
+- Nuclear detonations no longer blow up terrain with a vanilla
+  explosion reaching up to about 100 blocks; beyond the crater and the small
+  fireball the blast wave hurts people and breaks glass and leaves instead.
+  Set `civilDefense.blastWave.breakFragileBlocks = false` to keep every block
+  outside the crater and fireball intact.
 
 ## 1.1.0
 

@@ -67,7 +67,7 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(c + "no_paper_short", "NO PAPER", "SIN PAPEL");
         add(c + "pen", "Pen %s: %s", "Plumilla %s: %s");
         add(c + "pen.off", "Off", "Apagada");
-        add(c + "speed", "Paper speed: one sample every %s ticks", "Velocidad del papel: una muestra cada %s ticks");
+        add(c + "speed", "Paper speed: every %s ticks", "Velocidad del papel: cada %s ticks");
         String roll = "item.create_nuclearindustry.chart_roll.";
         add(roll + "blank", "Blank", "En blanco");
         add(roll + "source", "%s, last %s s", "%s, últimos %s s");
@@ -170,9 +170,9 @@ final class ControlRoom2DataGen extends AreaDataGen {
     }
 
     private static void controller() {
-        item("controller_module", "Rod Controller Module", "Módulo controlador de barras");
+        item("controller_module", "Controller Module", "Módulo controlador");
         String m = "create_nuclearindustry.control_module.";
-        add(m + "type.controller", "Rod Controller", "Controlador de barras");
+        add(m + "type.controller", "Controller", "Controlador");
         add(m + "function.auto_power", "Automatic power", "Potencia automática");
         add(m + "function.auto_temperature", "Automatic temperature", "Temperatura automática");
         add(m + "mode.auto", "Mode: automatic", "Modo: automático");

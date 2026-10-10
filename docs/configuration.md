@@ -586,7 +586,7 @@ cuenta como almacenado, sin mirar lo que lo rodea, y lo demas fuga
 - `annunciatorInterval` (10): ticks entre dos comprobaciones de las ventanas de
   un Panel anunciador. Menos ticks detectan antes una alarma breve, a cambio de
   muestrear más a menudo las máquinas enlazadas.
-- `pid.interval` (20): ticks entre dos pasos del Módulo controlador de barras.
+- `pid.interval` (20): ticks entre dos pasos del Módulo controlador.
   Cada paso lee el reactor y mueve el objetivo de las barras; los pistones
   siguen moviendo las barras de verdad.
 - `pid.gain` (1.5): ganancia proporcional. El error se mide en fracciones de la
