@@ -253,8 +253,9 @@ Que contamina:
 - Bombas, misiles y proyectiles nucleares: hasta 1,5 veces el radio del crater,
   con 0,2 rad/s por punto de potencia en el centro (32 con una cabeza completa).
 - La fusion del nucleo de un reactor: 20 rad/s en el reactor, hasta 48 bloques.
-- Los barriles de residuos por encima de `geologicalStorageMaxY`: cada tick
-  aleatorio (unos 68 s de media) suman `barrelLeak` a su chunk.
+- Los barriles y bultos de residuos que no estan almacenados: cada tick
+  aleatorio (unos 68 s de media) suman a su chunk `barrelLeak` por su factor de
+  fuga y por lo que el repositorio no retiene.
 
 Cuando una lluvia radiactiva deja un chunk con gravedad 3 o mas (0,5 rad/s), la
 fuente de agua de la superficie de cada columna puede volverse agua
@@ -266,14 +267,16 @@ separa en agua limpia y residuos.
 El Absorbedor de radiacion limpia el suelo: accionado desde abajo, quita cada
 segundo `scrubberRate` rad/s (a 256 RPM o mas; menos si gira mas despacio) de su
 chunk y de los que estan a `scrubberRadius` chunks, empezando por el mas
-contaminado. Cada `scrubberWastePer` absorbidos produce un Residuo radiactivo
-en su unica ranura, que se vacia con embudos o tolvas; lleno, se para. Consume
+contaminado. Cada `scrubberWastePer` absorbidos produce un Residuo de baja
+actividad en su unica ranura, que se vacia con embudos o tolvas; lleno, se para. Consume
 `scrubberStress` SU por RPM.
 
-Un barril en `geologicalStorageMaxY` o mas abajo (Y=0 por defecto) cuenta como
-almacenado: ni irradia ni contamina. La regla es solo la profundidad; el
-almacen lo construye el jugador. Los bloques que siguen esta regla estan en la
-etiqueta `create_nuclearindustry:geologically_storable`.
+Los barriles y demas bultos de residuos fugan y irradian segun la calidad del
+repositorio que los rodea (ver "Residuos y repositorio"). `geologicalStorageMaxY`
+solo se usa con `waste.repository.legacyDepthRule = true`: entonces un barril
+en esa altura o mas abajo (Y=0 por defecto) cuenta como almacenado, como antes.
+Los bloques que siguen esa regla estan en la etiqueta
+`create_nuclearindustry:geologically_storable`.
 
 ## Reactor de agua a presión y accidentes
 
@@ -351,7 +354,61 @@ corresponde.
 
 ## Residuos y repositorio
 
-<!-- opciones waste.*: las documenta su paquete de trabajo -->
+```toml
+[waste.repository]
+legacyDepthRule = false
+minScore = 0.8
+depthSpan = 64
+depthWeight = 0.35
+hostRockWeight = 0.25
+backfillWeight = 0.25
+formWeight = 0.15
+fluidPenalty = 0.4
+probeCacheTicks = 200
+```
+
+Los residuos tienen tres clases: **baja actividad** (absorbedor de radiacion y
+agua contaminada centrifugada, 0,5 rad/s), **media actividad** (el antiguo
+Residuo radiactivo, 6 rad/s) y **alta actividad** (los productos de fision del
+PUREX, 15 rad/s y calientes). Cada clase tiene su tratamiento: la de baja se
+compacta en un Bidon de residuos compactados, la de media se cementa en la
+mezcladora (residuo, arena, grava, una plancha de hierro y agua) en un Bidon de
+residuos cementados, y la de alta se vitrifica en el Fundidor de vitrificacion
+sobre un quemador de blaze encendido (residuo, arena y borax) en un Contenedor
+de residuos vitrificados. El barril de siempre sigue aceptando residuo de media
+y de alta actividad.
+
+Cada bulto colocado (barril, bidones, contenedor) tiene su entrada en el data
+map de bloques `create_nuclearindustry:waste_package`: `leak_factor` (fraccion
+de `contamination.barrelLeak` que fuga en cada tick aleatorio), `emission_factor`
+(fraccion de su radiactividad que emite colocado) y `form` (`raw`, `compacted`,
+`cemented` o `vitrified`).
+
+El repositorio geologico se puntua de 0 a 1 para cada bulto:
+
+- profundidad (`depthWeight`): bloques por debajo del bloque solido mas alto de
+  su columna, divididos entre `depthSpan` (maximo 1);
+- roca huesped (`hostRockWeight`): fraccion de los bloques naturales a 3 bloques
+  que estan en la etiqueta `create_nuclearindustry:repository_host_rock`
+  (pizarra profunda, toba, basalto...). La bentonita y otros bultos no cuentan;
+- relleno (`backfillWeight`): caras del bulto tapadas con bentonita (etiqueta
+  `create_nuclearindustry:repository_backfill`) o con otros bultos, entre 6;
+- forma (`formWeight`): sin tratar 0,3, compactado o cementado 0,7, vitrificado 1;
+- menos `fluidPenalty` si hay una fuente de fluido (agua, lava...) a 4 bloques
+  o menos.
+
+Con una puntuacion de `minScore` o mas el bulto cuenta como almacenado: ni
+fuga ni irradia. Por debajo, fuga `barrelLeak * leak_factor * (1 - puntuacion)`
+en cada tick aleatorio y emite `radiactividad * emission_factor * (1 -
+puntuacion)`. El entorno de cada bulto se vuelve a mirar como mucho cada
+`probeCacheTicks` ticks. El Inspector de repositorio muestra con las gafas el
+desglose del bulto mas debil a 8 bloques, da el estado a un Display Link y
+saca por comparador la fraccion almacenada (0-15).
+
+`legacyDepthRule = true` vuelve a la regla antigua: lo que esta en la etiqueta
+`geologically_storable` en `contamination.geologicalStorageMaxY` o mas abajo
+cuenta como almacenado, sin mirar lo que lo rodea, y lo demas fuga
+`barrelLeak * leak_factor`.
 
 ## Instrumentos de la sala de control
 

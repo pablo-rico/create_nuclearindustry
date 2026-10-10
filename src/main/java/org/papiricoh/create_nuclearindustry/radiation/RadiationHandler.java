@@ -174,8 +174,9 @@ public final class RadiationHandler {
                     pos.set(center.getX() + dx, center.getY() + dy, center.getZ() + dz);
                     var state = level.getBlockState(pos);
                     Radioactivity radioactivity = state.getBlock().asItem().builtInRegistryHolder().getData(AllNuclearRadiation.RADIOACTIVITY);
-                    double strength = radioactivity != null && !GeologicalStorage.isStored(state, pos)
-                            ? radioactivity.perSecond() : fluidStrength(state);
+                    // Waste packages give off less the better they are packed and buried.
+                    double strength = radioactivity != null
+                            ? GeologicalStorage.emission(level, state, pos, radioactivity.perSecond()) : fluidStrength(state);
                     if (strength > 0) {
                         double open = strength / (1.0 + dx * dx + dy * dy + dz * dz);
                         rate += open * RadiationRay.transmission(level, Vec3.atCenterOf(pos), body);

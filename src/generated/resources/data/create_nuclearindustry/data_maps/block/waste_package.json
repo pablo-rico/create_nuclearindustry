@@ -1,0 +1,24 @@
+{
+  "values": {
+    "create_nuclearindustry:cemented_waste_drum": {
+      "emission_factor": 0.6,
+      "form": "cemented",
+      "leak_factor": 0.25
+    },
+    "create_nuclearindustry:compacted_waste_drum": {
+      "emission_factor": 1.0,
+      "form": "compacted",
+      "leak_factor": 0.5
+    },
+    "create_nuclearindustry:radioactive_waste_barrel": {
+      "emission_factor": 1.0,
+      "form": "raw",
+      "leak_factor": 1.0
+    },
+    "create_nuclearindustry:vitrified_waste_canister": {
+      "emission_factor": 0.5,
+      "form": "vitrified",
+      "leak_factor": 0.05
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "values": [
+    "#minecraft:deepslate_ore_replaceables",
+    "minecraft:cobbled_deepslate",
+    "minecraft:polished_deepslate",
+    "minecraft:deepslate_bricks",
+    "minecraft:deepslate_tiles",
+    "minecraft:chiseled_deepslate",
+    "minecraft:cracked_deepslate_bricks",
+    "minecraft:cracked_deepslate_tiles",
+    "minecraft:polished_tuff",
+    "minecraft:tuff_bricks",
+    "minecraft:chiseled_tuff",
+    "minecraft:chiseled_tuff_bricks",
+    "minecraft:smooth_basalt",
+    "minecraft:basalt",
+    "minecraft:polished_basalt",
+    "minecraft:obsidian",
+    "minecraft:bedrock"
+  ]
+}

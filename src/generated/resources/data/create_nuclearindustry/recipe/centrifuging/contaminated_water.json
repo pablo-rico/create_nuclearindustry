@@ -11,7 +11,7 @@
   "results": [
     {
       "chance": 0.1,
-      "id": "create_nuclearindustry:radioactive_waste"
+      "id": "create_nuclearindustry:low_level_waste"
     },
     {
       "amount": 1000,

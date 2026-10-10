@@ -1,0 +1,5 @@
+// 1.21.1	2026-10-10T17:54:31.733881	Waste treatment recipes
+6af6f726469c0fc7998a185972bb827e285e5cea data/create_nuclearindustry/recipe/compacting/compacted_waste_drum.json
+87ad19c899fcd8fd037290114076620bdb104bd3 data/create_nuclearindustry/recipe/mixing/bentonite.json
+5df6eaff076661427dbe921c46a4bd3489fb6927 data/create_nuclearindustry/recipe/mixing/cemented_waste_drum.json
+58eb1a639b53dae63506966b6594f24b3be1a8de data/create_nuclearindustry/recipe/vitrification/vitrified_waste_canister.json

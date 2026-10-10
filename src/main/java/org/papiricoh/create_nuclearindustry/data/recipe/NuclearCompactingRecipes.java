@@ -8,16 +8,19 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.waste.WasteTags;
 
 import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("unused")
 public class NuclearCompactingRecipes extends StandardProcessingRecipeGen<BasinRecipe> {
 
-    // Waste is sealed into a shielded drum for storage.
+    // Untreated waste is sealed into a plain drum: intermediate-level, or high-level so that
+    // automation built before PUREX gave high-level waste keeps working. Low-level waste has
+    // its own, denser drum.
     GeneratedRecipe WASTE_BARREL = create("radioactive_waste_barrel", b -> b
-            .require(AllNuclearItems.RADIOACTIVE_WASTE.get()).require(AllNuclearItems.RADIOACTIVE_WASTE.get())
-            .require(AllNuclearItems.RADIOACTIVE_WASTE.get()).require(AllNuclearItems.RADIOACTIVE_WASTE.get())
+            .require(WasteTags.BARREL_WASTE).require(WasteTags.BARREL_WASTE)
+            .require(WasteTags.BARREL_WASTE).require(WasteTags.BARREL_WASTE)
             .require(CreateItems.get("iron_sheet")).require(CreateItems.get("iron_sheet"))
             .require(CreateItems.get("iron_sheet")).require(CreateItems.get("iron_sheet"))
             .output(AllNuclearItems.RADIOACTIVE_WASTE_BARREL.get()));

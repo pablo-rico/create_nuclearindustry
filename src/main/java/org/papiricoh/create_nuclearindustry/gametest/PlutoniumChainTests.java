@@ -23,6 +23,7 @@ import org.papiricoh.create_nuclearindustry.enrichment.blockentity.CentrifugeBlo
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.processing.KineticProcessingBlockEntity;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
+import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 
 import java.util.List;
 
@@ -123,8 +124,8 @@ public class PlutoniumChainTests {
             helper.assertTrue(tails.is(AllNuclearFluids.NITRIC_ACID.get()) && tails.getAmount() == 250,
                     "expected 250 mB recovered acid, got " + tails.getAmount());
             ItemStack waste = centrifuge.getItem(KineticProcessingBlockEntity.FIRST_OUTPUT_SLOT);
-            helper.assertTrue(waste.is(AllNuclearItems.RADIOACTIVE_WASTE.get()) && waste.getCount() >= 2,
-                    "fission products settle out as waste, got " + waste);
+            helper.assertTrue(waste.is(WasteRegistry.HIGH_LEVEL_WASTE.get()) && waste.getCount() >= 2,
+                    "fission products settle out as high-level waste, got " + waste);
         });
     }
 

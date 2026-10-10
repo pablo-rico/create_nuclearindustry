@@ -2,16 +2,16 @@
   "type": "create:compacting",
   "ingredients": [
     {
-      "item": "create_nuclearindustry:radioactive_waste"
+      "tag": "create_nuclearindustry:barrel_waste"
     },
     {
-      "item": "create_nuclearindustry:radioactive_waste"
+      "tag": "create_nuclearindustry:barrel_waste"
     },
     {
-      "item": "create_nuclearindustry:radioactive_waste"
+      "tag": "create_nuclearindustry:barrel_waste"
     },
     {
-      "item": "create_nuclearindustry:radioactive_waste"
+      "tag": "create_nuclearindustry:barrel_waste"
     },
     {
       "item": "create:iron_sheet"

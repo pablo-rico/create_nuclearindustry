@@ -54,6 +54,12 @@
     "create_nuclearindustry:spent_fuel_rack",
     "create_nuclearindustry:pool_cooler",
     "create_nuclearindustry:dry_cask",
+    "create_nuclearindustry:compacted_waste_drum",
+    "create_nuclearindustry:cemented_waste_drum",
+    "create_nuclearindustry:vitrified_waste_canister",
+    "create_nuclearindustry:bentonite",
+    "create_nuclearindustry:repository_inspector",
+    "create_nuclearindustry:vitrification_melter",
     "create_nuclearindustry:chart_recorder",
     "create_nuclearindustry:annunciator_panel",
     {

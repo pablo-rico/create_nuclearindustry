@@ -1,5 +1,5 @@
-// 1.21.1	2026-10-06T23:08:17.651407	create_nuclearindustry's processing recipes: compacting
+// 1.21.1	2026-10-10T17:54:31.740967	create_nuclearindustry's processing recipes: compacting
 61238195e788ac96804944d03cb1d150ab3c2168 data/create_nuclearindustry/recipe/compacting/mox_fuel_pellet.json
 c5d38a887c9b535ad461e8334e76d8d8d9d88369 data/create_nuclearindustry/recipe/compacting/plutonium_rtg_pellet.json
-d098e8e864a10b0d4fa9f1c9cc3bc743ed92d878 data/create_nuclearindustry/recipe/compacting/radioactive_waste_barrel.json
+78bd8ebb09d8c5099001d9ad2de73b07fa362601 data/create_nuclearindustry/recipe/compacting/radioactive_waste_barrel.json
 bdf5753d0ffbb9cf95bdbe1362cda1f4c3e66d6e data/create_nuclearindustry/recipe/compacting/waste_rtg_pellet.json

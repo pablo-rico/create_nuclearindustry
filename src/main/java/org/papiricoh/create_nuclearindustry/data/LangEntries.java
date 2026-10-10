@@ -297,7 +297,7 @@ public final class LangEntries {
         item("uranium_dioxide", "Uranium Dioxide", "Dióxido de uranio");
         item("uranium_fuel_pellet", "Uranium Fuel Pellet", "Pastilla de combustible de uranio");
         item("incomplete_uranium_reactor_fuel", "Incomplete Uranium Reactor Fuel", "Combustible de uranio incompleto");
-        item("radioactive_waste", "Radioactive Waste", "Residuos radiactivos");
+        item("radioactive_waste", "Intermediate-Level Waste", "Residuo de media actividad");
         item("fluorite", "Fluorite", "Fluorita");
         item("raw_spodumene", "Raw Spodumene", "Espodumena en bruto");
         item("crushed_spodumene", "Crushed Spodumene", "Espodumena triturada");

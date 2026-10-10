@@ -10,6 +10,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
 import org.papiricoh.create_nuclearindustry.processing.AllNuclearRecipeTypes;
 import org.papiricoh.create_nuclearindustry.processing.recipe.CentrifugingRecipe;
+import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -36,20 +37,20 @@ public class NuclearCentrifugingRecipes extends StandardProcessingRecipeGen<Cent
             .duration(200));
 
     // PUREX extraction: plutonium leaves in the product, the acid is recovered as tails,
-    // fission products settle out as waste.
+    // fission products settle out as high-level waste.
     GeneratedRecipe PLUTONIUM_NITRATE = create("plutonium_nitrate", b -> b
             .require(AllNuclearFluids.SPENT_FUEL_SOLUTION.get(), 1000)
             .output(AllNuclearFluids.PLUTONIUM_NITRATE.get(), 250)
             .output(AllNuclearFluids.NITRIC_ACID.get(), 250)
-            .output(AllNuclearItems.RADIOACTIVE_WASTE.get(), 2)
-            .output(0.5f, AllNuclearItems.RADIOACTIVE_WASTE.get())
+            .output(WasteRegistry.HIGH_LEVEL_WASTE.get(), 2)
+            .output(0.5f, WasteRegistry.HIGH_LEVEL_WASTE.get())
             .duration(300));
 
-    // Spinning contaminated water throws out the fallout as waste and leaves clean water.
+    // Spinning contaminated water throws out the fallout as low-level waste and leaves clean water.
     GeneratedRecipe CONTAMINATED_WATER = create("contaminated_water", b -> b
             .require(AllNuclearFluids.CONTAMINATED_WATER.get(), 1000)
             .output(net.minecraft.world.level.material.Fluids.WATER, 1000)
-            .output(0.1f, AllNuclearItems.RADIOACTIVE_WASTE.get())
+            .output(0.1f, WasteRegistry.LOW_LEVEL_WASTE.get())
             .duration(100));
 
     public NuclearCentrifugingRecipes(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {

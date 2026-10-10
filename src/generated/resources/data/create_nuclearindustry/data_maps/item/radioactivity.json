@@ -1,5 +1,11 @@
 {
   "values": {
+    "create_nuclearindustry:cemented_waste_drum": {
+      "per_second": 1.5
+    },
+    "create_nuclearindustry:compacted_waste_drum": {
+      "per_second": 0.4
+    },
     "create_nuclearindustry:contaminated_water_bucket": {
       "per_second": 0.3
     },
@@ -20,6 +26,13 @@
     },
     "create_nuclearindustry:enriched_uranium_blend": {
       "per_second": 0.3
+    },
+    "create_nuclearindustry:high_level_waste": {
+      "heat_per_second": 0.5,
+      "per_second": 15.0
+    },
+    "create_nuclearindustry:low_level_waste": {
+      "per_second": 0.5
     },
     "create_nuclearindustry:mox_fuel_pellet": {
       "per_second": 1.5
@@ -78,6 +91,10 @@
     "create_nuclearindustry:uranyl_nitrate": {
       "per_second": 1.5,
       "scales_with_enrichment": true
+    },
+    "create_nuclearindustry:vitrified_waste_canister": {
+      "heat_per_second": 1.0,
+      "per_second": 8.0
     },
     "create_nuclearindustry:waste_rtg_pellet": {
       "per_second": 3.0
