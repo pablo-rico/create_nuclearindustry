@@ -746,8 +746,8 @@ public final class LangEntries {
                 "A Radiation Scrubber draws it out of the ground of its chunk and the eight around it, the worst first. Drive it from below: it cleans faster up to 256 RPM.",
                 "Un Absorbedor de radiación la saca del suelo de su chunk y de los ocho de alrededor, empezando por el peor. Acciónalo desde abajo: limpia más rápido hasta 256 RPM.");
         add("create_nuclearindustry.ponder.radiation_scrubber.text_3",
-                "What it absorbs comes out as Radioactive Waste. Take it out with a funnel or hopper: full, it stops, and the waste inside irradiates.",
-                "Lo que absorbe sale como Residuos radiactivos. Sácalos con un embudo o una tolva: lleno se detiene, y los residuos de dentro irradian.");
+                "What it absorbs comes out as Low-Level Waste, for a Compacted Waste Drum. Take it out with a funnel or hopper: full, it stops, and the waste inside irradiates.",
+                "Lo que absorbe sale como Residuo de baja actividad, para un Bidón de residuos compactados. Sácalo con un embudo o una tolva: lleno se detiene, y los residuos de dentro irradian.");
         add("create_nuclearindustry.ponder.waste_storage.header",
                 "Geological Waste Storage",
                 "Almacenamiento geológico de residuos");
@@ -755,11 +755,11 @@ public final class LangEntries {
                 "At the surface a Waste Barrel irradiates whoever comes close, and slowly leaks into the ground around it.",
                 "En la superficie, un Barril de residuos irradia a quien se acerca y va filtrándose poco a poco en el suelo de alrededor.");
         add("create_nuclearindustry.ponder.waste_storage.text_2",
-                "Waste stored at Y=0 or lower counts as geologically stored.",
-                "Los residuos guardados en Y=0 o más abajo cuentan como almacenados geológicamente.");
+                "Underground, a repository score decides: depth below the surface, host rock such as deepslate around it, Bentonite backfill on its faces and the waste form. Water within 4 blocks spoils it.",
+                "Bajo tierra decide una puntuación de repositorio: la profundidad bajo la superficie, la roca que lo rodea, como la pizarra profunda, el relleno de Bentonita en sus caras y la forma del residuo. El agua a menos de 4 bloques la arruina.");
         add("create_nuclearindustry.ponder.waste_storage.text_3",
-                "Down there barrels neither irradiate nor leak. Dig a deep gallery, fill it and seal it off: only the depth matters.",
-                "Ahí abajo los barriles ni irradian ni se filtran. Excava una galería profunda, llénala y ciérrala: solo cuenta la profundidad.");
+                "From a score of 80% a package neither irradiates nor leaks. Raw barrels score lowest: bury them deep in host rock, pack them in Bentonite, or treat the waste first. The old Y=0 rule is a config option.",
+                "Desde una puntuación del 80% un bulto ni irradia ni se filtra. Los barriles sin tratar puntúan lo más bajo: entiérralos hondo en roca firme, rodéalos de Bentonita o trata antes los residuos. La antigua regla de Y=0 es una opción de configuración.");
         add("create_nuclearindustry.ponder.cooling_tower.header",
                 "Cooling Towers",
                 "Torres de refrigeración");
