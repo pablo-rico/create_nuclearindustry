@@ -19,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModule;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.DeskGeometry;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.DeskShape;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleFunction;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 
@@ -38,25 +39,23 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
 
     @Override
     public void render(ControlDeskBlockEntity desk, float partialTick, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
-        if (!desk.hasSlots()) {
-            return;
-        }
         BlockState state = desk.getBlockState();
+        DeskShape shape = state.getValue(ControlDeskBlock.SHAPE);
         for (int slot = 0; slot < ControlDeskBlockEntity.SLOTS; slot++) {
             ControlModule module = desk.module(slot);
-            if (module == null) {
+            if (module == null || !shape.hasSlot(slot)) {
                 continue;
             }
             ms.pushPose();
             DeskGeometry.toModel(ms, state);
-            DeskGeometry.toSlot(ms, slot);
+            DeskGeometry.toSlot(ms, shape, slot);
             ms.translate(-0.5, 0, -0.5);
             renderModule(module, state, ms, buffers, light);
             ms.popPose();
         }
         // Text goes last: the font takes its own buffer, which closes the shared one the modules draw into.
         int hovered = Minecraft.getInstance().options.hideGui ? -1 : hoveredSlot(desk);
-        if (hovered >= 0 && desk.module(hovered) != null) {
+        if (hovered >= 0 && shape.hasSlot(hovered) && desk.module(hovered) != null) {
             renderLabel(desk, state, hovered, desk.module(hovered), ms, buffers);
         }
     }
@@ -110,7 +109,7 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
                              MultiBufferSource buffers) {
         PoseStack local = new PoseStack();
         DeskGeometry.toModel(local, state);
-        DeskGeometry.toSlot(local, slot);
+        DeskGeometry.toSlot(local, state.getValue(ControlDeskBlock.SHAPE), slot);
         Vector3f above = local.last().pose().transformPosition(new Vector3f(0, 0.5f, 0));
         ms.pushPose();
         ms.translate(above.x(), above.y(), above.z());

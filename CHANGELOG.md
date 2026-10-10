@@ -79,7 +79,8 @@ below for what changes in existing worlds.
   main value.
 - Control Desks: sloping consoles that join side by side and round corners
   (inner and outer, like stairs) into one console with one link. Each straight
-  desk holds four control modules, fitted by hand and set up with a wrench:
+  desk holds four control modules and each corner two, one on each arm (in
+  the back row of an inner corner, the front row of an outer one), fitted by hand and set up with a wrench:
   push buttons (SCRAM/reset, pulse), levers (automatic SCRAM, tokamak fuel,
   on/off), dials (rod target, SCRAM threshold, redstone level), indicator
   lamps (SCRAM, running, no signal, any alarm metric), gauges (any reading)

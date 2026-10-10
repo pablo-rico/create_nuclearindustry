@@ -38,8 +38,9 @@ import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomBlocks;
 import java.util.Map;
 
 /**
- * A control desk: a cabinet with a sloping top that holds four control modules. FACING is the
- * side the operator stands on; the top rises away from it. Desks side by side join into one
+ * A control desk: a cabinet with a sloping top that holds four control modules, or two on a corner,
+ * one on each arm (see {@link DeskShape#hasSlot}). FACING is the side the operator stands on; the
+ * top rises away from it. Desks side by side join into one
  * console (LEFT and RIGHT drop the end panels), and desks meeting at right angles turn a corner
  * like stairs do. Fit a module by clicking a slot with it; wrench a module to set it up,
  * sneak-wrench to take it out; click it with an empty hand to work it.
@@ -172,34 +173,37 @@ public class ControlDeskBlock extends HorizontalDirectionalBlock implements IBE<
     // ------------------------------------------------------------------ slots and interaction
 
     /**
-     * The slot a click lands on, 0-3, or -1 off the top. Slots go left to right as the operator
-     * sees them, the near row (0, 1) then the far row (2, 3).
+     * The slot a click lands on, 0-3, or -1 off the top. On a straight desk slots go left to right as
+     * the operator sees them, the near row (0, 1) then the far row (2, 3); on a corner each half of
+     * the top, either side of the diagonal, is its arm's one slot.
      */
     public static int slotAt(BlockState state, BlockPos pos, Vec3 hit) {
-        if (!(state.getBlock() instanceof ControlDeskBlock) || !state.getValue(SHAPE).hasSlots()) {
+        if (!(state.getBlock() instanceof ControlDeskBlock)) {
             return -1;
         }
         Vec3 local = hit.subtract(pos.getX(), pos.getY(), pos.getZ());
         if (local.y < SLOPE_MIN_Y) {
             return -1;
         }
-        Direction facing = state.getValue(FACING);
-        double u = switch (facing.getCounterClockWise()) {
-            case EAST -> local.x;
-            case WEST -> 1 - local.x;
-            case SOUTH -> local.z;
-            default -> 1 - local.z;
-        };
-        // Depth from the operator's edge (0) to the back (1).
-        double depth = switch (facing) {
-            case SOUTH -> 1 - local.z;
-            case NORTH -> local.z;
-            case EAST -> 1 - local.x;
-            default -> local.x;
-        };
-        int column = u < 0.5 ? 0 : 1;
-        int row = depth < 0.5 ? 0 : 1;
-        return row * 2 + column;
+        // Into native model space: undo the body's clockwise turn a quarter at a time.
+        double x = local.x;
+        double z = local.z;
+        for (int i = 0; i < DeskGeometry.bodyYaw(state) / 90; i++) {
+            double turned = z;
+            z = 1 - x;
+            x = turned;
+        }
+        DeskShape shape = state.getValue(SHAPE);
+        if (shape == DeskShape.STRAIGHT) {
+            // The operator stands at z = 0 with +x on their left.
+            int column = x >= 0.5 ? 0 : 1;
+            int row = z < 0.5 ? 0 : 1;
+            return row * 2 + column;
+        }
+        // The half north-east of the diagonal: an inner corner's arm carrying on north (operator west),
+        // an outer corner's arm carrying on east (operator north).
+        boolean northEast = z <= x;
+        return shape.isInner() ? (northEast ? 2 : 3) : (northEast ? 0 : 1);
     }
 
     @Override

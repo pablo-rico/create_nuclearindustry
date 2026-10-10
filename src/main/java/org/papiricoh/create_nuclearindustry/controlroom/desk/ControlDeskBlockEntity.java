@@ -55,6 +55,8 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
     // Origin only: the sample shared by the console this tick.
     private MonitorReading sample = MonitorReading.NONE;
     private long sampledAt = Long.MIN_VALUE;
+    @Nullable
+    private DeskShape lastShape;
 
     public ControlDeskBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -75,6 +77,12 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         super.tick();
         if (level == null || level.isClientSide) {
             return;
+        }
+        DeskShape shape = getBlockState().hasProperty(ControlDeskBlock.SHAPE) ? getBlockState().getValue(ControlDeskBlock.SHAPE) : null;
+        if (shape != lastShape) {
+            // Slots opened or closed: links and outputs follow.
+            lastShape = shape;
+            afterChange();
         }
         if (clusterDirty || ++clusterCheckCounter >= CLUSTER_CHECK_INTERVAL) {
             clusterCheckCounter = 0;
@@ -99,9 +107,14 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
                 : Direction.NORTH;
     }
 
-    public boolean hasSlots() {
+    /**
+     * Whether the desk's shape has room for this slot. A desk that turns into a corner keeps the
+     * modules of the slots it loses, idle and out of sight, until it is straight again or broken.
+     */
+    public boolean slotOpen(int slot) {
         BlockState state = getBlockState();
-        return !state.hasProperty(ControlDeskBlock.SHAPE) || state.getValue(ControlDeskBlock.SHAPE).hasSlots();
+        return !state.hasProperty(ControlDeskBlock.SHAPE) ? slot >= 0 && slot < SLOTS
+                : state.getValue(ControlDeskBlock.SHAPE).hasSlot(slot);
     }
 
     // ------------------------------------------------------------------ modules
@@ -111,9 +124,9 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         return slot >= 0 && slot < SLOTS ? modules[slot] : null;
     }
 
-    /** Fits a new module into an empty slot; false when it is taken or the desk has no slots. */
+    /** Fits a new module into an empty slot; false when it is taken or the desk's shape has no such slot. */
     public boolean insert(int slot, ModuleType type) {
-        if (slot < 0 || slot >= SLOTS || modules[slot] != null || !hasSlots()) {
+        if (slot < 0 || slot >= SLOTS || modules[slot] != null || !slotOpen(slot)) {
             return false;
         }
         modules[slot] = new ControlModule(type);
@@ -288,7 +301,7 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         int below = 0;
         for (int slot = 0; slot < SLOTS; slot++) {
             ControlModule module = modules[slot];
-            if (module == null) {
+            if (module == null || !slotOpen(slot)) {
                 continue;
             }
             changed |= module.evaluate(resolved, reading);
@@ -324,7 +337,7 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         }
         for (int slot = 0; slot < SLOTS; slot++) {
             ControlModule module = modules[slot];
-            boolean wanted = module != null && module.output() == OutputMode.LINK && module.hasFrequency();
+            boolean wanted = module != null && slotOpen(slot) && module.output() == OutputMode.LINK && module.hasFrequency();
             ModuleLink link = links[slot];
             if (link != null && (!wanted || !link.sameKey(module.frequencyFirst(), module.frequencyLast()))) {
                 Create.REDSTONE_LINK_NETWORK_HANDLER.removeFromNetwork(level, link);

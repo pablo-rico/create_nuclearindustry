@@ -35,9 +35,25 @@ public enum DeskShape implements StringRepresentable {
         this.rightOperator = rightOperator;
     }
 
-    /** Only straight desks hold modules; corners just carry the console round. */
-    public boolean hasSlots() {
-        return this == STRAIGHT;
+    /**
+     * Straight desks hold all four slots. A corner holds one module on each arm where its slope is
+     * wide enough: the back row on an inner corner, which opens out towards the rails, and the front
+     * row on an outer corner, which narrows to the post behind.
+     */
+    public boolean hasSlot(int slot) {
+        if (this == STRAIGHT) {
+            return slot >= 0 && slot < 4;
+        }
+        return isInner() ? slot == 2 || slot == 3 : slot == 0 || slot == 1;
+    }
+
+    /**
+     * Clockwise turn, in native corner space, that brings a straight desk's slot onto its corner arm:
+     * slots 3 (inner) and 0 (outer) sit on the arm carrying on like the native straight desk, slots 2
+     * and 1 on the other arm, whose operator stands to the west.
+     */
+    public int slotYaw(int slot) {
+        return this != STRAIGHT && (slot == 2 && isInner() || slot == 1 && !isInner()) ? 270 : 0;
     }
 
     public boolean isInner() {

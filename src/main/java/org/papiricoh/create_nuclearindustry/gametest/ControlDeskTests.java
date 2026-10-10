@@ -68,10 +68,14 @@ public class ControlDeskTests {
         refresh(helper, first, behind);
         DeskShape shape = helper.getBlockState(first).getValue(ControlDeskBlock.SHAPE);
         helper.assertTrue(shape == DeskShape.OUTER_LEFT || shape == DeskShape.OUTER_RIGHT, "an outer corner, got " + shape);
+        helper.assertTrue(slotsClickable(helper, first).equals(java.util.Set.of(0, 1)),
+                "an outer corner's top leads to its two front slots, got " + slotsClickable(helper, first));
         helper.succeedWhen(() -> {
             ControlDeskBlockEntity corner = helper.getBlockEntity(first);
-            helper.assertFalse(corner.hasSlots(), "corners hold no modules");
-            helper.assertFalse(corner.insert(0, ModuleType.LAMP), "so nothing fits");
+            helper.assertTrue(corner.slotOpen(0) && corner.slotOpen(1), "an outer corner holds a module low on each arm");
+            helper.assertFalse(corner.slotOpen(2) || corner.slotOpen(3), "but none up by the post");
+            helper.assertFalse(corner.insert(2, ModuleType.LAMP), "so a back slot takes nothing");
+            helper.assertTrue(corner.insert(0, ModuleType.LAMP), "while a front one does");
         });
     }
 
@@ -84,7 +88,35 @@ public class ControlDeskTests {
         refresh(helper, first, front);
         DeskShape shape = helper.getBlockState(first).getValue(ControlDeskBlock.SHAPE);
         helper.assertTrue(shape == DeskShape.INNER_LEFT || shape == DeskShape.INNER_RIGHT, "an inner corner, got " + shape);
-        helper.succeed();
+        helper.assertTrue(slotsClickable(helper, first).equals(java.util.Set.of(2, 3)),
+                "an inner corner's top leads to its two back slots, got " + slotsClickable(helper, first));
+        helper.succeedWhen(() -> {
+            ControlDeskBlockEntity corner = helper.getBlockEntity(first);
+            helper.assertTrue(corner.slotOpen(2) && corner.slotOpen(3), "an inner corner holds a module high on each arm");
+            helper.assertFalse(corner.slotOpen(0) || corner.slotOpen(1), "but none down by the narrow front");
+            helper.assertFalse(corner.insert(0, ModuleType.LAMP), "so a front slot takes nothing");
+            helper.assertTrue(corner.insert(3, ModuleType.LAMP), "while a back one does");
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void aDeskTurningACornerKeepsTheModulesItHasNoRoomFor(GameTestHelper helper) {
+        BlockPos first = new BlockPos(5, 1, 5);
+        placeDesks(helper, Direction.NORTH, first);
+        helper.runAfterDelay(2, () -> {
+            ControlDeskBlockEntity desk = helper.getBlockEntity(first);
+            for (int slot = 0; slot < ControlDeskBlockEntity.SLOTS; slot++) {
+                helper.assertTrue(desk.insert(slot, ModuleType.LAMP), "a straight desk fills all four slots");
+            }
+            // A desk behind facing across turns it into an outer corner, which has no back slots.
+            BlockPos behind = new BlockPos(5, 1, 6);
+            helper.setBlock(behind, desk(Direction.EAST));
+            refresh(helper, first, behind);
+            helper.assertFalse(desk.slotOpen(2) || desk.slotOpen(3), "the corner closes the back slots");
+            helper.assertTrue(desk.module(2) != null && desk.module(3) != null, "but keeps their modules");
+            helper.assertTrue(desk.drops().size() == 4, "and drops all four when broken");
+            helper.succeed();
+        });
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
@@ -287,6 +319,22 @@ public class ControlDeskTests {
     }
 
     // ------------------------------------------------------------------ helpers
+
+    /** Every slot a click on the top of the desk can land on, sampled over a grid. */
+    private static java.util.Set<Integer> slotsClickable(GameTestHelper helper, BlockPos pos) {
+        BlockPos abs = helper.absolutePos(pos);
+        BlockState state = helper.getBlockState(pos);
+        java.util.Set<Integer> slots = new java.util.TreeSet<>();
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                int slot = ControlDeskBlock.slotAt(state, abs, net.minecraft.world.phys.Vec3.atLowerCornerOf(abs).add(0.05 + 0.1 * i, 0.8, 0.05 + 0.1 * j));
+                if (slot >= 0) {
+                    slots.add(slot);
+                }
+            }
+        }
+        return slots;
+    }
 
     private static BlockState desk(Direction facing) {
         return AllNuclearBlocks.REACTOR_CONTROL_PANEL.get().defaultBlockState().setValue(ControlDeskBlock.FACING, facing);

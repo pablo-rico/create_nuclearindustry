@@ -6,7 +6,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 /**
- * Where the sloping top of a straight desk is, shared by the renderer and click handling. Native
+ * Where the sloping top of a desk and its slots are, shared by the renderer and click handling. Native
  * model space is the block model's: the operator stands on the north side (z = 0), the top rises
  * towards the south at {@link #SLOPE_DEGREES} from (z 1, y 9) px, and the operator's left is +x.
  * The blockstate turns the model by {@link #modelYaw}.
@@ -30,21 +30,35 @@ public final class DeskGeometry {
         return ((int) state.getValue(BlockStateProperties.HORIZONTAL_FACING).toYRot() + 180) % 360;
     }
 
-    /** From block space to native model space. */
+    /** The y rotation of the body model, which corners turn a further quarter for their right-hand forms. */
+    public static int bodyYaw(BlockState state) {
+        return (modelYaw(state) + state.getValue(ControlDeskBlock.SHAPE).bodyExtraRotation()) % 360;
+    }
+
+    /** From block space to native model space of the body. */
     public static void toModel(PoseStack ms, BlockState state) {
-        ms.translate(0.5, 0, 0.5);
-        ms.mulPose(Axis.YP.rotationDegrees(-modelYaw(state)));
-        ms.translate(-0.5, 0, -0.5);
+        turn(ms, bodyYaw(state));
     }
 
     /**
      * From native model space to a slot: origin on the surface at the slot centre, y along the
      * surface normal, still in blocks. Module partials are modelled around (8, 0, 8) px, so callers
-     * shift by (-0.5, 0, -0.5) before drawing them.
+     * shift by (-0.5, 0, -0.5) before drawing them. Corner slots are straight-desk slots turned onto
+     * their arm.
      */
-    public static void toSlot(PoseStack ms, int slot) {
+    public static void toSlot(PoseStack ms, DeskShape shape, int slot) {
+        turn(ms, shape.slotYaw(slot));
         float[] centre = SLOTS[slot];
         ms.translate(centre[0] / 16f, centre[1] / 16f, centre[2] / 16f);
         ms.mulPose(Axis.XP.rotationDegrees(-SLOPE_DEGREES));
+    }
+
+    /** A clockwise turn seen from above about the block's centre, as a blockstate y rotation. */
+    private static void turn(PoseStack ms, int degrees) {
+        if (degrees != 0) {
+            ms.translate(0.5, 0, 0.5);
+            ms.mulPose(Axis.YP.rotationDegrees(-degrees));
+            ms.translate(-0.5, 0, -0.5);
+        }
     }
 }
