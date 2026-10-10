@@ -329,21 +329,7 @@ public final class LangEntries {
         add("create_nuclearindustry.display_source.tokamak", "Tokamak Status", "Estado del tokamak");
         add("gui.create_nuclearindustry.tokamak.title", "Tokamak Control", "Control del tokamak");
         add("gui.create_nuclearindustry.tokamak.unformed", "Tokamak not formed", "Tokamak sin formar");
-        add("gui.create_nuclearindustry.tokamak.temperature", "Plasma: %s °", "Plasma: %s °");
-        add("gui.create_nuclearindustry.tokamak.confinement", "Conf. %s (coils %s, drive %s)", "Conf. %s (bobinas %s, toma %s)");
-        add("gui.create_nuclearindustry.tokamak.instability", "Instability: %s%%", "Inestabilidad: %s%%");
-        add("gui.create_nuclearindustry.tokamak.power", "%s MW, %s", "%s MW, %s");
-        add("gui.create_nuclearindustry.tokamak.mode.cold", "cold", "frío");
-        add("gui.create_nuclearindustry.tokamak.mode.dt", "D-T burn", "fusión D-T");
-        add("gui.create_nuclearindustry.tokamak.mode.dd", "D-D burn", "fusión D-D");
-        add("gui.create_nuclearindustry.tokamak.burn", "Burn %s mB/t, TBR %s", "Quema %s mB/t, TBR %s");
-        add("gui.create_nuclearindustry.tokamak.structure", "R=%s, %s coils, %s blankets", "R=%s, %s bobinas, %s mantos");
-        add("gui.create_nuclearindustry.tokamak.suspended", "Paused: part of the torus is unloaded", "En pausa: parte del toro no está cargada");
-        add("gui.create_nuclearindustry.tokamak.fuel_on", "Fuel: ON", "Combustible: SÍ");
-        add("gui.create_nuclearindustry.tokamak.fuel_off", "Fuel: OFF", "Combustible: NO");
-        add("gui.create_nuclearindustry.tokamak.fuel.tooltip",
-                "Stops or resumes fuel injection. Without fuel the plasma cools down safely while the magnets hold it.",
-                "Detiene o reanuda la inyección de combustible. Sin combustible el plasma se enfría con seguridad mientras los imanes lo sujetan.");
+        // The rest of the tokamak screen, goggles and messages: data/FusionDataGen.
 
         add("gui.create_nuclearindustry.machine.input", "Input", "Entrada");
         add("gui.create_nuclearindustry.machine.output", "Output", "Salida");
@@ -392,8 +378,8 @@ public final class LangEntries {
                 "Fuel assemblies are pressed from uranium dioxide pellets. Each Fuel Channel in a reactor holds one assembly. Richer fuel lasts longer and is more reactive; spent fuel keeps its enrichment and can be reprocessed for plutonium.",
                 "Los elementos combustibles se montan con pastillas de dióxido de uranio. Cada Canal de combustible de un reactor aloja uno. El combustible más enriquecido dura más y es más reactivo; el gastado conserva su enriquecimiento y se puede reprocesar para sacar plutonio.");
         add("jei.create_nuclearindustry.info.tokamak",
-                "A ring-shaped fusion reactor around a Central Solenoid. Feed it deuterium and tritium, coolant and rotation for its Magnet Drives; it makes plasma steam for a Plasma Turbine. See its Ponder scene.",
-                "Un reactor de fusión en forma de anillo alrededor de un Solenoide central. Necesita deuterio y tritio, refrigerante y rotación para sus Tomas de imanes; produce vapor de plasma para una Turbina de plasma. Consulta su escena de Ponder.");
+                "A ring-shaped fusion reactor around a Central Solenoid. Feed it deuterium and tritium, water as coolant, rotation for its Magnet Drives, vacuum pumps and liquid helium for its coils, then press Start: it pumps down, cools its coils, ramps the field, lights the plasma and heats it to a burn, making plasma steam for a Plasma Turbine. See its Ponder scene.",
+                "Un reactor de fusión en forma de anillo alrededor de un Solenoide central. Necesita deuterio y tritio, agua como refrigerante, rotación para sus Tomas de imanes, bombas de vacío y helio líquido para sus bobinas; después pulsa Arrancar: hace el vacío, enfría las bobinas, sube el campo, enciende el plasma y lo calienta hasta la combustión, y produce vapor de plasma para una Turbina de plasma. Consulta su escena de Ponder.");
         add("jei.create_nuclearindustry.info.radiation",
                 "Enriched uranium, spent fuel and radioactive waste irradiate whoever carries them. A Geiger counter shows the dose; a full hazmat suit stops 95% of it.",
                 "El uranio enriquecido, el combustible gastado y los residuos irradian a quien los lleva. Un contador Geiger muestra la dosis; un traje antirradiación completo detiene el 95%.");
@@ -863,8 +849,8 @@ public final class LangEntries {
                 "The Tokamak Controller sits on the outer equator. Right-click it to form the tokamak and open its control panel.",
                 "El Controlador del tokamak va en el ecuador exterior. Haz clic derecho para formar el tokamak y abrir su panel de control.");
         add("create_nuclearindustry.ponder.tokamak.text_6",
-                "A Fluid Port on INPUT takes water or heavy water as coolant...",
-                "Un Puerto de fluidos en ENTRADA recibe agua o agua pesada como refrigerante...");
+                "A Fluid Port on INPUT takes water as coolant...",
+                "Un Puerto de fluidos en ENTRADA recibe agua como refrigerante...");
         add("create_nuclearindustry.ponder.tokamak.text_7",
                 "...and one on OUTPUT gives plasma steam for a Plasma Turbine.",
                 "...y otro en SALIDA entrega vapor de plasma para una Turbina de plasma.");

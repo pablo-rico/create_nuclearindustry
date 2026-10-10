@@ -2,13 +2,16 @@ package org.papiricoh.create_nuclearindustry.fusion.multiblock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.fusion.FusionConfig;
+import org.papiricoh.create_nuclearindustry.fusion.physics.PlasmaModel;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,9 +21,18 @@ import java.util.Optional;
  * <p>The controller sits in the shell on the outer equator. Looking towards the axis from
  * it, there are three air blocks (plasma chamber), one inner shell block, the open centre
  * and finally the central solenoid; the distance to the solenoid gives the major radius.
+ *
+ * <p>Errors and warnings are lang keys with their arguments, joined by {@code |}, so the server can
+ * hand them to clients and goggles in the reader's language; {@link #text} turns one into a component.
  */
 public final class TokamakStructureValidator {
-    public static final String LEGACY_RING_ERROR = "legacy_ring";
+    private static final String ERROR = "create_nuclearindustry.tokamak.error.";
+    private static final String WARNING = "create_nuclearindustry.tokamak.warning.";
+    public static final String LEGACY_RING_ERROR = ERROR + "legacy_ring";
+    public static final String NOT_FORMED = ERROR + "not_formed";
+    public static final String CHAMBER_BLOCKED = ERROR + "chamber_blocked";
+    /** Auxiliary heating, MW per ceil(R/4), the warning assumes a player will fit: two neutral beam injectors. */
+    public static final double REFERENCE_HEATING = 40.0;
 
     private TokamakStructureValidator() {}
 
@@ -32,8 +44,7 @@ public final class TokamakStructureValidator {
         if (located.isEmpty()) {
             errors.add(LegacyFusionRingDetector.isLegacyRing(level, controllerPos)
                     ? LEGACY_RING_ERROR
-                    : "No tokamak found: place the controller on the outer equator, facing a 3-block plasma chamber, "
-                    + "with the central solenoid at the axis");
+                    : message(ERROR + "not_found"));
             return MultiblockValidationResult.invalid(errors, warnings);
         }
         TokamakStructure structure = located.get();
@@ -43,7 +54,7 @@ public final class TokamakStructureValidator {
         for (int dy = -TokamakGeometry.HALF_HEIGHT; dy <= TokamakGeometry.HALF_HEIGHT; dy++) {
             BlockPos pos = center.offset(0, dy, 0);
             if (!level.getBlockState(pos).is(AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get())) {
-                errors.add("Central solenoid incomplete at " + shortPos(pos));
+                errors.add(message(ERROR + "solenoid", shortPos(pos)));
                 return MultiblockValidationResult.invalid(errors, warnings);
             }
         }
@@ -51,7 +62,7 @@ public final class TokamakStructureValidator {
         for (int i = 0; i < geometry.plasmaCount(); i++) {
             BlockPos pos = center.offset(geometry.plasmaX(i), geometry.plasmaY(i), geometry.plasmaZ(i));
             if (!level.getBlockState(pos).isAir()) {
-                errors.add("Plasma chamber blocked at " + shortPos(pos));
+                errors.add(message(CHAMBER_BLOCKED, shortPos(pos)));
                 return MultiblockValidationResult.invalid(errors, warnings);
             }
         }
@@ -60,7 +71,7 @@ public final class TokamakStructureValidator {
             BlockPos pos = center.offset(geometry.shellX(i), geometry.shellY(i), geometry.shellZ(i));
             BlockState state = level.getBlockState(pos);
             if (!classifyShell(structure, pos, state, geometry.shellSector(i))) {
-                errors.add("Invalid shell block at " + shortPos(pos));
+                errors.add(message(ERROR + "invalid_shell", shortPos(pos)));
                 if (errors.size() >= 4) {
                     break;
                 }
@@ -71,28 +82,43 @@ public final class TokamakStructureValidator {
         }
 
         if (structure.magnetInputs.isEmpty()) {
-            errors.add("Missing magnet drive");
+            errors.add(message(ERROR + "no_magnet_drive"));
         }
         if (structure.fuelInjectorCount < 1) {
-            errors.add("Missing fuel injector set to INPUT");
+            errors.add(message(ERROR + "no_fuel_injector"));
         }
         if (structure.coolantPortCount < 1) {
-            errors.add("Missing coolant input port");
+            errors.add(message(ERROR + "no_coolant_port"));
         }
         if (structure.steamPortCount < 1) {
-            errors.add("Missing plasma steam output port");
+            errors.add(message(ERROR + "no_steam_port"));
         }
         if (!errors.isEmpty()) {
             return MultiblockValidationResult.invalid(errors, warnings);
         }
 
-        if (structure.coilCoverage(FusionConfig.coilsPerSector) < 0.65) {
-            warnings.add("Too few electromagnets for stable confinement");
-        }
+        warnings.addAll(burnWarnings(structure.majorRadius(), structure.plasmaVolume(),
+                structure.coilCoverage(FusionConfig.coilsPerSector), FusionConfig.plasmaParams(), FusionConfig.defaultDensity));
         if (structure.blanketCount == 0) {
-            warnings.add("No breeding blankets: tritium will not be replaced");
+            warnings.add(message(WARNING + "no_blankets"));
         }
         return MultiblockValidationResult.valid(structure, warnings);
+    }
+
+    /**
+     * What stops this tokamak from ever burning, worked out with the plasma model itself (full field,
+     * the default fuelling and {@link #REFERENCE_HEATING}), so no coil coverage forms quietly and then
+     * never burns.
+     */
+    public static List<String> burnWarnings(int majorRadius, int volume, double coverage, PlasmaModel.Params params,
+                                            double densityFraction) {
+        int coverPercent = (int) Math.round(coverage * 100);
+        double heating = REFERENCE_HEATING * Math.max(1, (int) Math.ceil(majorRadius / 4.0));
+        return switch (PlasmaModel.outlook(params, volume, majorRadius, coverage, heating, densityFraction)) {
+            case CAN_BURN -> List.of();
+            case UNSTABLE -> List.of(message(WARNING + "unstable", coverPercent, (int) Math.round(PlasmaModel.STABLE_CONFINEMENT * 100)));
+            case TOO_COLD -> List.of(message(WARNING + "no_burn", coverPercent, (int) Math.round(heating)));
+        };
     }
 
     /** Finds the axis and radius without checking every block. */
@@ -116,6 +142,33 @@ public final class TokamakStructureValidator {
             }
         }
         return Optional.empty();
+    }
+
+    /** A lang key and its arguments, as stored in a validation result. */
+    public static String message(String key, Object... args) {
+        StringBuilder out = new StringBuilder(key);
+        for (Object arg : args) {
+            out.append('|').append(arg);
+        }
+        return out.toString();
+    }
+
+    /** The lang key of a message from {@link #message}. */
+    public static String key(String encoded) {
+        int bar = encoded.indexOf('|');
+        return bar < 0 ? encoded : encoded.substring(0, bar);
+    }
+
+    /** A message from {@link #message}, or plain text from elsewhere, as a component. */
+    public static Component text(String encoded) {
+        if (encoded == null || encoded.isEmpty()) {
+            return Component.empty();
+        }
+        if (!encoded.startsWith("create_nuclearindustry.")) {
+            return Component.literal(encoded);
+        }
+        String[] parts = encoded.split("\\|");
+        return Component.translatable(parts[0], (Object[]) Arrays.copyOfRange(parts, 1, parts.length));
     }
 
     private static boolean classifyShell(TokamakStructure structure, BlockPos pos, BlockState state, int sector) {

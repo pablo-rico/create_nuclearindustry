@@ -58,6 +58,15 @@ public class FusionReactorControllerBlock extends BaseEntityBlock {
         } : null;
     }
 
+    /** A redstone pulse on the controller starts the tokamak. */
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighbor, BlockPos neighborPos, boolean moved) {
+        super.neighborChanged(state, level, pos, neighbor, neighborPos, moved);
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof FusionReactorBlockEntity tokamak) {
+            tokamak.onRedstoneSignal(level.hasNeighborSignal(pos));
+        }
+    }
+
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;

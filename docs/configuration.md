@@ -148,19 +148,94 @@ combustible gastado conserva el enriquecimiento con el que entro.
 ## Fusion (tokamak)
 
 - `deuteriumTritiumBurnRate`: **cambia de significado respecto a 1.1.0**. Ahora son
-  mB de deuterio (y de tritio) quemados por celda de plasma y tick a plena
-  temperatura. Un tokamak de radio R tiene unas 56*R celdas de plasma, y la
-  potencia de fusion es de 1000 MW por mB/t quemado. Si tu archivo conserva el
-  valor antiguo `0.0015`, el tokamak consumira y producira un 35% mas.
+  mB de deuterio (y de tritio) quemados por celda de plasma y tick a la densidad de
+  referencia (0,7 del límite de densidad), a la temperatura de máxima reactividad
+  (unos 4000°) y sin cenizas; escala el ritmo de reacción del modelo de plasma. Un
+  tokamak de radio R tiene unas 56*R celdas de plasma, y la potencia de fusion es
+  de 1000 MW por mB/t quemado. Si tu archivo conserva el valor antiguo `0.0015`,
+  el tokamak consumira y producira un 35% mas.
 - `maxMajorRadius`: radio mayor maximo (del solenoide central al centro del plasma).
 - `coilsPerSector`: bobinas de campo toroidal que necesita cada sector para una
   cobertura completa. Un tokamak tiene 4*R sectores.
 - `magnetInputStress`: stress (SU por RPM) de cada toma de imanes. Se necesita una
-  toma por cada 4 bloques de radio.
+  toma por cada 4 bloques de radio; las tomas fijan la consigna del campo toroidal.
 - `disruptionExplosions`: si una disrupcion abre agujeros en la camara. Con `false`
   el plasma simplemente se apaga.
 
 ## Tokamak: arranque y control del plasma
+
+El tokamak ya no arranca solo. Se pone en marcha con el botón **Arrancar** de su
+pantalla, con un pulso de redstone en el controlador o con una palanca del pupitre,
+y recorre estas fases:
+
+1. **Vacío**: las bombas bajan la presión de la cámara desde la atmósfera (10^5 Pa)
+   hasta el límite del plasma (`vacuumLimit`). Hacen falta ceil(R/4) bombas a su
+   velocidad nominal; con menos de un 80% de bombeo no se llega nunca.
+2. **Enfriado de los imanes**: el helio líquido de los puertos criogénicos enfría las
+   bobinas de 293 K a 4,5 K. Mientras se enfrían gastan el doble de helio.
+3. **Rampa del campo**: el campo sube hasta la consigna de las tomas de imanes,
+   min(1, suma de tomas / ceil(R/4)).
+4. **Ruptura**: un pulso del solenoide central ioniza una bocanada de deuterio.
+5. **Calentamiento**: el solenoide (óhmico, solo mientras el plasma está frío y le
+   quedan voltios·segundo) y el calentamiento auxiliar (inyectores de haces neutros
+   y antenas de RF) suben la temperatura.
+6. **Combustión**: por encima de 1500° el plasma quema D-T (o D-D si falta tritio).
+
+El plasma tiene densidad (fracción del límite de Greenwald, que crece con el campo),
+cenizas de helio que se retiran solas y vuelven como helio caliente al circuito de los
+imanes, y una ganancia Q = potencia de fusión / calentamiento. Un plasma con
+suficiente densidad y confinamiento entra en **ignición** y sigue ardiendo con el
+calentamiento apagado (Q infinito). Por encima del límite de densidad el plasma se
+vuelve inestable y sufre una disrupción, igual que por sobrecalentamiento.
+
+Los fallos de vacío, de criogenia, de campo o de combustible apagan el plasma **de
+forma segura** (fase de bajada en rampa, sin explosiones) y la pantalla muestra la
+causa. El refrigerante del tokamak es **solo agua**. El tritio regenerado que no cabe
+en el tanque sale por los inyectores en SALIDA; si tampoco cabe, la regeneración se
+detiene con un aviso (nunca se tira).
+
+Claves `fusion.*` nuevas:
+
+- `minimumField` (0,5): campo mínimo, en fracción del nominal, que deben pedir las
+  tomas de imanes para arrancar y mantener el plasma; por debajo se dispara con
+  "Campo magnético insuficiente".
+- `fieldRampPerSecond` (0,1): velocidad de la rampa del campo, en fracción del nominal
+  por segundo.
+- `vacuumLimit` (-3,0): presión máxima de la cámara con plasma, como log10 de pascales.
+  Si la presión pasa de aquí unos segundos con plasma, se dispara con "Vacío perdido".
+- `pumpDownSeconds` (15): segundos que tardan las bombas necesarias en hacer el vacío
+  desde la atmósfera.
+- `magnetCooldownSeconds` (20): segundos que tarda el helio líquido en enfriar las
+  bobinas a 4,5 K si hay helio de sobra.
+- `heliumPerSector` (0,25): mB/t de helio líquido por sector toroidal (4*R por
+  tokamak) a campo pleno; el doble mientras se enfrían. Un R=4 gasta unos 4 mB/t. Todo
+  el helio gastado vuelve como helio caliente para la planta criogénica; si el tanque de
+  retorno está lleno, se ventila. Por encima de 20 K con campo, disparo "Imanes demasiado
+  calientes".
+- `magnetStandbyShare` (0,3): parte del gasto a campo pleno que gastan las bobinas frías
+  sin campo.
+- `greenwaldDensity` (1,0): límite de densidad a campo pleno, en mB de plasma por celda.
+- `defaultDensity` (0,7): fracción del límite a la que apunta el ritmo de inyección por
+  defecto. Un R=4 con dos inyectores de haces neutros da así un Q de 4 a 8 y una
+  ganancia neta pequeña; subir la densidad hacia 0,9 lo lleva a la ignición.
+- `energyConfinementSeconds` (7,5): tiempo de confinamiento de la energía de un R=4 con
+  todas las bobinas y campo pleno. Crece como R^0,8, así que los tokamaks grandes
+  necesitan menos calentamiento.
+- `particleConfinementSeconds` (2,0): tiempo que el combustible pasa en el plasma antes
+  de que las bombas lo saquen; vuelve a los tanques, así que solo se gasta lo que se quema.
+- `ashRemovalSeconds` (5,0): tiempo que las cenizas de helio pasan en el plasma.
+- `ohmicPowerPerCell` (0,08): calentamiento óhmico del solenoide con el plasma frío, en
+  MW por celda. Se desvanece al calentarse el plasma: no basta para llegar a la combustión.
+- `solenoidPulseSeconds` (30): duración del pulso del solenoide; se recarga lo mismo
+  con el tokamak apagado.
+- `breakdownDeuterium` (10): mB de deuterio de la bocanada de la ruptura.
+- `beamFuelling` (0,25): parte del deuterio de los haces neutros que acaba en el plasma.
+
+En la pantalla, **Combustible** fija el ritmo de inyección (mB/t de D+T; por defecto el
+que da `defaultDensity`, máximo el que llevaría al 150% del límite), **Mezcla D:T** la
+parte de deuterio (si falta un isótopo se completa con el otro; 100:0 sirve para criar
+tritio con D-D) y **Calentamiento** el nivel del calentamiento auxiliar. El calentamiento
+auxiliar se reduce solo entre 4500° y 5000° para no sobrecalentar el plasma.
 
 ## Planta criogénica y vacío del tokamak
 
