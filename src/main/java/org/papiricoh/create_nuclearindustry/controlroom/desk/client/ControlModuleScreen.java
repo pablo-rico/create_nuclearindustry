@@ -198,15 +198,14 @@ public class ControlModuleScreen extends AbstractContainerScreen<ControlModuleMe
         }
         if (module.isController()) {
             // Just the number between the buttons; the units go in the line below.
-            graphics.drawCenteredString(font, String.format(java.util.Locale.ROOT, "%.0f", module.setpoint()), 162, 72, 0xFFFFFFFF);
+            graphics.drawCenteredString(font, module.formatSetpointValue(), 162, 72, 0xFFFFFFFF);
         }
         if (module.output() == OutputMode.LINK) {
             graphics.drawString(font, Component.translatable(KEY + "frequency"), 10, 114, 0xFFB0B8B0, false);
         } else if (module.isController()) {
             ControlModule live = menu.module();
-            float demand = live != null ? live.demand() : -1;
-            Component state = demand >= 0 && module.engaged()
-                    ? Component.translatable(KEY + "controller_demand", Math.round(demand * 100))
+            Component state = live != null && module.engaged() && live.function() == module.function()
+                    ? live.describeDemand()
                     : Component.translatable(KEY + "standby");
             graphics.drawString(font, Component.translatable(KEY + "setpoint", module.formatSetpoint(), state), 10, 114, 0xFFB0B8B0, false);
         }

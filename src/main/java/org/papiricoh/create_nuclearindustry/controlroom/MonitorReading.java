@@ -9,6 +9,7 @@ import org.papiricoh.create_nuclearindustry.radiation.contamination.Contaminatio
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.display.ReactorReadout;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PlantReadings;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReleasePath;
 import org.papiricoh.create_nuclearindustry.turbine.AbstractTurbineControllerBlockEntity;
 import org.papiricoh.create_nuclearindustry.turbine.TurbineDisplay;
 
@@ -29,7 +30,9 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     // Reactor, pressurized water loop and containment (see PlantReadings); all 0 for a reactor that boils directly
     public static final int R_PRESSURE = 14, R_T_HOT = 15, R_T_COLD = 16, R_SUBCOOLING = 17, R_PZR_LEVEL = 18, R_FLOW = 19,
             R_VESSEL_LEVEL = 20, R_CONT_PRESSURE = 21, R_H2 = 22, R_PWR = 23;
-    private static final int REACTOR_VALUES = 24;
+    // Reactor: the pressurizer's relief valve is open (1) or shut (0)
+    public static final int R_RELIEF = 24;
+    private static final int REACTOR_VALUES = 25;
     // Steam generator: water level 0-1, steam made mB/t, primary temperature drop °C, formed flag, heat moved MW
     public static final int S_LEVEL = 0, S_STEAM = 1, S_PRIMARY_DT = 2, S_FORMED = 3, S_HEAT = 4;
     // Containment: pressure bar, hydrogen fraction 0-1, sealed flag, vent open flag, airborne activity, free volume m³
@@ -48,12 +51,33 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     public static final float AREA_GRAPH_MAX = 10.0f;
     /** Graph ceiling for tokamak power, in MW. */
     public static final float TOKAMAK_GRAPH_POWER = 1000.0f;
-    /** Full scale of gauges, pens and alarm thresholds for the pressurized water loop and containment. */
-    public static final float PRESSURE_MAX = 250.0f, LEG_TEMPERATURE_MAX = 400.0f, SUBCOOLING_MAX = 50.0f,
-            FLOW_MAX = 400.0f, CONTAINMENT_PRESSURE_MAX = 10.0f, HYDROGEN_MAX = 0.1f;
-    /** Full scale of steam generator gauges: steam made mB/t, heat moved MW, primary temperature drop °C. */
-    public static final float SG_STEAM_MAX = 1000.0f, SG_HEAT_MAX = 1000.0f, SG_DT_MAX = 100.0f;
+    /**
+     * Full scale of gauges, pens and alarm thresholds for the pressurized water loop and containment:
+     * pressure up to where the vessel fails (pwr.accidents.vesselFailurePressure), leg temperatures up to
+     * the critical point (no liquid water is hotter), subcooling of a cold loop, the flow of two Mechanical
+     * Pumps at full speed (128 mB/t each), and pressure up to the strongest containment wall (blast doors,
+     * 10 bar) with hydrogen to 10%, past certain ignition at 8%.
+     */
+    public static final float PRESSURE_MAX = 250.0f, LEG_TEMPERATURE_MAX = 375.0f, SUBCOOLING_MAX = 50.0f,
+            FLOW_MAX = 256.0f, CONTAINMENT_PRESSURE_MAX = 10.0f, HYDROGEN_MAX = 0.1f;
+    /**
+     * Full scale of steam generator gauges: steam made mB/t, heat moved MW, primary temperature drop °C.
+     * One generator fed by two full-speed pumps makes about 250 mB/t of steam from about 280 MW; the
+     * primary cools by the core's temperature rise (pwr.coreTemperatureRise, 35 °C by default).
+     */
+    public static final float SG_STEAM_MAX = 256.0f, SG_HEAT_MAX = 300.0f, SG_DT_MAX = 50.0f;
+    /** Containment activity gauges are logarithmic: this many decades below a whole core's release read 0. */
+    public static final int ACTIVITY_DECADES = 5;
     private static final String STATUS = "create_nuclearindustry.control_room.status.";
+
+    /** Airborne activity as a 0-1 gauge position, one fifth per decade up to a whole core's release. */
+    public static float activityFraction(float activity) {
+        if (!(activity > 0)) {
+            return 0.0f;
+        }
+        double decades = Math.log10(activity / ReleasePath.CORE_REFERENCE) + ACTIVITY_DECADES;
+        return clamp01((float) (decades / ACTIVITY_DECADES));
+    }
 
     public float value(int index) {
         return index >= 0 && index < values.length ? values[index] : 0.0f;
@@ -110,6 +134,7 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
         v[R_CONT_PRESSURE] = plant.containmentPressure();
         v[R_H2] = plant.hydrogen();
         v[R_PWR] = plant.pwr() ? 1 : 0;
+        v[R_RELIEF] = plant.pwr() && reactor.getPrimaryLoop().reliefOpen() ? 1 : 0;
         String status = ReactorReadout.STATUS.read(reactor).getString();
         return new MonitorReading(TargetKind.REACTOR, status, v,
                 clamp01(v[R_TEMPERATURE] / 4000.0f), clamp01(v[R_POWER] / 1000.0f));

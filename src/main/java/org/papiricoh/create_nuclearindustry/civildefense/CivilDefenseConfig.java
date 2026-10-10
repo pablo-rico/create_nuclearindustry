@@ -9,6 +9,8 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class CivilDefenseConfig {
     public static int sirenThreatRadius = 96;
     public static int sirenAudibleRange = 128;
+    /** How long a plant accident (meltdown, vessel breach, steam explosion, containment burst, hydrogen burn) sounds the sirens. */
+    public static int plantAlarmSeconds = 120;
     public static int crankSirenMinSpeed = 32;
     public static double crankSirenStress = 2.0;
     public static int seismicMemorySeconds = 300;
@@ -39,6 +41,7 @@ public final class CivilDefenseConfig {
 
     private static ModConfigSpec.IntValue sirenThreatRadiusValue;
     private static ModConfigSpec.IntValue sirenAudibleRangeValue;
+    private static ModConfigSpec.IntValue plantAlarmSecondsValue;
     private static ModConfigSpec.IntValue crankSirenMinSpeedValue;
     private static ModConfigSpec.DoubleValue crankSirenStressValue;
     private static ModConfigSpec.IntValue seismicMemorySecondsValue;
@@ -77,6 +80,11 @@ public final class CivilDefenseConfig {
         sirenAudibleRangeValue = builder
                 .comment("How far away a sounding siren can be heard, in blocks.")
                 .defineInRange("civilDefense.siren.audibleRange", 128, 16, 512);
+        plantAlarmSecondsValue = builder
+                .comment("Seconds the automatic sirens within threatRadius of a plant accident sound for: a meltdown, a breached",
+                        "reactor vessel, a steam explosion, a burst containment or a hydrogen burn. Each new accident starts again.",
+                        "0 keeps the sirens out of plant accidents.")
+                .defineInRange("civilDefense.siren.plantAlarmSeconds", 120, 0, 3600);
         crankSirenMinSpeedValue = builder
                 .comment("Slowest a hand-crank siren can turn and still sound, in RPM.")
                 .defineInRange("civilDefense.siren.crankMinSpeed", 32, 1, 256);
@@ -174,6 +182,7 @@ public final class CivilDefenseConfig {
     public static void bake() {
         sirenThreatRadius = sirenThreatRadiusValue.get();
         sirenAudibleRange = sirenAudibleRangeValue.get();
+        plantAlarmSeconds = plantAlarmSecondsValue.get();
         crankSirenMinSpeed = crankSirenMinSpeedValue.get();
         crankSirenStress = crankSirenStressValue.get();
         seismicMemorySeconds = seismicMemorySecondsValue.get();

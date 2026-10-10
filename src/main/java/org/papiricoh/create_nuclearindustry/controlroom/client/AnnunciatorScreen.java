@@ -8,6 +8,8 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -19,6 +21,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.DeviceMenu;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorLogic;
 import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorPanelBlockEntity;
+import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorPreset;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModule;
 
 import java.util.ArrayList;
@@ -27,8 +30,9 @@ import java.util.Locale;
 
 /**
  * Sets up the windows of an annunciator panel, one tab each: the label, the alarm metric that suits
- * what the window is linked to and its threshold. Windows are linked with the Control Room Linker;
- * here they can only be unlinked. Every change goes to the server at once.
+ * what the window is linked to and its threshold, or all six at once from a preset. Windows are
+ * linked with the Control Room Linker; here they can only be unlinked. Every change goes to the
+ * server at once.
  */
 public class AnnunciatorScreen extends AbstractContainerScreen<DeviceMenu> {
     private static final ResourceLocation TEXTURE =
@@ -47,6 +51,9 @@ public class AnnunciatorScreen extends AbstractContainerScreen<DeviceMenu> {
     private EditBox labelBox;
     private Button metricButton;
     private Button unlinkButton;
+    private Button presetButton;
+    private Button applyButton;
+    private AnnunciatorPreset preset = AnnunciatorPreset.REACTOR_CORE;
     private AlarmMetric metric = AlarmMetric.TEMPERATURE;
     private int setting;
 
@@ -102,7 +109,38 @@ public class AnnunciatorScreen extends AbstractContainerScreen<DeviceMenu> {
             config.putBoolean("Unlink", true);
             send(config);
         }).bounds(leftPos + 10, topPos + UNLINK_Y, 90, 20).build());
+        presetButton = addRenderableWidget(Button.builder(Component.empty(), b -> {
+            preset = preset.next(hasShiftDown() ? -1 : 1);
+            refresh();
+        }).bounds(leftPos + 104, topPos + UNLINK_Y, 64, 20).build());
+        applyButton = addRenderableWidget(Button.builder(Component.translatable(KEY + "preset.apply"), b -> applyPreset())
+                .bounds(leftPos + 170, topPos + UNLINK_Y, 20, 20).build());
         select(selected);
+    }
+
+    /**
+     * Sends the chosen preset for all six windows with their labels in the player's language; the
+     * server takes the metrics and thresholds from its own table.
+     */
+    private void applyPreset() {
+        CompoundTag config = new CompoundTag();
+        config.putString("Preset", preset.name());
+        ListTag labels = new ListTag();
+        for (int i = 0; i < AnnunciatorPanelBlockEntity.WINDOWS; i++) {
+            labels.add(StringTag.valueOf(Component.translatable(preset.labelKey(i)).getString()));
+        }
+        config.put("Labels", labels);
+        PacketDistributor.sendToServer(new ConfigureDevicePayload(menu.pos(), selected, config));
+        // Show the selected window as the server will set it, without waiting for the sync.
+        AnnunciatorPreset.Window window = preset.windows(AnnunciatorPanelBlockEntity.plantConfig()).get(selected);
+        for (AlarmMetric candidate : AlarmMetric.values()) {
+            if (candidate.name().equals(window.metric())) {
+                metric = candidate;
+            }
+        }
+        setting = window.setting();
+        labelBox.setValue(ControlModule.sanitizeLabel(labels.getString(selected)));
+        refresh();
     }
 
     /** Metrics that work on a window linked to {@code kind}; all of them while it is unlinked. */
@@ -146,6 +184,7 @@ public class AnnunciatorScreen extends AbstractContainerScreen<DeviceMenu> {
     private void refresh() {
         metricButton.setMessage(Component.translatable(KEY + "short." + metric.name().toLowerCase(Locale.ROOT)));
         unlinkButton.visible = panel() != null && panel().window(selected).target() != null;
+        presetButton.setMessage(Component.translatable(preset.translationKey()));
     }
 
     @Override
@@ -169,6 +208,9 @@ public class AnnunciatorScreen extends AbstractContainerScreen<DeviceMenu> {
         super.render(graphics, mouseX, mouseY, partialTick);
         if (metricButton.isHovered()) {
             graphics.renderTooltip(font, Component.translatable(metric.getTranslationKey()), mouseX, mouseY);
+        } else if (presetButton.isHovered() || applyButton.isHovered()) {
+            graphics.renderTooltip(font, font.split(Component.translatable(KEY + "preset.hint",
+                    Component.translatable(preset.translationKey())), 180), mouseX, mouseY);
         }
         renderTooltip(graphics, mouseX, mouseY);
     }

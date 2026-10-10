@@ -321,6 +321,20 @@ como antes, y sus puertos rechazan el refrigerante primario.
   las temperaturas de las ramas caliente y fría, el margen de subenfriamiento
   y el nivel del presionador. El controlador del generador de vapor se enlaza
   desde la sala de control.
+- **Presionador desde el pupitre** (solo en reactores con presionador; en los
+  demás estos módulos se quedan apagados): la palanca *Calentadores de respaldo
+  del presionador* enciende todos los puertos calefactores, estén en automático
+  o en manual; la palanca *Rociado del presionador* abre el rociado del todo
+  mientras la rama fría tenga caudal; la lámpara *Válvula de alivio abierta* se
+  enciende mientras alivia; y el Módulo controlador en *Presión automática*
+  sustituye a los calentadores y al rociado automáticos para mantener la
+  presión de su consigna (de 0 a 250 bar en pasos de 2,5; empieza en
+  `pressureSetpoint`): por debajo de ella reparte los calentadores automáticos
+  como calentadores proporcionales y por encima abre el rociado. Su ajuste está
+  en `controlRoom.pid.pressure.*` (ver *Instrumentos de la sala de control*).
+  El pupitre repite estas órdenes dos veces por segundo; si se rompe o se
+  descarga, el presionador vuelve a su control automático en 2 segundos. La
+  válvula de alivio sigue actuando siempre.
 
 ### Contención
 
@@ -587,6 +601,39 @@ cuenta como almacenado, sin mirar lo que lo rodea, y lo demas fuga
 - `pid.rateLimit` (0.05): cambio máximo del objetivo de las barras por segundo
   (0 = sin límite). La salida se redondea además a segmentos enteros de barra
   (1/altura interior del reactor), que es lo que pueden sostener los pistones.
+- `pid.pressure.gain` (3.0), `pid.pressure.integral` (0.3) y
+  `pid.pressure.deadband` (0.004): ajuste propio del controlador en *Presión
+  automática*, que da pasos cada `pid.interval` ticks como el de barras. El
+  error se mide en fracciones de 250 bar (la banda muerta por defecto es
+  1 bar) y la salida va de calentadores al máximo (0) a rociado al máximo (1),
+  sin hacer nada en 0,5. El presionador responde en segundos, mucho antes que
+  las barras, así que no tiene límite de velocidad ni término derivativo.
+
+Escalas: los indicadores, las plumillas del registrador y los umbrales de
+alarma del circuito a presión van hasta 250 bar (donde falla la vasija),
+375 °C en las ramas (el punto crítico del agua), 50 °C de subenfriamiento y
+256 mB/t de caudal (dos bombas mecánicas a toda velocidad); los del generador
+de vapor, hasta 256 mB/t de vapor, 300 MW y 50 °C de ΔT del primario; los de la
+contención, hasta 10 bar (la pared más fuerte, una puerta blindada) y 10 % de
+hidrógeno. La actividad en el aire de la contención se lee en escala
+logarítmica: cinco décadas hasta lo que libera un núcleo entero.
+
+Al enlazar un Registrador gráfico, sus plumillas se ponen solas según la
+máquina: presión, rama caliente y nivel del presionador en un reactor con
+presionador (temperatura y potencia en los demás); nivel, vapor y ΔT del
+primario en un generador de vapor; presión, hidrógeno y actividad en una
+contención. Las plumillas que haya cambiado el jugador se respetan al volver a
+enlazar la misma clase de máquina.
+
+El Panel anunciador tiene plantillas para sus seis ventanas (*Núcleo*,
+*Primario PWR*, *Gen. vapor* y *Contención*) con métricas, umbrales y
+etiquetas; los enlaces no cambian. Los umbrales salen de la configuración
+del servidor: presión alta a medio camino entre `pwr.pressureSetpoint` y
+`pwr.reliefOpenPressure`, presión baja 10 bar por debajo de la consigna,
+pérdida de caudal al doble de `pwr.naturalCirculation`, ΔT bajo a la mitad de
+`pwr.coreTemperatureRise`, hidrógeno al 2 % y al 4 % (límite de
+inflamabilidad) y presión de contención a 2 bar y al 80 % de los 6 bar del
+hormigón.
 
 ## Defensa civil
 
@@ -594,6 +641,7 @@ cuenta como almacenado, sin mirar lo que lo rodea, y lo demas fuga
 [civilDefense.siren]
 threatRadius = 96
 audibleRange = 128
+plantAlarmSeconds = 120
 crankMinSpeed = 32
 crankStress = 2.0
 
@@ -643,6 +691,12 @@ Sirenas:
   (sobre el objetivo del designador, avisando antes del despegue). Se guardan
   solo en memoria: tras recargar el mundo, cada fuente vuelve a avisar en su
   siguiente tick. Al cancelar la cuenta atrás o al detonar, el aviso se retira.
+- Los accidentes de una central también son amenazas, en el sitio del
+  accidente: una fusión del núcleo, la rotura de la vasija, una explosión de
+  vapor, la rotura de una contención y una combustión de hidrógeno hacen sonar
+  durante `siren.plantAlarmSeconds` segundos (120 por defecto; 0 lo desactiva)
+  las sirenas antiaéreas que tengan el accidente a `siren.threatRadius` bloques
+  o menos. Cada accidente nuevo vuelve a empezar la cuenta.
 - La Sirena de manivela no usa redstone ni amenazas: suena mientras su eje
   (por debajo) gira a `siren.crankMinSpeed` RPM o más y no está sobrecargado.
   Cuanto más rápido gira, más aguda. Consume `siren.crankStress` SU por RPM.

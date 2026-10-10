@@ -288,6 +288,19 @@ below for what changes in existing worlds.
 - Every part is configurable under `pwr.containment.*` and
   `pwr.accidents.*`, including `blockDestruction` to keep accidents from
   breaking blocks.
+- Run the pressurizer from a control desk: a lever for the backup heaters
+  (every heater port on, automatic or not), a lever that opens the spray
+  while the cold leg flows, a lamp lit while the relief valve is open, and an
+  Automatic pressure setting for the controller module that holds the primary
+  pressure at its setpoint with proportional heaters and spray instead of the
+  pressurizer's own on/off control. If the desk breaks or unloads, the
+  pressurizer goes back to automatic within two seconds. Only reactors with a
+  pressurizer answer them; on others the modules stay dark.
+- Plant accidents sound the air raid sirens around them: a meltdown, a
+  breached vessel, a steam explosion, a burst containment or a hydrogen burn
+  sets off every siren within its reach for two minutes.
+- A shut blast door in a containment wall keeps the building sealed; opening
+  it unseals the building, and the monitor notices right away.
 - Upgrading: existing reactors keep boiling water as before; nothing changes
   until a pressurizer and primary coolant are added.
 - Upgrading: meltdowns in existing worlds no longer make the power 80
@@ -388,8 +401,26 @@ below for what changes in existing worlds.
   boils its water directly.
 - Monitors, gauges and pens show the pressurized loop of a reactor
   (pressure, hot and cold leg, subcooling, pressurizer level, flow, vessel
-  level, containment pressure, hydrogen) and can be linked to steam
-  generators and containments.
+  level, relief valve, containment pressure, hydrogen) and can be linked to
+  steam generators and containments. Their scales fit what a plant really
+  does: 250 bar, 256 mB/t of primary flow (two pumps at full speed), 256 mB/t
+  of steam and 300 MW per steam generator, and containment airborne activity
+  on a logarithmic gauge.
+- Pressurizer control modules: backup heaters and spray levers, a relief
+  valve lamp, and Automatic pressure for the controller module (see
+  "Pressurized water reactors and accidents").
+- Annunciator presets: one click sets up all six windows (alarm, threshold
+  and label, in the player's language) for a reactor core, a PWR primary
+  loop, a steam generator or a containment, with thresholds taken from the
+  plant config (between the pressurizer setpoint and the relief valve, twice
+  natural circulation, the hydrogen flammability limit and so on).
+- New alarms: relief valve open, steam generator level high, low steam
+  output and low primary temperature drop, containment not sealed and
+  containment airborne activity.
+- Chart recorders pick pens that suit what they are linked to: pressure, hot
+  leg and pressurizer level for a pressurized reactor, level, steam and
+  primary temperature drop for a steam generator, pressure, hydrogen and
+  airborne activity for a containment.
 
 ### Civil defense
 - New Air Raid Siren: it wails while powered by redstone, and on its own (a
@@ -401,6 +432,10 @@ below for what changes in existing worlds.
   below) turns at 32 RPM or more, higher-pitched the faster it turns.
 - Both sirens give a comparator signal of 15 while sounding and can be heard
   128 blocks away.
+- Air raid sirens also give the attack warning for plant accidents within
+  their 96 blocks: a meltdown, a breached reactor vessel, a steam explosion, a
+  burst containment or a hydrogen burn sounds them for
+  `civilDefense.siren.plantAlarmSeconds` (two minutes; 0 turns it off).
 - New Seismic Detector: feels every nuclear and dirty detonation in its
   dimension and keeps the last eight (power, distance, compass bearing, time),
   shown with goggles and on a Display Link ("Latest Detonation"). A comparator

@@ -43,15 +43,43 @@ public final class PressurizerModel {
      * @param reliefIsolated the block valve under the relief valve is shut
      * @param stickRoll      a uniform random number in [0, 1) for the relief valve sticking
      * @param stickChance    chance the relief valve sticks open when it should close
+     * @param demand         what an operator or a pressure controller asks of the heaters and the spray
      */
     public record Inputs(double levelDemand, int autoHeaters, int manualHeaters, boolean sprayAvailable, double hotLeg,
-                         double coldLeg, boolean reliefIsolated, double stickRoll, double stickChance) {}
+                         double coldLeg, boolean reliefIsolated, double stickRoll, double stickChance, Demand demand) {
+        public Inputs(double levelDemand, int autoHeaters, int manualHeaters, boolean sprayAvailable, double hotLeg,
+                      double coldLeg, boolean reliefIsolated, double stickRoll, double stickChance) {
+            this(levelDemand, autoHeaters, manualHeaters, sprayAvailable, hotLeg, coldLeg, reliefIsolated, stickRoll,
+                    stickChance, Demand.NONE);
+        }
+    }
+
+    /**
+     * Control from outside the pressurizer's own setpoint logic. A pressure controller ({@code controlled})
+     * replaces the automatic on/off heaters and spray: it runs the automatic heater banks at a share of
+     * their power, as proportional heaters, and opens the spray valve part way. A forced spray opens it
+     * fully whoever is in charge. The spray still needs the cold leg to flow.
+     *
+     * @param controlled a pressure controller drives the automatic heaters and the spray
+     * @param heaters    share of the automatic heater banks' power it asks for, 0-1
+     * @param spray      spray valve opening asked for, 0-1, by the controller or by hand
+     */
+    public record Demand(boolean controlled, double heaters, double spray) {
+        public static final Demand NONE = new Demand(false, 0.0, 0.0);
+
+        public Demand {
+            heaters = clamp(heaters, 0.0, 1.0);
+            spray = clamp(spray, 0.0, 1.0);
+        }
+    }
 
     private double bubbleTemperature;
     private double level;
     private double solidPressure;
     private boolean autoHeatersOn;
     private int heatersRunning;
+    /** Heater banks' worth of heat going into the bubble this tick: proportional heaters run part way. */
+    private double heaterPower;
     private boolean spraying;
     private boolean reliefOpen;
     private boolean reliefStuck;
@@ -84,19 +112,32 @@ public final class PressurizerModel {
         solidPressure = Math.max(0.0, in.levelDemand() - 1.0) * p.solidStiffness();
 
         double pressure = pressure();
-        if (pressure < p.setpoint() - p.heaterBand()) {
-            autoHeatersOn = true;
-        } else if (pressure > p.setpoint()) {
+        Demand demand = in.demand() == null ? Demand.NONE : in.demand();
+        double autoShare;
+        double sprayShare = demand.spray();
+        if (demand.controlled()) {
             autoHeatersOn = false;
+            autoShare = demand.heaters();
+        } else {
+            if (pressure < p.setpoint() - p.heaterBand()) {
+                autoHeatersOn = true;
+            } else if (pressure > p.setpoint()) {
+                autoHeatersOn = false;
+            }
+            autoShare = autoHeatersOn ? 1.0 : 0.0;
+            if (pressure > p.setpoint() + p.sprayBand()) {
+                sprayShare = 1.0;
+            }
         }
-        int heaters = Math.max(0, in.manualHeaters()) + (autoHeatersOn ? Math.max(0, in.autoHeaters()) : 0);
-        heatersRunning = level >= p.minHeaterLevel() ? heaters : 0;
-        bubbleTemperature += p.heaterRate() * heatersRunning;
+        double power = Math.max(0, in.manualHeaters()) + autoShare * Math.max(0, in.autoHeaters());
+        heaterPower = level >= p.minHeaterLevel() ? power : 0.0;
+        heatersRunning = (int) Math.ceil(heaterPower - 1.0e-9);
+        bubbleTemperature += p.heaterRate() * heaterPower;
         bubbleTemperature -= p.heatLoss() * (bubbleTemperature - in.hotLeg());
 
-        spraying = in.sprayAvailable() && pressure > p.setpoint() + p.sprayBand();
+        spraying = in.sprayAvailable() && sprayShare > 0.0;
         if (spraying) {
-            bubbleTemperature -= p.sprayRate() * Math.max(0.0, bubbleTemperature - in.coldLeg());
+            bubbleTemperature -= p.sprayRate() * sprayShare * Math.max(0.0, bubbleTemperature - in.coldLeg());
         }
 
         pressure = pressure();
@@ -142,8 +183,14 @@ public final class PressurizerModel {
         return solidPressure > 0.0;
     }
 
+    /** Heater banks switched on, counting a part-powered bank as one. */
     public int heatersRunning() {
         return heatersRunning;
+    }
+
+    /** Heater banks' worth of heat the heaters gave the bubble last tick. */
+    public double heaterPower() {
+        return heaterPower;
     }
 
     public boolean spraying() {

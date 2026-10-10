@@ -101,7 +101,10 @@ public class PrimaryLoopTests {
         buildPlant(helper);
         ReactorBlockEntity reactor = helper.getBlockEntity(FissionTestBuilder.controllerAt(REACTOR));
         SteamGeneratorControllerBlockEntity generator = helper.getBlockEntity(SteamGeneratorTestBuilder.controller(STEAM_GENERATOR));
-        float[] before = new float[2];
+        // Hot leg and pressurizer level when the pump stops, the highest pressure in the 50 ticks before, and
+        // the highest pressure, hot leg and pressurizer level after it.
+        float[] before = new float[3];
+        float[] after = new float[3];
         helper.runAfterDelay(10, () -> {
             int filled = reactor.fillCoolant(new FluidStack(AllNuclearFluids.PRIMARY_COOLANT.get(), 14_000), IFluidHandler.FluidAction.EXECUTE);
             helper.assertTrue(filled == 14_000, "the reactor takes the primary coolant, took " + filled);
@@ -110,7 +113,22 @@ public class PrimaryLoopTests {
         });
         // A turbine would take the steam; here it is simply drained.
         for (int t = 11; t < 650; t++) {
-            helper.runAfterDelay(t, () -> generator.getSteamTank().drain(1_000, IFluidHandler.FluidAction.EXECUTE));
+            int tick = t;
+            helper.runAfterDelay(t, () -> {
+                generator.getSteamTank().drain(1_000, IFluidHandler.FluidAction.EXECUTE);
+                // Peaks, not values at one tick: the automatic heaters keep the steady loop in a band a couple
+                // of bar wide, and once the flow stops the pressure climbs to the relief valve, which then cycles
+                // it, venting water each time, and may stick open by chance (pwr.reliefStickChance) and empty
+                // the loop. What the stopped loop does shows in how high it all gets before the valve lifts.
+                PlantReadings plant = reactor.plantReadings();
+                if (tick >= 300 && tick < 350) {
+                    before[2] = Math.max(before[2], plant.pressure());
+                } else if (tick > 350 && tick <= 550) {
+                    after[0] = Math.max(after[0], plant.hotLeg());
+                    after[1] = Math.max(after[1], plant.pressurizerLevel());
+                    after[2] = Math.max(after[2], plant.pressure());
+                }
+            });
         }
         helper.runAfterDelay(350, () -> {
             PlantReadings plant = reactor.plantReadings();
@@ -123,17 +141,19 @@ public class PrimaryLoopTests {
             helper.assertTrue(generator.getTotalSteam() > 500, "and boils feedwater, " + generator.getTotalSteam() + " mB of steam");
             helper.assertTrue(plant.subcooling() > 5, "the flowing loop stays subcooled, margin " + plant.subcooling());
             before[0] = plant.hotLeg();
-            before[1] = plant.pressure();
+            before[1] = plant.pressurizerLevel();
             // Stop the hot leg pump.
             helper.setBlock(HOT_MOTOR, Blocks.AIR);
         });
         helper.runAfterDelay(550, () -> {
-            PlantReadings plant = reactor.plantReadings();
             helper.assertTrue(reactor.getPrimaryLoop().flowOut() < 1, "no flow leaves the stopped hot leg, "
                     + reactor.getPrimaryLoop().flowOut());
-            helper.assertTrue(plant.hotLeg() > before[0] + 10, "the core outlet heats up without flow: "
-                    + before[0] + " -> " + plant.hotLeg() + " °C");
-            helper.assertTrue(plant.pressure() > before[1] + 1, "and the pressure rises: " + before[1] + " -> " + plant.pressure() + " bar");
+            helper.assertTrue(after[0] > before[0] + 10, "the core outlet heats up without flow: "
+                    + before[0] + " -> " + after[0] + " °C");
+            helper.assertTrue(after[1] > before[1] + 0.05f, "the swelling water surges into the pressurizer: "
+                    + before[1] + " -> " + after[1]);
+            helper.assertTrue(after[2] > before[2] + 5, "and drives the pressure past what the heaters held: highest "
+                    + before[2] + " bar before the stop, " + after[2] + " bar after");
             helper.succeed();
         });
     }

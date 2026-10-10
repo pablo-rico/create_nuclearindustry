@@ -41,7 +41,9 @@ public enum GaugeReading {
     SG_HEAT(TargetKind.STEAM_GENERATOR, r -> r.value(S_HEAT) / SG_HEAT_MAX),
     SG_PRIMARY_DT(TargetKind.STEAM_GENERATOR, r -> r.value(S_PRIMARY_DT) / SG_DT_MAX),
     CONTAINMENT_PRESSURE(TargetKind.CONTAINMENT, r -> r.value(N_PRESSURE) / CONTAINMENT_PRESSURE_MAX),
-    CONTAINMENT_HYDROGEN(TargetKind.CONTAINMENT, r -> r.value(N_H2) / HYDROGEN_MAX);
+    CONTAINMENT_HYDROGEN(TargetKind.CONTAINMENT, r -> r.value(N_H2) / HYDROGEN_MAX),
+    /** Airborne activity on a logarithmic scale, as radiation monitors read it. Saved by name; new readings go last. */
+    CONTAINMENT_ACTIVITY(TargetKind.CONTAINMENT, r -> MonitorReading.activityFraction(r.value(N_ACTIVITY)));
 
     private final TargetKind kind;
     private final ToDoubleFunction<MonitorReading> fraction;
@@ -61,6 +63,20 @@ public enum GaugeReading {
             return 0;
         }
         return (float) Math.max(0, Math.min(1, fraction.applyAsDouble(reading)));
+    }
+
+    /**
+     * The pens a chart recorder starts with when linked to a target of {@code kind}: what an operator
+     * watches first. A reactor with a pressurized loop gets its pressure, hot leg and pressurizer level.
+     */
+    public static java.util.List<GaugeReading> defaultPens(TargetKind kind, boolean pressurized) {
+        return switch (kind) {
+            case REACTOR -> pressurized ? java.util.List.of(REACTOR_PRESSURE, REACTOR_HOT_LEG, PRESSURIZER_LEVEL)
+                    : java.util.List.of(REACTOR_TEMPERATURE, REACTOR_POWER);
+            case STEAM_GENERATOR -> java.util.List.of(SG_LEVEL, SG_STEAM, SG_PRIMARY_DT);
+            case CONTAINMENT -> java.util.List.of(CONTAINMENT_PRESSURE, CONTAINMENT_HYDROGEN, CONTAINMENT_ACTIVITY);
+            default -> forKind(kind).stream().limit(2).toList();
+        };
     }
 
     /** The readings that work on a target of {@code kind}, in order. */

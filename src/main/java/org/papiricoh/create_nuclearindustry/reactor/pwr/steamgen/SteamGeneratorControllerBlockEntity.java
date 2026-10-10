@@ -390,7 +390,7 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
                 : isDry() ? "create_nuclearindustry.steam_generator.status.dry"
                 : steamRate >= 0.5 ? "create_nuclearindustry.control_room.status.running"
                 : "create_nuclearindustry.control_room.status.idle";
-        float steamSeries = (float) Math.min(1.0, steamRate / 256.0);
+        float steamSeries = (float) Math.min(1.0, steamRate / MonitorReading.SG_STEAM_MAX);
         return new MonitorReading(TargetKind.STEAM_GENERATOR, status, v, v[MonitorReading.S_LEVEL], steamSeries);
     }
 

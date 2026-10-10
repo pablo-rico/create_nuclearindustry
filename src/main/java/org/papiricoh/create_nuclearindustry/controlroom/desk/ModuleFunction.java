@@ -40,13 +40,33 @@ public enum ModuleFunction {
     /** Controller: moves the rod target to hold the reactor's power at the setpoint. */
     AUTO_POWER(TargetKind.REACTOR),
     /** Controller: moves the rod target to hold the core temperature at the setpoint. */
-    AUTO_TEMPERATURE(TargetKind.REACTOR);
+    AUTO_TEMPERATURE(TargetKind.REACTOR),
+    // Pressurizer control, for reactors with a pressurizer only. Saved by name; new functions go last anyway.
+    /** Lever: the pressurizer's backup heaters, every heater port running whatever its mode. */
+    PZR_HEATERS(TargetKind.REACTOR, true),
+    /** Lever: the pressurizer spray fully open, as long as the cold leg flows. */
+    PZR_SPRAY(TargetKind.REACTOR, true),
+    /** Controller: runs the pressurizer heaters and spray to hold the primary pressure at the setpoint. */
+    AUTO_PRESSURE(TargetKind.REACTOR, true),
+    /** Lamp: lit while the pressurizer's relief valve is open. */
+    LAMP_RELIEF_OPEN(TargetKind.REACTOR, true);
 
     @Nullable
     private final TargetKind needs;
+    private final boolean needsPressurizer;
 
     ModuleFunction(@Nullable TargetKind needs) {
+        this(needs, false);
+    }
+
+    ModuleFunction(@Nullable TargetKind needs, boolean needsPressurizer) {
         this.needs = needs;
+        this.needsPressurizer = needsPressurizer;
+    }
+
+    /** Whether it acts on a reactor's pressurizer, so a reactor without one leaves it dark. */
+    public boolean needsPressurizer() {
+        return needsPressurizer;
     }
 
     @Nullable

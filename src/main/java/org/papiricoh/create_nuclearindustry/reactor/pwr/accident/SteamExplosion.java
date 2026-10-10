@@ -33,8 +33,9 @@ public final class SteamExplosion {
 
     private SteamExplosion() {}
 
-    /** A bounded explosion at {@code at}; breaks blocks only when the config allows it. */
+    /** A bounded explosion at {@code at}; breaks blocks only when the config allows it. It sounds the sirens around. */
     public static void explode(Level level, Vec3 at, float power) {
+        PlantAlarm.raise(level, BlockPos.containing(at));
         level.explode(null, at.x, at.y, at.z, Math.min(6.0f, power),
                 PwrConfig.blockDestruction ? Level.ExplosionInteraction.BLOCK : Level.ExplosionInteraction.NONE);
     }

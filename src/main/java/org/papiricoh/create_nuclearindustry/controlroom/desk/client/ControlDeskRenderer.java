@@ -133,9 +133,7 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
                 ? Component.translatable("create_nuclearindustry.control_module.inactive_short")
                 : module.isController()
                 ? Component.translatable("create_nuclearindustry.control_module.controller_state", module.formatSetpoint(),
-                module.engaged() && module.demand() >= 0
-                        ? Component.literal(Math.round(module.demand() * 100) + "%")
-                        : Component.translatable("create_nuclearindustry.control_module.standby"))
+                module.describeDemand())
                 : Component.translatable("create_nuclearindustry.control_module.state", Math.round(module.shown() * 100), module.signal());
         int background = (int) (Minecraft.getInstance().options.getBackgroundOpacity(0.25f) * 255.0f) << 24;
         font.drawInBatch(title, -font.width(title) / 2f, -10, 0xFFFFFFFF, false, ms.last().pose(), buffers,

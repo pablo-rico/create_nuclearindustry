@@ -267,7 +267,8 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
                         r.flag(N_SEALED) ? GOOD : BAD));
                 rows.add(new Row(label("vent"), Component.translatable(KEY + (r.flag(N_VENT) ? "open" : "closed")), -1,
                         r.flag(N_VENT) ? WARN : TEXT));
-                rows.add(row("activity", fmt("%.2f", r.value(N_ACTIVITY)), -1, r.value(N_ACTIVITY) > 0 ? WARN : TEXT));
+                rows.add(row("activity", fmt("%.2f", r.value(N_ACTIVITY)), activityFraction(r.value(N_ACTIVITY)),
+                        r.value(N_ACTIVITY) > 0 ? WARN : TEXT));
                 rows.add(row("volume", fmt("%.0f m³", r.value(N_VOLUME)), -1, TEXT));
             }
             default -> rows.add(new Row(Component.empty(), Component.empty(), -1, TEXT));
@@ -292,6 +293,8 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
     /** The rest of the plant around a pressurized reactor: legs, containment and the core's water. */
     private static void plantRows(MonitorReading r, List<Row> rows) {
         rows.add(row("legs", fmt("%.0f/%.0f °C", r.value(R_T_HOT), r.value(R_T_COLD)), r.value(R_T_HOT) / LEG_TEMPERATURE_MAX, TEXT));
+        boolean relief = r.flag(R_RELIEF);
+        rows.add(new Row(label("relief"), Component.translatable(KEY + (relief ? "open" : "closed")), -1, relief ? BAD : TEXT));
         float containment = r.value(R_CONT_PRESSURE);
         rows.add(row("containment", fmt("%.2f bar", containment), containment / CONTAINMENT_PRESSURE_MAX,
                 containment >= 5 ? BAD : containment >= 2 ? WARN : TEXT));

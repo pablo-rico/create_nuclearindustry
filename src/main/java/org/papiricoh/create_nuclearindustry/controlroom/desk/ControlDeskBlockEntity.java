@@ -33,7 +33,9 @@ import java.util.Set;
  * console; its first block (lowest x, then z) holds the console's link and samples the target,
  * once per tick at most, for every module on every desk. Each desk keeps up to four modules,
  * works out what they show twice a second and puts their redstone out below or on a link frequency.
- * Rod controller modules also step their loop every {@link ControlRoom2Config#pidInterval} ticks.
+ * Controller modules also step their loop every {@link ControlRoom2Config#pidInterval} ticks.
+ * Pressurizer levers and the pressure controller repeat their orders every time the modules are
+ * worked out, so the pressurizer lets go of them shortly after the desk goes away.
  */
 public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlRoomDevice {
     public static final int SLOTS = 4;
@@ -123,7 +125,7 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
                 resolved = consoleTarget();
                 reading = consoleSample();
             }
-            changed |= module.control(resolved, reading, ControlRoom2Config.pidInterval / 20.0, ControlRoom2Config.pidTuning());
+            changed |= module.control(resolved, reading, ControlRoom2Config.pidInterval / 20.0, ControlRoom2Config.tuningFor(module.function()));
         }
         if (changed) {
             notifyUpdate();
@@ -335,6 +337,7 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
             if (module == null || !slotOpen(slot)) {
                 continue;
             }
+            module.holdOrders(resolved);
             changed |= module.evaluate(resolved, reading);
             if (module.output() == OutputMode.BELOW) {
                 below = Math.max(below, module.signal());
