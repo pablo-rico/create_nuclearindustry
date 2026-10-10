@@ -48,6 +48,9 @@
     "create_nuclearindustry:fusion_turbine_rotor",
     "create_nuclearindustry:fusion_turbine_fluid_port",
     "create_nuclearindustry:fusion_plasma_turbine",
+    "create_nuclearindustry:spent_fuel_rack",
+    "create_nuclearindustry:pool_cooler",
+    "create_nuclearindustry:dry_cask",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

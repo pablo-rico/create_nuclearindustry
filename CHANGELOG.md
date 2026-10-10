@@ -232,7 +232,36 @@ below for what changes in existing worlds.
 <!-- pwr: filled by its work package -->
 
 ### Spent fuel
-<!-- spentfuel: filled by its work package -->
+- Spent fuel now has a cooling history: assemblies leave the reactor Hot and
+  dated with the in-game day, so those discharged the same day stack. Over
+  time they turn Warm (after about 2 days), Cooled (about a week) and Aged
+  (about 3 weeks), shown in the tooltip with the days since discharge.
+  Cooling is optional: every grade can still be reprocessed.
+- Hot fuel gives twice the dose of Warm fuel (three times that of Cooled
+  fuel) and burns bare hands like plutonium. Aged fuel is the mildest.
+- Spent Fuel Rack: holds nine assemblies at the bottom of a pool, by hand,
+  hopper or funnel. Every block of water straight above it cuts its
+  radiation (two blocks stop over 97%); fresh fuel under water glows blue.
+  Its decay heat goes into the pool: if the pool is too small for the
+  racks in it, the surplus boils the water off a layer at a time, with
+  steam, until the racks stand uncovered and irradiate everything around.
+  Goggles show the water above, the radiation let out, the decay heat and
+  the pool's cooling.
+- Pool Cooler: a kinetic block placed in the pool water and turned by a
+  shaft from above; at 64 RPM it carries away as much heat as 150 blocks of
+  water.
+- Dry Storage Cask: holds nine assemblies that are Warm or cooler (it refuses
+  Hot fuel), lets out only 2% of their radiation, never leaks and blocks
+  radiation passing through it. The fuel inside keeps cooling.
+- Reprocessing rewards patience: crushing Cooled or Aged spent fuel gives
+  more fragments and less waste. Crushing Hot or Warm fuel now leaves some
+  Radioactive Waste.
+- Comparators read how full a rack or cask is. Recipes for the rack, the
+  cooler and the cask.
+- Upgrading: spent fuel from older worlds has no history and counts as Warm,
+  with the same dose as before; once carried or stored it gets a history and
+  goes on cooling. Hot and Warm spent fuel now gives a chance of Radioactive
+  Waste when crushed.
 
 ### Waste management
 <!-- waste: filled by its work package -->

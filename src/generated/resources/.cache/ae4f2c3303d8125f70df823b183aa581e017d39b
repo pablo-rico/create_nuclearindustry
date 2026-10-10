@@ -1,0 +1,7 @@
+// 1.21.1	2026-10-10T17:54:55.4047509	Spent fuel crafting recipes
+d041809bc7d54b249d6a098d7e1ce04b287f22d8 data/create_nuclearindustry/advancement/recipes/misc/crafting/dry_cask.json
+825046f5fcaa3d14171ef389d2ab43581b917ea2 data/create_nuclearindustry/advancement/recipes/misc/crafting/pool_cooler.json
+66b96756ec79c44e05ac562dc5228cee354ce0aa data/create_nuclearindustry/advancement/recipes/misc/crafting/spent_fuel_rack.json
+ea50d66071704508fa07f960aa88fce74b16fb12 data/create_nuclearindustry/recipe/crafting/dry_cask.json
+c67fca14fdd668de047774b3ecd625f1d91cb258 data/create_nuclearindustry/recipe/crafting/pool_cooler.json
+583444db9f2637011f566dac6dee34c9f6657a75 data/create_nuclearindustry/recipe/crafting/spent_fuel_rack.json

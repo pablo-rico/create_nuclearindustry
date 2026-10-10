@@ -12,6 +12,9 @@
     "create_nuclearindustry:depleted_uranium_block": {
       "transmission": 0.1
     },
+    "create_nuclearindustry:dry_cask": {
+      "transmission": 0.02
+    },
     "create_nuclearindustry:reactor_casing": {
       "transmission": 0.35
     },

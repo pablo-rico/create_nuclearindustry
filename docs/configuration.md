@@ -281,7 +281,73 @@ etiqueta `create_nuclearindustry:geologically_storable`.
 
 ## Combustible gastado
 
-<!-- opciones spentFuel.*: las documenta su paquete de trabajo -->
+```toml
+[spentFuel]
+timeScale = 1.0
+hotDoseScale = 2.0
+warmDoseScale = 1.0
+cooledDoseScale = 0.65
+agedDoseScale = 0.4
+hotBurnHeat = 1.5
+assemblyDecayHeat = 20.0
+poolCoolingPerBlock = 0.4
+poolScanLimit = 4096
+boilEnergyPerBlock = 400.0
+waterTransmission = 0.15
+coolerCapacity = 60.0
+coolerRatedSpeed = 64.0
+coolerStress = 4.0
+caskTransmission = 0.02
+```
+
+El combustible gastado sale del reactor **caliente** y fechado con el día de
+juego (tiempo de juego / 24000), así que los elementos descargados el mismo día
+se apilan. Su calor residual es la suma de tres exponenciales (productos de
+fisión de vida corta, media y larga), y el grado sale de la fracción que queda:
+caliente hasta unos 2 días, templado hasta una semana, enfriado hasta unas 3
+semanas y después envejecido. `timeScale` multiplica los días transcurridos: con
+2 el combustible se enfría el doble de rápido. El grado se pone al día cuando
+alguien mira el combustible (en el inventario de un jugador, cada segundo; en
+un bastidor o un contenedor seco), así que también avanza con el chunk
+descargado. El combustible de mundos anteriores, sin historia, cuenta como
+templado.
+
+- `hotDoseScale`, `warmDoseScale`, `cooledDoseScale` y `agedDoseScale`
+  multiplican la dosis del data map `radioactivity`, que es la del combustible
+  templado: el combustible antiguo irradia igual que antes.
+- `hotBurnHeat`: calor de desintegración de cada elemento caliente que se
+  lleva encima, en las mismas unidades que `heat_per_second` del data map. Como
+  el plutonio, quema si no se lleva al menos la mitad de protección. Con 0 no
+  quema.
+- `assemblyDecayHeat`: calor de un elemento en un bastidor justo al
+  descargarlo, en kW; baja según la curva.
+- `poolCoolingPerBlock`: calor que evacua por sí sola cada fuente de agua de
+  la piscina, en kW. Cada bastidor busca su piscina rellenando el agua
+  conectada (hasta `poolScanLimit` bloques) y reparte la refrigeración con los
+  demás bastidores que encuentra. Un volumen mayor que el límite (el mar, un
+  lago) cuenta como `poolScanLimit` bloques y nunca hierve.
+- `boilEnergyPerBlock`: excedente de calor, en kJ, que evapora un bloque de
+  agua. Cuando el calor supera la refrigeración, el excedente se acumula y la
+  piscina pierde de golpe toda su capa superior (para que el agua de alrededor
+  no vuelva a crear fuentes), con vapor.
+- `waterTransmission`: fracción de la radiación de un bastidor que deja pasar
+  cada bloque de agua justo encima. Con 0,15, dos bloques paran más del 97 %.
+  Un bastidor al descubierto irradia sin esa protección.
+- `coolerCapacity`, `coolerRatedSpeed` y `coolerStress`: el Refrigerador de
+  piscina, sumergido en el agua de la piscina y accionado por un eje desde
+  arriba, evacua `coolerCapacity` kW a `coolerRatedSpeed` RPM (proporcional por
+  debajo; nada por debajo de 8 RPM) y consume `coolerStress` SU por RPM.
+- `caskTransmission`: fracción de la radiación de su contenido que deja salir
+  el Contenedor de almacenamiento en seco. Solo admite combustible templado o
+  más frío y nunca tiene fugas. Además, como bloque, solo deja pasar el 2 % de
+  la radiación que lo atraviesa (data map `radiation_transmission`).
+
+Reprocesado: triturar combustible enfriado o envejecido da más fragmentos y
+menos residuo. Las recetas usan el ingrediente
+`create_nuclearindustry:spent_fuel_grade` (`base`, `min_grade`, `max_grade`,
+con los grados `hot`, `warm`, `cooled` y `aged`); cada receta de un mismo
+combustible cubre grados distintos, así que Create siempre elige la que
+corresponde.
 
 ## Residuos y repositorio
 

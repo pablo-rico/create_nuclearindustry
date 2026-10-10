@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:gray_concrete"
+    },
+    "D": {
+      "item": "create_nuclearindustry:depleted_uranium_block"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "CPC",
+    "PDP",
+    "CPC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:dry_cask"
+  }
+}

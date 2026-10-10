@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "M": {
+      "item": "create:mechanical_pump"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    " S ",
+    "CMC",
+    "CCC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:pool_cooler"
+  }
+}
