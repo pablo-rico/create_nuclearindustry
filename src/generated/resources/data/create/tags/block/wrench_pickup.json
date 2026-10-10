@@ -83,6 +83,9 @@
     "create_nuclearindustry:lead_blast_door",
     "create_nuclearindustry:blast_door_controller",
     "create_nuclearindustry:shelter_filtration_unit",
+    "create_nuclearindustry:fusion_neutral_beam_injector",
+    "create_nuclearindustry:fusion_rf_antenna",
+    "create_nuclearindustry:fusion_viewport",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

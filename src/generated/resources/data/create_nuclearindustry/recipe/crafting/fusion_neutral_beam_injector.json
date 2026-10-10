@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:fusion_cryostat_casing"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "M": {
+      "item": "create_nuclearindustry:fusion_electromagnet"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create:shaft"
+    },
+    "T": {
+      "item": "create_nuclearindustry:fusion_accelerator_segment"
+    }
+  },
+  "pattern": [
+    "ETE",
+    "MCM",
+    "PSP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:fusion_neutral_beam_injector"
+  }
+}

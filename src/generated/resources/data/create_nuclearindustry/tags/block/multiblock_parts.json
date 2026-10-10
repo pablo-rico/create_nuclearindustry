@@ -44,6 +44,9 @@
     "create_nuclearindustry:blast_door_frame",
     "create_nuclearindustry:steel_blast_door",
     "create_nuclearindustry:lead_blast_door",
-    "create_nuclearindustry:blast_door_controller"
+    "create_nuclearindustry:blast_door_controller",
+    "create_nuclearindustry:fusion_neutral_beam_injector",
+    "create_nuclearindustry:fusion_rf_antenna",
+    "create_nuclearindustry:fusion_viewport"
   ]
 }

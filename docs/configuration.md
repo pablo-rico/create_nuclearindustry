@@ -166,6 +166,42 @@ combustible gastado conserva el enriquecimiento con el que entro.
 
 ## Calentamiento del plasma, ventanas y sonido
 
+El inyector de haces neutros y la antena de radiofrecuencia son bloques de la
+carcasa del tokamak con un eje en su cara exterior. Por debajo de su velocidad
+mínima no calientan nada; desde ahí su potencia sube en línea recta hasta la
+nominal, que alcanzan a la velocidad nominal. El stress que piden a la red no
+cambia con la velocidad, así que un calentador lento paga más SU por megavatio.
+
+- `plasmaHeating.neutralBeam.ratedPower` (20): potencia de calentamiento, en MW,
+  de un inyector de haces neutros a su velocidad nominal.
+- `plasmaHeating.neutralBeam.ratedSpeed` (128): RPM a las que el inyector da su
+  potencia nominal.
+- `plasmaHeating.neutralBeam.minSpeed` (32): RPM por debajo de las que el
+  inyector no da nada. Tiene que ser menor que la velocidad nominal.
+- `plasmaHeating.neutralBeam.stress` (32768): stress del inyector, en SU por RPM.
+  Con los valores por defecto un megavatio de haz cuesta unas 1600 SU/RPM, unas
+  dos veces y media lo que la turbina de plasma recupera de un megavatio de
+  fusión: el tokamak necesita una ganancia Q mayor que 3 para dar energía neta.
+- `plasmaHeating.neutralBeam.deuteriumPerMw` (0.02): deuterio que gastan los
+  haces, en mB por tick y por MW, del tanque del tokamak. Si no hay bastante, el
+  haz pierde potencia en la misma proporción.
+- `plasmaHeating.radioFrequency.ratedPower` (12): potencia, en MW, que una antena
+  de radiofrecuencia envía al plasma a su velocidad nominal. Un plasma con menos
+  del 15% de su límite de densidad no absorbe nada, y lo absorbe todo por encima
+  del 35%.
+- `plasmaHeating.radioFrequency.ratedSpeed` (64): RPM a las que la antena da su
+  potencia nominal.
+- `plasmaHeating.radioFrequency.minSpeed` (16): RPM por debajo de las que la
+  antena no da nada. Tiene que ser menor que la velocidad nominal.
+- `plasmaHeating.radioFrequency.stress` (13312): stress de la antena, en SU por RPM.
+- `plasmaHeating.viewportLight` (true): si las ventanas del tokamak dan luz
+  mientras hay plasma (tenue en la ruptura del gas y más intensa cuanto más
+  caliente está). Con `false` siguen dejando ver el plasma pero no iluminan.
+
+El plasma dibujado, la escarcha (con los imanes por debajo de 30 K), el vapor de
+los puertos de vapor de plasma y los sonidos son solo del cliente y no tienen
+opciones.
+
 ## Radiacion
 
 La dosis se acumula con los objetos que lleva el jugador, los bloques

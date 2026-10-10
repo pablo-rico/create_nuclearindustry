@@ -11,6 +11,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.fusion.heating.PlasmaHeatingRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelRegistry;
 import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
@@ -52,6 +53,11 @@ public final class PlantJeiInfo {
                 PwrRegistry.STEEL_LINER_ITEM, PwrRegistry.CONTAINMENT_PENETRATION_ITEM, PwrRegistry.RECOMBINER_ITEM,
                 PwrRegistry.FILTERED_VENT_ITEM));
         pages.add(items("corium", PwrRegistry.CORE_CATCHER_ITEM, PwrRegistry.CORIUM_ITEM, PwrRegistry.SOLIDIFIED_CORIUM_ITEM));
+
+        // Tokamak heating and viewports (text in PlasmaHeatingDataGen)
+        pages.add(items("neutral_beam_injector", PlasmaHeatingRegistry.NEUTRAL_BEAM_INJECTOR_ITEM));
+        pages.add(items("rf_antenna", PlasmaHeatingRegistry.RF_ANTENNA_ITEM));
+        pages.add(items("tokamak_viewport", PlasmaHeatingRegistry.VIEWPORT_ITEM));
 
         // Spent fuel: every enrichment the crushing recipes show, so the page follows the fuel there.
         List<ItemStack> spent = new ArrayList<>(stacks(SpentFuelRegistry.SPENT_FUEL_RACK_ITEM, SpentFuelRegistry.POOL_COOLER_ITEM,
