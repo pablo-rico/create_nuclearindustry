@@ -73,7 +73,8 @@ public class TokamakFormationTests {
         MultiblockValidationResult<?> result = TokamakStructureValidator.validate(helper.getLevel(),
                 helper.absolutePos(TokamakTestBuilder.controller(4)));
         helper.assertFalse(result.formed(), "an obstructed chamber must not form");
-        helper.assertTrue(result.primaryMessage().startsWith("Plasma chamber blocked"), "got: " + result.primaryMessage());
+        helper.assertTrue(TokamakStructureValidator.key(result.primaryMessage()).equals(TokamakStructureValidator.CHAMBER_BLOCKED),
+                "got: " + result.primaryMessage());
         helper.succeed();
     }
 

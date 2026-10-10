@@ -97,9 +97,9 @@ public class FusionFuelInjectorBlockEntity extends TokamakPortBlockEntity {
 
     @Override
     protected Component modeDescription(ReactorFluidPortMode mode) {
-        return Component.literal(mode == ReactorFluidPortMode.INPUT
-                ? "Fuel input (deuterium, tritium)"
-                : "Bred tritium output (keeps " + FusionReactorBlockEntity.TRITIUM_RESERVE + " mB)");
+        return mode == ReactorFluidPortMode.INPUT
+                ? Component.translatable("create_nuclearindustry.tokamak.port.fuel_input")
+                : Component.translatable("create_nuclearindustry.tokamak.port.tritium_output", FusionReactorBlockEntity.TRITIUM_RESERVE);
     }
 
     /**

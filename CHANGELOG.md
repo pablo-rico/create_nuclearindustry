@@ -482,6 +482,47 @@ below for what changes in existing worlds.
   Waste.
 
 ### Tokamak startup and plasma control
+- A tokamak no longer lights by itself. Press **Start** on its screen, send a
+  redstone pulse into the controller or flip a control desk lever, and it walks
+  through its startup: vacuum pumps evacuate the chamber, liquid helium cools the
+  coils to 4.5 K, the field ramps up to what the magnet drives ask for, a
+  solenoid pulse lights a puff of deuterium, and ohmic plus auxiliary heating
+  bring the plasma to a burn. **Shutdown** pumps the plasma out and ramps the
+  field down.
+- The plasma now has a density (a share of its limit, which grows with the
+  field), a fuel inventory fed at a fuelling rate and D:T mix you set, and
+  helium ash that is pumped out on its own and returns as warm helium to the
+  coils' helium loop. Q (fusion power over heating power) is shown everywhere:
+  an R=4 tokamak with two neutral beam injectors runs at Q 4 to 8 for a small
+  net gain; with enough density and confinement it ignites and keeps burning
+  with the heating off.
+- Magnet drives set the field target and no longer heat the plasma. The
+  central solenoid gives ohmic heating while the plasma is cold, for one
+  volt-second budget per shot; reaching a burn needs auxiliary heating.
+- Losing the vacuum, the liquid helium, the field or the fuel trips the plasma
+  safely: it ramps down with a message and the cause on screen, with no
+  explosion. Disruptions from overheating, poor confinement or too much
+  density work as before.
+- The controller screen is new: phase and why it waits or tripped, Start and
+  Shutdown, fuelling, D:T and heating setpoints, heating on/off, readouts for
+  temperature, density, ash, Q, field, coil temperature, vacuum and powers,
+  and tanks for deuterium, tritium, water, plasma steam, liquid and warm helium.
+- Coolant ports take only water; heavy water is refused. A pair of coolant and
+  plasma steam ports now carries 400 mB/t of plasma steam (was 160), about
+  300 MW of fusion power, so one pair runs an R=4 tokamak at its defaults.
+- Bred tritium beyond the reserve leaves through injectors set to OUTPUT. When
+  it has nowhere to go the blankets stop breeding and the tokamak warns,
+  instead of venting it.
+- There is no longer a coil coverage that forms quietly and never burns: the
+  structure warning is worked out with the plasma model itself.
+- Tokamak goggles, chat messages, ports, Display Link errors and the controller
+  screen are translated (English and Spanish).
+- Upgrading (to move to "### Upgrading"): existing tokamaks still form, but to
+  run they now need vacuum pumps, a pair of cryogenic ports fed with liquid
+  helium, and a Start. A tokamak that was burning when the world is loaded comes
+  back offline with a message. Heavy water is no longer accepted as tokamak
+  coolant; heavy water already in a tokamak's tank is used up as water. The new
+  `fusion.*` keys are documented in `docs/configuration.md`.
 
 ### Cryogenic plant and vacuum
 

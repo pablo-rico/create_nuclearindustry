@@ -31,7 +31,8 @@ import java.util.function.BiPredicate;
  * needed.
  */
 public abstract class TokamakPortBlockEntity extends BlockEntity implements IHaveGoggleInformation, FusionReactorBlockEntity.TokamakPart {
-    private static final int ADJACENT_TRANSFER_PER_TICK = 160;
+    /** Matches {@link FusionReactorBlockEntity#PORT_THROUGHPUT}, so a port fed by a tank alongside keeps up. */
+    private static final int ADJACENT_TRANSFER_PER_TICK = FusionReactorBlockEntity.PORT_THROUGHPUT;
 
     private final ControllerLink<FusionReactorBlockEntity> link;
     private boolean clientLinked;
@@ -132,9 +133,11 @@ public abstract class TokamakPortBlockEntity extends BlockEntity implements IHav
         tooltip.add(portName().copy().withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.literal("  ").append(modeDescription(mode))
                 .withStyle(mode == ReactorFluidPortMode.INPUT ? ChatFormatting.AQUA : ChatFormatting.GOLD));
-        tooltip.add(Component.literal("  Connect pipes or tanks to any side; wrench toggles the mode").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  ").append(Component.translatable("create_nuclearindustry.tokamak.port.hint"))
+                .withStyle(ChatFormatting.GRAY));
         boolean linked = hasLinkedReactor();
-        tooltip.add(Component.literal("  Status: " + (linked ? "Linked" : "No tokamak"))
+        tooltip.add(Component.literal("  ").append(Component.translatable(linked
+                        ? "create_nuclearindustry.tokamak.port.linked" : "create_nuclearindustry.tokamak.port.unlinked"))
                 .withStyle(linked ? ChatFormatting.GREEN : ChatFormatting.RED));
         return true;
     }

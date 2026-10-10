@@ -25,12 +25,12 @@ public class FusionFluidPortBlockEntity extends TokamakPortBlockEntity {
 
         @Override
         public boolean isFluidValid(int tank, FluidStack stack) {
-            return NuclearFluidHelper.isCoolant(stack);
+            return NuclearFluidHelper.isTokamakCoolant(stack);
         }
 
         @Override
         public int fill(FluidStack resource, FluidAction action) {
-            return NuclearFluidHelper.isCoolant(resource)
+            return NuclearFluidHelper.isTokamakCoolant(resource)
                     ? controller().map(c -> c.getCoolantTank().fill(resource, action)).orElse(0) : 0;
         }
     };
@@ -78,7 +78,9 @@ public class FusionFluidPortBlockEntity extends TokamakPortBlockEntity {
 
     @Override
     protected Component modeDescription(ReactorFluidPortMode mode) {
-        return Component.literal(mode == ReactorFluidPortMode.INPUT ? "Coolant input (water or heavy water)" : "Plasma steam output");
+        return Component.translatable(mode == ReactorFluidPortMode.INPUT
+                ? "create_nuclearindustry.tokamak.port.coolant_input"
+                : "create_nuclearindustry.tokamak.port.steam_output");
     }
 
     /** Right-click with a bucket: fills coolant (INPUT) or takes plasma steam (OUTPUT). */

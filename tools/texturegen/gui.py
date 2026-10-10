@@ -103,24 +103,35 @@ def control_module():
 
 @gui("tokamak_control")
 def tokamak_control():
+    """TokamakScreen: 256x222. Coordinates are the screen's constants."""
     from palette import CRYO, CYAN
-    w, h = 248, 196
+    w, h = 256, 222
     t = _plate(w, h, 402)
     _recess(t, 8, 4, w - 9, 18)
     hazard(t, 9, 5, 26, 17, CYAN[3], DARK[0], period=6, seed=403)
     hazard(t, w - 27, 5, w - 10, 17, CYAN[3], DARK[0], period=6, seed=404)
-    # telemetry window and gauge troughs (gauges are 5 px tall at these rows)
-    _recess(t, 8, 22, 158, 160)
-    for gy in (37, 59, 81):
-        _trough(t, 14, gy, 120, 5)
-    # tank column: D, T, coolant, plasma steam
-    _recess(t, 162, 22, w - 9, 160)
-    for x in (168, 186, 204, 222):
-        t.rect(x - 1, 27, x + 12, 148, DARK[0])
-        t.rect(x, 28, x + 11, 147, DARK[2])
-        for y in range(40, 148, 12):
-            t.hline(x, x + 3, y, DARK[4])
-    # fuel switch bay
-    t.rect(160, 166, 241, 189, CRYO[1])
-    outline(t, 160, 166, 241, 189, DARK)
+    # phase panel: two text lines and the phase lamp (filled 236..243 x 27..38)
+    _recess(t, 8, 22, w - 9, 43)
+    t.rect(235, 26, 244, 39, DARK[0])
+    t.rect(236, 27, 243, 38, DARK[2])
+    # telemetry window: ten rows from y=51 every 11 px; gauges (48x5) on the first three
+    _recess(t, 8, 47, 171, 163)
+    for gy in (52, 63, 74):
+        _trough(t, 118, gy, 48, 5)
+    # tank column: D, T, water, plasma steam, liquid helium, warm helium (8x96 from y=51)
+    _recess(t, 175, 47, w - 9, 163)
+    for i in range(6):
+        x = 178 + 12 * i
+        t.rect(x - 1, 50, x + 8, 147, DARK[0])
+        t.rect(x, 51, x + 7, 146, DARK[2])
+        for y in range(59, 147, 12):
+            t.hline(x, x + 2, y, DARK[4])
+    # controls: Start, Shutdown and heating buttons on top; three setpoints with -/+ below
+    _recess(t, 8, 166, w - 9, 217)
+    for i in range(3):
+        gx = 12 + 78 * i
+        t.rect(gx - 1, 186, gx + 76, 214, CRYO[1])
+        outline(t, gx - 1, 186, gx + 76, 214, DARK)
+        t.rect(gx + 15, 199, gx + 61, 212, DARK[1])
+        t.hline(gx + 15, gx + 61, 199, DARK[0])
     return t

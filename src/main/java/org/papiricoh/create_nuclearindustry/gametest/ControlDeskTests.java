@@ -300,8 +300,12 @@ public class ControlDeskTests {
 
     @GameTest(template = NuclearGameTests.TOKAMAK_ARENA)
     public static void aLeverSwitchesTokamakFuel(GameTestHelper helper) {
-        TokamakTestBuilder.build(helper, 4, true, 0);
+        // The lever now starts and shuts down the tokamak, so it must be able to start: driven
+        // magnets, pumps, liquid helium and deuterium for the breakdown.
+        TokamakTestBuilder.build(helper, 4, true, 256);
         FusionReactorBlockEntity tokamak = TokamakTestBuilder.tokamak(helper, 4);
+        TokamakTestBuilder.makeStartable(helper, tokamak, 4, 0);
+        helper.runAfterDelay(1, () -> TokamakTestBuilder.fuel(tokamak, 1000, 0, 0));
         BlockPos pos = new BlockPos(1, 1, 1);
         placeDesks(helper, Direction.NORTH, pos);
         helper.succeedWhen(() -> {

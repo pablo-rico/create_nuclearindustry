@@ -83,6 +83,14 @@ public final class NuclearFluidHelper {
         return stack.getFluid() == AllNuclearFluids.PLASMA_STEAM.get();
     }
 
+    /**
+     * What a tokamak's coolant ports take: plain water only. The plasma turbine returns plasma steam as
+     * water, so heavy water would only be downgraded; it is refused rather than wasted.
+     */
+    public static boolean isTokamakCoolant(FluidStack stack) {
+        return isWater(stack);
+    }
+
     public static boolean isHelium(FluidStack stack) {
         return stack.getFluid() == AllNuclearFluids.HELIUM.get();
     }
