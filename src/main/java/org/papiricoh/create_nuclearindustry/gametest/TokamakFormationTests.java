@@ -51,6 +51,29 @@ public class TokamakFormationTests {
         });
     }
 
+    /** The startup scene's tokamak, with a pump, cryogenic ports, viewports and heaters in its shell, forms too. */
+    @GameTest(template = "gametest/tokamak_startup_r4")
+    public static void startupPonderSchematicForms(GameTestHelper helper) {
+        BlockPos controller = new BlockPos(1, 4, 7);
+        helper.runAfterDelay(2, () -> {
+            MultiblockValidationResult<?> result = TokamakStructureValidator.validate(helper.getLevel(), helper.absolutePos(controller));
+            helper.assertTrue(result.formed(), "the startup Ponder tokamak should be valid: " + result.primaryMessage());
+            helper.succeed();
+        });
+    }
+
+    /** The cryogenic plant of its Ponder scene forms. */
+    @GameTest(template = "gametest/cryoplant_ponder")
+    public static void cryoplantPonderSchematicForms(GameTestHelper helper) {
+        BlockPos controller = new BlockPos(3, 3, 2);
+        helper.runAfterDelay(2, () -> {
+            MultiblockValidationResult<?> result = org.papiricoh.create_nuclearindustry.fusion.cryo.plant.CryoplantStructureValidator
+                    .validate(helper.getLevel(), helper.absolutePos(controller));
+            helper.assertTrue(result.formed(), "the Ponder cryogenic plant should be valid: " + result.primaryMessage());
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = NuclearGameTests.TOKAMAK_ARENA)
     public static void breakingTheVesselUnforms(GameTestHelper helper) {
         TokamakTestBuilder.build(helper, 4, true, 0);

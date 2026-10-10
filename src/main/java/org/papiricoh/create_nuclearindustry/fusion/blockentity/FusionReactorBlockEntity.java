@@ -794,6 +794,16 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         return cryoTanks;
     }
 
+    /**
+     * Ponder only: makes this schematic controller show a plasma of the given state around
+     * {@code center}, with no structure or physics behind it.
+     */
+    public void previewPlasma(BlockPos center, TokamakReadings readings) {
+        dispCenter = center.immutable();
+        dispRadius = readings.majorRadius();
+        clientReadings = readings;
+    }
+
     /** The point on the axis at the plasma's mid-plane; synced to clients for the renderer. */
     public BlockPos getCenter() {
         return level != null && level.isClientSide ? dispCenter : structure.map(s -> s.center).orElse(BlockPos.ZERO);

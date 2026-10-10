@@ -31,7 +31,8 @@ def rho(dx, dz):
     return r
 
 
-def main():
+def build():
+    """Every block of the R=4 tokamak and its base plate, by position."""
     blocks = {}
     for x in range(SIZE):
         for z in range(SIZE):
@@ -65,8 +66,11 @@ def main():
     blocks[(cx + edge, cy, cz)] = (NS + "fusion_fuel_injector", {"facing": "east", "mode": "input"})
     blocks[(cx, cy, cz - edge)] = (NS + "fusion_magnet_input", {"facing": "north"})
     blocks[(cx, cy, cz - edge - 1)] = ("create:shaft", {"axis": "z"})
+    return blocks
 
-    data = nbtwriter.structure((SIZE, 6, SIZE), blocks)
+
+def main():
+    data = nbtwriter.structure((SIZE, 6, SIZE), build())
     for path in (OUT, TEST_OUT):
         path.parent.mkdir(parents=True, exist_ok=True)
         nbtwriter.write(path, data)

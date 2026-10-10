@@ -41,6 +41,7 @@ final class FusionDataGen extends AreaDataGen {
 
         structure();
         messages();
+        ponder();
         goggles();
         screen();
     }
@@ -167,5 +168,64 @@ final class FusionDataGen extends AreaDataGen {
         LangEntries.add(GUI + "tank.liquid_helium", "Liquid helium", "Helio líquido");
         LangEntries.add(GUI + "tank.warm_helium", "Warm helium (back to the plant)", "Helio caliente (vuelve a la planta)");
         LangEntries.add(GUI + "tank.amount", "%s / %s mB", "%s / %s mB");
+    }
+
+    private static void ponder() {
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.header", "Starting a Tokamak", "Arrancar un tokamak");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_1",
+                "A tokamak does not start by itself. Before its plasma can burn it needs a vacuum, cold magnets, a field and heating.",
+                "Un tokamak no arranca solo. Antes de que su plasma arda necesita vacío, imanes fríos, campo magnético y calentamiento.");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_2",
+                "Vacuum Pumps in the shell empty the plasma chamber: one for every 4 blocks of radius, turning at 128 RPM.",
+                "Las bombas de vacío de la carcasa vacían la cámara de plasma: una por cada 4 bloques de radio, girando a 128 RPM.");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_3",
+                "Cryogenic Ports feed the coils liquid helium from a Cryogenic Plant: INPUT takes it in, OUTPUT sends the boiled-off helium back.",
+                "Los puertos criogénicos llevan a las bobinas helio líquido de una planta criogénica: ENTRADA lo recibe y SALIDA devuelve el helio evaporado.");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_4",
+                "Superconducting coils must stay below 20 K. If the helium runs out they warm up and the tokamak shuts down safely.",
+                "Las bobinas superconductoras deben seguir por debajo de 20 K. Si se acaba el helio se calientan y el tokamak se apaga de forma segura.");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_5",
+                "Neutral Beam Injectors and RF Antennas heat the plasma. Antennas only couple to a dense enough plasma; beams burn a little deuterium.",
+                "Los inyectores de haces neutros y las antenas de RF calientan el plasma. Las antenas solo acoplan con un plasma bastante denso; los haces gastan algo de deuterio.");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_6",
+                "Heating takes a lot of rotation. Fusion gives back Q times the heating: below a Q of about 3 the plant spends more than it makes.",
+                "Calentar cuesta mucha rotación. La fusión devuelve Q veces el calentamiento: con una Q por debajo de 3 la central gasta más de lo que produce.");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_7",
+                "Press Start in the controller's screen, give it a redstone pulse or throw a desk lever. The screen shows each phase and what is missing.",
+                "Pulsa Arrancar en la pantalla del controlador, dale un pulso de redstone o acciona una palanca del pupitre. La pantalla muestra cada fase y lo que falta.");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_8",
+                "It pumps down, cools the coils and ramps up the field; then a solenoid pulse breaks a puff of deuterium down into plasma.",
+                "Hace vacío, enfría las bobinas y sube el campo; después un pulso del solenoide convierte una bocanada de deuterio en plasma.");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_9",
+                "Viewports let you watch it: the plasma glows from red to white as it heats, and the windows light up the hall.",
+                "Las ventanas de visión permiten verlo: el plasma pasa de rojo a blanco al calentarse, y las ventanas iluminan la sala.");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_10",
+                "Burning, a dense and well confined plasma can ignite: turn the heating down and it keeps itself hot.",
+                "En combustión, un plasma denso y bien confinado puede llegar a la ignición: baja el calentamiento y se mantiene caliente solo.");
+        LangEntries.add("create_nuclearindustry.ponder.cryoplant.header", "The Cryogenic Plant", "La planta criogénica");
+        LangEntries.add("create_nuclearindustry.ponder.cryoplant.text_1",
+                "A Cryogenic Plant liquefies helium for a tokamak's magnets. It is a 3x3 box of Cryogenic Plant Casing, 3 to 5 blocks tall; every layer adds capacity.",
+                "Una planta criogénica licúa helio para los imanes de un tokamak. Es una caja de 3x3 de carcasa de planta criogénica, de 3 a 5 bloques de alto; cada capa añade capacidad.");
+        LangEntries.add("create_nuclearindustry.ponder.cryoplant.text_2",
+                "The Controller sits in a wall. Right-click it to form the plant.",
+                "El controlador va en una pared. Haz clic derecho en él para formar la planta.");
+        LangEntries.add("create_nuclearindustry.ponder.cryoplant.text_3",
+                "Compressors in the walls take the rotation, at 128 RPM or more. They are hungry: about 10240 SU per RPM for each layer, shared between them.",
+                "Los compresores de las paredes reciben la rotación, a 128 RPM o más. Consumen mucho: unas 10240 SU por RPM por cada capa, repartidas entre ellos.");
+        LangEntries.add("create_nuclearindustry.ponder.cryoplant.text_4",
+                "A port on Warm Helium In takes back the helium the tokamak's coils boil off...",
+                "Un puerto en Entrada de helio caliente recoge el helio que evaporan las bobinas del tokamak...");
+        LangEntries.add("create_nuclearindustry.ponder.cryoplant.text_5",
+                "...and one on Liquid Helium Out sends it, cold, to the tokamak's Cryogenic Ports. A wrench changes a port's mode.",
+                "...y uno en Salida de helio líquido lo envía, frío, a los puertos criogénicos del tokamak. La llave inglesa cambia el modo de un puerto.");
+        LangEntries.add("create_nuclearindustry.ponder.cryoplant.text_6",
+                "Each pass loses a little helium. The helium ash the plasma makes as it burns tops the loop up again.",
+                "En cada vuelta se pierde un poco de helio. Las cenizas de helio que produce el plasma al arder rellenan el circuito.");
+        LangEntries.add("create_nuclearindustry.ponder.cryoplant.text_7",
+                "The first helium comes from the air. With a port on Liquid Air Out the plant liquefies air instead, and a Centrifuge splits liquid air into liquid nitrogen and a trace of helium.",
+                "El primer helio sale del aire. Con un puerto en Salida de aire líquido la planta licúa aire, y una centrífuga separa el aire líquido en nitrógeno líquido y una traza de helio.");
+        LangEntries.add("create_nuclearindustry.ponder.cryoplant.text_8",
+                "Liquid nitrogen poured into a Nitrogen In port precools the plant, which then makes half as much liquid helium again.",
+                "El nitrógeno líquido que entra por un puerto de Entrada de nitrógeno preenfría la planta, que entonces da la mitad más de helio líquido.");
     }
 }

@@ -548,12 +548,9 @@ below for what changes in existing worlds.
   structure warning is worked out with the plasma model itself.
 - Tokamak goggles, chat messages, ports, Display Link errors and the controller
   screen are translated (English and Spanish).
-- Upgrading (to move to "### Upgrading"): existing tokamaks still form, but to
-  run they now need vacuum pumps, a pair of cryogenic ports fed with liquid
-  helium, and a Start. A tokamak that was burning when the world is loaded comes
-  back offline with a message. Heavy water is no longer accepted as tokamak
-  coolant; heavy water already in a tokamak's tank is used up as water. The new
-  `fusion.*` keys are documented in `docs/configuration.md`.
+- Ponder: a new "Starting a Tokamak" scene walks through the pumps, cryogenic
+  ports, heaters, the Start and the plasma lighting up behind the viewports,
+  and "The Cryogenic Plant" shows how to build and feed the plant.
 
 ### Cryogenic plant and vacuum
 - New Cryogenic Plant multiblock that makes the liquid helium a tokamak's
@@ -682,6 +679,16 @@ below for what changes in existing worlds.
   fireball the blast wave hurts people and breaks glass and leaves instead.
   Set `civilDefense.blastWave.breakFragileBlocks = false` to keep every block
   outside the crater and fireball intact.
+- Tokamaks still form, but to run they now need vacuum pumps, a pair of
+  cryogenic ports fed with liquid helium from a Cryogenic Plant, and a Start
+  (screen, redstone pulse or desk lever). A tokamak that was burning when the
+  world is loaded comes back offline with a message. Magnet drives no longer
+  heat the plasma: add neutral beam injectors or RF antennas.
+- Heavy water is no longer accepted as tokamak coolant; heavy water already in
+  a tokamak's tank is used up as water.
+- The `fusion.*` config keys keep their names; new ones (startup, vacuum,
+  magnets, plasma), `cryo.*` and `plasmaHeating.*` are documented in
+  `docs/configuration.md`.
 
 ## 1.1.0
 

@@ -9,6 +9,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ControlRoomScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CoolingTowerScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CryoplantScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.PlantScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorModerationScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorRedstoneScenes;
@@ -53,6 +54,14 @@ public class AllNuclearPonderScenes {
                 "fusion_electromagnet", "fusion_breeding_blanket", "fusion_cryostat_casing", "fusion_magnet_input",
                 "fusion_fluid_port", "fusion_fuel_injector"}) {
             helper.addStoryBoard(id(part), "tokamak", TokamakScenes::assembly);
+        }
+        for (String part : new String[]{"fusion_controller", "fusion_magnet_input", "fusion_vacuum_pump", "fusion_cryo_port",
+                "fusion_neutral_beam_injector", "fusion_rf_antenna", "fusion_viewport"}) {
+            helper.addStoryBoard(id(part), "tokamak_startup", TokamakScenes::startup);
+        }
+        for (String part : new String[]{"cryoplant_controller", "cryoplant_casing", "cryoplant_port", "cryoplant_compressor",
+                "fusion_cryo_port"}) {
+            helper.addStoryBoard(id(part), "cryoplant", CryoplantScenes::plant);
         }
         for (String part : new String[]{"graphite_moderator", "beryllium_reflector", "reactor_controller"}) {
             helper.addStoryBoard(id(part), "reactor_controller", ReactorModerationScenes::moderation);
