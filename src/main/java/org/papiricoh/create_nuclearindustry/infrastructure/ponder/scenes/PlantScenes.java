@@ -224,8 +224,8 @@ public class PlantScenes {
         Script lines = text.script();
         scene.title(text.id(), text.title().english());
         scene.configureBasePlate(0, 0, 15);
-        scene.scaleSceneView(0.45f);
-        scene.setSceneOffsetY(-1.0f);
+        scene.scaleSceneView(0.3f);
+        scene.setSceneOffsetY(-2.0f);
 
         BlockPos steamPump = util.grid().at(4, 5, 2);
         BlockPos exhaust = util.grid().at(7, 2, 3);
@@ -332,7 +332,7 @@ public class PlantScenes {
 
         scene.overlay().showText(110)
                 .text(lines.next())
-                .pointAt(util.vector().blockSurface(util.grid().at(2, 2, 1), Direction.NORTH))
+                .pointAt(util.vector().topOf(util.grid().at(2, 4, 2)))
                 .placeNearTarget()
                 .attachKeyFrame();
         scene.idle(30);
@@ -350,8 +350,8 @@ public class PlantScenes {
         Script lines = text.script();
         scene.title(text.id(), text.title().english());
         scene.configureBasePlate(0, 0, 15);
-        scene.scaleSceneView(0.5f);
-        scene.setSceneOffsetY(-1.0f);
+        scene.scaleSceneView(0.36f);
+        scene.setSceneOffsetY(1.0f);
 
         BlockPos controller = util.grid().at(9, 6, 9);
         BlockPos leftDesk = util.grid().at(1, 1, 1);
@@ -571,8 +571,8 @@ public class PlantScenes {
         Script lines = text.script();
         scene.title(text.id(), text.title().english());
         scene.configureBasePlate(0, 0, 15);
-        scene.scaleSceneView(0.5f);
-        scene.setSceneOffsetY(-2.0f);
+        scene.scaleSceneView(0.34f);
+        scene.setSceneOffsetY(0.0f);
 
         BlockPos glowingRack = util.grid().at(2, 5, 2);
         BlockPos cooler = util.grid().at(5, 5, 5);

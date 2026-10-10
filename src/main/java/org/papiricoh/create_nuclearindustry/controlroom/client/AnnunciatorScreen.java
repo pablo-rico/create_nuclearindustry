@@ -101,18 +101,18 @@ public class AnnunciatorScreen extends AbstractContainerScreen<DeviceMenu> {
             CompoundTag config = new CompoundTag();
             config.putString("Metric", metric.name());
             send(config);
-        }).bounds(leftPos + 10, topPos + METRIC_Y, 120, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("-"), b -> step(-1)).bounds(leftPos + 134, topPos + METRIC_Y, 18, 20).build());
+        }).bounds(leftPos + 10, topPos + METRIC_Y, 96, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("-"), b -> step(-1)).bounds(leftPos + 110, topPos + METRIC_Y, 18, 20).build());
         addRenderableWidget(Button.builder(Component.literal("+"), b -> step(1)).bounds(leftPos + 172, topPos + METRIC_Y, 18, 20).build());
         unlinkButton = addRenderableWidget(Button.builder(Component.translatable(KEY + "unlink"), b -> {
             CompoundTag config = new CompoundTag();
             config.putBoolean("Unlink", true);
             send(config);
-        }).bounds(leftPos + 10, topPos + UNLINK_Y, 90, 20).build());
+        }).bounds(leftPos + 10, topPos + UNLINK_Y, 70, 20).build());
         presetButton = addRenderableWidget(Button.builder(Component.empty(), b -> {
             preset = preset.next(hasShiftDown() ? -1 : 1);
             refresh();
-        }).bounds(leftPos + 104, topPos + UNLINK_Y, 64, 20).build());
+        }).bounds(leftPos + 84, topPos + UNLINK_Y, 82, 20).build());
         applyButton = addRenderableWidget(Button.builder(Component.translatable(KEY + "preset.apply"), b -> applyPreset())
                 .bounds(leftPos + 170, topPos + UNLINK_Y, 20, 20).build());
         select(selected);
@@ -227,7 +227,7 @@ public class AnnunciatorScreen extends AbstractContainerScreen<DeviceMenu> {
         if (panel == null) {
             return;
         }
-        graphics.drawCenteredString(font, metric.format(setting), 162, METRIC_Y + 6, 0xFFFFFFFF);
+        graphics.drawCenteredString(font, metric.format(setting), 150, METRIC_Y + 6, 0xFFFFFFFF);
         AnnunciatorPanelBlockEntity.Window window = panel.window(selected);
         GlobalPos target = window.target();
         Component link;

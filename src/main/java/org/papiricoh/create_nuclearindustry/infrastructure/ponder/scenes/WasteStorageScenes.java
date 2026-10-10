@@ -23,8 +23,8 @@ public class WasteStorageScenes {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         scene.title("waste_storage", "Geological Waste Storage");
         scene.configureBasePlate(0, 0, 7);
-        scene.scaleSceneView(0.65f);
-        scene.setSceneOffsetY(-3.0f);
+        scene.scaleSceneView(0.45f);
+        scene.setSceneOffsetY(0.0f);
 
         Selection ground = util.select().fromTo(0, 0, 0, 6, 10, 6);
         scene.world().showSection(ground, Direction.UP);
@@ -67,7 +67,7 @@ public class WasteStorageScenes {
         scene.world().showSection(backfill(util), Direction.DOWN);
         scene.idle(15);
         scene.overlay().showText(100)
-                .text("From a score of 80% a package neither irradiates nor leaks. Raw barrels score lowest: bury them deep in host rock, pack them in Bentonite, or treat the waste first. The old Y=0 rule is a config option.")
+                .text("From a score of 80%% a package neither irradiates nor leaks. Raw barrels score lowest: bury them deep in host rock, pack them in Bentonite, or treat the waste first. The old Y=0 rule is a config option.")
                 .colored(PonderPalette.GREEN)
                 .pointAt(util.vector().topOf(util.grid().at(2, 1, 1)))
                 .placeNearTarget();

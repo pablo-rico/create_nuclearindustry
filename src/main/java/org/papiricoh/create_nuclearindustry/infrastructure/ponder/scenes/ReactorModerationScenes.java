@@ -47,7 +47,7 @@ public class ReactorModerationScenes {
         scene.idle(100);
         scene.overlay().showOutline(PonderPalette.RED, "moderated", util.select().fromTo(4, 2, 3, 4, 4, 3), 90);
         scene.overlay().showText(90)
-                .text("A fuel column with two graphite neighbours is fully moderated; one with a single neighbour, half. A fully moderated core is 35% more reactive.")
+                .text("A fuel column with two graphite neighbours is fully moderated; one with a single neighbour, half. A fully moderated core is 35%% more reactive.")
                 .colored(PonderPalette.RED)
                 .pointAt(util.vector().centerOf(util.grid().at(4, 3, 3)))
                 .placeNearTarget();

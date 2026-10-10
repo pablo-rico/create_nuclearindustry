@@ -668,8 +668,8 @@ public final class LangEntries {
                 "Graphite Moderator fills whole interior columns. It slows neutrons, so the Fuel Channels sharing a face with it split more often.",
                 "El Moderador de grafito llena columnas interiores enteras. Frena los neutrones, así que los Canales de combustible pegados a sus caras se fisionan más.");
         add("create_nuclearindustry.ponder.reactor_moderation.text_2",
-                "A fuel column with two graphite neighbours is fully moderated; one with a single neighbour, half. A fully moderated core is 35% more reactive.",
-                "Una columna de combustible con dos vecinas de grafito está totalmente moderada; con una sola, a medias. Un núcleo totalmente moderado es un 35% más reactivo.");
+                "A fuel column with two graphite neighbours is fully moderated; one with a single neighbour, half. A fully moderated core is 35%% more reactive.",
+                "Una columna de combustible con dos vecinas de grafito está totalmente moderada; con una sola, a medias. Un núcleo totalmente moderado es un 35%% más reactivo.");
         add("create_nuclearindustry.ponder.reactor_moderation.text_3",
                 "Beryllium Reflector belongs in the columns that touch the shell: it bounces escaping neutrons back into the core.",
                 "El Reflector de berilio va en las columnas que tocan la carcasa: devuelve al núcleo los neutrones que escapan.");
@@ -758,8 +758,8 @@ public final class LangEntries {
                 "Underground, a repository score decides: depth below the surface, host rock such as deepslate around it, Bentonite backfill on its faces and the waste form. Water within 4 blocks spoils it.",
                 "Bajo tierra decide una puntuación de repositorio: la profundidad bajo la superficie, la roca que lo rodea, como la pizarra profunda, el relleno de Bentonita en sus caras y la forma del residuo. El agua a menos de 4 bloques la arruina.");
         add("create_nuclearindustry.ponder.waste_storage.text_3",
-                "From a score of 80% a package neither irradiates nor leaks. Raw barrels score lowest: bury them deep in host rock, pack them in Bentonite, or treat the waste first. The old Y=0 rule is a config option.",
-                "Desde una puntuación del 80% un bulto ni irradia ni se filtra. Los barriles sin tratar puntúan lo más bajo: entiérralos hondo en roca firme, rodéalos de Bentonita o trata antes los residuos. La antigua regla de Y=0 es una opción de configuración.");
+                "From a score of 80%% a package neither irradiates nor leaks. Raw barrels score lowest: bury them deep in host rock, pack them in Bentonite, or treat the waste first. The old Y=0 rule is a config option.",
+                "Desde una puntuación del 80%% un bulto ni irradia ni se filtra. Los barriles sin tratar puntúan lo más bajo: entiérralos hondo en roca firme, rodéalos de Bentonita o trata antes los residuos. La antigua regla de Y=0 es una opción de configuración.");
         add("create_nuclearindustry.ponder.cooling_tower.header",
                 "Cooling Towers",
                 "Torres de refrigeración");
