@@ -793,6 +793,16 @@ cuenta como almacenado, sin mirar lo que lo rodea, y lo demas fuga
   1 bar) y la salida va de calentadores al máximo (0) a rociado al máximo (1),
   sin hacer nada en 0,5. El presionador responde en segundos, mucho antes que
   las barras, así que no tiene límite de velocidad ni término derivativo.
+- `pid.fusion.gain` (2.0), `pid.fusion.integral` (0.3), `pid.fusion.deadband`
+  (0.005) y `pid.fusion.rateLimit` (0.1): ajuste del controlador en *Potencia
+  de fusión automática*, que también da pasos cada `pid.interval` ticks. El
+  error se mide en fracciones de 1000 MW (la banda muerta por defecto es 5 MW)
+  y la salida va de 0 a 1: la mitad baja fija la inyección de combustible del
+  tokamak, de nada al máximo que admite, y la mitad alta sube el calentamiento
+  desde el nivel que dejó el operador (nunca por debajo) hasta el máximo. El
+  límite de velocidad, un 10 % de la salida por segundo, evita que el plasma
+  reciba saltos de combustible. Solo actúa con el plasma en combustión; el
+  arranque es cosa del operador.
 
 Escalas: los indicadores, las plumillas del registrador y los umbrales de
 alarma del circuito a presión van hasta 250 bar (donde falla la vasija),
@@ -807,8 +817,17 @@ Al enlazar un Registrador gráfico, sus plumillas se ponen solas según la
 máquina: presión, rama caliente y nivel del presionador en un reactor con
 presionador (temperatura y potencia en los demás); nivel, vapor y ΔT del
 primario en un generador de vapor; presión, hidrógeno y actividad en una
-contención. Las plumillas que haya cambiado el jugador se respetan al volver a
+contención; potencia de fusión, temperatura y densidad del plasma en un
+tokamak. Las plumillas que haya cambiado el jugador se respetan al volver a
 enlazar la misma clase de máquina.
+
+Escalas del tokamak: potencia de fusión hasta 1000 MW, ganancia Q hasta 20 (un
+plasma en ignición lleva la aguja al tope y el monitor muestra «∞»), densidad
+hasta el 120 % del límite de Greenwald, cenizas hasta el 25 %, temperatura de
+los imanes hasta 300 K (para ver el enfriamiento entero), calentamiento hasta
+100 MW y presión de la cámara en escala logarítmica de 1e-5 Pa a la
+atmósfera. Los colores del monitor salen de los umbrales del propio modelo del
+plasma.
 
 El Panel anunciador tiene plantillas para sus seis ventanas (*Núcleo*,
 *Primario PWR*, *Gen. vapor* y *Contención*) con métricas, umbrales y
@@ -819,6 +838,17 @@ pérdida de caudal al doble de `pwr.naturalCirculation`, ΔT bajo a la mitad de
 `pwr.coreTemperatureRise`, hidrógeno al 2 % y al 4 % (límite de
 inflamabilidad) y presión de contención a 2 bar y al 80 % de los 6 bar del
 hormigón.
+
+La plantilla *Tokamak* vigila la inestabilidad (60 %, antes de la disrupción
+al 100 %), la densidad (90 % del límite), el vacío (3e-4 Pa, media década
+mejor que el límite de 1e-3 Pa del plasma), la temperatura de los imanes
+(10 K, la mitad del límite superconductor de 20 K), una ganancia Q de 3 o
+menos (por debajo el calentamiento cuesta más de lo que da el plasma) y el
+disparo del tokamak. El vacío y la densidad solo cuentan con el plasma
+encendido, los imanes solo con corriente y la ganancia solo en combustión, así
+que un tokamak frío no tiene ninguna ventana encendida. Una parada del
+operador no cuenta como disparo; un arranque rechazado sí, hasta el siguiente
+arranque.
 
 ## Defensa civil
 

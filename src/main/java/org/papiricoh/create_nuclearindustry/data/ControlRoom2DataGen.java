@@ -53,6 +53,7 @@ final class ControlRoom2DataGen extends AreaDataGen {
         annunciator();
         controller();
         plantReadings();
+        tokamak();
     }
 
     private static void chartRecorder() {
@@ -192,6 +193,89 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(m + "function.lamp_relief_open", "Relief valve open", "Válvula de alivio abierta");
         add(m + "pressure_heaters", "heaters %s%%", "calentadores al %s%%");
         add(m + "pressure_spray", "spray %s%%", "rociado al %s%%");
+    }
+
+    /**
+     * The tokamak's startup and plasma control in the control room: monitor rows, alarms, the annunciator
+     * preset, desk functions, gauges and pens, and the Display Link lines.
+     */
+    private static void tokamak() {
+        String monitor = "create_nuclearindustry.monitor.";
+        add(monitor + "trip", "Trip", "Disparo");
+        add(monitor + "gain", "Gain", "Ganancia");
+        add(monitor + "density", "Density", "Densidad");
+        add(monitor + "field", "Field", "Campo");
+        add(monitor + "magnets", "Magnets", "Imanes");
+        add(monitor + "vacuum", "Vacuum", "Vacío");
+        add(monitor + "heating", "Heating", "Calentam.");
+        add(monitor + "off", "Off", "Apagado");
+        add(monitor + "fuel_rate", "Fuelling", "Inyección");
+        add(monitor + "helium", "Liquid He", "He líquido");
+        add(monitor + "ash", "He ash", "Cenizas");
+        add("create_nuclearindustry.control_room.status.tripped", "Tripped", "Disparado");
+
+        String metric = "create_nuclearindustry.alarm.metric.";
+        add(metric + "vacuum_poor", "Tokamak chamber pressure above", "Presión de la cámara del tokamak por encima de");
+        add(metric + "magnet_temperature", "Tokamak magnet temperature above", "Temperatura de los imanes del tokamak por encima de");
+        add(metric + "fusion_gain_low", "Fusion gain Q below", "Ganancia de fusión Q por debajo de");
+        add(metric + "plasma_density", "Plasma density, share of its limit, above",
+                "Densidad del plasma, fracción de su límite, por encima de");
+        add(metric + "tritium_low", "Tokamak tritium below", "Tritio del tokamak por debajo de");
+        add(metric + "tokamak_trip", "Tokamak tripped", "Disparo del tokamak");
+        String a = "create_nuclearindustry.annunciator.";
+        String s = a + "short.";
+        add(s + "vacuum_poor", "VACUUM POOR", "VACÍO POBRE");
+        add(s + "magnet_temperature", "MAGNET TEMP HI", "TEMP IMANES ALTA");
+        add(s + "fusion_gain_low", "Q LOW", "Q BAJO");
+        add(s + "plasma_density", "DENSITY HI", "DENSIDAD ALTA");
+        add(s + "tritium_low", "TRITIUM LO", "TRITIO BAJO");
+        add(s + "tokamak_trip", "TOKAMAK TRIP", "DISPARO TOKAMAK");
+        preset(a + "preset.tokamak", "Tokamak", "Tokamak",
+                new String[]{"INSTABILITY HI", "DENSITY HI", "VACUUM POOR", "MAGNET TEMP HI", "Q LOW", "TOKAMAK TRIP"},
+                new String[]{"INESTAB. ALTA", "DENSIDAD ALTA", "VACÍO POBRE", "TEMP IMANES ALTA", "Q BAJO", "DISPARO TOKAMAK"});
+
+        String m = "create_nuclearindustry.control_module.";
+        add(m + "function.tokamak_start", "Tokamak start", "Arranque del tokamak");
+        add(m + "function.tokamak_shutdown", "Tokamak shutdown", "Parada del tokamak");
+        add(m + "function.tokamak_heating", "Tokamak heating", "Calentamiento del tokamak");
+        add(m + "function.auto_fusion_power", "Automatic fusion power", "Potencia de fusión automática");
+        add(m + "fusion_demand", "fuel %s%%, heating %s%%", "inyección %s%%, calentamiento %s%%");
+        add(m + "tokamak.start", "Tokamak starting up", "El tokamak arranca");
+        add(m + "tokamak.refused", "Start refused: %s", "Arranque rechazado: %s");
+        add(m + "tokamak.shutdown", "Tokamak shutting down", "El tokamak se apaga");
+        add(m + "tokamak.already_offline", "The tokamak is already offline", "El tokamak ya está apagado");
+        String r = m + "reading.";
+        add(r + "fusion_gain", "Fusion gain (Q)", "Ganancia de fusión (Q)");
+        add(r + "plasma_density", "Plasma density", "Densidad del plasma");
+        add(r + "helium_ash", "Helium ash", "Cenizas de helio");
+        add(r + "magnetic_field", "Magnetic field", "Campo magnético");
+        add(r + "magnet_temperature", "Magnet temperature", "Temperatura de los imanes");
+        add(r + "chamber_pressure", "Chamber pressure (log)", "Presión de la cámara (log.)");
+        add(r + "heating_power", "Heating power", "Potencia de calentamiento");
+        add(r + "fuel_rate", "Fuelling rate", "Ritmo de inyección");
+        add(r + "liquid_helium", "Liquid helium", "Helio líquido");
+        add(r + "tritium", "Tokamak tritium", "Tritio del tokamak");
+
+        String d = "create_nuclearindustry.display_source.tokamak.";
+        add(d + "none", "No tokamak", "Sin tokamak");
+        add(d + "unformed", "Not formed", "Sin formar");
+        add(d + "tripped", "Tripped: %s", "Disparo: %s");
+        add(d + "phase", "Phase: %s", "Fase: %s");
+        add(d + "plasma", "Plasma: %s° %s", "Plasma: %s° %s");
+        add(d + "mode.dt", "D-T", "D-T");
+        add(d + "mode.dd", "D-D", "D-D");
+        add(d + "mode.cold", "cold", "frío");
+        add(d + "power", "Fusion: %s MW, %s", "Fusión: %s MW, %s");
+        add(d + "ignited", "ignited", "en ignición");
+        add(d + "density", "Density: %s%%, ash %s%%", "Densidad: %s%%, cenizas %s%%");
+        add(d + "magnets", "Field: %s%%, magnets %s K", "Campo: %s%%, imanes %s K");
+        add(d + "vacuum", "Vacuum: %s", "Vacío: %s");
+        add(d + "heating", "Heating: %s MW (%s%%)", "Calentamiento: %s MW (%s%%)");
+        add(d + "heating_off", "Heating: off", "Calentamiento: apagado");
+        add(d + "fuel", "Fuel: %s mB/t, D %s mB, T %s mB", "Combustible: %s mB/t, D %s mB, T %s mB");
+        add(d + "helium", "Helium: %s mB liquid, %s mB warm", "Helio: %s mB líquido, %s mB caliente");
+        add(d + "stability", "Instability %s%%, confinement %s%%", "Inestabilidad %s%%, confinamiento %s%%");
+        add(d + "tbr", "TBR: %s", "TBR: %s");
     }
 
     /** Monitor rows, gauges and target names for the pressurized water loop, steam generators and containments. */

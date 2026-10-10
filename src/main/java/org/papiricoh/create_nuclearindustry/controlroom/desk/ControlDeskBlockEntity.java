@@ -203,6 +203,13 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         return acted;
     }
 
+    /** What the last click on a module did, for the player who clicked (a refused tokamak start, say), or null. */
+    @Nullable
+    public net.minecraft.network.chat.Component takeFeedback(int slot) {
+        ControlModule module = module(slot);
+        return module == null ? null : module.takeFeedback();
+    }
+
     private void afterChange() {
         refreshLinks();
         evaluate();

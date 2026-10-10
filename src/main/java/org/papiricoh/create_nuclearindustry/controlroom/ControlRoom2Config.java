@@ -5,7 +5,8 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleFunction;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.PidController;
 
 /**
- * Common config for the chart recorder, the annunciator panel and automatic rod and pressure control, under {@code controlRoom.*}. Values are defined on the shared builder
+ * Common config for the chart recorder, the annunciator panel and automatic rod, pressure and fusion power control,
+ * under {@code controlRoom.*}. Values are defined on the shared builder
  * by {@link org.papiricoh.create_nuclearindustry.Config} and copied into public statics on load.
  */
 public final class ControlRoom2Config {
@@ -20,6 +21,10 @@ public final class ControlRoom2Config {
     private static ModConfigSpec.DoubleValue PRESSURE_GAIN;
     private static ModConfigSpec.DoubleValue PRESSURE_INTEGRAL;
     private static ModConfigSpec.DoubleValue PRESSURE_DEADBAND;
+    private static ModConfigSpec.DoubleValue FUSION_GAIN;
+    private static ModConfigSpec.DoubleValue FUSION_INTEGRAL;
+    private static ModConfigSpec.DoubleValue FUSION_DEADBAND;
+    private static ModConfigSpec.DoubleValue FUSION_RATE_LIMIT;
 
     /** Samples a chart recorder draws on one sheet of paper. */
     public static int chartSamplesPerPaper = 240;
@@ -36,6 +41,11 @@ public final class ControlRoom2Config {
     public static double pressureGain = 3.0;
     public static double pressureIntegral = 0.3;
     public static double pressureDeadband = 0.004;
+    /** Fusion power controller: fuelling answers in seconds, but the plasma's heat takes a while to follow. */
+    public static double fusionGain = 2.0;
+    public static double fusionIntegral = 0.3;
+    public static double fusionDeadband = 0.005;
+    public static double fusionRateLimit = 0.1;
 
     private ControlRoom2Config() {}
 
@@ -75,6 +85,19 @@ public final class ControlRoom2Config {
         PRESSURE_DEADBAND = builder
                 .comment("Error, as a fraction of 250 bar, inside which the pressure controller holds its demand (0.004 is 1 bar).")
                 .defineInRange("controlRoom.pid.pressure.deadband", 0.004, 0.0, 0.5);
+        FUSION_GAIN = builder
+                .comment("Automatic fusion power controller, proportional gain: demand per unit of error, the error being a",
+                        "fraction of 1000 MW. The lower half of the demand sets the tokamak's fuelling, the upper half its heating.")
+                .defineInRange("controlRoom.pid.fusion.gain", 2.0, 0.0, 100.0);
+        FUSION_INTEGRAL = builder
+                .comment("Automatic fusion power controller, integral gain: demand per unit of error per second.")
+                .defineInRange("controlRoom.pid.fusion.integral", 0.3, 0.0, 10.0);
+        FUSION_DEADBAND = builder
+                .comment("Error, as a fraction of 1000 MW, inside which the fusion power controller holds its demand (0.005 is 5 MW).")
+                .defineInRange("controlRoom.pid.fusion.deadband", 0.005, 0.0, 0.5);
+        FUSION_RATE_LIMIT = builder
+                .comment("Largest change of the fusion power controller's demand per second (0 for no limit).")
+                .defineInRange("controlRoom.pid.fusion.rateLimit", 0.1, 0.0, 1.0);
     }
 
     public static void bake() {
@@ -89,6 +112,10 @@ public final class ControlRoom2Config {
         pressureGain = PRESSURE_GAIN.get();
         pressureIntegral = PRESSURE_INTEGRAL.get();
         pressureDeadband = PRESSURE_DEADBAND.get();
+        fusionGain = FUSION_GAIN.get();
+        fusionIntegral = FUSION_INTEGRAL.get();
+        fusionDeadband = FUSION_DEADBAND.get();
+        fusionRateLimit = FUSION_RATE_LIMIT.get();
     }
 
     /** The rod controller tuning in force. */
@@ -101,8 +128,17 @@ public final class ControlRoom2Config {
         return new PidController.Tuning(pressureGain, pressureIntegral, 0.0, pressureDeadband, 0.0);
     }
 
+    /** The fusion power controller tuning in force: no derivative, the plasma's own noise would drive it. */
+    public static PidController.Tuning fusionTuning() {
+        return new PidController.Tuning(fusionGain, fusionIntegral, 0.0, fusionDeadband, fusionRateLimit);
+    }
+
     /** The tuning a controller module set to {@code function} runs with. */
     public static PidController.Tuning tuningFor(ModuleFunction function) {
-        return function == ModuleFunction.AUTO_PRESSURE ? pressureTuning() : pidTuning();
+        return switch (function) {
+            case AUTO_PRESSURE -> pressureTuning();
+            case AUTO_FUSION_POWER -> fusionTuning();
+            default -> pidTuning();
+        };
     }
 }

@@ -71,11 +71,24 @@ class AnnunciatorPresetTest {
     }
 
     @Test
+    void tokamakAlarmsLightBeforeItsTrips() {
+        assertEquals("PLASMA_INSTABILITY", window(AnnunciatorPreset.TOKAMAK, 0).metric());
+        assertEquals(60, window(AnnunciatorPreset.TOKAMAK, 0).setting(), "60% instability, well before the disruption at 100");
+        assertEquals(90, window(AnnunciatorPreset.TOKAMAK, 1).setting(), "90% of the density limit");
+        assertEquals(15, window(AnnunciatorPreset.TOKAMAK, 2).setting(), "3e-4 Pa, half a decade better than the 1e-3 Pa limit");
+        assertEquals(20, window(AnnunciatorPreset.TOKAMAK, 3).setting(), "10 K, half the superconducting limit");
+        assertEquals(15, window(AnnunciatorPreset.TOKAMAK, 4).setting(), "Q of 3, where the heating stops paying");
+        assertEquals("TOKAMAK_TRIP", window(AnnunciatorPreset.TOKAMAK, 5).metric());
+    }
+
+    @Test
     void presetsAreFoundByNameAndCycle() {
         assertSame(AnnunciatorPreset.CONTAINMENT, AnnunciatorPreset.byName("CONTAINMENT"));
         assertNull(AnnunciatorPreset.byName("NOT_A_PRESET"));
         assertSame(AnnunciatorPreset.PWR_PRIMARY, AnnunciatorPreset.REACTOR_CORE.next(1));
-        assertSame(AnnunciatorPreset.CONTAINMENT, AnnunciatorPreset.REACTOR_CORE.next(-1));
+        // The tokamak's preset came last, so going back from the first now lands on it.
+        assertSame(AnnunciatorPreset.TOKAMAK, AnnunciatorPreset.REACTOR_CORE.next(-1));
+        assertSame(AnnunciatorPreset.TOKAMAK, AnnunciatorPreset.CONTAINMENT.next(1));
         assertEquals("create_nuclearindustry.annunciator.preset.steam_generator.3", AnnunciatorPreset.STEAM_GENERATOR.labelKey(2));
     }
 }

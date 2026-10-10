@@ -4,6 +4,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.Config;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakReadings;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
@@ -43,14 +45,22 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     public static final int C_USE = 0, C_CAPACITY = 1, C_WATER = 2, C_STEAM = 3, C_FANS = 4, C_FORMED = 5;
     // Area
     public static final int A_GROUND = 0, A_EXPOSURE = 1;
-    // Tokamak
+    // Tokamak. K_FUEL is the controller's old fuel switch, now an alias of running or shut down.
     public static final int K_TEMPERATURE = 0, K_POWER = 1, K_CONFINEMENT = 2, K_INSTABILITY = 3, K_DEUTERIUM = 4,
             K_TRITIUM = 5, K_FORMED = 6, K_FUEL = 7;
+    // Tokamak startup and plasma control (see TokamakReadings): phase and trip cause by ordinal, density as a
+    // fraction of the Greenwald limit, ash share, gain (TokamakScales.GAIN_IGNITED when ignited), field 0-1,
+    // magnet temperature K, chamber pressure log10 Pa, heating MW, fuelling and its ceiling mB/t, liquid helium
+    // tank 0-1, heating switch flag and level 0-1, tripped flag
+    public static final int K_PHASE = 8, K_TRIP = 9, K_DENSITY = 10, K_ASH = 11, K_GAIN = 12, K_FIELD = 13,
+            K_MAGNET_TEMPERATURE = 14, K_VACUUM = 15, K_HEATING = 16, K_FUEL_RATE = 17, K_FUEL_RATE_MAX = 18,
+            K_LIQUID_HELIUM = 19, K_HEATING_ON = 20, K_HEATING_LEVEL = 21, K_TRIPPED = 22;
+    private static final int TOKAMAK_VALUES = 23;
 
     /** Graph ceiling for area exposure, in rad/s. */
     public static final float AREA_GRAPH_MAX = 10.0f;
     /** Graph ceiling for tokamak power, in MW. */
-    public static final float TOKAMAK_GRAPH_POWER = 1000.0f;
+    public static final float TOKAMAK_GRAPH_POWER = TokamakScales.POWER_MAX;
     /**
      * Full scale of gauges, pens and alarm thresholds for the pressurized water loop and containment:
      * pressure up to where the vessel fails (pwr.accidents.vesselFailurePressure), leg temperatures up to
@@ -172,22 +182,40 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     }
 
     private static MonitorReading tokamak(org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity tokamak) {
-        var physics = tokamak.getPhysics();
-        float[] v = new float[8];
-        v[K_TEMPERATURE] = (float) physics.getPlasmaTemperature();
-        v[K_POWER] = (float) physics.getFusionPower();
-        v[K_CONFINEMENT] = (float) physics.getConfinement();
-        v[K_INSTABILITY] = (float) physics.getInstability();
-        v[K_DEUTERIUM] = fraction(tokamak.getDeuteriumTank().getFluidAmount(), tokamak.getDeuteriumTank().getCapacity());
-        v[K_TRITIUM] = fraction(tokamak.getTritiumTank().getFluidAmount(), tokamak.getTritiumTank().getCapacity());
-        v[K_FORMED] = tokamak.isFormed() ? 1 : 0;
+        TokamakReadings k = tokamak.readings();
+        float[] v = new float[TOKAMAK_VALUES];
+        v[K_TEMPERATURE] = (float) k.temperature();
+        v[K_POWER] = (float) k.fusionPower();
+        v[K_CONFINEMENT] = (float) k.confinement();
+        v[K_INSTABILITY] = (float) k.instability();
+        v[K_DEUTERIUM] = fraction(k.deuterium(), tokamak.getDeuteriumTank().getCapacity());
+        v[K_TRITIUM] = fraction(k.tritium(), tokamak.getTritiumTank().getCapacity());
+        v[K_FORMED] = k.formed() ? 1 : 0;
         v[K_FUEL] = tokamak.isFuelEnabled() ? 1 : 0;
-        String status = !tokamak.isFormed() ? STATUS + "unformed"
-                : tokamak.getStatus() == org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity.Status.SUSPENDED
-                ? STATUS + "suspended"
-                : physics.isBurning() ? STATUS + "burning" : STATUS + "cold";
+        v[K_PHASE] = k.phase().ordinal();
+        v[K_TRIP] = k.tripCause().ordinal();
+        v[K_DENSITY] = (float) k.density();
+        v[K_ASH] = (float) k.ashFraction();
+        v[K_GAIN] = TokamakScales.storedGain(k.gain());
+        v[K_FIELD] = (float) k.field();
+        v[K_MAGNET_TEMPERATURE] = (float) k.magnetTemperature();
+        v[K_VACUUM] = (float) k.vacuum();
+        v[K_HEATING] = (float) k.heatingPower();
+        v[K_FUEL_RATE] = (float) k.fuelRate();
+        v[K_FUEL_RATE_MAX] = k.formed() ? (float) tokamak.maxFuelRate() : 0;
+        v[K_LIQUID_HELIUM] = fraction(k.liquidHelium(), tokamak.cryoTanks().liquidHelium().getCapacity());
+        v[K_HEATING_ON] = k.heatingEnabled() ? 1 : 0;
+        v[K_HEATING_LEVEL] = (float) k.heatingLevel();
+        boolean tripped = k.formed() && TokamakScales.tripped(k.phase(), k.tripCause());
+        v[K_TRIPPED] = tripped ? 1 : 0;
+        String status = !k.formed() ? STATUS + "unformed"
+                : k.suspended() ? STATUS + "suspended"
+                : tripped ? STATUS + "tripped"
+                : k.phase() == TokamakPhase.BURN ? STATUS + "burning"
+                : k.phase() == TokamakPhase.OFFLINE ? STATUS + "cold"
+                : k.phase().langKey();
         return new MonitorReading(TargetKind.TOKAMAK, status, v,
-                clamp01(v[K_TEMPERATURE] / (float) org.papiricoh.create_nuclearindustry.fusion.physics.TokamakPhysicsSimulator.MAX_TEMP),
+                clamp01(v[K_TEMPERATURE] / TokamakScales.MAX_TEMPERATURE),
                 clamp01(v[K_POWER] / TOKAMAK_GRAPH_POWER));
     }
 

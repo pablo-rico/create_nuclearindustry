@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.controlroom.annunciator;
 
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
+import org.papiricoh.create_nuclearindustry.controlroom.TokamakScales;
 import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.ContainmentModel;
 
@@ -11,8 +12,8 @@ import java.util.Locale;
  * Ready-made setups for all six windows of an annunciator panel, one per kind of machine the whole
  * panel is linked to. Thresholds come from what the plant does on its own: the pressurizer's
  * setpoint and relief valve, the automatic SCRAM, natural circulation, the core's temperature rise,
- * the flammability of hydrogen and the strength of containment concrete, so the windows light
- * before the machine's own protections act.
+ * the flammability of hydrogen, the strength of containment concrete and a tokamak's own trips
+ * (see {@link TokamakScales}), so the windows light before the machine's own protections act.
  * <p>
  * Metrics are named, not {@link org.papiricoh.create_nuclearindustry.controlroom.AlarmMetric}
  * constants, and the full scales are compile-time constants, so the table has no game classes and
@@ -22,7 +23,8 @@ public enum AnnunciatorPreset {
     REACTOR_CORE,
     PWR_PRIMARY,
     STEAM_GENERATOR,
-    CONTAINMENT;
+    CONTAINMENT,
+    TOKAMAK;
 
     /** Threshold of the containment pressure HI-HI window, as a share of containment concrete's 6 bar rating. */
     static final double CONCRETE_RATING = 6.0;
@@ -86,6 +88,16 @@ public enum AnnunciatorPreset {
                     // A thousandth of a whole core's release in the air: the fuel is failing.
                     new Window("CONTAINMENT_ACTIVITY", activity(1.0e-3), "ACTIVITY HI"),
                     new Window("CONTAINMENT_OPEN", 0, "CONT OPEN"));
+            // Each window lights before the tokamak's own protection acts: the disruption, the
+            // vacuum and magnet trips, the density limit; and Q where the heating stops paying.
+            case TOKAMAK -> List.of(
+                    new Window("PLASMA_INSTABILITY", Math.round(TokamakScales.INSTABILITY_WARNING), "INSTABILITY HI"),
+                    new Window("PLASMA_DENSITY", 90, "DENSITY HI"),
+                    new Window("VACUUM_POOR", TokamakScales.vacuumSetting(TokamakScales.PLASMA_VACUUM_LIMIT - 0.5), "VACUUM POOR"),
+                    new Window("MAGNET_TEMPERATURE", TokamakScales.magnetSetting(TokamakScales.SUPERCONDUCTING_LIMIT / 2.0),
+                            "MAGNET TEMP HI"),
+                    new Window("FUSION_GAIN_LOW", TokamakScales.gainSetting(TokamakScales.NET_GAIN), "Q LOW"),
+                    new Window("TOKAMAK_TRIP", 0, "TOKAMAK TRIP"));
         };
     }
 

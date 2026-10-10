@@ -2,6 +2,7 @@ package org.papiricoh.create_nuclearindustry.controlroom.desk;
 
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
+import org.papiricoh.create_nuclearindustry.controlroom.TokamakScales;
 
 import java.util.Locale;
 import java.util.function.ToDoubleFunction;
@@ -43,7 +44,22 @@ public enum GaugeReading {
     CONTAINMENT_PRESSURE(TargetKind.CONTAINMENT, r -> r.value(N_PRESSURE) / CONTAINMENT_PRESSURE_MAX),
     CONTAINMENT_HYDROGEN(TargetKind.CONTAINMENT, r -> r.value(N_H2) / HYDROGEN_MAX),
     /** Airborne activity on a logarithmic scale, as radiation monitors read it. Saved by name; new readings go last. */
-    CONTAINMENT_ACTIVITY(TargetKind.CONTAINMENT, r -> MonitorReading.activityFraction(r.value(N_ACTIVITY)));
+    CONTAINMENT_ACTIVITY(TargetKind.CONTAINMENT, r -> MonitorReading.activityFraction(r.value(N_ACTIVITY))),
+    // Tokamak startup and plasma control. Saved by name; new readings go last anyway.
+    /** Q up to {@link TokamakScales#GAIN_MAX}; an ignited plasma pins the needle. */
+    FUSION_GAIN(TargetKind.TOKAMAK, r -> r.value(K_GAIN) / TokamakScales.GAIN_MAX),
+    PLASMA_DENSITY(TargetKind.TOKAMAK, r -> r.value(K_DENSITY) / TokamakScales.DENSITY_MAX),
+    HELIUM_ASH(TargetKind.TOKAMAK, r -> r.value(K_ASH) / TokamakScales.ASH_MAX),
+    MAGNETIC_FIELD(TargetKind.TOKAMAK, r -> r.value(K_FIELD)),
+    MAGNET_TEMPERATURE(TargetKind.TOKAMAK, r -> r.value(K_MAGNET_TEMPERATURE) / TokamakScales.MAGNET_TEMPERATURE_MAX),
+    /** Logarithmic, as vacuum gauges are: high vacuum at the bottom, atmosphere at the top. */
+    CHAMBER_PRESSURE(TargetKind.TOKAMAK, r -> (r.value(K_VACUUM) - TokamakScales.VACUUM_MIN)
+            / (TokamakScales.VACUUM_MAX - TokamakScales.VACUUM_MIN)),
+    HEATING_POWER(TargetKind.TOKAMAK, r -> r.value(K_HEATING) / TokamakScales.HEATING_MAX),
+    /** The fuelling setpoint as a share of the most the tokamak takes. */
+    FUEL_RATE(TargetKind.TOKAMAK, r -> r.value(K_FUEL_RATE_MAX) > 0 ? r.value(K_FUEL_RATE) / r.value(K_FUEL_RATE_MAX) : 0),
+    LIQUID_HELIUM(TargetKind.TOKAMAK, r -> r.value(K_LIQUID_HELIUM)),
+    TRITIUM(TargetKind.TOKAMAK, r -> r.value(K_TRITIUM));
 
     private final TargetKind kind;
     private final ToDoubleFunction<MonitorReading> fraction;
@@ -67,7 +83,8 @@ public enum GaugeReading {
 
     /**
      * The pens a chart recorder starts with when linked to a target of {@code kind}: what an operator
-     * watches first. A reactor with a pressurized loop gets its pressure, hot leg and pressurizer level.
+     * watches first. A reactor with a pressurized loop gets its pressure, hot leg and pressurizer level;
+     * a tokamak its fusion power, plasma temperature and density, the three that tell a burn apart.
      */
     public static java.util.List<GaugeReading> defaultPens(TargetKind kind, boolean pressurized) {
         return switch (kind) {
@@ -75,6 +92,7 @@ public enum GaugeReading {
                     : java.util.List.of(REACTOR_TEMPERATURE, REACTOR_POWER);
             case STEAM_GENERATOR -> java.util.List.of(SG_LEVEL, SG_STEAM, SG_PRIMARY_DT);
             case CONTAINMENT -> java.util.List.of(CONTAINMENT_PRESSURE, CONTAINMENT_HYDROGEN, CONTAINMENT_ACTIVITY);
+            case TOKAMAK -> java.util.List.of(FUSION_POWER, PLASMA_TEMPERATURE, PLASMA_DENSITY);
             default -> forKind(kind).stream().limit(2).toList();
         };
     }
