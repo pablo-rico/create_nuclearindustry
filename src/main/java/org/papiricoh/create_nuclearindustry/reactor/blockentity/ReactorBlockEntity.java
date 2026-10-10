@@ -789,6 +789,21 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return isFormed() ? physicsSimulator.getThermalStress() : 0.0;
     }
 
+    /** Fraction of neutron production xenon-135 swallows right now. */
+    public double getXenonPenalty() {
+        return isFormed() ? physicsSimulator.getXenonPenalty() : 0.0;
+    }
+
+    /** Decay heat of the fission products, in MW. */
+    public double getDecayHeatPower() {
+        return isFormed() ? physicsSimulator.getDecayHeatPower() : 0.0;
+    }
+
+    /** Multiplication of the core relative to a bare, clean LEU core, regardless of the rods. */
+    public double getReactivity() {
+        return isFormed() ? physicsSimulator.getReactivity() : 0.0;
+    }
+
     public boolean isThermalExcursionActive() {
         return isFormed() && physicsSimulator.isThermalExcursionActive();
     }
@@ -937,6 +952,14 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tooltip.add(Component.literal(String.format("  Temperature: %.0f C", snapshot.coreTemperature()))
                 .withStyle(getTemperatureColor(snapshot.coreTemperature())));
         tooltip.add(Component.literal(String.format("  Neutrons: %.0f", snapshot.neutronLevel())).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal(String.format("  Reactivity: x%.2f", snapshot.reactivity())).withStyle(ChatFormatting.GRAY));
+        if (snapshot.xenonPenalty() >= 0.005) {
+            tooltip.add(Component.literal(String.format("  Xenon poisoning: -%.0f%%", snapshot.xenonPenalty() * 100.0))
+                    .withStyle(snapshot.xenonPenalty() >= 0.15 ? ChatFormatting.GOLD : ChatFormatting.GRAY));
+        }
+        if (snapshot.decayHeatPower() >= 0.5) {
+            tooltip.add(Component.literal(String.format("  Decay heat: %.0f MW", snapshot.decayHeatPower())).withStyle(ChatFormatting.GRAY));
+        }
         tooltip.add(Component.literal(String.format("  Thermal stress: %.0f%%", snapshot.thermalStress()))
                 .withStyle(getThermalStressColor(snapshot.thermalStress())));
         if (snapshot.thermalExcursionActive()) {
@@ -1192,7 +1215,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 structure.moderatorColumns.size(),
                 structure.reflectorColumns.size(),
                 physicsSimulator.getModeration(),
-                physicsSimulator.getReflection()
+                physicsSimulator.getReflection(),
+                physicsSimulator.getXenonPenalty(),
+                physicsSimulator.getDecayHeatPower(),
+                physicsSimulator.getReactivity()
         );
     }
 
@@ -1244,6 +1270,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.putInt("reflectorColumnCount", snapshot.reflectorColumnCount());
         tag.putDouble("moderation", snapshot.moderation());
         tag.putDouble("reflection", snapshot.reflection());
+        tag.putDouble("xenonPenalty", snapshot.xenonPenalty());
+        tag.putDouble("decayHeatPower", snapshot.decayHeatPower());
+        tag.putDouble("reactivity", snapshot.reactivity());
         return tag;
     }
 
@@ -1290,7 +1319,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 Math.max(0, tag.getInt("moderatorColumnCount")),
                 Math.max(0, tag.getInt("reflectorColumnCount")),
                 Math.max(0.0, Math.min(1.0, tag.getDouble("moderation"))),
-                Math.max(0.0, Math.min(1.0, tag.getDouble("reflection")))
+                Math.max(0.0, Math.min(1.0, tag.getDouble("reflection"))),
+                Math.max(0.0, Math.min(1.0, tag.getDouble("xenonPenalty"))),
+                Math.max(0.0, tag.getDouble("decayHeatPower")),
+                Math.max(0.0, tag.getDouble("reactivity"))
         );
     }
 
@@ -1490,7 +1522,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             int moderatorColumnCount,
             int reflectorColumnCount,
             double moderation,
-            double reflection
+            double reflection,
+            double xenonPenalty,
+            double decayHeatPower,
+            double reactivity
     ) {
         public static ReactorDisplaySnapshot empty() {
             return empty("Incomplete", ReactorPhysicsSimulator.ReactorState.IDLE, "Not formed");
@@ -1542,6 +1577,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                     false,
                     0,
                     0,
+                    0.0,
+                    0.0,
+                    0.0,
                     0.0,
                     0.0
             );

@@ -199,6 +199,9 @@ public final class LangEntries {
         add("create_nuclearindustry.display_source.reactor_coolant", "Reactor Coolant", "Refrigerante del reactor");
         add("create_nuclearindustry.display_source.reactor_steam", "Reactor Steam", "Vapor del reactor");
         add("create_nuclearindustry.display_source.reactor_status", "Reactor Status", "Estado del reactor");
+        add("create_nuclearindustry.display_source.reactor_xenon", "Reactor Xenon Poisoning", "Envenenamiento por xenón del reactor");
+        add("create_nuclearindustry.display_source.reactor_decay_heat", "Reactor Decay Heat", "Calor residual del reactor");
+        add("create_nuclearindustry.display_source.reactor_reactivity", "Reactor Reactivity", "Reactividad del reactor");
         add("itemGroup.create_nuclearindustry.nuclear_tab",
                 "Create: Nuclear industry",
                 "Create: Nuclear industry");
@@ -351,6 +354,7 @@ public final class LangEntries {
         add("gui.create_nuclearindustry.reactor.power", "Power: %s MW  Steam: %s mB/t", "Potencia: %s MW  Vapor: %s mB/t");
         add("gui.create_nuclearindustry.reactor.state", "State: %s", "Estado: %s");
         add("gui.create_nuclearindustry.reactor.stress", "Thermal stress: %s%%", "Estrés térmico: %s%%");
+        add("gui.create_nuclearindustry.reactor.core", "Reactivity x%s  Xe -%s%%  Decay %s MW", "Reactividad x%s  Xe -%s%%  Residual %s MW");
         add("gui.create_nuclearindustry.reactor.excursion", "EXCURSION", "EXCURSIÓN");
         add("gui.create_nuclearindustry.reactor.rods", "Rods: %s/%s inserted (%s%%)", "Barras: %s/%s insertadas (%s%%)");
         add("gui.create_nuclearindustry.reactor.scram_engaged", "SCRAM signal on: Redstone Ports in SCRAM mode emit",
@@ -457,6 +461,9 @@ public final class LangEntries {
         add("create_nuclearindustry.ponder.reactor_moderation.text_4",
                 "A ring lined all round loses a quarter fewer neutrons. Both make more power from the same fuel, so leave room for enough Control Rods.",
                 "Un anillo revestido por completo pierde una cuarta parte menos de neutrones. Ambos sacan más potencia del mismo combustible, así que deja sitio para suficientes Barras de control.");
+        add("jei.create_nuclearindustry.info.reactor_poisons",
+                "A running core makes iodine, which decays into xenon, a neutron poison. At steady power it holds the reactor back a little; after power drops it keeps building for a few minutes before it decays, so a reactor just shut down needs more rods out to restart. Fission products also keep heating the core after a SCRAM, about 7% of the fission heat, fading over a few minutes: keep the coolant flowing. The control panel, goggles and Display Links show reactivity, xenon and decay heat.",
+                "Un núcleo en marcha produce yodo, que se desintegra en xenón, un veneno de neutrones. A potencia constante frena un poco el reactor; cuando la potencia baja sigue acumulándose unos minutos antes de desaparecer, así que un reactor recién parado necesita sacar más barras para volver a arrancar. Los productos de fisión también siguen calentando el núcleo tras un SCRAM, cerca del 7% del calor de fisión, que se apaga en unos minutos: no cortes el refrigerante. El panel de control, las gafas y los Display Links muestran la reactividad, el xenón y el calor residual.");
         add("jei.create_nuclearindustry.info.moderation",
                 "Graphite Moderator and Beryllium Reflector fill whole interior columns of a fission reactor, like Fuel Channels. Graphite slows neutrons so the fuel beside it splits more: a Fuel Channel with two graphite columns sharing a face with it is fully moderated, and a fully moderated core is 35% more reactive. Beryllium lining the columns that touch the shell bounces escaping neutrons back: a complete ring cuts losses by a quarter. Both make more power from the same fuel, so they also need more control rods.",
                 "El Moderador de grafito y el Reflector de berilio llenan columnas interiores enteras de un reactor de fisión, como los Canales de combustible. El grafito frena los neutrones para que el combustible de al lado se fisione más: un Canal de combustible con dos columnas de grafito pegadas a sus caras está totalmente moderado, y un núcleo totalmente moderado es un 35% más reactivo. El berilio que reviste las columnas que tocan la carcasa devuelve los neutrones que escapan: un anillo completo reduce las pérdidas en una cuarta parte. Ambos sacan más potencia del mismo combustible, así que también necesitan más barras de control.");

@@ -19,6 +19,9 @@ public enum ReactorReadout {
             reactor -> Component.literal(Math.round(reactor.getControlRodInsertionRatio() * 100) + "%")),
     COOLANT("reactor_coolant", true, reactor -> Component.literal(reactor.getCoolantAmount() + " mB")),
     STEAM("reactor_steam", true, reactor -> Component.literal(reactor.getSteamAmount() + " mB")),
+    XENON("reactor_xenon", true, reactor -> Component.literal(Math.round(reactor.getXenonPenalty() * 100) + "%")),
+    DECAY_HEAT("reactor_decay_heat", true, reactor -> Component.literal(Math.round(reactor.getDecayHeatPower()) + " MW")),
+    REACTIVITY("reactor_reactivity", true, reactor -> Component.literal(String.format(java.util.Locale.ROOT, "x%.2f", reactor.getReactivity()))),
     STATUS("reactor_status", false, ReactorReadout::status);
 
     private final String id;

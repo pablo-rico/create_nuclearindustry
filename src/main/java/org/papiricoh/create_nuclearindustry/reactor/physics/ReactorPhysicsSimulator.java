@@ -56,6 +56,8 @@ public class ReactorPhysicsSimulator {
     private int meltdownTickCounter;                                // Ticks spent above meltdown temp
     private double thermalStress;                                   // 0-100, logarithmic heat stress
     private boolean thermalExcursionActive;                         // True while stress is forcing a power excursion
+    private final XenonModel poisons = new XenonModel();            // iodine-135 / xenon-135
+    private final DecayHeatModel decayHeat = new DecayHeatModel();  // heat of the fission products
 
     // Derived values for display
     private double powerOutput;                                     // MW equivalent
@@ -94,9 +96,10 @@ public class ReactorPhysicsSimulator {
      */
     public boolean tick() {
         if (!hasFuel()) {
-            // No fuel, shut down
+            // No fuel, shut down; what the old fuel left behind still decays and heats
             neutronLevel = Math.max(0, neutronLevel - 8.0);
-            coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 2.5);
+            coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 2.5 + decayHeat.heat());
+            updateFissionProducts(0.0);
             thermalExcursionActive = false;
             thermalStress = calculateThermalStress();
             powerOutput = 0.0;
@@ -114,9 +117,11 @@ public class ReactorPhysicsSimulator {
         neutronLevel += (neutronProduction - neutronConsumption);
         neutronLevel = Math.max(MIN_NEUTRON_LEVEL, Math.min(MAX_NEUTRON_LEVEL, neutronLevel));
 
-        // Calculate heat changes (MOX runs hotter)
-        double heatGeneration = neutronLevel * HEAT_GENERATION_RATE * getFuelHeatFactor();
+        // Calculate heat changes (MOX runs hotter); fission products keep heating after fission stops
+        double fissionHeat = neutronLevel * HEAT_GENERATION_RATE * getFuelHeatFactor();
+        double heatGeneration = fissionHeat + decayHeat.heat();
         double heatDissipation = calculateHeatDissipation();
+        updateFissionProducts(fissionHeat);
 
         // Update temperature
         coreTemperature += (heatGeneration - heatDissipation);
@@ -161,7 +166,7 @@ public class ReactorPhysicsSimulator {
         // If no control rods are present, there's nothing to absorb neutrons - MELTDOWN RISK
         if (controlRodCount == 0) {
             // With no physical control rods, neutron absorption is 0 regardless of position
-            return uraniumRodCount * BASE_FISSION_RATE * getModerationFactor();
+            return uraniumRodCount * BASE_FISSION_RATE * getModerationFactor() * (1.0 - getXenonPenalty());
         }
 
         // The ratio of control rods to uranium rods determines absorption capacity
@@ -172,7 +177,52 @@ public class ReactorPhysicsSimulator {
         double absorptionFactor = 1.0 - actualAbsorption;
 
         // Base fission multiplied by number of uranium rods and absorption factor
-        return uraniumRodCount * BASE_FISSION_RATE * absorptionFactor * getFuelReactivity() * getModerationFactor();
+        return uraniumRodCount * BASE_FISSION_RATE * absorptionFactor * getFuelReactivity() * getModerationFactor()
+                * (1.0 - getXenonPenalty());
+    }
+
+    /** Advances iodine, xenon and decay heat by one tick, given this tick's fission heat. */
+    private void updateFissionProducts(double fissionHeat) {
+        poisons.tick(neutronLevel / MAX_NEUTRON_LEVEL, Config.iodineHalfLifeTicks, Config.xenonHalfLifeTicks);
+        decayHeat.tick(fissionHeat, Config.decayHeatFraction, Config.decayHeatTimeTicks);
+    }
+
+    /** Fraction of neutron production xenon-135 currently swallows. */
+    public double getXenonPenalty() {
+        return Config.xenonPoisoning ? poisons.penalty(Config.xenonWorth) : 0.0;
+    }
+
+    /** Xenon-135 in the core, normalised to the flux (about 0.25 at full power, more after a shutdown). */
+    public double getXenon() {
+        return poisons.xenon();
+    }
+
+    public double getIodine() {
+        return poisons.iodine();
+    }
+
+    /** Decay heat, in degrees per tick. */
+    public double getDecayHeat() {
+        return decayHeat.heat();
+    }
+
+    /** Decay heat in MW, on the same scale as {@link #getPowerOutput()}. */
+    public double getDecayHeatPower() {
+        return decayHeat.heat() / HEAT_GENERATION_RATE * 0.5;
+    }
+
+    /**
+     * The core's multiplication relative to a bare, clean core of low-enriched fuel, regardless of
+     * the rods: fuel enrichment, graphite and beryllium raise it, xenon lowers it.
+     */
+    public double getReactivity() {
+        return getFuelReactivity() * getModerationFactor() * (1.0 - getXenonPenalty()) / getLeakageFactor();
+    }
+
+    /** Sets the fission products directly, for tests and commands. */
+    public void setFissionProducts(double iodine, double xenon, double decayHeatPerTick) {
+        poisons.set(iodine, xenon);
+        decayHeat.set(decayHeatPerTick);
     }
 
     /** Multiplier on neutron production from graphite beside the fuel columns. */
@@ -363,7 +413,8 @@ public class ReactorPhysicsSimulator {
     public void scramTick() {
         controlRodInsertion = 1.0f;
         neutronLevel = Math.max(0.0, neutronLevel - 60.0);
-        coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 4.0);
+        coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 4.0 + decayHeat.heat());
+        updateFissionProducts(0.0);
         thermalExcursionActive = false;
         thermalStress = calculateThermalStress();
         powerOutput = 0.0;
@@ -430,6 +481,8 @@ public class ReactorPhysicsSimulator {
         meltdownTickCounter = previous.meltdownTickCounter;
         thermalStress = previous.thermalStress;
         thermalExcursionActive = previous.thermalExcursionActive;
+        poisons.set(previous.poisons.iodine(), previous.poisons.xenon());
+        decayHeat.set(previous.decayHeat.heat());
     }
 
     /** Every assembly burnt out since the last call. */
@@ -600,6 +653,9 @@ public class ReactorPhysicsSimulator {
         tag.putInt("controlRodCount", controlRodCount);
         tag.putDouble("moderation", moderation);
         tag.putDouble("reflection", reflection);
+        tag.putDouble("iodine", poisons.iodine());
+        tag.putDouble("xenon", poisons.xenon());
+        tag.putDouble("decayHeat", decayHeat.heat());
         tag.putInt("meltdownTickCounter", meltdownTickCounter);
         tag.putDouble("thermalStress", thermalStress);
         tag.putBoolean("thermalExcursionActive", thermalExcursionActive);
@@ -616,6 +672,8 @@ public class ReactorPhysicsSimulator {
         this.controlRodCount = Math.max(0, tag.getInt("controlRodCount"));
         this.moderation = clamp(tag.getDouble("moderation"), 0.0, 1.0);
         this.reflection = clamp(tag.getDouble("reflection"), 0.0, 1.0);
+        poisons.set(tag.getDouble("iodine"), tag.getDouble("xenon"));
+        decayHeat.set(tag.getDouble("decayHeat"));
         readFuel(tag);
         this.meltdownTickCounter = Math.max(0, Math.min(100, tag.getInt("meltdownTickCounter")));
         this.thermalStress = calculateThermalStress();

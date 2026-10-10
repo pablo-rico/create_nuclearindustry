@@ -48,7 +48,10 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     private static final int DATA_AUTO_THRESHOLD = 24;
     private static final int DATA_AUTO_TRIPPED = 25;
     private static final int DATA_SCRAM_REQUESTED = 26;
-    private static final int DATA_COUNT = 27;
+    private static final int DATA_XENON_PERMILLE = 27;
+    private static final int DATA_DECAY_HEAT_X10 = 28;
+    private static final int DATA_REACTIVITY_X100 = 29;
+    private static final int DATA_COUNT = 30;
 
     /** {@link #clickMenuButton} ids. SCRAM engages the manual SCRAM, or resets once one is on. */
     public static final int BUTTON_TOGGLE_SCRAM = 0;
@@ -109,15 +112,15 @@ public class ReactorControlMenu extends AbstractContainerMenu {
                 ? reactor.getFuelInventory()
                 : new ItemStackHandler(ReactorBlockEntity.FUEL_SLOT_COUNT);
         for (int slot = 0; slot < ReactorBlockEntity.FUEL_INPUT_SLOTS; slot++) {
-            addSlot(new FuelSlot(fuelInventory, reactor, slot, 20 + slot * 18, 180, true));
+            addSlot(new FuelSlot(fuelInventory, reactor, slot, 20 + slot * 18, 192, true));
         }
         for (int slot = 0; slot < ReactorBlockEntity.FUEL_OUTPUT_SLOTS; slot++) {
-            addSlot(new FuelSlot(fuelInventory, reactor, ReactorBlockEntity.FUEL_INPUT_SLOTS + slot, 164 + slot * 18, 180, false));
+            addSlot(new FuelSlot(fuelInventory, reactor, ReactorBlockEntity.FUEL_INPUT_SLOTS + slot, 164 + slot * 18, 192, false));
         }
     }
 
     private void addPlayerInventorySlots(Inventory playerInventory) {
-        int startY = 222;
+        int startY = 234;
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 addSlot(new Slot(playerInventory, col + row * 9 + 9, 48 + col * 18, startY + row * 18));
@@ -221,6 +224,18 @@ public class ReactorControlMenu extends AbstractContainerMenu {
 
     public boolean isManualScram() {
         return reactorData.get(DATA_MANUAL_SCRAM) != 0;
+    }
+
+    public double getXenonPenalty() {
+        return reactorData.get(DATA_XENON_PERMILLE) / 1000.0;
+    }
+
+    public double getDecayHeatPower() {
+        return reactorData.get(DATA_DECAY_HEAT_X10) / 10.0;
+    }
+
+    public double getReactivity() {
+        return reactorData.get(DATA_REACTIVITY_X100) / 100.0;
     }
 
     @Override
@@ -483,6 +498,9 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         data[DATA_AUTO_THRESHOLD] = reactor.getAutoScram().getThreshold();
         data[DATA_AUTO_TRIPPED] = reactor.getAutoScram().isTripped() ? 1 : 0;
         data[DATA_SCRAM_REQUESTED] = reactor.isScramRequested() ? 1 : 0;
+        data[DATA_XENON_PERMILLE] = scaled(snapshot.xenonPenalty(), 1000.0);
+        data[DATA_DECAY_HEAT_X10] = scaled(snapshot.decayHeatPower(), 10.0);
+        data[DATA_REACTIVITY_X100] = scaled(snapshot.reactivity(), 100.0);
         return data;
     }
 

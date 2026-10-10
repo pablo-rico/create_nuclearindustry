@@ -18,7 +18,7 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "textures/gui/reactor_control.png");
     private static final int GUI_WIDTH = 256;
-    private static final int GUI_HEIGHT = 304;
+    private static final int GUI_HEIGHT = 316;
 
     private static final int TITLE_Y = 10;
     private static final int TEMP_Y = 34;
@@ -27,7 +27,10 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     private static final int POWER_Y = 112;
     private static final int STATE_Y = 124;
     private static final int STRESS_Y = 136;
-    private static final int ROD_Y = 148;
+    private static final int CORE_Y = 148;
+    private static final int ROD_Y = 160;
+    /** Top of the fuel slots and the buttons beside them. */
+    private static final int SLOT_Y = 192;
     private static final int GAUGE_WIDTH = 180;
     private static final int GAUGE_HEIGHT = 12;
 
@@ -50,7 +53,7 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
                         minecraft.gameMode.handleInventoryButtonClick(menu.containerId, ReactorControlMenu.BUTTON_TOGGLE_SCRAM);
                     }
                 })
-                .bounds(leftPos + 207, topPos + 177, 41, 19)
+                .bounds(leftPos + 207, topPos + SLOT_Y - 3, 41, 19)
                 .tooltip(net.minecraft.client.gui.components.Tooltip.create(
                         Component.translatable("gui.create_nuclearindustry.reactor.scram.tooltip")))
                 .build());
@@ -58,16 +61,16 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         // Automatic SCRAM threshold between the fuel slots: [-] [threshold / OFF] [+]. Shift steps by 500.
         thresholdDown = addRenderableWidget(Button.builder(Component.literal("-"),
                         button -> click(hasShiftDown() ? ReactorControlMenu.BUTTON_THRESHOLD_DOWN_BIG : ReactorControlMenu.BUTTON_THRESHOLD_DOWN))
-                .bounds(leftPos + 95, topPos + 177, 13, 19)
+                .bounds(leftPos + 95, topPos + SLOT_Y - 3, 13, 19)
                 .tooltip(Tooltip.create(Component.translatable("gui.create_nuclearindustry.reactor.auto_scram.step.tooltip")))
                 .build());
         autoButton = addRenderableWidget(Button.builder(autoLabel(), button -> click(ReactorControlMenu.BUTTON_TOGGLE_AUTO))
-                .bounds(leftPos + 108, topPos + 177, 41, 19)
+                .bounds(leftPos + 108, topPos + SLOT_Y - 3, 41, 19)
                 .tooltip(Tooltip.create(Component.translatable("gui.create_nuclearindustry.reactor.auto_scram.tooltip")))
                 .build());
         thresholdUp = addRenderableWidget(Button.builder(Component.literal("+"),
                         button -> click(hasShiftDown() ? ReactorControlMenu.BUTTON_THRESHOLD_UP_BIG : ReactorControlMenu.BUTTON_THRESHOLD_UP))
-                .bounds(leftPos + 149, topPos + 177, 13, 19)
+                .bounds(leftPos + 149, topPos + SLOT_Y - 3, 13, 19)
                 .tooltip(Tooltip.create(Component.translatable("gui.create_nuclearindustry.reactor.auto_scram.step.tooltip")))
                 .build());
     }
@@ -110,9 +113,9 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         graphics.drawCenteredString(font, Component.translatable("gui.create_nuclearindustry.reactor.title"),
                 GUI_WIDTH / 2, TITLE_Y, 0xFFE8C26A);
-        graphics.drawString(font, Component.translatable("gui.create_nuclearindustry.reactor.fuel_in"), 20, 170, 0xFFCCCCCC, false);
-        graphics.drawString(font, Component.translatable("gui.create_nuclearindustry.reactor.spent"), 164, 170, 0xFFCCCCCC, false);
-        graphics.drawCenteredString(font, Component.translatable("gui.create_nuclearindustry.reactor.auto_scram"), 128, 168, 0xFFCCCCCC);
+        graphics.drawString(font, Component.translatable("gui.create_nuclearindustry.reactor.fuel_in"), 20, SLOT_Y - 10, 0xFFCCCCCC, false);
+        graphics.drawString(font, Component.translatable("gui.create_nuclearindustry.reactor.spent"), 164, SLOT_Y - 10, 0xFFCCCCCC, false);
+        graphics.drawCenteredString(font, Component.translatable("gui.create_nuclearindustry.reactor.auto_scram"), 128, SLOT_Y - 12, 0xFFCCCCCC);
 
         if (menu.getReactorPos() == null || !menu.isReactorFormed()) {
             String key = menu.getReactorPos() == null
@@ -149,6 +152,11 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
             stress = stress.copy().append(" ").append(Component.translatable("gui.create_nuclearindustry.reactor.excursion"));
         }
         text(graphics, stress, STRESS_Y, stressColor(menu.getThermalStress()));
+
+        double xenon = menu.getXenonPenalty();
+        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.core",
+                String.format("%.2f", menu.getReactivity()), Math.round(xenon * 100), Math.round(menu.getDecayHeatPower())),
+                CORE_Y, xenon >= 0.15 ? 0xFFFFAA00 : 0xFFBBBBFF);
 
         text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.rods",
                 menu.getInsertedControlRodSegments(), menu.getExpectedControlRodSegments(),

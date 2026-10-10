@@ -57,31 +57,31 @@ def _trough(t, x, y, w, h):
 
 @gui("reactor_control")
 def reactor_control():
-    w, h = 256, 304
+    w, h = 256, 316
     t = _plate(w, h, 401)
     # header with hazard trim
     _recess(t, 8, 6, w - 9, 20)
     hazard(t, 9, 7, 30, 19, WARN[4], DARK[0], period=6, seed=401)
     hazard(t, w - 31, 7, w - 10, 19, WARN[4], DARK[0], period=6, seed=402)
     # readout window
-    _recess(t, 12, 26, w - 13, 168)
+    _recess(t, 12, 26, w - 13, 180)
     for gy in (46, 70, 94):
         _trough(t, 20, gy, 180, 12)
     # fuel in / spent wells
     for i in range(4):
-        _slot(t, 20 + i * 18, 180)
+        _slot(t, 20 + i * 18, 192)
     for i in range(2):
-        _slot(t, 164 + i * 18, 180)
+        _slot(t, 164 + i * 18, 192)
     # SCRAM button bay
-    t.rect(205, 175, 249, 197, DANGER[1])
-    outline(t, 205, 175, 249, 197, DARK)
+    t.rect(205, 187, 249, 209, DANGER[1])
+    outline(t, 205, 187, 249, 209, DARK)
     # player inventory
-    _recess(t, 40, 214, 217, 299)
+    _recess(t, 40, 226, 217, 311)
     for row in range(3):
         for col in range(9):
-            _slot(t, 48 + col * 18, 222 + row * 18)
+            _slot(t, 48 + col * 18, 234 + row * 18)
     for col in range(9):
-        _slot(t, 48 + col * 18, 280)
+        _slot(t, 48 + col * 18, 292)
     return t
 
 

@@ -38,6 +38,27 @@ public class Config
             .comment("Fraction of neutron leakage a core whose whole inner ring is Beryllium Reflector bounces back.",
                     "0.25 cuts losses by a quarter. Zero makes reflectors inert.")
             .defineInRange("fission.berylliumReflectorBonus", 0.25, 0.0, 0.9);
+    private static final ModConfigSpec.BooleanValue XENON_POISONING = BUILDER
+            .comment("Whether fission builds up xenon-135, which holds the reactor back. It peaks a few minutes after",
+                    "power drops (the iodine pit), so a reactor just shut down needs more rods out to restart.")
+            .define("fission.xenonPoisoning", true);
+    private static final ModConfigSpec.DoubleValue XENON_WORTH = BUILDER
+            .comment("Most neutron production xenon can swallow, as a fraction. A flat-out core settles near half of it;",
+                    "the peak after a shutdown reaches about two thirds.")
+            .defineInRange("fission.xenonWorth", 0.30, 0.0, 0.95);
+    private static final ModConfigSpec.IntValue IODINE_HALF_LIFE = BUILDER
+            .comment("Ticks for iodine-135 to halve into xenon. 3600 is three minutes.")
+            .defineInRange("fission.iodineHalfLifeTicks", 3600, 20, 1_000_000);
+    private static final ModConfigSpec.IntValue XENON_HALF_LIFE = BUILDER
+            .comment("Ticks for xenon-135 to halve once nothing burns it. 5400 is four and a half minutes.")
+            .defineInRange("fission.xenonHalfLifeTicks", 5400, 20, 1_000_000);
+    private static final ModConfigSpec.DoubleValue DECAY_HEAT_FRACTION = BUILDER
+            .comment("Decay heat of a core that has run for a while, as a fraction of its fission heat. It keeps heating",
+                    "the core after a SCRAM. Zero makes a reactor cool as soon as its chain reaction stops.")
+            .defineInRange("fission.decayHeatFraction", 0.07, 0.0, 1.0);
+    private static final ModConfigSpec.IntValue DECAY_HEAT_TIME = BUILDER
+            .comment("Ticks for decay heat to fall to about a third once fission stops (it also takes this long to build up).")
+            .defineInRange("fission.decayHeatTimeTicks", 2400, 1, 1_000_000);
     private static final ModConfigSpec.DoubleValue DT_BURN_RATE = BUILDER
             .comment("mB of deuterium (and of tritium) burnt per plasma cell per tick at full temperature.",
                     "A tokamak of major radius R has about 56*R plasma cells. Fusion power is 1000 MW per mB/t burnt.")
@@ -143,6 +164,12 @@ public class Config
     public static double enrichmentReactivity = 0.25;
     public static double graphiteModeratorBonus = 0.35;
     public static double berylliumReflectorBonus = 0.25;
+    public static boolean xenonPoisoning = true;
+    public static double xenonWorth = 0.30;
+    public static int iodineHalfLifeTicks = 3600;
+    public static int xenonHalfLifeTicks = 5400;
+    public static double decayHeatFraction = 0.07;
+    public static int decayHeatTimeTicks = 2400;
     public static double deuteriumTritiumBurnRate = 0.0011;
     public static int fusionMaxMajorRadius = 16;
     public static int fusionCoilsPerSector = 4;
@@ -197,6 +224,12 @@ public class Config
         enrichmentReactivity = ENRICHMENT_REACTIVITY.get();
         graphiteModeratorBonus = GRAPHITE_MODERATOR_BONUS.get();
         berylliumReflectorBonus = BERYLLIUM_REFLECTOR_BONUS.get();
+        xenonPoisoning = XENON_POISONING.get();
+        xenonWorth = XENON_WORTH.get();
+        iodineHalfLifeTicks = IODINE_HALF_LIFE.get();
+        xenonHalfLifeTicks = XENON_HALF_LIFE.get();
+        decayHeatFraction = DECAY_HEAT_FRACTION.get();
+        decayHeatTimeTicks = DECAY_HEAT_TIME.get();
         deuteriumTritiumBurnRate = DT_BURN_RATE.get();
         fusionMaxMajorRadius = MAX_MAJOR_RADIUS.get();
         fusionCoilsPerSector = COILS_PER_SECTOR.get();

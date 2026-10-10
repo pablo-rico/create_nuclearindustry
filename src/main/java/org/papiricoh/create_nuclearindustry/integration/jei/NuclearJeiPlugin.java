@@ -103,6 +103,8 @@ public class NuclearJeiPlugin implements IModPlugin {
                 Component.translatable("jei.create_nuclearindustry.info.reactor_fuel"));
         registration.addIngredientInfo(AllNuclearItems.URANIUM_ROD.get(),
                 Component.translatable("jei.create_nuclearindustry.info.reactor_fuel"));
+        registration.addIngredientInfo(AllNuclearItems.REACTOR_CONTROLLER.get(),
+                Component.translatable("jei.create_nuclearindustry.info.reactor_poisons"));
         registration.addIngredientInfo(AllNuclearItems.FUSION_CONTROLLER.get(),
                 Component.translatable("jei.create_nuclearindustry.info.tokamak"));
         registration.addIngredientInfo(AllNuclearItems.FUSION_CENTRAL_SOLENOID.get(),

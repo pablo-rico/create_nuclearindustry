@@ -16,6 +16,12 @@ fuelUnitsPerAssembly = 100.0
 enrichmentReactivity = 0.25
 graphiteModeratorBonus = 0.35
 berylliumReflectorBonus = 0.25
+xenonPoisoning = true
+xenonWorth = 0.3
+iodineHalfLifeTicks = 3600
+xenonHalfLifeTicks = 5400
+decayHeatFraction = 0.07
+decayHeatTimeTicks = 2400
 
 [fusion]
 deuteriumTritiumBurnRate = 0.0011
@@ -101,6 +107,21 @@ SU por RPM. El radio va de 4 a 16 y la altura de `2*Rb + 4` a `5*Rb` (máximo 64
   un anillo interior (las columnas que tocan la carcasa) revestido por completo
   de Reflector de berilio. Con 0,25 se pierde una cuarta parte menos. Cero hace
   el reflector inerte.
+- `xenonPoisoning`: si la fision genera xenon-135, que frena el reactor. A
+  potencia constante se queda en un nivel moderado; tras bajar la potencia o un
+  SCRAM sigue subiendo unos minutos (el "pozo de yodo") y luego desaparece, asi
+  que un reactor recien parado necesita sacar mas barras para volver a arrancar.
+- `xenonWorth`: fraccion maxima de la produccion de neutrones que puede tragarse
+  el xenon. Un nucleo a plena potencia se queda cerca de la mitad; el pico tras
+  una parada llega a unos dos tercios.
+- `iodineHalfLifeTicks` / `xenonHalfLifeTicks`: ticks que tardan el yodo-135 y el
+  xenon-135 en reducirse a la mitad (3 y 4,5 minutos por defecto).
+- `decayHeatFraction`: calor residual de un nucleo que lleva un rato
+  funcionando, como fraccion de su calor de fision. Sigue calentando el nucleo
+  despues de un SCRAM, asi que el refrigerante no se puede cortar de golpe. Cero
+  hace que el reactor se enfrie en cuanto se para la reaccion.
+- `decayHeatTimeTicks`: ticks para que el calor residual baje a un tercio una
+  vez parada la fision (tambien tarda eso en acumularse).
 
 Las barras de control solo se mueven físicamente, con pistones de Create. El
 SCRAM (botón del panel o SCRAM automático, activado por defecto a 2800 °C) no

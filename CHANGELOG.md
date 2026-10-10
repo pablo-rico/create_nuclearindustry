@@ -59,6 +59,15 @@ below for what changes in existing worlds.
   fully moderated core is 35% more reactive. Beryllium lining the columns
   that touch the shell bounces neutrons back: a full ring cuts losses by a
   quarter. Both are configurable and have a Ponder scene.
+- Xenon poisoning and decay heat. Fission makes iodine-135, which decays into
+  xenon-135, a neutron poison: a running core settles at a modest penalty,
+  and after power drops xenon keeps rising for a few minutes (the iodine
+  pit) before it decays, so a reactor just shut down needs more rods out to
+  restart. Fission products also keep heating the core after a SCRAM: about
+  7% of the fission heat, fading over a few minutes, so the coolant must
+  keep flowing. Both are configurable.
+- New readouts for reactivity, xenon and decay heat in the control panel,
+  goggles and three new Display Link sources.
 
 ### Fusion
 - The flat fusion ring is replaced by a tokamak: a toroidal multiblock of
