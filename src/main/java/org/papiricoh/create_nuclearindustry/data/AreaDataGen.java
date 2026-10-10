@@ -21,7 +21,8 @@ abstract class AreaDataGen {
             WasteDataGen.INSTANCE,
             ControlRoom2DataGen.INSTANCE,
             CivilDefenseDataGen.INSTANCE,
-            PlantPonderDataGen.INSTANCE);
+            PlantPonderDataGen.INSTANCE,
+            PlantJeiDataGen.INSTANCE);
 
     void lang() {}
 

@@ -11,14 +11,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.common.conditions.ItemExistsCondition;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
-import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.data.recipe.ContainmentCraftingRecipes;
 import org.papiricoh.create_nuclearindustry.data.recipe.PwrCraftingRecipes;
 import org.papiricoh.create_nuclearindustry.data.recipe.PwrMixingRecipes;
@@ -26,6 +24,7 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockTags;
 import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationTransmission;
 import org.papiricoh.create_nuclearindustry.radiation.Radioactivity;
+import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrTags;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.CoriumBlock;
@@ -299,9 +298,12 @@ final class PwrDataGen extends AreaDataGen {
         rating.add(Tags.Blocks.GLASS_BLOCKS, new ContainmentRating(1.05f), false);
         rating.add(Blocks.OBSIDIAN.builtInRegistryHolder(), new ContainmentRating(6.0f), false);
         rating.add(Blocks.IRON_BLOCK.builtInRegistryHolder(), new ContainmentRating(4.0f), false);
-        // Blast doors belong to civil defense; a closed one is the strongest wall there is.
-        rating.add(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "blast_door"), new ContainmentRating(10.0f), false,
-                new ItemExistsCondition(Create_NuclearIndustry.MODID, "blast_door"));
+        // A shut blast door and its ring are the strongest wall there is; an open leaf has no
+        // collision, so the room is simply open.
+        rating.add(CivilDefenseRegistry.STEEL_BLAST_DOOR.get().builtInRegistryHolder(), new ContainmentRating(10.0f), false);
+        rating.add(CivilDefenseRegistry.LEAD_BLAST_DOOR.get().builtInRegistryHolder(), new ContainmentRating(10.0f), false);
+        rating.add(CivilDefenseRegistry.BLAST_DOOR_FRAME.get().builtInRegistryHolder(), new ContainmentRating(10.0f), false);
+        rating.add(CivilDefenseRegistry.BLAST_DOOR_CONTROLLER.get().builtInRegistryHolder(), new ContainmentRating(10.0f), false);
     }
 
     @Override
