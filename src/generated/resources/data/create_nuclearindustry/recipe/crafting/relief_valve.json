@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "create:fluid_valve"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "item": "minecraft:redstone"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:relief_valve"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "create_nuclearindustry:block/containment_monitor",
+    "side": "create_nuclearindustry:block/steel_liner",
+    "top": "create_nuclearindustry:block/steel_liner"
+  }
+}

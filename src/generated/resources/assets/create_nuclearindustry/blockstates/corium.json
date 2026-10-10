@@ -1,0 +1,100 @@
+{
+  "variants": {
+    "heat=0,step=0": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=0,step=1": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=0,step=2": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=0,step=3": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=1,step=0": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=1,step=1": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=1,step=2": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=1,step=3": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=2,step=0": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=2,step=1": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=2,step=2": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=2,step=3": {
+      "model": "create_nuclearindustry:block/corium_cooling"
+    },
+    "heat=3,step=0": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=3,step=1": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=3,step=2": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=3,step=3": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=4,step=0": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=4,step=1": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=4,step=2": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=4,step=3": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=5,step=0": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=5,step=1": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=5,step=2": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=5,step=3": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=6,step=0": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=6,step=1": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=6,step=2": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=6,step=3": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=7,step=0": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=7,step=1": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=7,step=2": {
+      "model": "create_nuclearindustry:block/corium"
+    },
+    "heat=7,step=3": {
+      "model": "create_nuclearindustry:block/corium"
+    }
+  }
+}

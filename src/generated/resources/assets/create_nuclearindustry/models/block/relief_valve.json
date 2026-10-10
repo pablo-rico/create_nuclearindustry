@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "create_nuclearindustry:block/pressurizer_top",
+    "side": "create_nuclearindustry:block/relief_valve_side",
+    "top": "create_nuclearindustry:block/relief_valve_top"
+  }
+}

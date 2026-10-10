@@ -6,6 +6,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorRedstonePortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorTemperatureSensorBlockEntity;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PlantReadings;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -22,6 +23,17 @@ public enum ReactorReadout {
     XENON("reactor_xenon", true, reactor -> Component.literal(Math.round(reactor.getXenonPenalty() * 100) + "%")),
     DECAY_HEAT("reactor_decay_heat", true, reactor -> Component.literal(Math.round(reactor.getDecayHeatPower()) + " MW")),
     REACTIVITY("reactor_reactivity", true, reactor -> Component.literal(String.format(java.util.Locale.ROOT, "x%.2f", reactor.getReactivity()))),
+    // Pressurized water loop; a dash for a reactor that boils its water directly
+    PRESSURE("reactor_pressure", true, reactor -> plant(reactor, p -> Math.round(p.pressure()) + " bar")),
+    HOT_LEG("reactor_hot_leg", true, reactor -> plant(reactor, p -> Math.round(p.hotLeg()) + "°C")),
+    COLD_LEG("reactor_cold_leg", true, reactor -> plant(reactor, p -> Math.round(p.coldLeg()) + "°C")),
+    SUBCOOLING("reactor_subcooling", true, reactor -> plant(reactor, p -> Math.round(p.subcooling()) + "°C")),
+    PRESSURIZER_LEVEL("reactor_pressurizer_level", true, reactor -> plant(reactor, p -> Math.round(p.pressurizerLevel() * 100) + "%")),
+    // Containment around the reactor; a dash without one
+    CONTAINMENT_PRESSURE("reactor_containment_pressure", true, reactor -> containment(reactor,
+            p -> String.format(java.util.Locale.ROOT, "%.2f bar", p.containmentPressure()))),
+    HYDROGEN("reactor_hydrogen", true, reactor -> containment(reactor,
+            p -> String.format(java.util.Locale.ROOT, "%.1f%%", p.hydrogen() * 100))),
     STATUS("reactor_status", false, ReactorReadout::status);
 
     private final String id;
@@ -65,6 +77,16 @@ public enum ReactorReadout {
             return org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget.reactorOf(source, device.getTarget());
         }
         return Optional.empty();
+    }
+
+    private static MutableComponent plant(ReactorBlockEntity reactor, Function<PlantReadings, String> format) {
+        PlantReadings plant = reactor.plantReadings();
+        return Component.literal(plant.pwr() ? format.apply(plant) : "-");
+    }
+
+    private static MutableComponent containment(ReactorBlockEntity reactor, Function<PlantReadings, String> format) {
+        PlantReadings plant = reactor.plantReadings();
+        return Component.literal(plant.containmentPressure() > 0 ? format.apply(plant) : "-");
     }
 
     private static long percent(double amount, double capacity) {

@@ -280,7 +280,160 @@ Los bloques que siguen esa regla estan en la etiqueta
 
 ## Reactor de agua a presión y accidentes
 
-<!-- opciones pwr.*: las documenta su paquete de trabajo -->
+Un reactor de fisión con **refrigerante primario** (agua con boro: agua y boro
+en la mezcladora) y un **presionador** sobre la tapa funciona como un reactor de
+agua a presión en lugar de hervir el agua. Sin presionador sigue hirviendo agua
+como antes, y sus puertos rechazan el refrigerante primario.
+
+- **Presionador**: de 2 a 4 bloques de Presionador o Puerto calefactor apilados
+  sobre la tapa (no sobre el controlador ni sobre un canal de barras), con una
+  Válvula de alivio encima. Su burbuja de vapor fija la presión del circuito.
+  Los calentadores la suben y el rociado desde la rama fría la baja. En modo
+  automático los calentadores mantienen `pressureSetpoint`; la llave inglesa
+  los pasa a manual, y entonces funcionan con señal de redstone.
+- **Válvula de alivio**: abre a `reliefOpenPressure` y cierra a
+  `reliefClosePressure`, dejando salir vapor (y refrigerante). Cada vez que
+  debería cerrar puede quedarse atascada abierta (`reliefStickChance`). Una
+  señal de redstone cierra su válvula de bloqueo, que la libera y también le
+  impide aliviar. Los comparadores leen 15 mientras está abierta.
+- **Circuito primario**: el puerto de entrada es la rama fría (acepta
+  refrigerante primario) y el de salida la rama caliente (ofrece refrigerante
+  primario caliente). El caudal es el que mueven las bombas de Create; cada mB
+  que pasa del frío al caliente se lleva `enthalpyPerMb` de calor, menos que el
+  agua que hierve directamente (0,225), así que hace falta más caudal. Con las
+  bombas paradas solo queda `naturalCirculation`: el calor se queda en la
+  vasija, el agua hierve, sube la presión y abre la válvula de alivio. Una
+  tubería rota vacía el circuito hasta descubrir el núcleo, que se enfría mucho
+  peor.
+- **Realimentación**: el vapor en el núcleo, un núcleo descubierto
+  (`voidWorth`) y el agua más caliente de lo normal (`temperatureCoefficient`)
+  frenan la reacción en cadena.
+- **Generador de vapor**: columna de 3x3 y de 4 a 8 bloques de alto, de
+  Carcasa del generador de vapor con Haces de tubos dentro; el controlador va
+  en una pared lateral mirando hacia fuera, delante de los tubos. Necesita un
+  Puerto del generador de vapor de cada tipo (la llave inglesa los cambia):
+  entrada y salida del primario, entrada de agua de alimentación y salida de
+  vapor. Cada haz de tubos mueve `steamGenerator.uaPerTube` de calor por °C
+  entre el primario y el punto de ebullición del secundario. El vapor que no se
+  saca sube la presión del secundario (de `minPressure` a `maxPressure`) hasta
+  que deja de tomar calor; sin agua de alimentación los tubos se secan.
+- Lecturas: las gafas, los monitores y el Display Link muestran la presión,
+  las temperaturas de las ramas caliente y fría, el margen de subenfriamiento
+  y el nivel del presionador. El controlador del generador de vapor se enlaza
+  desde la sala de control.
+
+### Contención
+
+- **Edificio de contención**: cualquier recinto cerrado de bloques completos con
+  un **Monitor de contención** dentro. El monitor rellena el aire que lo rodea
+  (hasta `containment.maxVolume` bloques, `containment.cellsPerTick` por tick)
+  y, si no llega al exterior, el edificio queda estanco. Una puerta, una losa,
+  una tubería o un hueco en la pared lo abren. Se vuelve a medir al cambiar una
+  pared o lo de dentro, cada 30 segundos y al hacer clic derecho en el monitor.
+- **Resistencia de las paredes** (data map `containment_rating`, presión
+  absoluta en bar): Hormigón de contención 6, Revestimiento de acero 8, puerta
+  blindada cerrada 10, obsidiana 6, bloque de hierro 4, vidrio 1,05 y cualquier
+  otro bloque completo 1,5. Para cada línea recta que va del aire de dentro al
+  aire libre de fuera (como mucho 12 bloques) cuenta su capa más fuerte, y la
+  más débil de esas líneas decide. Lo que está dentro del edificio (el reactor,
+  máquinas) no cuenta como pared, ni tampoco el suelo apoyado en el terreno.
+- **Penetración de contención**: cuenta como pared (6 bar) y deja pasar fluidos
+  a lo largo de su eje, con 1000 mB de reserva en cada sentido; además empuja lo
+  que lleva al bloque del otro lado.
+- **Atmósfera**: el reactor que está dentro manda a la contención el vapor de la
+  válvula de alivio y de una rotura, el hidrógeno de las vainas y la actividad.
+  El vapor se condensa en las paredes (`containment.condensation`, más pared,
+  más rápido) y el gas se enfría hacia la temperatura de las paredes. Cada mB de
+  refrigerante que se evapora cuenta como `containment.molesPerMb` mol de gas.
+- **Hidrógeno**: por encima del 4 % puede arder (`hydrogenIgnitionChance` por
+  segundo) y a partir del 8 % arde seguro, salvo que haya más de un 55 % de
+  vapor. La combustión da un pico de presión y quema a quien esté dentro. Los
+  **Recombinadores autocatalíticos pasivos** lo eliminan sin llama por encima
+  del 0,5 % (`containment.recombinerRate`).
+- **Venteo filtrado**: forma parte de la pared; con señal de redstone abre y
+  deja salir el gas mientras haya sobrepresión (`containment.ventFlow`). Sus
+  filtros solo dejan pasar la actividad dividida por
+  `containment.ventDecontamination`, que cae como un poco de fallout cerca.
+- **Rotura**: si la presión supera la resistencia de la pared más débil, revienta
+  allí (explosión y hueco, salvo con `accidents.blockDestruction = false`, en
+  cuyo caso queda rota hasta que se haga clic en el monitor) y todo lo que había
+  en el aire sale como fallout.
+- Lecturas: el monitor es un objetivo de la sala de control (presión,
+  hidrógeno, estanqueidad, venteo, actividad y volumen), los comparadores leen la
+  presión respecto a la pared más débil, y el reactor que está dentro muestra la
+  presión y el hidrógeno de su contención en las gafas, los monitores y el
+  Display Link.
+
+### Accidentes
+
+Todos los reactores de fisión, también los de ebullición directa, siguen ahora
+una cadena de accidente realista. Cada parte se puede apagar con
+`pwr.accidents.*`.
+
+- **Oxidación de las vainas**: por encima de `oxidationTemperature` el circonio
+  reacciona con el vapor; da calor extra y dos mol de hidrógeno por mol de
+  circonio, hasta agotar `zirconiumPerRod` por barra. El combustible nuevo trae
+  vainas nuevas.
+- **Rotura de la vasija**: un reactor a presión que pasa `vesselFailureTicks`
+  ticks por encima de `vesselFailurePressure` bar rompe la vasija: el primario se
+  vacía como vapor en la contención y la tapa salta con una explosión acotada.
+  La vasija sigue rota (pierde refrigerante) hasta que el reactor se vuelve a
+  formar a mano.
+- **Explosión de vapor**: bombear agua a un núcleo seco por encima de
+  `steamExplosionTemperature`, o que el corium toque agua, provoca una explosión
+  (una vez por suceso).
+- **Fusión del núcleo**: las barras de combustible se convierten en **Corium**
+  (como mucho 16 bloques), el agua de la vasija y el resto del hidrógeno van a la
+  contención y la actividad volátil se queda en ella; sin contención sale como
+  fallout. El corium funde el bloque de debajo (no los que tienen la etiqueta
+  `corium_resistant`, más de 1200 de resistencia a explosiones o bedrock), baja
+  como mucho 32 bloques y siempre acaba como **Corium solidificado**, escoria
+  muy radiactiva que se filtra al suelo como un barril de residuos. Sobre un
+  **Recogedor del núcleo** se extiende y se solidifica. Al fundir hormigón dentro
+  de una contención libera hidrógeno y vapor.
+- `legacyMeltdown = true` vuelve al meltdown antiguo: explosión de potencia 80 y
+  fallout amplio.
+
+| Opción | Por defecto | Qué hace |
+|---|---|---|
+| `pwr.coldLegTemperature` | 290 | Temperatura (°C) del refrigerante que devuelve el generador de vapor |
+| `pwr.coreTemperatureRise` | 35 | Subida de temperatura (°C) al cruzar el núcleo con caudal completo; la rama caliente es la fría más esto |
+| `pwr.enthalpyPerMb` | 0,12 | Calor que lleva cada mB de refrigerante primario del núcleo al generador |
+| `pwr.heatTransfer` | 0,02 | Enfriamiento del núcleo por °C entre el núcleo y la rama fría, en °C por tick, con el núcleo cubierto |
+| `pwr.naturalCirculation` | 8 | Caudal (mB/t) que sigue cruzando el núcleo con todas las bombas paradas |
+| `pwr.pressureSetpoint` | 155 | Presión (bar) que mantienen los calentadores y el rociado automáticos |
+| `pwr.heaterRate` | 0,25 | °C por tick que cada puerto calefactor encendido suma a la burbuja del presionador |
+| `pwr.reliefOpenPressure` | 170 | Presión (bar) a la que abre la válvula de alivio |
+| `pwr.reliefClosePressure` | 160 | Presión (bar) a la que vuelve a cerrar; siempre por debajo de la de apertura |
+| `pwr.reliefStickChance` | 0,05 | Probabilidad de que la válvula se quede atascada abierta cada vez que debería cerrar |
+| `pwr.voidWorth` | 0,6 | Parte de la reacción en cadena que se pierde con el núcleo sin agua |
+| `pwr.temperatureCoefficient` | 0,002 | Parte de la reacción que se pierde por cada °C por encima de la temperatura media normal |
+| `pwr.steamGenerator.uaPerTube` | 0,3 | Calor por tick y por °C que mueve cada haz de tubos |
+| `pwr.steamGenerator.minPressure` | 50 | Presión (bar) del secundario cuando se saca el vapor según se produce |
+| `pwr.steamGenerator.maxPressure` | 120 | Presión (bar) del secundario con el depósito de vapor lleno; cerca de la ebullición de la rama caliente deja de tomar calor |
+| `pwr.containment.maxVolume` | 32768 | Bloques de aire que puede encerrar una contención; un espacio mayor cuenta como abierto |
+| `pwr.containment.cellsPerTick` | 4096 | Bloques que mide el monitor por tick, para repartir el trabajo |
+| `pwr.containment.molesPerMb` | 10 | Mol de gas que da cada mB de refrigerante al evaporarse en la contención (el agua real daría 55) |
+| `pwr.containment.condensation` | 0,05 | Vapor que condensan las paredes, en mol por tick, por cara de pared y por bar de vapor |
+| `pwr.containment.recombinerRate` | 40 | Hidrógeno (mol/tick) que quita cada recombinador, multiplicado por la fracción de hidrógeno |
+| `pwr.containment.ventFlow` | 0,002 | Parte del gas que deja salir cada venteo abierto por tick y por bar de sobrepresión |
+| `pwr.containment.ventDecontamination` | 100 | Factor de descontaminación del venteo filtrado |
+| `pwr.containment.hydrogenIgnitionChance` | 0,1 | Probabilidad por segundo de que arda el hidrógeno entre el 4 y el 8 % |
+| `pwr.accidents.blockDestruction` | true | Los accidentes pueden romper bloques (explosiones, corium, rotura de la contención) |
+| `pwr.accidents.hydrogen` | true | Las vainas calientes producen hidrógeno, que puede arder en la contención |
+| `pwr.accidents.corium` | true | La fusión deja corium que baja fundiendo; con false el combustible se queda como escoria en su sitio |
+| `pwr.accidents.steamExplosions` | true | Agua sobre un núcleo fundido o corium en agua explota |
+| `pwr.accidents.containmentRupture` | true | La contención revienta por su pared más débil si la presión la supera |
+| `pwr.accidents.legacyMeltdown` | false | Vuelve al meltdown antiguo (explosión de potencia 80) |
+| `pwr.accidents.oxidationTemperature` | 1200 | Temperatura (°C) del núcleo a la que empieza la oxidación de las vainas |
+| `pwr.accidents.oxidationRate` | 0,5 | Circonio (mol) que pierde cada barra por tick 300 °C por encima; crece con el cuadrado del exceso |
+| `pwr.accidents.zirconiumPerRod` | 500 | Circonio (mol) de las vainas de cada barra |
+| `pwr.accidents.oxidationHeat` | 4 | Calentamiento del núcleo (°C) por mol de circonio oxidado por barra |
+| `pwr.accidents.vesselFailurePressure` | 250 | Presión (bar) del primario por encima de la cual falla la vasija |
+| `pwr.accidents.vesselFailureTicks` | 100 | Ticks por encima de esa presión antes de que se rompa |
+| `pwr.accidents.steamExplosionTemperature` | 2800 | Temperatura (°C) del núcleo por encima de la cual el agua que vuelve provoca una explosión de vapor |
+
+La probabilidad de que la válvula de alivio se atasque sigue en `pwr.reliefStickChance`.
 
 ## Combustible gastado
 

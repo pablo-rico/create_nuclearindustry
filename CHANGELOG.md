@@ -229,7 +229,71 @@ below for what changes in existing worlds.
   only sent to its own player when its rounded values change.
 
 ### Pressurized water reactors and accidents
-<!-- pwr: filled by its work package -->
+- Pressurized water reactors: put primary coolant (water and boron in a
+  mixer) in a fission reactor with a Pressurizer on its lid and it no longer
+  boils its water. Its output port gives hot primary coolant, which Create
+  pumps carry to a Steam Generator and back cooled into the coolant port.
+  Without a pressurizer the reactor boils water exactly as before and its
+  ports refuse primary coolant.
+- The Pressurizer is a stack of 2 to 4 Pressurizer and Pressurizer Heater
+  Port blocks capped by a Relief Valve. Its steam bubble sets the loop's
+  pressure (155 bar by default); heaters raise it (automatic, or manual with
+  redstone after a wrench click) and spray from the cold leg lowers it.
+- The Relief Valve opens at 170 bar and closes at 160, and can stick open.
+  A redstone signal shuts its block valve; comparators read it open.
+- Real thermal hydraulics: the flow is whatever the pumps move. Each mB carries
+  less heat than boiling water, so a pressurized reactor needs more flow. A
+  stopped pump lets the core heat up and boil, the pressure rises and the
+  relief valve lifts; a broken pipe drains the loop until the core uncovers.
+  Steam voids, an uncovered core and hotter water slow the chain reaction.
+- Steam Generator: a 3x3 column, 4 to 8 high, of casing around Tube Bundles,
+  with a controller and four kinds of port (primary in and out, feedwater in,
+  steam out). More tubes move more heat; steam left inside raises its pressure
+  until it stops taking heat, and it dries out without feedwater. It makes
+  the same steam turbines already use, and control room monitors can link it.
+- Primary coolant is radioactive: a bucket or a puddle from a leak irradiates.
+- New Display Link sources and goggle lines for the primary pressure, hot and
+  cold leg temperatures, subcooling margin and pressurizer level; all of them
+  are configurable under `pwr.*`.
+- Containment buildings: close any room with full blocks and put a
+  Containment Monitor inside. It measures the sealed air (up to 32k blocks)
+  and tracks its pressure, temperature, steam, hydrogen and airborne
+  radioactivity; an open door, a slab or a hole unseals it. New blocks:
+  Containment Concrete (holds 6 bar), Steel Liner (8 bar), Containment
+  Penetration (a wall block that carries fluid through along its axis, with a
+  1000 mB buffer each way), Passive Autocatalytic Recombiner and Filtered
+  Containment Vent. Glass holds 1.05 bar, ordinary blocks 1.5 and closed blast
+  doors 10; the strongest layer of a wall counts, and machines standing inside
+  are not wall.
+- A reactor inside a containment sends it the relief valve's steam, a break's
+  water, its cladding's hydrogen and its radioactivity, and reports the
+  building's pressure and hydrogen on goggles, monitors and two new Display
+  Link sources. Steam condenses on the walls; hydrogen above 4% may burn and
+  above 8% always does (unless the air is mostly steam), spiking the pressure
+  and burning anyone inside. Recombiners remove it quietly.
+- Opening the filtered vent with redstone bleeds the overpressure out and
+  lets only 1% of the airborne activity fall out nearby. If the pressure beats
+  the weakest wall, it bursts there and everything airborne falls out.
+- A realistic accident chain for every fission reactor, direct boiling ones
+  too: above 1200 °C the zirconium cladding oxidises, heating the core further
+  and making hydrogen; a pressurized vessel held above 250 bar breaks and
+  flashes its water into the containment; water pumped onto a core hotter than
+  2800 °C, or corium falling into water, makes a steam explosion.
+- A meltdown no longer blows up: the fuel rods turn into Corium (at most 16
+  blocks) that melts its way down at most 32 blocks and always freezes into
+  radioactive Solidified Corium, which leaks into the ground like a waste
+  barrel. A Core Catcher floor stops it and makes it spread and freeze; melting
+  concrete inside a containment gives off hydrogen. The core's volatile
+  activity stays in a sealed containment and falls out without one.
+- Every part is configurable under `pwr.containment.*` and
+  `pwr.accidents.*`, including `blockDestruction` to keep accidents from
+  breaking blocks.
+- Upgrading: existing reactors keep boiling water as before; nothing changes
+  until a pressurizer and primary coolant are added.
+- Upgrading: meltdowns in existing worlds no longer make the power 80
+  explosion; they leave corium and a release scaled to the core. Set
+  `pwr.accidents.legacyMeltdown = true` to get the old meltdown back. Reactors
+  running hotter than 1200 °C now oxidise their cladding, which adds heat.
 
 ### Spent fuel
 - Spent fuel now has a cooling history: assemblies leave the reactor Hot and

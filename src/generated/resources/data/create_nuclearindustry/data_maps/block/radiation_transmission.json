@@ -9,11 +9,23 @@
     "create_nuclearindustry:blast_door_frame": {
       "transmission": 0.15
     },
+    "create_nuclearindustry:containment_concrete": {
+      "transmission": 0.3
+    },
+    "create_nuclearindustry:containment_penetration": {
+      "transmission": 0.35
+    },
     "create_nuclearindustry:contaminated_water": {
       "transmission": 0.85
     },
     "create_nuclearindustry:cooling_tower_casing": {
       "transmission": 0.6
+    },
+    "create_nuclearindustry:core_catcher": {
+      "transmission": 0.3
+    },
+    "create_nuclearindustry:corium": {
+      "transmission": 0.2
     },
     "create_nuclearindustry:depleted_uranium_block": {
       "transmission": 0.1
@@ -21,8 +33,20 @@
     "create_nuclearindustry:dry_cask": {
       "transmission": 0.02
     },
+    "create_nuclearindustry:filtered_vent": {
+      "transmission": 0.35
+    },
     "create_nuclearindustry:lead_blast_door": {
       "transmission": 0.02
+    },
+    "create_nuclearindustry:pressurizer": {
+      "transmission": 0.5
+    },
+    "create_nuclearindustry:pressurizer_heater_port": {
+      "transmission": 0.5
+    },
+    "create_nuclearindustry:primary_coolant": {
+      "transmission": 0.85
     },
     "create_nuclearindustry:reactor_casing": {
       "transmission": 0.35
@@ -42,8 +66,29 @@
     "create_nuclearindustry:reactor_temperature_sensor": {
       "transmission": 0.35
     },
+    "create_nuclearindustry:relief_valve": {
+      "transmission": 0.5
+    },
+    "create_nuclearindustry:solidified_corium": {
+      "transmission": 0.2
+    },
+    "create_nuclearindustry:steam_generator_casing": {
+      "transmission": 0.5
+    },
+    "create_nuclearindustry:steam_generator_controller": {
+      "transmission": 0.5
+    },
+    "create_nuclearindustry:steam_generator_port": {
+      "transmission": 0.5
+    },
+    "create_nuclearindustry:steam_generator_tube_bundle": {
+      "transmission": 0.5
+    },
     "create_nuclearindustry:steel_blast_door": {
       "transmission": 0.15
+    },
+    "create_nuclearindustry:steel_liner": {
+      "transmission": 0.4
     },
     "minecraft:crying_obsidian": {
       "transmission": 0.6

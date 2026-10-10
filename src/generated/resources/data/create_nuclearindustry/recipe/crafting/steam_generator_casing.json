@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "P": {
+      "item": "create:copper_sheet"
+    }
+  },
+  "pattern": [
+    "IPI",
+    "P P",
+    "IPI"
+  ],
+  "result": {
+    "count": 4,
+    "id": "create_nuclearindustry:steam_generator_casing"
+  }
+}

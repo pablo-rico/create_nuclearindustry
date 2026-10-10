@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "role=feed_in": {
+      "model": "create_nuclearindustry:block/steam_generator_port_feed_in"
+    },
+    "role=primary_in": {
+      "model": "create_nuclearindustry:block/steam_generator_port_primary_in"
+    },
+    "role=primary_out": {
+      "model": "create_nuclearindustry:block/steam_generator_port_primary_out"
+    },
+    "role=steam_out": {
+      "model": "create_nuclearindustry:block/steam_generator_port_steam_out"
+    }
+  }
+}

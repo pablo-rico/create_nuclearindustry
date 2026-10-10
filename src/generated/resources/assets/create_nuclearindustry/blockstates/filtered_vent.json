@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "open=false": {
+      "model": "create_nuclearindustry:block/filtered_vent"
+    },
+    "open=true": {
+      "model": "create_nuclearindustry:block/filtered_vent_open"
+    }
+  }
+}

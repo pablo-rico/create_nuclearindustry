@@ -1,6 +1,17 @@
 package org.papiricoh.create_nuclearindustry.reactor.blockentity;
 
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PlantReadings;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PressurizerStack;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PrimaryLoop;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.CladdingOxidationModel;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReactorAccidents;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReleasePath;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.SteamExplosion;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.ContainmentMonitorBlockEntity;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.block.PressurizerHeaterPortBlock;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.block.ReliefValveBlock;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelHooks;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
@@ -15,11 +26,13 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -29,6 +42,7 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearDataComponents;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
@@ -60,6 +74,7 @@ import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimula
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -83,6 +98,20 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     /** Share of the xenon worth a shut-down core must reach to count as in the iodine pit. */
     private static final double IODINE_PIT_FRACTION = 0.6;
     private static final float MELTDOWN_EXPLOSION_POWER = 80.0f;
+    /** Most blocks of corium one meltdown leaves; the rest of the molten fuel joins them. */
+    public static final int MAX_CORIUM = 16;
+    /** Water in the vessel below which the core counts as dried out, for a steam explosion on reflooding. */
+    private static final int DRY_CORE = 1_000;
+    /** Coolant a breached vessel loses per tick, mB. */
+    private static final int BREACH_LEAK_PER_TICK = 500;
+    /** Temperature of the steam flashing from a pressurized primary, K. */
+    private static final double PRIMARY_STEAM_K = 618.0;
+    /** Temperature of the steam off water hitting a molten core, and of hydrogen leaving the core, K. */
+    private static final double CORE_GAS_K = 1_000.0;
+    /** Core cooling when water flashes on a molten core, °C. */
+    private static final double REFLOOD_QUENCH = 400.0;
+    /** Share of the cladding still unoxidised that reacts in the melt itself. */
+    private static final double MELT_OXIDATION = 0.5;
     public static final int FUEL_INPUT_SLOTS = 4;
     public static final int FUEL_OUTPUT_SLOTS = 2;
     public static final int FUEL_SLOT_COUNT = FUEL_INPUT_SLOTS + FUEL_OUTPUT_SLOTS;
@@ -118,14 +147,18 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private boolean hasDisplaySnapshot;
     private final MultiblockMessenger messenger = new MultiblockMessenger("Reactor");
     private StructureSnapshot structureSnapshot;
+    /** The pressurized loop, run instead of boiling when the coolant is primary coolant and a pressurizer stands on the lid. */
+    private final PrimaryLoop primaryLoop = new PrimaryLoop();
+    /** Cladding, vessel and containment: the accident chain of this reactor. */
+    private final ReactorAccidents accidents = new ReactorAccidents();
 
-    private final FluidTank coolantTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isCoolant) {
+    private final FluidTank coolantTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isReactorCoolant) {
         @Override
         protected void onContentsChanged() {
             markDirtyAndSync();
         }
     };
-    private final FluidTank steamTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isTurbineSteam) {
+    private final FluidTank steamTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isReactorOutput) {
         @Override
         protected void onContentsChanged() {
             markDirtyAndSync();
@@ -169,7 +202,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             entity.tryLoadFuelAssembly();
             boolean stillRunning = entity.physicsSimulator.tick();
             entity.collectSpentFuel();
-            entity.processCoolantLoop();
+            entity.processLoops();
+            if (entity.runAccidents() || entity.isRemoved()) {
+                // an explosion took the reactor apart; nothing of it is left to update this tick
+                return;
+            }
             entity.updateControllerRunningState();
             if (!stillRunning) {
                 if (entity.canTriggerMeltdown()) {
@@ -259,7 +296,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     @Override
     public BoundingBox interestBounds() {
         if (currentStructure.isPresent()) {
-            return currentStructure.get().bounds();
+            return currentStructure.get().interestBounds();
         }
         BlockPos pos = getBlockPos();
         int halfWidth = ReactorStructureValidator.MAX_WIDTH / 2;
@@ -283,11 +320,18 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         currentStructure = structure;
         Level level = getLevel();
         structureSnapshot = structure.isPresent() && level != null && !level.isClientSide
-                ? StructureSnapshot.capture(level, structure.get().allBlocks)
+                ? StructureSnapshot.capture(level, snapshotPositions(structure.get()))
                 : null;
         if (boundsChanged) {
             MultiblockRegistry.reindex(this);
         }
+    }
+
+    /** The structure plus the space above the lid, so building or breaking a pressurizer revalidates. */
+    private static List<BlockPos> snapshotPositions(ReactorStructureValidator.ReactorStructure structure) {
+        List<BlockPos> positions = new ArrayList<>(structure.allBlocks);
+        positions.addAll(structure.pressurizerZone());
+        return positions;
     }
 
     private void revalidate(boolean playerInitiated, Player player) {
@@ -300,7 +344,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
 
         ReactorStatus previousStatus = status;
-        MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> result = ReactorStructureValidator.validate(level, getBlockPos(), currentStructure);
+        MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> result =
+                ReactorStructureValidator.validate(level, getBlockPos(), currentStructure, holdsPrimaryCoolant());
         lastValidation = result;
 
         if (result.formed() && result.structure().isPresent()) {
@@ -323,6 +368,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             }
             updateControlRodInsertion(true);
             linkStructureParts(newStructure);
+            if (playerInitiated && accidents.vessel().breached()) {
+                // the player rebuilt and formed it again: a new vessel
+                accidents.vessel().repair();
+            }
             if (status == ReactorStatus.FORMED && (playerInitiated || previousStatus != ReactorStatus.FORMED)) {
                 awardMachine(NuclearEvent.REACTOR_FORMED);
                 if (newStructure.moderation > 0 || newStructure.reflection > 0) {
@@ -611,13 +660,111 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
     }
 
+    /** Runs the pressurized loop when the reactor has one, otherwise boils its water as it always did. */
+    private void processLoops() {
+        if (isPrimaryLoopActive()) {
+            processPrimaryLoop();
+            return;
+        }
+        if (primaryLoop.readings().pwr()) {
+            primaryLoop.idle();
+            physicsSimulator.setCoolantFeedback(1.0);
+            showReliefValve(false);
+        }
+        processCoolantLoop();
+    }
+
+    /** The coolant tank holds primary coolant (or it all sits hot in the output tank) and a pressurizer stands on the lid. */
+    public boolean isPrimaryLoopActive() {
+        return hasPressurizer() && holdsPrimaryCoolant();
+    }
+
+    /** Either tank holds pressurized loop coolant. */
+    public boolean holdsPrimaryCoolant() {
+        return NuclearFluidHelper.isPrimaryCoolant(coolantTank.getFluid()) || NuclearFluidHelper.isHotPrimary(steamTank.getFluid());
+    }
+
+    public boolean hasPressurizer() {
+        return currentStructure.map(ReactorStructureValidator.ReactorStructure::hasPressurizer).orElse(false);
+    }
+
+    /**
+     * One tick of the pressurized loop: the core heats the vessel water, circulation turns cold
+     * coolant into hot coolant for the steam generators, and the pressurizer and its relief valve
+     * answer to whatever the water does. The pumps outside decide how fast it all moves.
+     */
+    private void processPrimaryLoop() {
+        Level level = getLevel();
+        ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
+        PressurizerStack stack = structure.pressurizer;
+        int autoHeaters = 0;
+        int manualHeaters = 0;
+        for (BlockPos heater : stack.heaterPorts()) {
+            BlockState state = level.getBlockState(heater);
+            if (!state.is(PwrRegistry.PRESSURIZER_HEATER_PORT.get())) {
+                continue;
+            }
+            if (state.getValue(PressurizerHeaterPortBlock.AUTOMATIC)) {
+                autoHeaters++;
+            } else if (PressurizerHeaterPortBlock.manualOn(level, heater, state)) {
+                manualHeaters++;
+            }
+        }
+        boolean hotTank = steamTank.isEmpty() || NuclearFluidHelper.isHotPrimary(steamTank.getFluid());
+        int cold = NuclearFluidHelper.isPrimaryCoolant(coolantTank.getFluid()) ? coolantTank.getFluidAmount() : 0;
+        int hot = hotTank ? steamTank.getFluidAmount() : 0;
+        int hotCapacity = hotTank ? steamTank.getCapacity() : 0;
+        double rodMultiplier = physicsSimulator.getSteamRodMultiplier();
+        double maxHeat = structure.heatExchangerCount * HEAT_EXCHANGER_STEAM_PER_TICK * WATER_COOLING_PER_MB;
+        PrimaryLoop.Result result = primaryLoop.tick(new PrimaryLoop.Context(physicsSimulator.getCoreTemperature(), rodMultiplier,
+                maxHeat, cold, hot, hotCapacity, stack, autoHeaters, manualHeaters,
+                ReliefValveBlock.isolated(level, stack.reliefValve()), level.random.nextDouble()));
+
+        physicsSimulator.applyExternalCooling(result.coreCooling(), result.moved() / rodMultiplier * WATER_MODERATION_PER_MB);
+        physicsSimulator.setCoolantFeedback(result.feedback());
+        if (result.moved() > 0) {
+            FluidStack drained = coolantTank.drain(result.moved(), IFluidHandler.FluidAction.EXECUTE);
+            steamTank.fill(new FluidStack(AllNuclearFluids.HOT_PRIMARY_COOLANT.get(), drained.getAmount()), IFluidHandler.FluidAction.EXECUTE);
+        }
+        if (result.vented() > 0) {
+            int left = result.vented() - coolantTank.drain(result.vented(), IFluidHandler.FluidAction.EXECUTE).getAmount();
+            if (left > 0 && hotTank) {
+                steamTank.drain(left, IFluidHandler.FluidAction.EXECUTE);
+            }
+            if (level instanceof ServerLevel serverLevel) {
+                accidents.releaseCoolant(serverLevel, stack.reliefValve(), result.vented(), PRIMARY_STEAM_K,
+                        accidents.coolantActivityPerMb(structure.uraniumRodCount));
+            }
+            if (level instanceof ServerLevel serverLevel && serverLevel.getGameTime() % 4 == 0) {
+                BlockPos valve = stack.reliefValve();
+                serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.CLOUD,
+                        valve.getX() + 0.5, valve.getY() + 1.0, valve.getZ() + 0.5, 4, 0.15, 0.1, 0.15, 0.05);
+            }
+        }
+        showReliefValve(primaryLoop.reliefOpen());
+    }
+
+    /** Shows the relief valve open or shut, for its texture and comparators. */
+    private void showReliefValve(boolean open) {
+        Level level = getLevel();
+        if (level == null || currentStructure.isEmpty() || currentStructure.get().pressurizer == null) {
+            return;
+        }
+        BlockPos valve = currentStructure.get().pressurizer.reliefValve();
+        BlockState state = level.getBlockState(valve);
+        if (state.is(PwrRegistry.RELIEF_VALVE.get()) && state.getValue(ReliefValveBlock.OPEN) != open) {
+            level.setBlock(valve, state.setValue(ReliefValveBlock.OPEN, open), Block.UPDATE_ALL);
+        }
+    }
+
     private void processCoolantLoop() {
         if (physicsSimulator.getCoreTemperature() <= 100.0 || steamTank.getSpace() <= 0) {
             return;
         }
 
         FluidStack coolant = coolantTank.getFluid();
-        if (coolant.isEmpty()) {
+        // Primary coolant only circulates in a pressurized loop; without a pressurizer it just sits there.
+        if (coolant.isEmpty() || !NuclearFluidHelper.isCoolant(coolant)) {
             return;
         }
 
@@ -678,6 +825,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 ItemStack extracted = fuelInventory.extractItem(slot, 1, false);
                 if (!extracted.isEmpty()) {
                     if (physicsSimulator.loadFuelAssembly(fuelKindOf(extracted), getFuelEnrichment(extracted))) {
+                        accidents.cladding().refuel(1, PwrConfig.zirconiumPerRod);
                         loaded = true;
                     } else {
                         fuelInventory.insertItem(slot, extracted, false);
@@ -763,9 +911,19 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         messenger.send(getLevel(), message, force);
     }
 
+    /**
+     * The core melts. By default this is the realistic chain: the fuel becomes corium, the vessel's
+     * water and the rest of the cladding's hydrogen go into the containment (or the open air) with
+     * the core's volatile activity, and the corium does the rest. With {@code legacyMeltdown} it is
+     * the old power 80 explosion and wide fallout.
+     */
     private void handleMeltdown() {
         Level level = getLevel();
         if (level == null || level.isClientSide) {
+            return;
+        }
+        if (!PwrConfig.legacyMeltdown && level instanceof ServerLevel serverLevel && currentStructure.isPresent()) {
+            meltCore(serverLevel, currentStructure.get());
             return;
         }
 
@@ -776,7 +934,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         awardMachine(NuclearEvent.MELTDOWN);
         NuclearAdvancements.awardNearby(level, reactorPos, MELTDOWN_FALLOUT_RADIUS, NuclearEvent.MELTDOWN);
         FalloutData.contaminate(level, reactorPos, MELTDOWN_RADIATION, MELTDOWN_CONTAMINATION_TICKS);
-        if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+        if (level instanceof ServerLevel serverLevel) {
             org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination.fallout(serverLevel, reactorPos,
                     MELTDOWN_FALLOUT_RADIUS, MELTDOWN_FALLOUT_INTENSITY);
         }
@@ -787,6 +945,143 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         sendPlayerMessage("§4Nuclear meltdown at " + getBlockPos(), false);
         level.explode(null, reactorPos.getX() + 0.5, reactorPos.getY() + 0.5, reactorPos.getZ() + 0.5,
                 MELTDOWN_EXPLOSION_POWER, Level.ExplosionInteraction.BLOCK);
+    }
+
+    private void meltCore(ServerLevel level, ReactorStructureValidator.ReactorStructure structure) {
+        BlockPos reactorPos = getBlockPos();
+        LOGGER.warn("Nuclear meltdown at {}", reactorPos);
+        status = ReactorStatus.MELTDOWN;
+        awardMachine(NuclearEvent.MELTDOWN);
+        NuclearAdvancements.awardNearby(level, reactorPos, MELTDOWN_FALLOUT_RADIUS, NuclearEvent.MELTDOWN);
+        BoundingBox box = vesselBox(structure);
+        ContainmentMonitorBlockEntity containment = accidents.findContainment(level, box);
+        BlockPos center = BlockPos.containing(radiationOrigin());
+        int rods = structure.uraniumRodCount;
+
+        // The vessel's water flashes off the molten core; what cladding is left reacts in the melt.
+        int water = coolantTank.getFluidAmount() + steamTank.getFluidAmount();
+        coolantTank.setFluid(FluidStack.EMPTY);
+        steamTank.setFluid(FluidStack.EMPTY);
+        accidents.releaseCoolant(level, center, water, CORE_GAS_K, accidents.coolantActivityPerMb(rods));
+        if (PwrConfig.hydrogen) {
+            double unoxidised = Math.max(0.0, rods * PwrConfig.zirconiumPerRod - accidents.cladding().oxidized());
+            accidents.releaseHydrogen(level, 2.0 * unoxidised * MELT_OXIDATION, CORE_GAS_K);
+        }
+        accidents.releaseActivity(level, center, rods * ReleasePath.ACTIVITY_PER_ROD);
+        // The debris itself stays radioactive, inside or out.
+        FalloutData.contaminate(level, reactorPos, MELTDOWN_RADIATION, MELTDOWN_CONTAMINATION_TICKS);
+
+        currentStructure.ifPresent(this::clearStructureParts);
+        setStructure(Optional.empty());
+        physicsSimulator = new ReactorPhysicsSimulator(0);
+        primaryLoop.idle();
+        markDirtyAndSync();
+        sendPlayerMessage(containment != null
+                ? "§4Core meltdown at " + reactorPos + ": the containment holds the release"
+                : "§4Core meltdown at " + reactorPos + ": radioactive release", false);
+        formCorium(level, structure, rods);
+    }
+
+    /** The fuel rods turn into corium, lowest first, at most {@link #MAX_CORIUM} blocks; the rest of the melt joins it. */
+    private void formCorium(ServerLevel level, ReactorStructureValidator.ReactorStructure structure, int rods) {
+        List<BlockPos> fuel = new ArrayList<>();
+        for (BlockPos column : structure.fuelColumns) {
+            for (int y = structure.bottomY + 1; y < structure.topY; y++) {
+                BlockPos pos = new BlockPos(column.getX(), y, column.getZ());
+                if (level.getBlockState(pos).is(AllNuclearBlocks.URANIUM_ROD.get())) {
+                    fuel.add(pos);
+                }
+            }
+        }
+        fuel.sort(Comparator.<BlockPos>comparingInt(pos -> pos.getY()).thenComparingInt(pos -> pos.getX()).thenComparingInt(pos -> pos.getZ()));
+        int corium = Math.min(Math.min(rods, MAX_CORIUM), fuel.size());
+        for (int i = 0; i < fuel.size(); i++) {
+            BlockState melt;
+            if (i >= corium) {
+                melt = Blocks.AIR.defaultBlockState();
+            } else if (PwrConfig.corium) {
+                melt = PwrRegistry.CORIUM.get().fresh();
+            } else {
+                melt = PwrRegistry.SOLIDIFIED_CORIUM.get().defaultBlockState();
+            }
+            level.setBlock(fuel.get(i), melt, Block.UPDATE_ALL);
+        }
+    }
+
+    /** The reactor's own blocks, without the space for control rods above the lid. */
+    private static BoundingBox vesselBox(ReactorStructureValidator.ReactorStructure structure) {
+        BoundingBox bounds = structure.bounds();
+        return new BoundingBox(bounds.minX(), structure.bottomY, bounds.minZ(), bounds.maxX(), structure.topY, bounds.maxZ());
+    }
+
+    /**
+     * One tick of the accident chain while the reactor runs: hot cladding oxidising, the vessel
+     * holding its pressure or not, a breached vessel leaking, and water reaching a molten core.
+     * Returns true if an explosion went off, since it may have taken the reactor apart.
+     */
+    private boolean runAccidents() {
+        if (!(getLevel() instanceof ServerLevel level) || currentStructure.isEmpty()) {
+            return false;
+        }
+        ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
+        accidents.tick(level, vesselBox(structure));
+        BlockPos center = BlockPos.containing(radiationOrigin());
+        int rods = structure.uraniumRodCount;
+        double temperature = physicsSimulator.getCoreTemperature();
+
+        double steamReach = coolantTank.getFluidAmount() + steamTank.getFluidAmount() > 0 ? 1.0 : 0.2;
+        CladdingOxidationModel.Step oxidation = accidents.cladding().step(temperature, rods, steamReach, ReactorAccidents.claddingParams());
+        if (oxidation.heat() > 0) {
+            physicsSimulator.applyExternalHeat(oxidation.heat());
+        }
+        if (PwrConfig.hydrogen && oxidation.hydrogen() > 0) {
+            accidents.releaseHydrogen(level, oxidation.hydrogen(), CORE_GAS_K);
+        }
+
+        if (isPrimaryLoopActive() && accidents.vessel().tick(primaryLoop.readings().pressure(), PwrConfig.vesselFailurePressure,
+                PwrConfig.vesselFailureTicks)) {
+            breachVessel(level, structure);
+            return true;
+        }
+        if (accidents.vessel().breached()) {
+            int leak = coolantTank.drain(BREACH_LEAK_PER_TICK, IFluidHandler.FluidAction.EXECUTE).getAmount();
+            if (leak < BREACH_LEAK_PER_TICK) {
+                leak += steamTank.drain(BREACH_LEAK_PER_TICK - leak, IFluidHandler.FluidAction.EXECUTE).getAmount();
+            }
+            accidents.releaseCoolant(level, center, leak, PRIMARY_STEAM_K, accidents.coolantActivityPerMb(rods));
+        }
+
+        if (accidents.takeReflood(temperature)) {
+            int water = coolantTank.getFluidAmount();
+            coolantTank.setFluid(FluidStack.EMPTY);
+            accidents.releaseCoolant(level, center, water, CORE_GAS_K, accidents.coolantActivityPerMb(rods));
+            physicsSimulator.applyExternalCooling(REFLOOD_QUENCH, 0.0);
+            sendPlayerMessage("§4Steam explosion: water reached the molten core at " + getBlockPos(), false);
+            markDirtyAndSync();
+            SteamExplosion.explode(level, radiationOrigin(), SteamExplosion.REFLOOD_POWER);
+            return true;
+        }
+        return false;
+    }
+
+    /** The vessel gave way: its water flashes into the containment and the head blows off. */
+    private void breachVessel(ServerLevel level, ReactorStructureValidator.ReactorStructure structure) {
+        BlockPos center = BlockPos.containing(radiationOrigin());
+        accidents.findContainment(level, vesselBox(structure));
+        int water = coolantTank.getFluidAmount() + steamTank.getFluidAmount();
+        coolantTank.setFluid(FluidStack.EMPTY);
+        steamTank.setFluid(FluidStack.EMPTY);
+        accidents.releaseCoolant(level, center, water, PRIMARY_STEAM_K, accidents.coolantActivityPerMb(structure.uraniumRodCount));
+        primaryLoop.idle();
+        physicsSimulator.setCoolantFeedback(1.0);
+        sendPlayerMessage("§4Reactor vessel breached at " + getBlockPos() + ": the primary is open", false);
+        markDirtyAndSync();
+        BlockPos head = getBlockPos().above();
+        SteamExplosion.explode(level, Vec3.atCenterOf(head), SteamExplosion.REFLOOD_POWER);
+    }
+
+    public ReactorAccidents getAccidents() {
+        return accidents;
     }
 
     public void setControlRodPosition(float position) {
@@ -877,7 +1172,20 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     /** The pressurized water loop and containment around this reactor; {@link PlantReadings#NONE} when it boils directly. */
     public PlantReadings plantReadings() {
-        return PlantReadings.NONE;
+        if (!isFormed()) {
+            return PlantReadings.NONE;
+        }
+        PlantReadings loop = primaryLoop.readings();
+        float containment = accidents.containmentPressure();
+        if (containment <= 0) {
+            return loop;
+        }
+        return new PlantReadings(loop.pwr(), loop.pressure(), loop.hotLeg(), loop.coldLeg(), loop.subcooling(), loop.pressurizerLevel(),
+                loop.flow(), loop.vesselLevel(), containment, accidents.containmentHydrogen());
+    }
+
+    public PrimaryLoop getPrimaryLoop() {
+        return primaryLoop;
     }
 
     /** Fraction of neutron production xenon-135 swallows right now. */
@@ -952,16 +1260,53 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return steamTank.getFluid().copy();
     }
 
+    /**
+     * Water and heavy water to boil, or primary coolant for the pressurized loop, which only a reactor
+     * with a pressurizer takes. Hot primary coolant pumped back in brings its heat with it.
+     */
     public int fillCoolant(FluidStack resource, IFluidHandler.FluidAction action) {
+        boolean dry = coolantTank.getFluidAmount() < DRY_CORE;
+        int filled = fillCoolantTank(resource, action);
+        if (action.execute() && filled > 0 && isFormed()) {
+            accidents.noteReflood(physicsSimulator.getCoreTemperature(), dry);
+        }
+        return filled;
+    }
+
+    private int fillCoolantTank(FluidStack resource, IFluidHandler.FluidAction action) {
+        if (NuclearFluidHelper.isPrimaryLoopFluid(resource)) {
+            if (!hasPressurizer()) {
+                return 0;
+            }
+            boolean hot = NuclearFluidHelper.isHotPrimary(resource);
+            FluidStack cold = hot ? new FluidStack(AllNuclearFluids.PRIMARY_COOLANT.get(), resource.getAmount()) : resource;
+            int filled = coolantTank.fill(cold, action);
+            if (action.execute() && filled > 0) {
+                primaryLoop.recordInflow(filled, hot);
+            }
+            return filled;
+        }
         return NuclearFluidHelper.isCoolant(resource) ? coolantTank.fill(resource, action) : 0;
     }
 
+    /** Whether a coolant port would take {@code stack} at all. */
+    public boolean acceptsCoolant(FluidStack stack) {
+        return NuclearFluidHelper.isCoolant(stack) || NuclearFluidHelper.isPrimaryLoopFluid(stack) && hasPressurizer();
+    }
+
     public FluidStack drainSteam(FluidStack resource, IFluidHandler.FluidAction action) {
-        return NuclearFluidHelper.isTurbineSteam(resource) ? steamTank.drain(resource, action) : FluidStack.EMPTY;
+        return NuclearFluidHelper.isReactorOutput(resource) ? recordDrain(steamTank.drain(resource, action), action) : FluidStack.EMPTY;
     }
 
     public FluidStack drainSteam(int maxDrain, IFluidHandler.FluidAction action) {
-        return steamTank.drain(maxDrain, action);
+        return recordDrain(steamTank.drain(maxDrain, action), action);
+    }
+
+    private FluidStack recordDrain(FluidStack drained, IFluidHandler.FluidAction action) {
+        if (action.execute() && NuclearFluidHelper.isHotPrimary(drained)) {
+            primaryLoop.recordOutflow(drained.getAmount());
+        }
+        return drained;
     }
 
     public IItemHandler getFuelItemHandler(ReactorFluidPortMode mode) {
@@ -1043,6 +1388,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
         tooltip.add(Component.literal("  Coolant: " + snapshot.coolantAmount() + "/" + snapshot.tankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("  Steam: " + snapshot.steamAmount() + "/" + snapshot.tankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
+        addPrimaryLoopLines(tooltip);
         tooltip.add(Component.literal(String.format("  Temperature: %.0f C", snapshot.coreTemperature()))
                 .withStyle(getTemperatureColor(snapshot.coreTemperature())));
         tooltip.add(Component.literal(String.format("  Neutrons: %.0f", snapshot.neutronLevel())).withStyle(ChatFormatting.GRAY));
@@ -1077,6 +1423,62 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             tooltip.add(Component.literal("  Depleted output blocked: " + snapshot.pendingDepletedFuel()).withStyle(ChatFormatting.RED));
         }
         return true;
+    }
+
+    /** Pressure, temperatures, pressurizer and relief valve of the pressurized loop, or why it is not running. */
+    private void addPrimaryLoopLines(List<Component> tooltip) {
+        addAccidentLines(tooltip);
+        String key = "create_nuclearindustry.pwr.goggles.";
+        PlantReadings plant = plantReadings();
+        if (!plant.pwr()) {
+            if (holdsPrimaryCoolant() && !hasPressurizer()) {
+                tooltip.add(goggleLine(Component.translatable(key + "no_pressurizer"), ChatFormatting.RED));
+            }
+            return;
+        }
+        tooltip.add(goggleLine(Component.translatable(key + "header"), ChatFormatting.AQUA));
+        ChatFormatting pressureStyle = plant.pressure() >= org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig.reliefOpenPressure
+                ? ChatFormatting.RED : plant.subcooling() < 5.0f ? ChatFormatting.GOLD : ChatFormatting.GRAY;
+        tooltip.add(goggleLine(Component.translatable(key + "pressure", Math.round(plant.pressure()), Math.round(plant.subcooling())),
+                pressureStyle));
+        tooltip.add(goggleLine(Component.translatable(key + "legs", Math.round(plant.hotLeg()), Math.round(plant.coldLeg())),
+                ChatFormatting.GRAY));
+        Component heaters = Component.translatable(primaryLoop.heatersRunning() ? key + "heaters_on" : key + "heaters_off");
+        tooltip.add(goggleLine(Component.translatable(key + "pressurizer", Math.round(plant.pressurizerLevel() * 100), heaters),
+                ChatFormatting.GRAY));
+        tooltip.add(goggleLine(Component.translatable(key + "flow", Math.round(plant.flow()), Math.round(plant.vesselLevel() * 100)),
+                plant.vesselLevel() < 1.0f ? ChatFormatting.RED : ChatFormatting.GRAY));
+        BlockState valve = currentStructure.filter(ReactorStructureValidator.ReactorStructure::hasPressurizer)
+                .map(structure -> getLevel() == null ? null : getLevel().getBlockState(structure.pressurizer.reliefValve()))
+                .orElse(null);
+        boolean open = valve != null && valve.is(PwrRegistry.RELIEF_VALVE.get()) && valve.getValue(ReliefValveBlock.OPEN);
+        if (open || primaryLoop.reliefStuck()) {
+            tooltip.add(goggleLine(Component.translatable(primaryLoop.reliefStuck() ? key + "relief_stuck" : key + "relief_open"),
+                    ChatFormatting.RED));
+        }
+    }
+
+    /** Containment around the reactor, damaged cladding and a breached vessel. */
+    private void addAccidentLines(List<Component> tooltip) {
+        String key = "create_nuclearindustry.accident.goggles.";
+        float containment = accidents.containmentPressure();
+        if (containment > 0) {
+            tooltip.add(goggleLine(Component.translatable(key + "containment", String.format(java.util.Locale.ROOT, "%.2f", containment),
+                    String.format(java.util.Locale.ROOT, "%.1f", accidents.containmentHydrogen() * 100)),
+                    accidents.containmentHydrogen() >= 0.04f ? ChatFormatting.GOLD : ChatFormatting.GRAY));
+        }
+        int rods = currentStructure.map(structure -> structure.uraniumRodCount).orElse(0);
+        double damage = accidents.cladding().damage(rods, PwrConfig.zirconiumPerRod);
+        if (damage >= 0.005) {
+            tooltip.add(goggleLine(Component.translatable(key + "cladding", Math.round(damage * 100)), ChatFormatting.RED));
+        }
+        if (accidents.vessel().breached()) {
+            tooltip.add(goggleLine(Component.translatable(key + "breached"), ChatFormatting.DARK_RED));
+        }
+    }
+
+    private static Component goggleLine(Component text, ChatFormatting style) {
+        return Component.literal("  ").append(text).withStyle(style);
     }
 
     private String getStructureDisplayName(ReactorDisplaySnapshot snapshot) {
@@ -1138,6 +1540,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.putBoolean("legacyScramHold", legacyScramHold);
         tag.putFloat("rodTarget", rodTarget);
         autoScram.save(tag);
+        tag.put("Pwr", primaryLoop.save());
+        tag.put("Accident", accidents.save());
     }
 
     private void writePendingDepleted(CompoundTag tag) {
@@ -1194,6 +1598,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         legacyScramHold = tag.contains("scramVersion") ? tag.getBoolean("legacyScramHold") : manualScram;
         rodTarget = tag.contains("rodTarget") ? tag.getFloat("rodTarget") : -1.0f;
         autoScram.load(tag);
+        // Saves from before the pressurized loop have none: the reactor boils its water as before.
+        if (tag.contains("Pwr")) {
+            primaryLoop.load(tag.getCompound("Pwr"));
+        }
+        accidents.load(tag.getCompound("Accident"));
         pendingRevalidation = true;
     }
 
@@ -1210,6 +1619,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.putBoolean("legacyScramHold", legacyScramHold);
         tag.putFloat("rodTarget", rodTarget);
         autoScram.save(tag);
+        tag.put("Pwr", primaryLoop.save());
+        tag.put("Accident", accidents.save());
         currentStructure.ifPresent(structure -> {
             tag.put("structure", writeStructureTag(structure));
             tag.put("controlRodScan", writeControlRodScanTag(lastControlRodScan));
@@ -1250,6 +1661,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         legacyScramHold = tag.getBoolean("legacyScramHold");
         rodTarget = tag.contains("rodTarget") ? tag.getFloat("rodTarget") : -1.0f;
         autoScram.load(tag);
+        primaryLoop.load(tag.getCompound("Pwr"));
+        accidents.load(tag.getCompound("Accident"));
         currentStructure = tag.contains("structure")
                 ? readStructureTag(tag.getCompound("structure"))
                 : Optional.empty();
@@ -1456,6 +1869,14 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         structureTag.putLongArray("reflectorColumns", writePositions(structure.reflectorColumns));
         structureTag.putDouble("moderation", structure.moderation);
         structureTag.putDouble("reflection", structure.reflection);
+        if (structure.pressurizer != null) {
+            CompoundTag pressurizer = new CompoundTag();
+            pressurizer.putLong("base", structure.pressurizer.base().asLong());
+            pressurizer.putInt("segments", structure.pressurizer.segments());
+            pressurizer.putLongArray("heaters", structure.pressurizer.heaterPorts().stream().mapToLong(BlockPos::asLong).toArray());
+            pressurizer.putLong("relief", structure.pressurizer.reliefValve().asLong());
+            structureTag.put("pressurizer", pressurizer);
+        }
         return structureTag;
     }
 
@@ -1491,6 +1912,15 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         readPositions(structureTag.getLongArray("reflectorColumns"), structure.reflectorColumns);
         structure.moderation = structureTag.getDouble("moderation");
         structure.reflection = structureTag.getDouble("reflection");
+        if (structureTag.contains("pressurizer")) {
+            CompoundTag pressurizer = structureTag.getCompound("pressurizer");
+            List<BlockPos> heaters = new ArrayList<>();
+            for (long heater : pressurizer.getLongArray("heaters")) {
+                heaters.add(BlockPos.of(heater));
+            }
+            structure.pressurizer = new PressurizerStack(BlockPos.of(pressurizer.getLong("base")), pressurizer.getInt("segments"),
+                    heaters, BlockPos.of(pressurizer.getLong("relief")));
+        }
         return Optional.of(structure);
     }
 

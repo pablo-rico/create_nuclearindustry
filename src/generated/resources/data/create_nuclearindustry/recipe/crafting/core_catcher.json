@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:containment_concrete"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    }
+  },
+  "pattern": [
+    "COC",
+    "OCO",
+    "COC"
+  ],
+  "result": {
+    "count": 4,
+    "id": "create_nuclearindustry:core_catcher"
+  }
+}

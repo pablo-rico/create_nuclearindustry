@@ -9,6 +9,10 @@
     "create_nuclearindustry:contaminated_water_bucket": {
       "per_second": 0.3
     },
+    "create_nuclearindustry:corium": {
+      "heat_per_second": 2.0,
+      "per_second": 20.0
+    },
     "create_nuclearindustry:crushed_raw_uranium": {
       "per_second": 0.01
     },
@@ -51,6 +55,9 @@
     "create_nuclearindustry:plutonium_rtg_pellet": {
       "per_second": 4.0
     },
+    "create_nuclearindustry:primary_coolant_bucket": {
+      "per_second": 0.5
+    },
     "create_nuclearindustry:radioactive_waste": {
       "per_second": 6.0
     },
@@ -59,6 +66,10 @@
     },
     "create_nuclearindustry:raw_uranium": {
       "per_second": 0.01
+    },
+    "create_nuclearindustry:solidified_corium": {
+      "heat_per_second": 0.5,
+      "per_second": 8.0
     },
     "create_nuclearindustry:spent_dt_pellet": {
       "per_second": 0.2

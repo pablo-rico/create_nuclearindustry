@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "open=false": {
+      "model": "create_nuclearindustry:block/relief_valve"
+    },
+    "open=true": {
+      "model": "create_nuclearindustry:block/relief_valve_open"
+    }
+  }
+}

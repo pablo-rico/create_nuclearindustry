@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "R": {
+      "item": "minecraft:iron_bars"
+    },
+    "S": {
+      "item": "minecraft:smooth_stone"
+    }
+  },
+  "pattern": [
+    "SRS",
+    "RSR",
+    "SRS"
+  ],
+  "result": {
+    "count": 8,
+    "id": "create_nuclearindustry:containment_concrete"
+  }
+}
