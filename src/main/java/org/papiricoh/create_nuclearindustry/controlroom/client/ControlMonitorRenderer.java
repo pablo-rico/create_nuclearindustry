@@ -193,9 +193,16 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
                 rows.add(row("temperature", fmt("%.0f °C", temperature), temperature / 4000f,
                         temperature >= 3500 ? BAD : temperature >= 2000 ? WARN : TEXT));
                 rows.add(row("power", fmt("%.0f MW", r.value(R_POWER)), r.value(R_POWER) / 1000f, TEXT));
+                if (r.flag(R_PWR)) {
+                    // A pressurized loop puts its own readings first: they are the ones that go wrong.
+                    pressurizedRows(r, rows);
+                }
                 float target = r.value(R_ROD_TARGET);
                 String rods = fmt("%.0f%%", r.value(R_RODS) * 100) + (target >= 0 ? fmt(" > %.0f%%", target * 100) : "");
                 rows.add(row("rods", rods, r.value(R_RODS), TEXT));
+                if (r.flag(R_PWR)) {
+                    plantRows(r, rows);
+                }
                 rows.add(row("xenon", fmt("-%.0f%%", r.value(R_XENON) * 100), r.value(R_XENON) / 0.5f,
                         r.value(R_XENON) >= 0.15f ? WARN : TEXT));
                 rows.add(row("coolant", fmt("%.0f%%", r.value(R_COOLANT) * 100), r.value(R_COOLANT),
@@ -240,9 +247,59 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
                 rows.add(row("exposure", fmt("%.2f rad/s", exposure), r.seriesA(), exposure >= 1 ? BAD : exposure >= 0.05f ? WARN : GOOD));
                 rows.add(row("ground", fmt("%.2f rad/s", r.value(A_GROUND)), r.seriesB(), r.value(A_GROUND) >= 0.05f ? WARN : GOOD));
             }
+            case STEAM_GENERATOR -> {
+                float level = r.value(S_LEVEL);
+                rows.add(row("level", fmt("%.0f%%", level * 100), level, level < 0.2f ? BAD : level < 0.35f ? WARN : TEXT));
+                rows.add(row("steam_made", fmt("%.0f mB/t", r.value(S_STEAM)), r.value(S_STEAM) / SG_STEAM_MAX, TEXT));
+                rows.add(row("heat", fmt("%.0f MW", r.value(S_HEAT)), r.value(S_HEAT) / SG_HEAT_MAX, TEXT));
+                rows.add(row("primary_dt", fmt("%.0f °C", r.value(S_PRIMARY_DT)), r.value(S_PRIMARY_DT) / SG_DT_MAX, TEXT));
+                rows.add(new Row(label("formed"), Component.translatable(KEY + (r.flag(S_FORMED) ? "yes" : "no")), -1,
+                        r.flag(S_FORMED) ? GOOD : BAD));
+            }
+            case CONTAINMENT -> {
+                float pressure = r.value(N_PRESSURE);
+                rows.add(row("pressure", fmt("%.2f bar", pressure), pressure / CONTAINMENT_PRESSURE_MAX,
+                        pressure >= 5 ? BAD : pressure >= 2 ? WARN : TEXT));
+                float hydrogen = r.value(N_H2);
+                rows.add(row("hydrogen", fmt("%.1f%%", hydrogen * 100), hydrogen / HYDROGEN_MAX,
+                        hydrogen >= 0.04f ? BAD : hydrogen >= 0.02f ? WARN : TEXT));
+                rows.add(new Row(label("sealed"), Component.translatable(KEY + (r.flag(N_SEALED) ? "yes" : "no")), -1,
+                        r.flag(N_SEALED) ? GOOD : BAD));
+                rows.add(new Row(label("vent"), Component.translatable(KEY + (r.flag(N_VENT) ? "open" : "closed")), -1,
+                        r.flag(N_VENT) ? WARN : TEXT));
+                rows.add(row("activity", fmt("%.2f", r.value(N_ACTIVITY)), -1, r.value(N_ACTIVITY) > 0 ? WARN : TEXT));
+                rows.add(row("volume", fmt("%.0f m³", r.value(N_VOLUME)), -1, TEXT));
+            }
             default -> rows.add(new Row(Component.empty(), Component.empty(), -1, TEXT));
         }
         return rows;
+    }
+
+    /** Primary loop readings that need watching most: pressure, subcooling, pressurizer and flow. */
+    private static void pressurizedRows(MonitorReading r, List<Row> rows) {
+        float pressure = r.value(R_PRESSURE);
+        rows.add(row("pressure", fmt("%.0f bar", pressure), pressure / PRESSURE_MAX,
+                pressure >= 170 ? BAD : pressure < 100 ? WARN : TEXT));
+        float subcooling = r.value(R_SUBCOOLING);
+        rows.add(row("subcooling", fmt("%.1f °C", subcooling), subcooling / SUBCOOLING_MAX,
+                subcooling < 10 ? BAD : subcooling < 20 ? WARN : GOOD));
+        float level = r.value(R_PZR_LEVEL);
+        rows.add(row("pzr_level", fmt("%.0f%%", level * 100), level, level < 0.2f || level > 0.9f ? WARN : TEXT));
+        float flow = r.value(R_FLOW);
+        rows.add(row("flow", fmt("%.0f mB/t", flow), flow / FLOW_MAX, flow <= 0 ? BAD : TEXT));
+    }
+
+    /** The rest of the plant around a pressurized reactor: legs, containment and the core's water. */
+    private static void plantRows(MonitorReading r, List<Row> rows) {
+        rows.add(row("legs", fmt("%.0f/%.0f °C", r.value(R_T_HOT), r.value(R_T_COLD)), r.value(R_T_HOT) / LEG_TEMPERATURE_MAX, TEXT));
+        float containment = r.value(R_CONT_PRESSURE);
+        rows.add(row("containment", fmt("%.2f bar", containment), containment / CONTAINMENT_PRESSURE_MAX,
+                containment >= 5 ? BAD : containment >= 2 ? WARN : TEXT));
+        float hydrogen = r.value(R_H2);
+        rows.add(row("hydrogen", fmt("%.1f%%", hydrogen * 100), hydrogen / HYDROGEN_MAX,
+                hydrogen >= 0.04f ? BAD : hydrogen >= 0.02f ? WARN : TEXT));
+        float vessel = r.value(R_VESSEL_LEVEL);
+        rows.add(row("vessel", fmt("%.0f%%", vessel * 100), vessel, vessel < 0.9f ? BAD : TEXT));
     }
 
     private static Component[] legend(TargetKind kind) {
@@ -251,6 +308,8 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
             case TURBINE -> new String[]{"steam_use", "speed"};
             case COOLING_TOWER -> new String[]{"condensing", "water"};
             case TOKAMAK -> new String[]{"plasma", "power"};
+            case STEAM_GENERATOR -> new String[]{"level", "steam_made"};
+            case CONTAINMENT -> new String[]{"pressure", "hydrogen"};
             default -> new String[]{"exposure", "ground"};
         };
         return new Component[]{label(keys[0]), label(keys[1])};

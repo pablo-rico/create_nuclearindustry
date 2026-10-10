@@ -78,9 +78,20 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
                     .rotateXDegrees(on ? 25 : -25).translate(-8 * PX, -1.5f * PX, -8 * PX);
             case LAMP -> CachedBuffers.partial(on ? DeskPartials.LAMP_LENS_LIT : DeskPartials.LAMP_LENS, state)
                     .color(lampColor(module.function()));
+            // The setpoint knob turns like a dial's.
+            case CONTROLLER -> pivot(CachedBuffers.partial(DeskPartials.CONTROLLER_KNOB, state), 8, 0, 6.75f)
+                    .rotateYDegrees(-(value - 0.5f) * 270).translate(-8 * PX, 0, -6.75f * PX);
         };
         part.light(module.type() == ModuleType.LAMP && on ? LightTexture.FULL_BRIGHT : light)
                 .renderInto(ms, buffers.getBuffer(RenderType.solid()));
+        if (module.type() == ModuleType.CONTROLLER) {
+            // Green while the loop drives the rods, dark in standby or with nothing to drive.
+            boolean driving = module.active() && module.engaged() && module.demand() >= 0;
+            CachedBuffers.partial(driving ? DeskPartials.CONTROLLER_LAMP_LIT : DeskPartials.CONTROLLER_LAMP, state)
+                    .color(0xFF5BE05B)
+                    .light(driving ? LightTexture.FULL_BRIGHT : light)
+                    .renderInto(ms, buffers.getBuffer(RenderType.solid()));
+        }
     }
 
     private static SuperByteBuffer pivot(SuperByteBuffer buffer, float x, float y, float z) {
@@ -118,9 +129,14 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
         MutableComponent title = module.label().isEmpty()
                 ? Component.translatable(module.function().translationKey())
                 : Component.literal(module.label());
-        Component detail = Component.translatable(module.active()
-                ? "create_nuclearindustry.control_module.state" : "create_nuclearindustry.control_module.inactive_short",
-                Math.round(module.shown() * 100), module.signal());
+        Component detail = !module.active()
+                ? Component.translatable("create_nuclearindustry.control_module.inactive_short")
+                : module.isController()
+                ? Component.translatable("create_nuclearindustry.control_module.controller_state", module.formatSetpoint(),
+                module.engaged() && module.demand() >= 0
+                        ? Component.literal(Math.round(module.demand() * 100) + "%")
+                        : Component.translatable("create_nuclearindustry.control_module.standby"))
+                : Component.translatable("create_nuclearindustry.control_module.state", Math.round(module.shown() * 100), module.signal());
         int background = (int) (Minecraft.getInstance().options.getBackgroundOpacity(0.25f) * 255.0f) << 24;
         font.drawInBatch(title, -font.width(title) / 2f, -10, 0xFFFFFFFF, false, ms.last().pose(), buffers,
                 Font.DisplayMode.SEE_THROUGH, background, LightTexture.FULL_BRIGHT);

@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomDevice;
 import org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
@@ -32,6 +33,7 @@ import java.util.Set;
  * console; its first block (lowest x, then z) holds the console's link and samples the target,
  * once per tick at most, for every module on every desk. Each desk keeps up to four modules,
  * works out what they show twice a second and puts their redstone out below or on a link frequency.
+ * Rod controller modules also step their loop every {@link ControlRoom2Config#pidInterval} ticks.
  */
 public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlRoomDevice {
     public static final int SLOTS = 4;
@@ -50,6 +52,7 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
     private boolean clusterDirty = true;
     private int clusterCheckCounter;
     private int evaluateCounter;
+    private int controlCounter;
     private int belowSignal;
 
     // Origin only: the sample shared by the console this tick.
@@ -94,10 +97,38 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
                 pulseEnded = true;
             }
         }
+        if (++controlCounter >= Math.max(1, ControlRoom2Config.pidInterval)) {
+            controlCounter = 0;
+            if (control()) {
+                pulseEnded = true;
+            }
+        }
         if (pulseEnded || ++evaluateCounter >= EVALUATE_INTERVAL) {
             evaluateCounter = 0;
             evaluate();
         }
+    }
+
+    /** Steps every controller module on this desk; true when one changed its demand. */
+    private boolean control() {
+        LinkedTarget.Resolved resolved = null;
+        MonitorReading reading = null;
+        boolean changed = false;
+        for (int slot = 0; slot < SLOTS; slot++) {
+            ControlModule module = modules[slot];
+            if (module == null || !slotOpen(slot) || !module.isController()) {
+                continue;
+            }
+            if (resolved == null) {
+                resolved = consoleTarget();
+                reading = consoleSample();
+            }
+            changed |= module.control(resolved, reading, ControlRoom2Config.pidInterval / 20.0, ControlRoom2Config.pidTuning());
+        }
+        if (changed) {
+            notifyUpdate();
+        }
+        return changed;
     }
 
     public Direction facing() {

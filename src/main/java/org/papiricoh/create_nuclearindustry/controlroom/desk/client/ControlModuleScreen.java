@@ -86,6 +86,8 @@ public class ControlModuleScreen extends AbstractContainerScreen<ControlModuleMe
             } else if (module.function() == ModuleFunction.READING) {
                 GaugeReading[] readings = GaugeReading.values();
                 module.withReading(readings[(module.reading().ordinal() + 1) % readings.length]);
+            } else if (module.isController()) {
+                module.withEngaged(!module.engaged());
             }
             changed();
         }).bounds(leftPos + 10, topPos + 66, 120, 20).build());
@@ -102,7 +104,7 @@ public class ControlModuleScreen extends AbstractContainerScreen<ControlModuleMe
     }
 
     private void step(int direction) {
-        int amount = module.function() == ModuleFunction.LAMP_ALARM ? (hasShiftDown() ? 1 : 5) : 1;
+        int amount = module.function() == ModuleFunction.LAMP_ALARM || module.isController() ? (hasShiftDown() ? 1 : 5) : 1;
         module.withSetting(module.setting() + direction * amount);
         changed();
     }
@@ -120,11 +122,14 @@ public class ControlModuleScreen extends AbstractContainerScreen<ControlModuleMe
         boolean alarm = module.function() == ModuleFunction.LAMP_ALARM;
         boolean gauge = module.function() == ModuleFunction.READING;
         boolean level = module.function() == ModuleFunction.SIGNAL_LEVEL;
-        parameterButton.visible = alarm || gauge;
+        boolean controller = module.isController();
+        parameterButton.visible = alarm || gauge || controller;
         parameterButton.setMessage(alarm ? Component.translatable(module.metric().getTranslationKey())
-                : gauge ? Component.translatable(module.reading().translationKey()) : Component.empty());
-        minusButton.visible = alarm || level;
-        plusButton.visible = alarm || level;
+                : gauge ? Component.translatable(module.reading().translationKey())
+                : controller ? Component.translatable(KEY + (module.engaged() ? "mode.auto" : "mode.standby"))
+                : Component.empty());
+        minusButton.visible = alarm || level || controller;
+        plusButton.visible = alarm || level || controller;
         outputButton.setMessage(Component.translatable(KEY + "output", Component.translatable(module.output().translationKey())));
     }
 
@@ -191,8 +196,19 @@ public class ControlModuleScreen extends AbstractContainerScreen<ControlModuleMe
                     : Integer.toString(module.setting());
             graphics.drawCenteredString(font, value, 162, 72, 0xFFFFFFFF);
         }
+        if (module.isController()) {
+            // Just the number between the buttons; the units go in the line below.
+            graphics.drawCenteredString(font, String.format(java.util.Locale.ROOT, "%.0f", module.setpoint()), 162, 72, 0xFFFFFFFF);
+        }
         if (module.output() == OutputMode.LINK) {
             graphics.drawString(font, Component.translatable(KEY + "frequency"), 10, 114, 0xFFB0B8B0, false);
+        } else if (module.isController()) {
+            ControlModule live = menu.module();
+            float demand = live != null ? live.demand() : -1;
+            Component state = demand >= 0 && module.engaged()
+                    ? Component.translatable(KEY + "controller_demand", Math.round(demand * 100))
+                    : Component.translatable(KEY + "standby");
+            graphics.drawString(font, Component.translatable(KEY + "setpoint", module.formatSetpoint(), state), 10, 114, 0xFFB0B8B0, false);
         }
         graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFFCCCCCC, false);
     }

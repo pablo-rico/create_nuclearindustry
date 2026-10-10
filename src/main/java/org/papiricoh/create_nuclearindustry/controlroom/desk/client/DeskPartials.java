@@ -24,6 +24,10 @@ public final class DeskPartials {
     public static final PartialModel GAUGE_NEEDLE = of("gauge_needle");
     public static final PartialModel KEY_SWITCH_BASE = of("key_switch_base");
     public static final PartialModel KEY_SWITCH_BAT = of("key_switch_bat");
+    public static final PartialModel CONTROLLER_BASE = of("controller_base");
+    public static final PartialModel CONTROLLER_KNOB = of("controller_knob");
+    public static final PartialModel CONTROLLER_LAMP = of("controller_lamp");
+    public static final PartialModel CONTROLLER_LAMP_LIT = of("controller_lamp_lit");
 
     private DeskPartials() {}
 
@@ -35,6 +39,7 @@ public final class DeskPartials {
             case LAMP -> LAMP_BASE;
             case GAUGE -> GAUGE_BASE;
             case KEY_SWITCH -> KEY_SWITCH_BASE;
+            case CONTROLLER -> CONTROLLER_BASE;
         };
     }
 

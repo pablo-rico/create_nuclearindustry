@@ -1,0 +1,7 @@
+// 1.21.1	2026-10-10T18:01:26.1643014	Control room instrument recipes
+62413b50bcd2dc3b0939c92988ce0176ad4048cb data/create_nuclearindustry/advancement/recipes/redstone/crafting/annunciator_panel.json
+9046b2bf9d5e72bc3b9eee516e7020ea51fe82ac data/create_nuclearindustry/advancement/recipes/redstone/crafting/chart_recorder.json
+2caefeabc9d04dd5ce02fa27de3b660139d3d22c data/create_nuclearindustry/advancement/recipes/redstone/crafting/controller_module.json
+ce3b1ef53a214513a9339456dc2503c230fb3253 data/create_nuclearindustry/recipe/crafting/annunciator_panel.json
+3e6485b40943418d69fefe83f68eb249a702a7ba data/create_nuclearindustry/recipe/crafting/chart_recorder.json
+3ac2610243edd10fea2bf2cd02e7219dba719a3c data/create_nuclearindustry/recipe/crafting/controller_module.json

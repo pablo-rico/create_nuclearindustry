@@ -6,8 +6,9 @@ import com.simibubi.create.foundation.gui.AllIcons;
 import java.util.Locale;
 
 /**
- * What a Nuclear Alarm watches. The threshold is a 0-100 setting, scaled to each metric's own units;
- * {@link #tripped} says whether a reading sets the alarm off. Readings come from a monitor sample.
+ * What a Nuclear Alarm, an alarm lamp or an annunciator window watches. The threshold is a 0-100
+ * setting, scaled to each metric's own units; {@link #tripped} says whether a reading sets the alarm
+ * off. Readings come from a monitor sample. Saved by ordinal, so new metrics always go at the end.
  */
 public enum AlarmMetric implements INamedIconOptions {
     TEMPERATURE(AllIcons.I_PRIORITY_VERY_HIGH, TargetKind.REACTOR) {
@@ -124,6 +125,184 @@ public enum AlarmMetric implements INamedIconOptions {
         float reading(MonitorReading reading) {
             return reading.value(MonitorReading.K_INSTABILITY);
         }
+    },
+    // Pressurized water loop, steam generator and containment. Saved by ordinal: new metrics go last.
+    PRESSURE_HIGH(AllIcons.I_PRIORITY_VERY_HIGH, TargetKind.REACTOR) {
+        @Override
+        public float scaled(int setting) {
+            return setting * MonitorReading.PRESSURE_MAX / 100f;
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.0f bar", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_PRESSURE);
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return pressurized(sample);
+        }
+    },
+    PRESSURE_LOW(AllIcons.I_PRIORITY_VERY_LOW, TargetKind.REACTOR) {
+        @Override
+        public float scaled(int setting) {
+            return PRESSURE_HIGH.scaled(setting);
+        }
+
+        @Override
+        public String format(int setting) {
+            return PRESSURE_HIGH.format(setting);
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_PRESSURE);
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return pressurized(sample);
+        }
+    },
+    SUBCOOLING_LOW(AllIcons.I_FX_BLEND, TargetKind.REACTOR) {
+        @Override
+        public float scaled(int setting) {
+            return setting * MonitorReading.SUBCOOLING_MAX / 100f;
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.1f°C", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_SUBCOOLING);
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return pressurized(sample);
+        }
+    },
+    PZR_LEVEL(AllIcons.I_FILL, TargetKind.REACTOR) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_PZR_LEVEL) * 100f;
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return pressurized(sample);
+        }
+    },
+    LOSS_OF_FLOW(AllIcons.I_PAUSE, TargetKind.REACTOR) {
+        @Override
+        public float scaled(int setting) {
+            return setting * MonitorReading.FLOW_MAX / 100f;
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.0f mB/t", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_FLOW);
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return pressurized(sample);
+        }
+    },
+    SG_LEVEL_LOW(AllIcons.I_FLATTEN, TargetKind.STEAM_GENERATOR) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.S_LEVEL) * 100f;
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return sample.kind() == TargetKind.STEAM_GENERATOR && sample.flag(MonitorReading.S_FORMED);
+        }
+    },
+    CONTAINMENT_PRESSURE(AllIcons.I_FX_FIELD_OFF, TargetKind.CONTAINMENT) {
+        @Override
+        public float scaled(int setting) {
+            return setting * MonitorReading.CONTAINMENT_PRESSURE_MAX / 100f;
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.1f bar", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.kind() == TargetKind.REACTOR
+                    ? reading.value(MonitorReading.R_CONT_PRESSURE)
+                    : reading.value(MonitorReading.N_PRESSURE);
+        }
+
+        @Override
+        public boolean watches(TargetKind kind) {
+            return kind == TargetKind.CONTAINMENT || kind == TargetKind.REACTOR;
+        }
+    },
+    HYDROGEN(AllIcons.I_PATTERN_CHANCE_25, TargetKind.CONTAINMENT) {
+        @Override
+        public float scaled(int setting) {
+            return setting * 0.1f;
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.1f%%", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return 100f * (reading.kind() == TargetKind.REACTOR
+                    ? reading.value(MonitorReading.R_H2)
+                    : reading.value(MonitorReading.N_H2));
+        }
+
+        @Override
+        public boolean watches(TargetKind kind) {
+            return kind == TargetKind.CONTAINMENT || kind == TargetKind.REACTOR;
+        }
     };
 
     private final AllIcons icon;
@@ -143,11 +322,29 @@ public enum AlarmMetric implements INamedIconOptions {
         return setting + "%";
     }
 
+    /** The kind of target this metric is meant for. */
     public TargetKind watches() {
         return watches;
     }
 
+    /** Whether a target of {@code kind} can set this metric off; containment metrics also read a reactor's containment. */
+    public boolean watches(TargetKind kind) {
+        return kind == watches;
+    }
+
     abstract float reading(MonitorReading reading);
+
+    /**
+     * Whether the sample carries this metric at all. Pressurized water metrics ignore a reactor that
+     * boils directly, which reports them as 0, so a low-pressure alarm does not sound on every such reactor.
+     */
+    boolean applies(MonitorReading sample) {
+        return watches(sample.kind());
+    }
+
+    private static boolean pressurized(MonitorReading sample) {
+        return sample.kind() == TargetKind.REACTOR && sample.flag(MonitorReading.R_PWR);
+    }
 
     /** True when the alarm sounds below the threshold rather than above it. */
     boolean below() {
@@ -161,7 +358,7 @@ public enum AlarmMetric implements INamedIconOptions {
 
     /** Whether this sample of the linked target sets the alarm off. Unrelated targets never do. */
     public boolean tripped(MonitorReading sample, int setting) {
-        return sample.kind() == watches && tripped(reading(sample), setting);
+        return applies(sample) && tripped(reading(sample), setting);
     }
 
     @Override

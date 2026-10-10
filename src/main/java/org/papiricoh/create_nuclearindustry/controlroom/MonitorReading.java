@@ -48,6 +48,11 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     public static final float AREA_GRAPH_MAX = 10.0f;
     /** Graph ceiling for tokamak power, in MW. */
     public static final float TOKAMAK_GRAPH_POWER = 1000.0f;
+    /** Full scale of gauges, pens and alarm thresholds for the pressurized water loop and containment. */
+    public static final float PRESSURE_MAX = 250.0f, LEG_TEMPERATURE_MAX = 400.0f, SUBCOOLING_MAX = 50.0f,
+            FLOW_MAX = 400.0f, CONTAINMENT_PRESSURE_MAX = 10.0f, HYDROGEN_MAX = 0.1f;
+    /** Full scale of steam generator gauges: steam made mB/t, heat moved MW, primary temperature drop °C. */
+    public static final float SG_STEAM_MAX = 1000.0f, SG_HEAT_MAX = 1000.0f, SG_DT_MAX = 100.0f;
     private static final String STATUS = "create_nuclearindustry.control_room.status.";
 
     public float value(int index) {

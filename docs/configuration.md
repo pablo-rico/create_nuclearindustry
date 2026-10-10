@@ -289,7 +289,28 @@ etiqueta `create_nuclearindustry:geologically_storable`.
 
 ## Instrumentos de la sala de control
 
-<!-- opciones controlRoom.*: las documenta su paquete de trabajo -->
+- `chartSamplesPerPaper` (240): muestras que dibuja un Registrador gráfico con
+  una hoja de papel. 240 llenan la gráfica entera; con una muestra por tick una
+  hoja dura 12 segundos y con una cada 20 ticks, 4 minutos. Sin papel el
+  registrador se para.
+- `annunciatorInterval` (10): ticks entre dos comprobaciones de las ventanas de
+  un Panel anunciador. Menos ticks detectan antes una alarma breve, a cambio de
+  muestrear más a menudo las máquinas enlazadas.
+- `pid.interval` (20): ticks entre dos pasos del Módulo controlador de barras.
+  Cada paso lee el reactor y mueve el objetivo de las barras; los pistones
+  siguen moviendo las barras de verdad.
+- `pid.gain` (1.5): ganancia proporcional. El error se mide en fracciones de la
+  escala completa (1000 MW de potencia o 4000 °C de temperatura) y la salida es
+  la inserción de las barras (0-1).
+- `pid.integral` (0.05): ganancia integral, por segundo. Es la que lleva el
+  reactor exactamente a la consigna; más alta corrige antes pero oscila más.
+- `pid.derivative` (0): ganancia derivativa, sobre la medida (cambiar la
+  consigna no da un salto). Apagada por defecto porque los pistones ya son lentos.
+- `pid.deadband` (0.01): error, en fracción de la escala, dentro del cual el
+  controlador deja las barras quietas para que no oscilen sin parar.
+- `pid.rateLimit` (0.05): cambio máximo del objetivo de las barras por segundo
+  (0 = sin límite). La salida se redondea además a segmentos enteros de barra
+  (1/altura interior del reactor), que es lo que pueden sostener los pistones.
 
 ## Defensa civil
 

@@ -1,0 +1,184 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_module_base",
+    "plate": "create_nuclearindustry:block/desk_module_base",
+    "part": "create_nuclearindustry:block/desk_controller"
+  },
+  "elements": [
+    {
+      "name": "plate",
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        0.5,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "east": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "south": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "west": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "up": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#plate",
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "scale",
+      "from": [
+        6,
+        0.5,
+        5.5
+      ],
+      "to": [
+        10,
+        0.75,
+        8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10,
+            2.5,
+            14,
+            2.75
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            10,
+            2.5,
+            12.5,
+            2.75
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            10,
+            2.5,
+            12.5,
+            2.75
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            10,
+            0,
+            14,
+            2.5
+          ],
+          "texture": "#part",
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "readout",
+      "from": [
+        5.5,
+        0.5,
+        8.5
+      ],
+      "to": [
+        10.5,
+        2.5,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            10,
+            4
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            0,
+            8,
+            4,
+            12
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            0,
+            8,
+            4,
+            12
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            0,
+            4,
+            10,
+            8
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            0,
+            4,
+            10,
+            8
+          ],
+          "texture": "#part",
+          "rotation": 180
+        }
+      }
+    }
+  ]
+}
