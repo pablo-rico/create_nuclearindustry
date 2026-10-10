@@ -48,6 +48,12 @@
     "create_nuclearindustry:fusion_turbine_rotor",
     "create_nuclearindustry:fusion_turbine_fluid_port",
     "create_nuclearindustry:fusion_plasma_turbine",
+    "create_nuclearindustry:compacted_waste_drum",
+    "create_nuclearindustry:cemented_waste_drum",
+    "create_nuclearindustry:vitrified_waste_canister",
+    "create_nuclearindustry:bentonite",
+    "create_nuclearindustry:repository_inspector",
+    "create_nuclearindustry:vitrification_melter",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

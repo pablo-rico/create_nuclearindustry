@@ -235,7 +235,33 @@ below for what changes in existing worlds.
 <!-- spentfuel: filled by its work package -->
 
 ### Waste management
-<!-- waste: filled by its work package -->
+- Waste now comes in three classes. The old Radioactive Waste keeps its id
+  and becomes Intermediate-Level Waste. New Low-Level Waste (mildly active)
+  comes from the Radiation Scrubber and from centrifuging contaminated water;
+  new High-Level Waste (fierce and warm to carry) comes from PUREX.
+- Each class has its treatment: low-level waste compacts with an iron sheet
+  into a Compacted Waste Drum, intermediate-level waste is cemented in a mixer
+  (waste, sand, gravel, an iron sheet and water) into a Cemented Waste Drum,
+  and high-level waste melts with sand and borax into a Vitrified Waste
+  Canister in the new Vitrification Melter, which sits on a lit Blaze Burner
+  (twice as fast superheated). Funnels and hoppers feed and empty it.
+- Waste packages (barrel, drums, canister) leak and irradiate according to
+  how well they are packed and buried. A geological repository is scored from
+  depth below the surface, host rock around the package (deepslate, tuff,
+  basalt...), backfill on its faces (new Bentonite, mixed from clay and borax,
+  or other packages) and the waste form, and any water nearby spoils it. From
+  a score of 80% a package is stored: no leak, no radiation.
+- New Repository Inspector: shows the stored packages within 8 blocks and the
+  score breakdown of the weakest one on goggles, feeds a Display Link and puts
+  the stored share out to comparators.
+- Upgrading: waste barrels below Y=0 that are not in a proper repository (no
+  bentonite, open caves, water nearby) now leak slightly and irradiate a
+  little. Set `waste.repository.legacyDepthRule = true` to keep the old
+  "below Y=0 is stored" rule.
+- Upgrading: PUREX now gives High-Level Waste and the scrubber Low-Level
+  Waste. Barrel compacting still takes intermediate- and high-level waste;
+  low-level waste goes into its own drum. A scrubber holding old waste waits
+  until it is emptied.
 
 ### Control room instruments
 <!-- controlroom2: filled by its work package -->

@@ -19,8 +19,12 @@ import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.ContaminationData;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.GeologicalStorage;
+import org.papiricoh.create_nuclearindustry.waste.WasteConfig;
 
-/** What leaves contamination behind, and how deep waste has to go to stop. */
+/**
+ * What leaves contamination behind, and how deep waste has to go to stop under the legacy
+ * depth rule (the repository score has its own tests in {@link RepositoryTests}).
+ */
 @GameTestHolder(Create_NuclearIndustry.MODID)
 @PrefixGameTestTemplate(false)
 public class FalloutSourcesTests {
@@ -63,7 +67,9 @@ public class FalloutSourcesTests {
         BlockState barrel = level.getBlockState(pos);
         helper.assertTrue(barrel.isRandomlyTicking(), "barrels should take random ticks");
         int storage = Config.geologicalStorageMaxY;
+        boolean legacy = WasteConfig.legacyDepthRule;
         try {
+            WasteConfig.legacyDepthRule = true;
             Config.geologicalStorageMaxY = pos.getY() - 1;
             barrel.randomTick(level, pos, level.random);
             float leaked = Contamination.get(level, new ChunkPos(pos));
@@ -74,6 +80,7 @@ public class FalloutSourcesTests {
             helper.assertTrue(Contamination.get(level, new ChunkPos(pos)) == leaked, "a stored barrel must not leak");
         } finally {
             Config.geologicalStorageMaxY = storage;
+            WasteConfig.legacyDepthRule = legacy;
             ContaminationTests.clean(helper, 0);
         }
         helper.succeed();
@@ -87,18 +94,21 @@ public class FalloutSourcesTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setPos(pos.getX() + 1.5, pos.getY(), pos.getZ() + 0.5);
         int storage = Config.geologicalStorageMaxY;
+        boolean legacy = WasteConfig.legacyDepthRule;
         try {
+            WasteConfig.legacyDepthRule = true;
             Config.geologicalStorageMaxY = pos.getY() - 1;
-            helper.assertFalse(GeologicalStorage.isStored(level.getBlockState(pos), pos), "above the depth it is not stored");
+            helper.assertFalse(GeologicalStorage.isStored(level, level.getBlockState(pos), pos), "above the depth it is not stored");
             double surface = RadiationHandler.exposureRate(player);
             helper.assertTrue(surface > 0.2, "a barrel next to you should irradiate, got " + surface);
 
             Config.geologicalStorageMaxY = pos.getY();
-            helper.assertTrue(GeologicalStorage.isStored(level.getBlockState(pos), pos), "at the depth it is stored");
+            helper.assertTrue(GeologicalStorage.isStored(level, level.getBlockState(pos), pos), "at the depth it is stored");
             double stored = RadiationHandler.exposureRate(player);
             helper.assertTrue(stored == 0, "a stored barrel should not irradiate, got " + stored);
         } finally {
             Config.geologicalStorageMaxY = storage;
+            WasteConfig.legacyDepthRule = legacy;
         }
         helper.succeed();
     }

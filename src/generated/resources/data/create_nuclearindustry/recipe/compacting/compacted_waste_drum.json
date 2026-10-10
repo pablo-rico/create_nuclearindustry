@@ -1,0 +1,37 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:low_level_waste"
+    },
+    {
+      "item": "create_nuclearindustry:low_level_waste"
+    },
+    {
+      "item": "create_nuclearindustry:low_level_waste"
+    },
+    {
+      "item": "create_nuclearindustry:low_level_waste"
+    },
+    {
+      "item": "create_nuclearindustry:low_level_waste"
+    },
+    {
+      "item": "create_nuclearindustry:low_level_waste"
+    },
+    {
+      "item": "create_nuclearindustry:low_level_waste"
+    },
+    {
+      "item": "create_nuclearindustry:low_level_waste"
+    },
+    {
+      "item": "create:iron_sheet"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:compacted_waste_drum"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitter;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitters;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
+import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,7 +29,8 @@ import java.util.List;
 /**
  * Once a second, removes contamination from its chunk and the chunks around it, most
  * contaminated first, at a rate that grows with speed up to 256 RPM. What it absorbs comes out
- * as radioactive waste in its one output slot; full, it stops. The waste inside irradiates.
+ * as low-level waste in its one output slot; full, it stops. The waste inside irradiates.
+ * Scrubbers saved with the old (intermediate-level) waste inside stay full until it is taken out.
  */
 public class RadiationScrubberBlockEntity extends KineticBlockEntity implements RadiationEmitter {
     public static final float RATED_SPEED = 256.0f;
@@ -39,7 +41,7 @@ public class RadiationScrubberBlockEntity extends KineticBlockEntity implements 
     private final ItemStackHandler output = new ItemStackHandler(1) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return stack.is(AllNuclearItems.RADIOACTIVE_WASTE.get());
+            return stack.is(WasteRegistry.LOW_LEVEL_WASTE.get()) || stack.is(AllNuclearItems.RADIOACTIVE_WASTE.get());
         }
 
         @Override
@@ -141,7 +143,7 @@ public class RadiationScrubberBlockEntity extends KineticBlockEntity implements 
         absorbed += lastRemoved;
         while (absorbed >= Config.scrubberWastePer && !isFull()) {
             absorbed -= (float) Config.scrubberWastePer;
-            output.insertItem(0, new ItemStack(AllNuclearItems.RADIOACTIVE_WASTE.get()), false);
+            output.insertItem(0, new ItemStack(WasteRegistry.LOW_LEVEL_WASTE.get()), false);
         }
         return lastRemoved;
     }
@@ -154,9 +156,9 @@ public class RadiationScrubberBlockEntity extends KineticBlockEntity implements 
         return Math.min(1.0, Math.abs(getSpeed()) / RATED_SPEED);
     }
 
+    /** No room for one more low-level waste: the slot is full, or still holds another kind of waste. */
     public boolean isFull() {
-        ItemStack stack = output.getStackInSlot(0);
-        return stack.getCount() >= stack.getMaxStackSize() && !stack.isEmpty();
+        return !output.insertItem(0, new ItemStack(WasteRegistry.LOW_LEVEL_WASTE.get()), true).isEmpty();
     }
 
     private List<LevelChunk> chunksByContamination(ServerLevel level) {

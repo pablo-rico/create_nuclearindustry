@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "create_nuclearindustry:block/vitrification_melter_bottom",
+    "side": "create_nuclearindustry:block/vitrification_melter_side",
+    "top": "create_nuclearindustry:block/vitrification_melter_top"
+  }
+}
