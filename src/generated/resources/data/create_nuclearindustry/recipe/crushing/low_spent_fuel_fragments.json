@@ -2,12 +2,16 @@
   "type": "create:crushing",
   "ingredients": [
     {
-      "type": "create_nuclearindustry:min_enrichment",
+      "type": "create_nuclearindustry:spent_fuel_grade",
       "base": {
-        "item": "create_nuclearindustry:depleted_uranium_reactor_fuel"
+        "type": "create_nuclearindustry:min_enrichment",
+        "base": {
+          "item": "create_nuclearindustry:depleted_uranium_reactor_fuel"
+        },
+        "max_enrichment": 15.0,
+        "min_enrichment": 3.0
       },
-      "max_enrichment": 15.0,
-      "min_enrichment": 3.0
+      "max_grade": "warm"
     }
   ],
   "processing_time": 200,
@@ -21,6 +25,10 @@
     {
       "chance": 0.5,
       "id": "minecraft:iron_nugget"
+    },
+    {
+      "chance": 0.25,
+      "id": "create_nuclearindustry:radioactive_waste"
     }
   ]
 }

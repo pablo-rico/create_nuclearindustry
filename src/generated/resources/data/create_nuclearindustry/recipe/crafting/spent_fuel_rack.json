@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "create_nuclearindustry:boron"
+    },
+    "I": {
+      "item": "minecraft:iron_bars"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "PBP",
+    "BIB",
+    "PBP"
+  ],
+  "result": {
+    "count": 2,
+    "id": "create_nuclearindustry:spent_fuel_rack"
+  }
+}

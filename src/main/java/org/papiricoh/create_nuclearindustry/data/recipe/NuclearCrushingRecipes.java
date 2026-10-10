@@ -7,10 +7,13 @@ import com.simibubi.create.foundation.recipe.IRecipeTypeInfo;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.spentfuel.CoolingGrade;
+import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelGradeIngredient;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -57,25 +60,71 @@ public class NuclearCrushingRecipes extends StandardProcessingRecipeGen<Crushing
             .output(RecipeHelpers.enriched(AllNuclearItems.URANIUM.get(), org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.DEPLETED, 9))
             .duration(250));
 
-    // Shearing spent fuel for reprocessing: the fragments keep the tier the fuel was made at.
-    GeneratedRecipe LOW_SPENT_FUEL = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.LOW);
-    GeneratedRecipe HIGH_SPENT_FUEL = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.HIGH);
+    // Shearing spent fuel for reprocessing: the fragments keep the tier the fuel was made at. Fuel left to
+    // cool in a pool rack or a dry cask first gives more fragments and less waste. Each recipe takes its
+    // own cooling grades, so whichever one Create finds first is the one meant for the fuel.
+    GeneratedRecipe LOW_SPENT_FUEL = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.LOW, SpentGrade.FRESH);
+    GeneratedRecipe LOW_SPENT_FUEL_COOLED = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.LOW, SpentGrade.COOLED);
+    GeneratedRecipe LOW_SPENT_FUEL_AGED = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.LOW, SpentGrade.AGED);
+    GeneratedRecipe HIGH_SPENT_FUEL = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.HIGH, SpentGrade.FRESH);
+    GeneratedRecipe HIGH_SPENT_FUEL_COOLED = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.HIGH, SpentGrade.COOLED);
+    GeneratedRecipe HIGH_SPENT_FUEL_AGED = spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.HIGH, SpentGrade.AGED);
 
     // Spent MOX is mostly depleted uranium: its fragments are of the depleted tier.
-    GeneratedRecipe MOX_SPENT_FUEL = create("mox_spent_fuel_fragments", b -> b
-            .require(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get())
-            .output(RecipeHelpers.enriched(AllNuclearItems.SPENT_FUEL_FRAGMENTS.get(),
-                    org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.DEPLETED))
-            .output(0.5f, Items.IRON_NUGGET)
-            .duration(200));
+    GeneratedRecipe MOX_SPENT_FUEL = moxSpentFuel(SpentGrade.FRESH);
+    GeneratedRecipe MOX_SPENT_FUEL_COOLED = moxSpentFuel(SpentGrade.COOLED);
+    GeneratedRecipe MOX_SPENT_FUEL_AGED = moxSpentFuel(SpentGrade.AGED);
 
-    private GeneratedRecipe spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier tier) {
-        return create(tier.id() + "_spent_fuel_fragments", b -> b
-                .require(org.papiricoh.create_nuclearindustry.enrichment.recipe.MinEnrichmentIngredient.tier(
-                        AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get(), tier))
-                .output(RecipeHelpers.enriched(AllNuclearItems.SPENT_FUEL_FRAGMENTS.get(), tier))
-                .output(0.5f, Items.IRON_NUGGET)
-                .duration(200));
+    /**
+     * Cooling grades one spent fuel recipe takes, and what cooling adds: a chance of a second fragment
+     * and a smaller chance of waste. {@code FRESH} keeps the old recipe ids and takes fuel without a history.
+     */
+    private enum SpentGrade {
+        FRESH(CoolingGrade.HOT, CoolingGrade.WARM, "", 0.0f, 0.25f),
+        COOLED(CoolingGrade.COOLED, CoolingGrade.COOLED, "_cooled", 0.25f, 0.1f),
+        AGED(CoolingGrade.AGED, CoolingGrade.AGED, "_aged", 0.5f, 0.0f);
+
+        final CoolingGrade min;
+        final CoolingGrade max;
+        final String suffix;
+        final float extraFragment;
+        final float waste;
+
+        SpentGrade(CoolingGrade min, CoolingGrade max, String suffix, float extraFragment, float waste) {
+            this.min = min;
+            this.max = max;
+            this.suffix = suffix;
+            this.extraFragment = extraFragment;
+            this.waste = waste;
+        }
+    }
+
+    private GeneratedRecipe spentFuel(org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier tier, SpentGrade grade) {
+        return spentFuel(tier.id() + "_spent_fuel_fragments" + grade.suffix, grade,
+                org.papiricoh.create_nuclearindustry.enrichment.recipe.MinEnrichmentIngredient.tier(
+                        AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get(), tier).toVanilla(), tier);
+    }
+
+    private GeneratedRecipe moxSpentFuel(SpentGrade grade) {
+        return spentFuel("mox_spent_fuel_fragments" + grade.suffix, grade,
+                Ingredient.of(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get()),
+                org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier.DEPLETED);
+    }
+
+    private GeneratedRecipe spentFuel(String name, SpentGrade grade, Ingredient fuel,
+                                      org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier fragmentTier) {
+        return create(name, b -> {
+            b.require(SpentFuelGradeIngredient.of(fuel, grade.min, grade.max))
+                    .output(RecipeHelpers.enriched(AllNuclearItems.SPENT_FUEL_FRAGMENTS.get(), fragmentTier));
+            if (grade.extraFragment > 0) {
+                b.output(grade.extraFragment, RecipeHelpers.enriched(AllNuclearItems.SPENT_FUEL_FRAGMENTS.get(), fragmentTier));
+            }
+            b.output(0.5f, Items.IRON_NUGGET);
+            if (grade.waste > 0) {
+                b.output(grade.waste, AllNuclearItems.RADIOACTIVE_WASTE.get());
+            }
+            return b.duration(200);
+        });
     }
 
     // A spent RTG capsule gives back its iron and a little residue.

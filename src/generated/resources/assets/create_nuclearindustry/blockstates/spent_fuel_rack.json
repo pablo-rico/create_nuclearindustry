@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "load=empty": {
+      "model": "create_nuclearindustry:block/spent_fuel_rack"
+    },
+    "load=glowing": {
+      "model": "create_nuclearindustry:block/spent_fuel_rack_glowing"
+    },
+    "load=loaded": {
+      "model": "create_nuclearindustry:block/spent_fuel_rack_loaded"
+    }
+  }
+}

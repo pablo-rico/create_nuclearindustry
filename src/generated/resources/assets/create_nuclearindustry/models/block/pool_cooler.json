@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "create_nuclearindustry:block/pool_cooler_bottom",
+    "side": "create_nuclearindustry:block/pool_cooler_side",
+    "top": "create_nuclearindustry:block/pool_cooler_top"
+  }
+}
