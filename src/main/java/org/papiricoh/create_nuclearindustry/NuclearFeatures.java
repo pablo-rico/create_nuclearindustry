@@ -3,6 +3,7 @@ package org.papiricoh.create_nuclearindustry;
 import net.minecraft.world.item.CreativeModeTab;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import org.papiricoh.create_nuclearindustry.accelerator.AcceleratorRegistry;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleRegistry;
@@ -28,7 +29,8 @@ public final class NuclearFeatures {
             CryoRegistry.INSTANCE,
             PlasmaHeatingRegistry.INSTANCE,
             ReactorVisualsRegistry.INSTANCE,
-            FuelCycleRegistry.INSTANCE);
+            FuelCycleRegistry.INSTANCE,
+            AcceleratorRegistry.INSTANCE);
 
     private NuclearFeatures() {}
 

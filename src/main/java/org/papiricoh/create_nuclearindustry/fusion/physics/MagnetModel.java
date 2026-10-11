@@ -132,6 +132,11 @@ public final class MagnetModel {
         return sectors * p.heliumPerSector() * (p.standbyShare() + (1 - p.standbyShare()) * field * field);
     }
 
+    /** Deposits heat in the coils, such as a lost beam hitting them; may push them over into a quench. */
+    public void heat(double kelvin) {
+        temperature = clamp(temperature + Math.max(0, kelvin), OPERATING_TEMPERATURE, AMBIENT_TEMPERATURE);
+    }
+
     /** Drops the field at once; the structure is gone. */
     public void dropField() {
         field = 0;

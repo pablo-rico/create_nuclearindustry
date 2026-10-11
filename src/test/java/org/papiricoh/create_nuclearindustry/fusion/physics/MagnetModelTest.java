@@ -106,4 +106,15 @@ class MagnetModelTest {
         }
         assertTrue(magnets.superconducting(P), "a well insulated cryostat stays cold for a while: " + magnets.getTemperature());
     }
+
+    @Test
+    void heatFromALostBeamQuenchesFieldedCoils() {
+        MagnetModel magnets = new MagnetModel();
+        magnets.restore(1.0, MagnetModel.OPERATING_TEMPERATURE);
+        assertFalse(magnets.quenching(P));
+        magnets.heat(60);
+        assertTrue(magnets.quenching(P), "60 K of beam heat takes them past their superconducting temperature");
+        magnets.heat(1000);
+        assertEquals(MagnetModel.AMBIENT_TEMPERATURE, magnets.getTemperature(), 1e-9, "never above ambient");
+    }
 }

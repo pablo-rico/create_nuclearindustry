@@ -254,6 +254,24 @@ public final class PlasmaModel {
         return new Outputs(dtBurn + ddBurn, dtBurn, tritiumBred, steam, ashOut, deuteriumOut, tritiumOut);
     }
 
+    /** Lowest density, as a fraction of the Greenwald limit, an antiproton dose can ignite. */
+    public static final double ANTIPROTON_IGNITION_DENSITY = 0.05;
+
+    /**
+     * A pulse of antiprotons annihilating in a heating plasma: the burst of energy lifts it straight
+     * past ignition. It only takes in a plasma that is dense enough and held well enough (last tick's
+     * {@link #getDensity()} and {@link #getConfinement()}); otherwise the energy is lost to the walls.
+     *
+     * @return whether the plasma took the dose
+     */
+    public boolean antiprotonIgnite() {
+        if (!hasPlasma() || confinement < STABLE_CONFINEMENT || density < ANTIPROTON_IGNITION_DENSITY) {
+            return false;
+        }
+        temperature = Math.max(temperature, IGNITION_TEMP * 1.05);
+        return true;
+    }
+
     /** Recharges the solenoid's volt-second budget; call while there is no plasma. */
     public void rechargeSolenoid(Params p) {
         solenoidFlux = Math.min(1.0, solenoidFlux + 1.0 / Math.max(1, p.solenoidRechargeTicks()));

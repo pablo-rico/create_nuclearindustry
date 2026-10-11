@@ -28,7 +28,8 @@ abstract class AreaDataGen {
             PlasmaHeatingDataGen.INSTANCE,
             ReactorVisualsDataGen.INSTANCE,
             FuelCycleDataGen.INSTANCE,
-            GuideDataGen.INSTANCE);
+            GuideDataGen.INSTANCE,
+            AcceleratorDataGen.INSTANCE);
 
     void lang() {}
 

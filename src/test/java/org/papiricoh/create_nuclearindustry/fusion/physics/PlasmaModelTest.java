@@ -317,4 +317,23 @@ class PlasmaModelTest {
         }
         assertEquals(1.0, model.getSolenoidFlux(), 1e-9);
     }
+
+    @Test
+    void anAntiprotonDoseIgnitesAWellHeldPlasma() {
+        PlasmaModel model = start();
+        run(model, Run.of(6).beams(0), 20);
+        assertTrue(model.getTemperature() < PlasmaModel.IGNITION_TEMP, "unheated, it stays cold");
+        assertTrue(model.antiprotonIgnite(), "a confined plasma of fair density takes the dose");
+        assertTrue(model.getTemperature() >= PlasmaModel.IGNITION_TEMP);
+    }
+
+    @Test
+    void anAntiprotonDoseIsWastedOnAPoorlyHeldPlasma() {
+        PlasmaModel model = start();
+        run(model, Run.of(6).beams(0).coverage(0.3), 20);
+        double before = model.getTemperature();
+        assertFalse(model.antiprotonIgnite(), "too little confinement");
+        assertEquals(before, model.getTemperature(), 1e-9);
+        assertFalse(new PlasmaModel().antiprotonIgnite(), "no plasma at all");
+    }
 }

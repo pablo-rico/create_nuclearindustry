@@ -4,6 +4,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import org.papiricoh.create_nuclearindustry.accelerator.client.AcceleratorClient;
 import org.papiricoh.create_nuclearindustry.civildefense.client.CivilDefenseClient;
 import org.papiricoh.create_nuclearindustry.controlroom.client.ControlRoom2Client;
 import org.papiricoh.create_nuclearindustry.fuelcycle.client.FuelCycleClient;
@@ -29,7 +30,8 @@ public final class NuclearFeaturesClient {
             CryoClient.INSTANCE,
             PlasmaHeatingClient.INSTANCE,
             ReactorVisualsClient.INSTANCE,
-            FuelCycleClient.INSTANCE);
+            FuelCycleClient.INSTANCE,
+            AcceleratorClient.INSTANCE);
 
     private NuclearFeaturesClient() {}
 

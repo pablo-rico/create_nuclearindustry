@@ -159,6 +159,7 @@ public class Config
         org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleConfig.define(BUILDER);
         PerformanceConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.accelerator.AcceleratorConfig.define(BUILDER);
     }
 
     static final ModConfigSpec SPEC = BUILDER.build();
@@ -274,5 +275,6 @@ public class Config
         org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsConfig.bake();
         org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleConfig.bake();
         PerformanceConfig.bake();
+        org.papiricoh.create_nuclearindustry.accelerator.AcceleratorConfig.bake();
     }
 }

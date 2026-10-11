@@ -1083,6 +1083,75 @@ por los chunks cercanos, y un reactor manda a los clientes una actualización co
 mucho cada 10 ticks (al instante si se forma, se rompe, hace SCRAM, se funde o se
 le rompe la vasija).
 
+## Acelerador de partículas
+
+Un acelerador va de un Controlador del acelerador a una fuente de iones, un linac
+(cavidades de radiofrecuencia), opcionalmente un anillo sincrotrón y una línea de
+haz hasta una estación de blanco o un absorbedor. La energía sale de sumar lo que
+añade cada etapa; la corriente que llega depende del vacío y del enfoque.
+
+- `accelerator.maxLineLength` (160): bloques que puede tener una línea de haz
+  (del controlador al blanco, o la de extracción de un anillo).
+- `accelerator.maxRingRadius` (96): radio máximo del anillo que busca el
+  controlador. Un anillo mayor llega a más energía.
+- `accelerator.beam.sourceCurrent` (200): corriente de la fuente de iones a pleno
+  rendimiento, en microamperios.
+- `accelerator.beam.copperCavityGain` (2,5) y
+  `accelerator.beam.superconductingCavityGain` (12): MeV que añade cada cavidad de
+  cobre o superconductora con toda su potencia de radiofrecuencia.
+- `accelerator.beam.copperCavityPower` (0,25) y
+  `accelerator.beam.superconductingCavityPower` (0,08): MW de radiofrecuencia que
+  necesita cada cavidad.
+- `accelerator.beam.normalDipoleField` (1,8) y
+  `accelerator.beam.superconductingDipoleField` (8): campo de los dipolos, en
+  tesla. La energía máxima de un anillo es 0,3 × campo × radio × fracción de
+  dipolos, en GeV (rigidez magnética).
+- `accelerator.beam.injectionRatio` (100): un anillo solo acepta haz de un linac
+  con al menos su energía máxima dividida por esto.
+- `accelerator.beam.ringDuty` (0,5): fracción del tiempo que un anillo entrega haz;
+  el resto lo pasa llenándose y acelerando.
+- `accelerator.klystron.ratedPower` (2), `.ratedSpeed` (128), `.minSpeed` (32) y
+  `.stress` (32): MW de radiofrecuencia de un Klistrón, a qué RPM los da, por
+  debajo de qué RPM no da nada y su impacto de estrés en SU por RPM.
+- `accelerator.magnetSupply.stress` (16), `.ratedSpeed` (64) y
+  `.magnetsPerSupply` (32): estrés y velocidad de una Fuente de alimentación de
+  imanes y cuántos imanes alimenta (los superconductores cuentan la mitad).
+- `accelerator.ionSource.stress` (8), `.ratedSpeed` (64) y `.hydrogenPerTick`
+  (0,5): estrés y velocidad de la Fuente de iones y el hidrógeno que gasta por tick
+  mientras hay haz.
+- `accelerator.vacuumPump.stress` (8), `.ratedSpeed` (64) y `.cellsPerPump` (24):
+  estrés y velocidad de una Bomba de vacío de la línea y cuántos bloques de línea
+  mantiene en vacío de haz.
+- `accelerator.energy.feInput` (true): las máquinas del acelerador aceptan también
+  Forge Energy de otros mods en lugar de rotación.
+- `accelerator.energy.fePerSu` (0,25): FE por tick que sustituye a un SU de
+  rotación (estrés × velocidad nominal).
+- `accelerator.activation.saturationPerKw` (0,5): actividad a la que llega una
+  pieza bajo un kW de haz perdido, en dosis por segundo a su lado. Sigue radiando
+  después de apagar y deja residuos radiactivos al desmontarla.
+- `accelerator.activation.halfLifeTicks` (12000): semivida de esa activación.
+- `accelerator.activation.promptDosePerKw` (2): dosis por segundo junto a un punto
+  que pierde un kW de haz, solo mientras hay haz.
+- `accelerator.activation.maxStrength` (500): dosis por segundo máxima de un punto
+  del acelerador.
+- `accelerator.interlock.locksDoors` (true): las puertas junto a un Enclavamiento
+  del haz no se abren a mano mientras hay haz; si se abren igualmente (redstone),
+  el haz salta.
+- `accelerator.interlock.requirePlayersOutside` (false): el acelerador no arranca
+  con un jugador a menos de 2 bloques de su línea de haz.
+- `accelerator.antimatter.thresholdGev` (25): energía por debajo de la cual un
+  blanco no produce antiprotones, en GeV.
+- `accelerator.antimatter.collectorEfficiency` (0,8): fracción de los antiprotones
+  que recoge el colector de la estación de blanco.
+- `antimatter.generator.burnPerMinute` (6): nanogramos de antiprotones que quema
+  un Generador de aniquilación a pleno rendimiento por minuto.
+- `antimatter.generator.capacity` (256): capacidad de estrés del generador a pleno
+  rendimiento, en SU por RPM (gira a 256 RPM).
+- `antimatter.generator.energy` (16384) y `antimatter.generator.feEnabled` (true):
+  FE por tick que da el generador en modo eléctrico, y si puede darla.
+- `antimatter.ignitionDose` (2): nanogramos que gasta un Inyector de antiprotones
+  para encender el plasma de un tokamak.
+
 ## Uranio y litio de otros mods
 
 - Materias primas: la etiqueta `create_nuclearindustry:raw_uranium` incluye
