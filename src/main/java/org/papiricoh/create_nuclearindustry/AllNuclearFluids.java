@@ -218,6 +218,17 @@ public class AllNuclearFluids {
         }
     }
 
+    /** Every bucket of a placeable fluid. */
+    public static List<Item> buckets() {
+        List<Item> buckets = new ArrayList<>();
+        for (NuclearFluid fluid : ALL) {
+            if (fluid.bucket != null) {
+                buckets.add(fluid.bucket.get());
+            }
+        }
+        return buckets;
+    }
+
     private static NuclearFluid gas(String name, int tint, int density, int viscosity, int temperature, int light) {
         return register(name, Look.GAS, tint, FluidType.Properties.create()
                 .density(density).viscosity(viscosity).temperature(temperature).lightLevel(light)

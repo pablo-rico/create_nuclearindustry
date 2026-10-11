@@ -10,8 +10,9 @@ The fuel channel (``blockstates/uranium_rod.json``) is a multipart of hand-writt
   bands with clear windows between them); the posts sample ``uranium_rod_sheath``.
 * ``uranium_rod_pellets_<fresh|half|spent>``: four fuel pins, 4px wide, sampled at u 0..4, 4..8,
   8..12 or 12..16, so the pin shading repeats every 4px. Darker as the fuel burns.
-* ``uranium_rod_water`` and ``uranium_rod_cherenkov``: opaque here; the models draw them translucent
-  with a vertex alpha (``neoforge_data.color``), the Cherenkov glow at full block and sky light.
+* ``uranium_rod_water`` (opaque here) and ``uranium_rod_cherenkov`` (streaks with clear gaps): the
+  models draw them translucent with a vertex alpha (``neoforge_data.color``), faint enough that the
+  green fuel shows through; the Cherenkov glow at full block and sky light.
 """
 
 from blocks import CUTOUT_BLOCKS, block  # noqa: F401
@@ -28,38 +29,76 @@ ZIRCALOY = [(88, 92, 92, 255), (112, 117, 116, 255), (138, 143, 140, 255), (162,
 
 # The viewport is a window; the sheath's plates and cage have open holes.
 CUTOUT_BLOCKS["reactor_viewport"] = (16, 16)
+CUTOUT_BLOCKS["reactor_viewport_connected"] = (64, 64)
 CUTOUT_BLOCKS["uranium_rod_plate"] = (16, 16)
 CUTOUT_BLOCKS["uranium_rod_cage"] = (16, 16)
+CUTOUT_BLOCKS["uranium_rod_cherenkov"] = (16, 16)
 
 
 # ======================================================================================
 # viewport
 # ======================================================================================
 
-@block("reactor_viewport")
-def reactor_viewport():
-    """A thick rolled-steel frame bolted round a lead-glass pane, matching the reactor casing."""
+def _viewport_tile(t, ox, oy, left, right, top, bottom):
+    """One 16x16 pane at (ox, oy): the rolled-steel frame and the lead glass's amber retaining
+    ring only on the sides that meet something other than another viewport, so a wall of them
+    reads as one big window. Glints use tile-local spots, the same on every tile."""
     steel = REACTOR_STEEL
-    t = Tex(seed=901)
-    bevel(t, 0, 0, 15, 15, steel, hi=steel[5], lo=steel[1])
-    bevel(t, 1, 1, 14, 14, steel, hi=steel[4], lo=steel[2], corner=False)
-    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
-        rivet(t, x, y, steel)
-    t.frame(2, 2, 13, 13, steel[0])
-    # Lead glass is faintly amber: its retaining ring is, lit top-left, shadowed bottom-right.
     amber_hi = mix(WARN[5], LEAD[5], 0.45)
     amber_lo = mix(WARN[2], LEAD[2], 0.55)
-    t.hline(3, 12, 3, amber_hi)
-    t.vline(3, 3, 12, amber_hi)
-    t.hline(3, 12, 12, amber_lo)
-    t.vline(12, 3, 12, amber_lo)
-    t.rect(4, 4, 11, 11, CLEAR)
-    # Two glints on the glass, opaque so cutout rendering keeps them.
-    t.set(5, 5, WHITE)
-    t.set(6, 4, amber_hi)
-    t.set(4, 6, amber_hi)
-    t.set(9, 10, amber_hi)
-    t.set(10, 9, amber_hi)
+    for y in range(16):
+        for x in range(16):
+            t.set(ox + x, oy + y, CLEAR)
+    # Frame: two pixels of steel, lit top-left, then a dark seam and the amber ring.
+    for i in range(16):
+        if top:
+            t.set(ox + i, oy, steel[5])
+            t.set(ox + i, oy + 1, steel[4])
+            t.set(ox + i, oy + 2, steel[0])
+            t.set(ox + i, oy + 3, amber_hi)
+        if bottom:
+            t.set(ox + i, oy + 15, steel[1])
+            t.set(ox + i, oy + 14, steel[2])
+            t.set(ox + i, oy + 13, steel[0])
+            t.set(ox + i, oy + 12, amber_lo)
+        if left:
+            t.set(ox, oy + i, steel[5])
+            t.set(ox + 1, oy + i, steel[4])
+            t.set(ox + 2, oy + i, steel[0])
+            t.set(ox + 3, oy + i, amber_hi)
+        if right:
+            t.set(ox + 15, oy + i, steel[1])
+            t.set(ox + 14, oy + i, steel[2])
+            t.set(ox + 13, oy + i, steel[0])
+            t.set(ox + 12, oy + i, amber_lo)
+    # A rivet holds each corner where two framed sides meet.
+    for cx, cy, on in ((1, 1, top and left), (14, 1, top and right), (1, 14, bottom and left), (14, 14, bottom and right)):
+        if on:
+            rivet(t, ox + cx - (1 if cx > 8 else 0), oy + cy - (1 if cy > 8 else 0), steel)
+    # One small glint on the glass, opaque so cutout rendering keeps it.
+    t.set(ox + 6, oy + 5, WHITE)
+    t.set(ox + 5, oy + 6, amber_hi)
+
+
+@block("reactor_viewport")
+def reactor_viewport():
+    """A lead-glass pane in a rolled-steel frame, matching the reactor casing (the item and a lone viewport)."""
+    t = Tex(seed=901)
+    _viewport_tile(t, 0, 0, True, True, True, True)
+    return t
+
+
+@block("reactor_viewport_connected")
+def reactor_viewport_connected():
+    """Create's RECTANGLE layout: 4x4 tiles, index = col + 4*row.
+    col 0 isolated, 1 joined right, 2 joined both, 3 joined left;
+    row 0 joined down, 1 joined both, 2 joined up, 3 isolated."""
+    t = Tex(64, 64, 903)
+    for row in range(4):
+        for col in range(4):
+            _viewport_tile(t, col * 16, row * 16,
+                           left=col in (0, 1), right=col in (0, 3),
+                           top=row in (0, 3), bottom=row in (2, 3))
     return t
 
 
@@ -149,7 +188,7 @@ def _pellets(seed, ceramic, cladding):
 @block("uranium_rod_pellets_fresh")
 def uranium_rod_pellets_fresh():
     # Fresh oxide: the bright uranium green of the mod's fuel.
-    ceramic = [URANIUM[6], URANIUM[5], URANIUM[4], URANIUM[1]]
+    ceramic = [URANIUM[5], URANIUM[4], URANIUM[3], URANIUM[0]]
     return _pellets(905, ceramic, ZIRCALOY[3:])
 
 
@@ -175,7 +214,7 @@ def uranium_rod_water():
     for y in range(16):
         for x in range(16):
             n = fbm(x, y, 908, 16, 16, 3, 5.0)
-            t.set(x, y, MIMIC_BLUE[3] if n < 0.45 else MIMIC_BLUE[4] if n < 0.7 else CYAN[4])
+            t.set(x, y, MIMIC_BLUE[5] if n < 0.45 else MIMIC_BLUE[6] if n < 0.7 else CYAN[6])
     # rising bubbles
     for x, y in ((3, 12), (4, 9), (3, 6), (11, 13), (12, 10), (11, 4), (7, 2)):
         t.set(x, y, CYAN[6])
@@ -184,15 +223,17 @@ def uranium_rod_water():
 
 @block("uranium_rod_cherenkov")
 def uranium_rod_cherenkov():
-    """The Cherenkov glow round running fuel: bright electric blue, streaked upwards.
-    Drawn translucent and at full light by its models; brighter models only raise its alpha."""
+    """The Cherenkov glow round running fuel: electric blue streaks rising along the pins, clear
+    between them so the green fuel shows through. Drawn translucent and at full light by its
+    models; brighter models only raise its alpha."""
     t = Tex(seed=909)
     for y in range(16):
         for x in range(16):
-            n = fbm(x * 0.5, y * 0.15, 909, 16, 16, 2, 4.0)
-            t.set(x, y, MIMIC_BLUE[6] if n > 0.62 else MIMIC_BLUE[5] if n > 0.4 else MIMIC_BLUE[4])
-    for x in (2, 6, 9, 13):
+            t.set(x, y, CLEAR)
+    # One streak by each pin's edge (pins repeat every 4px), broken up as it rises.
+    for x in (0, 3, 4, 7, 8, 11, 12, 15):
         for y in range(16):
-            if (y + x) % 5 != 0:
-                t.set(x, y, mix(MIMIC_BLUE[6], WHITE, 0.45))
+            n = fbm(x * 0.5, y * 0.3, 909, 16, 16, 2, 4.0)
+            if n > 0.38:
+                t.set(x, y, mix(MIMIC_BLUE[6], WHITE, 0.35) if n > 0.62 else MIMIC_BLUE[5])
     return t

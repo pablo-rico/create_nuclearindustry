@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsRegistry;
 
 /** Wraps the baked block models that use connected textures. The item model stays plain. */
 public final class NuclearModelSwaps {
@@ -16,6 +17,10 @@ public final class NuclearModelSwaps {
         SimpleCTBehaviour glass = new SimpleCTBehaviour(NuclearSpriteShifts.TURBINE_GLASS);
         for (BlockState state : AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get().getStateDefinition().getPossibleStates()) {
             event.getModels().computeIfPresent(BlockModelShaper.stateToModelLocation(state), (location, model) -> new CTModel(model, glass));
+        }
+        SimpleCTBehaviour viewport = new SimpleCTBehaviour(NuclearSpriteShifts.REACTOR_VIEWPORT);
+        for (BlockState state : ReactorVisualsRegistry.REACTOR_VIEWPORT.get().getStateDefinition().getPossibleStates()) {
+            event.getModels().computeIfPresent(BlockModelShaper.stateToModelLocation(state), (location, model) -> new CTModel(model, viewport));
         }
     }
 }

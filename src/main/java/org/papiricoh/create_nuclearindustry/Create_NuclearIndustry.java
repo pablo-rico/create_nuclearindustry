@@ -106,6 +106,7 @@ public class Create_NuclearIndustry {
             modEventBus.addListener(ClientModEvents::onRegisterRenderers);
             modEventBus.addListener(ClientModEvents::onRegisterGeometryLoaders);
             modEventBus.addListener(AllNuclearFluids::registerClientExtensions);
+            modEventBus.addListener(org.papiricoh.create_nuclearindustry.client.NuclearItemColors::register);
             modEventBus.addListener(ClientConfig::onLoad);
             modEventBus.addListener(ClientConfig::onReload);
             modEventBus.addListener(org.papiricoh.create_nuclearindustry.radiation.contamination.client.ContaminationParticles::registerProviders);
