@@ -184,7 +184,11 @@ sustituyen a parte de las barras. Un reactor sin barras que marca −8000 de
   atraviesa. Una columna de reflector, grafito o solo aire bajo una tapa de
   carcasa no es canal: el reactor lo nota en unos ticks, pierde esa capacidad de
   barras (y gana la reflexión o moderación) sin enfriarse ni desformarse. Las
-  barras movidas con pistones conservan su canal y nunca hacen revalidar.
+  barras movidas con pistones conservan su canal y nunca hacen revalidar. Un
+  canal con la tapa abierta (barras en pistón) que se rellena de reflector o
+  grafito no es ni canal ni columna válida: el reactor se para y el controlador
+  dice que hay que tapar esa columna con carcasa; al taparla vuelve a formarse
+  con la columna nueva.
 
 | Opción | Por defecto | Qué hace |
 |---|---|---|
@@ -1228,9 +1232,18 @@ Sin opción propia:
   por chunk, no recorriendo todas las del mundo.
 - Los eventos de bloque solo llegan a los multibloques cuyos límites (guardados al
   indexarlos) contienen la posición; un acelerador sin formar escucha a 32 bloques
-  de su controlador (más los límites de su última estructura formada), y un tokamak
-  sin formar solo donde puede estar su toro. Hacer clic en el controlador siempre
-  comprueba la estructura entera.
+  de su controlador (más los límites de su última estructura formada), un tokamak
+  sin formar solo donde puede estar su toro, y una torre de refrigeración sin
+  formar solo detrás de su controlador (mira hacia fuera de la torre) y, en cuanto
+  el suelo está puesto, solo sobre ese suelo y las paredes que puede llevar. Una
+  turbina sin formar escucha la caja de la turbina más grande posible (7×7×16), que
+  ya es pequeña. Hacer clic en el controlador siempre comprueba la estructura
+  entera.
+- Los objetivos de área de la sala de control (monitores, alarmas, anunciadores)
+  guardan la lectura de radiación completa del punto (escaneo de bloques, fuentes,
+  lluvia radiactiva y rayos) durante 20 ticks, el mismo intervalo con que se lee a
+  los jugadores, salvo que cambie un bloque a menos de 3 chunks; varios aparatos
+  sobre el mismo punto la comparten.
 - Los puertos de fluido, las tuberías dobles y las penetraciones de contención
   recuerdan los tanques y tuberías vecinos y su controlador en vez de buscarlos
   cada tick; una tubería doble que cambia el fluido que muestra ya no manda

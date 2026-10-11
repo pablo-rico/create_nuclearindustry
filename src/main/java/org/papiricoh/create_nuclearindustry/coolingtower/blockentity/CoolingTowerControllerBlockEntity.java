@@ -5,6 +5,8 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -69,6 +71,8 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
     private boolean pendingRevalidation = true;
     /** The tallest tower this controller could form; it stands still, so the box is made once. */
     private BoundingBox unformedBounds;
+    /** The facing {@link #unformedBounds} was worked out for: a wrench turns the search box round. */
+    private Direction unformedFacing;
     private int currentUse;
     private float recentUse;
     private double fanBoost;
@@ -211,19 +215,54 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
         pendingRevalidation = true;
     }
 
+    /**
+     * Formed: the tower and the two layers above it. Unformed: where the tower it is looking for can
+     * be. The controller stands on the tower's side facing out, so that is the space behind it, as
+     * deep as the widest tower and as high as the tallest; once the floor is laid the box narrows to
+     * that floor and the walls it can carry ({@link CoolingTowerStructureValidator#locateFootprint}).
+     * Changes elsewhere do not wake an unformed tower; a click on the controller still checks everything.
+     */
     @Override
     public BoundingBox interestBounds() {
         if (structure.isPresent()) {
             BoundingBox box = structure.get().bounds();
             return new BoundingBox(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY() + 2, box.maxZ());
         }
-        if (unformedBounds == null) {
-            int reach = 2 * CoolingTowerGeometry.MAX_BASE_RADIUS + 1;
-            BlockPos pos = getBlockPos();
-            unformedBounds = new BoundingBox(pos.getX() - reach, pos.getY() - 1, pos.getZ() - reach,
-                    pos.getX() + reach, pos.getY() + CoolingTowerGeometry.ABSOLUTE_MAX_HEIGHT, pos.getZ() + reach);
+        Direction out = facing();
+        if (unformedBounds == null || unformedFacing != out) {
+            unformedFacing = out;
+            unformedBounds = searchBounds(out);
         }
         return unformedBounds;
+    }
+
+    private Direction facing() {
+        BlockState state = getBlockState();
+        return state.hasProperty(BlockStateProperties.HORIZONTAL_FACING) ? state.getValue(BlockStateProperties.HORIZONTAL_FACING) : Direction.NORTH;
+    }
+
+    /** Behind the controller, as deep and wide as the widest tower and as high as the tallest. */
+    private BoundingBox searchBounds(Direction out) {
+        BlockPos pos = getBlockPos();
+        int depth = 2 * CoolingTowerGeometry.MAX_BASE_RADIUS + 2;
+        int side = CoolingTowerGeometry.MAX_BASE_RADIUS + 1;
+        BlockPos far = pos.relative(out.getOpposite(), depth);
+        BlockPos near = pos.relative(out);
+        Direction.Axis across = out.getClockWise().getAxis();
+        int sideX = across == Direction.Axis.X ? side : 0;
+        int sideZ = across == Direction.Axis.Z ? side : 0;
+        return new BoundingBox(Math.min(far.getX(), near.getX()) - sideX, pos.getY() - 1, Math.min(far.getZ(), near.getZ()) - sideZ,
+                Math.max(far.getX(), near.getX()) + sideX, pos.getY() + CoolingTowerGeometry.ABSOLUTE_MAX_HEIGHT, Math.max(far.getZ(), near.getZ()) + sideZ);
+    }
+
+    /** Works out {@link #unformedBounds} from the blocks there now; true when they changed. */
+    private boolean updateUnformedBounds() {
+        Direction out = facing();
+        BoundingBox next = CoolingTowerStructureValidator.locateFootprint(level, getBlockPos()).orElseGet(() -> searchBounds(out));
+        boolean changed = !next.equals(unformedBounds);
+        unformedBounds = next;
+        unformedFacing = out;
+        return changed;
     }
 
     @Override
@@ -263,6 +302,9 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
             }
         } else {
             setStructure(Optional.empty());
+            if (updateUnformedBounds()) {
+                MultiblockRegistry.reindex(this);
+            }
             if (playerInitiated || wasFormed) {
                 messenger.status(level, playerInitiated ? player : null, Component.translatable(KEY + (wasFormed ? "message.broken" : "message.incomplete"),
                         MultiblockText.text(result.primaryMessage())).withStyle(ChatFormatting.RED));

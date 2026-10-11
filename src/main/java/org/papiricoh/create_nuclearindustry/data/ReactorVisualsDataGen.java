@@ -142,6 +142,8 @@ final class ReactorVisualsDataGen extends AreaDataGen {
         LangEntries.add(v + "no_control_rods", "No control rod columns; reactor will be difficult to control",
                 "Sin columnas de barras de control: el reactor será difícil de controlar");
         LangEntries.add(v + "channel_blocked", "Control rod channel blocked at %s", "Canal de barras de control bloqueado en %s");
+        LangEntries.add(v + "channel_converted", "Column at %s was a control rod channel: cap it with Reactor Casing to use it as a reflector or moderator column",
+                "La columna de %s era un canal de barras: tápala con carcasa de reactor para usarla como columna de reflector o moderador");
         LangEntries.add(v + "extra_pressurizer", "A reactor takes one pressurizer; the one at %s is ignored",
                 "Un reactor admite un solo presurizador; se ignora el de %s");
     }

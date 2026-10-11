@@ -172,6 +172,38 @@ public class ReactorChannelTests {
         });
     }
 
+    /**
+     * Rods driven by a piston leave their lid open; a column filled with reflector under an open lid
+     * is no reflector column (the shell has a hole) nor a channel: the reactor stops and says so, and
+     * capping the lid makes it the reflector column the player wanted.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void aReflectorInAnOpenChannelAsksForItsLid(GameTestHelper helper) {
+        FissionTestBuilder.build(helper, false);
+        ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(reactor.isFormed(), "reactor should form with its open channel");
+            for (int y = 1; y <= INNER; y++) {
+                helper.setBlock(channel(y), AllNuclearBlocks.BERYLLIUM_REFLECTOR.get());
+            }
+        });
+        helper.runAfterDelay(10 + SETTLE, () -> {
+            helper.assertFalse(reactor.isFormed(), "a reflector column under an open lid is neither a channel nor a column");
+            boolean converted = reactor.getLastValidation().errors().stream()
+                    .anyMatch(error -> MultiblockText.key(error).equals(ReactorStructureValidator.CHANNEL_CONVERTED));
+            helper.assertTrue(converted, "and the reactor says the column needs its lid: " + reactor.getLastValidation().errors());
+            helper.setBlock(LID, AllNuclearBlocks.REACTOR_CASING.get());
+        });
+        helper.runAfterDelay(10 + 2 * SETTLE, () -> {
+            ReactorStructureValidator.ReactorStructure structure = structure(helper, reactor);
+            helper.assertTrue(reactor.isFormed(), "capped, it forms again: " + reactor.getLastValidation().errors());
+            helper.assertTrue(structure.controlChannels.isEmpty() && structure.controlRodCount == 0, "without the channel: " + structure.controlRodCount);
+            helper.assertTrue(structure.reflection == 1.0 / 8.0 && reactor.getPhysicsSimulator().getReflection() == structure.reflection,
+                    "as a reflector column, got " + structure.reflection);
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void aHalfRebuiltChannelKeepsTheLastStructure(GameTestHelper helper) {
         FissionTestBuilder.build(helper);

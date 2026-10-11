@@ -1,9 +1,11 @@
 package org.papiricoh.create_nuclearindustry.radiation.cache;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -47,7 +49,20 @@ public final class RadiationCaches {
         /** Rays to fixed spots of this level; keys hold the spot's block, so one cache serves them all. */
         final RayCache spots = new RayCache();
         long lastSpotPrune = Long.MIN_VALUE;
+        /** Whole readings of monitored spots by packed block position, see {@link SpotReading}. */
+        final Long2ObjectOpenHashMap<SpotReading> spotReadings = new Long2ObjectOpenHashMap<>();
     }
+
+    /**
+     * A monitored spot's whole ambient rate: the block scan, the emitter and fallout lookups, the
+     * ground and every ray, taken at {@code time} and valid for {@link #SPOT_READING_TICKS} (the
+     * players' own update interval) as long as no chunk around the spot changed after
+     * {@code sequence} was issued by the level's {@link ChunkChangeLog}.
+     */
+    public record SpotReading(double rate, long time, long sequence) {}
+
+    /** Ticks a spot's whole reading is reused: players are read every 20 ticks, so are spots. */
+    public static final int SPOT_READING_TICKS = 20;
 
     /** One player's cached rays, for the level they were cast in. */
     public static final class PlayerCache {
@@ -91,8 +106,29 @@ public final class RadiationCaches {
         if (changes.lastSpotPrune != now) {
             changes.lastSpotPrune = now;
             changes.spots.prune(now, PerformanceConfig.radiationRayCacheTicks, PerformanceConfig.radiationRayMaxAgeTicks);
+            changes.spotReadings.values().removeIf(reading -> now - reading.time() >= SPOT_READING_TICKS || now < reading.time());
         }
         return changes.spots;
+    }
+
+    /** The last whole reading of the spot at packed position {@code key}, if any is kept. */
+    @Nullable
+    public static SpotReading spotReading(Level level, long key) {
+        return changesOf(level).spotReadings.get(key);
+    }
+
+    public static void rememberSpotReading(Level level, long key, SpotReading reading) {
+        changesOf(level).spotReadings.put(key, reading);
+    }
+
+    /** Whether any cache of {@code level} is still held, for tests of the unload clean-up. */
+    public static boolean tracks(Level level) {
+        return CHANGES.containsKey(level);
+    }
+
+    /** Whether a player's cache is still held, for tests of the stop clean-up. */
+    public static boolean tracks(Player player) {
+        return PLAYERS.containsKey(player);
     }
 
     /** Records that the block at {@code pos} changed, so rays across its chunk are cast again. */

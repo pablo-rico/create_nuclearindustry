@@ -24,6 +24,8 @@ public final class RadiationStats {
     public int emitterChunks;
     /** Fallout sources looked at (those in the chunks around the body). */
     public int falloutSources;
+    /** Whole readings of a monitored spot answered from the last one, without any scan or ray. */
+    public int spotReadingsReused;
 
     private RadiationStats() {}
 
@@ -45,6 +47,7 @@ public final class RadiationStats {
     @Override
     public String toString() {
         return "blocks " + blockLookups + ", sections " + sectionsScanned + " read / " + sectionsSkipped + " skipped, rays "
-                + raysCast + " cast / " + raysReused + " reused, emitter chunks " + emitterChunks + ", fallout sources " + falloutSources;
+                + raysCast + " cast / " + raysReused + " reused, emitter chunks " + emitterChunks + ", fallout sources " + falloutSources
+                + (spotReadingsReused > 0 ? ", spot reading reused" : "");
     }
 }

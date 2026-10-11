@@ -130,8 +130,11 @@ below for what changes in existing worlds.
   or unforming it, and putting a rod back makes it a channel again. Rods
   driven by Create pistons, with the piston pole in the lid or gaps above
   and below them, keep their channel and never make the reactor recheck
-  itself. A reactor saved with such a leftover channel, or whose core was
-  changed while unloaded, gets the right rod capacity when it loads.
+  itself. A reflector or moderator put into a channel whose lid is open (rods
+  on a piston) stops the reactor with a message to cap that column with
+  casing; capped, it forms again with the new column. A reactor saved with
+  such a leftover channel, or whose core was changed while unloaded, gets the
+  right rod capacity when it loads.
 
 ### Control room
 - Control Room Linker: click any block of a reactor, turbine or cooling tower
@@ -262,8 +265,14 @@ below for what changes in existing worlds.
   when a controller is indexed, chunk unloads only look at that chunk's
   controllers, and an unformed accelerator listens 32 blocks around its
   controller (plus the bounds of its last formed structure) instead of 160; an
-  unformed tokamak only where its torus can be. Clicking the controller still
-  checks the whole structure.
+  unformed tokamak only where its torus can be, and an unformed cooling tower
+  only behind its controller (less than half the old area) and, once its floor
+  is laid, only on that floor and the walls it can carry. Clicking the
+  controller still checks the whole structure.
+- Control room devices watching an area (monitors, alarms, annunciators) keep
+  the whole radiation reading of that spot for one second, like a player's,
+  unless a block changes nearby, instead of scanning the blocks and sources
+  around it on every sample.
 - Control room monitors send the graph history with the chunk and afterwards
   only the new samples; chart recorders send at most one update per second
   (`performance.screenSyncTicks`, 20), so at fast paper speeds the trace moves

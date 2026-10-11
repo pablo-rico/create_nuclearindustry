@@ -697,7 +697,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (!pendingChannelCheck) {
             return false;
         }
-        if (ReactorStructureValidator.detectControlChannels(level, structure).equals(structure.controlChannels)) {
+        if (ReactorStructureValidator.detectControlChannels(level, structure).equals(structure.controlChannels)
+                && !ReactorStructureValidator.hasBlockedChannel(level, structure)) {
             pendingChannelCheck = false;
             channelMismatchSeen = false;
             return false;

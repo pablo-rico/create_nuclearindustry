@@ -82,6 +82,11 @@ public final class SpentFuelPoolSurvey {
         return fills;
     }
 
+    /** Whether a level still has cached fills, for tests of the clean-up. */
+    public static synchronized boolean tracks(Level level) {
+        return SURVEYS.containsKey(level);
+    }
+
     /** Forgets every cached fill, for tests. */
     public static synchronized void clear() {
         SURVEYS.clear();

@@ -19,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.radiation.cache.BlockRadioactivity;
+import org.papiricoh.create_nuclearindustry.radiation.cache.ChunkChangeLog;
 import org.papiricoh.create_nuclearindustry.radiation.cache.RadiationCaches;
 import org.papiricoh.create_nuclearindustry.radiation.cache.RayCache;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
@@ -39,6 +40,8 @@ import net.minecraft.world.phys.Vec3;
  */
 public final class RadiationHandler {
     private static final int INTERVAL = 20;
+    /** Chunks around a monitored spot whose changes make its reading stale: fallout reaches 48 blocks. */
+    private static final int SPOT_CHUNK_REACH = 3;
     private static final int BLOCK_SCAN_RADIUS = 3;
     private static final double FALLOUT_RANGE = 48.0;
     public static final double EMITTER_RANGE = 32.0;
@@ -170,8 +173,26 @@ public final class RadiationHandler {
      */
     public static double cachedAmbientRate(ServerLevel level, Vec3 body) {
         RadiationStats.begin();
-        Rays rays = PerformanceConfig.radiationRayCacheTicks <= 0 ? directRays(level) : cachedRays(level, RadiationCaches.spots(level));
-        return ambientRate(level, body, rays);
+        if (PerformanceConfig.radiationRayCacheTicks <= 0) {
+            return ambientRate(level, body, directRays(level));
+        }
+        // The whole reading (block scan, emitter and fallout lookups, ground, rays) is kept for one
+        // update interval, as a player's is, unless a block changed in the chunks it can see.
+        BlockPos spot = BlockPos.containing(body);
+        long key = spot.asLong();
+        long now = level.getGameTime();
+        ChunkChangeLog changes = RadiationCaches.changes(level);
+        RadiationCaches.SpotReading last = RadiationCaches.spotReading(level, key);
+        if (last != null && now >= last.time() && now - last.time() < RadiationCaches.SPOT_READING_TICKS
+                && !changes.changedSince(last.sequence(), (spot.getX() >> 4) - SPOT_CHUNK_REACH, (spot.getZ() >> 4) - SPOT_CHUNK_REACH,
+                        (spot.getX() >> 4) + SPOT_CHUNK_REACH, (spot.getZ() >> 4) + SPOT_CHUNK_REACH)) {
+            RadiationStats.current().spotReadingsReused++;
+            return last.rate();
+        }
+        long sequence = changes.issue();
+        double rate = ambientRate(level, body, cachedRays(level, RadiationCaches.spots(level)));
+        RadiationCaches.rememberSpotReading(level, key, new RadiationCaches.SpotReading(rate, now, sequence));
+        return rate;
     }
 
     private static double ambientRate(ServerLevel level, Vec3 body, Rays rays) {

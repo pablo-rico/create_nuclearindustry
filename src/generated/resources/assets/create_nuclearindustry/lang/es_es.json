@@ -1162,6 +1162,7 @@
   "create_nuclearindustry.reactor.status.waiting_for_sync": "Esperando datos del servidor",
   "create_nuclearindustry.reactor.validation.casing_missing": "Falta carcasa en %s",
   "create_nuclearindustry.reactor.validation.channel_blocked": "Canal de barras de control bloqueado en %s",
+  "create_nuclearindustry.reactor.validation.channel_converted": "La columna de %s era un canal de barras: tápala con carcasa de reactor para usarla como columna de reflector o moderador",
   "create_nuclearindustry.reactor.validation.controller_centre": "El controlador debe estar en el centro de la cara superior",
   "create_nuclearindustry.reactor.validation.extra_pressurizer": "Un reactor admite un solo presurizador; se ignora el de %s",
   "create_nuclearindustry.reactor.validation.height": "La altura debe ser de %s a %s bloques, tiene %s",

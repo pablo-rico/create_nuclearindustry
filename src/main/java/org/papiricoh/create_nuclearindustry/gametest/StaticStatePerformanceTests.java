@@ -32,6 +32,13 @@ import org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadMenu;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.ContainmentRegistry;
 import org.papiricoh.create_nuclearindustry.waste.repository.RepositoryProbe;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockChangeHandler;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
+import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitter;
+import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitters;
+import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
+import org.papiricoh.create_nuclearindustry.radiation.cache.RadiationCaches;
+import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelPoolSurvey;
 
 /**
  * State kept outside the world that used to leak or be shared by every player: the bomb and launch
@@ -119,6 +126,63 @@ public class StaticStatePerformanceTests {
             NuclearBlastManager.start(level, helper.absolutePos(new BlockPos(6, 2, 6)), 2, 2, 1.0f);
             NuclearBlastManager.onLevelUnload(new LevelEvent.Unload(level));
             helper.assertTrue(NuclearBlastManager.pending(level) == 0, "nor its level");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * The multiblock index, the radiation emitter index and caches and the spent fuel pool surveys
+     * are forgotten with their level too: their entries hold block entities, which hold the level.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = "perf_static_indexes")
+    public static void indexesLetGoOfAnUnloadedLevel(GameTestHelper helper) {
+        BlockPos controller = new BlockPos(4, 2, 4);
+        BlockPos water = new BlockPos(8, 2, 8);
+        helper.setBlock(controller, AllNuclearBlocks.REACTOR_CONTROLLER.get());
+        helper.setBlock(water, Blocks.WATER);
+        helper.runAfterDelay(3, () -> {
+            ServerLevel level = helper.getLevel();
+            RadiationEmitter emitter = PerformanceBenchmarks.emitter(level, helper.absoluteVec(new Vec3(2.5, 3.0, 6.5)));
+            RadiationEmitters.register(emitter);
+            RadiationHandler.cachedAmbientRate(level, helper.absoluteVec(new Vec3(6.5, 3.0, 6.5)));
+            SpentFuelPoolSurvey.of(level, helper.absolutePos(water));
+            helper.assertTrue(MultiblockRegistry.tracks(level) && RadiationEmitters.count(level) >= 1 && RadiationCaches.tracks(level)
+                    && SpentFuelPoolSurvey.tracks(level), "all four hold something of the level");
+            LevelEvent.Unload unload = new LevelEvent.Unload(level);
+            MultiblockChangeHandler.onLevelUnload(unload);
+            RadiationCaches.onLevelUnload(unload);
+            SpentFuelPoolSurvey.onLevelUnload(unload);
+            helper.assertTrue(!MultiblockRegistry.tracks(level), "the multiblock index let the level go");
+            helper.assertTrue(RadiationEmitters.count(level) == 0 && !RadiationCaches.tracks(level), "so did the radiation index and caches");
+            helper.assertTrue(!SpentFuelPoolSurvey.tracks(level), "and the pool surveys");
+            helper.setBlock(controller, Blocks.AIR);
+            helper.setBlock(water, Blocks.AIR);
+            helper.succeed();
+        });
+    }
+
+    /** Player ray caches, level caches, the emitter index and the pool surveys go when the server stops. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = "perf_static_stop_caches")
+    public static void cachesAreClearedWhenTheServerStops(GameTestHelper helper) {
+        BlockPos water = new BlockPos(8, 2, 8);
+        helper.setBlock(water, Blocks.WATER);
+        helper.runAfterDelay(2, () -> {
+            ServerLevel level = helper.getLevel();
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            RadiationEmitter emitter = PerformanceBenchmarks.emitter(level, helper.absoluteVec(new Vec3(2.5, 3.0, 6.5)));
+            RadiationEmitters.register(emitter);
+            RadiationCaches.of(player);
+            RadiationHandler.cachedAmbientRate(level, helper.absoluteVec(new Vec3(6.5, 3.0, 6.5)));
+            SpentFuelPoolSurvey.of(level, helper.absolutePos(water));
+            helper.assertTrue(RadiationCaches.tracks(player) && RadiationCaches.tracks(level) && RadiationEmitters.count(level) >= 1
+                    && SpentFuelPoolSurvey.tracks(level), "the caches hold the player, the level and the pool");
+            ServerStoppingEvent stopping = new ServerStoppingEvent(level.getServer());
+            RadiationCaches.onServerStopping(stopping);
+            SpentFuelPoolSurvey.onServerStopping(stopping);
+            helper.assertTrue(!RadiationCaches.tracks(player) && !RadiationCaches.tracks(level) && RadiationEmitters.count(level) == 0,
+                    "nothing of the radiation system outlives the server");
+            helper.assertTrue(!SpentFuelPoolSurvey.tracks(level), "nor a pool survey");
+            helper.setBlock(water, Blocks.AIR);
             helper.succeed();
         });
     }

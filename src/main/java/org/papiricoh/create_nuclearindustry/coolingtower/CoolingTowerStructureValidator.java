@@ -13,6 +13,8 @@ import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import java.util.Optional;
 
 /**
  * Validates a hyperboloid cooling tower from its controller, which sits in the bottom wall
@@ -41,7 +43,61 @@ public final class CoolingTowerStructureValidator {
                 : MultiblockValidationResult.invalid(errors, List.of());
     }
 
+    /** The floor the locator found behind the controller: enough to know where the tower can be. */
+    private record Base(Direction out, BlockPos center, int firstRadius, int baseRadius) {}
+
+    /**
+     * Where the blocks of the tower a controller is looking for can be, once its floor is laid:
+     * the floor's footprint with room for the walls above it. Empty until the interior and the floor
+     * behind the controller are there, so an unformed controller listens to the whole space where a
+     * tower could stand and narrows down as it is built.
+     */
+    public static Optional<BoundingBox> locateFootprint(Level level, BlockPos controller) {
+        Base base = locateBase(level, controller, new ArrayList<>());
+        if (base == null) {
+            return Optional.empty();
+        }
+        int reach = base.baseRadius() + 2;
+        BlockPos center = base.center();
+        return Optional.of(new BoundingBox(center.getX() - reach, center.getY() - 1, center.getZ() - reach,
+                center.getX() + reach, center.getY() + CoolingTowerGeometry.maxHeight(base.baseRadius()) + 2, center.getZ() + reach));
+    }
+
     private static CoolingTowerStructure locate(Level level, BlockPos controller, List<String> errors) {
+        Base base = locateBase(level, controller, errors);
+        if (base == null) {
+            return null;
+        }
+        Direction out = base.out();
+        BlockPos center = base.center();
+        int firstRadius = base.firstRadius();
+        int baseRadius = base.baseRadius();
+        int height = CoolingTowerGeometry.ABSOLUTE_MAX_HEIGHT + 1;
+        for (int y = 1; y <= CoolingTowerGeometry.ABSOLUTE_MAX_HEIGHT; y++) {
+            boolean any = false;
+            for (int r = 1; r <= baseRadius + 1 && !any; r++) {
+                any = !level.getBlockState(center.above(y).relative(out, r)).isAir();
+            }
+            if (!any) {
+                height = y;
+                break;
+            }
+        }
+        if (!CoolingTowerGeometry.isValid(baseRadius, height)) {
+            errors.add("A tower of base radius " + baseRadius + " must be " + CoolingTowerGeometry.minHeight(baseRadius)
+                    + " to " + CoolingTowerGeometry.maxHeight(baseRadius) + " high, found " + height);
+            return null;
+        }
+        CoolingTowerGeometry geometry = CoolingTowerGeometry.of(baseRadius, height);
+        if (geometry.radius(1) != firstRadius) {
+            errors.add("The wall above the floor should be radius " + geometry.radius(1) + " for a tower of base radius "
+                    + baseRadius + " and height " + height + ", found " + firstRadius);
+            return null;
+        }
+        return new CoolingTowerStructure(center, controller, out, geometry);
+    }
+
+    private static Base locateBase(Level level, BlockPos controller, List<String> errors) {
         BlockState state = level.getBlockState(controller);
         if (!state.is(AllNuclearBlocks.COOLING_TOWER_CONTROLLER.get())) {
             errors.add("Not a cooling tower controller");
@@ -91,30 +147,7 @@ public final class CoolingTowerStructureValidator {
                     + CoolingTowerGeometry.MAX_BASE_RADIUS + ", found " + baseRadius);
             return null;
         }
-
-        int height = CoolingTowerGeometry.ABSOLUTE_MAX_HEIGHT + 1;
-        for (int y = 1; y <= CoolingTowerGeometry.ABSOLUTE_MAX_HEIGHT; y++) {
-            boolean any = false;
-            for (int r = 1; r <= baseRadius + 1 && !any; r++) {
-                any = !level.getBlockState(center.above(y).relative(out, r)).isAir();
-            }
-            if (!any) {
-                height = y;
-                break;
-            }
-        }
-        if (!CoolingTowerGeometry.isValid(baseRadius, height)) {
-            errors.add("A tower of base radius " + baseRadius + " must be " + CoolingTowerGeometry.minHeight(baseRadius)
-                    + " to " + CoolingTowerGeometry.maxHeight(baseRadius) + " high, found " + height);
-            return null;
-        }
-        CoolingTowerGeometry geometry = CoolingTowerGeometry.of(baseRadius, height);
-        if (geometry.radius(1) != firstRadius) {
-            errors.add("The wall above the floor should be radius " + geometry.radius(1) + " for a tower of base radius "
-                    + baseRadius + " and height " + height + ", found " + firstRadius);
-            return null;
-        }
-        return new CoolingTowerStructure(center, controller, out, geometry);
+        return new Base(out, center, firstRadius, baseRadius);
     }
 
     private static void check(Level level, CoolingTowerStructure structure, List<String> errors) {

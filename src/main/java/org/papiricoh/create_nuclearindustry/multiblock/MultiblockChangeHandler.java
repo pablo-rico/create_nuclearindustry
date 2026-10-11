@@ -93,7 +93,7 @@ public final class MultiblockChangeHandler {
     }
 
     /** The level's index goes with it: nothing must keep its block entities (and the level) alive. */
-    private static void onLevelUnload(LevelEvent.Unload event) {
+    public static void onLevelUnload(LevelEvent.Unload event) {
         MultiblockRegistry.forget(event.getLevel());
     }
 

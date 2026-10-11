@@ -272,6 +272,59 @@ public class PerformanceRadiationTests {
     }
 
     /** An emitter that counts how often it is asked where it is, as a reactor builds a vector each time. */
+    /**
+     * A monitored spot's whole reading (the block scan, the emitter and fallout lookups, the rays)
+     * is kept for one update interval, as a player's is: alarms, annunciators and monitors on the
+     * same area read it without scanning again, and a block changing nearby makes it fresh at once.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = "perf_radiation_spot_reading")
+    public static void aMonitoredSpotIsReadOnceAnInterval(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Vec3 body = Vec3.atCenterOf(helper.absolutePos(PLAYER)).add(0, 0.5, 0);
+        RadiationEmitter emitter = PerformanceBenchmarks.emitter(level, helper.absoluteVec(new Vec3(1.5, 3.0, 6.5)));
+        double[] rates = new double[5];
+        RadiationStats[] stats = new RadiationStats[5];
+        helper.runAfterDelay(1, () -> {
+            RadiationEmitters.register(emitter);
+            rates[0] = RadiationHandler.cachedAmbientRate(level, body);
+            stats[0] = RadiationStats.last();
+            rates[1] = RadiationHandler.cachedAmbientRate(level, body);
+            stats[1] = RadiationStats.last();
+        });
+        helper.runAfterDelay(1 + UPDATE_INTERVAL / 2, () -> {
+            rates[2] = RadiationHandler.cachedAmbientRate(level, body);
+            stats[2] = RadiationStats.last();
+            helper.setBlock(new BlockPos(4, 1, 6), Blocks.STONE);
+            rates[3] = RadiationHandler.cachedAmbientRate(level, body);
+            stats[3] = RadiationStats.last();
+        });
+        helper.runAfterDelay(1 + UPDATE_INTERVAL / 2 + UPDATE_INTERVAL, () -> {
+            try {
+                rates[4] = RadiationHandler.cachedAmbientRate(level, body);
+                stats[4] = RadiationStats.last();
+            } finally {
+                RadiationEmitters.unregister(emitter);
+            }
+            // The arena holds no radioactive block, so a fresh reading shows as sections looked at and rays cast.
+            helper.assertTrue(scanned(stats[0]) > 0 && stats[0].raysCast >= 1 && rates[0] > 0, "the first reading scans and casts: " + stats[0]);
+            helper.assertTrue(stats[1].spotReadingsReused == 1 && scanned(stats[1]) == 0 && stats[1].raysCast == 0
+                    && stats[1].raysReused == 0 && rates[1] == rates[0], "a second reading in the same tick does no work: " + stats[1]);
+            // Within the interval the reading is reused unless a neighbouring arena changed a block within
+            // three chunks (it is a shared world); either way no ray is cast and the value is the same.
+            helper.assertTrue(stats[2].raysCast == 0 && rates[2] == rates[0], "nor does one within the update interval cast: " + stats[2]);
+            helper.assertTrue(stats[3].spotReadingsReused == 0 && scanned(stats[3]) > 0,
+                    "a block placed beside the spot makes it read again: " + stats[3]);
+            helper.assertTrue(stats[4].spotReadingsReused == 0 && scanned(stats[4]) > 0,
+                    "and so does the update interval running out: " + stats[4]);
+            helper.succeed();
+        });
+    }
+
+    /** Chunk sections the block scan looked at, read or skipped by their palette. */
+    private static int scanned(RadiationStats stats) {
+        return stats.sectionsScanned + stats.sectionsSkipped;
+    }
+
     private static final class CountingEmitter implements RadiationEmitter {
         private final Level level;
         private Vec3 origin;

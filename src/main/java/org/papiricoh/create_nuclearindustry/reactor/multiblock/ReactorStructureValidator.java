@@ -32,6 +32,8 @@ public class ReactorStructureValidator {
     public static final String KEY = "create_nuclearindustry.reactor.validation.";
     /** A control rod channel holds something other than rods, pistons or air; moving rods count as this too. */
     public static final String CHANNEL_BLOCKED = KEY + "channel_blocked";
+    /** A channel holding other blocks and no rod at all: the player turned it into something else and must cap it. */
+    public static final String CHANNEL_CONVERTED = KEY + "channel_converted";
     public static final String CASING_MISSING = KEY + "casing_missing";
     public static final int MIN_WIDTH = 3;
     public static final int MAX_WIDTH = 9;
@@ -216,6 +218,12 @@ public class ReactorStructureValidator {
         if (lid.isAir() || isAllowedControlChannelMechanism(lid.getBlock())) {
             return true;
         }
+        return holdsRods(level, structure, x, z, movingRods, cursor);
+    }
+
+    /** A control rod block in the column or its travel space above the lid, or a contraption carrying one through it. */
+    private static boolean holdsRods(Level level, ReactorStructure structure, int x, int z, List<AABB> movingRods,
+                                     BlockPos.MutableBlockPos cursor) {
         int top = structure.topY + structure.innerHeight();
         for (int y = structure.bottomY + 1; y <= top; y++) {
             if (level.getBlockState(cursor.set(x, y, z)).is(AllNuclearBlocks.CONTROL_ROD.get())) {
@@ -363,12 +371,34 @@ public class ReactorStructureValidator {
             } else if (block == Blocks.AIR || isAllowedControlChannelMechanism(block)) {
                 continue;
             } else {
-                errors.add(MultiblockText.message(CHANNEL_BLOCKED, shortPos(pos)));
+                // Rods still in or over the column: the player is mid-edit, or a contraption is passing.
+                // None at all under an open lid: the column was turned into something else and needs its lid.
+                boolean rods = holdsRods(level, structure, x, z, ControlRodGeometry.movingControlRods(level, structure),
+                        new BlockPos.MutableBlockPos());
+                errors.add(MultiblockText.message(rods ? CHANNEL_BLOCKED : CHANNEL_CONVERTED, shortPos(pos)));
                 return;
             }
         }
         structure.controlRodColumnCount++;
         structure.controlRodCount += inserted;
+    }
+
+    /**
+     * Whether any of the structure's channels holds a block that is neither a rod, air nor a piston
+     * part: the reactor checks this between validations (cheap: channels x height), so a reflector or
+     * moderator put into a channel is noticed even when the channel set itself did not change.
+     */
+    public static boolean hasBlockedChannel(Level level, ReactorStructure structure) {
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (BlockPos channel : structure.controlChannels) {
+            for (int y = structure.bottomY + 1; y < structure.topY; y++) {
+                Block block = level.getBlockState(cursor.set(channel.getX(), y, channel.getZ())).getBlock();
+                if (block != AllNuclearBlocks.CONTROL_ROD.get() && block != Blocks.AIR && !isAllowedControlChannelMechanism(block)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

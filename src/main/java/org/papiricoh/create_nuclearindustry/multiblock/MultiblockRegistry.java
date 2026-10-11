@@ -104,6 +104,11 @@ public final class MultiblockRegistry {
         }
     }
 
+    /** Whether a level still has an index, for tests of the unload clean-up. */
+    public static boolean tracks(Level level) {
+        return LEVELS.containsKey(level);
+    }
+
     /** Forgets everything indexed for a level that unloads. */
     public static void forget(LevelAccessor level) {
         if (level instanceof Level l) {
