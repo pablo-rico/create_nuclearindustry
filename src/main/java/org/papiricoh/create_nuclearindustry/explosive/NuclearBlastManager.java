@@ -5,23 +5,36 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Digs nuclear craters a budget of columns and blocks per tick ({@code explosive.blastColumnsPerTick}
+ * and {@code explosive.blastBlocksPerTick} in {@link PerformanceConfig}), from the centre outwards.
+ */
 public class NuclearBlastManager {
-    private static final int COLUMNS_PER_TICK = 600;
-    private static final int BLOCKS_PER_TICK = 3_500;
     // Amplitud del ondulado del borde del crater, como fraccion del radio (0 = borde perfectamente liso).
     private static final double RIM_NOISE_AMPLITUDE = 0.05;
     private static final List<BlastJob> JOBS = new ArrayList<>();
 
     public static void start(ServerLevel level, BlockPos center, int horizontalRadius, int verticalRadius, float intensity) {
-        if (horizontalRadius <= 0 || verticalRadius <= 0) {
-            return;
+        BlastJob job = create(level, center, horizontalRadius, verticalRadius, intensity);
+        if (job != null) {
+            JOBS.add(job);
         }
-        JOBS.add(new BlastJob(level, center, horizontalRadius, verticalRadius, intensity));
+    }
+
+    /** A crater that is not dug on its own: {@link BlastJob#step()} digs one tick's worth. For tests. */
+    @Nullable
+    public static BlastJob create(ServerLevel level, BlockPos center, int horizontalRadius, int verticalRadius, float intensity) {
+        if (horizontalRadius <= 0 || verticalRadius <= 0) {
+            return null;
+        }
+        return new BlastJob(level, center, horizontalRadius, verticalRadius, intensity);
     }
 
     public static void onLevelTick(LevelTickEvent.Post event) {
@@ -35,13 +48,13 @@ public class NuclearBlastManager {
             if (job.level != level) {
                 continue;
             }
-            if (job.tick()) {
+            if (job.step()) {
                 iterator.remove();
             }
         }
     }
 
-    private static class BlastJob {
+    public static final class BlastJob {
         private final ServerLevel level;
         private final BlockPos center;
         private final int horizontalRadius;
@@ -54,6 +67,8 @@ public class NuclearBlastManager {
         // Cache del ultimo chunk forzado a cargar, para no repetir la llamada por cada columna.
         private int lastChunkX = Integer.MIN_VALUE;
         private int lastChunkZ = Integer.MIN_VALUE;
+        private int lastColumns;
+        private int lastBlocks;
 
         private BlastJob(ServerLevel level, BlockPos center, int horizontalRadius, int verticalRadius, float intensity) {
             this.level = level;
@@ -66,11 +81,14 @@ public class NuclearBlastManager {
             this.idx = 0;
         }
 
-        private boolean tick() {
+        /** Digs one tick's worth of columns; returns whether the crater is finished. */
+        public boolean step() {
             int processedColumns = 0;
             int changedBlocks = 0;
+            int columnBudget = PerformanceConfig.blastColumnsPerTick;
+            int blockBudget = PerformanceConfig.blastBlocksPerTick;
             double radiusSq = (double) horizontalRadius * horizontalRadius;
-            while (ring <= horizontalRadius && processedColumns < COLUMNS_PER_TICK && changedBlocks < BLOCKS_PER_TICK) {
+            while (ring <= horizontalRadius && processedColumns < columnBudget && changedBlocks < blockBudget) {
                 Column column = nextColumn();
 
                 double horizontalNorm = ((double) column.x * column.x + (double) column.z * column.z) / radiusSq;
@@ -84,7 +102,19 @@ public class NuclearBlastManager {
                 changedBlocks += destroyColumn(column.x, column.z, horizontalNorm);
                 processedColumns++;
             }
+            lastColumns = processedColumns;
+            lastBlocks = changedBlocks;
             return ring > horizontalRadius;
+        }
+
+        /** Columns of the crater dug by the last {@link #step()}. */
+        public int lastColumns() {
+            return lastColumns;
+        }
+
+        /** Blocks removed by the last {@link #step()}. */
+        public int lastBlocks() {
+            return lastBlocks;
         }
 
         /**

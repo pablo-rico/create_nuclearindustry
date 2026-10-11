@@ -12,6 +12,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard;
 
 /** Client to server: the new setup of one part of a {@link ConfigurableDevice}, from its screen. */
 public record ConfigureDevicePayload(BlockPos pos, int part, CompoundTag config) implements CustomPacketPayload {
@@ -22,8 +23,6 @@ public record ConfigureDevicePayload(BlockPos pos, int part, CompoundTag config)
             ByteBufCodecs.VAR_INT, ConfigureDevicePayload::part,
             ByteBufCodecs.COMPOUND_TAG, ConfigureDevicePayload::config,
             ConfigureDevicePayload::new);
-    private static final double REACH = 8.0;
-
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
@@ -39,12 +38,11 @@ public record ConfigureDevicePayload(BlockPos pos, int part, CompoundTag config)
     }
 
     /**
-     * Applies the setup for {@code player}, who must be within reach of a loaded device. The device
-     * sanitises what it takes. Returns whether it was applied.
+     * Applies the setup for {@code player}, who must pass {@link ServerPayloadGuard} for a loaded
+     * device. The device sanitises what it takes. Returns whether it was applied.
      */
     public static boolean apply(Player player, ConfigureDevicePayload payload) {
-        if (player.isSpectator() || player.distanceToSqr(payload.pos().getCenter()) > REACH * REACH
-                || !player.level().isLoaded(payload.pos())) {
+        if (!ServerPayloadGuard.check(player, payload.pos())) {
             return false;
         }
         return player.level().getBlockEntity(payload.pos()) instanceof ConfigurableDevice device

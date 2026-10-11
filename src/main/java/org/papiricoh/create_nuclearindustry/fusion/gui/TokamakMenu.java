@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
+import org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard;
 
 /**
  * Tokamak control panel. It holds no slots: the screen reads the controller's synced
@@ -17,8 +18,6 @@ import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBloc
  * {@link TokamakControlPayload}s, which the server validates.
  */
 public class TokamakMenu extends AbstractContainerMenu {
-    private static final double REACH = 10.0;
-
     private final BlockPos pos;
 
     public TokamakMenu(int containerId, Inventory inventory, BlockPos pos) {
@@ -47,7 +46,7 @@ public class TokamakMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return player.distanceToSqr(pos.getCenter()) <= REACH * REACH && tokamak(player.level()) != null;
+        return ServerPayloadGuard.stillValid(tokamak(player.level()), player);
     }
 
     public static void writeInitialData(RegistryFriendlyByteBuf buf, FusionReactorBlockEntity tokamak) {

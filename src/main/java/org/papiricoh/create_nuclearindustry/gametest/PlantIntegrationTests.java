@@ -38,6 +38,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.chart.ChartRecorderBlock
 import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.ContainmentModel;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.ContainmentMonitorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.steamgen.SteamGeneratorControllerBlockEntity;
@@ -56,6 +57,9 @@ public class PlantIntegrationTests {
     private static final BlockPos ORIGIN = FissionTestBuilder.ORIGIN;
     private static final BlockPos DEVICE = new BlockPos(9, 1, 9);
     private static final BlockPos SECOND_DEVICE = new BlockPos(11, 1, 9);
+    /** A closed vestibule outside the blast door in the room's south wall. */
+    private static final BlockPos BLAST_VESTIBULE_MIN = new BlockPos(2, 1, 8);
+    private static final BlockPos BLAST_VESTIBULE_MAX = new BlockPos(8, 5, 11);
 
     private static GlobalPos global(GameTestHelper helper, BlockPos relative) {
         return GlobalPos.of(helper.getLevel().dimension(), helper.absolutePos(relative));
@@ -232,12 +236,22 @@ public class PlantIntegrationTests {
         });
     }
 
+    /**
+     * The door opens into a closed vestibule rather than the open arena: a survey that runs out into
+     * the unloaded world around a game test keeps its last answer, which made this test flaky. Open,
+     * the room and the vestibule are one sealed space; a survey capped below that space then shows
+     * the doorway as an opening, every time.
+     */
     @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 600)
     public static void aShutBlastDoorKeepsTheContainmentSealed(GameTestHelper helper) {
+        // The vestibule shares the room's south wall: 5x3x2 of air, less the switch standing in it.
+        ContainmentTestBuilder.room(helper, BLAST_VESTIBULE_MIN, BLAST_VESTIBULE_MAX, PwrRegistry.CONTAINMENT_CONCRETE.get());
         ContainmentTestBuilder.concreteRoom(helper);
         // A 2x2 door in the south wall, its frame and controller part of the wall.
         BlockPos controller = BlastDoorTests.buildDoor(helper, CivilDefenseRegistry.STEEL_BLAST_DOOR.get(), 4, 2, 8, 2, 2);
+        // Against the controller, inside the vestibule.
         BlockPos switchPos = controller.south();
+        int joined = ContainmentTestBuilder.ROOM_AIR + 2 * 2 + (5 * 3 * 2 - 1);
         helper.startSequence()
                 .thenWaitUntil(() -> {
                     BlastDoorControllerBlockEntity door = helper.getBlockEntity(controller);
@@ -253,8 +267,28 @@ public class PlantIntegrationTests {
                     helper.assertTrue(helper.getBlockState(new BlockPos(5, 2, 8)).getValue(BlastDoorBlock.LEAF) == LeafState.OPEN,
                             "the door opens");
                     ContainmentMonitorBlockEntity monitor = ContainmentTestBuilder.monitor(helper, ContainmentTestBuilder.MONITOR);
-                    helper.assertTrue(monitor != null && !monitor.sealed() && !monitor.isSurveying(),
-                            "the monitor measures the open doorway as an opening");
+                    helper.assertTrue(monitor != null && monitor.sealed() && !monitor.isSurveying()
+                                    && monitor.getShape() != null && monitor.getShape().volume() == joined,
+                            "the open doorway joins the room to the vestibule, " + (monitor == null || monitor.getShape() == null
+                                    ? "-" : monitor.getShape().volume()) + " blocks of air, expected " + joined);
+                    helper.assertFalse(AlarmMetric.CONTAINMENT_OPEN.tripped(MonitorReading.sample(new LinkedTarget.Plant(monitor)), 0),
+                            "a doorway into a closed space leaves the containment-open alarm dark");
+                })
+                .thenExecute(() -> {
+                    ContainmentMonitorBlockEntity monitor = ContainmentTestBuilder.monitor(helper, ContainmentTestBuilder.MONITOR);
+                    helper.assertTrue(monitor != null, "the monitor stands");
+                    int cap = PwrConfig.containmentMaxVolume;
+                    try {
+                        // No more air than the room alone: the open doorway now leads past the cap.
+                        PwrConfig.containmentMaxVolume = joined - 1;
+                        monitor.inspect(null);
+                        for (int i = 0; i < 4 && (i == 0 || monitor.isSurveying()); i++) {
+                            monitor.tick();
+                        }
+                    } finally {
+                        PwrConfig.containmentMaxVolume = cap;
+                    }
+                    helper.assertTrue(!monitor.sealed() && !monitor.isSurveying(), "the monitor measures the open doorway as an opening");
                     MonitorReading room = MonitorReading.sample(new LinkedTarget.Plant(monitor));
                     helper.assertTrue(AlarmMetric.CONTAINMENT_OPEN.tripped(room, 0), "and the containment-open alarm lights");
                 })

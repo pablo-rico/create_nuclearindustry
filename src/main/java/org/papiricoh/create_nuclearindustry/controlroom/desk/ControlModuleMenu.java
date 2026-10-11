@@ -11,6 +11,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
+import org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard;
 
 /**
  * Setup screen of one control module. It holds no items of its own: the player inventory is there
@@ -19,7 +20,6 @@ import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
 public class ControlModuleMenu extends AbstractContainerMenu {
     public static final int INVENTORY_X = 20;
     public static final int INVENTORY_Y = 140;
-    private static final double REACH = 8.0;
 
     private final BlockPos deskPos;
     private final int slot;
@@ -68,6 +68,7 @@ public class ControlModuleMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return player.distanceToSqr(deskPos.getCenter()) <= REACH * REACH && module() != null;
+        return player.level().getBlockEntity(deskPos) instanceof ControlDeskBlockEntity desk
+                && ServerPayloadGuard.stillValid(desk, player) && desk.module(slot) != null;
     }
 }

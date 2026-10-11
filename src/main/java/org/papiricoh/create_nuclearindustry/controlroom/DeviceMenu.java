@@ -11,6 +11,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard;
 
 import java.util.function.Supplier;
 
@@ -20,7 +21,6 @@ import java.util.function.Supplier;
  * {@code part} is what the screen opens on, such as the window the player clicked.
  */
 public class DeviceMenu extends AbstractContainerMenu {
-    private static final double REACH = 8.0;
 
     private final BlockPos pos;
     private final int part;
@@ -60,6 +60,7 @@ public class DeviceMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return player.distanceToSqr(pos.getCenter()) <= REACH * REACH && blockEntity() instanceof ConfigurableDevice;
+        BlockEntity device = player.level().getBlockEntity(pos);
+        return device instanceof ConfigurableDevice && ServerPayloadGuard.stillValid(device, player);
     }
 }

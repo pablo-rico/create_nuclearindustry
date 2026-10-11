@@ -81,6 +81,19 @@ class SealedVolumeTest {
     }
 
     @Test
+    void theWallSetHoldsExactlyTheWallsAndNoAir() {
+        SealedVolume volume = SealedVolume.fill(box(5, -9, -9, -9), 2, 2, 2, 1000);
+        assertEquals(volume.wallCount(), volume.wallCells().size());
+        for (long packed : volume.wallCells()) {
+            int x = SealedVolume.unpackX(packed), y = SealedVolume.unpackY(packed), z = SealedVolume.unpackZ(packed);
+            assertTrue(volume.isWall(x, y, z));
+            assertFalse(volume.contains(x, y, z), "a cell is wall or air, never both");
+        }
+        assertFalse(volume.isWall(0, 0, 0), "the box's corners touch no air");
+        assertFalse(volume.contains(-5, -5, -5));
+    }
+
+    @Test
     void packingRoundTripsNegativeCoordinates() {
         long packed = SealedVolume.pack(-1234, -60, 98765);
         assertEquals(-1234, SealedVolume.unpackX(packed));
