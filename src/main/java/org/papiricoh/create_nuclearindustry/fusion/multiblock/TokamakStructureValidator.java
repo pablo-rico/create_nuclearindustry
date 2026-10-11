@@ -8,10 +8,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.fusion.FusionConfig;
 import org.papiricoh.create_nuclearindustry.fusion.physics.PlasmaModel;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -144,31 +144,19 @@ public final class TokamakStructureValidator {
         return Optional.empty();
     }
 
-    /** A lang key and its arguments, as stored in a validation result. */
+    /** A lang key and its arguments, as stored in a validation result; see {@link MultiblockText#message}. */
     public static String message(String key, Object... args) {
-        StringBuilder out = new StringBuilder(key);
-        for (Object arg : args) {
-            out.append('|').append(arg);
-        }
-        return out.toString();
+        return MultiblockText.message(key, args);
     }
 
     /** The lang key of a message from {@link #message}. */
     public static String key(String encoded) {
-        int bar = encoded.indexOf('|');
-        return bar < 0 ? encoded : encoded.substring(0, bar);
+        return MultiblockText.key(encoded);
     }
 
     /** A message from {@link #message}, or plain text from elsewhere, as a component. */
     public static Component text(String encoded) {
-        if (encoded == null || encoded.isEmpty()) {
-            return Component.empty();
-        }
-        if (!encoded.startsWith("create_nuclearindustry.")) {
-            return Component.literal(encoded);
-        }
-        String[] parts = encoded.split("\\|");
-        return Component.translatable(parts[0], (Object[]) Arrays.copyOfRange(parts, 1, parts.length));
+        return MultiblockText.text(encoded);
     }
 
     private static boolean classifyShell(TokamakStructure structure, BlockPos pos, BlockState state, int sector) {

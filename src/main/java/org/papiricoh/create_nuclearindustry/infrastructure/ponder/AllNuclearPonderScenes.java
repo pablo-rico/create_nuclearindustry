@@ -86,6 +86,7 @@ public class AllNuclearPonderScenes {
         for (String part : new String[]{"containment_door", "containment_concrete", "steel_liner"}) {
             helper.addStoryBoard(id(part), "containment_door", ContainmentDoorScenes::door);
         }
+        GuidePonderScenes.register(helper);
     }
 
     /**
@@ -120,5 +121,6 @@ public class AllNuclearPonderScenes {
         for (String component : PlantPonderText.tagComponents()) {
             tag.add(id(component));
         }
+        GuidePonderScenes.registerTags(helper);
     }
 }

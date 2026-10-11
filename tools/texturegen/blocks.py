@@ -1479,3 +1479,5 @@ import tex_civildefense  # noqa: E402,F401
 import tex_fusion  # noqa: E402,F401
 import tex_cryo  # noqa: E402,F401
 import tex_heating  # noqa: E402,F401
+import tex_reactorvisuals  # noqa: E402,F401
+import tex_fuelcycle  # noqa: E402,F401

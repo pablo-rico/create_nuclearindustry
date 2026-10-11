@@ -51,7 +51,7 @@ public class AllNuclearBlocks {
 
 
     public static final DeferredHolder<Block, ? extends Block> CONTROL_ROD = BLOCKS.register("control_rod", () -> new ControlRodBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
-    public static final DeferredHolder<Block, ? extends Block> URANIUM_ROD = BLOCKS.register("uranium_rod", () -> new UraniumRodBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
+    public static final DeferredHolder<Block, ? extends Block> URANIUM_ROD = BLOCKS.register("uranium_rod", () -> new UraniumRodBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f).lightLevel(UraniumRodBlock::lightLevel)));
     public static final DeferredHolder<Block, ? extends Block> HEAT_EXCHANGER = BLOCKS.register("heat_exchanger", () -> new HeatExchangerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> GRAPHITE_MODERATOR = BLOCKS.register("graphite_moderator", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_BLACK).strength(3.0f, 3.0f)));
     public static final DeferredHolder<Block, ? extends Block> BERYLLIUM_REFLECTOR = BLOCKS.register("beryllium_reflector", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f)));

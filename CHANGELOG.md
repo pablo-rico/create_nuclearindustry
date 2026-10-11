@@ -634,6 +634,18 @@ below for what changes in existing worlds.
   crack; and the cryogenic plant has a compressor sound. They play from the
   part of the ring nearest to you.
 
+### Visible and audible fission reactor
+<!-- WP-A -->
+
+### Renewable materials, fan treatments and thorium
+<!-- WP-B -->
+
+### Guide: advancements, Ponder and JEI
+<!-- WP-C -->
+
+### Performance and multiplayer
+<!-- WP-D -->
+
 ### JEI
 - Info pages for every new block and item of the plant: pressurizer, steam
   generator, containment, corium, spent fuel storage, the three waste classes

@@ -14,8 +14,10 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.processing.recipe.AcidLeachingRecipe;
 import org.papiricoh.create_nuclearindustry.processing.recipe.CentrifugingRecipe;
 import org.papiricoh.create_nuclearindustry.processing.recipe.ElectrolysisRecipe;
+import org.papiricoh.create_nuclearindustry.processing.recipe.IrradiationRecipe;
 import org.papiricoh.create_nuclearindustry.processing.recipe.NuclearProcessingRecipe;
 
 import java.util.List;
@@ -24,7 +26,11 @@ import java.util.Locale;
 /** The mod's own Create-style processing recipe types. */
 public enum AllNuclearRecipeTypes implements IRecipeTypeInfo {
     CENTRIFUGING(CentrifugingRecipe::new),
-    ELECTROLYSIS(ElectrolysisRecipe::new);
+    ELECTROLYSIS(ElectrolysisRecipe::new),
+    /** Fan processing through sulfuric acid; see {@code fuelcycle/fan/NuclearFanTypes}. */
+    ACID_LEACHING(AcidLeachingRecipe::new),
+    /** Fan processing past a radioactive block; see {@code fuelcycle/fan/NuclearFanTypes}. */
+    IRRADIATION(IrradiationRecipe::new);
 
     private final ResourceLocation id;
     private final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> serializer;

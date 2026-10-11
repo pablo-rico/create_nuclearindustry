@@ -69,7 +69,12 @@ public class AllNuclearFluids {
     public static final NuclearFluid TRITIUM_FLUID = gas("tritium", 0xB0FF66AA, -85, 80, 300, 2);
 
     // ---------------------------------------------------------------- process chemicals
-    public static final NuclearFluid SULFURIC_ACID_FLUID = liquid("sulfuric_acid", 0xF0E3D46A, 1830, 2400, 300);
+    // Placeable: a pool of it is the catalyst of the acid leaching fan treatment.
+    public static final NuclearFluid SULFURIC_ACID_FLUID = register("sulfuric_acid", Look.LIQUID, 0xF0E3D46A,
+            FluidType.Properties.create().density(1830).viscosity(2400).temperature(300)
+                    .canDrown(true).canSwim(true).supportsBoating(false).canExtinguish(true).canHydrate(false)
+                    .sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL)
+                    .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY), 4);
     public static final NuclearFluid HYDROFLUORIC_ACID_FLUID = liquid("hydrofluoric_acid", 0xD0BDE6D3, 1150, 1100, 290);
     public static final NuclearFluid NITRIC_ACID_FLUID = liquid("nitric_acid", 0xE0F2E6A0, 1510, 900, 300);
 
@@ -107,6 +112,12 @@ public class AllNuclearFluids {
     public static final NuclearFluid LIQUID_HELIUM_FLUID = liquid("liquid_helium", 0xB0DDF6FF, 125, 3, 4);
     public static final NuclearFluid LIQUID_AIR_FLUID = liquid("liquid_air", 0xC0BFD9F2, 870, 170, 80);
     public static final NuclearFluid LIQUID_NITROGEN_FLUID = liquid("liquid_nitrogen", 0xC0E6F0FA, 808, 160, 77);
+
+    // ---------------------------------------------------------------- renewable fuel cycle: brine and the thorium/uranium-233 reprocessing stream
+    // Sea water boiled down: lithium and boron salts in solution.
+    public static final NuclearFluid BRINE_FLUID = liquid("brine", 0xE0BFD8D2, 1200, 1100, 300);
+    public static final NuclearFluid THORIUM_FUEL_SOLUTION_FLUID = liquid("thorium_fuel_solution", 0xE08A8F4E, 1400, 1300, 320);
+    public static final NuclearFluid URANIUM_233_NITRATE_FLUID = liquid("uranium_233_nitrate", 0xE0D8D24A, 1600, 1300, 320);
 
     // ---------------------------------------------------------------- short accessors used across the mod
     public static final Supplier<FluidType> STEAM_TYPE = STEAM_FLUID.type();
@@ -147,6 +158,9 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> LIQUID_HELIUM = LIQUID_HELIUM_FLUID.source();
     public static final Supplier<FlowingFluid> LIQUID_AIR = LIQUID_AIR_FLUID.source();
     public static final Supplier<FlowingFluid> LIQUID_NITROGEN = LIQUID_NITROGEN_FLUID.source();
+    public static final Supplier<FlowingFluid> BRINE = BRINE_FLUID.source();
+    public static final Supplier<FlowingFluid> THORIUM_FUEL_SOLUTION = THORIUM_FUEL_SOLUTION_FLUID.source();
+    public static final Supplier<FlowingFluid> URANIUM_233_NITRATE = URANIUM_233_NITRATE_FLUID.source();
 
     // ---------------------------------------------------------------- world block and bucket (steam only)
     public static final Supplier<LiquidBlock> STEAM_BLOCK = BLOCKS.register("steam", () -> new LiquidBlock(
@@ -175,9 +189,17 @@ public class AllNuclearFluids {
     public static final DeferredHolder<Item, BucketItem> PRIMARY_COOLANT_BUCKET = ITEMS.register("primary_coolant_bucket",
             () -> new BucketItem(PRIMARY_COOLANT.get(), new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
 
+    // ---------------------------------------------------------------- sulfuric acid: pools for acid leaching, and buckets
+    public static final DeferredHolder<Block, LiquidBlock> SULFURIC_ACID_BLOCK = BLOCKS.register("sulfuric_acid",
+            () -> new LiquidBlock(SULFURIC_ACID.get(), BlockBehaviour.Properties.ofFullCopy(Blocks.WATER).mapColor(MapColor.COLOR_YELLOW)));
+
+    public static final DeferredHolder<Item, BucketItem> SULFURIC_ACID_BUCKET = ITEMS.register("sulfuric_acid_bucket",
+            () -> new BucketItem(SULFURIC_ACID.get(), new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
+
     static {
         CONTAMINATED_WATER_FLUID.placeable(CONTAMINATED_WATER_BLOCK, CONTAMINATED_WATER_BUCKET);
         PRIMARY_COOLANT_FLUID.placeable(PRIMARY_COOLANT_BLOCK, PRIMARY_COOLANT_BUCKET);
+        SULFURIC_ACID_FLUID.placeable(SULFURIC_ACID_BLOCK, SULFURIC_ACID_BUCKET);
     }
 
     public static List<NuclearFluid> all() {

@@ -2,11 +2,13 @@ package org.papiricoh.create_nuclearindustry.multiblock;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,6 +55,34 @@ public final class MultiblockMessenger {
         } else {
             LOGGER.debug("[{}] {}", logPrefix, message);
         }
+    }
+
+    /**
+     * Sends a component, such as a translatable message, so each player reads it in their own
+     * language. Automatic repeats are recognised by the lang key and arguments, not the English text.
+     *
+     * @param force send even if the same automatic message was sent recently
+     */
+    public void send(@Nullable Level level, Component message, boolean force) {
+        if (level == null) {
+            return;
+        }
+        if (!force && !shouldSendAutomatic(level, identity(message))) {
+            return;
+        }
+        Player player = owner(level);
+        if (player != null) {
+            player.displayClientMessage(message, false);
+        } else {
+            LOGGER.debug("[{}] {}", logPrefix, message.getString());
+        }
+    }
+
+    private static String identity(Component message) {
+        if (message.getContents() instanceof TranslatableContents translatable) {
+            return translatable.getKey() + Arrays.toString(translatable.getArgs()) + message.getSiblings();
+        }
+        return message.getString();
     }
 
     /** The player who last worked on the multiblock, if they are still around. */

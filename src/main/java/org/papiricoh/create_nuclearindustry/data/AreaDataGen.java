@@ -25,7 +25,10 @@ abstract class AreaDataGen {
             PlantJeiDataGen.INSTANCE,
             FusionDataGen.INSTANCE,
             CryoDataGen.INSTANCE,
-            PlasmaHeatingDataGen.INSTANCE);
+            PlasmaHeatingDataGen.INSTANCE,
+            ReactorVisualsDataGen.INSTANCE,
+            FuelCycleDataGen.INSTANCE,
+            GuideDataGen.INSTANCE);
 
     void lang() {}
 
@@ -36,6 +39,8 @@ abstract class AreaDataGen {
     void blockTags(NuclearBlockTagsProvider provider, HolderLookup.Provider lookup) {}
 
     void itemTags(NuclearItemTagsProvider provider, HolderLookup.Provider lookup) {}
+
+    void fluidTags(NuclearFluidTagsProvider provider, HolderLookup.Provider lookup) {}
 
     void dataMaps(NuclearDataMapProvider provider) {}
 

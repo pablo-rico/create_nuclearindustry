@@ -6,10 +6,12 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.papiricoh.create_nuclearindustry.civildefense.client.CivilDefenseClient;
 import org.papiricoh.create_nuclearindustry.controlroom.client.ControlRoom2Client;
+import org.papiricoh.create_nuclearindustry.fuelcycle.client.FuelCycleClient;
 import org.papiricoh.create_nuclearindustry.fusion.client.FusionClient;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.client.CryoClient;
 import org.papiricoh.create_nuclearindustry.fusion.heating.client.PlasmaHeatingClient;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.client.PwrClient;
+import org.papiricoh.create_nuclearindustry.reactor.visual.client.ReactorVisualsClient;
 import org.papiricoh.create_nuclearindustry.spentfuel.client.SpentFuelClient;
 import org.papiricoh.create_nuclearindustry.waste.client.WasteClient;
 
@@ -25,7 +27,9 @@ public final class NuclearFeaturesClient {
             CivilDefenseClient.INSTANCE,
             FusionClient.INSTANCE,
             CryoClient.INSTANCE,
-            PlasmaHeatingClient.INSTANCE);
+            PlasmaHeatingClient.INSTANCE,
+            ReactorVisualsClient.INSTANCE,
+            FuelCycleClient.INSTANCE);
 
     private NuclearFeaturesClient() {}
 

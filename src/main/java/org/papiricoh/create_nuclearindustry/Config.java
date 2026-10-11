@@ -156,6 +156,9 @@ public class Config
         org.papiricoh.create_nuclearindustry.fusion.FusionConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.fusion.cryo.CryoConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.fusion.heating.PlasmaHeatingConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleConfig.define(BUILDER);
+        PerformanceConfig.define(BUILDER);
     }
 
     static final ModConfigSpec SPEC = BUILDER.build();
@@ -268,5 +271,8 @@ public class Config
         org.papiricoh.create_nuclearindustry.fusion.FusionConfig.bake();
         org.papiricoh.create_nuclearindustry.fusion.cryo.CryoConfig.bake();
         org.papiricoh.create_nuclearindustry.fusion.heating.PlasmaHeatingConfig.bake();
+        org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsConfig.bake();
+        org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleConfig.bake();
+        PerformanceConfig.bake();
     }
 }

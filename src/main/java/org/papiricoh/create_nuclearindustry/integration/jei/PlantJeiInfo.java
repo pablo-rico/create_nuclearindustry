@@ -11,6 +11,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleInfo;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
 import org.papiricoh.create_nuclearindustry.fusion.heating.PlasmaHeatingRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
@@ -96,6 +97,9 @@ public final class PlantJeiInfo {
         pages.add(new Page("tokamak_cryo_port", stacks(CryoRegistry.FUSION_CRYO_PORT_ITEM),
                 fluids(AllNuclearFluids.LIQUID_HELIUM, AllNuclearFluids.HELIUM)));
         pages.add(items("tokamak_vacuum_pump", CryoRegistry.FUSION_VACUUM_PUMP_ITEM));
+        // The renewable fuel cycle and the guide keep their own lists.
+        pages.addAll(FuelCycleInfo.pages());
+        pages.addAll(GuideJeiInfo.pages());
         return pages;
     }
 

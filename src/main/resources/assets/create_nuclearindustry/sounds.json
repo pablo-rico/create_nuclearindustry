@@ -54,5 +54,122 @@
         "stream": false
       }
     ]
+  },
+  "reactor_hum": {
+    "subtitle": "subtitle.create_nuclearindustry.reactor_hum",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:reactor_hum",
+        "stream": false
+      }
+    ]
+  },
+  "reactor_scram": {
+    "subtitle": "subtitle.create_nuclearindustry.reactor_scram",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:reactor_scram",
+        "stream": false
+      }
+    ]
+  },
+  "reactor_klaxon": {
+    "subtitle": "subtitle.create_nuclearindustry.reactor_klaxon",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:reactor_klaxon",
+        "stream": false
+      }
+    ]
+  },
+  "reactor_overtemp_alarm": {
+    "subtitle": "subtitle.create_nuclearindustry.reactor_overtemp_alarm",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:reactor_overtemp_alarm",
+        "stream": false
+      }
+    ]
+  },
+  "steam_hiss": {
+    "subtitle": "subtitle.create_nuclearindustry.steam_hiss",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:steam_hiss",
+        "stream": false
+      }
+    ]
+  },
+  "coolant_bubbling": {
+    "subtitle": "subtitle.create_nuclearindustry.coolant_bubbling",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:coolant_bubbling",
+        "stream": false
+      }
+    ]
+  },
+  "relief_valve_lift": {
+    "subtitle": "subtitle.create_nuclearindustry.relief_valve_lift",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:relief_valve_lift",
+        "stream": false
+      }
+    ]
+  },
+  "centrifuge_whine": {
+    "subtitle": "subtitle.create_nuclearindustry.centrifuge_whine",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:centrifuge_whine",
+        "stream": false
+      }
+    ]
+  },
+  "electrolyzer_buzz": {
+    "subtitle": "subtitle.create_nuclearindustry.electrolyzer_buzz",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:electrolyzer_buzz",
+        "stream": false
+      }
+    ]
+  },
+  "melter_roar": {
+    "subtitle": "subtitle.create_nuclearindustry.melter_roar",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:melter_roar",
+        "stream": false
+      }
+    ]
+  },
+  "rtg_hum": {
+    "subtitle": "subtitle.create_nuclearindustry.rtg_hum",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:rtg_hum",
+        "stream": false
+      }
+    ]
+  },
+  "acid_sizzle": {
+    "subtitle": "subtitle.create_nuclearindustry.acid_sizzle",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:acid_sizzle",
+        "stream": false
+      }
+    ]
+  },
+  "irradiation_crackle": {
+    "subtitle": "subtitle.create_nuclearindustry.irradiation_crackle",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:irradiation_crackle",
+        "stream": false
+      }
+    ]
   }
 }

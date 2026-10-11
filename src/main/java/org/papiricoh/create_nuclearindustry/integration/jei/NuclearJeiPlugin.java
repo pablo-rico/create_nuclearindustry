@@ -23,6 +23,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.fuelcycle.jei.FuelCycleJei;
 import org.papiricoh.create_nuclearindustry.processing.AllNuclearRecipeTypes;
 import org.papiricoh.create_nuclearindustry.processing.recipe.CentrifugingRecipe;
 import org.papiricoh.create_nuclearindustry.processing.recipe.ElectrolysisRecipe;
@@ -88,6 +89,7 @@ public class NuclearJeiPlugin implements IModPlugin {
                 new ProcessingJeiCategory<>(gui, ELECTROLYSIS,
                         Component.translatable("jei.create_nuclearindustry.category.electrolysis"), AllNuclearBlocks.ELECTROLYZER.get(), 32),
                 new VitrificationJeiCategory(gui, VITRIFICATION));
+        FuelCycleJei.registerCategories(registration);
     }
 
     @Override
@@ -99,6 +101,7 @@ public class NuclearJeiPlugin implements IModPlugin {
                 .stream().map(RecipeHolder::value).toList());
         registration.addRecipes(VITRIFICATION, recipes.getAllRecipesFor(WasteRecipeTypes.VITRIFICATION.<VitrificationInput, VitrificationRecipe>getType())
                 .stream().map(RecipeHolder::value).toList());
+        FuelCycleJei.registerRecipes(registration);
         addInfo(registration);
         addPlantInfo(registration);
     }
@@ -109,6 +112,7 @@ public class NuclearJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(AllNuclearBlocks.ELECTROLYZER.get(), ELECTROLYSIS);
         registration.addRecipeCatalyst(WasteRegistry.VITRIFICATION_MELTER.get(), VITRIFICATION);
         registration.addRecipeCatalyst(VitrificationJeiCategory.createStack("blaze_burner"), VITRIFICATION);
+        FuelCycleJei.registerRecipeCatalysts(registration);
     }
 
     /** The pages of the power plant areas, listed in {@link PlantJeiInfo}. */

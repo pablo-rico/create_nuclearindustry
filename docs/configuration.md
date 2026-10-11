@@ -1019,6 +1019,32 @@ Refugios:
   refugios se guardan solo en memoria: tras recargar, la unidad los vuelve a
   certificar en su primera inspección.
 
+## Reactor de fisión visible
+
+- `reactorVisuals.rodUpdateInterval` (20): ticks entre cada actualización de lo
+  que muestran los canales de combustible del reactor (combustible, brillo y
+  refrigerante).
+<!-- WP-A -->
+
+## Ciclo de combustible renovable
+
+- `fuelcycle.irradiationMinActivity` (2): radiactividad mínima de un bloque, en
+  rad/s (la de su ítem), para que un ventilador que sopla a través de él irradie
+  los ítems de su corriente. Los bloques de la etiqueta de catalizadores de
+  irradiación sirven siempre.
+<!-- WP-B -->
+
+## Rendimiento
+
+- `performance.radiationRayCacheTicks` (20): ticks que se reutiliza el rayo de
+  radiación entre un jugador y una fuente mientras ninguno de los dos se mueve. Con
+  0 se lanza cada rayo cada vez.
+- `explosive.blastColumnsPerTick` (600): columnas del cráter que una detonación
+  nuclear excava por tick. Con menos, el trabajo se reparte en más ticks.
+- `explosive.blastBlocksPerTick` (3500): bloques que una detonación nuclear quita o
+  cambia como mucho por tick.
+<!-- WP-D -->
+
 ## Uranio y litio de otros mods
 
 - Materias primas: la etiqueta `create_nuclearindustry:raw_uranium` incluye

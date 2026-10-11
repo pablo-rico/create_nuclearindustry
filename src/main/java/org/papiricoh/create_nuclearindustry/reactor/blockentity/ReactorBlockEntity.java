@@ -58,6 +58,7 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
+import org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
 import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
@@ -854,6 +855,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             ItemStack depleted;
             if (next.kind() == FuelKind.MOX) {
                 depleted = new ItemStack(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get());
+            } else if (next.kind() == FuelKind.THORIUM) {
+                depleted = new ItemStack(FuelCycleRegistry.DEPLETED_THORIUM_REACTOR_FUEL.get());
             } else {
                 depleted = new ItemStack(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get());
                 UraniumItem.setEnrichment(depleted, next.enrichment());
@@ -1320,9 +1323,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return fuelInventory;
     }
 
-    /** Only assembled fuel: uranium at low enrichment or better, or MOX. Bare uranium metal is not fuel. */
+    /** Only assembled fuel: uranium at low enrichment or better, MOX or thorium. Bare uranium metal is not fuel. */
     public boolean isFreshFuel(ItemStack stack) {
-        if (stack.is(AllNuclearItems.MOX_REACTOR_FUEL.get())) {
+        if (stack.is(AllNuclearItems.MOX_REACTOR_FUEL.get()) || stack.is(FuelCycleRegistry.THORIUM_REACTOR_FUEL.get())) {
             return true;
         }
         return stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get())
@@ -1330,10 +1333,14 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     public static boolean isSpentFuel(ItemStack stack) {
-        return stack.is(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get()) || stack.is(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get());
+        return stack.is(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get()) || stack.is(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get())
+                || stack.is(FuelCycleRegistry.DEPLETED_THORIUM_REACTOR_FUEL.get());
     }
 
     public static FuelKind fuelKindOf(ItemStack stack) {
+        if (stack.is(FuelCycleRegistry.THORIUM_REACTOR_FUEL.get())) {
+            return FuelKind.THORIUM;
+        }
         return stack.is(AllNuclearItems.MOX_REACTOR_FUEL.get()) ? FuelKind.MOX : FuelKind.URANIUM;
     }
 
@@ -1341,6 +1348,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     public static float getFuelEnrichment(ItemStack stack) {
         if (stack.is(AllNuclearItems.MOX_REACTOR_FUEL.get())) {
             return FuelKind.MOX_EQUIVALENT_ENRICHMENT;
+        }
+        if (stack.is(FuelCycleRegistry.THORIUM_REACTOR_FUEL.get())) {
+            return FuelKind.THORIUM_EQUIVALENT_ENRICHMENT;
         }
         if (stack.is(AllNuclearItems.URANIUM_REACTOR_FUEL.get())) {
             return stack.has(AllNuclearDataComponents.ENRICHMENT.get())

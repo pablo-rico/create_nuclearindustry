@@ -514,6 +514,22 @@ public class ReactorPhysicsSimulator {
         return drainSpent().stream().map(SpentAssembly::enrichment).toList();
     }
 
+    /**
+     * Every loaded assembly, in burn order (the first is the one burning), with how much of it is
+     * burnt: 0 fresh, 1 spent. Read-only; for showing the fuel in the channels.
+     */
+    public List<AssemblyView> assemblyViews() {
+        List<AssemblyView> views = new ArrayList<>(assemblies.size());
+        for (FuelAssembly assembly : assemblies) {
+            double burnt = assembly.initialUnits > 0 ? 1.0 - assembly.units / assembly.initialUnits : 1.0;
+            views.add(new AssemblyView(assembly.kind, clamp(burnt, 0.0, 1.0)));
+        }
+        return views;
+    }
+
+    /** A loaded assembly as {@link #assemblyViews()} shows it. */
+    public record AssemblyView(FuelKind kind, double burnFraction) {}
+
     public int getLoadedAssemblyCount() {
         return assemblies.size();
     }
