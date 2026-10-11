@@ -37,13 +37,6 @@ public class AdvancementTriggerTests {
         helper.succeed();
     }
 
-    /**
-     * Events added ahead of the advancements that will listen for them (the guide's new tabs). The
-     * guide work empties this set; until then they are the only events allowed to earn nothing.
-     */
-    private static final Set<NuclearEvent> AWAITING_ADVANCEMENTS = EnumSet.range(NuclearEvent.REACTOR_FULL_POWER,
-            NuclearEvent.NUCLEAR_SHELL_FIRED);
-
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void everyEventHasAnAdvancementListeningForIt(GameTestHelper helper) {
         Set<NuclearEvent> heard = EnumSet.noneOf(NuclearEvent.class);
@@ -61,9 +54,6 @@ public class AdvancementTriggerTests {
         }
         Set<NuclearEvent> missing = EnumSet.allOf(NuclearEvent.class);
         missing.removeAll(heard);
-        missing.removeAll(AWAITING_ADVANCEMENTS);
-        helper.assertTrue(heard.stream().noneMatch(AWAITING_ADVANCEMENTS::contains),
-                "events that earn something leave AWAITING_ADVANCEMENTS");
         helper.assertTrue(missing.isEmpty(), "every event earns something; missing " + missing);
         helper.succeed();
     }

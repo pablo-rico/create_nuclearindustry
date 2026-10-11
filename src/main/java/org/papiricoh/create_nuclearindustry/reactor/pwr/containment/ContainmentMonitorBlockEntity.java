@@ -240,6 +240,7 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
         if (PwrConfig.containmentRupture && model.pressure() > shape.weakestRating()) {
             rupture();
         }
+        if (level.getGameTime() % 20 == 0 && sealed() && model.pressure() > (ContainmentModel.ATMOSPHERE + shape.weakestRating()) / 2) org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, worldPosition, 64, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.CONTAINMENT_HELD);
     }
 
     private static ContainmentModel.Params params() {

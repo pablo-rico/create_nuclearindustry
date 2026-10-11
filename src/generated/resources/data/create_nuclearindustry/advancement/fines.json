@@ -1,0 +1,56 @@
+{
+  "parent": "create_nuclearindustry:root",
+  "criteria": {
+    "deepslate_fines": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:deepslate_fines"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "granite_fines": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:granite_fines"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "tuff_fines": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:tuff_fines"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.fines.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:granite_fines"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.fines.title"
+    }
+  },
+  "requirements": [
+    [
+      "granite_fines",
+      "tuff_fines",
+      "deepslate_fines"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

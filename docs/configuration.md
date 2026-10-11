@@ -1028,7 +1028,6 @@ Refugios:
   puede redibujar como mucho en un tick; los demás esperan al siguiente. Bájalo
   en servidores con reactores muy grandes si los cambios de aspecto se notan en
   el rendimiento.
-<!-- WP-A -->
 
 ## Ciclo de combustible renovable
 
@@ -1065,7 +1064,6 @@ reactividad del uranio poco enriquecido, la gana a medida que genera uranio-233
 (`fission.fuelUnitsPerAssembly` × 1,4). Las vías renovables (roca, arena, salmuera,
 agua de mar) están ajustadas para costar entre una y dos veces lo que la mena por
 unidad de producto; las recetas generadas se comprueban con un test.
-<!-- WP-B -->
 
 ## Rendimiento
 
@@ -1084,7 +1082,6 @@ salta las secciones de chunk sin ninguno, las fuentes (reactores, RTG...) se bus
 por los chunks cercanos, y un reactor manda a los clientes una actualización como
 mucho cada 10 ticks (al instante si se forma, se rompe, hace SCRAM, se funde o se
 le rompe la vasija).
-<!-- WP-D -->
 
 ## Uranio y litio de otros mods
 

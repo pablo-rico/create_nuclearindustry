@@ -13,7 +13,7 @@
   },
   "display": {
     "announce_to_chat": false,
-    "background": "create_nuclearindustry:textures/block/reactor_casing.png",
+    "background": "minecraft:textures/block/deepslate.png",
     "description": {
       "translate": "advancement.create_nuclearindustry.root.description"
     },

@@ -1,5 +1,5 @@
 {
-  "parent": "create_nuclearindustry:reactor_fuel",
+  "parent": "create_nuclearindustry:fission",
   "criteria": {
     "reactor_formed": {
       "conditions": {

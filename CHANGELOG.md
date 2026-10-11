@@ -660,7 +660,6 @@ below for what changes in existing worlds.
 - New milestones for the guide: running a reactor at full power, a cold
   shutdown after a SCRAM, a relief valve lifting and forming a steam
   generator.
-<!-- WP-A -->
 
 ### Renewable materials, fan treatments and thorium
 - Two new bulk fan treatments next to Create's. Acid leaching: an Encased Fan
@@ -704,10 +703,39 @@ below for what changes in existing worlds.
 - New items are radioactive where it makes sense (uranium-233 and spent thorium
   fuel the most). New config: `fuelcycle.irradiationDosePerSecond` and
   `fuelcycle.acidDamagePerSecond`.
-<!-- WP-B -->
 
 ### Guide: advancements, Ponder and JEI
-<!-- WP-C -->
+- The advancements now fill six tabs, each with its own root and background:
+  Fuel Cycle (from raw uranium to MOX and the new thorium cycle: fines, heavy
+  mineral sand, sulfuric acid, thorium dioxide, uranium-233 and thorium fuel),
+  Nuclear Fission (the reactor, the reactor viewport, full power, cold
+  shutdown, the steam generator and its relief valve), Nuclear Waste, Civil
+  Defense (radiation safety moved here, with sirens, the seismic detector,
+  blast doors and shelters), Nuclear Fusion (tokamak, cryogenic plant,
+  ignition) and Weapons. 58 advancements in all; every old one is kept, so
+  progress already made stays earned, though some now hang in another tab.
+- Nine secret challenges, hidden until earned: burn thorium fuel until it is
+  spent, keep a loss of coolant inside a sealed containment past half its
+  rated pressure, let a core catcher freeze the corium of a meltdown, have a
+  Repository Inspector find eight or more packages all stored for good, ride
+  out a blast wave unharmed in a certified shelter, get a fusion gain above
+  one, lose a plasma to a disruption, see a nuclear cannon shell go off, and
+  the meltdown itself.
+- Machines now report the moments those advancements listen for: a siren
+  starting to sound, a seismic detector feeling a detonation, a blast door
+  shutting, a missile lifting off, a tokamak or cryogenic plant forming, a
+  disruption and a burning plasma with a gain above one.
+- New Ponder scenes: the air raid and hand-crank sirens, blast doors, fallout
+  shelters with the seismic detector, the nuclear and dirty bombs, the missile
+  launch pad, the fuel cycle from ore to fuel assembly (crushing, washing,
+  leaching, enrichment, pellets, assembly and the electrolyzer), and the acid
+  leaching and irradiation fan treatments, also shown on Create's Encased Fan.
+  The fan scenes show what the loaded recipes actually make.
+- New JEI pages: the nuclear bomb, the launch pad with its missile and target
+  designator, the nuclear cannon shell (with Create Big Cannons), the reactor's
+  fuel and fluid ports, control rods and temperature sensor, the tokamak's
+  shell blocks, magnet drive, fluid port and fuel injector, the fusion turbine
+  blocks, the reactor viewport, and the two fan treatments.
 
 ### Performance and multiplayer
 - A fission reactor being filled, emptied or run no longer sends everyone
@@ -733,7 +761,6 @@ below for what changes in existing worlds.
   replaced, or when the player walks a few blocks beyond reach, as chests do.
 - `explosive.blastColumnsPerTick` and `explosive.blastBlocksPerTick` now set
   how fast a nuclear crater is dug.
-<!-- WP-D -->
 
 ### JEI
 - Info pages for every new block and item of the plant: pressurizer, steam
@@ -807,6 +834,17 @@ below for what changes in existing worlds.
 - The `fusion.*` config keys keep their names; new ones (startup, vacuum,
   magnets, plasma), `cryo.*` and `plasmaHeating.*` are documented in
   `docs/configuration.md`.
+- Fission reactors' fuel channels now show their fuel, glow and coolant. In
+  an existing reactor they start dark and light up at the next update, a
+  second after the world loads.
+- Sulfuric acid can now be placed from a bucket, as the catalyst of the
+  acid leaching fan treatment. Create's own crushing of tuff and washing of
+  sand, red sand and gravel keep their outputs and gain the new ones.
+- Advancements are split into six tabs. Every existing advancement keeps its
+  id, so earned ones stay earned; some now hang from a different parent.
+- New config keys `reactorVisuals.*`, `fuelcycle.*`, `performance.*` and
+  `explosive.blastColumnsPerTick` / `explosive.blastBlocksPerTick` are
+  documented in `docs/configuration.md`.
 
 ## 1.1.0
 

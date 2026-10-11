@@ -232,6 +232,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
             missile.setSalting(load);
         }
         serverLevel.addFreshEntity(missile);
+        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(serverLevel, worldPosition, org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.WITNESS_RADIUS, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.MISSILE_LAUNCHED);
     }
 
     private void consumeFuel() {

@@ -230,6 +230,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         }
         if (level.getGameTime() % OBSERVE_INTERVAL == 0) {
             notifyAuxiliaries(tokamak, readings());
+            if (sequence.phase() == TokamakPhase.BURN && plasma.gain() > 1) NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), NuclearEvent.FUSION_BREAKEVEN);
         }
     }
 
@@ -454,6 +455,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         tritiumCredit = 0;
         notifyOwner(Component.translatable("create_nuclearindustry.tokamak.message.disruption", pos.toShortString())
                 .withStyle(ChatFormatting.DARK_RED), true);
+        NuclearAdvancements.awardMachine(level, pos, messenger.owner(level), NuclearEvent.DISRUPTION);
         if (!FusionConfig.disruptionExplosions || !(level instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -569,6 +571,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
             }
             fuelRate = Math.min(fuelRate, maxFuelRate());
             if (playerInitiated || !wasFormed) {
+                NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), NuclearEvent.TOKAMAK_FORMED);
                 MutableComponent message = Component.translatable("create_nuclearindustry.tokamak.message.formed",
                         next.dimensionsText()).withStyle(ChatFormatting.AQUA);
                 if (!result.warnings().isEmpty()) {

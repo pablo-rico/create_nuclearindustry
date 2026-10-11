@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:civil_defense",
+  "criteria": {
+    "siren_sounded": {
+      "conditions": {
+        "event": "siren_sounded"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.siren.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:hand_crank_siren"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.siren.title"
+    }
+  },
+  "requirements": [
+    [
+      "siren_sounded"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

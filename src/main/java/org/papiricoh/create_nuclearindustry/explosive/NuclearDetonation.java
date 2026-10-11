@@ -25,11 +25,15 @@ public final class NuclearDetonation {
     public static final float FALLOUT_PER_POWER = 0.2f;
     /** Strongest vanilla explosion a nuclear fireball makes; the blast wave does the rest. */
     public static final float FIREBALL_MAX_POWER = 12.0f;
+    /** How far from a nuclear shell's impact the crew still sees it go off. */
+    private static final double SHELL_WITNESS_RADIUS = 512.0;
 
     private NuclearDetonation() {}
 
     public static void detonateMaxWarhead(ServerLevel level, Position position) {
         detonate(level, position, WarheadStats.MAX_URANIUM_UNITS, WarheadStats.REQUIRED_ENRICHMENT);
+        // Only nuclear cannon shells go off at the full warhead; the gun may stand far from the impact.
+        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, BlockPos.containing(position.x(), position.y(), position.z()), SHELL_WITNESS_RADIUS, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.NUCLEAR_SHELL_FIRED);
     }
 
     public static void detonate(ServerLevel level, Position position, int uraniumUnits, float averageEnrichment) {

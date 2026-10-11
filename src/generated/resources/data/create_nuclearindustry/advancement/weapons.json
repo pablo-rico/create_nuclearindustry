@@ -1,0 +1,101 @@
+{
+  "criteria": {
+    "dirty_bomb": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:dirty_bomb"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "launch_pad": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:launch_pad"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "missile": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:missile"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "nuclear_bomb": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:nuclear_bomb"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "target_designator": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:target_designator"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "weapons_grade_plutonium_core": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:weapons_grade_plutonium_core"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "weapons_grade_uranium_core": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:weapons_grade_uranium_core"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "create_nuclearindustry:textures/block/launch_pad_base.png",
+    "description": {
+      "translate": "advancement.create_nuclearindustry.weapons.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:nuclear_bomb"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancement.create_nuclearindustry.weapons.title"
+    }
+  },
+  "requirements": [
+    [
+      "weapons_grade_uranium_core",
+      "weapons_grade_plutonium_core",
+      "nuclear_bomb",
+      "dirty_bomb",
+      "missile",
+      "launch_pad",
+      "target_designator"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

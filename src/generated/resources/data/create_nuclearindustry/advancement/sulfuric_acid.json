@@ -1,0 +1,34 @@
+{
+  "parent": "create_nuclearindustry:fines",
+  "criteria": {
+    "has": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:sulfuric_acid_bucket"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.sulfuric_acid.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:sulfuric_acid_bucket"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.sulfuric_acid.title"
+    }
+  },
+  "requirements": [
+    [
+      "has"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

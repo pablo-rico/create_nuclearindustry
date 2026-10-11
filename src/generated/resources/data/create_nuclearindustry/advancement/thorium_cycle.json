@@ -1,0 +1,35 @@
+{
+  "parent": "create_nuclearindustry:thorium_fuel",
+  "criteria": {
+    "has": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:depleted_thorium_reactor_fuel"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.thorium_cycle.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:depleted_thorium_reactor_fuel"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.thorium_cycle.title"
+    }
+  },
+  "requirements": [
+    [
+      "has"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:shelter",
+  "criteria": {
+    "sheltered_from_blast": {
+      "conditions": {
+        "event": "sheltered_from_blast"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.sheltered_from_blast.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:blast_door_frame"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.sheltered_from_blast.title"
+    }
+  },
+  "requirements": [
+    [
+      "sheltered_from_blast"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

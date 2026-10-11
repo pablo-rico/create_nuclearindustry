@@ -1,5 +1,5 @@
 {
-  "parent": "create_nuclearindustry:geiger",
+  "parent": "create_nuclearindustry:weapons",
   "criteria": {
     "dirty_detonation": {
       "conditions": {

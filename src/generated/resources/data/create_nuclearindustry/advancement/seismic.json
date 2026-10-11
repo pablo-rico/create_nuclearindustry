@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:siren",
+  "criteria": {
+    "seismic_detected": {
+      "conditions": {
+        "event": "seismic_detected"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.seismic.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:seismic_detector"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.seismic.title"
+    }
+  },
+  "requirements": [
+    [
+      "seismic_detected"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -99,6 +99,7 @@ public class RepositoryInspectorBlockEntity extends SmartBlockEntity implements 
         weakestBlock = worstBlock;
         weakest = worstBreakdown;
         scanned = true;
+        if (changed && count >= 8 && safe == count) org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, worldPosition, org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.WITNESS_RADIUS, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.REPOSITORY_SEALED);
         if (changed) {
             notifyUpdate();
             if (signal() != signalBefore) {

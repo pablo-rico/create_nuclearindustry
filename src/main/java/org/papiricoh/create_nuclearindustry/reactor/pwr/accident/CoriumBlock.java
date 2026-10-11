@@ -101,6 +101,7 @@ public class CoriumBlock extends Block implements IWrenchable {
                     3, 0.3, 0.1, 0.3, 0.0);
         }
         level.setBlock(destination, next, UPDATE_ALL);
+        if (below == CoriumModel.Below.CATCHER && decision.solidifies()) org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, destination, 64, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.CORIUM_CAUGHT);
         if (next.is(this)) {
             level.scheduleTick(destination, this, TICK_INTERVAL);
         }

@@ -1,0 +1,34 @@
+{
+  "parent": "create_nuclearindustry:reactor_formed",
+  "criteria": {
+    "has": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:reactor_viewport"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.reactor_viewport.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:reactor_viewport"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.reactor_viewport.title"
+    }
+  },
+  "requirements": [
+    [
+      "has"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

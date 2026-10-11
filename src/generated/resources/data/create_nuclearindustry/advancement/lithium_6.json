@@ -1,5 +1,5 @@
 {
-  "parent": "create_nuclearindustry:root",
+  "parent": "create_nuclearindustry:fusion",
   "criteria": {
     "has": {
       "conditions": {

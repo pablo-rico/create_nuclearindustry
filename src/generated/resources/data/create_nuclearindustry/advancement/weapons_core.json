@@ -1,5 +1,5 @@
 {
-  "parent": "create_nuclearindustry:plutonium",
+  "parent": "create_nuclearindustry:weapons",
   "criteria": {
     "plutonium": {
       "conditions": {
