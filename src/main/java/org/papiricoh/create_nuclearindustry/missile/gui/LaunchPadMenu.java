@@ -96,7 +96,7 @@ public class LaunchPadMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return padPos != null && player.blockPosition().closerThan(padPos, 8.0);
+        return org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard.stillValid(pad, player);
     }
 
     public LaunchPadBlockEntity getPad() {

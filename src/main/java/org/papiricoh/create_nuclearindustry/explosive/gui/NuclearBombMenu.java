@@ -84,7 +84,7 @@ public class NuclearBombMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return bombPos != null && player.blockPosition().closerThan(bombPos, 8.0);
+        return org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard.stillValid(bomb, player);
     }
 
     public NuclearBombBlockEntity getBomb() {

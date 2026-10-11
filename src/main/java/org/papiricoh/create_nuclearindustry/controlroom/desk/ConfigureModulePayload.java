@@ -12,6 +12,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard;
 
 /** Client to server: the new setup of one control module, from its configuration screen. */
 public record ConfigureModulePayload(BlockPos pos, int slot, CompoundTag config) implements CustomPacketPayload {
@@ -22,8 +23,6 @@ public record ConfigureModulePayload(BlockPos pos, int slot, CompoundTag config)
             ByteBufCodecs.VAR_INT, ConfigureModulePayload::slot,
             ByteBufCodecs.COMPOUND_TAG, ConfigureModulePayload::config,
             ConfigureModulePayload::new);
-    private static final double REACH = 8.0;
-
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
@@ -39,11 +38,11 @@ public record ConfigureModulePayload(BlockPos pos, int slot, CompoundTag config)
     }
 
     /**
-     * Applies the setup for {@code player}, who must be within reach of a desk with a module in that
-     * slot. The module sanitises what it takes. Returns whether it was applied.
+     * Applies the setup for {@code player}, who must pass {@link ServerPayloadGuard} for a desk with a
+     * module in that slot. The module sanitises what it takes. Returns whether it was applied.
      */
     public static boolean apply(Player player, ConfigureModulePayload payload) {
-        if (player.distanceToSqr(payload.pos().getCenter()) > REACH * REACH || !player.level().isLoaded(payload.pos())) {
+        if (!ServerPayloadGuard.check(player, payload.pos())) {
             return false;
         }
         return player.level().getBlockEntity(payload.pos()) instanceof ControlDeskBlockEntity desk

@@ -240,7 +240,7 @@ public class ReactorControlMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return reactorPos != null && player.blockPosition().closerThan(reactorPos, 8.0);
+        return org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard.stillValid(reactor, player);
     }
 
     /**

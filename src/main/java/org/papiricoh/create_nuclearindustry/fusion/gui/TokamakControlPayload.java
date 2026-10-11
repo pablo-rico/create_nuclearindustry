@@ -11,11 +11,12 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
 
 /**
- * Client to server: a button on the tokamak control screen. The server checks the player is near a
- * tokamak controller, and the controller clamps every setpoint itself.
+ * Client to server: a button on the tokamak control screen. The server checks the player may use the
+ * tokamak controller ({@link ServerPayloadGuard}), and the controller clamps every setpoint itself.
  *
  * @param action what was pressed, one of the constants here
  * @param value  the new setpoint for the setpoint actions; ignored otherwise
@@ -35,8 +36,6 @@ public record TokamakControlPayload(BlockPos pos, int action, double value) impl
             ByteBufCodecs.VAR_INT, TokamakControlPayload::action,
             ByteBufCodecs.DOUBLE, TokamakControlPayload::value,
             TokamakControlPayload::new);
-    private static final double REACH = 8.0;
-
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
@@ -52,12 +51,12 @@ public record TokamakControlPayload(BlockPos pos, int action, double value) impl
     }
 
     /**
-     * Applies the action for {@code player}, who must be within reach of a loaded tokamak controller.
-     * Returns whether it was applied.
+     * Applies the action for {@code player}, who must pass {@link ServerPayloadGuard} for a loaded
+     * tokamak controller. Returns whether it was applied.
      */
     public static boolean apply(Player player, TokamakControlPayload payload) {
         BlockPos pos = payload.pos();
-        if (player.distanceToSqr(pos.getCenter()) > REACH * REACH || !player.level().isLoaded(pos)
+        if (!ServerPayloadGuard.check(player, pos)
                 || !(player.level().getBlockEntity(pos) instanceof FusionReactorBlockEntity tokamak)) {
             return false;
         }
