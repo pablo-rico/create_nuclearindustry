@@ -8,7 +8,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
-import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
 
 /**
  * Reactor control panel. Readouts are drawn over the generated background texture;
@@ -126,14 +125,15 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         }
 
         double temp = menu.getCoreTemperature();
-        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.temperature", Math.round(temp)), TEMP_Y, tempColor(temp));
+        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.temperature", Math.round(temp),
+                Math.round(menu.getCoolantTemperature())), TEMP_Y, tempColor(temp));
         gauge(graphics, TEMP_Y + 12, (float) (temp / 4000.0));
 
-        double neutrons = menu.getNeutronLevel();
-        double maxNeutrons = ReactorPhysicsSimulator.getMaxNeutronLevel();
-        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.neutrons",
-                Math.round(neutrons), Math.round(maxNeutrons)), NEUTRON_Y, 0xFFFFFF55);
-        gauge(graphics, NEUTRON_Y + 12, (float) (neutrons / maxNeutrons));
+        // Power as a share of what this core's fuel is rated for, whatever its size.
+        double power = menu.getPowerFraction();
+        text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.power_level",
+                String.format("%.1f", power * 100), menu.getRatedPower()), NEUTRON_Y, power > 1.05 ? 0xFFFFAA00 : 0xFFFFFF55);
+        gauge(graphics, NEUTRON_Y + 12, (float) power);
 
         double fuel = menu.getFuelRemaining();
         double capacity = menu.getFuelCapacity();
@@ -143,19 +143,22 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         gauge(graphics, FUEL_Y + 12, capacity <= 0 ? 0 : (float) (fuel / capacity));
 
         text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.power",
-                String.format("%.1f", menu.getPowerOutput()), String.format("%.1f", menu.getSteamGenerationRate())), POWER_Y, 0xFF55BBFF);
+                Math.round(menu.getPowerOutput()), String.format("%.1f", menu.getSteamGenerationRate())), POWER_Y, 0xFF55BBFF);
         text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.state", menu.getSyncedReactorStateName()),
                 STATE_Y, stateColor(menu.getSyncedReactorStateName()));
 
-        Component stress = Component.translatable("gui.create_nuclearindustry.reactor.stress", Math.round(menu.getThermalStress()));
+        double damage = menu.getCoreDamage();
+        Component stress = Component.translatable("gui.create_nuclearindustry.reactor.stress", Math.round(menu.getThermalStress()),
+                Math.round(damage * 100));
         if (menu.isThermalExcursionActive()) {
             stress = stress.copy().append(" ").append(Component.translatable("gui.create_nuclearindustry.reactor.excursion"));
         }
-        text(graphics, stress, STRESS_Y, stressColor(menu.getThermalStress()));
+        text(graphics, stress, STRESS_Y, damage > 0 ? 0xFFFF3333 : stressColor(menu.getThermalStress()));
 
         double xenon = menu.getXenonPenalty();
+        int reactivity = menu.getNetReactivity();
         text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.core",
-                String.format("%.2f", menu.getReactivity()), Math.round(xenon * 100), Math.round(menu.getDecayHeatPower())),
+                (reactivity > 0 ? "+" : "") + reactivity, Math.round(xenon * 100), Math.round(menu.getDecayHeatPower())),
                 CORE_Y, xenon >= 0.15 ? 0xFFFFAA00 : 0xFFBBBBFF);
 
         text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.rods",

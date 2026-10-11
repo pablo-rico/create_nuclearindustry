@@ -252,15 +252,15 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
             if (playerInitiated || !wasFormed) {
                 org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level),
                         org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.COOLING_TOWER_FORMED);
-                messenger.send(level, Component.translatable(KEY + "message.formed",
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(KEY + "message.formed",
                                 Component.literal("[" + next.dimensionsText() + ", " + getCapacity() + " mB/t]").withStyle(ChatFormatting.DARK_GRAY))
-                        .withStyle(ChatFormatting.AQUA), playerInitiated);
+                        .withStyle(ChatFormatting.AQUA));
             }
         } else {
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
-                messenger.send(level, Component.translatable(KEY + (wasFormed ? "message.broken" : "message.incomplete"),
-                        MultiblockText.text(result.primaryMessage())).withStyle(ChatFormatting.RED), playerInitiated);
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(KEY + (wasFormed ? "message.broken" : "message.incomplete"),
+                        MultiblockText.text(result.primaryMessage())).withStyle(ChatFormatting.RED));
             }
         }
         display = buildDisplay();

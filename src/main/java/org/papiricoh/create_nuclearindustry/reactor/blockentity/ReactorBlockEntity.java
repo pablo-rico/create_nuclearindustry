@@ -17,6 +17,7 @@ import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelHooks;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import net.minecraft.ChatFormatting;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -73,6 +74,10 @@ import org.papiricoh.create_nuclearindustry.reactor.physics.SpentAssembly;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodTracker;
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ReactivityModel;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.FissionCore;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.CoreThermalModel;
+import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
 import org.papiricoh.create_nuclearindustry.AllNuclearSounds;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
 import org.papiricoh.create_nuclearindustry.reactor.display.ReactorText;
@@ -95,16 +100,15 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private static final int HEAT_EXCHANGER_STEAM_PER_TICK = 80;
     private static final int FLUID_PORT_STEAM_PER_TICK = 160;
     // Balance parameters for external coolant heat removal.
-    private static final double WATER_COOLING_PER_MB = 0.225;
-    private static final double HEAVY_WATER_COOLING_PER_MB = 0.35;
-    private static final double WATER_MODERATION_PER_MB = 0.001;
-    private static final double HEAVY_WATER_MODERATION_PER_MB = 0.003;
+    /** Water that keeps the whole core covered, mB: less uncovers part of it. */
+    private static final int CORE_WATER = 4000;
+    /** Heat units of the pressurized loop's coolant model per MJ the core gives it. */
+    private static final double HEAT_UNITS_PER_MJ = 1.0;
     private static final int CONTROL_ROD_SCAN_INTERVAL = 5;
     private static final int SCRAM_RECOVERY_SCAN_INTERVAL = 20;
     private static final int LOAD_MELTDOWN_GRACE_TICKS = 200;
     /** 2: a manual SCRAM no longer forces the rods in. Absent in older saves. */
     private static final int SCRAM_VERSION = 2;
-    private static final int MELTDOWN_CONFIRM_TICKS = 200;
     /** Share of the xenon worth a shut-down core must reach to count as in the iodine pit. */
     private static final double IODINE_PIT_FRACTION = 0.6;
     private static final float MELTDOWN_EXPLOSION_POWER = 80.0f;
@@ -174,6 +178,13 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private int validations;
     /** The last chat message, kept for tests. */
     private Component lastMessage = Component.empty();
+    /** Steam boiled but not yet a whole mB. */
+    private double boilCarry;
+    /** Core damage at the last accident tick, so new damage releases what it frees. */
+    private double lastDamage;
+    private boolean fuelMeltingAlerted;
+    /** Damage at which the operator is warned that the fuel is failing. */
+    private static final double FUEL_DAMAGE_ALERT = 0.1;
     /** Whether the SCRAM signal was on last tick, so the rods drop with a thud once. */
     private boolean scramShown;
     /** Set by a SCRAM of a hot core, cleared once it is cold: a cold shutdown. */
@@ -259,7 +270,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 } else {
                     entity.status = ReactorStatus.SCRAMMED_HOT;
                     entity.physicsSimulator.forceScramForLoad();
-                    entity.sendPlayerMessage(message(ChatFormatting.RED, "scrammed_hot_load"), false);
+                    entity.alertMessage(message(ChatFormatting.RED, "scrammed_hot_load"));
                     entity.markDirtyAndSync();
                 }
                 return;
@@ -440,10 +451,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 }
             }
             if (playerInitiated || previousStatus != ReactorStatus.FORMED) {
-                sendPlayerMessage(status == ReactorStatus.FORMED
+                statusMessage(playerInitiated ? player : null, status == ReactorStatus.FORMED
                         ? message(ChatFormatting.DARK_GREEN, "formed",
                                 Component.literal("[" + newStructure.dimensionsText() + "]").withStyle(ChatFormatting.DARK_GRAY))
-                        : message(ChatFormatting.YELLOW, "valid_scrammed_hot"), playerInitiated);
+                        : message(ChatFormatting.YELLOW, "valid_scrammed_hot"));
             }
             markDirtyAndSync();
             return;
@@ -454,7 +465,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             updateControlRodInsertion(true);
             linkStructureParts(currentStructure.get());
             if (playerInitiated) {
-                sendPlayerMessage(message(ChatFormatting.YELLOW, "formed_rods_moving"), true);
+                statusMessage(player, message(ChatFormatting.YELLOW, "formed_rods_moving"));
             }
             markDirtyAndSync();
             return;
@@ -465,14 +476,17 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             setStructure(Optional.empty());
             status = ReactorStatus.SCRAMMED;
             physicsSimulator.setControlRodInsertion(1.0f);
-            if (playerInitiated || previousStatus != ReactorStatus.SCRAMMED) {
-                sendPlayerMessage(message(ChatFormatting.RED, "scrammed", MultiblockText.text(result.primaryMessage())), playerInitiated);
+            if (playerInitiated) {
+                statusMessage(player, message(ChatFormatting.RED, "scrammed", MultiblockText.text(result.primaryMessage())));
+            } else if (previousStatus != ReactorStatus.SCRAMMED && (physicsSimulator.isRunning() || physicsSimulator.getCoreTemperature() > 100)) {
+                // Breaking a hot or running core is serious; breaking a cold one while building it is not.
+                alertMessage(message(ChatFormatting.RED, "structure_scram"));
             }
         } else {
             status = ReactorStatus.UNFORMED;
             setStructure(Optional.empty());
             if (playerInitiated) {
-                sendPlayerMessage(message(ChatFormatting.RED, "incomplete", MultiblockText.text(result.primaryMessage())), true);
+                statusMessage(player, message(ChatFormatting.RED, "incomplete", MultiblockText.text(result.primaryMessage())));
             }
         }
 
@@ -572,7 +586,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         lastControlRodScan = ControlRodTracker.scan(getLevel(), currentStructure.get());
         // Rods only move physically (Create pistons). A SCRAM is a redstone request, except for
         // reactors saved in manual SCRAM before that change, which hold their rods in until reset.
-        physicsSimulator.setControlRodInsertion(legacyScramHold ? 1.0f : lastControlRodScan.insertionRatio());
+        if (legacyScramHold) {
+            physicsSimulator.setControlRodInsertion(1.0f);
+        } else {
+            physicsSimulator.setChannelInsertions(lastControlRodScan.channelInsertions());
+        }
     }
 
     public boolean isManualScram() {
@@ -638,7 +656,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (autoScram.check(physicsSimulator.getCoreTemperature())) {
             awardMachine(NuclearEvent.SCRAM);
             refreshRedstonePorts();
-            sendPlayerMessage(message(ChatFormatting.RED, "auto_scram", autoScram.getThreshold()), true);
+            alertMessage(message(ChatFormatting.RED, "auto_scram", autoScram.getThreshold()));
             markDirtyAndSync();
         }
     }
@@ -650,7 +668,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     public boolean resetScram() {
         double temperature = physicsSimulator.getCoreTemperature();
         if (!autoScram.canReset(temperature)) {
-            sendPlayerMessage(message(ChatFormatting.RED, "reset_too_hot", autoScram.getThreshold() - AutoScram.RESET_MARGIN), true);
+            statusMessage(operator(), message(ChatFormatting.RED, "reset_too_hot", autoScram.getThreshold() - AutoScram.RESET_MARGIN));
             return false;
         }
         autoScram.reset(temperature);
@@ -658,7 +676,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         legacyScramHold = false;
         updateControlRodInsertion(true);
         refreshRedstonePorts();
-        sendPlayerMessage(message(ChatFormatting.GREEN, "scram_reset"), true);
+        statusMessage(operator(), message(ChatFormatting.GREEN, "scram_reset"));
         markDirtyAndSync();
         return true;
     }
@@ -689,14 +707,18 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
         updateControlRodInsertion(true);
         refreshRedstonePorts();
-        sendPlayerMessage(engaged ? message(ChatFormatting.RED, "manual_scram") : message(ChatFormatting.GREEN, "manual_scram_released"), true);
+        if (engaged) {
+            alertMessage(message(ChatFormatting.RED, "manual_scram"));
+        } else {
+            statusMessage(operator(), message(ChatFormatting.GREEN, "manual_scram_released"));
+        }
         markDirtyAndSync();
     }
 
     /** A shut-down core held back by most of the xenon it can hold: the iodine pit. */
     private void checkIodinePit() {
-        if (status == ReactorStatus.FORMED && Config.xenonPoisoning && Config.xenonWorth > 0 && !physicsSimulator.isRunning()
-                && physicsSimulator.getXenonPenalty() >= Config.xenonWorth * IODINE_PIT_FRACTION) {
+        if (status == ReactorStatus.FORMED && Config.xenonPoisoning && FissionConfig.xenonWorthPcm > 0 && !physicsSimulator.isRunning()
+                && physicsSimulator.getXenonPenaltyPcm() >= FissionConfig.xenonWorthPcm * IODINE_PIT_FRACTION) {
             awardMachine(NuclearEvent.IODINE_PIT);
         }
     }
@@ -732,7 +754,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             }
         }
 
-        double power = ReactorSoundModel.powerFraction(getPowerOutput());
+        double power = ReactorSoundModel.powerFraction(getPowerOutput(), getRatedPower());
         if (!atFullPower && status == ReactorStatus.FORMED && power >= ReactorSoundModel.FULL_POWER_FRACTION) {
             atFullPower = true;
             awardMachine(NuclearEvent.REACTOR_FULL_POWER);
@@ -834,13 +856,13 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         int cold = NuclearFluidHelper.isPrimaryCoolant(coolantTank.getFluid()) ? coolantTank.getFluidAmount() : 0;
         int hot = hotTank ? steamTank.getFluidAmount() : 0;
         int hotCapacity = hotTank ? steamTank.getCapacity() : 0;
-        double rodMultiplier = physicsSimulator.getSteamRodMultiplier();
-        double maxHeat = structure.heatExchangerCount * HEAT_EXCHANGER_STEAM_PER_TICK * WATER_COOLING_PER_MB;
-        PrimaryLoop.Result result = primaryLoop.tick(new PrimaryLoop.Context(physicsSimulator.getCoreTemperature(), rodMultiplier,
-                maxHeat, cold, hot, hotCapacity, stack, autoHeaters, manualHeaters,
-                ReliefValveBlock.isolated(level, stack.reliefValve()), level.random.nextDouble()));
-
-        physicsSimulator.applyExternalCooling(result.coreCooling(), result.moved() / rodMultiplier * WATER_MODERATION_PER_MB);
+        // The core gave the loop its heat this tick; the loop's water sets what the core sees next tick.
+        double coreHeat = physicsSimulator.getRemovedHeat() * FissionCore.TICK * HEAT_UNITS_PER_MJ;
+        PrimaryLoop.Result result = primaryLoop.tick(new PrimaryLoop.Context(coreHeat, cold, hot, hotCapacity, stack, autoHeaters,
+                manualHeaters, ReliefValveBlock.isolated(level, stack.reliefValve()), level.random.nextDouble()));
+        double maxHeatMw = structure.heatExchangerCount * HEAT_EXCHANGER_STEAM_PER_TICK * FissionConfig.steamEnergy;
+        physicsSimulator.setCoolant(new CoreThermalModel.Pressurized(primaryLoop.averageTemperature(), primaryLoop.voidFraction(),
+                primaryLoop.coverage(), maxHeatMw), ReactivityModel.Coolant.PRESSURIZED);
         physicsSimulator.setCoolantFeedback(result.feedback());
         if (result.moved() > 0) {
             FluidStack drained = coolantTank.drain(result.moved(), IFluidHandler.FluidAction.EXECUTE);
@@ -881,48 +903,44 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
     }
 
+    /**
+     * The core boils its water directly. Last tick's boiling turns into steam here, by the energy it
+     * took (steam out = heat removed / energy per mB), and the coolant tank, the heat exchangers, the
+     * ports and the room in the steam tank set what the core can boil off next tick. A full steam
+     * tank or a blocked outlet stops the boiling: the water in the core then warms up, gradually.
+     */
     private void processCoolantLoop() {
-        if (physicsSimulator.getCoreTemperature() <= 100.0 || steamTank.getSpace() <= 0) {
-            return;
-        }
-
         FluidStack coolant = coolantTank.getFluid();
-        // Primary coolant only circulates in a pressurized loop; without a pressurizer it just sits there.
-        if (coolant.isEmpty() || !NuclearFluidHelper.isCoolant(coolant)) {
+        boolean water = !coolant.isEmpty() && NuclearFluidHelper.isCoolant(coolant);
+        boolean heavy = water && NuclearFluidHelper.isHeavyWater(coolant);
+        double energyPerMb = heavy ? FissionConfig.heavyWaterSteamEnergy : FissionConfig.steamEnergy;
+
+        boilCarry += physicsSimulator.getBoiledHeat() / Math.max(1.0e-9, energyPerMb);
+        int steam = (int) Math.floor(boilCarry);
+        if (water && steam > 0) {
+            FluidStack produced = new FluidStack(heavy ? AllNuclearFluids.HEAVY_STEAM.get() : AllNuclearFluids.STEAM.get(), steam);
+            int room = steamTank.fill(produced, IFluidHandler.FluidAction.SIMULATE);
+            FluidStack drained = coolantTank.drain(Math.min(steam, room), IFluidHandler.FluidAction.EXECUTE);
+            if (!drained.isEmpty()) {
+                steamTank.fill(new FluidStack(produced.getFluid(), drained.getAmount()), IFluidHandler.FluidAction.EXECUTE);
+            }
+        }
+        boilCarry = Math.max(0, Math.min(1, boilCarry - steam));
+
+        if (currentStructure.isEmpty()) {
             return;
         }
-
-        int throughput = getSteamThroughputLimit();
-        if (throughput <= 0) {
+        ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
+        double chf = structure.heatExchangerCount * HEAT_EXCHANGER_STEAM_PER_TICK * energyPerMb * FissionConfig.chfMargin;
+        if (coolant.isEmpty()) {
+            physicsSimulator.setCoolant(new CoreThermalModel.Dry(), ReactivityModel.Coolant.WATER);
             return;
         }
-
-        boolean heavy = NuclearFluidHelper.isHeavyWater(coolant);
-        int steamToProduce = Math.max(0, Math.min(throughput, (int) Math.ceil(physicsSimulator.getSteamGenerationRate())));
-        if (steamToProduce <= 0) {
-            return;
-        }
-
-        FluidStack produced = new FluidStack(heavy ? AllNuclearFluids.HEAVY_STEAM.get() : AllNuclearFluids.STEAM.get(), steamToProduce);
-        int acceptedSteam = steamTank.fill(produced, IFluidHandler.FluidAction.SIMULATE);
-        if (acceptedSteam <= 0) {
-            return;
-        }
-
-        int amount = Math.min(Math.min(steamToProduce, acceptedSteam), coolantTank.getFluidAmount());
-        FluidStack drained = coolantTank.drain(amount, IFluidHandler.FluidAction.EXECUTE);
-        if (drained.isEmpty()) {
-            return;
-        }
-
-        steamTank.fill(new FluidStack(produced.getFluid(), drained.getAmount()), IFluidHandler.FluidAction.EXECUTE);
-        // Normalize by the rod multiplier: larger cores produce proportionally more
-        // steam, but each mB removes proportionally less core heat, keeping the
-        // thermal simulation size-independent.
-        double normalizedDrain = drained.getAmount() / physicsSimulator.getSteamRodMultiplier();
-        double cooling = normalizedDrain * (heavy ? HEAVY_WATER_COOLING_PER_MB : WATER_COOLING_PER_MB);
-        double moderation = normalizedDrain * (heavy ? HEAVY_WATER_MODERATION_PER_MB : WATER_MODERATION_PER_MB);
-        physicsSimulator.applyExternalCooling(cooling, moderation);
+        double coverage = Math.min(1.0, coolantTank.getFluidAmount() / (double) CORE_WATER);
+        // Primary coolant without a pressurizer only sits in the core: it cannot boil away.
+        int removal = water ? Math.min(getSteamThroughputLimit(), steamTank.getSpace()) : 0;
+        physicsSimulator.setCoolant(new CoreThermalModel.Boiling(coverage, removal * energyPerMb, chf),
+                heavy ? ReactivityModel.Coolant.HEAVY_WATER : ReactivityModel.Coolant.WATER);
     }
 
     private int getSteamThroughputLimit() {
@@ -1001,9 +1019,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     private boolean canTriggerMeltdown() {
-        return status == ReactorStatus.FORMED
-                && ticksSinceLoad >= LOAD_MELTDOWN_GRACE_TICKS
-                && physicsSimulator.getMeltdownTickCounter() >= MELTDOWN_CONFIRM_TICKS;
+        return status == ReactorStatus.FORMED && ticksSinceLoad >= LOAD_MELTDOWN_GRACE_TICKS;
     }
 
     private void updateControllerRunningState() {
@@ -1076,14 +1092,33 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return clientSyncs;
     }
 
-    private void sendPlayerMessage(Component message, boolean force) {
+    /** The answer to what {@code actor} just did, on their action bar; nothing without an actor. */
+    private void statusMessage(@Nullable Player actor, Component message) {
         lastMessage = message;
-        messenger.send(getLevel(), message, force);
+        messenger.status(getLevel(), actor, message);
+    }
+
+    /** A serious event, in the chat of the operator and of everyone near the reactor. */
+    private void alertMessage(Component message) {
+        lastMessage = message;
+        messenger.alert(getLevel(), getBlockPos(), message);
+    }
+
+    /** The player who last worked the reactor, if still around. */
+    @Nullable
+    private Player operator() {
+        Level level = getLevel();
+        return level == null ? null : messenger.owner(level);
     }
 
     /** A reactor chat message: {@code create_nuclearindustry.reactor.message.<id>} in one colour. */
     private static Component message(ChatFormatting style, String id, Object... args) {
         return Component.translatable(MESSAGE + id, args).withStyle(style);
+    }
+
+    /** How the reactor talks to players, for tests. */
+    public MultiblockMessenger messenger() {
+        return messenger;
     }
 
     /** The last chat message the reactor sent (or would have, with nobody to read it). */
@@ -1128,7 +1163,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         setStructure(Optional.empty());
         physicsSimulator = new ReactorPhysicsSimulator(0);
         markDirtyAndSync();
-        sendPlayerMessage(message(ChatFormatting.DARK_RED, "meltdown", getBlockPos().toShortString()), false);
+        alertMessage(message(ChatFormatting.DARK_RED, "meltdown", getBlockPos().toShortString()));
         level.explode(null, reactorPos.getX() + 0.5, reactorPos.getY() + 0.5, reactorPos.getZ() + 0.5,
                 MELTDOWN_EXPLOSION_POWER, Level.ExplosionInteraction.BLOCK);
     }
@@ -1162,8 +1197,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         physicsSimulator = new ReactorPhysicsSimulator(0);
         primaryLoop.idle();
         markDirtyAndSync();
-        sendPlayerMessage(message(ChatFormatting.DARK_RED, containment != null ? "meltdown_contained" : "meltdown_release",
-                reactorPos.toShortString()), false);
+        alertMessage(message(ChatFormatting.DARK_RED, containment != null ? "meltdown_contained" : "meltdown_release",
+                reactorPos.toShortString()));
         formCorium(level, structure, rods);
     }
 
@@ -1213,12 +1248,27 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         BlockPos center = BlockPos.containing(radiationOrigin());
         int rods = structure.uraniumRodCount;
         double temperature = physicsSimulator.getCoreTemperature();
+        // The cladding sits between the fuel and its coolant.
+        double cladding = physicsSimulator.getCoolantTemperature() + 0.3 * (temperature - physicsSimulator.getCoolantTemperature());
 
         double steamReach = coolantTank.getFluidAmount() + steamTank.getFluidAmount() > 0 ? 1.0 : 0.2;
-        CladdingOxidationModel.Step oxidation = accidents.cladding().step(temperature, rods, steamReach, ReactorAccidents.claddingParams());
-        if (oxidation.heat() > 0) {
-            physicsSimulator.applyExternalHeat(oxidation.heat());
+        CladdingOxidationModel.Step oxidation = accidents.cladding().step(cladding, rods, steamReach, ReactorAccidents.claddingParams());
+        // The model gives degrees per tick of one rod's fuel; the core takes megawatts.
+        physicsSimulator.setOxidationHeat(oxidation.heat() * FissionConfig.fuelHeatCapacity / FissionCore.TICK);
+        double damage = physicsSimulator.getCoreDamage();
+        if (damage > lastDamage) {
+            // Failed cladding lets the fission products in the fuel gap out.
+            accidents.releaseActivity(level, center, (damage - lastDamage) * rods * ReleasePath.ACTIVITY_PER_ROD * 0.1);
+            if (lastDamage < FUEL_DAMAGE_ALERT && damage >= FUEL_DAMAGE_ALERT) {
+                alertMessage(message(ChatFormatting.DARK_RED, "fuel_damage"));
+            }
         }
+        lastDamage = damage;
+        boolean melting = physicsSimulator.isFuelMelting();
+        if (melting && !fuelMeltingAlerted) {
+            alertMessage(message(ChatFormatting.DARK_RED, "fuel_melting"));
+        }
+        fuelMeltingAlerted = melting;
         if (PwrConfig.hydrogen && oxidation.hydrogen() > 0) {
             accidents.releaseHydrogen(level, oxidation.hydrogen(), CORE_GAS_K);
         }
@@ -1241,7 +1291,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             coolantTank.setFluid(FluidStack.EMPTY);
             accidents.releaseCoolant(level, center, water, CORE_GAS_K, accidents.coolantActivityPerMb(rods));
             physicsSimulator.applyExternalCooling(REFLOOD_QUENCH, 0.0);
-            sendPlayerMessage(message(ChatFormatting.DARK_RED, "steam_explosion", getBlockPos().toShortString()), false);
+            alertMessage(message(ChatFormatting.DARK_RED, "steam_explosion", getBlockPos().toShortString()));
             markDirtyAndSync();
             SteamExplosion.explode(level, radiationOrigin(), SteamExplosion.REFLOOD_POWER);
             return true;
@@ -1259,7 +1309,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         accidents.releaseCoolant(level, center, water, PRIMARY_STEAM_K, accidents.coolantActivityPerMb(structure.uraniumRodCount));
         primaryLoop.idle();
         physicsSimulator.setCoolantFeedback(1.0);
-        sendPlayerMessage(message(ChatFormatting.DARK_RED, "vessel_breached", getBlockPos().toShortString()), false);
+        alertMessage(message(ChatFormatting.DARK_RED, "vessel_breached", getBlockPos().toShortString()));
         PlantAlarm.raise(level, getBlockPos());
         markDirtyAndSync();
         BlockPos head = getBlockPos().above();
@@ -1346,6 +1396,31 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     public double getPowerOutput() {
         return isFormed() ? physicsSimulator.getPowerOutput() : 0.0;
+    }
+
+    /** Rated thermal power of the core with its fuel, MW. */
+    public double getRatedPower() {
+        return isFormed() ? physicsSimulator.getRatedPower() : 0.0;
+    }
+
+    public double getCoolantTemperature() {
+        return isFormed() ? physicsSimulator.getCoolantTemperature() : 20.0;
+    }
+
+    public double getNetReactivity() {
+        return isFormed() ? physicsSimulator.getNetReactivity() : 0.0;
+    }
+
+    public double getCoreDamage() {
+        return isFormed() ? physicsSimulator.getCoreDamage() : 0.0;
+    }
+
+    public double getPeriod() {
+        return isFormed() ? physicsSimulator.getPeriod() : Double.POSITIVE_INFINITY;
+    }
+
+    public double getShutdownMargin() {
+        return isFormed() ? physicsSimulator.getShutdownMargin() : 0.0;
     }
 
     public double getSteamGenerationRate() {
@@ -1581,8 +1656,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tooltip.add(line("steam", ChatFormatting.GRAY, snapshot.steamAmount(), snapshot.tankCapacity()));
         addPrimaryLoopLines(tooltip);
         tooltip.add(line("temperature", getTemperatureColor(snapshot.coreTemperature()), Math.round(snapshot.coreTemperature())));
-        tooltip.add(line("neutrons", ChatFormatting.GRAY, Math.round(snapshot.neutronLevel())));
-        tooltip.add(line("reactivity", ChatFormatting.GRAY, String.format(Locale.ROOT, "%.2f", snapshot.reactivity())));
+        tooltip.add(line("coolant_temperature", ChatFormatting.GRAY, Math.round(snapshot.coolantTemperature())));
+        tooltip.add(line("power_level", snapshot.powerFraction() > 1.05 ? ChatFormatting.GOLD : ChatFormatting.GRAY,
+                String.format(Locale.ROOT, "%.1f", snapshot.powerFraction() * 100), Math.round(snapshot.ratedPower())));
+        tooltip.add(line("reactivity", ChatFormatting.GRAY, String.format(Locale.ROOT, "%+.0f", snapshot.netReactivity()),
+                String.format(Locale.ROOT, "%.2f", snapshot.reactivity())));
         if (snapshot.xenonPenalty() >= 0.005) {
             tooltip.add(line("xenon", snapshot.xenonPenalty() >= 0.15 ? ChatFormatting.GOLD : ChatFormatting.GRAY,
                     Math.round(snapshot.xenonPenalty() * 100.0)));
@@ -1591,6 +1669,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             tooltip.add(line("decay_heat", ChatFormatting.GRAY, Math.round(snapshot.decayHeatPower())));
         }
         tooltip.add(line("thermal_stress", getThermalStressColor(snapshot.thermalStress()), Math.round(snapshot.thermalStress())));
+        if (snapshot.coreDamage() > 0) {
+            tooltip.add(line("core_damage", ChatFormatting.RED, Math.max(1, Math.round(snapshot.coreDamage() * 100))));
+        }
         if (snapshot.thermalExcursionActive()) {
             tooltip.add(line("excursion", ChatFormatting.RED));
         }
@@ -1977,7 +2058,13 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 physicsSimulator.getReflection(),
                 physicsSimulator.getXenonPenalty(),
                 physicsSimulator.getDecayHeatPower(),
-                physicsSimulator.getReactivity()
+                physicsSimulator.getReactivity(),
+                physicsSimulator.getRatedPower(),
+                physicsSimulator.getCoolantTemperature(),
+                physicsSimulator.getNetReactivity(),
+                physicsSimulator.getPeriod(),
+                physicsSimulator.getCoreDamage(),
+                physicsSimulator.getShutdownMargin()
         );
     }
 
@@ -2032,6 +2119,12 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.putDouble("xenonPenalty", snapshot.xenonPenalty());
         tag.putDouble("decayHeatPower", snapshot.decayHeatPower());
         tag.putDouble("reactivity", snapshot.reactivity());
+        tag.putDouble("ratedPower", snapshot.ratedPower());
+        tag.putDouble("coolantTemperature", snapshot.coolantTemperature());
+        tag.putDouble("netReactivity", snapshot.netReactivity());
+        tag.putDouble("period", Double.isFinite(snapshot.period()) ? snapshot.period() : 0);
+        tag.putDouble("coreDamage", snapshot.coreDamage());
+        tag.putDouble("shutdownMargin", snapshot.shutdownMargin());
         return tag;
     }
 
@@ -2081,7 +2174,13 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 Math.max(0.0, Math.min(1.0, tag.getDouble("reflection"))),
                 Math.max(0.0, Math.min(1.0, tag.getDouble("xenonPenalty"))),
                 Math.max(0.0, tag.getDouble("decayHeatPower")),
-                Math.max(0.0, tag.getDouble("reactivity"))
+                Math.max(0.0, tag.getDouble("reactivity")),
+                Math.max(0.0, tag.getDouble("ratedPower")),
+                Math.max(20.0, tag.getDouble("coolantTemperature")),
+                tag.getDouble("netReactivity"),
+                tag.getDouble("period") == 0 ? Double.POSITIVE_INFINITY : tag.getDouble("period"),
+                Math.max(0.0, Math.min(1.0, tag.getDouble("coreDamage"))),
+                tag.getDouble("shutdownMargin")
         );
     }
 
@@ -2301,8 +2400,19 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             double reflection,
             double xenonPenalty,
             double decayHeatPower,
-            double reactivity
+            double reactivity,
+            double ratedPower,
+            double coolantTemperature,
+            double netReactivity,
+            double period,
+            double coreDamage,
+            double shutdownMargin
     ) {
+        /** Fission power as a share of the rated power, 0 when there is none. */
+        public double powerFraction() {
+            return ratedPower <= 0 ? 0 : powerOutput / ratedPower;
+        }
+
         public static ReactorDisplaySnapshot empty() {
             return empty(STATUS + "incomplete", ReactorPhysicsSimulator.ReactorState.IDLE, NOT_FORMED);
         }
@@ -2356,6 +2466,12 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                     0.0,
                     0.0,
                     0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    20.0,
+                    0.0,
+                    Double.POSITIVE_INFINITY,
                     0.0,
                     0.0
             );

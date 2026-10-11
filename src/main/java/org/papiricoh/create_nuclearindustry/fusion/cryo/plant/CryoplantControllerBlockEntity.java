@@ -252,25 +252,18 @@ public class CryoplantControllerBlockEntity extends SmartBlockEntity implements 
             setStructure(Optional.of(next));
             if (playerInitiated || !wasFormed) {
                 org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.CRYOPLANT_FORMED);
-                notifyOwner(Component.translatable(k + "formed", next.height, next.compressorPositions().size())
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(k + "formed", next.height, next.compressorPositions().size())
                         .withStyle(ChatFormatting.AQUA));
             }
         } else {
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
-                notifyOwner(Component.translatable(wasFormed ? k + "broken" : k + "incomplete",
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(wasFormed ? k + "broken" : k + "incomplete",
                         CryoplantStructureValidator.describe(result.primaryMessage())).withStyle(ChatFormatting.RED));
             }
         }
         sendData();
         setChanged();
-    }
-
-    private void notifyOwner(Component message) {
-        Player owner = level == null ? null : messenger.owner(level);
-        if (owner != null) {
-            owner.displayClientMessage(message, false);
-        }
     }
 
     private void setStructure(Optional<CryoplantStructure> next) {

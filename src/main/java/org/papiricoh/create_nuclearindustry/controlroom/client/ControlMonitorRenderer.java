@@ -201,7 +201,11 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
                 float temperature = r.value(R_TEMPERATURE);
                 rows.add(row("temperature", fmt("%.0f °C", temperature), temperature / 4000f,
                         temperature >= 3500 ? BAD : temperature >= 2000 ? WARN : TEXT));
-                rows.add(row("power", fmt("%.0f MW", r.value(R_POWER)), r.value(R_POWER) / 1000f, TEXT));
+                float rated = Math.max(1f, r.value(R_RATED_POWER));
+                rows.add(row("power", fmt("%.0f MW", r.value(R_POWER)), r.value(R_POWER) / rated, r.value(R_POWER) > 1.05f * rated ? WARN : TEXT));
+                if (r.value(R_CORE_DAMAGE) > 0) {
+                    rows.add(row("damage", fmt("%.0f%%", r.value(R_CORE_DAMAGE) * 100), r.value(R_CORE_DAMAGE), BAD));
+                }
                 if (r.flag(R_PWR)) {
                     // A pressurized loop puts its own readings first: they are the ones that go wrong.
                     pressurizedRows(r, rows);
@@ -216,11 +220,12 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
                         r.value(R_XENON) >= 0.15f ? WARN : TEXT));
                 rows.add(row("coolant", fmt("%.0f%%", r.value(R_COOLANT) * 100), r.value(R_COOLANT),
                         r.value(R_COOLANT) < 0.2f ? BAD : TEXT));
-                rows.add(row("reactivity", fmt("x%.2f", r.value(R_REACTIVITY)), -1, TEXT));
+                rows.add(row("reactivity", fmt("%+.0f pcm", r.value(R_NET_REACTIVITY)), -1, TEXT));
+                rows.add(row("coolant_temperature", fmt("%.0f °C", r.value(R_COOLANT_TEMP)), r.value(R_COOLANT_TEMP) / 4000f, TEXT));
                 rows.add(row("decay_heat", fmt("%.0f MW", r.value(R_DECAY_HEAT)), -1, TEXT));
                 rows.add(row("steam", fmt("%.0f%%", r.value(R_STEAM) * 100), r.value(R_STEAM), TEXT));
                 rows.add(row("fuel", fmt("%.0f%%", r.value(R_FUEL) * 100), r.value(R_FUEL), TEXT));
-                rows.add(row("neutrons", fmt("%.0f", r.value(R_NEUTRONS)), r.value(R_NEUTRONS) / 2000f, TEXT));
+                rows.add(row("neutrons", fmt("%.0f", r.value(R_NEUTRONS)), r.value(R_NEUTRONS) / 1000f, TEXT));
                 rows.add(row("stress", fmt("%.0f%%", r.value(R_STRESS)), r.value(R_STRESS) / 100f,
                         r.value(R_STRESS) >= 65 ? BAD : TEXT));
             }

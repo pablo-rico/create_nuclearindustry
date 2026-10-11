@@ -104,7 +104,7 @@ public final class ReactorClientEffects {
         ReactorBlockEntity.ReactorDisplaySnapshot snapshot = reactor.getDisplaySnapshot();
         boolean formed = snapshot.formed() && reactor.getStructure().isPresent();
         return switch (kind) {
-            case HUM -> ReactorSoundModel.humWanted(formed, ReactorSoundModel.powerFraction(snapshot.powerOutput()));
+            case HUM -> ReactorSoundModel.humWanted(formed, snapshot.powerFraction());
             case KLAXON -> formed && ReactorSoundModel.klaxonWanted(reactor.isScramActive(), snapshot.coreTemperature());
             case ALARM -> ReactorSoundModel.alarmWanted(formed, snapshot.coreTemperature());
             case HISS -> formed && at != null && isOutputPort(reactor.getLevel(), at) && !reactor.getPrimaryLoop().readings().pwr()

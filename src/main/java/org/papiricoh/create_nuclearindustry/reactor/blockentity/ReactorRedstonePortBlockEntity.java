@@ -20,7 +20,6 @@ public class ReactorRedstonePortBlockEntity extends BlockEntity implements IHave
     private static final int REFRESH_INTERVAL = 10;
     private static final double MIN_SIGNAL_TEMPERATURE = 20.0;
     private static final double MAX_SIGNAL_TEMPERATURE = 3500.0;
-    private static final double MAX_SIGNAL_POWER_MW = 1000.0;
 
     private final ControllerLink<ReactorBlockEntity> link = new ControllerLink<>(this, ReactorBlockEntity.class,
             (reactor, pos) -> reactor.getStructure().map(structure -> structure.containsRedstonePort(pos)).orElse(false));
@@ -85,7 +84,7 @@ public class ReactorRedstonePortBlockEntity extends BlockEntity implements IHave
         return switch (mode) {
             case TEMPERATURE -> scaled((reactor.getCoreTemperature() - MIN_SIGNAL_TEMPERATURE)
                     / (MAX_SIGNAL_TEMPERATURE - MIN_SIGNAL_TEMPERATURE));
-            case POWER -> scaled(reactor.getPowerOutput() / MAX_SIGNAL_POWER_MW);
+            case POWER -> scaled(reactor.getRatedPower() <= 0 ? 0 : reactor.getPowerOutput() / reactor.getRatedPower());
             case FUEL -> comparator(reactor.getFuelRemaining(), reactor.getFuelCapacity());
             case COOLANT -> comparator(reactor.getCoolantAmount(), reactor.getTankCapacity());
             case STEAM -> comparator(reactor.getSteamAmount(), reactor.getTankCapacity());

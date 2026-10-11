@@ -24,9 +24,11 @@ class ReactorSoundModelTest {
         for (double f = -1; f <= 2; f += 0.1) {
             inRange(ReactorSoundModel.humVolume(f), ReactorSoundModel.humPitch(f));
         }
-        assertEquals(1.0, ReactorSoundModel.powerFraction(5000), 1e-9, "clamped at full power");
-        assertEquals(0.5, ReactorSoundModel.powerFraction(500), 1e-9);
-        assertEquals(0.0, ReactorSoundModel.powerFraction(Double.NaN), 1e-9);
+        assertEquals(1.0, ReactorSoundModel.powerFraction(5000, 1000), 1e-9, "clamped at full power");
+        assertEquals(0.5, ReactorSoundModel.powerFraction(500, 1000), 1e-9, "a share of the core's rated power");
+        assertEquals(0.5, ReactorSoundModel.powerFraction(6000, 12000), 1e-9, "whatever its size");
+        assertEquals(0.0, ReactorSoundModel.powerFraction(Double.NaN, 1000), 1e-9);
+        assertEquals(0.0, ReactorSoundModel.powerFraction(500, 0), 1e-9, "no rating, no share");
     }
 
     @Test

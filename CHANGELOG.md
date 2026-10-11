@@ -68,6 +68,43 @@ below for what changes in existing worlds.
   keep flowing. Both are configurable.
 - New readouts for reactivity, xenon and decay heat in the control panel,
   goggles and three new Display Link sources.
+- New reactor physics. The core follows real point kinetics with delayed
+  neutrons, and hot fuel, hot water and steam all hold its power back:
+  pulling a control rod out raises the power a little and the reactor
+  settles by itself on a new, hotter power instead of running away to a
+  meltdown. With every rod out a low-enriched, water-cooled core stays below
+  about 1300 °C; graphite (with its positive void coefficient) or highly
+  enriched fuel can still take it into damage.
+- Power is proportional to the fuel: each fuel rod block is rated 50 MW (MOX
+  more). The control panel, goggles, monitors, gauges, alarms, the Redstone
+  Port (15 at 100%) and the automatic power controller of the desk now work
+  in percent of that rated power, so a big and a small reactor handle alike.
+- Steam out is exactly the heat the water carries off. If the steam cannot
+  leave (full tank, too few ports or heat exchangers), the water in the core
+  heats up and the power drops by itself, gradually. A core with no water
+  stops its chain reaction, but its decay heat keeps heating it.
+- Withdrawing rods frees their reactivity at most at 100 pcm per second (the
+  speed of the rod drives), so a piston jerking a rod out can no longer take
+  the core prompt critical; inserting them is still immediate.
+- New meltdown model: above 2000 °C the cladding fails and the fuel takes
+  permanent damage (shown in the panel and goggles, and it releases
+  activity); above 2800 °C the fuel melts and the damage runs fast; at 75%
+  damage the core melts down into corium. The old thermal excursion that
+  latched above 3000 °C is gone. Refuelling with fresh fuel repairs damage in
+  proportion.
+- Cladding oxidation is measured at the cladding, between the fuel and its
+  water, and adds at most about 600 K.
+- The control panel shows fuel and coolant temperature, power as a share of
+  the rated power, net reactivity in pcm and fuel damage; the goggles add the
+  same. New Display Link sources for power (% of rated), net reactivity,
+  coolant temperature and fuel damage, a new Fuel Damage alarm and monitor
+  rows for coolant temperature and damage.
+- Multiblocks no longer post to chat when they form, break or are
+  incomplete. Clicking a controller shows its status above the hotbar for
+  the player who clicked; only serious events (SCRAM, fuel damage, fuel
+  melting, meltdown, steam explosion, vessel breach, a hot reactor broken
+  open, tokamak disruptions and trips, accelerator trips) go to chat, to the
+  owner and to players within 64 blocks.
 
 ### Control room
 - Control Room Linker: click any block of a reactor, turbine or cooling tower
@@ -796,7 +833,17 @@ below for what changes in existing worlds.
 - Running reactors in existing worlds now irradiate nearby players. Set
   `radiation.reactorEmissionPerNeutron = 0` to turn that off.
 - Every reactor gets the automatic SCRAM on at 2800 °C. Remember it only
-  turns on the SCRAM signal: wire it to your rod pistons.
+  turns on the SCRAM signal: wire it to your rod pistons. With the new
+  physics the fuel melts at 2800 °C: set the threshold to 1500-1800 °C.
+- Reactors running in existing worlds load with their fuel at 1500 °C at
+  most and no damage, and settle on their new power. The config keys
+  `fission.uraniumBurnPerNeutron`, `graphiteModeratorBonus`,
+  `berylliumReflectorBonus` and `xenonWorth` are gone; their replacements
+  (`fission.fuelBurnPerRod`, `fission.reactivity.*`) use other units, so old
+  values are not carried over. `pwr.heatTransfer` no longer does anything,
+  and `pwr.accidents.oxidationHeat` is now in kelvin of a rod's fuel (1.2 by
+  default). Automatic power controllers on desks, power alarms and power
+  gauges now read percent of the rated power: check their settings.
 - Reactors, RTGs and fuel saved by this version carry new data (fuel kind,
   SCRAM state); loading them in an older version is not supported.
 - `fusion.deuteriumTritiumBurnRate` changed meaning (see

@@ -29,20 +29,22 @@ public enum AlarmMetric implements INamedIconOptions {
             return reading.value(MonitorReading.R_TEMPERATURE);
         }
     },
+    /** Fission power as a share of the core's rated power, up to 150%. */
     POWER(AllIcons.I_PRIORITY_HIGH, TargetKind.REACTOR) {
         @Override
         public float scaled(int setting) {
-            return setting * 10f;
+            return setting * 1.5f;
         }
 
         @Override
         public String format(int setting) {
-            return String.format(Locale.ROOT, "%.0f MW", scaled(setting));
+            return String.format(Locale.ROOT, "%.0f%%", scaled(setting));
         }
 
         @Override
         float reading(MonitorReading reading) {
-            return reading.value(MonitorReading.R_POWER);
+            float rated = reading.value(MonitorReading.R_RATED_POWER);
+            return rated > 0 ? reading.value(MonitorReading.R_POWER) / rated * 100f : 0f;
         }
     },
     XENON(AllIcons.I_PATTERN_CHANCE_50, TargetKind.REACTOR) {
@@ -538,6 +540,13 @@ public enum AlarmMetric implements INamedIconOptions {
         @Override
         boolean tripped(float reading, int setting) {
             return reading > 0;
+        }
+    },
+    /** Fuel damaged by overheating, %: it never heals, so this one stays lit until the core is refuelled. */
+    CORE_DAMAGE(AllIcons.I_PRIORITY_VERY_HIGH, TargetKind.REACTOR) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_CORE_DAMAGE) * 100f;
         }
     };
 

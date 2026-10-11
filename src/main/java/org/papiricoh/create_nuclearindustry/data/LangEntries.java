@@ -213,6 +213,11 @@ public final class LangEntries {
         add("create_nuclearindustry.display_source.reactor_xenon", "Reactor Xenon Poisoning", "Envenenamiento por xenón del reactor");
         add("create_nuclearindustry.display_source.reactor_decay_heat", "Reactor Decay Heat", "Calor residual del reactor");
         add("create_nuclearindustry.display_source.reactor_reactivity", "Reactor Reactivity", "Reactividad del reactor");
+        add("create_nuclearindustry.display_source.reactor_power_level", "Reactor Power (% of rated)", "Potencia del reactor (% nominal)");
+        add("create_nuclearindustry.display_source.reactor_net_reactivity", "Reactor Net Reactivity (pcm)", "Reactividad neta del reactor (pcm)");
+        add("create_nuclearindustry.display_source.reactor_coolant_temperature", "Reactor Coolant Temperature",
+                "Temperatura del refrigerante del reactor");
+        add("create_nuclearindustry.display_source.reactor_core_damage", "Reactor Fuel Damage", "Daño del combustible del reactor");
         add("itemGroup.create_nuclearindustry.nuclear_tab",
                 "Create: Nuclear industry",
                 "Create: Nuclear industry");
@@ -345,14 +350,14 @@ public final class LangEntries {
         add("gui.create_nuclearindustry.reactor.title", "Reactor Control Panel", "Panel de control del reactor");
         add("gui.create_nuclearindustry.reactor.missing", "Reactor not found", "Reactor no encontrado");
         add("gui.create_nuclearindustry.reactor.unformed", "Reactor not formed", "Reactor sin formar");
-        add("gui.create_nuclearindustry.reactor.temperature", "Temperature: %s °C", "Temperatura: %s °C");
-        add("gui.create_nuclearindustry.reactor.neutrons", "Neutrons: %s / %s", "Neutrones: %s / %s");
+        add("gui.create_nuclearindustry.reactor.temperature", "Fuel: %s °C  Coolant: %s °C", "Combustible: %s °C  Refrig.: %s °C");
+        add("gui.create_nuclearindustry.reactor.power_level", "Power: %s%% of %s MW rated", "Potencia: %s%% de %s MW nominales");
         add("gui.create_nuclearindustry.reactor.fuel", "Fuel: %s / %s units (%s%%)", "Combustible: %s / %s unidades (%s%%)");
-        add("gui.create_nuclearindustry.reactor.power", "Power: %s MW  Steam: %s mB/t", "Potencia: %s MW  Vapor: %s mB/t");
+        add("gui.create_nuclearindustry.reactor.power", "Fission: %s MW  Steam: %s mB/t", "Fisión: %s MW  Vapor: %s mB/t");
         add("gui.create_nuclearindustry.reactor.state", "State: %s", "Estado: %s");
-        add("gui.create_nuclearindustry.reactor.stress", "Thermal stress: %s%%", "Estrés térmico: %s%%");
-        add("gui.create_nuclearindustry.reactor.core", "Reactivity x%s  Xe -%s%%  Decay %s MW", "Reactividad x%s  Xe -%s%%  Residual %s MW");
-        add("gui.create_nuclearindustry.reactor.excursion", "EXCURSION", "EXCURSIÓN");
+        add("gui.create_nuclearindustry.reactor.stress", "Fuel stress: %s%%  Damage: %s%%", "Tensión del comb.: %s%%  Daño: %s%%");
+        add("gui.create_nuclearindustry.reactor.core", "Reactivity %s pcm  Xe -%s%%  Decay %s MW", "Reactividad %s pcm  Xe -%s%%  Residual %s MW");
+        add("gui.create_nuclearindustry.reactor.excursion", "MELTING", "FUNDIÉNDOSE");
         add("gui.create_nuclearindustry.reactor.rods", "Rods: %s/%s inserted (%s%%)", "Barras: %s/%s insertadas (%s%%)");
         add("gui.create_nuclearindustry.reactor.scram_engaged", "SCRAM signal on: Redstone Ports in SCRAM mode emit",
                 "Señal de SCRAM activa: los Puertos de redstone en modo SCRAM emiten");
@@ -375,8 +380,8 @@ public final class LangEntries {
                 "Parada de emergencia: enciende la señal de SCRAM de todos los Puertos de redstone en modo SCRAM hasta rearmar. Conéctala a los pistones que mueven tus barras de control.");
 
         add("jei.create_nuclearindustry.info.reactor_fuel",
-                "Fuel assemblies are pressed from uranium dioxide pellets. Each Fuel Channel in a reactor holds one assembly. Richer fuel lasts longer and is more reactive; spent fuel keeps its enrichment and can be reprocessed for plutonium.",
-                "Los elementos combustibles se montan con pastillas de dióxido de uranio. Cada Canal de combustible de un reactor aloja uno. El combustible más enriquecido dura más y es más reactivo; el gastado conserva su enriquecimiento y se puede reprocesar para sacar plutonio.");
+                "Fuel assemblies are pressed from uranium dioxide pellets. Each Fuel Channel in a reactor holds one assembly. Richer fuel lasts longer and is more reactive. Each fuel rod block is rated 50 MW of heat, and the reactor's power is shown as a share of that rating; spent fuel keeps its enrichment and can be reprocessed for plutonium.",
+                "Los elementos combustibles se montan con pastillas de dióxido de uranio. Cada Canal de combustible de un reactor aloja uno. El combustible más enriquecido dura más y es más reactivo. Cada bloque de barra de combustible tiene una potencia nominal de 50 MW de calor, y la potencia del reactor se muestra como fracción de ella; el gastado conserva su enriquecimiento y se puede reprocesar para sacar plutonio.");
         add("jei.create_nuclearindustry.info.tokamak",
                 "A ring-shaped fusion reactor around a Central Solenoid. Feed it deuterium and tritium, water as coolant, rotation for its Magnet Drives, vacuum pumps and liquid helium for its coils, then press Start: it pumps down, cools its coils, ramps the field, lights the plasma and heats it to a burn, making plasma steam for a Plasma Turbine. See its Ponder scene.",
                 "Un reactor de fusión en forma de anillo alrededor de un Solenoide central. Necesita deuterio y tritio, agua como refrigerante, rotación para sus Tomas de imanes, bombas de vacío y helio líquido para sus bobinas; después pulsa Arrancar: hace el vacío, enfría las bobinas, sube el campo, enciende el plasma y lo calienta hasta la combustión, y produce vapor de plasma para una Turbina de plasma. Consulta su escena de Ponder.");
@@ -583,7 +588,9 @@ public final class LangEntries {
         add(monitor + "steam", "Steam", "Vapor");
         add(monitor + "fuel", "Fuel", "Combust.");
         add(monitor + "neutrons", "Neutrons", "Neutrones");
-        add(monitor + "stress", "Stress", "Estrés");
+        add(monitor + "stress", "Fuel stress", "Tensión comb.");
+        add(monitor + "damage", "Fuel damage", "Daño comb.");
+        add(monitor + "coolant_temperature", "Coolant T", "T refrig.");
         add(monitor + "speed", "Speed", "Velocidad");
         add(monitor + "steam_use", "Steam use", "Consumo");
         add(monitor + "capacity", "Capacity", "Capacidad");
@@ -601,7 +608,7 @@ public final class LangEntries {
         add(alarm + "metric", "Watch", "Vigilar");
         add(alarm + "threshold", "Threshold", "Umbral");
         add(alarm + "metric.temperature", "Reactor temperature above", "Temperatura del reactor por encima de");
-        add(alarm + "metric.power", "Reactor power above", "Potencia del reactor por encima de");
+        add(alarm + "metric.power", "Reactor power, share of rated, above", "Potencia del reactor, fracción de la nominal, por encima de");
         add(alarm + "metric.xenon", "Xenon poisoning above", "Envenenamiento por xenón por encima de");
         add(alarm + "metric.coolant_low", "Reactor coolant below", "Refrigerante del reactor por debajo de");
         add(alarm + "metric.scram", "Reactor SCRAM signal", "Señal de SCRAM del reactor");
@@ -660,14 +667,14 @@ public final class LangEntries {
                 "Beryllium Reflector belongs in the columns that touch the shell: it bounces escaping neutrons back into the core.",
                 "El Reflector de berilio va en las columnas que tocan la carcasa: devuelve al núcleo los neutrones que escapan.");
         add("create_nuclearindustry.ponder.reactor_moderation.text_4",
-                "A ring lined all round loses a quarter fewer neutrons. Both make more power from the same fuel, so leave room for enough Control Rods.",
-                "Un anillo revestido por completo pierde una cuarta parte menos de neutrones. Ambos sacan más potencia del mismo combustible, así que deja sitio para suficientes Barras de control.");
+                "A ring lined all round adds reactivity too. Both make the same fuel more reactive, so leave room for enough Control Rods.",
+                "Un anillo revestido por completo también suma reactividad. Ambos hacen más reactivo el mismo combustible, así que deja sitio para suficientes Barras de control.");
         add("jei.create_nuclearindustry.info.reactor_poisons",
                 "A running core makes iodine, which decays into xenon, a neutron poison. At steady power it holds the reactor back a little; after power drops it keeps building for a few minutes before it decays, so a reactor just shut down needs more rods out to restart. Fission products also keep heating the core after a SCRAM, about 7% of the fission heat, fading over a few minutes: keep the coolant flowing. The control panel, goggles and Display Links show reactivity, xenon and decay heat.",
                 "Un núcleo en marcha produce yodo, que se desintegra en xenón, un veneno de neutrones. A potencia constante frena un poco el reactor; cuando la potencia baja sigue acumulándose unos minutos antes de desaparecer, así que un reactor recién parado necesita sacar más barras para volver a arrancar. Los productos de fisión también siguen calentando el núcleo tras un SCRAM, cerca del 7% del calor de fisión, que se apaga en unos minutos: no cortes el refrigerante. El panel de control, las gafas y los Display Links muestran la reactividad, el xenón y el calor residual.");
         add("jei.create_nuclearindustry.info.moderation",
-                "Graphite Moderator and Beryllium Reflector fill whole interior columns of a fission reactor, like Fuel Channels. Graphite slows neutrons so the fuel beside it splits more: a Fuel Channel with two graphite columns sharing a face with it is fully moderated, and a fully moderated core is 35% more reactive. Beryllium lining the columns that touch the shell bounces escaping neutrons back: a complete ring cuts losses by a quarter. Both make more power from the same fuel, so they also need more control rods.",
-                "El Moderador de grafito y el Reflector de berilio llenan columnas interiores enteras de un reactor de fisión, como los Canales de combustible. El grafito frena los neutrones para que el combustible de al lado se fisione más: un Canal de combustible con dos columnas de grafito pegadas a sus caras está totalmente moderado, y un núcleo totalmente moderado es un 35% más reactivo. El berilio que reviste las columnas que tocan la carcasa devuelve los neutrones que escapan: un anillo completo reduce las pérdidas en una cuarta parte. Ambos sacan más potencia del mismo combustible, así que también necesitan más barras de control.");
+                "Graphite Moderator and Beryllium Reflector fill whole interior columns of a fission reactor, like Fuel Channels. Graphite slows neutrons so the fuel beside it splits more: a Fuel Channel with two graphite columns sharing a face with it is fully moderated, and a fully moderated core gains about 1500 pcm of reactivity, but graphite keeps moderating when the water boils, so steam in its core adds reactivity instead of taking it away. Beryllium lining the columns that touch the shell bounces escaping neutrons back: a complete ring adds about 1000 pcm. Both make the same fuel more reactive, so they also need more control rods.",
+                "El Moderador de grafito y el Reflector de berilio llenan columnas interiores enteras de un reactor de fisión, como los Canales de combustible. El grafito frena los neutrones para que el combustible de al lado se fisione más: un Canal de combustible con dos columnas de grafito pegadas a sus caras está totalmente moderado, y un núcleo totalmente moderado gana unos 1500 pcm de reactividad, pero el grafito sigue moderando cuando el agua hierve, así que el vapor del núcleo le suma reactividad en vez de quitársela. El berilio que reviste las columnas que tocan la carcasa devuelve los neutrones que escapan: un anillo completo suma unos 1000 pcm. Ambos hacen más reactivo el mismo combustible, así que también necesitan más barras de control.");
     }
 
     static void item(String id, String english, String spanish) {
@@ -942,8 +949,8 @@ public final class LangEntries {
                 "Super Glue the rods to each other and to the piston head so they move as one.",
                 "Pega las barras entre si y al cabezal del piston con Super Glue para que se muevan como una sola.");
         add("create_nuclearindustry.ponder.reactor_controller.text_14",
-                "Withdrawn rods absorb fewer neutrons: the chain reaction and the heat ramp up.",
-                "Con las barras fuera se absorben menos neutrones: la reaccion en cadena y el calor aumentan.");
+                "Withdrawn rods absorb fewer neutrons: the power rises until the hotter fuel and water hold it at a new level.",
+                "Con las barras fuera se absorben menos neutrones: la potencia sube hasta que el combustible y el agua, más calientes, la frenan en un nivel nuevo.");
         add("create_nuclearindustry.ponder.reactor_controller.text_15",
                 "Inserted rods soak up neutrons: the deeper they sit, the more the reaction is throttled. Fully inserted means shutdown.",
                 "Las barras insertadas absorben neutrones: cuanto mas dentro esten, mas se frena la reaccion. Totalmente insertadas, el reactor se apaga.");

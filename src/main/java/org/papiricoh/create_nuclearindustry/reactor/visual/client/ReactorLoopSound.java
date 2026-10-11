@@ -59,7 +59,7 @@ final class ReactorLoopSound extends MachineLoopSound<ReactorBlockEntity> {
     protected float targetVolume() {
         ReactorBlockEntity.ReactorDisplaySnapshot snapshot = machine.getDisplaySnapshot();
         return switch (kind) {
-            case HUM -> ReactorSoundModel.humVolume(ReactorSoundModel.powerFraction(snapshot.powerOutput()));
+            case HUM -> ReactorSoundModel.humVolume(snapshot.powerFraction());
             case KLAXON -> 1.0f;
             case ALARM -> ReactorSoundModel.alarmVolume(snapshot.coreTemperature());
             case HISS -> ReactorSoundModel.hissVolume(ReactorClientEffects.steamFlowPerPort(machine));
@@ -72,7 +72,7 @@ final class ReactorLoopSound extends MachineLoopSound<ReactorBlockEntity> {
     protected float targetPitch() {
         ReactorBlockEntity.ReactorDisplaySnapshot snapshot = machine.getDisplaySnapshot();
         return switch (kind) {
-            case HUM -> ReactorSoundModel.humPitch(ReactorSoundModel.powerFraction(snapshot.powerOutput()));
+            case HUM -> ReactorSoundModel.humPitch(snapshot.powerFraction());
             case KLAXON -> 1.0f;
             case ALARM -> ReactorSoundModel.alarmPitch(snapshot.coreTemperature());
             case HISS -> ReactorSoundModel.hissPitch(ReactorClientEffects.steamFlowPerPort(machine));

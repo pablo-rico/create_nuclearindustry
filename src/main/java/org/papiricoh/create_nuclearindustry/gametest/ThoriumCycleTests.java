@@ -15,6 +15,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.physics.FuelKind;
+import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
 import org.papiricoh.create_nuclearindustry.reactor.physics.SpentAssembly;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ThoriumBreeding;
@@ -96,11 +97,12 @@ public class ThoriumCycleTests {
         double fresh = physics.getFuelReactivity();
         double atPeak = fresh;
         double burnAtPeak = 0.0;
-        double burnRate = Config.uraniumBurnPerNeutron;
+        double burnRate = FissionConfig.fuelBurnPerRod;
         try {
-            Config.uraniumBurnPerNeutron = 0.0005;
+            FissionConfig.fuelBurnPerRod = 0.001;
             for (int i = 0; i < 20000 && physics.hasFuel(); i++) {
                 physics.tick();
+                physics.burnFuel(0.01);
                 physics.applyExternalCooling(1000.0, 0.0);
                 if (physics.hasFuel() && physics.getFuelReactivity() > atPeak) {
                     atPeak = physics.getFuelReactivity();
@@ -108,7 +110,7 @@ public class ThoriumCycleTests {
                 }
             }
         } finally {
-            Config.uraniumBurnPerNeutron = burnRate;
+            FissionConfig.fuelBurnPerRod = burnRate;
         }
         helper.assertTrue(Math.abs(fresh - ThoriumBreeding.SEED_WORTH) < 1e-6, "fresh thorium only has its seed, got " + fresh);
         helper.assertTrue(atPeak > fresh * 2.0, "breeding should more than double the reactivity, peaked at " + atPeak);
@@ -140,17 +142,18 @@ public class ThoriumCycleTests {
         helper.runAfterDelay(10, () -> {
             ReactorPhysicsSimulator physics = reactor.getPhysicsSimulator();
             helper.assertTrue(physics.getLoadedAssemblyCount() == 1, "the thorium assembly should be loaded");
-            double burnRate = Config.uraniumBurnPerNeutron;
+            double burnRate = FissionConfig.fuelBurnPerRod;
             try {
                 // Burn it out within this tick, keeping the core cool so the reactor stays whole.
-                Config.uraniumBurnPerNeutron = 1.0;
+                FissionConfig.fuelBurnPerRod = 1.0;
                 physics.setControlRodInsertion(0f);
                 for (int i = 0; i < 2000 && physics.hasFuel(); i++) {
                     physics.tick();
+                    physics.burnFuel(5.0);
                     physics.applyExternalCooling(1000.0, 0.0);
                 }
             } finally {
-                Config.uraniumBurnPerNeutron = burnRate;
+                FissionConfig.fuelBurnPerRod = burnRate;
                 physics.forceScramForLoad();
                 physics.applyExternalCooling(10000.0, 2000.0);
             }

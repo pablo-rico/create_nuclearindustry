@@ -266,17 +266,17 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
             if (playerInitiated || !wasFormed) {
                 org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level),
                         org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.STEAM_GENERATOR_FORMED);
-                messenger.send(level, Component.translatable(KEY + "message.formed",
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(KEY + "message.formed",
                                 Component.literal("[" + next.dimensionsText() + ", ")
                                         .append(Component.translatable(KEY + "message.tubes", next.tubes)).append("]")
                                         .withStyle(ChatFormatting.DARK_GRAY))
-                        .withStyle(ChatFormatting.AQUA), playerInitiated);
+                        .withStyle(ChatFormatting.AQUA));
             }
         } else {
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
-                messenger.send(level, Component.translatable(KEY + (wasFormed ? "message.broken" : "message.incomplete"),
-                        SteamGeneratorStructureValidator.describe(result.primaryMessage())).withStyle(ChatFormatting.RED), playerInitiated);
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(KEY + (wasFormed ? "message.broken" : "message.incomplete"),
+                        SteamGeneratorStructureValidator.describe(result.primaryMessage())).withStyle(ChatFormatting.RED));
             }
         }
         sendData();

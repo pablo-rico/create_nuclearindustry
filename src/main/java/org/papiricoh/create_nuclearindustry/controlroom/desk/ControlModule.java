@@ -39,7 +39,7 @@ public final class ControlModule {
      * Full scale of a controller's setpoint, so 0-100 maps onto it: MW for power, °C for temperature, bar for
      * pressure, MW for a tokamak's fusion power.
      */
-    public static final float POWER_SCALE = 1000.0f, TEMPERATURE_SCALE = 4000.0f, PRESSURE_SCALE = MonitorReading.PRESSURE_MAX,
+    public static final float TEMPERATURE_SCALE = 4000.0f, PRESSURE_SCALE = MonitorReading.PRESSURE_MAX,
             FUSION_POWER_SCALE = TokamakScales.POWER_MAX;
     /** Where an automatic fusion power controller starts: about what a tokamak of radius 4 makes. */
     public static final int FUSION_POWER_DEFAULT_SETTING = 25;
@@ -134,10 +134,10 @@ public final class ControlModule {
                 || function == ModuleFunction.AUTO_PRESSURE || function == ModuleFunction.AUTO_FUSION_POWER;
     }
 
-    /** A controller's setpoint in its own units: MW, °C or bar. */
+    /** A controller's setpoint in its own units: % of the reactor's rated power, MW, °C or bar. */
     public float setpoint() {
         return setting / 100.0f * switch (function) {
-            case AUTO_POWER -> POWER_SCALE;
+            case AUTO_POWER -> 100.0f;
             case AUTO_PRESSURE -> PRESSURE_SCALE;
             case AUTO_FUSION_POWER -> FUSION_POWER_SCALE;
             default -> TEMPERATURE_SCALE;
@@ -150,10 +150,11 @@ public final class ControlModule {
         return String.format(java.util.Locale.ROOT, Math.abs(value - Math.round(value)) < 0.05f ? "%.0f" : "%.1f", value);
     }
 
-    /** "500 MW", "2000 °C" or "155 bar". */
+    /** "50%" of the rated power, "250 MW", "2000 °C" or "155 bar". */
     public String formatSetpoint() {
         return formatSetpointValue() + switch (function) {
-            case AUTO_POWER, AUTO_FUSION_POWER -> " MW";
+            case AUTO_POWER -> "%";
+            case AUTO_FUSION_POWER -> " MW";
             case AUTO_PRESSURE -> " bar";
             default -> " °C";
         };
@@ -473,7 +474,7 @@ public final class ControlModule {
             return changed;
         }
         double measurement = function == ModuleFunction.AUTO_POWER
-                ? sample.value(MonitorReading.R_POWER) / POWER_SCALE
+                ? sample.value(MonitorReading.R_POWER) / Math.max(1.0f, sample.value(MonitorReading.R_RATED_POWER))
                 : sample.value(MonitorReading.R_TEMPERATURE) / TEMPERATURE_SCALE;
         float current = reactor.getRodTarget() >= 0 ? reactor.getRodTarget() : reactor.getControlRodInsertionRatio();
         int steps = reactor.getStructure().map(structure -> structure.innerHeight()).orElse(0);

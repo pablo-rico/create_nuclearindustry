@@ -337,8 +337,7 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
             return;
         }
         if (transition.to() == BeamPhase.BEAM_ON) {
-            messenger.send(level, Component.translatable("create_nuclearindustry.accelerator.message.beam_on",
-                    energyText(budget.energy())).withStyle(ChatFormatting.AQUA), false);
+            messenger.log(Component.translatable("create_nuclearindustry.accelerator.message.beam_on", energyText(budget.energy())));
             if (budget.energy() >= GEV || structure.map(this::ringTarget).orElse(0.0) >= GEV) {
                 NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), NuclearEvent.GEV_BEAM);
             }
@@ -353,7 +352,11 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
                     ? Component.translatable("create_nuclearindustry.accelerator.message.stopped").withStyle(ChatFormatting.YELLOW)
                     : Component.translatable("create_nuclearindustry.accelerator.message.trip", Component.translatable(cause.langKey()))
                     .withStyle(ChatFormatting.RED);
-            messenger.send(level, message, true);
+            if (cause == BeamTripCause.OPERATOR) {
+                messenger.status(level, messenger.owner(level), message);
+            } else {
+                messenger.alert(level, getBlockPos(), message);
+            }
             AcceleratorHooks.onTrip.accept(this, cause);
         }
         if (transition.to() == BeamPhase.OFFLINE) {
@@ -424,11 +427,11 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
             }
         }
         if (missing != BeamTripCause.NONE) {
-            messenger.send(level, Component.translatable("create_nuclearindustry.accelerator.message.cannot_start",
-                    Component.translatable(missing.langKey())).withStyle(ChatFormatting.RED), true);
+            messenger.status(level, messenger.owner(level), Component.translatable("create_nuclearindustry.accelerator.message.cannot_start",
+                    Component.translatable(missing.langKey())).withStyle(ChatFormatting.RED));
         } else {
-            messenger.send(level, Component.translatable("create_nuclearindustry.accelerator.message.starting")
-                    .withStyle(ChatFormatting.AQUA), true);
+            messenger.status(level, messenger.owner(level), Component.translatable("create_nuclearindustry.accelerator.message.starting")
+                    .withStyle(ChatFormatting.AQUA));
         }
         markDirtyAndSync();
         return missing;
@@ -550,15 +553,15 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
                 if (!result.warnings().isEmpty()) {
                     message.append(" ").append(MultiblockText.text(result.warnings().get(0)).copy().withStyle(ChatFormatting.YELLOW));
                 }
-                messenger.send(level, message, playerInitiated);
+                messenger.status(level, playerInitiated ? player : null, message);
             }
         } else {
             structure.ifPresent(s -> forEachAttachment(s, attachment -> attachment.observe(BeamReadings.NONE)));
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
-                messenger.send(level, Component.translatable(wasFormed ? "create_nuclearindustry.accelerator.message.broken"
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(wasFormed ? "create_nuclearindustry.accelerator.message.broken"
                                 : "create_nuclearindustry.accelerator.message.incomplete", validationText())
-                        .withStyle(ChatFormatting.RED), playerInitiated);
+                        .withStyle(ChatFormatting.RED));
             }
         }
         AcceleratorHooks.onStructureChanged.accept(this);

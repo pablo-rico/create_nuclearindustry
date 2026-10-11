@@ -5,64 +5,61 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.CoreThermalModel;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.FissionCore;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ReactivityModel;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
 /**
- * Handles all nuclear physics calculations for the reactor.
- * Simulates neutron production/consumption, temperature changes, and fuel depletion.
+ * A fission reactor's core: its fuel assemblies and the physics of the chain reaction, on top of
+ * {@link FissionCore} (point kinetics with delayed neutrons, reactivity in pcm with temperature and
+ * void feedback, fuel and coolant heat, core damage).
+ *
+ * <p>The block entity tells it each tick how far each control rod channel is in and what the
+ * coolant is doing ({@link #setCoolant}), then reads back the power, the heat the coolant took and
+ * the temperatures. Power is relative to the core's rated power, which grows with its fuel rods, so
+ * a big core and a small one are equally stable. The "core temperature" everything shows is the
+ * fuel's, on the same 0-4000 °C scale as always.
  */
 public class ReactorPhysicsSimulator {
-
-    // Physics constants
-    private static final double BASE_FISSION_RATE = 4.0;            // neutrons per uranium rod per tick
-    private static final double HEAT_GENERATION_RATE = 0.035;       // °C per neutron
-    private static final double PASSIVE_HEAT_DISSIPATION = 0.8;     // °C per tick (baseline)
-    private static final double FUEL_CONSUMPTION_RATE = 0.002;      // fuel units consumed per neutron
-    private static final double STEAM_TEMPERATURE_FACTOR = 0.025;   // mB/t from temperature above boiling
-    private static final double STEAM_NEUTRON_FACTOR = 0.055;       // mB/t from neutron activity
-    private static final double STEAM_PER_ROD_MULTIPLIER = 0.5;     // steam output scales with uranium rod count
-
-    // Temperature thresholds
-    private static final double SAFE_TEMP = 500.0;                  // Below this = safe operation
-    private static final double WARNING_TEMP = 2000.0;              // Yellow warning zone
-    private static final double DANGER_TEMP = 3500.0;               // Red danger zone
-    private static final double MELTDOWN_TEMP = 4000.0;             // Absolute limit
-
-    // Limits
+    /** Temperatures the states and alarms use, Celsius. */
+    private static final double WARNING_TEMP = 2000.0;
+    private static final double DANGER_TEMP = 3500.0;
+    private static final double MELTDOWN_TEMP = 4000.0;
+    /** The neutron level shown is the relative power times this: 1000 at rated power. */
+    private static final double NEUTRONS_AT_RATED = 1000.0;
     private static final double MAX_NEUTRON_LEVEL = 2000.0;
-    private static final double MIN_NEUTRON_LEVEL = 0.0;
+    /** Below this relative power the chain reaction counts as stopped. */
+    private static final double RUNNING_POWER = 1.0e-3;
     /** Units per assembly before the enrichment-based fuel model; used for old saves. */
     private static final double LEGACY_FUEL_PER_ASSEMBLY = 100.0;
     private static final float LEGACY_FUEL_ENRICHMENT = 20.0f;
-    private static final double MAX_THERMAL_STRESS = 100.0;
-    private static final double STRESS_START_TEMP = 2500.0;
-    private static final double STRESS_MAX_TEMP = 3000.0;
-    private static final double STRESS_LOG_CURVE = 9.0;
+    /** Saves before the kinetics model are clamped to this on load, so an old hot core cannot melt at once. */
+    private static final double LEGACY_TEMPERATURE_CAP = 1500.0;
+    private static final int KINETICS_VERSION = 2;
+    /** What a bare simulator is cooled by until a block entity says otherwise: plenty of boiling water. */
+    private static final CoreThermalModel.Boundary IDEAL_COOLING =
+            new CoreThermalModel.Boiling(1.0, Double.MAX_VALUE / 4, Double.MAX_VALUE / 4);
 
-    // State variables
-    private double coreTemperature;                                 // Celsius (0-4000)
-    private double neutronLevel;                                    // 0-MAX_NEUTRON_LEVEL
+    private final FissionCore core = new FissionCore();
     private final Deque<FuelAssembly> assemblies = new ArrayDeque<>(); // loaded fuel, burnt front to back
     private final List<SpentAssembly> spentAssemblies = new ArrayList<>(); // assemblies burnt out since last drain
-    private float controlRodInsertion;                              // 0.0 = withdrawn, 1.0 = fully inserted
-    private int uraniumRodCount;                                    // Number of fuel rods in reactor
-    private int controlRodCount;                                    // Number of control rods (PHYSICAL blocks)
+    private float controlRodInsertion;                              // average, 0 withdrawn .. 1 fully inserted
+    private double[] channelInsertion = {1.0};                      // per control channel
+    private int uraniumRodCount;                                    // fuel rod blocks
+    private int controlRodCount;                                    // control channel capacity, blocks
     private double moderation;                                      // 0-1, graphite beside the fuel columns
     private double reflection;                                      // 0-1, beryllium lining the core's inner ring
-    private int meltdownTickCounter;                                // Ticks spent above meltdown temp
-    private double thermalStress;                                   // 0-100, logarithmic heat stress
-    private boolean thermalExcursionActive;                         // True while stress is forcing a power excursion
-    private final XenonModel poisons = new XenonModel();            // iodine-135 / xenon-135
-    private final DecayHeatModel decayHeat = new DecayHeatModel();  // heat of the fission products
-    private double coolantFeedback = 1.0;                           // moderation by a pressurized loop's water
-
-    // Derived values for display
-    private double powerOutput;                                     // MW equivalent
-    private double steamGenerationRate;                             // mB per tick
+    private CoreThermalModel.Boundary boundary = IDEAL_COOLING;
+    private ReactivityModel.Coolant coolantKind = ReactivityModel.Coolant.WATER;
+    private double oxidationHeat;                                   // MW per rod
+    private double coolantFeedback = 1.0;                           // the pressurized loop's reading, for display
 
     public ReactorPhysicsSimulator(int uraniumRodCount) {
         this(uraniumRodCount, 0);
@@ -77,115 +74,49 @@ public class ReactorPhysicsSimulator {
      * @param reflection how much of the core's inner ring is beryllium reflector, 0-1
      */
     public ReactorPhysicsSimulator(int uraniumRodCount, int controlRodCount, double moderation, double reflection) {
-        this.coreTemperature = 20.0;                                // Start at room temperature
-        this.neutronLevel = 0.0;
-        this.controlRodInsertion = 1.0f;                            // Start fully inserted (safe state)
+        this.controlRodInsertion = 1.0f;
         this.uraniumRodCount = uraniumRodCount;
         this.controlRodCount = controlRodCount;
         this.moderation = clamp(moderation, 0.0, 1.0);
         this.reflection = clamp(reflection, 0.0, 1.0);
-        this.meltdownTickCounter = 0;
-        this.thermalStress = 0.0;
-        this.thermalExcursionActive = false;
-        this.powerOutput = 0.0;
-        this.steamGenerationRate = 0.0;
     }
 
     /**
      * Simulates one tick of reactor operation.
-     * @return true if reactor is functioning normally, false if melted down
+     *
+     * @return true while the core holds together, false once it has melted down
      */
     public boolean tick() {
-        if (!hasFuel()) {
-            // No fuel, shut down; what the old fuel left behind still decays and heats
-            neutronLevel = Math.max(0, neutronLevel - 8.0);
-            coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 2.5 + decayHeat.heat());
-            updateFissionProducts(0.0);
-            thermalExcursionActive = false;
-            thermalStress = calculateThermalStress();
-            powerOutput = 0.0;
-            steamGenerationRate = 0.0;
-            return true;
+        FissionCore.Params params = FissionConfig.core();
+        core.tick(params, inputs());
+        double burn = FissionConfig.fuelBurnPerRod * core.power() * uraniumRodCount;
+        if (burn > 0) {
+            burn(burn);
         }
-
-        // Calculate neutron production from fission
-        double neutronProduction = calculateNeutronProduction();
-
-        // Calculate neutron consumption from fuel; a reflector bounces part of the leakage back
-        double neutronConsumption = uraniumRodCount * FUEL_CONSUMPTION_RATE * neutronLevel * getLeakageFactor();
-
-        // Update neutron level
-        neutronLevel += (neutronProduction - neutronConsumption);
-        neutronLevel = Math.max(MIN_NEUTRON_LEVEL, Math.min(MAX_NEUTRON_LEVEL, neutronLevel));
-
-        // Calculate heat changes (MOX runs hotter); fission products keep heating after fission stops
-        double fissionHeat = neutronLevel * HEAT_GENERATION_RATE * getFuelHeatFactor();
-        double heatGeneration = fissionHeat + decayHeat.heat();
-        double heatDissipation = calculateHeatDissipation();
-        updateFissionProducts(fissionHeat);
-
-        // Update temperature
-        coreTemperature += (heatGeneration - heatDissipation);
-        coreTemperature = Math.max(0, coreTemperature);
-
-        updateThermalStress();
-        applyThermalExcursion();
-
-        // Consume fuel based on operation
-        if (neutronLevel > 0) {
-            burn(Config.uraniumBurnPerNeutron * neutronLevel);
-        }
-
-        // Calculate power output
-        powerOutput = neutronLevel * 0.5; // 0.5 MW per neutron level unit
-
-        steamGenerationRate = calculateSteamGenerationRate();
-
-        // Check for meltdown
-        if (coreTemperature > MELTDOWN_TEMP) {
-            meltdownTickCounter++;
-            if (meltdownTickCounter > 200) {
-                // Meltdown occurs
-                return false;
-            }
-        } else {
-            meltdownTickCounter = 0;
-        }
-
-        return true;
+        return !core.damageModel().meltedDown(params.damage());
     }
 
-    /**
-     * Calculates neutron production based on fission reactions.
-     * Depends on the RATIO of control rods to uranium rods.
-     */
-    private double calculateNeutronProduction() {
-        if (uraniumRodCount == 0) {
-            return 0;
-        }
-
-        // If no control rods are present, there's nothing to absorb neutrons - MELTDOWN RISK
-        if (controlRodCount == 0) {
-            // With no physical control rods, neutron absorption is 0 regardless of position
-            return uraniumRodCount * BASE_FISSION_RATE * getModerationFactor() * (1.0 - getXenonPenalty()) * coolantFeedback;
-        }
-
-        // The ratio of control rods to uranium rods determines absorption capacity
-        // 1.0 ratio = balanced (1 control per 1 uranium)
-        // > 1.0 = overcontrolled (can stop reaction)
-        // < 1.0 = undercontrolled (reaction hard to control)
-        double actualAbsorption = getMaxAbsorption() * controlRodInsertion;
-        double absorptionFactor = 1.0 - actualAbsorption;
-
-        // Base fission multiplied by number of uranium rods and absorption factor
-        return uraniumRodCount * BASE_FISSION_RATE * absorptionFactor * getFuelReactivity() * getModerationFactor()
-                * (1.0 - getXenonPenalty()) * coolantFeedback;
+    private FissionCore.Inputs inputs() {
+        int loaded = assemblies.size();
+        double empty = uraniumRodCount <= 0 ? 1 : Math.max(0, uraniumRodCount - loaded) / (double) uraniumRodCount;
+        return new FissionCore.Inputs(uraniumRodCount, hasFuel(), getFuelHeatFactor(), weightedByUnits(a -> a.kind.delayedFraction()),
+                getFuelReactivity(), getBurntFraction(), weightedByUnits(a -> a.kind == FuelKind.THORIUM ? 1.0 : 0.0), empty,
+                moderation, reflection, coolantKind, getMaxAbsorption(), channelInsertion, boundary, oxidationHeat,
+                PwrConfig.voidWorth, PwrConfig.temperatureCoefficient);
     }
 
-    /**
-     * Multiplier on neutron production from the water of a pressurized loop: steam voids, an uncovered
-     * core and hot water moderate less. 1 for a reactor that boils its water directly, which is the default.
-     */
+    /** What cools the core this tick: boiling water, a pressurized loop, or nothing. */
+    public void setCoolant(CoreThermalModel.Boundary boundary, ReactivityModel.Coolant kind) {
+        this.boundary = boundary == null ? new CoreThermalModel.Dry() : boundary;
+        this.coolantKind = kind == null ? ReactivityModel.Coolant.WATER : kind;
+    }
+
+    /** Heat of the cladding oxidising, MW per rod, added to the fuel on the next tick. */
+    public void setOxidationHeat(double megawattsPerRod) {
+        this.oxidationHeat = Double.isFinite(megawattsPerRod) ? Math.max(0, megawattsPerRod) : 0;
+    }
+
+    /** The pressurized loop's reading of how its water moderates, for display; the physics has its own feedback. */
     public void setCoolantFeedback(double feedback) {
         this.coolantFeedback = Double.isFinite(feedback) ? Math.max(0.0, feedback) : 1.0;
     }
@@ -194,58 +125,60 @@ public class ReactorPhysicsSimulator {
         return coolantFeedback;
     }
 
-    /** Advances iodine, xenon and decay heat by one tick, given this tick's fission heat. */
-    private void updateFissionProducts(double fissionHeat) {
-        poisons.tick(neutronLevel / MAX_NEUTRON_LEVEL, Config.iodineHalfLifeTicks, Config.xenonHalfLifeTicks);
-        decayHeat.tick(fissionHeat, Config.decayHeatFraction, Config.decayHeatTimeTicks);
+    // ------------------------------------------------------------------ fission products
+
+    /** Share of the core's excess reactivity xenon-135 holds back (about a quarter at full power). */
+    public double getXenonPenalty() {
+        return getXenonPenaltyPcm() / Math.max(1, FissionConfig.fuelExcess);
     }
 
-    /** Fraction of neutron production xenon-135 currently swallows. */
-    public double getXenonPenalty() {
-        return Config.xenonPoisoning ? poisons.penalty(Config.xenonWorth) : 0.0;
+    /** Reactivity xenon-135 holds back, pcm. */
+    public double getXenonPenaltyPcm() {
+        return Config.xenonPoisoning ? core.xenon().penalty(FissionConfig.xenonWorthPcm) : 0.0;
     }
 
     /** Xenon-135 in the core, normalised to the flux (about 0.25 at full power, more after a shutdown). */
     public double getXenon() {
-        return poisons.xenon();
+        return core.xenon().xenon();
     }
 
     public double getIodine() {
-        return poisons.iodine();
+        return core.xenon().iodine();
     }
 
-    /** Decay heat, in degrees per tick. */
+    /** Decay heat in degrees per tick of the fuel, the scale the decay heat has always been read in. */
     public double getDecayHeat() {
-        return decayHeat.heat();
+        return core.decay().heat() * FissionConfig.ratedPowerPerRod * FuelKind.URANIUM.heatFactor() * FissionCore.TICK
+                / FissionConfig.fuelHeatCapacity;
     }
 
-    /** Decay heat in MW, on the same scale as {@link #getPowerOutput()}. */
+    /** Decay heat in MW. */
     public double getDecayHeatPower() {
-        return decayHeat.heat() / HEAT_GENERATION_RATE * 0.5;
+        return core.decay().heat() * getRatedPower();
     }
 
     /**
-     * The core's multiplication relative to a bare, clean core of low-enriched fuel, regardless of
-     * the rods: fuel enrichment, graphite and beryllium raise it, xenon and a voided pressurized loop lower it.
+     * The core's reactivity relative to a bare, clean core of low-enriched fuel, regardless of the
+     * rods, heat and voids: fuel enrichment, graphite and beryllium raise it, xenon lowers it.
      */
     public double getReactivity() {
-        return getFuelReactivity() * getModerationFactor() * (1.0 - getXenonPenalty()) * coolantFeedback / getLeakageFactor();
+        ReactivityModel.Breakdown b = core.breakdown();
+        double excess = Math.max(1, FissionConfig.fuelExcess);
+        if (b.fuel() == 0 && b.moderation() == 0 && b.reflector() == 0) {
+            // Not ticked yet: from the fuel alone.
+            return (getFuelReactivity() * excess + FissionConfig.graphiteWorth * moderation + FissionConfig.reflectorWorth * reflection
+                    - getXenonPenaltyPcm()) / excess;
+        }
+        double emptyLoss = FissionConfig.emptyChannelWorth * Math.max(0, uraniumRodCount - assemblies.size())
+                / (double) Math.max(1, uraniumRodCount);
+        return (b.fuel() + emptyLoss + b.moderation() + b.reflector() + b.heavyWater() + b.xenon()) / excess;
     }
 
-    /** Sets the fission products directly, for tests and commands. */
+    /** Sets the fission products directly, for tests and commands; decay heat in degrees per tick of the fuel. */
     public void setFissionProducts(double iodine, double xenon, double decayHeatPerTick) {
-        poisons.set(iodine, xenon);
-        decayHeat.set(decayHeatPerTick);
-    }
-
-    /** Multiplier on neutron production from graphite beside the fuel columns. */
-    public double getModerationFactor() {
-        return 1.0 + Config.graphiteModeratorBonus * moderation;
-    }
-
-    /** Multiplier on neutron losses: below 1 when beryllium lines the core. */
-    public double getLeakageFactor() {
-        return 1.0 - Config.berylliumReflectorBonus * reflection;
+        core.xenon().set(iodine, xenon);
+        core.decay().set(Math.max(0, decayHeatPerTick) * FissionConfig.fuelHeatCapacity / FissionCore.TICK
+                / Math.max(1.0e-9, FissionConfig.ratedPowerPerRod));
     }
 
     /** How well graphite surrounds the fuel columns, 0-1. */
@@ -258,9 +191,11 @@ public class ReactorPhysicsSimulator {
         return reflection;
     }
 
+    // ------------------------------------------------------------------ fuel
+
     /**
-     * Multiplier on neutron production from the enrichment of the loaded fuel, weighted
-     * by the units each assembly still holds. Low-enriched fuel is the 1.0 reference.
+     * Reactivity of the loaded fuel relative to fresh low-enriched fuel, weighted by the units each
+     * assembly still holds. Low-enriched fuel is the 1.0 reference.
      */
     public double getFuelReactivity() {
         double units = 0.0;
@@ -281,9 +216,20 @@ public class ReactorPhysicsSimulator {
         return assembly.reactivity * ThoriumBreeding.reactivityMultiplier(burnt);
     }
 
+    /** Share of the loaded fuel burnt, weighted by each assembly's size. */
+    public double getBurntFraction() {
+        double initial = 0;
+        double left = 0;
+        for (FuelAssembly assembly : assemblies) {
+            initial += assembly.initialUnits;
+            left += assembly.units;
+        }
+        return initial <= 0 ? 0 : clamp(1 - left / initial, 0, 1);
+    }
+
     /**
-     * Fraction of neutrons the control rods absorb when fully inserted: the ratio of control rods
-     * to fuel channels times their boron, capped at 100%. MOX lowers the rods' worth inside the
+     * Share of the core's reactivity the control rods can hold back when fully inserted: the ratio of
+     * control rods to fuel times their boron, capped at 100%. MOX lowers the rods' worth inside the
      * cap, so it needs more rods while a full SCRAM can still shut it down.
      */
     public double getMaxAbsorption() {
@@ -294,7 +240,7 @@ public class ReactorPhysicsSimulator {
         return Math.min(1.0, rodRatio * Config.boronAbsorption * getControlWorth());
     }
 
-    /** Heat per neutron relative to uranium, weighted by the units each assembly still holds. */
+    /** Heat per unit power relative to uranium, weighted by the units each assembly still holds. */
     public double getFuelHeatFactor() {
         return weightedByUnits(assembly -> assembly.kind.heatFactor());
     }
@@ -311,7 +257,10 @@ public class ReactorPhysicsSimulator {
             units += assembly.units;
             weighted += assembly.units * value.applyAsDouble(assembly);
         }
-        return units <= 0.0 ? 1.0 : weighted / units;
+        if (units <= 0.0) {
+            return value.applyAsDouble(new FuelAssembly(FuelKind.URANIUM, 5, 1, 1, 1));
+        }
+        return weighted / units;
     }
 
     /** Units of burn a fresh assembly of this enrichment provides. */
@@ -322,6 +271,11 @@ public class ReactorPhysicsSimulator {
     public static double reactivityFor(float enrichment) {
         double ratio = Math.max(EnrichmentTier.LOW.min(), enrichment) / EnrichmentTier.LOW.nominal();
         return Math.max(0.25, 1.0 + Config.enrichmentReactivity * (Math.log(ratio) / Math.log(2.0)));
+    }
+
+    /** Burns this many fuel units now, head assembly first (tests and commands). */
+    public void burnFuel(double units) {
+        burn(Math.max(0, units));
     }
 
     private void burn(double amount) {
@@ -337,80 +291,7 @@ public class ReactorPhysicsSimulator {
         }
     }
 
-    /**
-     * Calculates heat dissipation from the reactor.
-     */
-    private double calculateHeatDissipation() {
-        // Passive dissipation based on temperature difference from environment
-        double tempDifference = coreTemperature - 20.0; // Assume 20°C environment
-        double passiveDissipation = PASSIVE_HEAT_DISSIPATION * (tempDifference / 100.0);
-
-        // Heat dissipation increases with temperature (radiation loss)
-        double radiationLoss = Math.pow(coreTemperature / 3600.0, 2) * 0.1;
-
-        // At high temperatures, additional dissipation is reduced (thermodynamics)
-        if (coreTemperature > WARNING_TEMP) {
-            return passiveDissipation + radiationLoss;
-        }
-
-        return passiveDissipation;
-    }
-
-    private void updateThermalStress() {
-        thermalStress = calculateThermalStress();
-        if (thermalStress >= MAX_THERMAL_STRESS) {
-            thermalExcursionActive = true;
-        }
-    }
-
-    private double calculateThermalStress() {
-        if (coreTemperature <= STRESS_START_TEMP) {
-            return 0.0;
-        }
-        if (coreTemperature > STRESS_MAX_TEMP) {
-            return MAX_THERMAL_STRESS;
-        }
-
-        double tempFactor = Math.min(
-                (coreTemperature - STRESS_START_TEMP) / (STRESS_MAX_TEMP - STRESS_START_TEMP),
-                Math.nextDown(1.0)
-        );
-        double logarithmicFactor = Math.log1p(tempFactor * STRESS_LOG_CURVE) / Math.log1p(STRESS_LOG_CURVE);
-        return clamp(logarithmicFactor * MAX_THERMAL_STRESS, 0.0, MAX_THERMAL_STRESS);
-    }
-
-    private void applyThermalExcursion() {
-        if (!thermalExcursionActive || !hasFuel()) {
-            return;
-        }
-
-        if (controlRodInsertion >= 0.95f) {
-            thermalExcursionActive = false;
-            return;
-        }
-
-        double withdrawn = 1.0 - controlRodInsertion;
-        neutronLevel = Math.min(MAX_NEUTRON_LEVEL, neutronLevel + 12.0 + withdrawn * 38.0);
-        coreTemperature += 8.0 + withdrawn * 42.0;
-    }
-
-    private double calculateSteamGenerationRate() {
-        if (coreTemperature <= 100.0) {
-            return 0.0;
-        }
-
-        double temperatureSteam = (coreTemperature - 100.0) * STEAM_TEMPERATURE_FACTOR;
-        double neutronSteam = neutronLevel * STEAM_NEUTRON_FACTOR;
-        return (temperatureSteam + neutronSteam) * getSteamRodMultiplier();
-    }
-
-    /**
-     * Steam output scales with reactor size. Cooling from the coolant loop is
-     * normalized by this same factor so core thermodynamics stay size-independent.
-     */
-    public double getSteamRodMultiplier() {
-        return Math.max(1.0, uraniumRodCount * STEAM_PER_ROD_MULTIPLIER);
-    }
+    // ------------------------------------------------------------------ control rods
 
     /**
      * Sets the control rod position.
@@ -420,8 +301,28 @@ public class ReactorPhysicsSimulator {
         setControlRodInsertion(1.0f - position);
     }
 
+    /** Every control channel at the same insertion. */
     public void setControlRodInsertion(float insertion) {
         this.controlRodInsertion = Math.max(0.0f, Math.min(1.0f, insertion));
+        Arrays.fill(channelInsertion, controlRodInsertion);
+    }
+
+    /**
+     * How far each control channel is filled, 0..1. A rod is worth most in the middle of the core,
+     * so where the rods are matters, not only how many.
+     */
+    public void setChannelInsertions(double[] insertions) {
+        if (insertions == null || insertions.length == 0) {
+            channelInsertion = new double[]{controlRodInsertion};
+            return;
+        }
+        channelInsertion = new double[insertions.length];
+        double sum = 0;
+        for (int i = 0; i < insertions.length; i++) {
+            channelInsertion[i] = clamp(insertions[i], 0, 1);
+            sum += channelInsertion[i];
+        }
+        controlRodInsertion = (float) (sum / insertions.length);
     }
 
     /**
@@ -432,24 +333,33 @@ public class ReactorPhysicsSimulator {
         setControlRodPosition(getControlRodPosition() + delta);
     }
 
+    // ------------------------------------------------------------------ outside influences
+
+    /**
+     * A tick of a core whose structure is broken: every rod falls in (the reactor is scrammed), the
+     * delayed neutrons die away, the decay heat goes on.
+     */
     public void scramTick() {
-        controlRodInsertion = 1.0f;
-        neutronLevel = Math.max(0.0, neutronLevel - 60.0);
-        coreTemperature = Math.max(20.0, coreTemperature - PASSIVE_HEAT_DISSIPATION * 4.0 + decayHeat.heat());
-        updateFissionProducts(0.0);
-        thermalExcursionActive = false;
-        thermalStress = calculateThermalStress();
-        powerOutput = 0.0;
-        steamGenerationRate = 0.0;
+        setControlRodInsertion(1.0f);
+        CoreThermalModel.Boundary saved = boundary;
+        boundary = IDEAL_COOLING;
+        core.tick(FissionConfig.core(), inputs());
+        boundary = saved;
     }
 
+    /** Takes heat out of the fuel and coolant at once, °C, and power out of the chain reaction (on the neutron scale). */
     public void applyExternalCooling(double cooling, double neutronModeration) {
-        coreTemperature = Math.max(20.0, coreTemperature - Math.max(0.0, cooling));
-        neutronLevel = Math.max(MIN_NEUTRON_LEVEL, neutronLevel - Math.max(0.0, neutronModeration));
+        core.thermal().coolBoth(Math.max(0.0, cooling));
+        if (neutronModeration > 0) {
+            FissionCore.Params p = FissionConfig.core();
+            core.restoreKinetics(p, weightedByUnits(a -> a.kind.delayedFraction()),
+                    Math.max(0, core.power() - neutronModeration / NEUTRONS_AT_RATED), core.kinetics().precursors());
+        }
     }
 
+    /** Heats the fuel at once, °C (and the coolant too if the core is dry). */
     public void applyExternalHeat(double heat) {
-        coreTemperature = Math.max(20.0, coreTemperature + Math.max(0.0, heat));
+        core.thermal().addToFuel(Math.max(0.0, heat), boundary instanceof CoreThermalModel.Dry);
     }
 
     public boolean hasFuel() {
@@ -473,6 +383,9 @@ public class ReactorPhysicsSimulator {
         // Thorium breeds part of what it burns, so it lasts longer than the uranium it is rated as.
         double units = fuelUnitsFor(enrichment) * (kind == FuelKind.THORIUM ? ThoriumBreeding.LIFE_FACTOR : 1.0);
         assemblies.addLast(new FuelAssembly(kind, enrichment, units, units, reactivityFor(enrichment) * kind.reactivityBonus()));
+        if (uraniumRodCount > 0) {
+            core.damageModel().refuel(1.0 / uraniumRodCount);
+        }
         return true;
     }
 
@@ -498,15 +411,14 @@ public class ReactorPhysicsSimulator {
      * shell block cannot cool the core down instantly.
      */
     public void inheritThermalState(ReactorPhysicsSimulator previous) {
-        coreTemperature = previous.coreTemperature;
-        neutronLevel = previous.neutronLevel;
+        CompoundTag state = new CompoundTag();
+        previous.writeCore(state);
+        readCore(state, true);
         controlRodInsertion = previous.controlRodInsertion;
-        meltdownTickCounter = previous.meltdownTickCounter;
-        thermalStress = previous.thermalStress;
-        thermalExcursionActive = previous.thermalExcursionActive;
-        poisons.set(previous.poisons.iodine(), previous.poisons.xenon());
-        decayHeat.set(previous.decayHeat.heat());
+        channelInsertion = previous.channelInsertion.clone();
         coolantFeedback = previous.coolantFeedback;
+        boundary = previous.boundary;
+        coolantKind = previous.coolantKind;
     }
 
     /** Every assembly burnt out since the last call. */
@@ -568,28 +480,44 @@ public class ReactorPhysicsSimulator {
         return capacity + Math.max(0, uraniumRodCount - assemblies.size()) * Config.fuelUnitsPerAssembly;
     }
 
+    /** A hot reactor just loaded: rods in, the chain reaction stopped, the fuel no hotter than critical. */
     public void forceScramForLoad() {
-        controlRodInsertion = 1.0f;
-        neutronLevel = Math.min(neutronLevel, 50.0);
-        coreTemperature = Math.min(coreTemperature, DANGER_TEMP);
-        meltdownTickCounter = 0;
-        thermalExcursionActive = false;
-        thermalStress = calculateThermalStress();
-        powerOutput = 0.0;
-        steamGenerationRate = 0.0;
+        setControlRodInsertion(1.0f);
+        FissionCore.Params p = FissionConfig.core();
+        core.restoreKinetics(p, weightedByUnits(a -> a.kind.delayedFraction()), Math.min(core.power(), 0.05), null);
+        double fuel = Math.min(core.fuelTemperature(), DANGER_TEMP);
+        core.thermal().restore(fuel, Math.min(core.coolantTemperature(), fuel));
     }
 
-    // Getters for display and monitoring
+    // ------------------------------------------------------------------ readings
+
+    /** Fuel temperature, °C: what the reactor shows as its core temperature. */
     public double getCoreTemperature() {
-        return coreTemperature;
+        return core.fuelTemperature();
     }
 
+    public double getCoolantTemperature() {
+        return core.coolantTemperature();
+    }
+
+    /** Power on the old neutron scale: 1000 at rated power. */
     public double getNeutronLevel() {
-        return neutronLevel;
+        return core.power() * NEUTRONS_AT_RATED;
     }
 
+    /** Top of the neutron scale (twice rated power). */
     public static double getMaxNeutronLevel() {
         return MAX_NEUTRON_LEVEL;
+    }
+
+    /** Power relative to the rated power. */
+    public double getRelativePower() {
+        return core.power();
+    }
+
+    /** Rated thermal power of the core with its fuel, MW. */
+    public double getRatedPower() {
+        return FissionConfig.ratedPowerPerRod * uraniumRodCount * getFuelHeatFactor();
     }
 
     public double getFuelRemaining() {
@@ -616,59 +544,105 @@ public class ReactorPhysicsSimulator {
         return uraniumRodCount;
     }
 
+    /** Fission power, MW. */
     public double getPowerOutput() {
-        return powerOutput;
+        return core.power() * getRatedPower();
     }
 
+    /** Heat the coolant took away last tick, MW. */
+    public double getRemovedHeat() {
+        return core.thermalResult().removed();
+    }
+
+    /** Of it, what boiled water into steam, MW. */
+    public double getBoiledHeat() {
+        return core.thermalResult().boiled();
+    }
+
+    /** Steam the core boils, mB per tick, for display. */
     public double getSteamGenerationRate() {
-        return steamGenerationRate;
+        return getBoiledHeat() / Math.max(1.0e-9, coolantKind == ReactivityModel.Coolant.HEAVY_WATER
+                ? FissionConfig.heavyWaterSteamEnergy : FissionConfig.steamEnergy);
     }
 
-    public int getMeltdownTickCounter() {
-        return meltdownTickCounter;
+    public double getVoidFraction() {
+        return core.voidFraction();
     }
 
+    /** Net reactivity, pcm. */
+    public double getNetReactivity() {
+        return core.reactivity();
+    }
+
+    /** Reactivity all the rods could still hold back, pcm. */
+    public double getShutdownMargin() {
+        return core.shutdownMargin();
+    }
+
+    /** Reactor period, seconds: how long the power takes to grow by e; infinite when steady. */
+    public double getPeriod() {
+        return core.period();
+    }
+
+    /** Core damage, 0-1. */
+    public double getCoreDamage() {
+        return core.damage();
+    }
+
+    /** How close the fuel is to melting: 0 below cladding failure, 100 where the fuel melts. */
     public double getThermalStress() {
-        return thermalStress;
+        double start = FissionConfig.claddingFailureTemperature;
+        double span = Math.max(1, FissionConfig.fuelMeltingTemperature - start);
+        return 100.0 * clamp((core.fuelTemperature() - start) / span, 0, 1);
     }
 
+    /** The fuel is melting. */
     public boolean isThermalExcursionActive() {
-        return thermalExcursionActive;
+        return isFuelMelting();
+    }
+
+    public boolean isFuelMelting() {
+        return core.fuelTemperature() >= FissionConfig.fuelMeltingTemperature;
     }
 
     public boolean isMeltingDown() {
-        return coreTemperature > MELTDOWN_TEMP;
+        return core.fuelTemperature() > MELTDOWN_TEMP;
     }
 
     public boolean isCritical() {
-        return coreTemperature > WARNING_TEMP;
+        return core.fuelTemperature() > WARNING_TEMP;
     }
 
     public boolean isRunning() {
-        return neutronLevel > 1.0 && hasFuel();
+        return core.power() > RUNNING_POWER && hasFuel();
+    }
+
+    public FissionCore core() {
+        return core;
     }
 
     /**
      * Gets the reactor state as a string for debugging.
      */
     public ReactorState getState() {
-        if (coreTemperature > MELTDOWN_TEMP) {
+        double t = core.fuelTemperature();
+        if (t > MELTDOWN_TEMP) {
             return ReactorState.MELTING;
-        } else if (coreTemperature > DANGER_TEMP) {
+        } else if (t > DANGER_TEMP) {
             return ReactorState.CRITICAL;
-        } else if (coreTemperature > WARNING_TEMP) {
+        } else if (t > WARNING_TEMP) {
             return ReactorState.WARNING;
-        } else if (neutronLevel > 1.0) {
+        } else if (core.power() > RUNNING_POWER) {
             return ReactorState.RUNNING;
         } else {
             return ReactorState.IDLE;
         }
     }
 
-    // NBT Serialization for saving state
+    // ------------------------------------------------------------------ saving
+
     public void serializeNBT(CompoundTag tag) {
-        tag.putDouble("coreTemperature", coreTemperature);
-        tag.putDouble("neutronLevel", neutronLevel);
+        writeCore(tag);
         ListTag loaded = new ListTag();
         for (FuelAssembly assembly : assemblies) {
             CompoundTag entry = new CompoundTag();
@@ -693,31 +667,77 @@ public class ReactorPhysicsSimulator {
         tag.putInt("controlRodCount", controlRodCount);
         tag.putDouble("moderation", moderation);
         tag.putDouble("reflection", reflection);
-        tag.putDouble("iodine", poisons.iodine());
-        tag.putDouble("xenon", poisons.xenon());
-        tag.putDouble("decayHeat", decayHeat.heat());
-        tag.putInt("meltdownTickCounter", meltdownTickCounter);
-        tag.putDouble("thermalStress", thermalStress);
-        tag.putBoolean("thermalExcursionActive", thermalExcursionActive);
+    }
+
+    private void writeCore(CompoundTag tag) {
+        tag.putInt("kineticsVersion", KINETICS_VERSION);
+        tag.putDouble("coreTemperature", core.fuelTemperature());
+        tag.putDouble("coolantTemperature", core.coolantTemperature());
+        tag.putDouble("neutronLevel", core.power() * NEUTRONS_AT_RATED);
+        double[] precursors = core.kinetics().precursors();
+        long[] packed = new long[precursors.length];
+        for (int i = 0; i < precursors.length; i++) {
+            packed[i] = Double.doubleToLongBits(precursors[i]);
+        }
+        tag.putLongArray("precursors", packed);
+        tag.putDouble("coreDamage", core.damage());
+        tag.putDouble("rodReactivity", core.rodsApplied());
+        tag.putDouble("iodine", core.xenon().iodine());
+        tag.putDouble("xenon", core.xenon().xenon());
+        tag.putDouble("decayHeatRelative", core.decay().heat());
     }
 
     public void deserializeNBT(CompoundTag tag) {
-        this.coreTemperature = clamp(tag.getDouble("coreTemperature"), 20.0, MELTDOWN_TEMP - 1.0);
-        this.neutronLevel = clamp(tag.getDouble("neutronLevel"), MIN_NEUTRON_LEVEL, MAX_NEUTRON_LEVEL);
         this.controlRodInsertion = tag.contains("controlRodInsertion")
                 ? tag.getFloat("controlRodInsertion")
                 : 1.0f - tag.getFloat("controlRodPosition");
         this.controlRodInsertion = Math.max(0.0f, Math.min(1.0f, controlRodInsertion));
+        channelInsertion = new double[]{controlRodInsertion};
         this.uraniumRodCount = Math.max(0, tag.getInt("uraniumRodCount"));
         this.controlRodCount = Math.max(0, tag.getInt("controlRodCount"));
         this.moderation = clamp(tag.getDouble("moderation"), 0.0, 1.0);
         this.reflection = clamp(tag.getDouble("reflection"), 0.0, 1.0);
-        poisons.set(tag.getDouble("iodine"), tag.getDouble("xenon"));
-        decayHeat.set(tag.getDouble("decayHeat"));
         readFuel(tag);
-        this.meltdownTickCounter = Math.max(0, Math.min(100, tag.getInt("meltdownTickCounter")));
-        this.thermalStress = calculateThermalStress();
-        this.thermalExcursionActive = tag.getBoolean("thermalExcursionActive") && thermalStress >= MAX_THERMAL_STRESS;
+        readCore(tag, false);
+    }
+
+    /**
+     * The chain reaction, temperatures and fission products. Saves from before the kinetics model
+     * kept a neutron level on a scale of its own and a single temperature: the temperature is
+     * clamped so an old hot core cannot melt the moment it loads, and the power starts low with its
+     * delayed neutrons in equilibrium.
+     */
+    private void readCore(CompoundTag tag, boolean inherited) {
+        FissionCore.Params p = FissionConfig.core();
+        double delayed = weightedByUnits(a -> a.kind.delayedFraction());
+        boolean current = tag.getInt("kineticsVersion") >= KINETICS_VERSION;
+        double fuel = Math.max(20.0, tag.getDouble("coreTemperature"));
+        double n = Math.max(0, tag.getDouble("neutronLevel")) / NEUTRONS_AT_RATED;
+        if (!current) {
+            fuel = Math.min(fuel, LEGACY_TEMPERATURE_CAP);
+            n = Math.min(n, 1.0);
+        }
+        double coolant = tag.contains("coolantTemperature") ? tag.getDouble("coolantTemperature")
+                : Math.min(fuel, FissionConfig.boilingTemperature);
+        core.thermal().restore(fuel, coolant);
+        double[] precursors = null;
+        if (current && tag.contains("precursors", Tag.TAG_LONG_ARRAY)) {
+            long[] packed = tag.getLongArray("precursors");
+            precursors = new double[packed.length];
+            for (int i = 0; i < packed.length; i++) {
+                precursors[i] = Double.longBitsToDouble(packed[i]);
+            }
+        }
+        core.restoreKinetics(p, delayed, n, precursors);
+        core.damageModel().restore(current ? tag.getDouble("coreDamage") : 0);
+        core.restoreRods(current && tag.contains("rodReactivity") ? tag.getDouble("rodReactivity") : Double.NaN);
+        core.xenon().set(tag.getDouble("iodine"), tag.getDouble("xenon"));
+        if (current) {
+            core.decay().set(Math.max(0, tag.getDouble("decayHeatRelative")));
+        } else if (!inherited) {
+            // The old decay heat was in degrees per tick of the single core temperature.
+            setFissionProducts(tag.getDouble("iodine"), tag.getDouble("xenon"), Math.max(0, tag.getDouble("decayHeat")));
+        }
     }
 
     private void readFuel(CompoundTag tag) {

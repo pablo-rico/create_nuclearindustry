@@ -6,8 +6,6 @@ package org.papiricoh.create_nuclearindustry.reactor.visual;
  * full power, and the cold shutdown that ends a SCRAM.
  */
 public final class ReactorSoundModel {
-    /** Power at the simulator's highest neutron level (2000 neutrons at 0.5 MW each), MW. */
-    public static final double FULL_POWER_MW = 1000.0;
     /** Share of full power that counts as running flat out. */
     public static final double FULL_POWER_FRACTION = 0.95;
     /** Share of full power the reactor must fall below before reaching full power counts again. */
@@ -25,9 +23,12 @@ public final class ReactorSoundModel {
 
     private ReactorSoundModel() {}
 
-    /** Power as a share of full power, 0..1. */
-    public static double powerFraction(double powerMw) {
-        return clamp01(powerMw / FULL_POWER_MW);
+    /** Power as a share of the core's rated power, 0..1; nothing without a rating. */
+    public static double powerFraction(double powerMw, double ratedMw) {
+        if (!(ratedMw > 0)) {
+            return 0;
+        }
+        return clamp01(powerMw / ratedMw);
     }
 
     // ------------------------------------------------------------------ the core

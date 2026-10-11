@@ -17,6 +17,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.physics.FuelKind;
+import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
 import org.papiricoh.create_nuclearindustry.reactor.physics.SpentAssembly;
 
@@ -70,14 +71,15 @@ public class MoxFuelTests {
         ReactorPhysicsSimulator physics = new ReactorPhysicsSimulator(2, 0);
         physics.loadFuelAssembly(FuelKind.MOX, FuelKind.MOX_EQUIVALENT_ENRICHMENT);
         physics.loadFuelAssembly(5f);
-        double burnRate = Config.uraniumBurnPerNeutron;
+        double burnRate = FissionConfig.fuelBurnPerRod;
         try {
-            Config.uraniumBurnPerNeutron = 1.0;
+            FissionConfig.fuelBurnPerRod = 1.0;
             for (int i = 0; i < 400 && physics.hasFuel(); i++) {
                 physics.tick();
+                physics.burnFuel(20.0);
             }
         } finally {
-            Config.uraniumBurnPerNeutron = burnRate;
+            FissionConfig.fuelBurnPerRod = burnRate;
         }
         List<SpentAssembly> spent = physics.drainSpent();
         helper.assertTrue(spent.equals(List.of(new SpentAssembly(FuelKind.MOX, 12f), SpentAssembly.uranium(5f))),

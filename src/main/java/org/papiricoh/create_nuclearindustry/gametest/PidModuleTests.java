@@ -63,12 +63,12 @@ public class PidModuleTests {
         helper.runAfterDelay(5, () -> {
             ControlModule module = controller(helper, desk, ModuleFunction.AUTO_POWER, 50);
             helper.assertTrue(module != null && module.isController() && module.engaged(), "a controller in automatic");
-            helper.assertTrue(Math.abs(module.setpoint() - 500) < 1e-3, "holding 500 MW, got " + module.setpoint());
+            helper.assertTrue(Math.abs(module.setpoint() - 50) < 1e-3, "holding 50% of the rated power, got " + module.setpoint());
         });
         helper.succeedWhen(() -> {
             helper.assertTrue(reactor.isFormed(), "reactor should form");
             float target = reactor.getRodTarget();
-            helper.assertTrue(target >= 0 && target < 1.0f, "a cold core below 500 MW gets its rods out, target " + target);
+            helper.assertTrue(target >= 0 && target < 1.0f, "a cold core below half its rated power gets its rods out, target " + target);
             helper.assertTrue(wholeSegments(reactor, target), "in whole rod segments, got " + target);
             helper.assertTrue(ReactorRedstonePortBlockEntity.signalFor(RedstonePortMode.ROD_WITHDRAW, reactor) == 15,
                     "so the Withdraw rods ports drive the pistons");

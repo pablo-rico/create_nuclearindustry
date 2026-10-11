@@ -34,6 +34,13 @@ public enum ReactorReadout {
             p -> String.format(java.util.Locale.ROOT, "%.2f bar", p.containmentPressure()))),
     HYDROGEN("reactor_hydrogen", true, reactor -> containment(reactor,
             p -> String.format(java.util.Locale.ROOT, "%.1f%%", p.hydrogen() * 100))),
+    // The fission core's physics: power against what its fuel is rated for, reactivity, coolant and damage
+    POWER_LEVEL("reactor_power_level", true, reactor -> Component.literal(
+            Math.round(reactor.getRatedPower() <= 0 ? 0 : reactor.getPowerOutput() / reactor.getRatedPower() * 100) + "%")),
+    NET_REACTIVITY("reactor_net_reactivity", true, reactor -> Component.literal(
+            String.format(java.util.Locale.ROOT, "%+d pcm", Math.round(reactor.getNetReactivity())))),
+    COOLANT_TEMPERATURE("reactor_coolant_temperature", true, reactor -> Component.literal(Math.round(reactor.getCoolantTemperature()) + "°C")),
+    CORE_DAMAGE("reactor_core_damage", true, reactor -> Component.literal(Math.round(reactor.getCoreDamage() * 100) + "%")),
     STATUS("reactor_status", false, ReactorReadout::status);
 
     private final String id;

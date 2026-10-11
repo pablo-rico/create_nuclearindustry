@@ -28,7 +28,7 @@ public class VesselBreachTests {
     private static final BlockPos MONITOR = new BlockPos(2, 1, 2);
     private static final BlockPos PLANT_MAX = new BlockPos(24, 16, 24);
 
-    @GameTest(template = NuclearGameTests.PLANT_ARENA, timeoutTicks = 1500)
+    @GameTest(template = NuclearGameTests.PLANT_ARENA, timeoutTicks = 4000)
     public static void anOverpressuredVesselBreaksIntoTheContainment(GameTestHelper helper) {
         // a big steel-lined building, roomy enough for the whole primary flashing to steam
         ContainmentTestBuilder.room(helper, BlockPos.ZERO, PLANT_MAX, PwrRegistry.STEEL_LINER.get());
@@ -42,7 +42,8 @@ public class VesselBreachTests {
         helper.runAfterDelay(5, () -> {
             int filled = reactor.fillCoolant(new FluidStack(AllNuclearFluids.PRIMARY_COOLANT.get(), 14_000), IFluidHandler.FluidAction.EXECUTE);
             helper.assertTrue(filled == 14_000, "the reactor takes the primary coolant, took " + filled);
-            PwrModeTests.heat(reactor, 60.0);
+            // As much decay heat as the fuel can pass to its water (more would melt the core first).
+            PwrModeTests.heat(reactor, 7.0);
         });
         helper.onEachTick(() -> {
             ContainmentMonitorBlockEntity monitor = ContainmentTestBuilder.monitor(helper, MONITOR);

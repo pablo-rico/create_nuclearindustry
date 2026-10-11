@@ -19,9 +19,6 @@ public class Config
             .comment("Boron control rod absorption effectiveness, multiplied by the control/fuel rod ratio.",
                     "Absorption is capped at 100% before applying insertion. Zero disables absorption.")
             .defineInRange("fission.boronAbsorption", 1.5, 0.0, 1000.0);
-    private static final ModConfigSpec.DoubleValue URANIUM_BURN_RATE = BUILDER
-            .comment("Fuel units consumed per neutron level per tick. Zero disables uranium depletion.")
-            .defineInRange("fission.uraniumBurnPerNeutron", 0.0000045, 0.0, 100.0);
     private static final ModConfigSpec.DoubleValue FUEL_UNITS = BUILDER
             .comment("Fuel units in a low-enriched (5%) assembly. Richer fuel lasts longer:",
                     "units = this * (enrichment / 5)^0.66, so 20% fuel holds about 2.5 times as much.")
@@ -30,22 +27,10 @@ public class Config
             .comment("Extra neutron production per doubling of fuel enrichment above 5%.",
                     "0.25 makes 20% fuel 1.5 times as reactive. Zero makes enrichment affect only fuel life.")
             .defineInRange("fission.enrichmentReactivity", 0.25, 0.0, 10.0);
-    private static final ModConfigSpec.DoubleValue GRAPHITE_MODERATOR_BONUS = BUILDER
-            .comment("Extra neutron production of a fully moderated core: every fuel column with two Graphite Moderator",
-                    "columns beside it. 0.35 makes such a core 35% more reactive. Zero makes graphite inert.")
-            .defineInRange("fission.graphiteModeratorBonus", 0.35, 0.0, 10.0);
-    private static final ModConfigSpec.DoubleValue BERYLLIUM_REFLECTOR_BONUS = BUILDER
-            .comment("Fraction of neutron leakage a core whose whole inner ring is Beryllium Reflector bounces back.",
-                    "0.25 cuts losses by a quarter. Zero makes reflectors inert.")
-            .defineInRange("fission.berylliumReflectorBonus", 0.25, 0.0, 0.9);
     private static final ModConfigSpec.BooleanValue XENON_POISONING = BUILDER
             .comment("Whether fission builds up xenon-135, which holds the reactor back. It peaks a few minutes after",
                     "power drops (the iodine pit), so a reactor just shut down needs more rods out to restart.")
             .define("fission.xenonPoisoning", true);
-    private static final ModConfigSpec.DoubleValue XENON_WORTH = BUILDER
-            .comment("Most neutron production xenon can swallow, as a fraction. A flat-out core settles near half of it;",
-                    "the peak after a shutdown reaches about two thirds.")
-            .defineInRange("fission.xenonWorth", 0.30, 0.0, 0.95);
     private static final ModConfigSpec.IntValue IODINE_HALF_LIFE = BUILDER
             .comment("Ticks for iodine-135 to halve into xenon. 3600 is three minutes.")
             .defineInRange("fission.iodineHalfLifeTicks", 3600, 20, 1_000_000);
@@ -57,8 +42,9 @@ public class Config
                     "the core after a SCRAM. Zero makes a reactor cool as soon as its chain reaction stops.")
             .defineInRange("fission.decayHeatFraction", 0.07, 0.0, 1.0);
     private static final ModConfigSpec.IntValue DECAY_HEAT_TIME = BUILDER
-            .comment("Ticks for decay heat to fall to about a third once fission stops (it also takes this long to build up).")
-            .defineInRange("fission.decayHeatTimeTicks", 2400, 1, 1_000_000);
+            .comment("Ticks for decay heat to fall to about a third once fission stops (it also takes this long to build up).",
+                    "6000 is five minutes: long enough that a core that loses its water after a SCRAM still needs cooling.")
+            .defineInRange("fission.decayHeatTimeTicks", 6000, 1, 1_000_000);
     private static final ModConfigSpec.BooleanValue RADIATION_ENABLED = BUILDER
             .comment("Whether carrying or standing near radioactive material gives players a radiation dose.")
             .define("radiation.enabled", true);
@@ -148,6 +134,7 @@ public class Config
             .defineInRange("coolingTower.maxFanBoost", 1.0, 0.0, 100.0);
 
     static {
+        org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.waste.WasteConfig.define(BUILDER);
@@ -167,17 +154,13 @@ public class Config
     public static double steamCapacityPerPort = 32768.0;
     public static double plasmaCapacityPerPort = 65536.0;
     public static double boronAbsorption = 1.5;
-    public static double uraniumBurnPerNeutron = 0.0000045;
     public static double fuelUnitsPerAssembly = 100.0;
     public static double enrichmentReactivity = 0.25;
-    public static double graphiteModeratorBonus = 0.35;
-    public static double berylliumReflectorBonus = 0.25;
     public static boolean xenonPoisoning = true;
-    public static double xenonWorth = 0.30;
     public static int iodineHalfLifeTicks = 3600;
     public static int xenonHalfLifeTicks = 5400;
     public static double decayHeatFraction = 0.07;
-    public static int decayHeatTimeTicks = 2400;
+    public static int decayHeatTimeTicks = 6000;
     public static boolean radiationEnabled = true;
     public static double radiationDoseMultiplier = 1.0;
     public static double radiationDecayPerSecond = 1.0;
@@ -225,13 +208,9 @@ public class Config
         steamCapacityPerPort = TURBINE_CAPACITY.get();
         plasmaCapacityPerPort = FUSION_TURBINE_CAPACITY.get();
         boronAbsorption = BORON_ABSORPTION.get();
-        uraniumBurnPerNeutron = URANIUM_BURN_RATE.get();
         fuelUnitsPerAssembly = FUEL_UNITS.get();
         enrichmentReactivity = ENRICHMENT_REACTIVITY.get();
-        graphiteModeratorBonus = GRAPHITE_MODERATOR_BONUS.get();
-        berylliumReflectorBonus = BERYLLIUM_REFLECTOR_BONUS.get();
         xenonPoisoning = XENON_POISONING.get();
-        xenonWorth = XENON_WORTH.get();
         iodineHalfLifeTicks = IODINE_HALF_LIFE.get();
         xenonHalfLifeTicks = XENON_HALF_LIFE.get();
         decayHeatFraction = DECAY_HEAT_FRACTION.get();
@@ -264,6 +243,7 @@ public class Config
         coolingTowerFanStress = COOLING_TOWER_FAN_STRESS.get();
         coolingTowerFanBoost = COOLING_TOWER_FAN_BOOST.get();
         coolingTowerMaxFanBoost = COOLING_TOWER_MAX_BOOST.get();
+        org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig.bake();
         org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig.bake();
         org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelConfig.bake();
         org.papiricoh.create_nuclearindustry.waste.WasteConfig.bake();

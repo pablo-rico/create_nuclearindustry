@@ -34,7 +34,10 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
             R_VESSEL_LEVEL = 20, R_CONT_PRESSURE = 21, R_H2 = 22, R_PWR = 23;
     // Reactor: the pressurizer's relief valve is open (1) or shut (0)
     public static final int R_RELIEF = 24;
-    private static final int REACTOR_VALUES = 25;
+    /** The fission core's physics, appended: rated power MW, net reactivity pcm, coolant °C, damage 0-1, period s, shutdown margin pcm. */
+    public static final int R_RATED_POWER = 25, R_NET_REACTIVITY = 26, R_COOLANT_TEMP = 27, R_CORE_DAMAGE = 28, R_PERIOD = 29,
+            R_SHUTDOWN_MARGIN = 30;
+    private static final int REACTOR_VALUES = 31;
     // Steam generator: water level 0-1, steam made mB/t, primary temperature drop °C, formed flag, heat moved MW
     public static final int S_LEVEL = 0, S_STEAM = 1, S_PRIMARY_DT = 2, S_FORMED = 3, S_HEAT = 4;
     // Containment: pressure bar, hydrogen fraction 0-1, sealed flag, vent open flag, airborne activity, free volume m³
@@ -145,9 +148,17 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
         v[R_H2] = plant.hydrogen();
         v[R_PWR] = plant.pwr() ? 1 : 0;
         v[R_RELIEF] = plant.pwr() && reactor.getPrimaryLoop().reliefOpen() ? 1 : 0;
+        v[R_RATED_POWER] = (float) reactor.getRatedPower();
+        v[R_NET_REACTIVITY] = (float) reactor.getNetReactivity();
+        v[R_COOLANT_TEMP] = (float) reactor.getCoolantTemperature();
+        v[R_CORE_DAMAGE] = (float) reactor.getCoreDamage();
+        double period = reactor.getPeriod();
+        v[R_PERIOD] = Double.isFinite(period) ? (float) Math.max(-1.0e6, Math.min(1.0e6, period)) : 0.0f;
+        v[R_SHUTDOWN_MARGIN] = (float) reactor.getShutdownMargin();
         String status = ReactorReadout.STATUS.read(reactor).getString();
+        float rated = Math.max(1.0f, v[R_RATED_POWER]);
         return new MonitorReading(TargetKind.REACTOR, status, v,
-                clamp01(v[R_TEMPERATURE] / 4000.0f), clamp01(v[R_POWER] / 1000.0f));
+                clamp01(v[R_TEMPERATURE] / 4000.0f), clamp01(v[R_POWER] / rated));
     }
 
     private static MonitorReading turbine(AbstractTurbineControllerBlockEntity turbine) {

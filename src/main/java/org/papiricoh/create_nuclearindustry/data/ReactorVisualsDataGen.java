@@ -59,6 +59,11 @@ final class ReactorVisualsDataGen extends AreaDataGen {
         LangEntries.add(m + "formed_rods_moving", "Reactor formed; control rod channel is occupied by moving rods",
                 "Reactor formado; el canal de las barras de control está ocupado por barras en movimiento");
         LangEntries.add(m + "scrammed", "Reactor scrammed: %s", "Reactor parado (SCRAM): %s");
+        LangEntries.add(m + "fuel_damage", "The reactor's fuel cladding is failing: the core is damaged",
+                "Las vainas del combustible del reactor están fallando: el núcleo está dañado");
+        LangEntries.add(m + "fuel_melting", "The reactor's fuel is melting!", "¡El combustible del reactor se está fundiendo!");
+        LangEntries.add(m + "structure_scram", "Reactor structure broken while hot: the reactor is scrammed",
+                "Se rompió la estructura del reactor en caliente: el reactor está parado (SCRAM)");
         LangEntries.add(m + "incomplete", "Reactor incomplete: %s", "Reactor incompleto: %s");
         LangEntries.add(m + "auto_scram", "Automatic SCRAM at %s °C: SCRAM signal on",
                 "SCRAM automático a %s °C: señal de SCRAM activada");
@@ -163,13 +168,16 @@ final class ReactorVisualsDataGen extends AreaDataGen {
         LangEntries.add(g + "moving_rods", "Moving rods: %s", "Barras en movimiento: %s");
         LangEntries.add(g + "coolant", "Coolant: %s/%s mB", "Refrigerante: %s/%s mB");
         LangEntries.add(g + "steam", "Steam: %s/%s mB", "Vapor: %s/%s mB");
-        LangEntries.add(g + "temperature", "Temperature: %s C", "Temperatura: %s C");
-        LangEntries.add(g + "neutrons", "Neutrons: %s", "Neutrones: %s");
-        LangEntries.add(g + "reactivity", "Reactivity: x%s", "Reactividad: x%s");
+        LangEntries.add(g + "temperature", "Fuel temperature: %s °C", "Temperatura del combustible: %s °C");
+        LangEntries.add(g + "coolant_temperature", "Coolant in the core: %s °C", "Refrigerante en el núcleo: %s °C");
+        LangEntries.add(g + "power_level", "Fission power: %s%% of %s MW rated", "Potencia de fisión: %s%% de %s MW nominales");
+        LangEntries.add(g + "reactivity", "Reactivity: %s pcm (fuel x%s)", "Reactividad: %s pcm (combustible x%s)");
         LangEntries.add(g + "xenon", "Xenon poisoning: -%s%%", "Envenenamiento por xenón: -%s%%");
         LangEntries.add(g + "decay_heat", "Decay heat: %s MW", "Calor residual: %s MW");
-        LangEntries.add(g + "thermal_stress", "Thermal stress: %s%%", "Estrés térmico: %s%%");
-        LangEntries.add(g + "excursion", "Thermal excursion: insert control rods", "Excursión térmica: inserta las barras de control");
+        LangEntries.add(g + "thermal_stress", "Fuel stress: %s%% of the way to melting", "Tensión del combustible: %s%% hasta fundirse");
+        LangEntries.add(g + "core_damage", "Fuel damage: %s%% (permanent until refuelled)", "Daño del combustible: %s%% (permanente hasta recargar)");
+        LangEntries.add(g + "excursion", "Fuel melting: insert control rods and cool the core",
+                "Combustible fundiéndose: inserta las barras y enfría el núcleo");
         LangEntries.add(g + "fuel", "Fuel: %s / %s units", "Combustible: %s / %s unidades");
         LangEntries.add(g + "enrichment", "Fuel enrichment: %s%%", "Enriquecimiento del combustible: %s%%");
         LangEntries.add(g + "auto_scram_tripped", "Automatic SCRAM tripped at %s C", "SCRAM automático disparado a %s C");

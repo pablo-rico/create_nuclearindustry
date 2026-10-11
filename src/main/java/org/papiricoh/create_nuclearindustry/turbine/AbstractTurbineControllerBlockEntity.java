@@ -260,16 +260,16 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
             if (playerInitiated || !wasFormed) {
                 org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level),
                         org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.TURBINE_FORMED);
-                messenger.send(level, Component.translatable(KEY + "message.formed." + tierId(),
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(KEY + "message.formed." + tierId(),
                                 Component.translatable(KEY + "message.details", next.dimensionsText(), next.rotorCount(), next.throughputLimit())
                                         .withStyle(ChatFormatting.DARK_GRAY))
-                        .withStyle(ChatFormatting.AQUA), playerInitiated);
+                        .withStyle(ChatFormatting.AQUA));
             }
         } else {
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
-                messenger.send(level, Component.translatable(KEY + (wasFormed ? "message.broken" : "message.incomplete"),
-                        describe(result.primaryMessage())).withStyle(ChatFormatting.RED), playerInitiated);
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(KEY + (wasFormed ? "message.broken" : "message.incomplete"),
+                        describe(result.primaryMessage())).withStyle(ChatFormatting.RED));
             }
         }
         refreshDisplay();

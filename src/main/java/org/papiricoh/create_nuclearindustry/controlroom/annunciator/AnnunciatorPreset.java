@@ -57,7 +57,7 @@ public enum AnnunciatorPreset {
             case REACTOR_CORE -> List.of(
                     new Window("TEMPERATURE", celsius(AutoScram.DEFAULT_THRESHOLD - 800), "CORE TEMP HI"),
                     new Window("TEMPERATURE", celsius(AutoScram.DEFAULT_THRESHOLD - 400), "CORE TEMP HI-HI"),
-                    new Window("POWER", 90, "POWER HI"),
+                    new Window("POWER", 70, "POWER HI"),
                     new Window("XENON", 15, "XENON HI"),
                     new Window("COOLANT_LOW", 20, "COOLANT LO"),
                     new Window("SCRAM", 0, "SCRAM"));

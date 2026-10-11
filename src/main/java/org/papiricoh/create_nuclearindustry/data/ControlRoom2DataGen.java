@@ -230,6 +230,8 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(s + "plasma_density", "DENSITY HI", "DENSIDAD ALTA");
         add(s + "tritium_low", "TRITIUM LO", "TRITIO BAJO");
         add(s + "tokamak_trip", "TOKAMAK TRIP", "DISPARO TOKAMAK");
+        add(s + "core_damage", "FUEL DAMAGE", "DAÑO COMBUSTIBLE");
+        add(metric + "core_damage", "Fuel damage above", "Daño del combustible por encima de");
         preset(a + "preset.tokamak", "Tokamak", "Tokamak",
                 new String[]{"INSTABILITY HI", "DENSITY HI", "VACUUM POOR", "MAGNET TEMP HI", "Q LOW", "TOKAMAK TRIP"},
                 new String[]{"INESTAB. ALTA", "DENSIDAD ALTA", "VACÍO POBRE", "TEMP IMANES ALTA", "Q BAJO", "DISPARO TOKAMAK"});

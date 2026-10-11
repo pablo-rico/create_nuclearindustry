@@ -78,7 +78,7 @@ public final class PwrConfig {
     public static double oxidationTemperature = 1200.0;
     public static double oxidationRate = 0.5;
     public static double zirconiumPerRod = 500.0;
-    public static double oxidationHeat = 4.0;
+    public static double oxidationHeat = 1.2;
     public static double vesselFailurePressure = 250.0;
     public static int vesselFailureTicks = 100;
     public static double steamExplosionTemperature = 2800.0;
@@ -196,8 +196,9 @@ public final class PwrConfig {
                 .comment("Zirconium in the cladding of one fuel rod, in mol: each mol makes two mol of hydrogen.")
                 .defineInRange("pwr.accidents.zirconiumPerRod", 500.0, 0.0, 100_000.0);
         OXIDATION_HEAT = builder
-                .comment("Core heating per mol of zirconium oxidised per rod, in °C.")
-                .defineInRange("pwr.accidents.oxidationHeat", 4.0, 0.0, 100.0);
+                .comment("Heat of each mol of zirconium oxidised per rod, in kelvin of that rod's fuel",
+                        "(times fission.thermal.fuelHeatCapacity, in MJ). The whole cladding adds at most zirconiumPerRod times this.")
+                .defineInRange("pwr.accidents.oxidationHeat", 1.2, 0.0, 100.0);
         VESSEL_FAILURE_PRESSURE = builder
                 .comment("Primary pressure a pressurized reactor's vessel fails above, in bar, if held long enough.")
                 .defineInRange("pwr.accidents.vesselFailurePressure", 250.0, 50.0, 400.0);

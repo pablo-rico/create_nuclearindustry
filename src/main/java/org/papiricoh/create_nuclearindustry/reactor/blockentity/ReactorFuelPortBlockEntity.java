@@ -52,7 +52,7 @@ public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGogg
                 && level.getBlockEntity(previousLink.get()) instanceof ReactorBlockEntity previousReactor) {
             previousReactor.requestStructureRevalidation(player);
         } else if (player != null) {
-            player.displayClientMessage(Component.translatable(ReactorBlockEntity.PORT + "fuel_not_attached").withStyle(ChatFormatting.RED), false);
+            player.displayClientMessage(Component.translatable(ReactorBlockEntity.PORT + "fuel_not_attached").withStyle(ChatFormatting.RED), true);
         }
     }
 

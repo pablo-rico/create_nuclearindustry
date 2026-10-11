@@ -23,8 +23,6 @@ public final class PrimaryLoop {
     public static final int CORE_VOLUME = 12_000;
     /** Water one pressurizer block holds, mB. */
     public static final int PRESSURIZER_VOLUME_PER_SEGMENT = 2_000;
-    /** Cooling a dry core still gets from steam, as a share of a covered one. */
-    private static final double UNCOVERED_COOLING = 0.1;
     private static final double LATENT_PER_MB = 0.6;
     private static final double VAPOR_EXPANSION = 7.0;
     private static final double VESSEL_HEAT_LOSS = 0.0005;
@@ -59,9 +57,7 @@ public final class PrimaryLoop {
     /**
      * What the reactor knows this tick.
      *
-     * @param coreTemperature core temperature, °C
-     * @param rodMultiplier   the simulator's size factor: core cooling times this is heat units
-     * @param maxHeat         most heat units the heat exchangers pass per tick
+     * @param coreHeat        heat the core gave the vessel water this tick, heat units
      * @param cold            cold coolant in the vessel, mB
      * @param hot             hot coolant in the vessel, mB
      * @param hotCapacity     room for hot coolant, mB
@@ -71,16 +67,16 @@ public final class PrimaryLoop {
      * @param reliefIsolated  the relief valve gets a redstone signal
      * @param stickRoll       a uniform random number in [0, 1)
      */
-    public record Context(double coreTemperature, double rodMultiplier, double maxHeat, int cold, int hot, int hotCapacity,
-                          PressurizerStack stack, int autoHeaters, int manualHeaters, boolean reliefIsolated, double stickRoll) {}
+    public record Context(double coreHeat, int cold, int hot, int hotCapacity, PressurizerStack stack, int autoHeaters,
+                          int manualHeaters, boolean reliefIsolated, double stickRoll) {}
 
     /**
      * What the reactor applies.
      *
-     * @param coreCooling °C per tick taken from the core
+     * @param coreCooling heat units taken from the core
      * @param moved       cold coolant to turn into hot coolant, mB
      * @param vented      coolant the relief valve let out, mB
-     * @param feedback    multiplier on neutron production
+     * @param feedback    how the water's state moderates, for display (the core has its own coefficients)
      */
     public record Result(double coreCooling, int moved, int vented, double feedback) {}
 
@@ -113,12 +109,8 @@ public final class PrimaryLoop {
         double saturation = SaturationTable.temperature(pressurizer.pressure());
         coolant.update(inventory, CORE_VOLUME, saturation, coolantParams);
 
-        double coverage = coolant.coverage();
-        double rodMultiplier = Math.max(1.0, c.rodMultiplier());
-        double coreCooling = PwrConfig.heatTransfer * Math.max(0.0, c.coreTemperature() - coolant.coldLeg())
-                * (coverage + UNCOVERED_COOLING * (1.0 - coverage));
-        coreCooling = Math.min(coreCooling, Math.max(0.0, c.maxHeat()) / rodMultiplier);
-        int moved = coolant.step(new PrimaryCoolantModel.Conditions(coreCooling * rodMultiplier, c.cold(),
+        double coreCooling = Math.max(0.0, c.coreHeat());
+        int moved = coolant.step(new PrimaryCoolantModel.Conditions(coreCooling, c.cold(),
                 Math.max(0, c.hotCapacity() - c.hot()), Math.max(flowIn, flowOut), inventory, CORE_VOLUME, saturation), coolantParams);
 
         int autoHeaters = c.autoHeaters();
@@ -153,6 +145,21 @@ public final class PrimaryLoop {
                 (float) (SaturationTable.temperature(pressure) - coolant.hotLeg()), (float) pressurizer.level(),
                 (float) coolant.coreFlow(), (float) coolant.coverage(), 0.0f, 0.0f);
         return new Result(coreCooling, moved, vented, feedback);
+    }
+
+    /** Average temperature of the water in the core, °C. */
+    public double averageTemperature() {
+        return coolant.averageTemperature();
+    }
+
+    /** Steam in the core, 0-1. */
+    public double voidFraction() {
+        return coolant.voidFraction();
+    }
+
+    /** Share of the core under water, 0-1. */
+    public double coverage() {
+        return coolant.coverage();
     }
 
     private double levelDemand(double inventory, double capacity) {

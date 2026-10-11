@@ -63,7 +63,7 @@ public class ReactorModerationScenes {
                 .placeNearTarget();
         scene.idle(100);
         scene.overlay().showText(100)
-                .text("A ring lined all round loses a quarter fewer neutrons. Both make more power from the same fuel, so leave room for enough Control Rods.")
+                .text("A ring lined all round adds reactivity too. Both make the same fuel more reactive, so leave room for enough Control Rods.")
                 .colored(PonderPalette.BLUE)
                 .pointAt(util.vector().centerOf(util.grid().at(2, 3, 2)))
                 .placeNearTarget();

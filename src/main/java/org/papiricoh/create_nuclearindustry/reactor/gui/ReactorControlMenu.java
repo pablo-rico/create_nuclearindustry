@@ -28,7 +28,7 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     private static final int DATA_FUEL_X10 = 4;
     private static final int DATA_FUEL_CAPACITY_X10 = 5;
     private static final int DATA_ROD_POSITION_PERMILLE = 6;
-    private static final int DATA_POWER_X10 = 7;
+    private static final int DATA_POWER_MW = 7;
     private static final int DATA_STEAM_RATE_X10 = 8;
     private static final int DATA_THERMAL_STRESS = 9;
     private static final int DATA_THERMAL_EXCURSION = 10;
@@ -51,7 +51,13 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     private static final int DATA_XENON_PERMILLE = 27;
     private static final int DATA_DECAY_HEAT_X10 = 28;
     private static final int DATA_REACTIVITY_X100 = 29;
-    private static final int DATA_COUNT = 30;
+    /** Fission power as permille of the rated power, the rated power in MW and the core's new readings. */
+    private static final int DATA_POWER_PERMILLE = 30;
+    private static final int DATA_RATED_POWER = 31;
+    private static final int DATA_COOLANT_TEMPERATURE = 32;
+    private static final int DATA_CORE_DAMAGE_PERMILLE = 33;
+    private static final int DATA_NET_REACTIVITY = 34;
+    private static final int DATA_COUNT = 35;
 
     /** {@link #clickMenuButton} ids. SCRAM engages the manual SCRAM, or resets once one is on. */
     public static final int BUTTON_TOGGLE_SCRAM = 0;
@@ -238,6 +244,30 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         return reactorData.get(DATA_REACTIVITY_X100) / 100.0;
     }
 
+    /** Fission power as a share of the rated power (1 = rated). */
+    public double getPowerFraction() {
+        return reactorData.get(DATA_POWER_PERMILLE) / 1000.0;
+    }
+
+    /** Rated thermal power, MW. */
+    public int getRatedPower() {
+        return reactorData.get(DATA_RATED_POWER);
+    }
+
+    public double getCoolantTemperature() {
+        return reactorData.get(DATA_COOLANT_TEMPERATURE);
+    }
+
+    /** Core damage, 0..1. */
+    public double getCoreDamage() {
+        return reactorData.get(DATA_CORE_DAMAGE_PERMILLE) / 1000.0;
+    }
+
+    /** Net reactivity, pcm (signed). */
+    public int getNetReactivity() {
+        return (short) reactorData.get(DATA_NET_REACTIVITY);
+    }
+
     @Override
     public boolean stillValid(Player player) {
         return org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard.stillValid(reactor, player);
@@ -289,7 +319,7 @@ public class ReactorControlMenu extends AbstractContainerMenu {
      * Gets power output for display.
      */
     public double getPowerOutput() {
-        return reactorData.get(DATA_POWER_X10) / 10.0;
+        return reactorData.get(DATA_POWER_MW);
     }
 
     /**
@@ -478,7 +508,7 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         data[DATA_FUEL_X10] = scaled(snapshot.fuelRemaining(), 10.0);
         data[DATA_FUEL_CAPACITY_X10] = scaled(snapshot.fuelCapacity(), 10.0);
         data[DATA_ROD_POSITION_PERMILLE] = scaled(snapshot.controlRodPosition(), 1000.0);
-        data[DATA_POWER_X10] = scaled(snapshot.powerOutput(), 10.0);
+        data[DATA_POWER_MW] = scaled(snapshot.powerOutput(), 1.0);
         data[DATA_STEAM_RATE_X10] = scaled(snapshot.steamGenerationRate(), 10.0);
         data[DATA_THERMAL_STRESS] = clampInt(Math.round((float) snapshot.thermalStress()), 0, 100);
         data[DATA_THERMAL_EXCURSION] = snapshot.thermalExcursionActive() ? 1 : 0;
@@ -501,6 +531,11 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         data[DATA_XENON_PERMILLE] = scaled(snapshot.xenonPenalty(), 1000.0);
         data[DATA_DECAY_HEAT_X10] = scaled(snapshot.decayHeatPower(), 10.0);
         data[DATA_REACTIVITY_X100] = scaled(snapshot.reactivity(), 100.0);
+        data[DATA_POWER_PERMILLE] = scaled(snapshot.powerFraction(), 1000.0);
+        data[DATA_RATED_POWER] = scaled(snapshot.ratedPower(), 1.0);
+        data[DATA_COOLANT_TEMPERATURE] = scaled(snapshot.coolantTemperature(), 1.0);
+        data[DATA_CORE_DAMAGE_PERMILLE] = scaled(snapshot.coreDamage(), 1000.0);
+        data[DATA_NET_REACTIVITY] = clampInt((int) Math.round(snapshot.netReactivity()), -32768, 32767);
         return data;
     }
 

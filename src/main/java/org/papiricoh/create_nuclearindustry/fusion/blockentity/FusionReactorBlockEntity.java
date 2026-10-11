@@ -92,7 +92,6 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
     private static final int OBSERVE_INTERVAL = 10;
     /** How long the tritium overflow warning stays up after bred tritium found no room. */
     private static final int OVERFLOW_WARNING_TICKS = 100;
-    private static final int MESSAGE_COOLDOWN_TICKS = 100;
 
     private Status status = Status.UNFORMED;
     private Optional<TokamakStructure> structure = Optional.empty();
@@ -104,8 +103,6 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
     private final VacuumModel vacuum = new VacuumModel();
     private final StartupSequence sequence = new StartupSequence();
     private final MultiblockMessenger messenger = new MultiblockMessenger("Tokamak");
-    private String lastMessageKey = "";
-    private long lastMessageTime = Long.MIN_VALUE;
     private boolean pendingRevalidation = true;
     private int syncCounter;
     // Fractional mB owed to (negative) or by (positive) the tanks.
@@ -194,7 +191,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
     private void serverTick() {
         if (upgradeNotice) {
             upgradeNotice = false;
-            notifyOwner(Component.translatable("create_nuclearindustry.tokamak.message.upgraded").withStyle(ChatFormatting.YELLOW), true);
+            messenger.log(Component.translatable("create_nuclearindustry.tokamak.message.upgraded"));
         }
         if (structure.isEmpty()) {
             status = Status.UNFORMED;
@@ -383,7 +380,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         }
         if (transition.to() == TokamakPhase.BURN && level != null) {
             NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), NuclearEvent.TOKAMAK_IGNITION);
-            notifyOwner(Component.translatable("create_nuclearindustry.tokamak.message.burning").withStyle(ChatFormatting.GOLD), false);
+            messenger.log(Component.translatable("create_nuclearindustry.tokamak.message.burning"));
         }
         TripCause cause = transition.cause();
         if (cause != null && cause != TripCause.NONE && cause != TripCause.DISRUPTION) {
@@ -391,11 +388,15 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
                     ? Component.translatable("create_nuclearindustry.tokamak.message.shutdown").withStyle(ChatFormatting.YELLOW)
                     : Component.translatable("create_nuclearindustry.tokamak.message.trip", Component.translatable(cause.langKey()))
                     .withStyle(ChatFormatting.RED);
-            notifyOwner(message, true);
+            if (cause == TripCause.OPERATOR) {
+                messenger.status(level, messenger.owner(level), message);
+            } else {
+                messenger.alert(level, getBlockPos(), message);
+            }
         }
         if (transition.to() == TokamakPhase.OFFLINE) {
             physics.quench();
-            notifyOwner(Component.translatable("create_nuclearindustry.tokamak.message.offline").withStyle(ChatFormatting.GRAY), false);
+            messenger.log(Component.translatable("create_nuclearindustry.tokamak.message.offline"));
         }
         markDirtyAndSync();
     }
@@ -453,8 +454,8 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         tritiumTank.setFluid(FluidStack.EMPTY);
         tritiumBalance = 0;
         tritiumCredit = 0;
-        notifyOwner(Component.translatable("create_nuclearindustry.tokamak.message.disruption", pos.toShortString())
-                .withStyle(ChatFormatting.DARK_RED), true);
+        messenger.alert(level, pos, Component.translatable("create_nuclearindustry.tokamak.message.disruption", pos.toShortString())
+                .withStyle(ChatFormatting.DARK_RED));
         NuclearAdvancements.awardMachine(level, pos, messenger.owner(level), NuclearEvent.DISRUPTION);
         if (!FusionConfig.disruptionExplosions || !(level instanceof ServerLevel serverLevel)) {
             return;
@@ -481,26 +482,6 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         if (state.getValue(FusionReactorControllerBlock.ON) != on || state.getValue(FusionReactorControllerBlock.IGNITED) != ignited) {
             level.setBlock(getBlockPos(), state.setValue(FusionReactorControllerBlock.ON, on)
                     .setValue(FusionReactorControllerBlock.IGNITED, ignited), Block.UPDATE_CLIENTS);
-        }
-    }
-
-    /** Tells the player who last worked on the tokamak; the same message is not repeated within a few seconds. */
-    private void notifyOwner(Component message, boolean force) {
-        if (level == null) {
-            return;
-        }
-        String key = message.getString();
-        long now = level.getGameTime();
-        if (!force && key.equals(lastMessageKey) && now - lastMessageTime < MESSAGE_COOLDOWN_TICKS) {
-            return;
-        }
-        lastMessageKey = key;
-        lastMessageTime = now;
-        Player owner = messenger.owner(level);
-        if (owner != null) {
-            owner.displayClientMessage(message, false);
-        } else {
-            LOGGER.debug("[Tokamak {}] {}", getBlockPos().toShortString(), key);
         }
     }
 
@@ -577,15 +558,15 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
                 if (!result.warnings().isEmpty()) {
                     message.append(" ").append(TokamakStructureValidator.text(result.warnings().get(0)).copy().withStyle(ChatFormatting.YELLOW));
                 }
-                notifyOwner(message, playerInitiated);
+                messenger.status(level, playerInitiated ? player : null, message);
             }
         } else {
             structure.ifPresent(this::unlinkParts);
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
-                notifyOwner(Component.translatable(wasFormed ? "create_nuclearindustry.tokamak.message.broken"
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(wasFormed ? "create_nuclearindustry.tokamak.message.broken"
                                 : "create_nuclearindustry.tokamak.message.incomplete", getValidationText())
-                        .withStyle(ChatFormatting.RED), playerInitiated);
+                        .withStyle(ChatFormatting.RED));
             }
         }
         markDirtyAndSync();
@@ -671,10 +652,10 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         }
         if (before == TokamakPhase.OFFLINE) {
             if (result == TripCause.NONE) {
-                notifyOwner(Component.translatable("create_nuclearindustry.tokamak.message.starting").withStyle(ChatFormatting.AQUA), true);
+                messenger.status(level, messenger.owner(level), Component.translatable("create_nuclearindustry.tokamak.message.starting").withStyle(ChatFormatting.AQUA));
             } else {
-                notifyOwner(Component.translatable("create_nuclearindustry.tokamak.message.start_blocked",
-                        Component.translatable(result.langKey())).withStyle(ChatFormatting.RED), true);
+                messenger.status(level, messenger.owner(level), Component.translatable("create_nuclearindustry.tokamak.message.start_blocked",
+                        Component.translatable(result.langKey())).withStyle(ChatFormatting.RED));
             }
         }
         markDirtyAndSync();

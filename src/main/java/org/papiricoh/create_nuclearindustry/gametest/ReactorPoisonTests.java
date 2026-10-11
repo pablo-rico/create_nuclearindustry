@@ -40,7 +40,8 @@ public class ReactorPoisonTests {
                 physics.scramTick();
             }
         }
-        helper.assertTrue(without.getCoreTemperature() <= 20.0 + 1e-6, "with no decay heat the core cools to ambient, got "
+        // The fuel gives its heat to the core's water, which holds at its boiling point while it boils.
+        helper.assertTrue(without.getCoreTemperature() < 400.0, "with no decay heat the core cools to its water, got "
                 + without.getCoreTemperature());
         helper.assertTrue(withDecay.getCoreTemperature() > without.getCoreTemperature() + 100.0,
                 "decay heat keeps it hot: " + withDecay.getCoreTemperature() + " vs " + without.getCoreTemperature());

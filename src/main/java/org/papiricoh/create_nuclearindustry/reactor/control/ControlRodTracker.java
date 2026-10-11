@@ -26,7 +26,19 @@ public final class ControlRodTracker {
         int movingSegments = scanContraptions(level, structure, insertedPositions);
         int expectedSegments = structure.controlChannels.size() * structure.innerHeight();
         float insertion = expectedSegments <= 0 ? 0.0f : Math.min(1.0f, insertedPositions.size() / (float) expectedSegments);
-        return new ControlRodScan(insertion, staticSegments, movingSegments, insertedPositions.size(), expectedSegments);
+        // Each channel on its own: a rod is worth most in the middle of the core, so where they are matters.
+        double[] channels = new double[structure.controlChannels.size()];
+        int i = 0;
+        for (BlockPos channel : structure.controlChannels) {
+            int inChannel = 0;
+            for (BlockPos pos : insertedPositions) {
+                if (pos.getX() == channel.getX() && pos.getZ() == channel.getZ()) {
+                    inChannel++;
+                }
+            }
+            channels[i++] = structure.innerHeight() <= 0 ? 0 : Math.min(1.0, inChannel / (double) structure.innerHeight());
+        }
+        return new ControlRodScan(insertion, staticSegments, movingSegments, insertedPositions.size(), expectedSegments, channels);
     }
 
     private static int scanStatic(Level level, ReactorStructureValidator.ReactorStructure structure, Set<BlockPos> insertedPositions) {
@@ -75,7 +87,16 @@ public final class ControlRodTracker {
         return ControlRodGeometry.createControlRodSearchBox(structure);
     }
 
-    public record ControlRodScan(float insertionRatio, int staticSegments, int movingSegments, int insertedSegments, int expectedSegments) {
+    /**
+     * @param channelInsertions how far each control channel is filled, 0..1, in the structure's channel order
+     */
+    public record ControlRodScan(float insertionRatio, int staticSegments, int movingSegments, int insertedSegments, int expectedSegments,
+                                 double[] channelInsertions) {
+        /** A scan known only by its totals (synced to clients): every channel at the average. */
+        public ControlRodScan(float insertionRatio, int staticSegments, int movingSegments, int insertedSegments, int expectedSegments) {
+            this(insertionRatio, staticSegments, movingSegments, insertedSegments, expectedSegments, new double[]{insertionRatio});
+        }
+
         public static ControlRodScan empty() {
             return new ControlRodScan(0.0f, 0, 0, 0, 0);
         }

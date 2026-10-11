@@ -239,7 +239,7 @@ public class ReactorScenes {
         scene.world().moveSection(movingRods, util.vector().of(0, 1, 0), 25);
         scene.idle(30);
         scene.overlay().showText(95)
-                .text("Withdrawn rods absorb fewer neutrons: the chain reaction and the heat ramp up.")
+                .text("Withdrawn rods absorb fewer neutrons: the power rises until the hotter fuel and water hold it at a new level.")
                 .colored(PonderPalette.RED)
                 .pointAt(util.vector().centerOf(util.grid().at(2, 4, 2)))
                 .placeNearTarget();

@@ -100,16 +100,18 @@ public class PwrModeTests {
         });
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 200)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 400)
     public static void waterStillBoilsDirectlyBesideAPressurizer(GameTestHelper helper) {
         FissionTestBuilder.build(helper, false);
         FissionTestBuilder.pressurizer(helper, ORIGIN, 2, 0);
         ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);
         helper.runAfterDelay(5, () -> {
             reactor.fillCoolant(new FluidStack(Fluids.WATER, 8_000), IFluidHandler.FluidAction.EXECUTE);
-            // A running core with its rods out: only fission makes the boiling reactor's steam.
-            reactor.getPhysicsSimulator().loadFuelAssembly(20f);
-            reactor.getPhysicsSimulator().loadFuelAssembly(20f);
+            // A running core with its rods out: only fission makes the boiling reactor's steam. Two thirds
+            // loaded, so its hot water and fuel hold it at a modest power instead of a runaway.
+            for (int i = 0; i < 4; i++) {
+                reactor.getPhysicsSimulator().loadFuelAssembly(5f);
+            }
         });
         helper.succeedWhen(() -> {
             helper.assertTrue(NuclearFluidHelper.isSteam(reactor.getSteamFluid()) && reactor.getSteamAmount() > 0,

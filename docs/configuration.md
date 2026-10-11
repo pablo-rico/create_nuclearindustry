@@ -11,17 +11,32 @@ plasmaCapacityPerPort = 65536.0
 
 [fission]
 boronAbsorption = 1.5
-uraniumBurnPerNeutron = 0.0000045
 fuelUnitsPerAssembly = 100.0
 enrichmentReactivity = 0.25
-graphiteModeratorBonus = 0.35
-berylliumReflectorBonus = 0.25
 xenonPoisoning = true
-xenonWorth = 0.3
 iodineHalfLifeTicks = 3600
 xenonHalfLifeTicks = 5400
 decayHeatFraction = 0.07
-decayHeatTimeTicks = 2400
+decayHeatTimeTicks = 6000
+fuelBurnPerRod = 0.00075
+
+[fission.kinetics]
+sixGroups = true
+maxWithdrawalRate = 100.0
+
+[fission.reactivity]
+fuelExcess = 5000.0
+rodBankWorth = 12000.0
+xenonWorthPcm = 2800.0
+
+[fission.thermal]
+ratedPowerPerRod = 50.0
+steamEnergy = 2.0
+
+[fission.damage]
+claddingFailureTemperature = 2000.0
+fuelMeltingTemperature = 2800.0
+meltdownDamage = 0.75
 
 [fusion]
 deuteriumTritiumBurnRate = 0.0011
@@ -93,47 +108,103 @@ SU por RPM. El radio va de 4 a 16 y la altura de `2*Rb + 4` a `5*Rb` (máximo 64
 
 ## Fision
 
-- `boronAbsorption`: absorcion de las barras de control. Se multiplica por la
-  proporcion de barras de control frente a canales de combustible, se limita a
-  100% y se aplica segun su insercion. Cero elimina la absorcion.
-- `uraniumBurnPerNeutron`: unidades de combustible consumidas por nivel de
-  neutrones y tick. Cero desactiva el agotamiento.
-- `fuelUnitsPerAssembly`: unidades de un elemento combustible al 5% (LEU). El
-  combustible mas enriquecido dura mas: `unidades = este valor * (enriquecimiento / 5)^0.66`,
-  asi que uno al 20% contiene unas 2,5 veces mas.
-- `enrichmentReactivity`: produccion extra de neutrones por cada vez que se dobla
-  el enriquecimiento por encima del 5%. Con 0,25, el combustible al 20% es 1,5
-  veces mas reactivo. Cero hace que el enriquecimiento solo afecte a la duracion.
-- `graphiteModeratorBonus`: produccion extra de neutrones de un nucleo totalmente
-  moderado, es decir, con cada columna de combustible tocando dos columnas de
-  Moderador de grafito. Con 0,35 es un 35% mas reactivo; una sola vecina cuenta
-  la mitad. Cero hace el grafito inerte.
-- `berylliumReflectorBonus`: fraccion de las perdidas de neutrones que devuelve
-  un anillo interior (las columnas que tocan la carcasa) revestido por completo
-  de Reflector de berilio. Con 0,25 se pierde una cuarta parte menos. Cero hace
-  el reflector inerte.
-- `xenonPoisoning`: si la fision genera xenon-135, que frena el reactor. A
-  potencia constante se queda en un nivel moderado; tras bajar la potencia o un
-  SCRAM sigue subiendo unos minutos (el "pozo de yodo") y luego desaparece, asi
-  que un reactor recien parado necesita sacar mas barras para volver a arrancar.
-- `xenonWorth`: fraccion maxima de la produccion de neutrones que puede tragarse
-  el xenon. Un nucleo a plena potencia se queda cerca de la mitad; el pico tras
-  una parada llega a unos dos tercios.
-- `iodineHalfLifeTicks` / `xenonHalfLifeTicks`: ticks que tardan el yodo-135 y el
-  xenon-135 en reducirse a la mitad (3 y 4,5 minutos por defecto).
-- `decayHeatFraction`: calor residual de un nucleo que lleva un rato
-  funcionando, como fraccion de su calor de fision. Sigue calentando el nucleo
-  despues de un SCRAM, asi que el refrigerante no se puede cortar de golpe. Cero
-  hace que el reactor se enfrie en cuanto se para la reaccion.
-- `decayHeatTimeTicks`: ticks para que el calor residual baje a un tercio una
-  vez parada la fision (tambien tarda eso en acumularse).
+El núcleo sigue la **cinética puntual** de un reactor real: la reactividad
+(en pcm, milésimas de porcentaje) que dejan las barras de control, el
+combustible y el moderador decide si la potencia sube, baja o se queda quieta,
+y los neutrones retardados hacen que lo haga despacio. Al calentarse, el
+combustible (efecto Doppler), el agua y el vapor de su alrededor le quitan
+reactividad, así que **sacar una barra sube la potencia un poco y el reactor se
+asienta solo** en una potencia nueva, más caliente. Con todas las barras fuera,
+un núcleo de uranio poco enriquecido refrigerado con agua se queda por debajo de
+1300 °C; el grafito (coeficiente de vacío positivo) o el combustible muy
+enriquecido sí pueden llevarlo a dañarse.
+
+- **Potencia nominal**: `fission.thermal.ratedPowerPerRod` MW por cada bloque de
+  barra de combustible (más con MOX). Las gafas, la GUI, los monitores, las
+  alarmas, el puerto de redstone (15 = 100 %) y el controlador automático del
+  pupitre trabajan en % de esa potencia nominal, así que un reactor grande y uno
+  pequeño se manejan igual. El reactor puede pasar del 100 %.
+- **Vapor**: sale exactamente el calor que se lleva el agua dividido por
+  `fission.thermal.steamEnergy` (MW por mB/t). Si el vapor no sale (tanque lleno,
+  puertos o intercambiadores insuficientes), el agua del núcleo se calienta y la
+  potencia baja sola, poco a poco. Sin agua el núcleo se seca: la reacción en
+  cadena se para (`fission.reactivity.dryCoreWorth`), pero el calor residual lo
+  sigue calentando.
+- **Daño del combustible**: por encima de `fission.damage.claddingFailureTemperature`
+  (2000 °C) fallan las vainas y el núcleo acumula daño permanente (se ve en las
+  gafas y la GUI, y suelta actividad); por encima de
+  `fission.damage.fuelMeltingTemperature` (2800 °C) el combustible se funde y el
+  daño corre. Con `fission.damage.meltdownDamage` (75 %) el núcleo se funde del
+  todo (corium, ver *Accidentes*). Recargar combustible nuevo reduce el daño en
+  proporción.
+- **Velocidad de las barras**: al sacar barras, la reactividad que liberan entra
+  como mucho a `fission.kinetics.maxWithdrawalRate` pcm por segundo, la velocidad
+  de los accionamientos. Así un pistón que saca una barra de golpe no lleva el
+  núcleo a criticidad inmediata. Meterlas es instantáneo.
+- Tamaño: un canal de barras de pocos bloques vale miles de pcm por bloque, así
+  que en un reactor pequeño cada bloque es un salto grande. Con canales altos o
+  varios canales cada bloque mueve solo unos pocos %.
+
+| Opción | Por defecto | Qué hace |
+|---|---|---|
+| `boronAbsorption` | 1,5 | Absorción de las barras: se multiplica por la proporción de canales de barras frente a canales de combustible y fija qué parte de `rodBankWorth` tiene el reactor |
+| `fuelUnitsPerAssembly` | 100 | Unidades de un elemento al 5 % (LEU); uno más enriquecido dura `(enriquecimiento / 5)^0,66` veces más |
+| `enrichmentReactivity` | 0,25 | Reactividad extra por cada vez que se dobla el enriquecimiento por encima del 5 % (multiplica `fuelExcess`) |
+| `fuelBurnPerRod` | 0,00075 | Unidades que quema cada barra por tick a potencia nominal; 0 desactiva el agotamiento |
+| `xenonPoisoning` | true | La fisión genera xenón-135; tras bajar la potencia o un SCRAM sigue subiendo unos minutos (el "pozo de yodo") |
+| `iodineHalfLifeTicks` / `xenonHalfLifeTicks` | 3600 / 5400 | Semividas del yodo-135 y del xenón-135 |
+| `decayHeatFraction` | 0,07 | Parte del calor de fisión que llega después como calor residual |
+| `decayHeatTimeTicks` | 6000 | Ticks para que el calor residual baje a un tercio (y para que se acumule) |
+| `fission.kinetics.sixGroups` | true | Seis grupos de neutrones retardados (true) o uno (false) |
+| `fission.kinetics.delayedTimeScale` | 1 | Acelera los neutrones retardados; más alto hace el reactor más rápido de manejar |
+| `fission.kinetics.promptGenerationTime` | 0,001 | Tiempo de generación de los neutrones inmediatos (s); solo cuenta cerca de la criticidad inmediata |
+| `fission.kinetics.sourceStrength` | 0,001 | Fuente de neutrones que mantiene vivo un núcleo parado |
+| `fission.kinetics.maxWithdrawalRate` | 100 | pcm por segundo que libera como mucho una retirada de barras |
+| `fission.kinetics.maxRelativePower` | 10 | Potencia máxima, en veces la nominal |
+| `fission.reactivity.fuelExcess` | 5000 | Exceso de reactividad del uranio nuevo al 5 % (pcm) |
+| `fission.reactivity.burnupDefect` | 0,5 | Parte de ese exceso que se pierde al final de la vida del combustible (el torio no la pierde) |
+| `fission.reactivity.emptyChannelWorth` | 10000 | pcm que se pierden con todos los canales de combustible vacíos |
+| `fission.reactivity.rodBankWorth` | 12000 | Valor de un juego completo de barras (pcm) |
+| `fission.reactivity.rodWorthShape` | 0,5 | Cuánto más valen las barras en el centro del núcleo (0 igual en toda su longitud, 1 curva en S completa) |
+| `fission.reactivity.graphiteWorth` | 1500 | pcm que suma el grafito alrededor de cada columna de combustible |
+| `fission.reactivity.reflectorWorth` | 1000 | pcm que suma un anillo interior entero de berilio |
+| `fission.reactivity.heavyWaterWorth` | 500 | pcm que suma el agua pesada como refrigerante |
+| `fission.reactivity.xenonWorthPcm` | 2800 | pcm que quita un núcleo totalmente envenenado; a plena potencia se queda cerca de la mitad |
+| `fission.reactivity.dopplerCoefficient` | -2 | pcm por kelvin del combustible |
+| `fission.reactivity.moderatorCoefficient` | -4 | pcm por kelvin del agua |
+| `fission.reactivity.voidCoefficient` | -15 | pcm por % de vapor en el núcleo |
+| `fission.reactivity.graphiteModeratorCoefficient` / `graphiteVoidCoefficient` | -1 / +3 | Los mismos coeficientes con grafito en todas las columnas: el vacío pasa a ser positivo |
+| `fission.reactivity.heavyWaterVoidCoefficient` | -5 | Coeficiente de vacío con agua pesada |
+| `fission.reactivity.damageWorth` | 2000 | pcm que pierde un núcleo totalmente dañado |
+| `fission.reactivity.dryCoreWorth` | 10000 | pcm que pierde un núcleo moderado por agua sin agua (menos con grafito) |
+| `fission.thermal.ratedPowerPerRod` | 50 | MW de cada bloque de barra de combustible a potencia nominal |
+| `fission.thermal.fuelRiseAtRated` | 600 | Kelvin que el combustible está por encima de su agua a potencia nominal |
+| `fission.thermal.fuelHeatCapacity` | 0,5 | Capacidad calorífica del combustible de una barra (MJ/K); más alta, el núcleo se calienta y enfría más despacio |
+| `fission.thermal.coolantHeatCapacity` / `structureHeatCapacity` | 1,5 / 0,2 | Capacidad calorífica del agua y del acero alrededor de cada barra (MJ/K) |
+| `fission.thermal.boilingTemperature` | 285 | Temperatura (°C) a la que hierve el agua del núcleo |
+| `fission.thermal.steamEnergy` / `heavyWaterSteamEnergy` | 2 / 3,1 | MW que se lleva cada mB/t de vapor (agua / agua pesada) |
+| `fission.thermal.ratedVoid` | 0,3 | Vapor en un núcleo que hierve su potencia nominal |
+| `fission.thermal.chfMargin` | 1,25 | Flujo crítico sobre lo que dan los intercambiadores: por encima el combustible se envuelve en vapor y se enfría mucho peor |
+| `fission.thermal.maxFuelTemperature` | 4500 | El combustible nunca pasa de aquí (°C) |
+| `fission.damage.claddingFailureTemperature` | 2000 | °C a los que fallan las vainas y empieza el daño |
+| `fission.damage.fuelMeltingTemperature` | 2800 | °C a los que se funde el combustible |
+| `fission.damage.claddingRate` | 0,004 | Daño por segundo 800 K por encima del fallo de vainas (crece con el cuadrado) |
+| `fission.damage.meltingRate` / `meltingRateMax` | 0,01 / 0,1 | Daño por segundo al empezar a fundirse y 1200 K por encima |
+| `fission.damage.meltdownDamage` | 0,75 | Daño al que el núcleo se funde del todo |
+
+**Al actualizar**: las claves antiguas `uraniumBurnPerNeutron`,
+`graphiteModeratorBonus`, `berylliumReflectorBonus` y `xenonWorth` ya no existen
+(sus sustitutas tienen otro nombre porque usan otras unidades), y un reactor que
+se guardó con el modelo antiguo carga con el combustible a 1500 °C como mucho y
+sin daño, y se reasienta en su nueva potencia.
 
 Las barras de control solo se mueven físicamente, con pistones de Create. El
 SCRAM (botón del panel o SCRAM automático, activado por defecto a 2800 °C) no
 las mueve: enciende la señal de los Puertos de redstone en modo SCRAM hasta que
 se rearma, y esa señal es la que hay que llevar a los pistones. El umbral se
 ajusta en el panel (no es una opción de configuración) y solo se puede rearmar
-cuando el núcleo está 200 °C por debajo.
+cuando el núcleo está 200 °C por debajo. A 2800 °C el combustible ya se funde:
+conviene bajar el umbral a 1500–1800 °C, antes de que fallen las vainas.
 
 Cada canal de combustible aloja un elemento. El reactor solo acepta elementos
 combustibles al 3% o mas; el uranio metalico suelto ya no es combustible. El
@@ -485,7 +556,9 @@ como antes, y sus puertos rechazan el refrigerante primario.
   refrigerante primario) y el de salida la rama caliente (ofrece refrigerante
   primario caliente). El caudal es el que mueven las bombas de Create; cada mB
   que pasa del frío al caliente se lleva `enthalpyPerMb` de calor, menos que el
-  agua que hierve directamente (0,225), así que hace falta más caudal. Con las
+  agua que hierve directamente, así que hace falta más caudal. El núcleo le da
+  al primario el calor que pasa del combustible al agua (en MW), y la
+  temperatura media del primario es la que ve el núcleo. Con las
   bombas paradas solo queda `naturalCirculation`: el calor se queda en la
   vasija, el agua hierve, sube la presión y abre la válvula de alivio. Una
   tubería rota vacía el circuito hasta descubrir el núcleo, que se enfría mucho
@@ -569,10 +642,13 @@ Todos los reactores de fisión, también los de ebullición directa, siguen ahor
 una cadena de accidente realista. Cada parte se puede apagar con
 `pwr.accidents.*`.
 
-- **Oxidación de las vainas**: por encima de `oxidationTemperature` el circonio
-  reacciona con el vapor; da calor extra y dos mol de hidrógeno por mol de
-  circonio, hasta agotar `zirconiumPerRod` por barra. El combustible nuevo trae
-  vainas nuevas.
+- **Oxidación de las vainas**: por encima de `oxidationTemperature` (medida en
+  la vaina, entre el combustible y su agua) el circonio reacciona con el vapor;
+  da calor extra y dos mol de hidrógeno por mol de circonio, hasta agotar
+  `zirconiumPerRod` por barra. El combustible nuevo trae vainas nuevas.
+- **Daño del combustible**: por encima de 2000 °C el combustible se daña (ver
+  *Fision*); las vainas rotas sueltan parte de su actividad y el chat avisa a
+  los jugadores cercanos.
 - **Rotura de la vasija**: un reactor a presión que pasa `vesselFailureTicks`
   ticks por encima de `vesselFailurePressure` bar rompe la vasija: el primario se
   vacía como vapor en la contención y la tapa salta con una explosión acotada.
@@ -581,7 +657,8 @@ una cadena de accidente realista. Cada parte se puede apagar con
 - **Explosión de vapor**: bombear agua a un núcleo seco por encima de
   `steamExplosionTemperature`, o que el corium toque agua, provoca una explosión
   (una vez por suceso).
-- **Fusión del núcleo**: las barras de combustible se convierten en **Corium**
+- **Fusión del núcleo**: con el 75 % del combustible dañado
+  (`fission.damage.meltdownDamage`) las barras de combustible se convierten en **Corium**
   (como mucho 16 bloques), el agua de la vasija y el resto del hidrógeno van a la
   contención y la actividad volátil se queda en ella; sin contención sale como
   fallout. El corium funde el bloque de debajo (no los que tienen la etiqueta
@@ -598,15 +675,15 @@ una cadena de accidente realista. Cada parte se puede apagar con
 | `pwr.coldLegTemperature` | 290 | Temperatura (°C) del refrigerante que devuelve el generador de vapor |
 | `pwr.coreTemperatureRise` | 35 | Subida de temperatura (°C) al cruzar el núcleo con caudal completo; la rama caliente es la fría más esto |
 | `pwr.enthalpyPerMb` | 0,12 | Calor que lleva cada mB de refrigerante primario del núcleo al generador |
-| `pwr.heatTransfer` | 0,02 | Enfriamiento del núcleo por °C entre el núcleo y la rama fría, en °C por tick, con el núcleo cubierto |
+| `pwr.heatTransfer` | 0,02 | Obsoleta: el núcleo pasa su calor al primario según `fission.thermal.*` |
 | `pwr.naturalCirculation` | 8 | Caudal (mB/t) que sigue cruzando el núcleo con todas las bombas paradas |
 | `pwr.pressureSetpoint` | 155 | Presión (bar) que mantienen los calentadores y el rociado automáticos |
 | `pwr.heaterRate` | 0,25 | °C por tick que cada puerto calefactor encendido suma a la burbuja del presionador |
 | `pwr.reliefOpenPressure` | 170 | Presión (bar) a la que abre la válvula de alivio |
 | `pwr.reliefClosePressure` | 160 | Presión (bar) a la que vuelve a cerrar; siempre por debajo de la de apertura |
 | `pwr.reliefStickChance` | 0,05 | Probabilidad de que la válvula se quede atascada abierta cada vez que debería cerrar |
-| `pwr.voidWorth` | 0,6 | Parte de la reacción en cadena que se pierde con el núcleo sin agua |
-| `pwr.temperatureCoefficient` | 0,002 | Parte de la reacción que se pierde por cada °C por encima de la temperatura media normal |
+| `pwr.voidWorth` | 0,6 | Reactividad que se pierde con el núcleo sin agua (por 25 da el coeficiente de vacío en pcm por %) |
+| `pwr.temperatureCoefficient` | 0,002 | Reactividad que se pierde por °C de agua (por 2000 da el coeficiente en pcm por kelvin) |
 | `pwr.steamGenerator.uaPerTube` | 0,3 | Calor por tick y por °C que mueve cada haz de tubos |
 | `pwr.steamGenerator.minPressure` | 50 | Presión (bar) del secundario cuando se saca el vapor según se produce |
 | `pwr.steamGenerator.maxPressure` | 120 | Presión (bar) del secundario con el depósito de vapor lleno; cerca de la ebullición de la rama caliente deja de tomar calor |
@@ -625,10 +702,10 @@ una cadena de accidente realista. Cada parte se puede apagar con
 | `pwr.accidents.steamExplosions` | true | Agua sobre un núcleo fundido o corium en agua explota |
 | `pwr.accidents.containmentRupture` | true | La contención revienta por su pared más débil si la presión la supera |
 | `pwr.accidents.legacyMeltdown` | false | Vuelve al meltdown antiguo (explosión de potencia 80) |
-| `pwr.accidents.oxidationTemperature` | 1200 | Temperatura (°C) del núcleo a la que empieza la oxidación de las vainas |
+| `pwr.accidents.oxidationTemperature` | 1200 | Temperatura (°C) de las vainas a la que empieza su oxidación |
 | `pwr.accidents.oxidationRate` | 0,5 | Circonio (mol) que pierde cada barra por tick 300 °C por encima; crece con el cuadrado del exceso |
 | `pwr.accidents.zirconiumPerRod` | 500 | Circonio (mol) de las vainas de cada barra |
-| `pwr.accidents.oxidationHeat` | 4 | Calentamiento del núcleo (°C) por mol de circonio oxidado por barra |
+| `pwr.accidents.oxidationHeat` | 1,2 | Calor de cada mol de circonio oxidado por barra, en kelvin del combustible de esa barra; las vainas enteras suman como mucho unos 600 K |
 | `pwr.accidents.vesselFailurePressure` | 250 | Presión (bar) del primario por encima de la cual falla la vasija |
 | `pwr.accidents.vesselFailureTicks` | 100 | Ticks por encima de esa presión antes de que se rompa |
 | `pwr.accidents.steamExplosionTemperature` | 2800 | Temperatura (°C) del núcleo por encima de la cual el agua que vuelve provoca una explosión de vapor |

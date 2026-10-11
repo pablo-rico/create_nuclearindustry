@@ -12,7 +12,7 @@ import static org.papiricoh.create_nuclearindustry.controlroom.MonitorReading.*;
 /** What a gauge's needle shows, as a 0-1 fraction of full scale, from a console sample. */
 public enum GaugeReading {
     REACTOR_TEMPERATURE(TargetKind.REACTOR, r -> r.value(R_TEMPERATURE) / 4000.0),
-    REACTOR_POWER(TargetKind.REACTOR, r -> r.value(R_POWER) / 1000.0),
+    REACTOR_POWER(TargetKind.REACTOR, r -> r.value(R_POWER) / Math.max(1.0, r.value(MonitorReading.R_RATED_POWER))),
     REACTOR_RODS(TargetKind.REACTOR, r -> r.value(R_RODS)),
     REACTOR_XENON(TargetKind.REACTOR, r -> r.value(R_XENON) / 0.5),
     REACTOR_COOLANT(TargetKind.REACTOR, r -> r.value(R_COOLANT)),
