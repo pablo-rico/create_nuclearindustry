@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:steam_generator",
+  "criteria": {
+    "containment_held": {
+      "conditions": {
+        "event": "containment_held"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.containment_held.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:containment_monitor"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.containment_held.title"
+    }
+  },
+  "requirements": [
+    [
+      "containment_held"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

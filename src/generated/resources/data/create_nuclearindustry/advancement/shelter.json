@@ -1,0 +1,34 @@
+{
+  "parent": "create_nuclearindustry:blast_door",
+  "criteria": {
+    "has": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:shelter_filtration_unit"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.shelter.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:shelter_filtration_unit"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.shelter.title"
+    }
+  },
+  "requirements": [
+    [
+      "has"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

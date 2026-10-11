@@ -159,6 +159,7 @@ public final class BlastWaveManager {
                 if (damage > 0) {
                     entity.hurt(source, damage);
                 }
+                if (damage <= 0 && kPa > 0 && entity instanceof Player player && ShelterRegistry.isSheltered(level, body)) org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.award(player, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.SHELTERED_FROM_BLAST);
                 push(entity, body, kPa);
             }
         }

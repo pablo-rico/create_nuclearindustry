@@ -641,6 +641,37 @@ below for what changes in existing worlds.
 <!-- WP-B -->
 
 ### Guide: advancements, Ponder and JEI
+- The advancements now fill six tabs, each with its own root and background:
+  Fuel Cycle (from raw uranium to MOX and the new thorium cycle: fines, heavy
+  mineral sand, sulfuric acid, thorium dioxide, uranium-233 and thorium fuel),
+  Nuclear Fission (the reactor, the reactor viewport, full power, cold
+  shutdown, the steam generator and its relief valve), Nuclear Waste, Civil
+  Defense (radiation safety moved here, with sirens, the seismic detector,
+  blast doors and shelters), Nuclear Fusion (tokamak, cryogenic plant,
+  ignition) and Weapons. 58 advancements in all; every old one is kept, so
+  progress already made stays earned, though some now hang in another tab.
+- Nine secret challenges, hidden until earned: burn thorium fuel until it is
+  spent, keep a loss of coolant inside a sealed containment past half its
+  rated pressure, let a core catcher freeze the corium of a meltdown, have a
+  Repository Inspector find eight or more packages all stored for good, ride
+  out a blast wave unharmed in a certified shelter, get a fusion gain above
+  one, lose a plasma to a disruption, see a nuclear cannon shell go off, and
+  the meltdown itself.
+- Machines now report the moments those advancements listen for: a siren
+  starting to sound, a seismic detector feeling a detonation, a blast door
+  shutting, a missile lifting off, a tokamak or cryogenic plant forming, a
+  disruption and a burning plasma with a gain above one.
+- New Ponder scenes: the air raid and hand-crank sirens, blast doors, fallout
+  shelters with the seismic detector, the nuclear and dirty bombs, the missile
+  launch pad, the fuel cycle from ore to fuel assembly (crushing, washing,
+  leaching, enrichment, pellets, assembly and the electrolyzer), and the acid
+  leaching and irradiation fan treatments, also shown on Create's Encased Fan.
+  The fan scenes show what the loaded recipes actually make.
+- New JEI pages: the nuclear bomb, the launch pad with its missile and target
+  designator, the nuclear cannon shell (with Create Big Cannons), the reactor's
+  fuel and fluid ports, control rods and temperature sensor, the tokamak's
+  shell blocks, magnet drive, fluid port and fuel injector, the fusion turbine
+  blocks, the reactor viewport, and the two fan treatments.
 <!-- WP-C -->
 
 ### Performance and multiplayer

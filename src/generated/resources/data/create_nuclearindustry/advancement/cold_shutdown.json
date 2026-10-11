@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:scram",
+  "criteria": {
+    "cold_shutdown": {
+      "conditions": {
+        "event": "cold_shutdown"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.cold_shutdown.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:packed_ice"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.cold_shutdown.title"
+    }
+  },
+  "requirements": [
+    [
+      "cold_shutdown"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

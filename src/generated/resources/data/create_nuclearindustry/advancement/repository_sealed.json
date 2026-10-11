@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:vitrified",
+  "criteria": {
+    "repository_sealed": {
+      "conditions": {
+        "event": "repository_sealed"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.repository_sealed.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:repository_inspector"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.repository_sealed.title"
+    }
+  },
+  "requirements": [
+    [
+      "repository_sealed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

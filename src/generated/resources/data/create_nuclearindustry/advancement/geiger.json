@@ -1,5 +1,5 @@
 {
-  "parent": "create_nuclearindustry:root",
+  "parent": "create_nuclearindustry:civil_defense",
   "criteria": {
     "has": {
       "conditions": {

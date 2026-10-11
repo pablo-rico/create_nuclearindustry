@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:meltdown",
+  "criteria": {
+    "corium_caught": {
+      "conditions": {
+        "event": "corium_caught"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.corium_caught.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:core_catcher"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.corium_caught.title"
+    }
+  },
+  "requirements": [
+    [
+      "corium_caught"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

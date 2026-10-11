@@ -79,6 +79,7 @@ public class SeismicDetectorBlockEntity extends SmartBlockEntity implements IHav
         setChanged();
         notifyUpdate();
         refreshSignal();
+        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, worldPosition, org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.WITNESS_RADIUS, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.SEISMIC_DETECTED);
     }
 
     public List<SeismicEvent> getEvents() {

@@ -108,6 +108,7 @@ public class BlastDoorControllerBlockEntity extends KineticBlockEntity {
                     playSound(true);
                 } else if (offset == 0 || offset == layout.width()) {
                     playSound(false);
+                    if (offset == 0) org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, worldPosition, org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.WITNESS_RADIUS, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.BLAST_DOOR_SHUT);
                 }
             }
         }

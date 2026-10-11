@@ -45,6 +45,27 @@ class PlantPonderSchematicTest {
         }
     }
 
+    /**
+     * The guide's schematics (tools/structgen/ponder_{civil_defense,weapons,fuel_cycle,fan_treatments}.py)
+     * pass the same checks; all but the fuel cycle's, whose washing water would run off, are GameTest
+     * templates too, identical to the Ponder copy.
+     */
+    @Test
+    void guideSchematicsAreValidAndInSync() throws IOException {
+        for (PlantPonderText.Scene scene : GuidePonderText.SCENES) {
+            Path ponder = Path.of("src/main/resources/assets/create_nuclearindustry/ponder/" + scene.schematic() + ".nbt");
+            Path gametest = Path.of("src/main/resources/data/create_nuclearindustry/structure/gametest/" + scene.schematic() + "_ponder.nbt");
+            assertTrue(Files.exists(ponder), "missing " + ponder);
+            if (scene == GuidePonderText.FUEL_CYCLE) {
+                assertTrue(!Files.exists(gametest), "the fuel cycle schematic holds free water and is no GameTest template");
+            } else {
+                assertTrue(Files.exists(gametest), "missing " + gametest);
+                assertArrayEquals(inflate(ponder), inflate(gametest), scene.schematic() + ": GameTest copy differs");
+            }
+            check(scene.schematic(), read(ponder), MAX_WIDTH);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private static void check(String name, Map<String, Object> root, int maxWidth) {
         List<Integer> size = (List<Integer>) root.get("size");

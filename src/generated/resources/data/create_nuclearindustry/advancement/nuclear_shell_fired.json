@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:weapons_core",
+  "criteria": {
+    "nuclear_shell_fired": {
+      "conditions": {
+        "event": "nuclear_shell_fired"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.nuclear_shell_fired.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "minecraft:fire_charge"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.nuclear_shell_fired.title"
+    }
+  },
+  "requirements": [
+    [
+      "nuclear_shell_fired"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

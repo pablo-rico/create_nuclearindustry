@@ -32,6 +32,7 @@ public class HandCrankSirenBlockEntity extends KineticBlockEntity implements Sou
         BlockState state = getBlockState();
         if (state.getValue(AirRaidSirenBlock.SOUNDING) != sounding) {
             level.setBlock(worldPosition, state.setValue(AirRaidSirenBlock.SOUNDING, sounding), Block.UPDATE_ALL);
+            if (sounding) org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, worldPosition, org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.WITNESS_RADIUS, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.SIREN_SOUNDED);
         }
     }
 

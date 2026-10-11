@@ -1,5 +1,5 @@
 {
-  "parent": "create_nuclearindustry:deuterium",
+  "parent": "create_nuclearindustry:tokamak_formed",
   "criteria": {
     "tokamak_ignition": {
       "conditions": {

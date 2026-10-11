@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:reactor_running",
+  "criteria": {
+    "steam_generator_formed": {
+      "conditions": {
+        "event": "steam_generator_formed"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.steam_generator.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:steam_generator_controller"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.steam_generator.title"
+    }
+  },
+  "requirements": [
+    [
+      "steam_generator_formed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

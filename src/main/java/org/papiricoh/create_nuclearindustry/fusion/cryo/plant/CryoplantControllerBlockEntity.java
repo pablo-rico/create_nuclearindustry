@@ -251,6 +251,7 @@ public class CryoplantControllerBlockEntity extends SmartBlockEntity implements 
             CryoplantStructure next = result.structure().get();
             setStructure(Optional.of(next));
             if (playerInitiated || !wasFormed) {
+                org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.CRYOPLANT_FORMED);
                 notifyOwner(Component.translatable(k + "formed", next.height, next.compressorPositions().size())
                         .withStyle(ChatFormatting.AQUA));
             }

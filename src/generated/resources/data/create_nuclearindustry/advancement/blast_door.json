@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:civil_defense",
+  "criteria": {
+    "blast_door_shut": {
+      "conditions": {
+        "event": "blast_door_shut"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.blast_door.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:steel_blast_door"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.blast_door.title"
+    }
+  },
+  "requirements": [
+    [
+      "blast_door_shut"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
