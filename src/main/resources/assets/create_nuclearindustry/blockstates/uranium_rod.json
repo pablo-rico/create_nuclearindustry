@@ -1,5 +1,65 @@
 {
-  "variants": {
-    "": { "model": "create_nuclearindustry:block/uranium_rod" }
-  }
+  "multipart": [
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/uranium_rod_sheath"
+      }
+    },
+    {
+      "when": {
+        "fuel": "fresh"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/uranium_rod_pellets_fresh"
+      }
+    },
+    {
+      "when": {
+        "fuel": "half"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/uranium_rod_pellets_half"
+      }
+    },
+    {
+      "when": {
+        "fuel": "spent"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/uranium_rod_pellets_spent"
+      }
+    },
+    {
+      "when": {
+        "coolant": "true"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/uranium_rod_water"
+      }
+    },
+    {
+      "when": {
+        "glow": "1"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/uranium_rod_glow_1"
+      }
+    },
+    {
+      "when": {
+        "glow": "2"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/uranium_rod_glow_2"
+      }
+    },
+    {
+      "when": {
+        "glow": "3"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/uranium_rod_glow_3"
+      }
+    }
+  ]
 }

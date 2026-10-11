@@ -58,6 +58,8 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
     private final FluidTank feedTank = tank(SECONDARY_TANK, NuclearFluidHelper::isCoolant);
     private final FluidTank steamTank = tank(SECONDARY_TANK, NuclearFluidHelper::isTurbineSteam);
     private final SteamGeneratorModel model = new SteamGeneratorModel();
+    /** Lang key prefix of the steam generator's texts. */
+    private static final String KEY = "create_nuclearindustry.steam_generator.";
     private final MultiblockMessenger messenger = new MultiblockMessenger("Steam Generator");
     private Optional<SteamGeneratorStructure> structure = Optional.empty();
     private StructureSnapshot snapshot;
@@ -262,14 +264,19 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
             SteamGeneratorStructure next = result.structure().get();
             setStructure(Optional.of(next));
             if (playerInitiated || !wasFormed) {
-                messenger.send(level, "§bSteam generator formed §8[" + next.dimensionsText() + ", " + next.tubes + " tube bundles]",
-                        playerInitiated);
+                org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level),
+                        org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.STEAM_GENERATOR_FORMED);
+                messenger.send(level, Component.translatable(KEY + "message.formed",
+                                Component.literal("[" + next.dimensionsText() + ", ")
+                                        .append(Component.translatable(KEY + "message.tubes", next.tubes)).append("]")
+                                        .withStyle(ChatFormatting.DARK_GRAY))
+                        .withStyle(ChatFormatting.AQUA), playerInitiated);
             }
         } else {
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
-                messenger.send(level, (wasFormed ? "§cSteam generator broken: " : "§cSteam generator incomplete: ")
-                        + SteamGeneratorStructureValidator.describe(result.primaryMessage()).getString(), playerInitiated);
+                messenger.send(level, Component.translatable(KEY + (wasFormed ? "message.broken" : "message.incomplete"),
+                        SteamGeneratorStructureValidator.describe(result.primaryMessage())).withStyle(ChatFormatting.RED), playerInitiated);
             }
         }
         sendData();

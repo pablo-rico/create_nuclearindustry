@@ -23,6 +23,7 @@ import org.papiricoh.create_nuclearindustry.multiblock.BlockChange;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
 import org.papiricoh.create_nuclearindustry.turbine.block.TurbineRotorFormed;
@@ -44,6 +45,8 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
 
     private final FluidTank steamTank;
     private final FluidTank condensateTank;
+    /** Lang key prefix of the turbine's texts. */
+    public static final String KEY = "create_nuclearindustry.turbine.";
     private final MultiblockMessenger messenger = new MultiblockMessenger("Turbine");
     private Optional<TurbineStructure> structure = Optional.empty();
     private StructureSnapshot snapshot;
@@ -257,13 +260,16 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
             if (playerInitiated || !wasFormed) {
                 org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level),
                         org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.TURBINE_FORMED);
-                messenger.send(level, "§b" + tier().fluidName + " turbine formed §8[" + next.dimensionsText() + ", "
-                        + next.rotorCount() + " rotors, up to " + next.throughputLimit() + " mB/t]", playerInitiated);
+                messenger.send(level, Component.translatable(KEY + "message.formed." + tierId(),
+                                Component.translatable(KEY + "message.details", next.dimensionsText(), next.rotorCount(), next.throughputLimit())
+                                        .withStyle(ChatFormatting.DARK_GRAY))
+                        .withStyle(ChatFormatting.AQUA), playerInitiated);
             }
         } else {
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
-                messenger.send(level, (wasFormed ? "§cTurbine broken: " : "§cTurbine incomplete: ") + describe(result), playerInitiated);
+                messenger.send(level, Component.translatable(KEY + (wasFormed ? "message.broken" : "message.incomplete"),
+                        describe(result.primaryMessage())).withStyle(ChatFormatting.RED), playerInitiated);
             }
         }
         refreshDisplay();
@@ -271,11 +277,23 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
         setChanged();
     }
 
-    private static String describe(MultiblockValidationResult<TurbineStructure> result) {
-        String message = result.primaryMessage();
-        return TurbineStructureValidator.LEGACY_LINE_ERROR.equals(message)
-                ? "this is an old 3-block turbine. Rebuild it as a box (3-7 wide and high, 3-16 long); see the Ponder scene"
-                : message;
+    /** The validation message as kept and synced: an old line turbine's says how to rebuild it. */
+    private static String storedMessage(String message) {
+        return TurbineStructureValidator.LEGACY_LINE_ERROR.equals(message) ? KEY + "legacy_line" : message;
+    }
+
+    /** A validation message for players, in their language. */
+    private static Component describe(String message) {
+        return MultiblockText.text(storedMessage(message));
+    }
+
+    /** {@code steam} or {@code plasma}, for the tier's lang keys. */
+    private String tierId() {
+        return tier().name().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private static Component line(Component text, ChatFormatting style) {
+        return Component.literal("     ").append(text).withStyle(style);
     }
 
     private void setStructure(Optional<TurbineStructure> next) {
@@ -313,7 +331,7 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
     private void refreshDisplay() {
         int capacity = steamTank.getCapacity();
         display = structure.map(s -> TurbineDisplay.of(s, currentUse, capacity))
-                .orElseGet(() -> TurbineDisplay.unformed(describe(lastValidation), capacity));
+                .orElseGet(() -> TurbineDisplay.unformed(storedMessage(lastValidation.primaryMessage()), capacity));
     }
 
     // ------------------------------------------------------------------ accessors
@@ -350,29 +368,26 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        tooltip.add(Component.literal("    " + tier().fluidName + " Turbine").withStyle(ChatFormatting.GOLD));
+        tooltip.add(Component.literal("    ").append(Component.translatable(KEY + "title." + tierId())).withStyle(ChatFormatting.GOLD));
         if (!display.formed()) {
-            tooltip.add(Component.literal("     " + display.message()).withStyle(ChatFormatting.RED));
+            tooltip.add(line(describe(display.message()), ChatFormatting.RED));
         } else {
-            tooltip.add(Component.literal("     " + display.dimensionsText(facing().getAxis() != Direction.Axis.Y)
-                    + ", " + display.rotors() + " rotors, ports " + display.inputPorts() + " in / " + display.outputPorts() + " out")
-                    .withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("     Expanding " + display.currentUse() + " / " + display.limit() + " mB/t")
-                    .withStyle(display.currentUse() > 0 ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
+            tooltip.add(line(Component.translatable(KEY + "goggles.size", display.dimensionsText(facing().getAxis() != Direction.Axis.Y),
+                    display.rotors(), display.inputPorts(), display.outputPorts()), ChatFormatting.GRAY));
+            tooltip.add(line(Component.translatable(KEY + "goggles.expanding", display.currentUse(), display.limit()),
+                    display.currentUse() > 0 ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
             if (display.exhausting()) {
-                tooltip.add(Component.literal("     Exhausting to a cooling tower: x2 power").withStyle(ChatFormatting.AQUA));
+                tooltip.add(line(Component.translatable(KEY + "goggles.exhausting"), ChatFormatting.AQUA));
             }
             if (display.currentUse() == 0 && condensateTank.getSpace() == 0) {
-                tooltip.add(Component.literal(display.exhausting()
-                        ? "     Exhaust full: send it to a cooling tower"
-                        : "     Condensate full: pump the water out").withStyle(ChatFormatting.RED));
+                tooltip.add(line(Component.translatable(KEY + (display.exhausting() ? "goggles.exhaust_full" : "goggles.condensate_full")),
+                        ChatFormatting.RED));
             }
         }
-        tooltip.add(Component.literal("     " + tier().fluidName + ": " + steamTank.getFluidAmount() + " / " + steamTank.getCapacity() + " mB")
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal((NuclearFluidHelper.isExhaustSteam(condensateTank.getFluid()) ? "     Exhaust: " : "     Condensate: ")
-                + condensateTank.getFluidAmount() + " / " + condensateTank.getCapacity() + " mB")
-                .withStyle(ChatFormatting.GRAY));
+        tooltip.add(line(Component.translatable(KEY + "goggles.tank." + tierId(), steamTank.getFluidAmount(), steamTank.getCapacity()),
+                ChatFormatting.GRAY));
+        tooltip.add(line(Component.translatable(KEY + (NuclearFluidHelper.isExhaustSteam(condensateTank.getFluid()) ? "goggles.exhaust" : "goggles.condensate"),
+                condensateTank.getFluidAmount(), condensateTank.getCapacity()), ChatFormatting.GRAY));
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
         return true;
     }

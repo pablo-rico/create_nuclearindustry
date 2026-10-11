@@ -73,11 +73,19 @@ import org.papiricoh.create_nuclearindustry.reactor.physics.SpentAssembly;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodTracker;
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
+import org.papiricoh.create_nuclearindustry.AllNuclearSounds;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
+import org.papiricoh.create_nuclearindustry.reactor.display.ReactorText;
+import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorSoundModel;
+import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualHooks;
+import org.papiricoh.create_nuclearindustry.reactor.visual.RodVisualSync;
+import net.minecraft.sounds.SoundSource;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -118,11 +126,18 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     public static final int FUEL_OUTPUT_SLOTS = 2;
     public static final int FUEL_SLOT_COUNT = FUEL_INPUT_SLOTS + FUEL_OUTPUT_SLOTS;
     public static final float MIN_FUEL_ENRICHMENT = EnrichmentTier.LOW.min();
+    /** Lang key prefixes of the reactor's chat messages, goggle lines and statuses. */
+    public static final String MESSAGE = "create_nuclearindustry.reactor.message.";
+    public static final String GOGGLES = "create_nuclearindustry.reactor.goggles.";
+    public static final String STATUS = "create_nuclearindustry.reactor.status.";
+    public static final String PORT = "create_nuclearindustry.reactor.port.";
+    /** Validation message of a reactor that has not been checked yet. */
+    public static final String NOT_FORMED = "create_nuclearindustry.reactor.validation.not_formed";
 
     private ReactorStatus status = ReactorStatus.UNFORMED;
     private Optional<ReactorStructureValidator.ReactorStructure> currentStructure = Optional.empty();
     private MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> lastValidation =
-            MultiblockValidationResult.invalid(List.of("Not formed"), List.of());
+            MultiblockValidationResult.invalid(List.of(NOT_FORMED), List.of());
     private ReactorPhysicsSimulator physicsSimulator = new ReactorPhysicsSimulator(0);
     private boolean pendingRevalidation = true;
     private int syncCounter;
@@ -153,6 +168,18 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private final PrimaryLoop primaryLoop = new PrimaryLoop();
     /** Cladding, vessel and containment: the accident chain of this reactor. */
     private final ReactorAccidents accidents = new ReactorAccidents();
+    /** What the fuel channels show: fuel, glow and coolant. */
+    private final RodVisualSync rodVisuals = new RodVisualSync();
+    /** Validations run so far, so tests can tell that the channels' own updates never cause one. */
+    private int validations;
+    /** The last chat message, kept for tests. */
+    private Component lastMessage = Component.empty();
+    /** Whether the SCRAM signal was on last tick, so the rods drop with a thud once. */
+    private boolean scramShown;
+    /** Set by a SCRAM of a hot core, cleared once it is cold: a cold shutdown. */
+    private boolean coolingAfterScram;
+    /** Reached full power and has not fallen well below it since. */
+    private boolean atFullPower;
 
     private final FluidTank coolantTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isReactorCoolant) {
         @Override
@@ -188,7 +215,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, ReactorBlockEntity entity) {
-        if (level == null || level.isClientSide) {
+        if (level == null) {
+            return;
+        }
+        if (level.isClientSide) {
+            ReactorVisualHooks.reactorClientTick.accept(entity);
             return;
         }
 
@@ -216,7 +247,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 } else {
                     entity.status = ReactorStatus.SCRAMMED_HOT;
                     entity.physicsSimulator.forceScramForLoad();
-                    entity.sendPlayerMessage("§cReactor scrammed hot: meltdown protection active after load", false);
+                    entity.sendPlayerMessage(message(ChatFormatting.RED, "scrammed_hot_load"), false);
                     entity.markDirtyAndSync();
                 }
                 return;
@@ -232,6 +263,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             }
             entity.updateControllerRunningState();
         }
+        entity.tickCuesAndVisuals();
 
         if (++entity.syncCounter >= 20) {
             entity.markDirtyAndSync();
@@ -281,6 +313,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (level != null && !level.isClientSide) {
             MultiblockRegistry.unregister(this);
             RadiationEmitters.unregister(this);
+            // The controller was broken or blown up (not just unloaded): its channels go dark.
+            BlockPos pos = getBlockPos();
+            if (level.isLoaded(pos) && !level.getBlockState(pos).is(AllNuclearBlocks.REACTOR_CONTROLLER.get())) {
+                rodVisuals.reset(level, currentStructure.map(RodVisualSync::rodsOf).orElse(List.of()));
+            }
         }
         super.setRemoved();
     }
@@ -319,8 +356,16 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private void setStructure(Optional<ReactorStructureValidator.ReactorStructure> structure) {
         boolean boundsChanged = !currentStructure.map(ReactorStructureValidator.ReactorStructure::bounds)
                 .equals(structure.map(ReactorStructureValidator.ReactorStructure::bounds));
+        Optional<ReactorStructureValidator.ReactorStructure> previous = currentStructure;
         currentStructure = structure;
         Level level = getLevel();
+        if (level != null && !level.isClientSide) {
+            if (structure.isEmpty()) {
+                rodVisuals.reset(level, previous.map(RodVisualSync::rodsOf).orElse(List.of()));
+            } else if (previous.isEmpty() || previous.get() != structure.get()) {
+                rodVisuals.forgetOutside(level, RodVisualSync.rodsOf(structure.get()));
+            }
+        }
         structureSnapshot = structure.isPresent() && level != null && !level.isClientSide
                 ? StructureSnapshot.capture(level, snapshotPositions(structure.get()))
                 : null;
@@ -344,6 +389,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (level == null) {
             return;
         }
+        validations++;
 
         ReactorStatus previousStatus = status;
         MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> result =
@@ -382,8 +428,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             }
             if (playerInitiated || previousStatus != ReactorStatus.FORMED) {
                 sendPlayerMessage(status == ReactorStatus.FORMED
-                        ? "§2Reactor formed §8[" + newStructure.dimensionsText() + "]"
-                        : "§eReactor structure valid, scrammed hot after load", playerInitiated);
+                        ? message(ChatFormatting.DARK_GREEN, "formed",
+                                Component.literal("[" + newStructure.dimensionsText() + "]").withStyle(ChatFormatting.DARK_GRAY))
+                        : message(ChatFormatting.YELLOW, "valid_scrammed_hot"), playerInitiated);
             }
             markDirtyAndSync();
             return;
@@ -394,7 +441,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             updateControlRodInsertion(true);
             linkStructureParts(currentStructure.get());
             if (playerInitiated) {
-                sendPlayerMessage("§eReactor formed; control rod channel is occupied by moving rods", true);
+                sendPlayerMessage(message(ChatFormatting.YELLOW, "formed_rods_moving"), true);
             }
             markDirtyAndSync();
             return;
@@ -406,13 +453,13 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             status = ReactorStatus.SCRAMMED;
             physicsSimulator.setControlRodInsertion(1.0f);
             if (playerInitiated || previousStatus != ReactorStatus.SCRAMMED) {
-                sendPlayerMessage("§cReactor scrammed: " + result.primaryMessage(), playerInitiated);
+                sendPlayerMessage(message(ChatFormatting.RED, "scrammed", MultiblockText.text(result.primaryMessage())), playerInitiated);
             }
         } else {
             status = ReactorStatus.UNFORMED;
             setStructure(Optional.empty());
             if (playerInitiated) {
-                sendPlayerMessage("§cReactor incomplete: " + result.primaryMessage(), true);
+                sendPlayerMessage(message(ChatFormatting.RED, "incomplete", MultiblockText.text(result.primaryMessage())), true);
             }
         }
 
@@ -421,7 +468,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     private boolean isDynamicControlChannelFailure(MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> result) {
         return !result.errors().isEmpty()
-                && result.errors().stream().allMatch(error -> error.startsWith("Control rod channel blocked at "));
+                && result.errors().stream().allMatch(error -> MultiblockText.key(error).equals(ReactorStructureValidator.CHANNEL_BLOCKED));
     }
 
     private boolean sameStructure(ReactorStructureValidator.ReactorStructure oldStructure, ReactorStructureValidator.ReactorStructure newStructure) {
@@ -578,7 +625,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         if (autoScram.check(physicsSimulator.getCoreTemperature())) {
             awardMachine(NuclearEvent.SCRAM);
             refreshRedstonePorts();
-            sendPlayerMessage("§cAutomatic SCRAM at " + autoScram.getThreshold() + " °C: SCRAM signal on", true);
+            sendPlayerMessage(message(ChatFormatting.RED, "auto_scram", autoScram.getThreshold()), true);
             markDirtyAndSync();
         }
     }
@@ -590,8 +637,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     public boolean resetScram() {
         double temperature = physicsSimulator.getCoreTemperature();
         if (!autoScram.canReset(temperature)) {
-            sendPlayerMessage("§cAutomatic SCRAM can only be reset below "
-                    + (autoScram.getThreshold() - AutoScram.RESET_MARGIN) + " °C", true);
+            sendPlayerMessage(message(ChatFormatting.RED, "reset_too_hot", autoScram.getThreshold() - AutoScram.RESET_MARGIN), true);
             return false;
         }
         autoScram.reset(temperature);
@@ -599,7 +645,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         legacyScramHold = false;
         updateControlRodInsertion(true);
         refreshRedstonePorts();
-        sendPlayerMessage("§aSCRAM reset", true);
+        sendPlayerMessage(message(ChatFormatting.GREEN, "scram_reset"), true);
         markDirtyAndSync();
         return true;
     }
@@ -630,7 +676,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
         updateControlRodInsertion(true);
         refreshRedstonePorts();
-        sendPlayerMessage(engaged ? "§cManual SCRAM: signal sent to the Redstone Ports" : "§aManual SCRAM released", true);
+        sendPlayerMessage(engaged ? message(ChatFormatting.RED, "manual_scram") : message(ChatFormatting.GREEN, "manual_scram_released"), true);
         markDirtyAndSync();
     }
 
@@ -640,6 +686,65 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 && physicsSimulator.getXenonPenalty() >= Config.xenonWorth * IODINE_PIT_FRACTION) {
             awardMachine(NuclearEvent.IODINE_PIT);
         }
+    }
+
+    /**
+     * What the reactor shows and marks each tick: the thud of the rods dropping when the SCRAM
+     * signal comes on, the cold shutdown that ends a SCRAM, reaching full power, and the fuel
+     * channels' looks.
+     */
+    private void tickCuesAndVisuals() {
+        Level level = getLevel();
+        double temperature = physicsSimulator.getCoreTemperature();
+        boolean scram = isScramRequested() || status == ReactorStatus.SCRAMMED_HOT;
+        if (scram && !scramShown && currentStructure.isPresent()) {
+            level.playSound(null, BlockPos.containing(radiationOrigin()), AllNuclearSounds.REACTOR_SCRAM.get(), SoundSource.BLOCKS, 1.5f, 1.0f);
+            if (temperature >= ReactorSoundModel.COLD_SHUTDOWN_TEMPERATURE) {
+                coolingAfterScram = true;
+                setChanged();
+            }
+        }
+        scramShown = scram;
+        if (coolingAfterScram) {
+            if (!scram && physicsSimulator.isRunning()) {
+                // Restarted before it cooled down: no cold shutdown.
+                coolingAfterScram = false;
+                setChanged();
+            } else if (temperature < ReactorSoundModel.COLD_SHUTDOWN_TEMPERATURE && !physicsSimulator.isRunning()) {
+                coolingAfterScram = false;
+                setChanged();
+                if (isFormed()) {
+                    awardMachine(NuclearEvent.COLD_SHUTDOWN);
+                }
+            }
+        }
+
+        double power = ReactorSoundModel.powerFraction(getPowerOutput());
+        if (!atFullPower && status == ReactorStatus.FORMED && power >= ReactorSoundModel.FULL_POWER_FRACTION) {
+            atFullPower = true;
+            awardMachine(NuclearEvent.REACTOR_FULL_POWER);
+        } else if (atFullPower && power < ReactorSoundModel.FULL_POWER_RESET_FRACTION) {
+            atFullPower = false;
+        }
+
+        if (currentStructure.isPresent() && status != ReactorStatus.MELTDOWN) {
+            rodVisuals.tick(level, currentStructure.get(), physicsSimulator.assemblyViews(), power, coolantTank.getFluidAmount() > 0);
+        }
+    }
+
+    /** A hot core was scrammed and has not cooled down yet: the cold shutdown is still to come. */
+    public boolean isCoolingAfterScram() {
+        return coolingAfterScram;
+    }
+
+    /** What the fuel channels show, for tests. */
+    public RodVisualSync getRodVisuals() {
+        return rodVisuals;
+    }
+
+    /** The SCRAM signal is on, or the core was scrammed hot on load: the control room klaxon sounds while it is hot. */
+    public boolean isScramActive() {
+        return isScramRequested() || status == ReactorStatus.SCRAMMED_HOT;
     }
 
     /** Awards an event to whoever last worked on the reactor and anyone near it. */
@@ -756,6 +861,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         BlockState state = level.getBlockState(valve);
         if (state.is(PwrRegistry.RELIEF_VALVE.get()) && state.getValue(ReliefValveBlock.OPEN) != open) {
             level.setBlock(valve, state.setValue(ReliefValveBlock.OPEN, open), Block.UPDATE_ALL);
+            if (open && !level.isClientSide) {
+                level.playSound(null, valve, AllNuclearSounds.RELIEF_VALVE_LIFT.get(), SoundSource.BLOCKS, 1.2f, 1.0f);
+                awardMachine(NuclearEvent.RELIEF_VALVE_LIFTED);
+            }
         }
     }
 
@@ -911,8 +1020,24 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
     }
 
-    private void sendPlayerMessage(String message, boolean force) {
+    private void sendPlayerMessage(Component message, boolean force) {
+        lastMessage = message;
         messenger.send(getLevel(), message, force);
+    }
+
+    /** A reactor chat message: {@code create_nuclearindustry.reactor.message.<id>} in one colour. */
+    private static Component message(ChatFormatting style, String id, Object... args) {
+        return Component.translatable(MESSAGE + id, args).withStyle(style);
+    }
+
+    /** The last chat message the reactor sent (or would have, with nobody to read it). */
+    public Component getLastMessage() {
+        return lastMessage;
+    }
+
+    /** How many times the structure was validated, for tests. */
+    public int getValidationCount() {
+        return validations;
     }
 
     /**
@@ -947,7 +1072,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         setStructure(Optional.empty());
         physicsSimulator = new ReactorPhysicsSimulator(0);
         markDirtyAndSync();
-        sendPlayerMessage("§4Nuclear meltdown at " + getBlockPos(), false);
+        sendPlayerMessage(message(ChatFormatting.DARK_RED, "meltdown", getBlockPos().toShortString()), false);
         level.explode(null, reactorPos.getX() + 0.5, reactorPos.getY() + 0.5, reactorPos.getZ() + 0.5,
                 MELTDOWN_EXPLOSION_POWER, Level.ExplosionInteraction.BLOCK);
     }
@@ -981,9 +1106,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         physicsSimulator = new ReactorPhysicsSimulator(0);
         primaryLoop.idle();
         markDirtyAndSync();
-        sendPlayerMessage(containment != null
-                ? "§4Core meltdown at " + reactorPos + ": the containment holds the release"
-                : "§4Core meltdown at " + reactorPos + ": radioactive release", false);
+        sendPlayerMessage(message(ChatFormatting.DARK_RED, containment != null ? "meltdown_contained" : "meltdown_release",
+                reactorPos.toShortString()), false);
         formCorium(level, structure, rods);
     }
 
@@ -1061,7 +1185,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             coolantTank.setFluid(FluidStack.EMPTY);
             accidents.releaseCoolant(level, center, water, CORE_GAS_K, accidents.coolantActivityPerMb(rods));
             physicsSimulator.applyExternalCooling(REFLOOD_QUENCH, 0.0);
-            sendPlayerMessage("§4Steam explosion: water reached the molten core at " + getBlockPos(), false);
+            sendPlayerMessage(message(ChatFormatting.DARK_RED, "steam_explosion", getBlockPos().toShortString()), false);
             markDirtyAndSync();
             SteamExplosion.explode(level, radiationOrigin(), SteamExplosion.REFLOOD_POWER);
             return true;
@@ -1079,7 +1203,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         accidents.releaseCoolant(level, center, water, PRIMARY_STEAM_K, accidents.coolantActivityPerMb(structure.uraniumRodCount));
         primaryLoop.idle();
         physicsSimulator.setCoolantFeedback(1.0);
-        sendPlayerMessage("§4Reactor vessel breached at " + getBlockPos() + ": the primary is open", false);
+        sendPlayerMessage(message(ChatFormatting.DARK_RED, "vessel_breached", getBlockPos().toShortString()), false);
         PlantAlarm.raise(level, getBlockPos());
         markDirtyAndSync();
         BlockPos head = getBlockPos().above();
@@ -1363,79 +1487,104 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         ReactorDisplaySnapshot snapshot = getDisplaySnapshot();
-        tooltip.add(Component.literal("Nuclear Reactor").withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.literal("  Structure: " + (snapshot.formed() ? "Formed" : getStructureDisplayName(snapshot)))
-                .withStyle(snapshot.formed() ? ChatFormatting.GREEN : ChatFormatting.RED));
-        tooltip.add(Component.literal("  State: " + snapshot.state().getDisplayName())
-                .withStyle(getReactorStateColor(snapshot.state())));
+        tooltip.add(Component.translatable(GOGGLES + "title").withStyle(ChatFormatting.GOLD));
+        tooltip.add(line("structure", snapshot.formed() ? ChatFormatting.GREEN : ChatFormatting.RED, getStructureDisplayName(snapshot)));
+        tooltip.add(line("state", getReactorStateColor(snapshot.state()), ReactorText.state(snapshot.state())));
         if (!snapshot.dimensions().isEmpty()) {
-            tooltip.add(Component.literal("  Dimensions: " + snapshot.dimensions()).withStyle(ChatFormatting.GRAY));
+            tooltip.add(line("dimensions", ChatFormatting.GRAY, snapshot.dimensions()));
         }
 
         if (!snapshot.formed()) {
-            tooltip.add(Component.literal("  Missing: " + snapshot.validationMessage()).withStyle(ChatFormatting.RED));
+            tooltip.add(line("missing", ChatFormatting.RED, MultiblockText.text(snapshot.validationMessage())));
             return true;
         }
 
-        tooltip.add(Component.literal("  Uranium columns: " + snapshot.uraniumColumnCount()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Heat exchanger columns: " + snapshot.heatExchangerColumnCount()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Control rod columns: " + snapshot.controlRodColumnCount()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(line("uranium_columns", ChatFormatting.GRAY, snapshot.uraniumColumnCount()));
+        tooltip.add(line("exchanger_columns", ChatFormatting.GRAY, snapshot.heatExchangerColumnCount()));
+        tooltip.add(line("control_columns", ChatFormatting.GRAY, snapshot.controlRodColumnCount()));
         if (snapshot.moderatorColumnCount() > 0) {
-            tooltip.add(Component.literal(String.format("  Graphite columns: %d (moderation %.0f%%)",
-                    snapshot.moderatorColumnCount(), snapshot.moderation() * 100.0)).withStyle(ChatFormatting.GRAY));
+            tooltip.add(line("graphite_columns", ChatFormatting.GRAY, snapshot.moderatorColumnCount(),
+                    Math.round(snapshot.moderation() * 100.0)));
         }
         if (snapshot.reflectorColumnCount() > 0) {
-            tooltip.add(Component.literal(String.format("  Reflector columns: %d (ring %.0f%%)",
-                    snapshot.reflectorColumnCount(), snapshot.reflection() * 100.0)).withStyle(ChatFormatting.GRAY));
+            tooltip.add(line("reflector_columns", ChatFormatting.GRAY, snapshot.reflectorColumnCount(),
+                    Math.round(snapshot.reflection() * 100.0)));
         }
-        tooltip.add(Component.literal("  Control rod segments: " + snapshot.insertedControlRodSegments() + "/" + snapshot.expectedControlRodSegments()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Coolant input ports: " + snapshot.coolantInputPortCount()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Steam output ports: " + snapshot.steamOutputPortCount()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Fuel ports: " + snapshot.fuelPortCount()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal(String.format("  Control rod insertion: %.0f%%", snapshot.controlRodInsertionRatio() * 100.0f)).withStyle(ChatFormatting.GRAY));
+        tooltip.add(line("rod_segments", ChatFormatting.GRAY, snapshot.insertedControlRodSegments(), snapshot.expectedControlRodSegments()));
+        tooltip.add(line("coolant_ports", ChatFormatting.GRAY, snapshot.coolantInputPortCount()));
+        tooltip.add(line("steam_ports", ChatFormatting.GRAY, snapshot.steamOutputPortCount()));
+        tooltip.add(line("fuel_ports", ChatFormatting.GRAY, snapshot.fuelPortCount()));
+        tooltip.add(line("rod_insertion", ChatFormatting.GRAY, Math.round(snapshot.controlRodInsertionRatio() * 100.0f)));
         if (rodTarget >= 0) {
-            tooltip.add(Component.literal(String.format("  Panel rod target: %.0f%%", rodTarget * 100.0f)).withStyle(ChatFormatting.AQUA));
+            tooltip.add(line("rod_target", ChatFormatting.AQUA, Math.round(rodTarget * 100.0f)));
         }
-        tooltip.add(Component.literal("  Static rods: " + snapshot.staticControlRodSegments()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Moving rods: " + snapshot.movingControlRodSegments()).withStyle(ChatFormatting.GRAY));
+        tooltip.add(line("static_rods", ChatFormatting.GRAY, snapshot.staticControlRodSegments()));
+        tooltip.add(line("moving_rods", ChatFormatting.GRAY, snapshot.movingControlRodSegments()));
 
-        tooltip.add(Component.literal("  Coolant: " + snapshot.coolantAmount() + "/" + snapshot.tankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Steam: " + snapshot.steamAmount() + "/" + snapshot.tankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
+        tooltip.add(line("coolant", ChatFormatting.GRAY, snapshot.coolantAmount(), snapshot.tankCapacity()));
+        tooltip.add(line("steam", ChatFormatting.GRAY, snapshot.steamAmount(), snapshot.tankCapacity()));
         addPrimaryLoopLines(tooltip);
-        tooltip.add(Component.literal(String.format("  Temperature: %.0f C", snapshot.coreTemperature()))
-                .withStyle(getTemperatureColor(snapshot.coreTemperature())));
-        tooltip.add(Component.literal(String.format("  Neutrons: %.0f", snapshot.neutronLevel())).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal(String.format("  Reactivity: x%.2f", snapshot.reactivity())).withStyle(ChatFormatting.GRAY));
+        tooltip.add(line("temperature", getTemperatureColor(snapshot.coreTemperature()), Math.round(snapshot.coreTemperature())));
+        tooltip.add(line("neutrons", ChatFormatting.GRAY, Math.round(snapshot.neutronLevel())));
+        tooltip.add(line("reactivity", ChatFormatting.GRAY, String.format(Locale.ROOT, "%.2f", snapshot.reactivity())));
         if (snapshot.xenonPenalty() >= 0.005) {
-            tooltip.add(Component.literal(String.format("  Xenon poisoning: -%.0f%%", snapshot.xenonPenalty() * 100.0))
-                    .withStyle(snapshot.xenonPenalty() >= 0.15 ? ChatFormatting.GOLD : ChatFormatting.GRAY));
+            tooltip.add(line("xenon", snapshot.xenonPenalty() >= 0.15 ? ChatFormatting.GOLD : ChatFormatting.GRAY,
+                    Math.round(snapshot.xenonPenalty() * 100.0)));
         }
         if (snapshot.decayHeatPower() >= 0.5) {
-            tooltip.add(Component.literal(String.format("  Decay heat: %.0f MW", snapshot.decayHeatPower())).withStyle(ChatFormatting.GRAY));
+            tooltip.add(line("decay_heat", ChatFormatting.GRAY, Math.round(snapshot.decayHeatPower())));
         }
-        tooltip.add(Component.literal(String.format("  Thermal stress: %.0f%%", snapshot.thermalStress()))
-                .withStyle(getThermalStressColor(snapshot.thermalStress())));
+        tooltip.add(line("thermal_stress", getThermalStressColor(snapshot.thermalStress()), Math.round(snapshot.thermalStress())));
         if (snapshot.thermalExcursionActive()) {
-            tooltip.add(Component.literal("  Thermal excursion: insert control rods").withStyle(ChatFormatting.RED));
+            tooltip.add(line("excursion", ChatFormatting.RED));
         }
-        tooltip.add(Component.literal(String.format("  Fuel: %.1f / %.1f units", snapshot.fuelRemaining(), snapshot.fuelCapacity())).withStyle(ChatFormatting.GRAY));
+        tooltip.add(line("fuel", ChatFormatting.GRAY, String.format(Locale.ROOT, "%.1f", snapshot.fuelRemaining()),
+                String.format(Locale.ROOT, "%.1f", snapshot.fuelCapacity())));
         if (snapshot.fuelEnrichment() > 0.0f) {
-            tooltip.add(Component.literal(String.format("  Fuel enrichment: %.1f%%", snapshot.fuelEnrichment())).withStyle(ChatFormatting.GRAY));
+            tooltip.add(line("enrichment", ChatFormatting.GRAY, String.format(Locale.ROOT, "%.1f", snapshot.fuelEnrichment())));
         }
         if (autoScram.isTripped()) {
-            tooltip.add(Component.literal("  Automatic SCRAM tripped at " + autoScram.getThreshold() + " C").withStyle(ChatFormatting.RED));
+            tooltip.add(line("auto_scram_tripped", ChatFormatting.RED, autoScram.getThreshold()));
         } else if (snapshot.manualScram()) {
-            tooltip.add(Component.literal("  Manual SCRAM signal on").withStyle(ChatFormatting.RED));
+            tooltip.add(line("manual_scram", ChatFormatting.RED));
         }
-        tooltip.add(Component.literal("  Fuel input: " + snapshot.inputFuelCount() + " assemblies").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Depleted fuel: " + snapshot.outputFuelCount() + " assemblies").withStyle(ChatFormatting.GRAY));
+        tooltip.add(line("fuel_input", ChatFormatting.GRAY, snapshot.inputFuelCount()));
+        tooltip.add(line("depleted", ChatFormatting.GRAY, snapshot.outputFuelCount()));
         if (snapshot.fuelRemaining() > 0.0 && snapshot.neutronLevel() <= 1.0 && snapshot.controlRodInsertionRatio() >= 0.99f) {
-            tooltip.add(Component.literal("  Status: loaded, control rods suppressing reaction").withStyle(ChatFormatting.YELLOW));
+            tooltip.add(line("suppressed", ChatFormatting.YELLOW));
         }
         if (snapshot.pendingDepletedFuel() > 0) {
-            tooltip.add(Component.literal("  Depleted output blocked: " + snapshot.pendingDepletedFuel()).withStyle(ChatFormatting.RED));
+            tooltip.add(line("output_blocked", ChatFormatting.RED, snapshot.pendingDepletedFuel()));
         }
         return true;
+    }
+
+    /** One indented goggle line, {@code create_nuclearindustry.reactor.goggles.<id>}. */
+    private static Component line(String id, ChatFormatting style, Object... args) {
+        return goggleLine(Component.translatable(GOGGLES + id, args), style);
+    }
+
+    /** {@link #line} for the reactor's ports, which show some of the same readings. */
+    public static Component goggleLine(String id, ChatFormatting style, Object... args) {
+        return line(id, style, args);
+    }
+
+    /** One indented port goggle line, {@code create_nuclearindustry.reactor.port.<id>}. */
+    public static Component portLine(String id, ChatFormatting style, Object... args) {
+        return goggleLine(Component.translatable(PORT + id, args), style);
+    }
+
+    /** Whether a port reaches a formed reactor, one that is not formed, or none. */
+    public static Component portLinkStatus(boolean linked, boolean remembered) {
+        return Component.translatable(PORT + (linked ? "linked" : remembered ? "structure_incomplete" : "no_reactor"));
+    }
+
+    public static Component portMode(ReactorFluidPortMode mode) {
+        return Component.translatable(PORT + "mode." + mode.getSerializedName());
+    }
+
+    public static Component portSide(Direction side) {
+        return Component.translatable(PORT + "side." + side.getSerializedName());
     }
 
     /** Pressure, temperatures, pressurizer and relief valve of the pressurized loop, or why it is not running. */
@@ -1494,14 +1643,14 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return Component.literal("  ").append(text).withStyle(style);
     }
 
-    private String getStructureDisplayName(ReactorDisplaySnapshot snapshot) {
+    private Component getStructureDisplayName(ReactorDisplaySnapshot snapshot) {
         if (snapshot.formed()) {
-            return "Formed";
+            return Component.translatable(STATUS + "formed");
         }
         if (!snapshot.statusDisplayName().isEmpty()) {
-            return snapshot.statusDisplayName();
+            return MultiblockText.text(snapshot.statusDisplayName());
         }
-        return "Incomplete";
+        return Component.translatable(STATUS + "incomplete");
     }
 
     private ChatFormatting getTemperatureColor(double temperature) {
@@ -1555,6 +1704,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         autoScram.save(tag);
         tag.put("Pwr", primaryLoop.save());
         tag.put("Accident", accidents.save());
+        tag.putBoolean("CoolingAfterScram", coolingAfterScram);
+        tag.putBoolean("AtFullPower", atFullPower);
     }
 
     private void writePendingDepleted(CompoundTag tag) {
@@ -1616,6 +1767,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             primaryLoop.load(tag.getCompound("Pwr"));
         }
         accidents.load(tag.getCompound("Accident"));
+        coolingAfterScram = tag.getBoolean("CoolingAfterScram");
+        atFullPower = tag.getBoolean("AtFullPower");
+        // A SCRAM saved with the world was already heard: no thud on load.
+        scramShown = isScramRequested();
         pendingRevalidation = true;
     }
 
@@ -1805,7 +1960,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 tag.getBoolean("formed"),
                 tag.getString("statusDisplayName"),
                 readReactorState(tag.getString("state")),
-                defaultString(tag.getString("validationMessage"), "Not formed"),
+                defaultString(tag.getString("validationMessage"), NOT_FORMED),
                 tag.getString("dimensions"),
                 Math.max(0, tag.getInt("uraniumRodCount")),
                 Math.max(0, tag.getInt("controlRodCount")),
@@ -1987,7 +2142,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             return MultiblockValidationResult.valid(currentStructure.get(), warnings);
         }
         return MultiblockValidationResult.invalid(
-                errors.isEmpty() ? List.of("Not formed") : errors,
+                errors.isEmpty() ? List.of(NOT_FORMED) : errors,
                 warnings);
     }
 
@@ -2069,19 +2224,19 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             double reactivity
     ) {
         public static ReactorDisplaySnapshot empty() {
-            return empty("Incomplete", ReactorPhysicsSimulator.ReactorState.IDLE, "Not formed");
+            return empty(STATUS + "incomplete", ReactorPhysicsSimulator.ReactorState.IDLE, NOT_FORMED);
         }
 
         public static ReactorDisplaySnapshot unsynced() {
-            return empty("Syncing", ReactorPhysicsSimulator.ReactorState.IDLE, "Waiting for server sync");
+            return empty(STATUS + "syncing", ReactorPhysicsSimulator.ReactorState.IDLE, STATUS + "waiting_for_sync");
         }
 
         public static ReactorDisplaySnapshot empty(String statusDisplayName, ReactorPhysicsSimulator.ReactorState state, String validationMessage) {
             return new ReactorDisplaySnapshot(
                     false,
-                    statusDisplayName == null || statusDisplayName.isEmpty() ? "Incomplete" : statusDisplayName,
+                    statusDisplayName == null || statusDisplayName.isEmpty() ? STATUS + "incomplete" : statusDisplayName,
                     state == null ? ReactorPhysicsSimulator.ReactorState.IDLE : state,
-                    validationMessage == null || validationMessage.isEmpty() ? "Not formed" : validationMessage,
+                    validationMessage == null || validationMessage.isEmpty() ? NOT_FORMED : validationMessage,
                     "",
                     0,
                     0,
@@ -2128,16 +2283,17 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     private enum ReactorStatus {
-        UNFORMED("Incomplete"),
-        FORMED("Formed"),
-        SCRAMMED("Scrammed"),
-        SCRAMMED_HOT("Scrammed Hot"),
-        MELTDOWN("Meltdown");
+        UNFORMED("incomplete"),
+        FORMED("formed"),
+        SCRAMMED("scrammed"),
+        SCRAMMED_HOT("scrammed_hot"),
+        MELTDOWN("meltdown");
 
+        /** Lang key of the status, kept as a string in the synced display snapshot. */
         private final String displayName;
 
-        ReactorStatus(String displayName) {
-            this.displayName = displayName;
+        ReactorStatus(String id) {
+            this.displayName = STATUS + id;
         }
     }
 

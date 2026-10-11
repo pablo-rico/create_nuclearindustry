@@ -69,6 +69,9 @@
     "create_nuclearindustry:reactor_temperature_sensor": {
       "transmission": 0.35
     },
+    "create_nuclearindustry:reactor_viewport": {
+      "transmission": 0.3
+    },
     "create_nuclearindustry:relief_valve": {
       "transmission": 0.5
     },

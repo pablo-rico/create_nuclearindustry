@@ -10,8 +10,10 @@ import net.neoforged.neoforge.common.ModConfigSpec;
  */
 public final class ReactorVisualsConfig {
     private static ModConfigSpec.IntValue ROD_UPDATE_INTERVAL;
+    private static ModConfigSpec.IntValue ROD_UPDATES_PER_TICK;
 
     public static int rodUpdateInterval = 20;
+    public static int rodUpdatesPerTick = 64;
 
     private ReactorVisualsConfig() {}
 
@@ -19,9 +21,13 @@ public final class ReactorVisualsConfig {
         ROD_UPDATE_INTERVAL = builder
                 .comment("Ticks between updates of what the reactor's fuel channels show (fuel, glow, coolant).")
                 .defineInRange("reactorVisuals.rodUpdateInterval", 20, 1, 1200);
+        ROD_UPDATES_PER_TICK = builder
+                .comment("Fuel channels one reactor may redraw per tick at most; the rest wait for the next tick.")
+                .defineInRange("reactorVisuals.rodUpdatesPerTick", 64, 1, 4096);
     }
 
     public static void bake() {
         rodUpdateInterval = Mth.clamp(ROD_UPDATE_INTERVAL.get(), 1, 1200);
+        rodUpdatesPerTick = Mth.clamp(ROD_UPDATES_PER_TICK.get(), 1, 4096);
     }
 }

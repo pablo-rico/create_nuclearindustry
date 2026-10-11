@@ -30,6 +30,7 @@ import org.papiricoh.create_nuclearindustry.multiblock.BlockChange;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
 
@@ -58,6 +59,8 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
             setChanged();
         }
     };
+    /** Lang key prefix of the cooling tower's texts. */
+    private static final String KEY = "create_nuclearindustry.cooling_tower.";
     private final MultiblockMessenger messenger = new MultiblockMessenger("Cooling Tower");
     private Optional<CoolingTowerStructure> structure = Optional.empty();
     private StructureSnapshot snapshot;
@@ -249,14 +252,15 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
             if (playerInitiated || !wasFormed) {
                 org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level),
                         org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.COOLING_TOWER_FORMED);
-                messenger.send(level, "§bCooling tower formed §8[" + next.dimensionsText() + ", " + getCapacity() + " mB/t]",
-                        playerInitiated);
+                messenger.send(level, Component.translatable(KEY + "message.formed",
+                                Component.literal("[" + next.dimensionsText() + ", " + getCapacity() + " mB/t]").withStyle(ChatFormatting.DARK_GRAY))
+                        .withStyle(ChatFormatting.AQUA), playerInitiated);
             }
         } else {
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
-                messenger.send(level, (wasFormed ? "§cCooling tower broken: " : "§cCooling tower incomplete: ")
-                        + result.primaryMessage(), playerInitiated);
+                messenger.send(level, Component.translatable(KEY + (wasFormed ? "message.broken" : "message.incomplete"),
+                        MultiblockText.text(result.primaryMessage())).withStyle(ChatFormatting.RED), playerInitiated);
             }
         }
         display = buildDisplay();
@@ -338,20 +342,25 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        tooltip.add(Component.literal("    Cooling Tower").withStyle(ChatFormatting.GOLD));
+        tooltip.add(Component.literal("    ").append(Component.translatable(KEY + "goggles.title"))
+                .withStyle(ChatFormatting.GOLD));
         if (!display.formed()) {
-            tooltip.add(Component.literal("     " + display.message()).withStyle(ChatFormatting.RED));
+            tooltip.add(line(MultiblockText.text(display.message()), ChatFormatting.RED));
         } else {
-            tooltip.add(Component.literal("     Base radius " + display.baseRadius() + ", " + display.height() + " high, "
-                    + display.fans() + " fans").withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("     Condensing " + display.currentUse() + " / " + display.capacity() + " mB/t")
-                    .withStyle(display.currentUse() > 0 ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
+            tooltip.add(line(Component.translatable(KEY + "goggles.size", display.baseRadius(), display.height(), display.fans()),
+                    ChatFormatting.GRAY));
+            tooltip.add(line(Component.translatable(KEY + "goggles.condensing", display.currentUse(), display.capacity()),
+                    display.currentUse() > 0 ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
         }
-        tooltip.add(Component.literal("     Steam: " + steamTank.getFluidAmount() + " / " + steamTank.getCapacity() + " mB")
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("     Water: " + waterTank.getFluidAmount() + " / " + waterTank.getCapacity() + " mB")
-                .withStyle(ChatFormatting.GRAY));
+        tooltip.add(line(Component.translatable(KEY + "goggles.steam", steamTank.getFluidAmount(), steamTank.getCapacity()),
+                ChatFormatting.GRAY));
+        tooltip.add(line(Component.translatable(KEY + "goggles.water", waterTank.getFluidAmount(), waterTank.getCapacity()),
+                ChatFormatting.GRAY));
         return true;
+    }
+
+    private static Component line(Component text, ChatFormatting style) {
+        return Component.literal("     ").append(text).withStyle(style);
     }
 
     // ------------------------------------------------------------------ persistence

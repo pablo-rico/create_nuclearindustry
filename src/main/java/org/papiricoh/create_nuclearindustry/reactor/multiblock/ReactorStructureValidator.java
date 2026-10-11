@@ -10,12 +10,14 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.AABB;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFuelPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodGeometry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PressurizerStack;
+import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsRegistry;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,7 +26,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Checks a fission reactor's structure. Errors and warnings are {@link MultiblockText} messages (a
+ * lang key under {@link #KEY} and its arguments), so each player reads them in their own language.
+ */
 public class ReactorStructureValidator {
+    /** Lang key prefix of every validation message. */
+    public static final String KEY = "create_nuclearindustry.reactor.validation.";
+    /** A control rod channel holds something other than rods, pistons or air; moving rods count as this too. */
+    public static final String CHANNEL_BLOCKED = KEY + "channel_blocked";
+    public static final String CASING_MISSING = KEY + "casing_missing";
     public static final int MIN_WIDTH = 3;
     public static final int MAX_WIDTH = 9;
     public static final int MIN_HEIGHT = 4;
@@ -47,11 +58,11 @@ public class ReactorStructureValidator {
         List<String> warnings = new ArrayList<>();
 
         if (level == null) {
-            errors.add("Level unavailable");
+            errors.add(message("no_level"));
             return MultiblockValidationResult.invalid(errors, warnings);
         }
         if (!level.getBlockState(controllerPos).is(AllNuclearBlocks.REACTOR_CONTROLLER.get())) {
-            errors.add("Controller block missing");
+            errors.add(message("no_controller"));
             return MultiblockValidationResult.invalid(errors, warnings);
         }
 
@@ -71,7 +82,7 @@ public class ReactorStructureValidator {
         validateInterior(level, structure, errors, warnings);
         detectPressurizer(level, structure, warnings);
         if (primaryCoolant && structure.pressurizer == null) {
-            warnings.add("Primary coolant needs a pressurizer on the lid: the loop is not pressurized");
+            warnings.add(message("needs_pressurizer"));
         }
 
         if (!errors.isEmpty()) {
@@ -97,13 +108,13 @@ public class ReactorStructureValidator {
         }
 
         if (bottomY == Integer.MIN_VALUE) {
-            errors.add("Missing casing floor below controller");
+            errors.add(message("no_floor"));
             return Optional.empty();
         }
 
         int height = controllerPos.getY() - bottomY + 1;
         if (height < MIN_HEIGHT || height > MAX_HEIGHT) {
-            errors.add("Height must be " + MIN_HEIGHT + "-" + MAX_HEIGHT + " blocks, got " + height);
+            errors.add(message("height", MIN_HEIGHT, MAX_HEIGHT, height));
             return Optional.empty();
         }
 
@@ -122,7 +133,7 @@ public class ReactorStructureValidator {
 
         int width = halfWidth * 2 + 1;
         if (width < MIN_WIDTH || width > MAX_WIDTH) {
-            errors.add("Width must be odd and between " + MIN_WIDTH + " and " + MAX_WIDTH + ", got " + width);
+            errors.add(message("width", MIN_WIDTH, MAX_WIDTH, width));
             return Optional.empty();
         }
 
@@ -137,7 +148,7 @@ public class ReactorStructureValidator {
 
             if (centerTop) {
                 if (block != AllNuclearBlocks.REACTOR_CONTROLLER.get()) {
-                    errors.add("Controller must be centered on the top face");
+                    errors.add(message("controller_centre"));
                 }
                 continue;
             }
@@ -177,10 +188,10 @@ public class ReactorStructureValidator {
                 continue;
             }
 
-            if (shell && block != AllNuclearBlocks.REACTOR_CASING.get()) {
-                errors.add("Missing casing at " + shortPos(pos));
+            if (shell && !isCasing(block)) {
+                errors.add(MultiblockText.message(CASING_MISSING, shortPos(pos)));
                 if (errors.size() >= 6) {
-                    errors.add("More casing errors omitted");
+                    errors.add(message("more_casing"));
                     return;
                 }
             }
@@ -246,19 +257,19 @@ public class ReactorStructureValidator {
         }
 
         if (structure.uraniumColumnCount < 1) {
-            errors.add("Missing uranium rod column");
+            errors.add(message("no_fuel"));
         }
         if (structure.heatExchangerColumnCount < 1) {
-            errors.add("Missing heat exchanger column");
+            errors.add(message("no_exchanger"));
         }
         if (structure.coolantInputPortCount < 1) {
-            errors.add("Missing coolant input port");
+            errors.add(message("no_coolant_port"));
         }
         if (structure.steamOutputPortCount < 1) {
-            errors.add("Missing steam output port");
+            errors.add(message("no_steam_port"));
         }
         if (structure.controlRodColumnCount < 1) {
-            warnings.add("No control rod columns; reactor will be difficult to control");
+            warnings.add(message("no_control_rods"));
         }
         structure.controlRodCount = structure.controlChannels.size() * structure.innerHeight();
         structure.moderation = moderation(structure);
@@ -319,7 +330,7 @@ public class ReactorStructureValidator {
             for (int y = structure.bottomY + 1; y < structure.topY; y++) {
                 BlockPos pos = new BlockPos(x, y, z);
                 if (!level.getBlockState(pos).isAir()) {
-                    errors.add("Mixed interior column at " + shortPos(pos));
+                    errors.add(message("mixed_column", shortPos(pos)));
                     return;
                 }
             }
@@ -327,7 +338,7 @@ public class ReactorStructureValidator {
         }
 
         if (!isAllowedInteriorColumnBlock(sample)) {
-            errors.add("Invalid interior block at " + shortPos(samplePos));
+            errors.add(message("invalid_interior", shortPos(samplePos)));
             return;
         }
 
@@ -336,7 +347,7 @@ public class ReactorStructureValidator {
             BlockPos pos = new BlockPos(x, y, z);
             Block block = level.getBlockState(pos).getBlock();
             if (block != sample) {
-                errors.add("Interior columns must be vertical and homogeneous at " + shortPos(pos));
+                errors.add(message("not_homogeneous", shortPos(pos)));
                 return;
             }
             structure.functionalBlocks.add(pos);
@@ -368,7 +379,7 @@ public class ReactorStructureValidator {
             } else if (block == Blocks.AIR || isAllowedControlChannelMechanism(block)) {
                 continue;
             } else {
-                errors.add("Control rod channel blocked at " + shortPos(pos));
+                errors.add(MultiblockText.message(CHANNEL_BLOCKED, shortPos(pos)));
                 return;
             }
         }
@@ -398,7 +409,7 @@ public class ReactorStructureValidator {
                 if (structure.pressurizer == null) {
                     structure.pressurizer = stack;
                 } else {
-                    warnings.add("A reactor takes one pressurizer; the one at " + shortPos(base) + " is ignored");
+                    warnings.add(message("extra_pressurizer", shortPos(base)));
                 }
             }
         }
@@ -424,6 +435,20 @@ public class ReactorStructureValidator {
                 || block == Blocks.MOVING_PISTON
                 || "create:mechanical_piston_head".equals(blockId)
                 || "create:piston_extension_pole".equals(blockId);
+    }
+
+    /**
+     * Casing, or a viewport in its place: lead glass walls the core in just as well. The floor
+     * cross under the controller, which {@link #detectBounds} reads to find the reactor, must be
+     * plain casing.
+     */
+    private static boolean isCasing(Block block) {
+        return block == AllNuclearBlocks.REACTOR_CASING.get() || block == ReactorVisualsRegistry.REACTOR_VIEWPORT.get();
+    }
+
+    /** A validation message: a lang key under {@link #KEY} and its arguments. */
+    private static String message(String id, Object... args) {
+        return MultiblockText.message(KEY + id, args);
     }
 
     private static String shortPos(BlockPos pos) {

@@ -1,0 +1,6 @@
+{
+  "parent": "create_nuclearindustry:block/uranium_rod_pellets",
+  "textures": {
+    "pellets": "create_nuclearindustry:block/uranium_rod_pellets_half"
+  }
+}

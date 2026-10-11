@@ -1024,6 +1024,10 @@ Refugios:
 - `reactorVisuals.rodUpdateInterval` (20): ticks entre cada actualización de lo
   que muestran los canales de combustible del reactor (combustible, brillo y
   refrigerante).
+- `reactorVisuals.rodUpdatesPerTick` (64): canales de combustible que un reactor
+  puede redibujar como mucho en un tick; los demás esperan al siguiente. Bájalo
+  en servidores con reactores muy grandes si los cambios de aspecto se notan en
+  el rendimiento.
 <!-- WP-A -->
 
 ## Ciclo de combustible renovable

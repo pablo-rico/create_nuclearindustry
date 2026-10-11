@@ -141,7 +141,11 @@ public class VitrificationMelterBlockEntity extends SmartBlockEntity implements 
     @Override
     public void tick() {
         super.tick();
-        if (level == null || level.isClientSide) {
+        if (level == null) {
+            return;
+        }
+        if (level.isClientSide) {
+            org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualHooks.machineClientTick.accept(this);
             return;
         }
         HeatLevel heat = heatLevel();
