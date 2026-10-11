@@ -18,7 +18,7 @@ public final class ReactorReadoutDisplaySource {
     private static MutableComponent line(ReactorReadout readout, DisplayLinkContext context) {
         return ReactorReadout.reactorOf(context.getSourceBlockEntity())
                 .map(readout::read)
-                .orElseGet(() -> Component.literal("No reactor"));
+                .orElseGet(() -> ReactorText.display("no_reactor"));
     }
 
     private static final class Numeric extends NumericSingleLineDisplaySource {

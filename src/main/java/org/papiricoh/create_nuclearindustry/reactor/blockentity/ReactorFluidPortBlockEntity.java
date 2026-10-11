@@ -68,30 +68,23 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
         return link.find();
     }
 
-    private String linkStatus() {
-        Optional<ReactorBlockEntity> reactor = findLinkedReactor();
-        if (reactor.isPresent()) {
-            return "Linked";
-        }
-        if (link.linkedPos().isPresent()) {
-            return "Structure incomplete";
-        }
-        return "No reactor";
+    private Component linkStatus() {
+        return ReactorBlockEntity.portLinkStatus(findLinkedReactor().isPresent(), link.linkedPos().isPresent());
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         ReactorFluidPortMode mode = getMode();
-        tooltip.add(Component.literal("Reactor Fluid Port").withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.literal("  Mode: " + mode.displayName())
-                .withStyle(mode == ReactorFluidPortMode.INPUT ? ChatFormatting.AQUA : ChatFormatting.YELLOW));
-        tooltip.add(Component.literal("  Connect pump on: " + getBlockState().getValue(ReactorFluidPortBlock.FACING).getName().toUpperCase())
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Status: " + linkStatus())
-                .withStyle(findLinkedReactor().isPresent() ? ChatFormatting.GREEN : ChatFormatting.RED));
+        tooltip.add(Component.translatable("block.create_nuclearindustry.reactor_fluid_port").withStyle(ChatFormatting.GOLD));
+        tooltip.add(ReactorBlockEntity.portLine("mode", mode == ReactorFluidPortMode.INPUT ? ChatFormatting.AQUA : ChatFormatting.YELLOW,
+                ReactorBlockEntity.portMode(mode)));
+        tooltip.add(ReactorBlockEntity.portLine("connect_pump", ChatFormatting.GRAY,
+                ReactorBlockEntity.portSide(getBlockState().getValue(ReactorFluidPortBlock.FACING))));
+        tooltip.add(ReactorBlockEntity.portLine("status", findLinkedReactor().isPresent() ? ChatFormatting.GREEN : ChatFormatting.RED,
+                linkStatus()));
         findLinkedReactor().ifPresent(reactor -> {
-            tooltip.add(Component.literal("  Coolant: " + reactor.getCoolantAmount() + "/" + reactor.getTankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Steam: " + reactor.getSteamAmount() + "/" + reactor.getTankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
+            tooltip.add(ReactorBlockEntity.goggleLine("coolant", ChatFormatting.GRAY, reactor.getCoolantAmount(), reactor.getTankCapacity()));
+            tooltip.add(ReactorBlockEntity.goggleLine("steam", ChatFormatting.GRAY, reactor.getSteamAmount(), reactor.getTankCapacity()));
             if (reactor.plantReadings().pwr()) {
                 tooltip.add(Component.literal("  ").append(Component.translatable(mode == ReactorFluidPortMode.INPUT
                         ? "create_nuclearindustry.pwr.port.cold_leg" : "create_nuclearindustry.pwr.port.hot_leg")).withStyle(ChatFormatting.AQUA));

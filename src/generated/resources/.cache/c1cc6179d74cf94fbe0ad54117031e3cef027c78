@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-11T02:27:55.9589861	Tags for minecraft:block mod id create_nuclearindustry
+// 1.21.1	2026-10-11T03:01:10.2990789	Tags for minecraft:block mod id create_nuclearindustry
 b444c1d838bae204ace8fd4674392929770421b8 data/create/tags/block/non_movable.json
 d0c50487fb350a2994d28011c6dc4e19e52732db data/create/tags/block/wrench_pickup.json
 bce5e218645841b3172395ca85ae24280b9c0d6d data/create_nuclearindustry/tags/block/blast_fragile.json
@@ -6,7 +6,7 @@ bce5e218645841b3172395ca85ae24280b9c0d6d data/create_nuclearindustry/tags/block/
 35133e95f1c8fdd7a1c21afcc231fc0bffefb9a8 data/create_nuclearindustry/tags/block/fan_processing_catalysts/acid_leaching.json
 35133e95f1c8fdd7a1c21afcc231fc0bffefb9a8 data/create_nuclearindustry/tags/block/fan_processing_catalysts/irradiation.json
 8176e2ab467bd7e4b8722490ce7a67d6ee09c92e data/create_nuclearindustry/tags/block/geologically_storable.json
-a4d42c4c6d06f1d64fe6ba87583d648d108e56f0 data/create_nuclearindustry/tags/block/multiblock_parts.json
+63e43f97b32c08e82dcbe07af4b121183ce5fc92 data/create_nuclearindustry/tags/block/multiblock_parts.json
 89d93d5ba89088857f5aa01bbafe3b19ea8f7688 data/create_nuclearindustry/tags/block/repository_backfill.json
 14e41d7151995a2741e94c028edf2a2e5ef60189 data/create_nuclearindustry/tags/block/repository_host_rock.json
 cf92bb0e0810d0a26ff3410c0f599ec9789139f4 data/c/tags/block/ores.json

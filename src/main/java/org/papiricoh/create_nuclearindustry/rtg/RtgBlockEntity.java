@@ -107,7 +107,11 @@ public class RtgBlockEntity extends GeneratingKineticBlockEntity implements Radi
     @Override
     public void tick() {
         super.tick();
-        if (level == null || level.isClientSide) {
+        if (level == null) {
+            return;
+        }
+        if (level.isClientSide) {
+            org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualHooks.machineClientTick.accept(this);
             return;
         }
         if (++timer >= UPDATE_INTERVAL) {
@@ -216,7 +220,8 @@ public class RtgBlockEntity extends GeneratingKineticBlockEntity implements Radi
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         tooltip.add(Component.literal("    ").append(Component.translatable("block.create_nuclearindustry.rtg")).withStyle(ChatFormatting.GOLD));
         if (fuel == null) {
-            tooltip.add(Component.literal("     No pellet loaded").withStyle(ChatFormatting.RED));
+            tooltip.add(Component.literal("     ").append(Component.translatable("create_nuclearindustry.rtg.goggles.no_pellet"))
+                    .withStyle(ChatFormatting.RED));
         } else {
             tooltip.add(Component.literal("     ").append(Component.translatable("item.create_nuclearindustry." + fuel.id() + "_rtg_pellet"))
                     .append(String.format(": %.0f%%", charge * 100)).withStyle(ChatFormatting.GREEN));

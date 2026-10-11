@@ -1,0 +1,470 @@
+{
+  "render_type": "minecraft:cutout",
+  "ambientocclusion": false,
+  "textures": {
+    "sheath": "create_nuclearindustry:block/uranium_rod_sheath",
+    "plate": "create_nuclearindustry:block/uranium_rod_plate",
+    "cage": "create_nuclearindustry:block/uranium_rod_cage",
+    "particle": "create_nuclearindustry:block/uranium_rod_sheath"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        1,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#sheath"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#sheath"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#sheath"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#sheath"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#plate"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#plate"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        15,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#sheath"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#sheath"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#sheath"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#sheath"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#plate"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#plate"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        1,
+        0
+      ],
+      "to": [
+        1,
+        15,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            1,
+            1,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "south": {
+          "uv": [
+            0,
+            1,
+            1,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "east": {
+          "uv": [
+            0,
+            1,
+            1,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "west": {
+          "uv": [
+            0,
+            1,
+            1,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#sheath"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "texture": "#sheath"
+        }
+      }
+    },
+    {
+      "from": [
+        15,
+        1,
+        0
+      ],
+      "to": [
+        16,
+        15,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            15,
+            1,
+            16,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "south": {
+          "uv": [
+            15,
+            1,
+            16,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "east": {
+          "uv": [
+            15,
+            1,
+            16,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "west": {
+          "uv": [
+            15,
+            1,
+            16,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "up": {
+          "uv": [
+            15,
+            0,
+            16,
+            1
+          ],
+          "texture": "#sheath"
+        },
+        "down": {
+          "uv": [
+            15,
+            0,
+            16,
+            1
+          ],
+          "texture": "#sheath"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        1,
+        15
+      ],
+      "to": [
+        1,
+        15,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            1,
+            1,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "south": {
+          "uv": [
+            0,
+            1,
+            1,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "east": {
+          "uv": [
+            0,
+            1,
+            1,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "west": {
+          "uv": [
+            0,
+            1,
+            1,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "up": {
+          "uv": [
+            0,
+            15,
+            1,
+            16
+          ],
+          "texture": "#sheath"
+        },
+        "down": {
+          "uv": [
+            0,
+            15,
+            1,
+            16
+          ],
+          "texture": "#sheath"
+        }
+      }
+    },
+    {
+      "from": [
+        15,
+        1,
+        15
+      ],
+      "to": [
+        16,
+        15,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            15,
+            1,
+            16,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "south": {
+          "uv": [
+            15,
+            1,
+            16,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "east": {
+          "uv": [
+            15,
+            1,
+            16,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "west": {
+          "uv": [
+            15,
+            1,
+            16,
+            15
+          ],
+          "texture": "#sheath"
+        },
+        "up": {
+          "uv": [
+            15,
+            15,
+            16,
+            16
+          ],
+          "texture": "#sheath"
+        },
+        "down": {
+          "uv": [
+            15,
+            15,
+            16,
+            16
+          ],
+          "texture": "#sheath"
+        }
+      }
+    },
+    {
+      "from": [
+        0.5,
+        1,
+        0.5
+      ],
+      "to": [
+        15.5,
+        15,
+        15.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            1,
+            16,
+            15
+          ],
+          "texture": "#cage"
+        },
+        "south": {
+          "uv": [
+            0,
+            1,
+            16,
+            15
+          ],
+          "texture": "#cage"
+        },
+        "east": {
+          "uv": [
+            0,
+            1,
+            16,
+            15
+          ],
+          "texture": "#cage"
+        },
+        "west": {
+          "uv": [
+            0,
+            1,
+            16,
+            15
+          ],
+          "texture": "#cage"
+        }
+      }
+    }
+  ]
+}

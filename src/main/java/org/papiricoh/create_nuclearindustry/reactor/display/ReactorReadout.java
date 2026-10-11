@@ -95,14 +95,14 @@ public enum ReactorReadout {
 
     private static MutableComponent status(ReactorBlockEntity reactor) {
         if (!reactor.isFormed()) {
-            return Component.literal("Unformed");
+            return ReactorText.display("unformed");
         }
         if (reactor.getAutoScram().isTripped()) {
-            return Component.literal("AUTO SCRAM");
+            return ReactorText.display("auto_scram");
         }
         if (reactor.isScramRequested()) {
-            return Component.literal("SCRAM");
+            return ReactorText.display("scram");
         }
-        return Component.literal(reactor.getReactorState().getDisplayName());
+        return ReactorText.state(reactor.getReactorState());
     }
 }

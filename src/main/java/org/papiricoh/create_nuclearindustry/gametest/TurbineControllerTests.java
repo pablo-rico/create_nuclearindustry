@@ -97,7 +97,9 @@ public class TurbineControllerTests {
         AbstractTurbineControllerBlockEntity turbine = helper.getBlockEntity(controller);
         helper.succeedWhen(() -> {
             helper.assertTrue(turbine.getStructure().isEmpty(), "the old line must not form");
-            helper.assertTrue(turbine.getValidationMessage().contains("Rebuild"), "got: " + turbine.getValidationMessage());
+            // The message is a lang key now; the server reads it in English.
+            String message = org.papiricoh.create_nuclearindustry.multiblock.MultiblockText.text(turbine.getValidationMessage()).getString();
+            helper.assertTrue(message.contains("Rebuild"), "got: " + message);
         });
     }
 

@@ -108,7 +108,11 @@ public abstract class KineticProcessingBlockEntity extends KineticBlockEntity im
     @Override
     public void tick() {
         super.tick();
-        if (level == null || level.isClientSide) {
+        if (level == null) {
+            return;
+        }
+        if (level.isClientSide) {
+            org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualHooks.machineClientTick.accept(this);
             return;
         }
 
@@ -485,6 +489,15 @@ public abstract class KineticProcessingBlockEntity extends KineticBlockEntity im
 
     public boolean isOutputBlocked() {
         return outputBlocked;
+    }
+
+    /**
+     * Whether the machine looks busy from what is synced to clients: turning fast enough, not
+     * overstressed, an input to work on and room for the output. For its running sound.
+     */
+    public boolean looksBusy() {
+        return Math.abs(getSpeed()) >= minimumSpeed() && !isOverStressed() && !outputBlocked
+                && (!items.getStackInSlot(INPUT_SLOT).isEmpty() || !inputTank.isEmpty());
     }
 
     // ------------------------------------------------------------------ side views

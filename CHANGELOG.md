@@ -635,6 +635,31 @@ below for what changes in existing worlds.
   part of the ring nearest to you.
 
 ### Visible and audible fission reactor
+- New Reactor Viewport: a lead glass window that takes the place of any
+  casing block in the reactor's walls or lid (not in the floor cross under
+  the controller, which the reactor uses to find its size). It shields
+  nearly as well as the casing, so you can watch the core in safety.
+- The fuel channels now show what the reactor holds. Each loaded assembly
+  fills a channel, column by column from the bottom up; its pellets darken as
+  it burns (fresh, half burnt, nearly spent) and empty channels show bare
+  cladding. Water fills the channels while the reactor holds coolant, and a
+  running core glows Cherenkov blue in three steps with its power, lighting up
+  the room. The looks are drawn by the reactor a few channels per tick and
+  never make it check its structure again.
+- The fission plant has sound: the core hums louder and higher with power,
+  the control rods drop with a thud on a SCRAM and a klaxon sounds until the
+  scrammed core is cold, an alarm beeps above 2000 °C, steam hisses at the
+  output ports (hot primary coolant bubbles instead) and a lifted relief valve
+  pops and blows. Gas centrifuges whine and electrolyzers buzz with their
+  shaft speed while they work, the vitrification melter roars while it melts
+  and radioisotope generators hum while they hold a pellet.
+- The reactor, its fuel and fluid ports, the steam generator, the turbines
+  and the cooling tower now speak your language: chat messages, structure
+  errors, goggle lines and Display Link texts are translated (English and
+  Spanish).
+- New milestones for the guide: running a reactor at full power, a cold
+  shutdown after a SCRAM, a relief valve lifting and forming a steam
+  generator.
 <!-- WP-A -->
 
 ### Renewable materials, fan treatments and thorium

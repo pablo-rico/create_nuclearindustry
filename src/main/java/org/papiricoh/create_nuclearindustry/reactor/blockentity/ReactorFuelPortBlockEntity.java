@@ -52,7 +52,7 @@ public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGogg
                 && level.getBlockEntity(previousLink.get()) instanceof ReactorBlockEntity previousReactor) {
             previousReactor.requestStructureRevalidation(player);
         } else if (player != null) {
-            player.displayClientMessage(Component.literal("§cFuel port is not attached to a formed reactor shell"), false);
+            player.displayClientMessage(Component.translatable(ReactorBlockEntity.PORT + "fuel_not_attached").withStyle(ChatFormatting.RED), false);
         }
     }
 
@@ -77,41 +77,31 @@ public class ReactorFuelPortBlockEntity extends BlockEntity implements IHaveGogg
         return getBlockState().getValue(ReactorFuelPortBlock.MODE);
     }
 
-    private String linkStatus() {
-        ReactorBlockEntity reactor = getLinkedReactor();
-        if (reactor != null) {
-            return "Linked";
-        }
-        if (link.linkedPos().isPresent()) {
-            return "Structure incomplete";
-        }
-        return "No reactor";
+    private Component linkStatus() {
+        return ReactorBlockEntity.portLinkStatus(getLinkedReactor() != null, link.linkedPos().isPresent());
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         ReactorFluidPortMode mode = getMode();
         ReactorBlockEntity reactor = getLinkedReactor();
-        tooltip.add(Component.literal("Reactor Fuel Port").withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.literal("  Mode: " + mode.displayName())
-                .withStyle(mode == ReactorFluidPortMode.INPUT ? ChatFormatting.AQUA : ChatFormatting.YELLOW));
-        tooltip.add(Component.literal("  Connect inventory on: " + getBlockState().getValue(ReactorFuelPortBlock.FACING).getName().toUpperCase())
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Status: " + linkStatus())
-                .withStyle(reactor != null ? ChatFormatting.GREEN : ChatFormatting.RED));
+        tooltip.add(Component.translatable("block.create_nuclearindustry.reactor_fuel_port").withStyle(ChatFormatting.GOLD));
+        tooltip.add(ReactorBlockEntity.portLine("mode", mode == ReactorFluidPortMode.INPUT ? ChatFormatting.AQUA : ChatFormatting.YELLOW,
+                ReactorBlockEntity.portMode(mode)));
+        tooltip.add(ReactorBlockEntity.portLine("connect_inventory", ChatFormatting.GRAY,
+                ReactorBlockEntity.portSide(getBlockState().getValue(ReactorFuelPortBlock.FACING))));
+        tooltip.add(ReactorBlockEntity.portLine("status", reactor != null ? ChatFormatting.GREEN : ChatFormatting.RED, linkStatus()));
 
         if (reactor != null) {
-            tooltip.add(Component.literal(String.format("  Fuel: %.1f / %.1f units", reactor.getFuelRemaining(), reactor.getFuelCapacity()))
-                    .withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Accepts fuel assemblies at " + ReactorBlockEntity.MIN_FUEL_ENRICHMENT + "% or more")
-                    .withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Fuel input: " + reactor.getInputFuelCount() + " assemblies")
-                    .withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Depleted fuel: " + reactor.getOutputFuelCount() + " assemblies")
-                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(ReactorBlockEntity.goggleLine("fuel", ChatFormatting.GRAY,
+                    String.format(java.util.Locale.ROOT, "%.1f", reactor.getFuelRemaining()),
+                    String.format(java.util.Locale.ROOT, "%.1f", reactor.getFuelCapacity())));
+            tooltip.add(ReactorBlockEntity.portLine("accepts", ChatFormatting.GRAY,
+                    String.format(java.util.Locale.ROOT, "%.1f", ReactorBlockEntity.MIN_FUEL_ENRICHMENT)));
+            tooltip.add(ReactorBlockEntity.goggleLine("fuel_input", ChatFormatting.GRAY, reactor.getInputFuelCount()));
+            tooltip.add(ReactorBlockEntity.goggleLine("depleted", ChatFormatting.GRAY, reactor.getOutputFuelCount()));
             if (reactor.getPendingDepletedFuel() > 0) {
-                tooltip.add(Component.literal("  Depleted output blocked: " + reactor.getPendingDepletedFuel())
-                        .withStyle(ChatFormatting.RED));
+                tooltip.add(ReactorBlockEntity.goggleLine("output_blocked", ChatFormatting.RED, reactor.getPendingDepletedFuel()));
             }
         }
         return true;

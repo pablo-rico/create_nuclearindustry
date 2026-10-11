@@ -53,6 +53,7 @@
     "create_nuclearindustry:fusion_vacuum_pump",
     "create_nuclearindustry:fusion_neutral_beam_injector",
     "create_nuclearindustry:fusion_rf_antenna",
-    "create_nuclearindustry:fusion_viewport"
+    "create_nuclearindustry:fusion_viewport",
+    "create_nuclearindustry:reactor_viewport"
   ]
 }
