@@ -53,6 +53,11 @@ public class NuclearBlockLoot extends BlockLootSubProvider {
         add(block, table);
     }
 
+    /** A two-block door: one item, dropped by the lower half. */
+    public void addDoorTable(Block block) {
+        add(block, createDoorTable(block));
+    }
+
     /** {@link #dropOther} for the areas' datagen. */
     public void addDropOther(Block block, net.minecraft.world.level.ItemLike drop) {
         dropOther(block, drop);

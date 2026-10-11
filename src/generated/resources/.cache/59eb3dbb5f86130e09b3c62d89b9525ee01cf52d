@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-10T23:23:33.3783628	Loot Tables
+// 1.21.1	2026-10-11T01:21:24.8502653	Loot Tables
 13c05f487af479a2691bf45b4d60b1e69d36ac47 data/create_nuclearindustry/loot_table/blocks/air_raid_siren.json
 6976bb627a0364fe3995e6c3818535869708f1af data/create_nuclearindustry/loot_table/blocks/annunciator_panel.json
 27f7c000f9413a61974f3cd67a1d8f71c6fd755c data/create_nuclearindustry/loot_table/blocks/bentonite.json
@@ -11,6 +11,7 @@ dc41b4a47054d902460cedd9efc9bb49f4209312 data/create_nuclearindustry/loot_table/
 69d3ee3bd6767445e969cd074b71d06016e6c7b6 data/create_nuclearindustry/loot_table/blocks/chart_recorder.json
 3c9cfa5b2cca4c60db419c451abf28e5542856e2 data/create_nuclearindustry/loot_table/blocks/compacted_waste_drum.json
 111d37948266e5a745207e810d8cfaae03aa03d4 data/create_nuclearindustry/loot_table/blocks/containment_concrete.json
+cdc70b5f860c60e52e0a15605d785d50f0a20730 data/create_nuclearindustry/loot_table/blocks/containment_door.json
 6891bbeb46315799e5289c0f83ada41d11273219 data/create_nuclearindustry/loot_table/blocks/containment_monitor.json
 d80267b15ae8637b33769709b6fd0a7a6d3b6683 data/create_nuclearindustry/loot_table/blocks/containment_penetration.json
 4d8f69eb8b9539638ea5b887e4b7cf8a61504a85 data/create_nuclearindustry/loot_table/blocks/control_monitor.json

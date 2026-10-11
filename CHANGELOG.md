@@ -302,6 +302,17 @@ below for what changes in existing worlds.
 - A shut blast door in a containment wall keeps the building sealed; opening
   it unseals the building, and the monitor notices right away.
 
+- New Containment Door: a two-block-high steel door for the containment wall.
+  Shut, it is wall like the concrete around it and holds 8 bar; open, the
+  doorway is a hole and the containment is no longer sealed. Click it or power
+  it with redstone and it opens Create-style: it pulls out of its frame and
+  slides sideways along the wall, and slides back and seats with a thud when
+  it shuts. Open, its edge stays in the doorway, sticking out of the wall:
+  click it to shut the door again. Two side by side, hinged on opposite sides, open together. While
+  the containment behind it is more than 0.2 bar above the outside it is
+  pressure-locked (`pwr.containment.doorInterlock`). It has its own Ponder
+  scene and JEI page, and the plant overview scene shows one in its wall.
+
 ### Spent fuel
 - Spent fuel now has a cooling history: assemblies leave the reactor Hot and
   dated with the in-game day, so those discharged the same day stack. Over
@@ -491,8 +502,14 @@ below for what changes in existing worlds.
 - New Ponder tag "Nuclear Power Plant" in the Ponder index, listing every
   part of a plant: reactor, pressurizer, steam generator, turbine, cooling
   tower, control room, containment, spent fuel storage and waste packages.
-- Four new chained scenes, reachable from the reactor and steam generator
-  controllers (all four, in order) and from each part they show:
+- The series opens with "The Whole Plant": reactor, pressurizer, steam
+  generator, turbine, cooling tower, containment, control room and spent fuel
+  pool all on one site, joined as you would join them. The camera zooms in on
+  each connection in turn (primary loop, containment penetrations, steam line,
+  turbine shaft, exhaust to the tower, feedwater back through the wall, the
+  control room and the pool) and pulls back to show the plant running.
+- Four more chained scenes, reachable from the reactor and steam generator
+  controllers (all five, in order) and from each part they show:
   - The Pressurized Primary Loop: the pressurizer on the lid with its heaters
     and relief valve, hot and cold leg ports, the steam generator and its
     port roles, the Create pumps that drive the loop, and what a stopped pump

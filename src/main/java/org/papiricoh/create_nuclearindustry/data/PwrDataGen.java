@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.data;
 
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
@@ -9,6 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
@@ -129,6 +132,26 @@ final class PwrDataGen extends AreaDataGen {
         LangEntries.block("corium", "Corium", "Corium");
         LangEntries.block("solidified_corium", "Solidified Corium", "Corium solidificado");
         LangEntries.block("core_catcher", "Core Catcher", "Recogedor del núcleo");
+        LangEntries.block("containment_door", "Containment Door", "Puerta de contención");
+        LangEntries.add("create_nuclearindustry.ponder.containment_door.header", "The Containment Door", "La puerta de contención");
+        LangEntries.add("create_nuclearindustry.ponder.containment_door.text_1",
+                "A Containment Door is the way into a containment. Shut, it seals like the wall around it and holds 8 bar.",
+                "Una Puerta de contención es la entrada a una contención. Cerrada, sella como la pared que la rodea y aguanta 8 bar.");
+        LangEntries.add("create_nuclearindustry.ponder.containment_door.text_2",
+                "Click it or give it a redstone signal: it pulls out of its frame and slides sideways along the wall.",
+                "Haz clic en ella o dale una señal de redstone: sale de su marco y se desliza hacia un lado, pegada a la pared.");
+        LangEntries.add("create_nuclearindustry.ponder.containment_door.text_3",
+                "Open, the doorway is a hole: the containment is no longer sealed until the door shuts again.",
+                "Abierta, el hueco es un agujero: la contención deja de estar sellada hasta que la puerta se vuelva a cerrar.");
+        LangEntries.add("create_nuclearindustry.ponder.containment_door.text_4",
+                "While the containment behind it is more than 0.2 bar above the outside, the door is pressure-locked: neither a click nor redstone opens it.",
+                "Mientras la contención tras ella esté a más de 0,2 bar por encima del exterior, la puerta queda bloqueada por presión: no la abre ni un clic ni la redstone.");
+        LangEntries.add("create_nuclearindustry.ponder.containment_door.text_5",
+                "Two doors side by side, hinged on opposite sides, open together and slide apart.",
+                "Dos puertas juntas, con las bisagras en lados opuestos, se abren a la vez y se separan.");
+        LangEntries.add("create_nuclearindustry.containment_door.locked",
+                "Pressure-locked: the containment behind this door is at %s bar",
+                "Bloqueada por presión: la contención tras esta puerta está a %s bar");
 
         String source = "create_nuclearindustry.display_source.";
         LangEntries.add(source + "reactor_containment_pressure", "Containment Pressure", "Presión de la contención");
@@ -244,6 +267,15 @@ final class PwrDataGen extends AreaDataGen {
                 provider.models().cubeAll("solidified_corium", provider.modLoc("block/solidified_corium")));
         provider.simpleBlockWithItem(PwrRegistry.CORE_CATCHER.get(), provider.models().cubeColumn("core_catcher",
                 provider.modLoc("block/core_catcher_side"), provider.modLoc("block/core_catcher_top")));
+
+        // Hand-written full-block halves (door faces north and south); turned for doors facing east or west.
+        // The open states are never drawn as a model: an open door is hidden and its block entity draws it.
+        ModelFile doorBottom = provider.models().getExistingFile(provider.modLoc("block/containment_door_bottom"));
+        ModelFile doorTop = provider.models().getExistingFile(provider.modLoc("block/containment_door_top"));
+        provider.getVariantBuilder(PwrRegistry.CONTAINMENT_DOOR.get()).forAllStatesExcept(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER ? doorBottom : doorTop)
+                .rotationY(state.getValue(DoorBlock.FACING).getAxis() == Direction.Axis.X ? 90 : 0)
+                .build(), DoorBlock.POWERED);
     }
 
     @Override
@@ -251,6 +283,7 @@ final class PwrDataGen extends AreaDataGen {
         provider.withExistingParent("primary_coolant_bucket", ResourceLocation.fromNamespaceAndPath("neoforge", "item/bucket"))
                 .customLoader(DynamicFluidContainerModelBuilder::begin)
                 .fluid(AllNuclearFluids.PRIMARY_COOLANT.get());
+        provider.basicItem(PwrRegistry.CONTAINMENT_DOOR_ITEM.get());
     }
 
     @Override
@@ -258,7 +291,8 @@ final class PwrDataGen extends AreaDataGen {
         var parts = provider.tagFor(MultiblockTags.MULTIBLOCK_PARTS);
         PwrRegistry.PARTS.forEach(block -> parts.add(block.get()));
         provider.tagFor(PwrTags.CORIUM_RESISTANT).add(PwrRegistry.CORE_CATCHER.get());
-        provider.tagFor(BlockTags.NEEDS_IRON_TOOL).add(PwrRegistry.SOLIDIFIED_CORIUM.get(), PwrRegistry.CORE_CATCHER.get());
+        provider.tagFor(BlockTags.NEEDS_IRON_TOOL).add(PwrRegistry.SOLIDIFIED_CORIUM.get(), PwrRegistry.CORE_CATCHER.get(),
+                PwrRegistry.CONTAINMENT_DOOR.get());
     }
 
     @Override
@@ -277,6 +311,7 @@ final class PwrDataGen extends AreaDataGen {
         transmission.add(PwrRegistry.CONTAINMENT_PENETRATION.get().builtInRegistryHolder(), new RadiationTransmission(0.35f), false);
         transmission.add(PwrRegistry.FILTERED_VENT.get().builtInRegistryHolder(), new RadiationTransmission(0.35f), false);
         transmission.add(PwrRegistry.CORE_CATCHER.get().builtInRegistryHolder(), new RadiationTransmission(0.3f), false);
+        transmission.add(PwrRegistry.CONTAINMENT_DOOR.get().builtInRegistryHolder(), new RadiationTransmission(0.4f), false);
         transmission.add(PwrRegistry.CORIUM.get().builtInRegistryHolder(), new RadiationTransmission(0.2f), false);
         transmission.add(PwrRegistry.SOLIDIFIED_CORIUM.get().builtInRegistryHolder(), new RadiationTransmission(0.2f), false);
 
@@ -292,6 +327,8 @@ final class PwrDataGen extends AreaDataGen {
         rating.add(PwrRegistry.CONTAINMENT_PENETRATION.get().builtInRegistryHolder(), new ContainmentRating(6.0f), false);
         rating.add(PwrRegistry.FILTERED_VENT.get().builtInRegistryHolder(), new ContainmentRating(6.0f), false);
         rating.add(PwrRegistry.CORE_CATCHER.get().builtInRegistryHolder(), new ContainmentRating(8.0f), false);
+        // A shut containment door is a steel plug as strong as the liner; open, it has no collision and the room is open.
+        rating.add(PwrRegistry.CONTAINMENT_DOOR.get().builtInRegistryHolder(), new ContainmentRating(8.0f), false);
         // Fittings that stand inside: never the weak point.
         rating.add(PwrRegistry.CONTAINMENT_MONITOR.get().builtInRegistryHolder(), new ContainmentRating(10.0f), false);
         rating.add(PwrRegistry.RECOMBINER.get().builtInRegistryHolder(), new ContainmentRating(10.0f), false);
@@ -310,6 +347,8 @@ final class PwrDataGen extends AreaDataGen {
     void blockLoot(NuclearBlockLoot loot) {
         // Molten fuel cannot be picked up; it has to freeze first.
         loot.addTable(PwrRegistry.CORIUM.get(), LootTable.lootTable());
+        // Like any door: one item, from the lower half.
+        loot.addDoorTable(PwrRegistry.CONTAINMENT_DOOR.get());
     }
 
     @Override

@@ -29,6 +29,8 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 class PlantPonderSchematicTest {
     private static final int MAX_WIDTH = 17, MAX_HEIGHT = 14;
+    /** The overview holds the whole plant and zooms in on its parts, so it may be wider. */
+    private static final int OVERVIEW_MAX_WIDTH = 26;
     private static final Set<String> NAMESPACES = Set.of("minecraft", "create", "create_nuclearindustry");
 
     @Test
@@ -39,15 +41,15 @@ class PlantPonderSchematicTest {
             assertTrue(Files.exists(ponder), "missing " + ponder);
             // The gzip headers carry the file names, so compare what is inside.
             assertArrayEquals(inflate(ponder), inflate(gametest), scene.schematic() + ": GameTest copy differs");
-            check(scene.schematic(), read(ponder));
+            check(scene.schematic(), read(ponder), scene == PlantPonderText.OVERVIEW ? OVERVIEW_MAX_WIDTH : MAX_WIDTH);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static void check(String name, Map<String, Object> root) {
+    private static void check(String name, Map<String, Object> root, int maxWidth) {
         List<Integer> size = (List<Integer>) root.get("size");
         assertEquals(3, size.size(), name);
-        assertTrue(size.get(0) <= MAX_WIDTH && size.get(2) <= MAX_WIDTH && size.get(1) <= MAX_HEIGHT, name + " is too big: " + size);
+        assertTrue(size.get(0) <= maxWidth && size.get(2) <= maxWidth && size.get(1) <= MAX_HEIGHT, name + " is too big: " + size);
         List<Map<String, Object>> palette = (List<Map<String, Object>>) root.get("palette");
         for (Map<String, Object> state : palette) {
             String id = (String) state.get("Name");

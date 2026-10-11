@@ -61,6 +61,7 @@
     "create_nuclearindustry:containment_penetration",
     "create_nuclearindustry:recombiner",
     "create_nuclearindustry:filtered_vent",
+    "create_nuclearindustry:containment_door",
     "create_nuclearindustry:corium",
     "create_nuclearindustry:solidified_corium",
     "create_nuclearindustry:core_catcher",

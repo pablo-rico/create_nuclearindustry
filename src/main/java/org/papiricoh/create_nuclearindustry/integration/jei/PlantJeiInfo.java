@@ -53,6 +53,7 @@ public final class PlantJeiInfo {
         pages.add(items("containment", PwrRegistry.CONTAINMENT_MONITOR_ITEM, PwrRegistry.CONTAINMENT_CONCRETE_ITEM,
                 PwrRegistry.STEEL_LINER_ITEM, PwrRegistry.CONTAINMENT_PENETRATION_ITEM, PwrRegistry.RECOMBINER_ITEM,
                 PwrRegistry.FILTERED_VENT_ITEM));
+        pages.add(items("containment_door", PwrRegistry.CONTAINMENT_DOOR_ITEM));
         pages.add(items("corium", PwrRegistry.CORE_CATCHER_ITEM, PwrRegistry.CORIUM_ITEM, PwrRegistry.SOLIDIFIED_CORIUM_ITEM));
 
         // Tokamak heating and viewports (text in PlasmaHeatingDataGen)

@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ContainmentDoorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ControlRoomScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CoolingTowerScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CryoplantScenes;
@@ -81,14 +82,19 @@ public class AllNuclearPonderScenes {
             helper.addStoryBoard(id(part), "fusion_turbine", TurbineScenes::plasma);
         }
         registerPlantSeries(helper);
+        // After the series, so a containment part shows the plant scenes first.
+        for (String part : new String[]{"containment_door", "containment_concrete", "steel_liner"}) {
+            helper.addStoryBoard(id(part), "containment_door", ContainmentDoorScenes::door);
+        }
     }
 
     /**
      * The "Nuclear power plant" series. Ponder chains the scenes of one item in the order they are
      * registered, so registering scene by scene keeps the series in order on every item that has more
-     * than one of them; the hubs (reactor and steam generator controllers) show all four.
+     * than one of them; the hubs (reactor and steam generator controllers) show all five, the overview first.
      */
     private static void registerPlantSeries(PonderSceneRegistrationHelper<ResourceLocation> helper) {
+        storyBoard(helper, PlantPonderText.OVERVIEW, PlantScenes::overview);
         storyBoard(helper, PlantPonderText.HEAT_LOOP, PlantScenes::heatLoop);
         storyBoard(helper, PlantPonderText.GENERATION, PlantScenes::generation);
         storyBoard(helper, PlantPonderText.CONTROL_SAFETY, PlantScenes::controlSafety);

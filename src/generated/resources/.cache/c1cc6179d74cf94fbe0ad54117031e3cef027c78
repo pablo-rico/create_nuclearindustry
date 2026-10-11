@@ -1,6 +1,6 @@
-// 1.21.1	2026-10-10T23:23:33.3762731	Tags for minecraft:block mod id create_nuclearindustry
+// 1.21.1	2026-10-11T01:21:24.8482569	Tags for minecraft:block mod id create_nuclearindustry
 b444c1d838bae204ace8fd4674392929770421b8 data/create/tags/block/non_movable.json
-0454ae00544051e8611674300892a74680eac686 data/create/tags/block/wrench_pickup.json
+fce3dcc2c3838e02eb2ea8819ea1afbf631f4480 data/create/tags/block/wrench_pickup.json
 bce5e218645841b3172395ca85ae24280b9c0d6d data/create_nuclearindustry/tags/block/blast_fragile.json
 8fd7d8f62a632cfb58ecd89836dd7c9da1fa0161 data/create_nuclearindustry/tags/block/corium_resistant.json
 8176e2ab467bd7e4b8722490ce7a67d6ee09c92e data/create_nuclearindustry/tags/block/geologically_storable.json
@@ -12,6 +12,6 @@ cf92bb0e0810d0a26ff3410c0f599ec9789139f4 data/c/tags/block/ores.json
 b2f76fecb3b121b7a7098ece381b67641b49ca6f data/c/tags/block/ores/lithium.json
 2837118acc6a75ab17eaf2b1ef96d6e65c63b2ce data/c/tags/block/ores/uranium.json
 f1ae54c57108c6d03454a4136585b51bfb10bb6c data/minecraft/tags/block/impermeable.json
-9a4a6381e36607d60faf04ff8e338aae52fb6e8b data/minecraft/tags/block/mineable/pickaxe.json
+274dab9ba5803477d8b05c6138ba9e19406a2fe4 data/minecraft/tags/block/mineable/pickaxe.json
 89d93d5ba89088857f5aa01bbafe3b19ea8f7688 data/minecraft/tags/block/mineable/shovel.json
-d3946ebe4fb05fb430da39c9e6e574cd5beb2456 data/minecraft/tags/block/needs_iron_tool.json
+ffb6e0f4e49a945d0233b49cea7d6f7c8ab7f1e3 data/minecraft/tags/block/needs_iron_tool.json

@@ -24,6 +24,7 @@ public final class PwrConfig {
     private static ModConfigSpec.DoubleValue SG_MAX_PRESSURE;
     private static ModConfigSpec.IntValue CONTAINMENT_MAX_VOLUME;
     private static ModConfigSpec.IntValue CONTAINMENT_CELLS_PER_TICK;
+    private static ModConfigSpec.DoubleValue CONTAINMENT_DOOR_INTERLOCK;
     private static ModConfigSpec.DoubleValue MOLES_PER_MB;
     private static ModConfigSpec.DoubleValue CONDENSATION;
     private static ModConfigSpec.DoubleValue RECOMBINER_RATE;
@@ -61,6 +62,7 @@ public final class PwrConfig {
     public static double steamGeneratorMaxPressure = 120.0;
     public static int containmentMaxVolume = 32_768;
     public static int containmentCellsPerTick = 4_096;
+    public static double containmentDoorInterlock = 0.2;
     public static double molesPerMb = 10.0;
     public static double condensation = 0.05;
     public static double recombinerRate = 40.0;
@@ -139,6 +141,10 @@ public final class PwrConfig {
         CONTAINMENT_CELLS_PER_TICK = builder
                 .comment("Blocks a Containment Monitor checks per tick while it measures its building, to spread the work.")
                 .defineInRange("pwr.containment.cellsPerTick", 4_096, 64, 65_536);
+        CONTAINMENT_DOOR_INTERLOCK = builder
+                .comment("Overpressure, in bar above the outside, at which a Containment Door in a sealed containment's wall stays shut.",
+                        "0 turns the interlock off.")
+                .defineInRange("pwr.containment.doorInterlock", 0.2, 0.0, 100.0);
         MOLES_PER_MB = builder
                 .comment("Gas one mB of reactor coolant makes when it flashes to steam in a containment, in mol.",
                         "Real water makes 55; the default keeps game-sized buildings within their ratings.")
@@ -221,6 +227,7 @@ public final class PwrConfig {
         steamGeneratorMaxPressure = Math.max(SG_MAX_PRESSURE.get(), SG_MIN_PRESSURE.get());
         containmentMaxVolume = CONTAINMENT_MAX_VOLUME.get();
         containmentCellsPerTick = CONTAINMENT_CELLS_PER_TICK.get();
+        containmentDoorInterlock = CONTAINMENT_DOOR_INTERLOCK.get();
         molesPerMb = MOLES_PER_MB.get();
         condensation = CONDENSATION.get();
         recombinerRate = RECOMBINER_RATE.get();

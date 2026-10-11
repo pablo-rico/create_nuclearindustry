@@ -12,6 +12,9 @@
     "create_nuclearindustry:containment_concrete": {
       "transmission": 0.3
     },
+    "create_nuclearindustry:containment_door": {
+      "transmission": 0.4
+    },
     "create_nuclearindustry:containment_penetration": {
       "transmission": 0.35
     },

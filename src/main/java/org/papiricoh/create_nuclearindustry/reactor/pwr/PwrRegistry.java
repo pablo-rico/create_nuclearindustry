@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.reactor.pwr;
 
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.DoubleHighBlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -8,6 +9,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.bus.api.IEventBus;
@@ -28,6 +30,8 @@ import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.ContainmentP
 import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.ContainmentPenetrationBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.ContainmentRating;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.FilteredVentBlock;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.door.ContainmentDoorBlock;
+import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.door.ContainmentDoorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.steamgen.SteamGeneratorControllerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.steamgen.SteamGeneratorControllerBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.steamgen.SteamGeneratorPortBlock;
@@ -71,6 +75,10 @@ public final class PwrRegistry implements NuclearFeature {
     public static final DeferredHolder<Block, FilteredVentBlock> FILTERED_VENT = block("filtered_vent", FilteredVentBlock::new,
             BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(4.0f, 30.0f).requiresCorrectToolForDrops());
 
+    /** A two-high steel door that seals the containment wall when shut; see {@link ContainmentDoorBlock}. */
+    public static final DeferredHolder<Block, ContainmentDoorBlock> CONTAINMENT_DOOR = block("containment_door", ContainmentDoorBlock::new,
+            steel().strength(6.0f, 30.0f).sound(SoundType.NETHERITE_BLOCK).noOcclusion().pushReaction(PushReaction.BLOCK));
+
     // ---------------------------------------------------------------- accidents
     public static final DeferredHolder<Block, CoriumBlock> CORIUM = block("corium", CoriumBlock::new,
             BlockBehaviour.Properties.of().mapColor(MapColor.FIRE).strength(-1.0f, 3_600_000.0f)
@@ -98,6 +106,8 @@ public final class PwrRegistry implements NuclearFeature {
     public static final DeferredHolder<Item, BlockItem> CONTAINMENT_PENETRATION_ITEM = item(CONTAINMENT_PENETRATION);
     public static final DeferredHolder<Item, BlockItem> RECOMBINER_ITEM = item(RECOMBINER);
     public static final DeferredHolder<Item, BlockItem> FILTERED_VENT_ITEM = item(FILTERED_VENT);
+    public static final DeferredHolder<Item, DoubleHighBlockItem> CONTAINMENT_DOOR_ITEM = AllNuclearItems.ITEMS.register("containment_door",
+            () -> new DoubleHighBlockItem(CONTAINMENT_DOOR.get(), new Item.Properties()));
     /** Not in the creative tab; it exists so the radiation data map can rate the block. */
     public static final DeferredHolder<Item, BlockItem> CORIUM_ITEM = item(CORIUM);
     public static final DeferredHolder<Item, BlockItem> SOLIDIFIED_CORIUM_ITEM = item(SOLIDIFIED_CORIUM);
@@ -116,6 +126,11 @@ public final class PwrRegistry implements NuclearFeature {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ContainmentPenetrationBlockEntity>> CONTAINMENT_PENETRATION_ENTITY =
             AllNuclearEntities.ENTITIES.register("containment_penetration", () -> BlockEntityType.Builder.of(
                     ContainmentPenetrationBlockEntity::new, CONTAINMENT_PENETRATION.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ContainmentDoorBlockEntity>> CONTAINMENT_DOOR_ENTITY =
+            AllNuclearEntities.ENTITIES.register("containment_door", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new ContainmentDoorBlockEntity(PwrRegistry.CONTAINMENT_DOOR_ENTITY.get(), pos, state),
+                    CONTAINMENT_DOOR.get()).build(null));
 
     /** Every block of the pressurizer and the steam generator: multiblock parts, all mined with a pickaxe. */
     public static final List<Supplier<? extends Block>> PARTS = List.of(PRESSURIZER, PRESSURIZER_HEATER_PORT, RELIEF_VALVE,
@@ -169,6 +184,7 @@ public final class PwrRegistry implements NuclearFeature {
         output.accept(CONTAINMENT_PENETRATION_ITEM.get());
         output.accept(RECOMBINER_ITEM.get());
         output.accept(FILTERED_VENT_ITEM.get());
+        output.accept(CONTAINMENT_DOOR_ITEM.get());
         output.accept(CORE_CATCHER_ITEM.get());
         output.accept(SOLIDIFIED_CORIUM_ITEM.get());
     }

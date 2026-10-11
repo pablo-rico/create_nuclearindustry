@@ -31,6 +31,25 @@ import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 @PrefixGameTestTemplate(false)
 public class PlantPonderSchematicTests {
 
+    /** The overview's plant is real: reactor with pressurizer, steam generator, turbine, tower and a sealed containment. */
+    @GameTest(template = "gametest/plant_overview_ponder", timeoutTicks = 300)
+    public static void overviewSchematicIsAWorkingPlant(GameTestHelper helper) {
+        helper.succeedWhen(() -> {
+            ReactorBlockEntity reactor = at(helper, new BlockPos(5, 6, 8), ReactorBlockEntity.class);
+            SteamGeneratorControllerBlockEntity generator = at(helper, new BlockPos(12, 3, 6), SteamGeneratorControllerBlockEntity.class);
+            CoolingTowerControllerBlockEntity tower = at(helper, new BlockPos(20, 3, 12), CoolingTowerControllerBlockEntity.class);
+            ContainmentMonitorBlockEntity monitor = at(helper, new BlockPos(8, 2, 12), ContainmentMonitorBlockEntity.class);
+            var turbine = TurbineStructureValidator.validate(helper.getLevel(), helper.absolutePos(new BlockPos(22, 3, 7)), TurbineTier.STEAM);
+            helper.assertTrue(reactor != null && reactor.isFormed(), "the overview's reactor forms");
+            helper.assertTrue(reactor.hasPressurizer(), "with the pressurizer on its lid");
+            helper.assertTrue(generator != null && generator.isFormed(), "its steam generator forms");
+            helper.assertTrue(turbine.formed(), "its turbine forms: " + turbine.primaryMessage());
+            helper.assertTrue(tower != null && tower.getStructure().isPresent(),
+                    "its cooling tower forms: " + (tower == null ? "missing" : tower.getValidationMessage()));
+            helper.assertTrue(monitor != null && monitor.sealed(), "and its containment is sealed, penetrations and all");
+        });
+    }
+
     @GameTest(template = "gametest/plant_heat_ponder", timeoutTicks = 200)
     public static void heatLoopSchematicForms(GameTestHelper helper) {
         helper.succeedWhen(() -> {

@@ -12,6 +12,9 @@
     "create_nuclearindustry:containment_concrete": {
       "bar": 6.0
     },
+    "create_nuclearindustry:containment_door": {
+      "bar": 8.0
+    },
     "create_nuclearindustry:containment_monitor": {
       "bar": 10.0
     },

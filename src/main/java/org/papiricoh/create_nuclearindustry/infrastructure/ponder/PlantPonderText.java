@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Text and wiring of the "Nuclear power plant" Ponder series: the ponder tag, the four chained
- * scenes with every line in English and Spanish, and the items each scene is reached from.
+ * Text and wiring of the "Nuclear power plant" Ponder series: the ponder tag, the chained scenes
+ * (an overview of the whole plant, then four on its parts) with every line in English and
+ * Spanish, and the items each scene is reached from.
  *
  * <p>Pure Java on purpose: the scenes ({@code PlantScenes}) take their lines from here in the
  * order they show them, the datagen writes the lang keys from the same lists, and JUnit checks
@@ -64,6 +65,38 @@ public final class PlantPonderText {
 
     /** Items that open every scene of the series, in order. */
     public static final List<String> HUBS = List.of("reactor_controller", "steam_generator_controller");
+
+    public static final Scene OVERVIEW = new Scene("plant_overview", "plant_overview",
+            line("The Whole Plant", "La central completa"),
+            List.of(
+                    line("A nuclear power plant is a chain of machines joined by pipes and shafts. Here it is whole: each step zooms in on one part and how it joins the next.",
+                            "Una central nuclear es una cadena de máquinas unidas por tuberías y ejes. Aquí está completa: en cada paso la cámara se acerca a una parte y a cómo se une con la siguiente."),
+                    line("The reactor and its steam generator stand inside the containment, a sealed room of Containment Concrete with a Containment Door to walk in. From here on it is shown cut away.",
+                            "El reactor y su generador de vapor están dentro de la contención, una sala estanca de Hormigón de contención con una Puerta de contención para entrar. A partir de aquí se muestra cortada."),
+                    line("In the primary loop a pump carries the hot Primary Coolant from the reactor's OUTPUT port to the steam generator's primary in...",
+                            "En el circuito primario, una bomba lleva el Refrigerante primario caliente del puerto de SALIDA del reactor a la entrada del primario del generador de vapor..."),
+                    line("...and a second pump brings it back from primary out to the reactor's INPUT port. The Pressurizer on the lid keeps the loop under pressure.",
+                            "...y una segunda bomba lo devuelve desde la salida del primario al puerto de ENTRADA del reactor. El Presionador de la tapa mantiene el circuito a presión."),
+                    line("Pipes may only leave the containment through Containment Penetrations: one for the steam line, one for the feedwater.",
+                            "Las tuberías solo pueden salir de la contención por Penetraciones de contención: una para la línea de vapor y otra para el agua de alimentación."),
+                    line("The steam line runs from the Steam Out port on top of the steam generator, through its penetration and a pump, into the turbine's INPUT port.",
+                            "La línea de vapor va desde el puerto de salida de vapor, encima del generador de vapor, por su penetración y una bomba, hasta el puerto de ENTRADA de la turbina."),
+                    line("The Turbine Output turns the shaft at the turbine's end: take the rotation from there to your machines.",
+                            "La Salida de turbina hace girar el eje del extremo de la turbina: lleva desde ahí la rotación a tus máquinas."),
+                    line("The turbine's Exhaust Port sends the spent steam, through another pump, to the Cooling Tower's INPUT port.",
+                            "El Puerto de escape de la turbina envía el vapor gastado, con otra bomba, al puerto de ENTRADA de la torre de refrigeración."),
+                    line("The tower condenses it into water. From its OUTPUT port a pump sends the water through the other penetration to the steam generator's feedwater port: the loop is closed.",
+                            "La torre lo condensa en agua. Desde su puerto de SALIDA, una bomba lleva el agua por la otra penetración hasta el puerto de agua de alimentación del generador de vapor: el circuito se cierra."),
+                    line("The control room runs it all from a distance: link its desks, annunciator and chart recorder to the reactor with the Control Room Linker.",
+                            "La sala de control lo maneja todo a distancia: enlaza sus pupitres, el anunciador y el registrador gráfico al reactor con el Enlazador de sala de control."),
+                    line("Spent fuel taken out of the reactor goes into the racks at the bottom of the pool, under water, with a Pool Cooler to carry off its heat.",
+                            "El combustible gastado que sale del reactor va a los bastidores del fondo de la piscina, bajo el agua, con un Refrigerador de piscina que se lleva su calor."),
+                    line("Once it has cooled, move it to Dry Storage Casks or send it to reprocessing.",
+                            "Cuando se ha enfriado, pásalo a Contenedores de almacenamiento en seco o mándalo a reprocesar."),
+                    line("That is the whole plant, running. The next scenes explain each part in detail.",
+                            "Esta es la central completa, en marcha. Las siguientes escenas explican cada parte en detalle.")),
+            List.of("turbine_output", "cooling_tower_controller", "containment_concrete", "containment_penetration",
+                    "spent_fuel_rack", "reactor_control_panel"));
 
     public static final Scene HEAT_LOOP = new Scene("plant_heat_loop", "plant_heat",
             line("The Pressurized Primary Loop", "El circuito primario a presión"),
@@ -197,10 +230,10 @@ public final class PlantPonderText {
                     "cemented_waste_drum", "vitrified_waste_canister", "bentonite", "repository_inspector", "radioactive_waste_barrel"));
 
     /** The series, in the order Ponder chains it. */
-    public static final List<Scene> SCENES = List.of(HEAT_LOOP, GENERATION, CONTROL_SAFETY, WASTE);
+    public static final List<Scene> SCENES = List.of(OVERVIEW, HEAT_LOOP, GENERATION, CONTROL_SAFETY, WASTE);
 
     /** Plant parts with no scene of the series of their own that still belong under the tag. */
-    private static final List<String> OTHER_PARTS = List.of("reactor_casing", "reactor_fuel_port", "control_rod", "heat_exchanger",
+    private static final List<String> OTHER_PARTS = List.of("containment_door", "reactor_casing", "reactor_fuel_port", "control_rod", "heat_exchanger",
             "turbine_casing", "turbine_rotor", "reinforced_turbine_glass", "cooling_tower_casing", "cooling_tower_fan",
             "control_monitor", "nuclear_alarm", "lever_module", "lamp_module", "gauge_module", "key_switch_module");
 

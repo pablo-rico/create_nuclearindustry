@@ -11,7 +11,7 @@ from common import bolt, casing, cracks, port_face
 from gui import gui  # noqa: F401
 from items import item  # noqa: F401
 from palette import BRASS, CONCRETE, COPPER, CYAN, DANGER, DARK, MIMIC_BLUE, PLASMA, RADIUM, STEEL, WARN, WHITE
-from pixelkit import Tex, bevel, brushed, fbm, glow, mix, outline, plate, rivet, vents
+from pixelkit import Tex, bevel, brushed, fbm, glow, hazard, mix, outline, plate, rivet, vents
 from reactor_materials import STEEL as REACTOR_STEEL
 
 
@@ -500,4 +500,103 @@ def core_catcher_top():
         for x in range(0, 16, 4):
             t.vline(x + (2 if row % 2 else 0), row * 4 + 1, row * 4 + 3, CONCRETE[3])
     outline(t, 0, 0, 15, 15, CONCRETE[1])
+    return t
+
+
+# ======================================================================================
+# containment door: a steel plug door, two blocks high, that slides into the wall
+# ======================================================================================
+
+def _door_leaf(seed):
+    """Brushed steel plate inside a heavy frame, lit from the top-left."""
+    t = Tex(seed=seed)
+    brushed(t, STEEL, base=3.3, amp=0.6, seed=seed, axis="v")
+    for i in range(16):
+        t.set(0, i, STEEL[5])
+        t.set(1, i, STEEL[4])
+        t.set(14, i, STEEL[1])
+        t.set(15, i, STEEL[0])
+    return t
+
+
+@block("containment_door_top")
+def containment_door_top():
+    t = _door_leaf(350)
+    for x in range(16):
+        t.set(x, 0, STEEL[5])
+        t.set(x, 1, STEEL[4])
+    # Porthole: thick glass in a bolted ring, the plasma-free dark of the hall behind it.
+    t.disc(8, 7, 4.6, STEEL[1])
+    t.ring(8, 7, 4.6, 3.8, STEEL[5])
+    t.disc(8, 7, 3.2, DARK[1])
+    t.ring(8, 7, 3.2, 2.6, CYAN[2])
+    t.set(6, 5, CYAN[5])
+    t.set(7, 5, CYAN[4])
+    t.set(6, 6, CYAN[4])
+    for a in range(0, 360, 60):
+        r = math.radians(a + 30)
+        t.set(round(8 + math.cos(r) * 4.2 - 0.5), round(7 + math.sin(r) * 4.2 - 0.5), STEEL[6])
+    # Warning plate under the porthole.
+    t.rect(4, 13, 11, 14, WARN[4])
+    t.hline(4, 11, 13, WARN[5])
+    t.set(6, 14, DARK[0])
+    t.set(8, 14, DARK[0])
+    t.set(10, 14, DARK[0])
+    return t
+
+
+@block("containment_door_bottom")
+def containment_door_bottom():
+    t = _door_leaf(351)
+    # Hand wheel that drives the latch bolts.
+    t.ring(8, 5, 4.4, 3.5, DANGER[3])
+    t.ring(8, 5, 4.6, 4.3, DANGER[1])
+    for x0, y0, x1, y1 in ((8, 1, 8, 9), (4, 5, 12, 5)):
+        t.line(x0, y0, x1, y1, DANGER[2])
+    t.disc(8, 5, 1.4, STEEL[5])
+    t.set(7, 4, DANGER[6])
+    # Hazard band along the sill, where the door seals on its frame.
+    hazard(t, 0, 11, 15, 13, WARN[4], DARK[1], period=4, seed=351)
+    for x in range(16):
+        t.set(x, 10, STEEL[1])
+        t.set(x, 14, STEEL[2])
+        t.set(x, 15, STEEL[0])
+    for x in (3, 12):
+        rivet(t, x, 8, STEEL)
+    return t
+
+
+@block("containment_door_side")
+def containment_door_side():
+    # The door's edge: steel with the rubber gasket that seals it in the middle.
+    t = Tex(seed=352)
+    brushed(t, STEEL, base=3.0, amp=0.5, seed=352, axis="v")
+    for y in range(16):
+        t.set(6, y, DARK[1])
+        t.set(7, y, DARK[0])
+        t.set(8, y, DARK[0])
+        t.set(9, y, DARK[2])
+    for y in (2, 7, 12):
+        t.set(3, y, STEEL[6])
+        t.set(12, y, STEEL[6])
+    return t
+
+
+@item("containment_door")
+def containment_door_item():
+    # The two halves stacked, as vanilla shows its doors.
+    t = Tex(seed=353)
+    t.rect(3, 0, 12, 15, STEEL[3])
+    for y in range(16):
+        t.set(3, y, STEEL[5])
+        t.set(12, y, STEEL[1])
+    for x in range(3, 13):
+        t.set(x, 0, STEEL[5])
+        t.set(x, 15, STEEL[0])
+    t.disc(7.5, 3.5, 2.2, DARK[1])
+    t.ring(7.5, 3.5, 2.4, 1.7, STEEL[5])
+    t.set(7, 3, CYAN[4])
+    t.ring(7.5, 9.5, 2.6, 1.8, DANGER[3])
+    t.set(7, 9, STEEL[5])
+    hazard(t, 4, 13, 11, 14, WARN[4], DARK[1], period=4, seed=353)
     return t

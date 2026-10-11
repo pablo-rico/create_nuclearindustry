@@ -37,20 +37,216 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleFunction;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.PlantPonderText;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.PlantPonderText.Script;
+import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.CoriumBlock;
 import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 
 /**
- * The "Nuclear power plant" series: four chained scenes that follow the heat from the core to
- * the turbine, then the control room and containment around it, then the spent fuel and the
- * waste it leaves. Geometry lives in {@code ponder/plant_*.nbt} (tools/structgen/ponder_plant_*.py);
+ * The "Nuclear power plant" series: an overview of the whole plant, then four chained scenes
+ * that follow the heat from the core to the turbine, then the control room and containment
+ * around it, then the spent fuel and the waste it leaves. Geometry lives in {@code ponder/plant_*.nbt} (tools/structgen/ponder_plant_*.py);
  * every text box takes the next line of {@link PlantPonderText}, whose lists also feed the lang
  * keys. Block entities only get their looks here (desk modules, annunciator windows, a chart),
  * through NBT, so nothing in a scene depends on a running machine.
  */
 public class PlantScenes {
     private static final int KINETIC = 64;
+
+    // ------------------------------------------------------------------ 0. the whole plant
+
+    private static final int PLANT_SIZE = 26;
+    private static final PonderZoom.View WHOLE_PLANT = new PonderZoom.View(0.22f, 13, 13, 0.0f);
+    private static final PonderZoom.View CONTAINMENT_VIEW = new PonderZoom.View(0.65f, 8, 7, 0.0f);
+    private static final PonderZoom.View TURBINE_VIEW = new PonderZoom.View(0.85f, 19, 7, 0.0f);
+    private static final PonderZoom.View EXHAUST_VIEW = new PonderZoom.View(0.6f, 18, 12, -1.0f);
+    private static final PonderZoom.View FEED_VIEW = new PonderZoom.View(0.6f, 13, 13, 0.0f);
+    private static final PonderZoom.View CONTROL_VIEW = new PonderZoom.View(1.1f, 19, 2, 0.0f);
+    private static final PonderZoom.View POOL_VIEW = new PonderZoom.View(0.8f, 6, 19, 0.0f);
+    private static final int ZOOM_TICKS = 30;
+
+    /**
+     * Every part of the plant on one site ({@code ponder/plant_overview.nbt},
+     * tools/structgen/ponder_plant_overview.py), joined as a player joins them. The camera starts on
+     * the whole site and zooms in on each connection in turn ({@link PonderZoom}); the containment is
+     * shown whole once and cut away after that.
+     */
+    public static void overview(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        PlantPonderText.Scene text = PlantPonderText.OVERVIEW;
+        Script lines = text.script();
+        scene.title(text.id(), text.title().english());
+        scene.configureBasePlate(0, 0, PLANT_SIZE);
+        scene.scaleSceneView(WHOLE_PLANT.scale());
+        scene.removeShadow();
+        PonderZoom.start(scene, WHOLE_PLANT);
+
+        Selection shell = util.select().fromTo(1, 1, 1, 15, 10, 13)
+                .substract(util.select().fromTo(2, 1, 2, 14, 9, 12))
+                .substract(util.select().position(15, 5, 7))
+                .substract(util.select().position(10, 2, 13));
+        Selection plant = util.select().fromTo(0, 1, 0, PLANT_SIZE - 1, 13, PLANT_SIZE - 1).substract(shell);
+        BlockPos reactorController = util.grid().at(5, 5, 8);
+        BlockPos hotPort = util.grid().at(6, 3, 6);
+        BlockPos coldPort = util.grid().at(4, 2, 6);
+        BlockPos pressurizer = util.grid().at(3, 7, 6);
+        BlockPos steamOut = util.grid().at(12, 4, 7);
+        BlockPos steamPenetration = util.grid().at(15, 5, 7);
+        BlockPos feedPenetration = util.grid().at(10, 2, 13);
+        BlockPos turbineInput = util.grid().at(20, 3, 7);
+        BlockPos turbineOutput = util.grid().at(22, 2, 7);
+        BlockPos exhaust = util.grid().at(20, 2, 8);
+        BlockPos towerInput = util.grid().at(17, 2, 13);
+        BlockPos towerOutput = util.grid().at(16, 2, 16);
+        BlockPos desk = util.grid().at(18, 1, 1);
+        BlockPos rack = util.grid().at(4, 1, 18);
+        BlockPos cask = util.grid().at(9, 1, 18);
+
+        Selection hotLeg = util.select().fromTo(6, 3, 5, 11, 3, 5);
+        Selection coldLeg = util.select().fromTo(4, 2, 3, 13, 2, 3).add(util.select().fromTo(4, 2, 4, 4, 2, 5))
+                .add(util.select().fromTo(13, 2, 4, 13, 2, 5));
+        Selection steamLine = util.select().fromTo(12, 5, 7, 20, 5, 7).add(util.select().position(20, 4, 7));
+        Selection exhaustLine = util.select().fromTo(20, 2, 9, 20, 2, 11).add(util.select().fromTo(17, 2, 11, 19, 2, 11))
+                .add(util.select().position(17, 2, 12));
+        Selection feedLine = util.select().fromTo(10, 2, 7, 10, 2, 14).add(util.select().fromTo(11, 2, 14, 15, 2, 14))
+                .add(util.select().fromTo(15, 2, 15, 15, 2, 16));
+
+        // The whole site, the containment closed.
+        scene.showBasePlate();
+        scene.idle(10);
+        scene.world().showSection(plant, Direction.DOWN);
+        scene.idle(10);
+        ElementLink<WorldSectionElement> walls = scene.world().showIndependentSection(shell, Direction.DOWN);
+        scene.idle(20);
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(util.grid().at(20, 12, 16)))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+
+        // 1. The containment, then cut away to see inside.
+        PonderZoom.to(scene, CONTAINMENT_VIEW, ZOOM_TICKS);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(util.grid().at(8, 10, 7)))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+        scene.world().hideIndependentSection(walls, Direction.UP);
+        scene.idle(25);
+
+        // 2. The primary loop.
+        scene.world().setKineticSpeed(util.select().fromTo(8, 3, 5, 9, 4, 5), KINETIC);
+        scene.world().setKineticSpeed(util.select().fromTo(9, 2, 3, 10, 3, 3), KINETIC);
+        scene.overlay().showOutline(PonderPalette.RED, "hot_leg", hotLeg.copy().add(util.select().position(hotPort)), 100);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .colored(PonderPalette.RED)
+                .pointAt(util.vector().blockSurface(hotPort, Direction.NORTH))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showOutline(PonderPalette.BLUE, "cold_leg", coldLeg.copy().add(util.select().position(coldPort)), 100);
+        scene.overlay().showOutline(PonderPalette.WHITE, "pressurizer", util.select().fromTo(3, 6, 6, 3, 8, 6), 100);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .colored(PonderPalette.BLUE)
+                .pointAt(util.vector().blockSurface(pressurizer, Direction.WEST))
+                .placeNearTarget();
+        scene.idle(110);
+        scene.overlay().showOutline(PonderPalette.GREEN, "penetrations",
+                util.select().position(steamPenetration).add(util.select().position(feedPenetration)), 100);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(steamPenetration, Direction.UP))
+                .placeNearTarget();
+        scene.idle(110);
+
+        // 3. Steam to the turbine.
+        PonderZoom.to(scene, TURBINE_VIEW, ZOOM_TICKS);
+        scene.world().setKineticSpeed(util.select().fromTo(16, 5, 7, 17, 6, 7), KINETIC);
+        scene.overlay().showOutline(PonderPalette.WHITE, "steam", steamLine.copy().add(util.select().position(steamOut))
+                .add(util.select().position(turbineInput)), 100);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(util.grid().at(18, 5, 7)))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+        scene.world().setKineticSpeed(util.select().fromTo(22, 2, 7, 24, 2, 7), 2 * KINETIC);
+        scene.overlay().showText(90)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(turbineOutput, Direction.UP))
+                .placeNearTarget();
+        scene.idle(100);
+
+        // 4. Exhaust to the cooling tower, seen from the east: from the north-west the turbine hides it.
+        PonderZoom.to(scene, EXHAUST_VIEW, ZOOM_TICKS);
+        PonderCamera.showEast(scene);
+        scene.world().setKineticSpeed(util.select().fromTo(20, 2, 9, 20, 3, 10), KINETIC);
+        scene.overlay().showOutline(PonderPalette.OUTPUT, "exhaust", exhaustLine.copy().add(util.select().position(exhaust))
+                .add(util.select().position(towerInput)), 100);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(towerInput, Direction.NORTH))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+        Vec3 top = util.vector().topOf(util.grid().at(20, 12, 16));
+        scene.effects().emitParticles(top, scene.effects().simpleParticleEmitter(ParticleTypes.CLOUD, new Vec3(0, 0.08, 0)), 2, 100);
+        // ...and the water back as feedwater, from the north-west again across the open containment.
+        PonderCamera.backFromEast(scene);
+        PonderZoom.to(scene, FEED_VIEW, ZOOM_TICKS);
+        scene.world().setKineticSpeed(util.select().fromTo(12, 2, 14, 13, 3, 14), KINETIC);
+        scene.overlay().showOutline(PonderPalette.BLUE, "feed", feedLine.copy().add(util.select().position(towerOutput)), 110);
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .colored(PonderPalette.BLUE)
+                .pointAt(util.vector().blockSurface(towerOutput, Direction.WEST))
+                .placeNearTarget();
+        scene.idle(120);
+
+        // 5. The control room.
+        PonderZoom.to(scene, CONTROL_VIEW, ZOOM_TICKS);
+        scene.overlay().showOutline(PonderPalette.WHITE, "control", util.select().fromTo(18, 1, 1, 19, 1, 3), 90);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(desk, Direction.NORTH))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+
+        // 6. Spent fuel.
+        PonderZoom.to(scene, POOL_VIEW, ZOOM_TICKS);
+        scene.world().setKineticSpeed(util.select().fromTo(6, 1, 21, 6, 6, 21), KINETIC);
+        scene.overlay().showControls(util.vector().topOf(rack), Pointing.DOWN, 60)
+                .withItem(new ItemStack(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get()));
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(rack))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showOutline(PonderPalette.WHITE, "casks", util.select().fromTo(9, 1, 18, 9, 1, 20), 80);
+        scene.overlay().showText(80)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(cask))
+                .placeNearTarget();
+        scene.idle(90);
+
+        // 7. The whole site again, running.
+        PonderZoom.to(scene, WHOLE_PLANT, ZOOM_TICKS);
+        scene.world().modifyBlock(reactorController, state -> state.hasProperty(NuclearReactorControllerBlock.ON)
+                ? state.setValue(NuclearReactorControllerBlock.ON, true) : state, false);
+        scene.effects().emitParticles(top, scene.effects().simpleParticleEmitter(ParticleTypes.CLOUD, new Vec3(0, 0.08, 0)), 2, 100);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(reactorController))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+    }
 
     // ------------------------------------------------------------------ 1. the primary loop
 

@@ -56,6 +56,16 @@ public class ContainmentCraftingRecipes extends RecipeProvider {
                 .define('F', CreateItems.get("fluid_pipe"))
                 .unlockedBy("has_containment_concrete", has(PwrRegistry.CONTAINMENT_CONCRETE_ITEM.get()))
                 .save(output, id("crafting/containment_penetration"));
+        // Steel liner plate around an iron door, geared to a precision mechanism that drives it.
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, PwrRegistry.CONTAINMENT_DOOR_ITEM.get())
+                .pattern("LL")
+                .pattern("DM")
+                .pattern("LL")
+                .define('L', PwrRegistry.STEEL_LINER_ITEM.get())
+                .define('D', Items.IRON_DOOR)
+                .define('M', CreateItems.get("precision_mechanism"))
+                .unlockedBy("has_steel_liner", has(PwrRegistry.STEEL_LINER_ITEM.get()))
+                .save(output, id("crafting/containment_door"));
         // Copper catalyst plates in a steel box with a chimney.
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, PwrRegistry.RECOMBINER_ITEM.get())
                 .pattern(" F ")
