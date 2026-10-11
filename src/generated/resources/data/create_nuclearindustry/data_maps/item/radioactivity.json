@@ -22,6 +22,9 @@
     "create_nuclearindustry:depleted_rtg_pellet": {
       "per_second": 1.0
     },
+    "create_nuclearindustry:depleted_thorium_reactor_fuel": {
+      "per_second": 5.0
+    },
     "create_nuclearindustry:depleted_uranium_reactor_fuel": {
       "per_second": 4.0
     },
@@ -31,9 +34,27 @@
     "create_nuclearindustry:enriched_uranium_blend": {
       "per_second": 0.3
     },
+    "create_nuclearindustry:heavy_mineral_sand": {
+      "per_second": 0.02
+    },
     "create_nuclearindustry:high_level_waste": {
       "heat_per_second": 0.5,
       "per_second": 15.0
+    },
+    "create_nuclearindustry:incomplete_thorium_reactor_fuel": {
+      "per_second": 1.0
+    },
+    "create_nuclearindustry:irradiated_depleted_uranium": {
+      "per_second": 1.5
+    },
+    "create_nuclearindustry:irradiated_thorium": {
+      "per_second": 2.0
+    },
+    "create_nuclearindustry:irradiation_source": {
+      "per_second": 3.0
+    },
+    "create_nuclearindustry:loaded_adsorbent": {
+      "per_second": 0.01
     },
     "create_nuclearindustry:low_level_waste": {
       "per_second": 0.5
@@ -58,6 +79,9 @@
     "create_nuclearindustry:primary_coolant_bucket": {
       "per_second": 0.5
     },
+    "create_nuclearindustry:radioactive_sludge": {
+      "per_second": 0.5
+    },
     "create_nuclearindustry:radioactive_waste": {
       "per_second": 6.0
     },
@@ -77,12 +101,27 @@
     "create_nuclearindustry:spent_fuel_fragments": {
       "per_second": 3.0
     },
+    "create_nuclearindustry:thorium_dioxide": {
+      "per_second": 0.05
+    },
+    "create_nuclearindustry:thorium_fuel_pellet": {
+      "per_second": 0.8
+    },
+    "create_nuclearindustry:thorium_reactor_fuel": {
+      "per_second": 2.0
+    },
+    "create_nuclearindustry:thorium_spent_fragments": {
+      "per_second": 3.0
+    },
     "create_nuclearindustry:tritium_cell": {
       "per_second": 0.05
     },
     "create_nuclearindustry:uranium": {
       "per_second": 1.5,
       "scales_with_enrichment": true
+    },
+    "create_nuclearindustry:uranium_233_dioxide": {
+      "per_second": 2.0
     },
     "create_nuclearindustry:uranium_concentrate": {
       "per_second": 0.02

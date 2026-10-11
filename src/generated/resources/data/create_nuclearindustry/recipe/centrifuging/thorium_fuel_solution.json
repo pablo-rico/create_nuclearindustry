@@ -1,0 +1,28 @@
+{
+  "type": "create_nuclearindustry:centrifuging",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 1000,
+      "fluid": "create_nuclearindustry:thorium_fuel_solution"
+    }
+  ],
+  "processing_time": 300,
+  "results": [
+    {
+      "count": 2,
+      "id": "create_nuclearindustry:thorium_dioxide"
+    },
+    {
+      "id": "create_nuclearindustry:high_level_waste"
+    },
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:uranium_233_nitrate"
+    },
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:nitric_acid"
+    }
+  ]
+}

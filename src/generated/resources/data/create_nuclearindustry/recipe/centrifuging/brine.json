@@ -1,0 +1,25 @@
+{
+  "type": "create_nuclearindustry:centrifuging",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 1000,
+      "fluid": "create_nuclearindustry:brine"
+    }
+  ],
+  "processing_time": 200,
+  "results": [
+    {
+      "chance": 0.6,
+      "id": "create_nuclearindustry:lithium_carbonate"
+    },
+    {
+      "count": 2,
+      "id": "create_nuclearindustry:borax_salt"
+    },
+    {
+      "amount": 500,
+      "id": "minecraft:water"
+    }
+  ]
+}

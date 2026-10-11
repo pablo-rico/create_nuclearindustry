@@ -267,9 +267,18 @@ public class ReactorPhysicsSimulator {
         double weighted = 0.0;
         for (FuelAssembly assembly : assemblies) {
             units += assembly.units;
-            weighted += assembly.units * assembly.reactivity;
+            weighted += assembly.units * reactivityOf(assembly);
         }
         return units <= 0.0 ? 1.0 : weighted / units;
+    }
+
+    /** An assembly's reactivity now: thorium grows more reactive as it breeds uranium-233. */
+    private static double reactivityOf(FuelAssembly assembly) {
+        if (assembly.kind != FuelKind.THORIUM) {
+            return assembly.reactivity;
+        }
+        double burnt = assembly.initialUnits > 0 ? 1.0 - assembly.units / assembly.initialUnits : 1.0;
+        return assembly.reactivity * ThoriumBreeding.reactivityMultiplier(burnt);
     }
 
     /**
@@ -456,12 +465,13 @@ public class ReactorPhysicsSimulator {
         return loadFuelAssembly(FuelKind.URANIUM, enrichment);
     }
 
-    /** Loads one fresh assembly; MOX is loaded at its equivalent enrichment. */
+    /** Loads one fresh assembly; MOX and thorium are loaded at their equivalent enrichment. */
     public boolean loadFuelAssembly(FuelKind kind, float enrichment) {
         if (!canLoadFuelAssembly()) {
             return false;
         }
-        double units = fuelUnitsFor(enrichment);
+        // Thorium breeds part of what it burns, so it lasts longer than the uranium it is rated as.
+        double units = fuelUnitsFor(enrichment) * (kind == FuelKind.THORIUM ? ThoriumBreeding.LIFE_FACTOR : 1.0);
         assemblies.addLast(new FuelAssembly(kind, enrichment, units, units, reactivityFor(enrichment) * kind.reactivityBonus()));
         return true;
     }

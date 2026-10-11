@@ -1,9 +1,16 @@
 package org.papiricoh.create_nuclearindustry.fuelcycle;
 
+import com.simibubi.create.content.processing.sequenced.SequencedAssemblyItem;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.NuclearFeature;
@@ -41,9 +48,20 @@ public final class FuelCycleRegistry implements NuclearFeature {
     public static final DeferredHolder<Item, Item> DEPLETED_THORIUM_REACTOR_FUEL = AllNuclearItems.ITEMS.register(
             "depleted_thorium_reactor_fuel", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, Item> THORIUM_SPENT_FRAGMENTS = item("thorium_spent_fragments");
+    /** A thorium assembly half way through sequenced assembly; not in the creative tab, like the other fuels'. */
+    public static final DeferredHolder<Item, SequencedAssemblyItem> INCOMPLETE_THORIUM_REACTOR_FUEL = AllNuclearItems.ITEMS.register(
+            "incomplete_thorium_reactor_fuel", () -> new SequencedAssemblyItem(new Item.Properties().stacksTo(1)));
 
-    /** Every item of this area, in creative tab order. */
-    public static final List<Supplier<? extends Item>> ITEMS = List.of(GRANITE_FINES, TUFF_FINES, DEEPSLATE_FINES,
+    // ---------------------------------------------------------------- the irradiation fan treatment's catalyst
+    public static final DeferredHolder<Block, IrradiationSourceBlock> IRRADIATION_SOURCE = AllNuclearBlocks.BLOCKS.register(
+            "irradiation_source", () -> new IrradiationSourceBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GREEN)
+                    .strength(4.0f, 8.0f).requiresCorrectToolForDrops().sound(SoundType.METAL).noOcclusion()
+                    .lightLevel(state -> 6)));
+    public static final DeferredHolder<Item, BlockItem> IRRADIATION_SOURCE_ITEM = AllNuclearItems.ITEMS.register(
+            "irradiation_source", () -> new BlockItem(IRRADIATION_SOURCE.get(), new Item.Properties()));
+
+    /** Every item of this area, in creative tab order (the irradiation source first: it is a block). */
+    public static final List<Supplier<? extends Item>> ITEMS = List.of(IRRADIATION_SOURCE_ITEM, GRANITE_FINES, TUFF_FINES, DEEPSLATE_FINES,
             HEAVY_MINERAL_SAND, AMIDOXIME_ADSORBENT, LOADED_ADSORBENT, RADIOACTIVE_SLUDGE, THORIUM_DIOXIDE, IRRADIATED_THORIUM,
             IRRADIATED_DEPLETED_URANIUM, URANIUM_233_DIOXIDE, THORIUM_FUEL_PELLET, THORIUM_REACTOR_FUEL,
             DEPLETED_THORIUM_REACTOR_FUEL, THORIUM_SPENT_FRAGMENTS);

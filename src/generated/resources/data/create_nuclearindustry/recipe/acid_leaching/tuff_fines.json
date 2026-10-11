@@ -1,0 +1,14 @@
+{
+  "type": "create_nuclearindustry:acid_leaching",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:tuff_fines"
+    }
+  ],
+  "results": [
+    {
+      "chance": 0.35,
+      "id": "create_nuclearindustry:spodumene_concentrate"
+    }
+  ]
+}

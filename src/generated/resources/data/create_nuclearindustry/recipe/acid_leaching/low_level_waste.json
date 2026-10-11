@@ -1,0 +1,17 @@
+{
+  "type": "create_nuclearindustry:acid_leaching",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:low_level_waste"
+    }
+  ],
+  "results": [
+    {
+      "count": 2,
+      "id": "minecraft:iron_nugget"
+    },
+    {
+      "id": "create_nuclearindustry:radioactive_sludge"
+    }
+  ]
+}

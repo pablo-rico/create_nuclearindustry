@@ -1,0 +1,26 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:irradiated_depleted_uranium"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:nitric_acid"
+    }
+  ],
+  "results": [
+    {
+      "components": {
+        "create_nuclearindustry:enrichment": 0.3
+      },
+      "id": "create_nuclearindustry:uranyl_nitrate"
+    },
+    {
+      "amount": 25,
+      "id": "create_nuclearindustry:spent_fuel_solution"
+    }
+  ]
+}

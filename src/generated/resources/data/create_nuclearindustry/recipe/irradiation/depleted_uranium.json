@@ -1,0 +1,18 @@
+{
+  "type": "create_nuclearindustry:irradiation",
+  "ingredients": [
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:uranium"
+      },
+      "max_enrichment": 0.7,
+      "min_enrichment": 0.0
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:irradiated_depleted_uranium"
+    }
+  ]
+}

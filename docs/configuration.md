@@ -1032,10 +1032,39 @@ Refugios:
 
 ## Ciclo de combustible renovable
 
+Dos tratamientos con ventilador se suman a los de Create. Como en ellos, manda el
+último catalizador que cruza la corriente: agua y luego ácido lixivia; ácido y luego
+agua lava. Funcionan con ítems en el suelo, en cintas y en depósitos, y el
+catalizador no se gasta.
+
+- **Lixiviación ácida**: el ventilador sopla a través de ácido sulfúrico (fuente o
+  ácido que fluye; también los bloques de la etiqueta
+  `create_nuclearindustry:fan_processing_catalysts/acid_leaching`).
+- **Irradiación**: el ventilador sopla a través de un bloque radiactivo que deja pasar
+  el aire, como la fuente de irradiación (o los bloques de la etiqueta
+  `create_nuclearindustry:fan_processing_catalysts/irradiation`). Un bloque completo
+  corta la corriente de Create, así que los bloques radiactivos macizos no sirven.
+
+Opciones:
+
 - `fuelcycle.irradiationMinActivity` (2): radiactividad mínima de un bloque, en
   rad/s (la de su ítem), para que un ventilador que sopla a través de él irradie
   los ítems de su corriente. Los bloques de la etiqueta de catalizadores de
-  irradiación sirven siempre.
+  irradiación sirven siempre. La fuente de irradiación da 3.
+- `fuelcycle.irradiationDosePerSecond` (10): dosis, en rad/s, que recibe una
+  criatura atrapada en una corriente que irradia. A los jugadores les protege el
+  blindaje que lleven puesto y el yoduro potásico, y la dosis se suma a la de la
+  radiación normal; las demás criaturas enferman al pasar el umbral de
+  `radiation.sicknessThreshold`. Con 0 la corriente es inofensiva.
+- `fuelcycle.acidDamagePerSecond` (1): daño por segundo (medios corazones) que el
+  rocío de ácido hace a una criatura atrapada en la corriente. Con 0 es inofensivo.
+
+El combustible de torio no tiene opción propia: arranca con el 55% de la
+reactividad del uranio poco enriquecido, la gana a medida que genera uranio-233
+(máximo de unas 1,3 veces hacia la mitad del quemado) y dura 1,4 veces más
+(`fission.fuelUnitsPerAssembly` × 1,4). Las vías renovables (roca, arena, salmuera,
+agua de mar) están ajustadas para costar entre una y dos veces lo que la mena por
+unidad de producto; las recetas generadas se comprueban con un test.
 <!-- WP-B -->
 
 ## Rendimiento

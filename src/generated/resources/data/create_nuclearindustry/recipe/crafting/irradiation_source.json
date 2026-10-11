@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:iron_bars"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "W": {
+      "item": "create_nuclearindustry:radioactive_waste"
+    }
+  },
+  "pattern": [
+    "PBP",
+    "BWB",
+    "PBP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:irradiation_source"
+  }
+}

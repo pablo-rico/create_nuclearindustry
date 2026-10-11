@@ -10,13 +10,15 @@ public enum FuelKind {
     MOX("mox", 1.10, 1.15, 0.90),
     /**
      * Thorium dioxide seeded with a little fissile uranium: weak on its own, it breeds uranium-233
-     * as it burns. Provisional numbers until the thorium cycle is modelled.
+     * as it burns ({@link ThoriumBreeding} shapes its reactivity and stretches its life). Thoria
+     * conducts heat better than urania, so it runs a little cooler; uranium-233 has fewer delayed
+     * neutrons, so the rods hold it slightly better.
      */
-    THORIUM("thorium", 0.85, 1.0, 1.05);
+    THORIUM("thorium", 1.0, 0.95, 1.05);
 
     /** Enrichment MOX counts as for fuel life and reactivity. */
     public static final float MOX_EQUIVALENT_ENRICHMENT = 12.0f;
-    /** Enrichment thorium fuel counts as for fuel life and reactivity (provisional). */
+    /** Enrichment thorium fuel is rated at for fuel life and reactivity, before breeding. */
     public static final float THORIUM_EQUIVALENT_ENRICHMENT = 5.0f;
 
     private final String id;

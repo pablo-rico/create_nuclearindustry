@@ -1,0 +1,28 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:thorium_dioxide"
+    },
+    {
+      "item": "create_nuclearindustry:thorium_dioxide"
+    },
+    {
+      "item": "create_nuclearindustry:thorium_dioxide"
+    },
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:uranium_dioxide"
+      },
+      "max_enrichment": 15.0,
+      "min_enrichment": 3.0
+    }
+  ],
+  "results": [
+    {
+      "count": 4,
+      "id": "create_nuclearindustry:thorium_fuel_pellet"
+    }
+  ]
+}

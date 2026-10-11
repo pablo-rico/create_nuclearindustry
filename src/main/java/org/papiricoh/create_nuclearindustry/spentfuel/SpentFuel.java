@@ -14,9 +14,10 @@ public final class SpentFuel {
 
     private SpentFuel() {}
 
-    /** Spent uranium or MOX assemblies: the items that carry a cooling history. */
+    /** Spent uranium, MOX or thorium assemblies: the items that carry a cooling history. */
     public static boolean isSpentFuel(ItemStack stack) {
-        return stack.is(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get()) || stack.is(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get());
+        return stack.is(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.get()) || stack.is(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.get())
+                || stack.is(org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleRegistry.DEPLETED_THORIUM_REACTOR_FUEL.get());
     }
 
     public static long day(long gameTime) {
