@@ -1,8 +1,10 @@
 package org.papiricoh.create_nuclearindustry.multiblock;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Set;
+import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
 
 /**
  * Flood fill of the air around a starting cell, to tell whether it is closed off: a containment
@@ -36,10 +38,17 @@ public final class SealedVolume {
 
     private static final int[][] NEIGHBOURS = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
 
+    private static final byte INSIDE = 1;
+    private static final byte WALL = 2;
+    /** Cells the fill expects to see at first; the tables grow past it. */
+    private static final int INITIAL_CELLS = 1 << 12;
+
     private final int maxVolume;
-    private final Set<Long> inside = new HashSet<>();
-    private final Set<Long> walls = new HashSet<>();
-    private final ArrayDeque<Long> frontier = new ArrayDeque<>();
+    /** Every cell met so far, {@link #INSIDE} or {@link #WALL}: one primitive lookup per neighbour. */
+    private final Long2ByteOpenHashMap seen;
+    private final LongOpenHashSet walls = new LongOpenHashSet();
+    private final LongArrayFIFOQueue frontier = new LongArrayFIFOQueue();
+    private int volume;
     private State state = State.FILLING;
     private double minRating = Double.POSITIVE_INFINITY;
     private long weakestWall;
@@ -47,9 +56,11 @@ public final class SealedVolume {
 
     public SealedVolume(int x, int y, int z, int maxVolume) {
         this.maxVolume = maxVolume;
+        this.seen = new Long2ByteOpenHashMap(Math.max(16, Math.min(maxVolume, INITIAL_CELLS)));
         long start = pack(x, y, z);
-        inside.add(start);
-        frontier.add(start);
+        seen.put(start, INSIDE);
+        volume = 1;
+        frontier.enqueue(start);
         minX = maxX = x;
         minY = maxY = y;
         minZ = maxZ = z;
@@ -69,19 +80,19 @@ public final class SealedVolume {
         if (state != State.FILLING) {
             return state;
         }
-        int x0 = unpackX(frontier.peekFirst()), y0 = unpackY(frontier.peekFirst()), z0 = unpackZ(frontier.peekFirst());
-        if (inside.size() == 1 && !world.passable(x0, y0, z0)) {
+        long first = frontier.firstLong();
+        if (volume == 1 && !world.passable(unpackX(first), unpackY(first), unpackZ(first))) {
             // Starting inside a wall: nothing to fill.
             state = State.LEAKED;
             return state;
         }
         for (int visited = 0; visited < budget && !frontier.isEmpty(); visited++) {
-            long cell = frontier.pollFirst();
+            long cell = frontier.dequeueLong();
             int x = unpackX(cell), y = unpackY(cell), z = unpackZ(cell);
             for (int[] d : NEIGHBOURS) {
                 int nx = x + d[0], ny = y + d[1], nz = z + d[2];
                 long next = pack(nx, ny, nz);
-                if (inside.contains(next) || walls.contains(next)) {
+                if (seen.get(next) != 0) {
                     continue;
                 }
                 if (!world.known(nx, ny, nz)) {
@@ -89,12 +100,12 @@ public final class SealedVolume {
                     return state;
                 }
                 if (world.passable(nx, ny, nz)) {
-                    inside.add(next);
-                    if (inside.size() > maxVolume) {
+                    seen.put(next, INSIDE);
+                    if (++volume > maxVolume) {
                         state = State.LEAKED;
                         return state;
                     }
-                    frontier.addLast(next);
+                    frontier.enqueue(next);
                     minX = Math.min(minX, nx);
                     minY = Math.min(minY, ny);
                     minZ = Math.min(minZ, nz);
@@ -102,6 +113,7 @@ public final class SealedVolume {
                     maxY = Math.max(maxY, ny);
                     maxZ = Math.max(maxZ, nz);
                 } else {
+                    seen.put(next, WALL);
                     walls.add(next);
                     double rating = world.wallRating(nx, ny, nz);
                     if (rating < minRating) {
@@ -123,7 +135,7 @@ public final class SealedVolume {
 
     /** Cells of gas inside. */
     public int volume() {
-        return inside.size();
+        return volume;
     }
 
     /** Wall cells touching the inside. */
@@ -142,15 +154,15 @@ public final class SealedVolume {
     }
 
     public boolean contains(int x, int y, int z) {
-        return inside.contains(pack(x, y, z));
+        return seen.get(pack(x, y, z)) == INSIDE;
     }
 
     public boolean isWall(int x, int y, int z) {
-        return walls.contains(pack(x, y, z));
+        return seen.get(pack(x, y, z)) == WALL;
     }
 
-    public Set<Long> wallCells() {
-        return java.util.Collections.unmodifiableSet(walls);
+    public LongSet wallCells() {
+        return LongSets.unmodifiable(walls);
     }
 
     public int minX() { return minX; }

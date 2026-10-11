@@ -154,16 +154,28 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     /** Cladding, vessel and containment: the accident chain of this reactor. */
     private final ReactorAccidents accidents = new ReactorAccidents();
 
+    /** Least ticks between two client updates while only contents and readings change. */
+    public static final int SYNC_INTERVAL = 10;
+    /** Something the clients show changed since the last update. */
+    private boolean syncDirty;
+    private long lastSyncTime = Long.MIN_VALUE / 2;
+    /** {@link #syncState()} as the clients last got it: a change is sent at once. */
+    private int lastSyncedState = -1;
+    /** The structure as last sent in an update packet; later packets leave it out while it stands. */
+    @org.jetbrains.annotations.Nullable
+    private ReactorStructureValidator.ReactorStructure lastSentStructure;
+    private int clientSyncs;
+
     private final FluidTank coolantTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isReactorCoolant) {
         @Override
         protected void onContentsChanged() {
-            markDirtyAndSync();
+            contentsChanged();
         }
     };
     private final FluidTank steamTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isReactorOutput) {
         @Override
         protected void onContentsChanged() {
-            markDirtyAndSync();
+            contentsChanged();
         }
     };
     private final ItemStackHandler fuelInventory = new ItemStackHandler(FUEL_SLOT_COUNT) {
@@ -177,7 +189,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
         @Override
         protected void onContentsChanged(int slot) {
-            markDirtyAndSync();
+            contentsChanged();
         }
     };
     private final IItemHandler fuelInputHandler = new FuelSlotView(true);
@@ -238,6 +250,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             entity.syncCounter = 0;
             entity.checkIodinePit();
         }
+        entity.flushSync();
     }
 
     @Override
@@ -902,13 +915,56 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
     }
 
+    /**
+     * Saves and asks for a client update: sent at once when the state the clients act on changed
+     * (formed or not, SCRAM, meltdown, breach), otherwise at most once every {@link #SYNC_INTERVAL}
+     * ticks, the rest held back for {@link #flushSync()}.
+     */
     private void markDirtyAndSync() {
         setChanged();
+        syncDirty = true;
         Level level = getLevel();
-        if (level != null && !level.isClientSide) {
-            BlockState state = getBlockState();
-            level.sendBlockUpdated(getBlockPos(), state, state, Block.UPDATE_CLIENTS);
+        if (level != null && !level.isClientSide
+                && (syncState() != lastSyncedState || level.getGameTime() - lastSyncTime >= SYNC_INTERVAL)) {
+            sendSync(level);
         }
+    }
+
+    /** Tanks and fuel slots changed: saved now, shown with the next update. */
+    private void contentsChanged() {
+        setChanged();
+        syncDirty = true;
+    }
+
+    /** Sends a held-back update once {@link #SYNC_INTERVAL} ticks have passed since the last. Every tick. */
+    private void flushSync() {
+        Level level = getLevel();
+        if (syncDirty && level != null && !level.isClientSide && level.getGameTime() - lastSyncTime >= SYNC_INTERVAL) {
+            sendSync(level);
+        }
+    }
+
+    private void sendSync(Level level) {
+        syncDirty = false;
+        lastSyncTime = level.getGameTime();
+        lastSyncedState = syncState();
+        clientSyncs++;
+        BlockState state = getBlockState();
+        level.sendBlockUpdated(getBlockPos(), state, state, Block.UPDATE_CLIENTS);
+    }
+
+    /** What clients must see without delay, packed: status, formed, SCRAM, meltdown and breach. */
+    private int syncState() {
+        return status.ordinal()
+                | (currentStructure.isPresent() ? 1 << 8 : 0)
+                | (manualScram ? 1 << 9 : 0)
+                | (physicsSimulator.isMeltingDown() ? 1 << 10 : 0)
+                | (accidents.vessel().breached() ? 1 << 11 : 0);
+    }
+
+    /** Client updates this reactor has sent, for tests. */
+    public int clientSyncCount() {
+        return clientSyncs;
     }
 
     private void sendPlayerMessage(String message, boolean force) {
@@ -1619,8 +1675,28 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         pendingRevalidation = true;
     }
 
+    /** Everything the client shows, as sent with the chunk. */
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        return writeUpdateTag(provider, true);
+    }
+
+    /**
+     * An update packet leaves out the structure while it is the one the clients already have: they
+     * got it with the chunk or an earlier packet, and it only changes when the reactor reforms.
+     */
+    private CompoundTag packetTag(HolderLookup.Provider provider) {
+        ReactorStructureValidator.ReactorStructure structure = currentStructure.orElse(null);
+        boolean changed = structure != lastSentStructure;
+        lastSentStructure = structure;
+        CompoundTag tag = writeUpdateTag(provider, changed);
+        if (!changed && structure != null) {
+            tag.putBoolean("structureUnchanged", true);
+        }
+        return tag;
+    }
+
+    private CompoundTag writeUpdateTag(HolderLookup.Provider provider, boolean withStructure) {
         CompoundTag tag = super.getUpdateTag(provider);
         tag.putString("status", status.name());
         tag.put("physics", writePhysicsTag());
@@ -1635,7 +1711,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.put("Pwr", primaryLoop.save());
         tag.put("Accident", accidents.save());
         currentStructure.ifPresent(structure -> {
-            tag.put("structure", writeStructureTag(structure));
+            if (withStructure) {
+                tag.put("structure", writeStructureTag(structure));
+            }
             tag.put("controlRodScan", writeControlRodScanTag(lastControlRodScan));
         });
         tag.put("validation", writeValidationTag(lastValidation));
@@ -1645,7 +1723,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
+        return ClientboundBlockEntityDataPacket.create(this, (blockEntity, registries) -> packetTag(registries));
     }
 
     @Override
@@ -1676,9 +1754,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         autoScram.load(tag);
         primaryLoop.load(tag.getCompound("Pwr"));
         accidents.load(tag.getCompound("Accident"));
-        currentStructure = tag.contains("structure")
-                ? readStructureTag(tag.getCompound("structure"))
-                : Optional.empty();
+        if (!tag.getBoolean("structureUnchanged")) {
+            currentStructure = tag.contains("structure")
+                    ? readStructureTag(tag.getCompound("structure"))
+                    : Optional.empty();
+        }
         lastControlRodScan = currentStructure.isPresent() && tag.contains("controlRodScan")
                 ? readControlRodScanTag(tag.getCompound("controlRodScan"))
                 : ControlRodTracker.ControlRodScan.empty();

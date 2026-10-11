@@ -644,6 +644,29 @@ below for what changes in existing worlds.
 <!-- WP-C -->
 
 ### Performance and multiplayer
+- A fission reactor being filled, emptied or run no longer sends everyone
+  near it its whole state every tick: contents and readings go out at most
+  every half second, without the structure once the clients have it, about a
+  tenth of the traffic it used to take. Forming, breaking, a SCRAM, a
+  meltdown or a breached vessel still show at once.
+- The once-a-second radiation check of each player is lighter: it skips the
+  parts of the world with no radioactive blocks at all, finds running
+  reactors and other sources through the chunks around the player, and
+  reuses each line of sight to a source for up to a second
+  (`performance.radiationRayCacheTicks`) while neither moves. Placing or
+  breaking a block along it, or opening a door, counts at once.
+- Containment monitors measure their building about twice as fast, and
+  shelters' filtration units their room too.
+- Settings changed from a screen (control desk modules, chart recorders,
+  annunciators, the tokamak controller) are refused on the server unless the
+  player could use that block by hand right now: alive, not a spectator, not
+  in adventure mode, within reach, and where spawn protection and the world
+  border allow it.
+- The screens of reactors, tokamaks, nuclear bombs, launch pads, control
+  modules and control room devices close when their block is broken or
+  replaced, or when the player walks a few blocks beyond reach, as chests do.
+- `explosive.blastColumnsPerTick` and `explosive.blastBlocksPerTick` now set
+  how fast a nuclear crater is dug.
 <!-- WP-D -->
 
 ### JEI

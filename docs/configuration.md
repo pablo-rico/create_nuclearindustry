@@ -1038,11 +1038,19 @@ Refugios:
 
 - `performance.radiationRayCacheTicks` (20): ticks que se reutiliza el rayo de
   radiación entre un jugador y una fuente mientras ninguno de los dos se mueve. Con
-  0 se lanza cada rayo cada vez.
+  0 se lanza cada rayo cada vez. Colocar o romper un bloque en los chunks que
+  cruza el rayo (o abrir una puerta) lo invalida en el acto; solo un cambio que no
+  avisa a sus vecinos espera a que caduque.
 - `explosive.blastColumnsPerTick` (600): columnas del cráter que una detonación
   nuclear excava por tick. Con menos, el trabajo se reparte en más ticks.
 - `explosive.blastBlocksPerTick` (3500): bloques que una detonación nuclear quita o
   cambia como mucho por tick.
+
+Sin opción propia: la búsqueda de bloques radiactivos alrededor del jugador se
+salta las secciones de chunk sin ninguno, las fuentes (reactores, RTG...) se buscan
+por los chunks cercanos, y un reactor manda a los clientes una actualización como
+mucho cada 10 ticks (al instante si se forma, se rompe, hace SCRAM, se funde o se
+le rompe la vasija).
 <!-- WP-D -->
 
 ## Uranio y litio de otros mods
