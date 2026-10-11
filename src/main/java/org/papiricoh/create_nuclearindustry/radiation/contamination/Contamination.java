@@ -19,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.radiation.RadiationRay;
 
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.function.ToDoubleBiFunction;
 
 /**
  * Ground contamination, one value per chunk. Nothing ticks: values decay lazily when read,
@@ -294,6 +295,11 @@ public final class Contamination {
      * the player is under cover.
      */
     public static double exposure(ServerLevel level, Vec3 body, double feetY) {
+        return exposure(level, body, feetY, (from, to) -> RadiationRay.transmission(level, from, to));
+    }
+
+    /** The same, with the ray through the roof cast (or looked up in a cache) by {@code roofRay}. */
+    public static double exposure(ServerLevel level, Vec3 body, double feetY, ToDoubleBiFunction<Vec3, Vec3> roofRay) {
         double x = body.x / 16.0 - 0.5;
         double z = body.z / 16.0 - 0.5;
         int x0 = Mth.floor(x);
@@ -314,7 +320,7 @@ public final class Contamination {
             double above = Math.max(0, height);
             factor = 1.0 / (1.0 + (above / 8.0) * (above / 8.0));
         } else {
-            factor = RadiationRay.transmission(level, new Vec3(body.x, surface + 0.5, body.z), body);
+            factor = roofRay.applyAsDouble(new Vec3(body.x, surface + 0.5, body.z), body);
         }
         return value * factor * Config.contaminationDoseScale;
     }
