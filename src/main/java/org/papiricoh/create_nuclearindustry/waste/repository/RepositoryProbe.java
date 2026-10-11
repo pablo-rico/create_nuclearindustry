@@ -7,6 +7,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.waste.WasteConfig;
 import org.papiricoh.create_nuclearindustry.waste.WastePackage;
 import org.papiricoh.create_nuclearindustry.waste.WasteTags;
@@ -19,8 +23,10 @@ import java.util.Map;
  * touches about a thousand blocks, and radiation and random ticks ask for the same packages
  * over and over, so sites are cached per position for {@link WasteConfig#probeCacheTicks}.
  * Only the surroundings are cached; the package's own form is applied on every call, so
- * swapping a barrel for a canister shows at once.
+ * swapping a barrel for a canister shows at once. The cache is static, so it is emptied when the
+ * server stops: sites of one world must not outlive it into the next one opened.
  */
+@EventBusSubscriber(modid = Create_NuclearIndustry.MODID)
 public final class RepositoryProbe {
     /** Radius of the host rock shell around a package. */
     public static final int HOST_ROCK_RADIUS = 3;
@@ -60,6 +66,20 @@ public final class RepositoryProbe {
     /** Drops every cached site, for tests and after the world around packages changed in bulk. */
     public static synchronized void clearCache() {
         CACHE.clear();
+    }
+
+    /** Cached sites in every level; for tests. */
+    public static synchronized int cachedSites() {
+        int total = 0;
+        for (Long2ObjectOpenHashMap<Cached> sites : CACHE.values()) {
+            total += sites.size();
+        }
+        return total;
+    }
+
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event) {
+        clearCache();
     }
 
     /** Looks at the blocks around {@code pos} now, without the cache. */

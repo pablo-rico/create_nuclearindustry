@@ -11,22 +11,27 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.registries.datamaps.DataMapsUpdatedEvent;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.PerformanceConfig;
+import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitters;
 
 import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
  * The radiation system's caches and what keeps them honest: each player's {@link RayCache}, each
- * level's {@link ChunkChangeLog} fed by block events, and {@link BlockRadioactivity}, forgotten
- * when data maps reload. Server side only.
+ * level's {@link RayCache} for monitored spots (control room area targets), each level's
+ * {@link ChunkChangeLog} fed by block events, and {@link BlockRadioactivity}, forgotten when data
+ * maps reload. Everything per level, including the {@link RadiationEmitters} index, is dropped
+ * when the level unloads or the server stops, so no level outlives its world. Server side only.
  * <p>
  * Block events cover players, explosions, fluids and every change that updates its neighbours
  * (machines, pistons, commands, game tests). A change that tells nobody (a raw state change
- * without neighbour updates) is only noticed when the cached ray expires, after
- * {@code performance.radiationRayCacheTicks}.
+ * without neighbour updates) is only noticed when the cached ray is cast again: once it goes
+ * unused for {@code performance.radiationRayCacheTicks}, or at the latest after
+ * {@code performance.radiationRayMaxAgeTicks}.
  */
 @EventBusSubscriber(modid = Create_NuclearIndustry.MODID)
 public final class RadiationCaches {
@@ -39,6 +44,9 @@ public final class RadiationCaches {
     private static final class Changes {
         final ChunkChangeLog log = new ChunkChangeLog();
         long lastForget;
+        /** Rays to fixed spots of this level; keys hold the spot's block, so one cache serves them all. */
+        final RayCache spots = new RayCache();
+        long lastSpotPrune = Long.MIN_VALUE;
     }
 
     /** One player's cached rays, for the level they were cast in. */
@@ -69,8 +77,22 @@ public final class RadiationCaches {
             cache.level = player.level();
             cache.rays.clear();
         }
-        cache.rays.prune(player.level().getGameTime());
+        cache.rays.prune(player.level().getGameTime(), PerformanceConfig.radiationRayCacheTicks, PerformanceConfig.radiationRayMaxAgeTicks);
         return cache;
+    }
+
+    /**
+     * The level's cache of rays to fixed spots (the areas control room monitors watch), with the
+     * same lifetime and invalidation as a player's; pruned at most once a tick.
+     */
+    public static RayCache spots(Level level) {
+        Changes changes = changesOf(level);
+        long now = level.getGameTime();
+        if (changes.lastSpotPrune != now) {
+            changes.lastSpotPrune = now;
+            changes.spots.prune(now, PerformanceConfig.radiationRayCacheTicks, PerformanceConfig.radiationRayMaxAgeTicks);
+        }
+        return changes.spots;
     }
 
     /** Records that the block at {@code pos} changed, so rays across its chunk are cast again. */
@@ -127,7 +149,16 @@ public final class RadiationCaches {
     public static void onLevelUnload(LevelEvent.Unload event) {
         if (event.getLevel() instanceof Level level) {
             CHANGES.remove(level);
+            RadiationEmitters.forget(level);
         }
+    }
+
+    /** Clears every level's caches and index: a single player world's levels must not outlive it. */
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event) {
+        CHANGES.clear();
+        PLAYERS.clear();
+        RadiationEmitters.forgetAll();
     }
 
     @SubscribeEvent

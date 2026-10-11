@@ -140,7 +140,7 @@ public class AcceleratorTests {
 
     @GameTest(template = "gametest/accelerator_linac_ponder")
     public static void theLinacPonderSchematicForms(GameTestHelper helper) {
-        AcceleratorControllerBlockEntity controller = AcceleratorTestBuilder.entity(helper, new BlockPos(0, 1, 2),
+        AcceleratorControllerBlockEntity controller = AcceleratorTestBuilder.entity(helper, new BlockPos(0, 2, 2),
                 AcceleratorControllerBlockEntity.class);
         helper.assertTrue(controller != null, "the scene's controller should be there");
         controller.attemptFormation(null);

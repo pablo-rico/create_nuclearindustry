@@ -17,7 +17,7 @@ xenonPoisoning = true
 iodineHalfLifeTicks = 3600
 xenonHalfLifeTicks = 5400
 decayHeatFraction = 0.07
-decayHeatTimeTicks = 6000
+decayHeatTimeTicks = 20000
 fuelBurnPerRod = 0.00075
 
 [fission.kinetics]
@@ -25,8 +25,8 @@ sixGroups = true
 maxWithdrawalRate = 100.0
 
 [fission.reactivity]
-fuelExcess = 5000.0
-rodBankWorth = 12000.0
+fuelExcess = 12000.0
+rodBankWorth = 22000.0
 xenonWorthPcm = 2800.0
 
 [fission.thermal]
@@ -114,10 +114,36 @@ combustible y el moderador decide si la potencia sube, baja o se queda quieta,
 y los neutrones retardados hacen que lo haga despacio. Al calentarse, el
 combustible (efecto Doppler), el agua y el vapor de su alrededor le quitan
 reactividad, así que **sacar una barra sube la potencia un poco y el reactor se
-asienta solo** en una potencia nueva, más caliente. Con todas las barras fuera,
-un núcleo de uranio poco enriquecido refrigerado con agua se queda por debajo de
-1300 °C; el grafito (coeficiente de vacío positivo) o el combustible muy
-enriquecido sí pueden llevarlo a dañarse.
+asienta solo** en una potencia nueva, más caliente. Un reactor en marcha y
+estable marca siempre una reactividad neta de casi 0 pcm (es crítico); parado,
+con las barras dentro, marca un valor negativo: su margen de parada.
+
+Como en un reactor de verdad, **el combustible nuevo tiene mucha más reactividad
+de la que su propio calor puede quitarle** (unos 12000 pcm al 5 %, frente a unos
+4500 que pierde entre frío y plena potencia, con el xenón). Las barras son
+imprescindibles: con todas fuera, o sin barras, un núcleo con agua pasa de su
+potencia nominal hasta que el combustible se daña. Si le falta agua, la parte
+descubierta deja de moderar y la potencia baja, pero en cuanto el agua vuelve
+recupera toda su reactividad de golpe.
+
+**Qué se lee y por qué.** Las gafas, el panel de control, los monitores de la
+sala de control (`R_REACTIVITY_*`) y la fuente de Display Link «Desglose de la
+reactividad» muestran la reactividad neta separada en sus partes, en pcm y con
+signo; suman la neta:
+
+| Parte | Qué incluye | Valores típicos |
+|---|---|---|
+| Combustible | el exceso del combustible según enriquecimiento y quemado, más el grafito, el reflector y el agua pesada | +12000 al 5 %, +18000 al 20 %, +1500 con grafito completo |
+| Barras | lo que retienen las barras metidas | hasta −`rodBankWorth` × absorción (−22000 con canales de sobra) |
+| Calor | Doppler del combustible y temperatura del agua | −2000 a −3000 a plena potencia |
+| Vapor | el vapor en el núcleo y el agua que falta (núcleo seco) | −450 a plena potencia; −10000 con la mitad del combustible descubierto |
+| Xenón | el veneno | −1400 en equilibrio |
+
+Así, un reactor parado en frío marca «combustible +12000, barras −22000, neta
+−10000»: ese −10000 es su margen de parada, y no es un error. Al arrancar, las
+barras se sacan hasta que las partes suman 0; en marcha el calor y el vapor
+sustituyen a parte de las barras. Un reactor sin barras que marca −8000 de
+«vapor» solo se sostiene porque le falta agua.
 
 - **Potencia nominal**: `fission.thermal.ratedPowerPerRod` MW por cada bloque de
   barra de combustible (más con MOX). Las gafas, la GUI, los monitores, las
@@ -141,9 +167,24 @@ enriquecido sí pueden llevarlo a dañarse.
   como mucho a `fission.kinetics.maxWithdrawalRate` pcm por segundo, la velocidad
   de los accionamientos. Así un pistón que saca una barra de golpe no lleva el
   núcleo a criticidad inmediata. Meterlas es instantáneo.
-- Tamaño: un canal de barras de pocos bloques vale miles de pcm por bloque, así
-  que en un reactor pequeño cada bloque es un salto grande. Con canales altos o
-  varios canales cada bloque mueve solo unos pocos %.
+- **Tamaño**: el juego completo de barras vale `rodBankWorth` (22000 pcm) repartido
+  entre todos sus bloques, más en el centro del núcleo que en los extremos. En
+  un reactor con pocos bloques de barra cada uno vale miles de pcm y es un salto
+  grande (de parado a pasarse de potencia); con canales altos o varios canales
+  cada bloque mueve la potencia un 5–20 %.
+- **Margen de parada**: con suficientes canales de barras (`boronAbsorption` ×
+  canales / combustible ≥ 1) las barras dentro paran en frío el uranio hasta
+  un 20 % con grafito. Con menos canales, o con combustible muy enriquecido, puede
+  que ni con todas las barras dentro se pare: con bloques de barra para la mitad
+  del combustible (absorción 0,75, banco de 16500 pcm) el uranio al 9 % con
+  grafito y reflector, el MOX con grafito y el 20 % ya no se paran en frío.
+- **Canales de barras**: una columna interior cuenta como canal si su tapa es
+  aire o una pieza de pistón, si tiene un bloque de barra en la columna o en el
+  espacio de recorrido por encima de la tapa, o si una contraption con barras la
+  atraviesa. Una columna de reflector, grafito o solo aire bajo una tapa de
+  carcasa no es canal: el reactor lo nota en unos ticks, pierde esa capacidad de
+  barras (y gana la reflexión o moderación) sin enfriarse ni desformarse. Las
+  barras movidas con pistones conservan su canal y nunca hacen revalidar.
 
 | Opción | Por defecto | Qué hace |
 |---|---|---|
@@ -154,17 +195,17 @@ enriquecido sí pueden llevarlo a dañarse.
 | `xenonPoisoning` | true | La fisión genera xenón-135; tras bajar la potencia o un SCRAM sigue subiendo unos minutos (el "pozo de yodo") |
 | `iodineHalfLifeTicks` / `xenonHalfLifeTicks` | 3600 / 5400 | Semividas del yodo-135 y del xenón-135 |
 | `decayHeatFraction` | 0,07 | Parte del calor de fisión que llega después como calor residual |
-| `decayHeatTimeTicks` | 6000 | Ticks para que el calor residual baje a un tercio (y para que se acumule) |
+| `decayHeatTimeTicks` | 20000 | Escala de tiempo del calor residual: cinco grupos de productos de fisión que decaen en 1/100, 1/10, 1, 10 y 100 veces este tiempo (y tardan lo mismo en acumularse). Un núcleo que ha funcionado horas baja a menos de la mitad en 100 s, a menos de un tercio en 17 min y a una quinta parte en 3 h |
 | `fission.kinetics.sixGroups` | true | Seis grupos de neutrones retardados (true) o uno (false) |
 | `fission.kinetics.delayedTimeScale` | 1 | Acelera los neutrones retardados; más alto hace el reactor más rápido de manejar |
 | `fission.kinetics.promptGenerationTime` | 0,001 | Tiempo de generación de los neutrones inmediatos (s); solo cuenta cerca de la criticidad inmediata |
 | `fission.kinetics.sourceStrength` | 0,001 | Fuente de neutrones que mantiene vivo un núcleo parado |
 | `fission.kinetics.maxWithdrawalRate` | 100 | pcm por segundo que libera como mucho una retirada de barras |
 | `fission.kinetics.maxRelativePower` | 10 | Potencia máxima, en veces la nominal |
-| `fission.reactivity.fuelExcess` | 5000 | Exceso de reactividad del uranio nuevo al 5 % (pcm) |
-| `fission.reactivity.burnupDefect` | 0,5 | Parte de ese exceso que se pierde al final de la vida del combustible (el torio no la pierde) |
-| `fission.reactivity.emptyChannelWorth` | 10000 | pcm que se pierden con todos los canales de combustible vacíos |
-| `fission.reactivity.rodBankWorth` | 12000 | Valor de un juego completo de barras (pcm) |
+| `fission.reactivity.fuelExcess` | 12000 | Exceso de reactividad del uranio nuevo al 5 % (pcm) |
+| `fission.reactivity.burnupDefect` | 0,6 | Parte de ese exceso que se pierde al final de la vida del combustible (el torio no la pierde) |
+| `fission.reactivity.emptyChannelWorth` | 24000 | pcm que se pierden con todos los canales de combustible vacíos |
+| `fission.reactivity.rodBankWorth` | 22000 | Valor de un juego completo de barras (pcm) |
 | `fission.reactivity.rodWorthShape` | 0,5 | Cuánto más valen las barras en el centro del núcleo (0 igual en toda su longitud, 1 curva en S completa) |
 | `fission.reactivity.graphiteWorth` | 1500 | pcm que suma el grafito alrededor de cada columna de combustible |
 | `fission.reactivity.reflectorWorth` | 1000 | pcm que suma un anillo interior entero de berilio |
@@ -176,7 +217,7 @@ enriquecido sí pueden llevarlo a dañarse.
 | `fission.reactivity.graphiteModeratorCoefficient` / `graphiteVoidCoefficient` | -1 / +3 | Los mismos coeficientes con grafito en todas las columnas: el vacío pasa a ser positivo |
 | `fission.reactivity.heavyWaterVoidCoefficient` | -5 | Coeficiente de vacío con agua pesada |
 | `fission.reactivity.damageWorth` | 2000 | pcm que pierde un núcleo totalmente dañado |
-| `fission.reactivity.dryCoreWorth` | 10000 | pcm que pierde un núcleo moderado por agua sin agua (menos con grafito) |
+| `fission.reactivity.dryCoreWorth` | 20000 | pcm que pierde un núcleo moderado por agua sin agua (menos con grafito) |
 | `fission.thermal.ratedPowerPerRod` | 50 | MW de cada bloque de barra de combustible a potencia nominal |
 | `fission.thermal.fuelRiseAtRated` | 600 | Kelvin que el combustible está por encima de su agua a potencia nominal |
 | `fission.thermal.fuelHeatCapacity` | 0,5 | Capacidad calorífica del combustible de una barra (MJ/K); más alta, el núcleo se calienta y enfría más despacio |
@@ -1144,21 +1185,75 @@ unidad de producto; las recetas generadas se comprueban con un test.
 
 ## Rendimiento
 
-- `performance.radiationRayCacheTicks` (20): ticks que se reutiliza el rayo de
-  radiación entre un jugador y una fuente mientras ninguno de los dos se mueve. Con
-  0 se lanza cada rayo cada vez. Colocar o romper un bloque en los chunks que
-  cruza el rayo (o abrir una puerta) lo invalida en el acto; solo un cambio que no
-  avisa a sus vecinos espera a que caduque.
+Opciones para servidores, bajo `performance.*` y `explosive.*`:
+
+- `performance.radiationRayCacheTicks` (100): ticks que un rayo de radiación (de
+  una fuente a un jugador, o a una zona vigilada por un monitor de sala de
+  control) puede pasar **sin usarse** y seguir reutilizándose, mientras ninguno de
+  los extremos se mueva y no cambie ningún bloque en los chunks que cruza. La
+  caducidad se cuenta desde el último uso, no desde que se lanzó: a los jugadores
+  se les actualiza cada 20 ticks, así que un jugador quieto conserva sus rayos
+  (también con el valor antiguo de 20). Con 0 se lanza cada rayo cada vez.
+  Colocar o romper un bloque en los chunks que cruza el rayo (o abrir una puerta)
+  lo invalida en el acto; el cráter de una detonación y el agua que se contamina
+  también avisan a la caché aunque no actualicen a sus vecinos.
+- `performance.radiationRayMaxAgeTicks` (1200): ticks tras los que un rayo en
+  caché se vuelve a lanzar aunque se siga usando, red de seguridad para cambios
+  de bloques que no avisan a nadie (contraptions de Create que mueven muros, por
+  ejemplo). Con 0 no se vuelve a lanzar nunca un rayo en uso.
+- `performance.forcedSyncTicks` (100, de 10 a 1200): máximo de ticks que un
+  controlador de máquina (reactor de fisión, generador de vapor, planta
+  criogénica, tokamak, acelerador, monitor de contención) o un monitor de sala de
+  control pasa sin mandar una actualización a los clientes. Entre medias solo se
+  envía cuando algo de lo que muestran cambia de forma visible: el 1 % de un
+  depósito (2 % en el reactor), 2 °C, medio punto porcentual de una lectura, 10 pcm
+  de reactividad, o cualquier cambio de fase, estado o recuento. SCRAM, fusión del
+  núcleo, formación y rotura se envían al momento. Más bajo, las gafas y las
+  pantallas siguen las derivas lentas más de cerca a costa de más tráfico.
+- `performance.screenSyncTicks` (20, de 1 a 200): mínimo de ticks entre dos
+  actualizaciones de un monitor o de un registrador gráfico. El registrador manda
+  juntas las muestras dibujadas entre medias, así que a velocidad máxima de
+  papel hay un paquete por segundo en vez de veinte; el historial completo solo
+  viaja al cargar el chunk.
 - `explosive.blastColumnsPerTick` (600): columnas del cráter que una detonación
   nuclear excava por tick. Con menos, el trabajo se reparte en más ticks.
 - `explosive.blastBlocksPerTick` (3500): bloques que una detonación nuclear quita o
   cambia como mucho por tick.
 
-Sin opción propia: la búsqueda de bloques radiactivos alrededor del jugador se
-salta las secciones de chunk sin ninguno, las fuentes (reactores, RTG...) se buscan
-por los chunks cercanos, y un reactor manda a los clientes una actualización como
-mucho cada 10 ticks (al instante si se forma, se rompe, hace SCRAM, se funde o se
-le rompe la vasija).
+Sin opción propia:
+
+- La búsqueda de bloques radiactivos alrededor del jugador se salta las secciones
+  de chunk sin ninguno; las fuentes (reactores, RTG...) se buscan por los chunks
+  cercanos con su posición cacheada, y las fuentes de lluvia radiactiva se buscan
+  por chunk, no recorriendo todas las del mundo.
+- Los eventos de bloque solo llegan a los multibloques cuyos límites (guardados al
+  indexarlos) contienen la posición; un acelerador sin formar escucha a 32 bloques
+  de su controlador (más los límites de su última estructura formada), y un tokamak
+  sin formar solo donde puede estar su toro. Hacer clic en el controlador siempre
+  comprueba la estructura entera.
+- Los puertos de fluido, las tuberías dobles y las penetraciones de contención
+  recuerdan los tanques y tuberías vecinos y su controlador en vez de buscarlos
+  cada tick; una tubería doble que cambia el fluido que muestra ya no manda
+  actualizaciones de bloque a sus vecinos.
+- Las pantallas y pupitres de la sala de control calculan su forma solo cuando
+  cambia un bloque junto a ellos; alarmas y anunciadores que vigilan la misma
+  máquina comparten una muestra, y las de máquinas distintas se reparten en ticks
+  distintos.
+- Todas las rejillas de combustible gastado de una misma piscina comparten una
+  sola medición cada 100 ticks (`spentFuel.poolScanLimit` no cambia).
+- Un monitor de contención sellado no repite la medición cada 600 ticks si ningún
+  bloque del edificio cambió (red de seguridad cada 4800); abierto, espera 600,
+  1200 y luego 2400 ticks entre intentos hasta que se sella. Una unidad de
+  filtrado de refugio con sala certificada solo vuelve a medir si cambió algún
+  bloque (red de seguridad cada 8 intervalos de `civilDefense.shelter.rescanTicks`);
+  sin sala cerrada, la espera se duplica hasta 4 intervalos.
+- El inspector de repositorio mide cada 200 ticks (y al colocarlo) saltándose las
+  secciones de chunk sin paquetes de residuos; el fundidor de vitrificación solo
+  busca receta cuando cambian su contenido o su calor.
+- Las ondas expansivas solo recorren el anillo de columnas que barren cada tick.
+- Los registros internos (multibloques, emisores de radiación, cachés de rayos,
+  contención, red sísmica, cráteres en curso, sonidos retardados, sondeos del
+  repositorio) se vacían al descargar una dimensión o al parar el servidor.
 
 ## Acelerador de partículas
 

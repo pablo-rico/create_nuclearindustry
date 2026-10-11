@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 
 /**
@@ -34,7 +35,8 @@ import java.util.function.ToDoubleFunction;
  * the shell it just swept, with the {@link BlastWaveModel} overpressure for their distance times
  * what the blocks on the straight line from the centre let through, so walls and hills shelter
  * people behind them. Optionally it shatters fragile blocks near the surface on its way. Waves live
- * in memory: a wave under way when the server stops is dropped.
+ * in memory: a wave under way when the server stops is dropped. For fragile blocks each tick walks only
+ * the columns of the ring it sweeps ({@link BlastShell#ringColumns}), not the whole square around it.
  */
 public final class BlastWaveManager {
     /** Columns of the ring looked at per tick for fragile blocks; beyond it, columns are sampled. */
@@ -137,16 +139,22 @@ public final class BlastWaveManager {
             return radius >= maxRadius;
         }
 
-        /** Hits every living entity whose body lies in the shell from {@code previous} to {@code radius}. */
+        /**
+         * Hits every living entity whose body lies in the shell from {@code previous} to {@code radius}.
+         * One query over the sphere's box with the shell as predicate: the entity lookup only walks the
+         * entity sections that hold something, so splitting the shell into many smaller boxes costs
+         * more queries without a measured gain.
+         */
         private void strike(double previous) {
-            AABB box = new AABB(centre, centre).inflate(radius);
-            List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, box, entity -> {
+            Predicate<LivingEntity> inShell = entity -> {
                 if (!entity.isAlive() || entity.isSpectator() || struck.contains(entity.getUUID())) {
                     return false;
                 }
                 double distance = body(entity).distanceTo(centre);
                 return distance <= radius && (distance > previous || previous == 0);
-            });
+            };
+            AABB box = new AABB(centre, centre).inflate(radius);
+            List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, box, inShell);
             // Coming from the centre, so the hit's own knockback points away from it too.
             DamageSource source = new DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
                     .getHolderOrThrow(CivilDefenseRegistry.BLAST_WAVE_DAMAGE), centre);
@@ -190,27 +198,22 @@ public final class BlastWaveManager {
         private void shatter(double previous) {
             int cx = (int) Math.floor(centre.x);
             int cz = (int) Math.floor(centre.z);
-            int outer = (int) Math.floor(radius);
             double inner2 = previous * previous;
             double outer2 = radius * radius;
             int area = (int) Math.ceil(Math.PI * (outer2 - inner2)) + 1;
             int stride = Math.max(1, (area + FRAGILE_COLUMNS_PER_TICK - 1) / FRAGILE_COLUMNS_PER_TICK);
             int budget = CivilDefenseConfig.blastWaveFragileBlocksPerTick;
-            int broken = 0;
-            int index = 0;
+            int[] broken = {0};
+            int[] index = {0};
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-            for (int dx = -outer; dx <= outer; dx++) {
-                for (int dz = -outer; dz <= outer; dz++) {
-                    double d2 = (double) dx * dx + (double) dz * dz;
-                    if (d2 > outer2 || (d2 <= inner2 && previous > 0) || index++ % stride != 0) {
-                        continue;
-                    }
-                    broken += shatterColumn(pos, cx + dx, cz + dz, budget - broken, broken);
-                    if (broken >= budget) {
-                        return;
-                    }
+            // Only the ring's columns, in the order the square loop over the whole disc met them.
+            BlastShell.ringColumns(previous, radius, (dx, dz) -> {
+                if (index[0]++ % stride != 0) {
+                    return true;
                 }
-            }
+                broken[0] += shatterColumn(pos, cx + dx, cz + dz, budget - broken[0], broken[0]);
+                return broken[0] < budget;
+            });
         }
 
         private int shatterColumn(BlockPos.MutableBlockPos pos, int x, int z, int budget, int alreadyBroken) {

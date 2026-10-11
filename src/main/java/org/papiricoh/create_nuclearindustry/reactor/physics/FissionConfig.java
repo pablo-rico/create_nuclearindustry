@@ -63,10 +63,10 @@ public final class FissionConfig {
     public static double sourceStrength = 1.0e-3;
     public static double maxWithdrawalRate = 100;
     public static double maxRelativePower = 10;
-    public static double fuelExcess = 5000;
-    public static double burnupDefect = 0.5;
-    public static double emptyChannelWorth = 10000;
-    public static double rodBankWorth = 12000;
+    public static double fuelExcess = 12000;
+    public static double burnupDefect = 0.6;
+    public static double emptyChannelWorth = 24000;
+    public static double rodBankWorth = 22000;
     public static double rodWorthShape = 0.5;
     public static double graphiteWorth = 1500;
     public static double reflectorWorth = 1000;
@@ -79,7 +79,7 @@ public final class FissionConfig {
     public static double graphiteVoidCoefficient = 3.0;
     public static double heavyWaterVoidCoefficient = -5.0;
     public static double damageWorth = 2000;
-    public static double dryCoreWorth = 10000;
+    public static double dryCoreWorth = 20000;
     public static double ratedPowerPerRod = 50;
     public static double fuelRiseAtRated = 600;
     public static double fuelHeatCapacity = 0.5;
@@ -118,14 +118,14 @@ public final class FissionConfig {
                 .defineInRange("fission.kinetics.maxRelativePower", 10.0, 1.0, 100.0);
 
         FUEL_EXCESS = b.comment("Excess reactivity of fresh 5% uranium with nothing absorbing, in pcm. Richer fuel and MOX scale it.")
-                .defineInRange("fission.reactivity.fuelExcess", 5000.0, 0.0, 100000.0);
+                .defineInRange("fission.reactivity.fuelExcess", 12000.0, 0.0, 100000.0);
         BURNUP_DEFECT = b.comment("Share of the fuel's excess reactivity gone at the end of its life (thorium breeds and keeps it).")
-                .defineInRange("fission.reactivity.burnupDefect", 0.5, 0.0, 1.0);
+                .defineInRange("fission.reactivity.burnupDefect", 0.6, 0.0, 1.0);
         EMPTY_CHANNEL_WORTH = b.comment("Reactivity lost when every fuel channel is empty, in pcm (a partly loaded core loses its share).")
-                .defineInRange("fission.reactivity.emptyChannelWorth", 10000.0, 0.0, 100000.0);
+                .defineInRange("fission.reactivity.emptyChannelWorth", 24000.0, 0.0, 100000.0);
         ROD_BANK_WORTH = b.comment("Worth of a full set of control rods, in pcm. Fewer rod channels than fuel scale it down",
                         "(fission.boronAbsorption x channels / fuel, at most 1).")
-                .defineInRange("fission.reactivity.rodBankWorth", 12000.0, 0.0, 100000.0);
+                .defineInRange("fission.reactivity.rodBankWorth", 22000.0, 0.0, 100000.0);
         ROD_WORTH_SHAPE = b.comment("How much rods are worth more in the middle of the core: 0 the same along their length, 1 a full S curve.")
                 .defineInRange("fission.reactivity.rodWorthShape", 0.5, 0.0, 1.0);
         GRAPHITE_WORTH = b.comment("Reactivity added by graphite round every fuel column, in pcm.")
@@ -154,7 +154,7 @@ public final class FissionConfig {
                 .defineInRange("fission.reactivity.damageWorth", 2000.0, 0.0, 100000.0);
         DRY_CORE_WORTH = b.comment("Reactivity a water moderated core loses with no water at all, in pcm: without its moderator the",
                         "chain reaction stops. Graphite keeps moderating, so it counts for less in a graphite core.")
-                .defineInRange("fission.reactivity.dryCoreWorth", 10000.0, 0.0, 100000.0);
+                .defineInRange("fission.reactivity.dryCoreWorth", 20000.0, 0.0, 100000.0);
 
         RATED_POWER_PER_ROD = b.comment("Thermal power of one fuel rod block at rated power, in MW. The reactor's rated power is this",
                         "times its fuel rods (MOX runs hotter, thorium cooler).")

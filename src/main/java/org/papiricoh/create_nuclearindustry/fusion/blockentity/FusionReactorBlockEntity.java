@@ -52,6 +52,8 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
+import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
+import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.slf4j.Logger;
 
@@ -92,6 +94,22 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
     private static final int OBSERVE_INTERVAL = 10;
     /** How long the tritium overflow warning stays up after bred tritium found no room. */
     private static final int OVERFLOW_WARNING_TICKS = 100;
+    /** How often the readings are compared with what clients were last sent, in ticks. */
+    private static final int SYNC_INTERVAL = 10;
+    /** How often players near a burning tokamak are told it passed breakeven, in ticks. */
+    private static final int AWARD_INTERVAL = 100;
+    /** Ticks the shell's heaters, pumps and magnet drives are kept before they are looked up again. */
+    public static final int PART_REFRESH = 20;
+    /** Blocks around a located but unformed torus that still count as part of it. */
+    private static final int UNFORMED_MARGIN = 2;
+    /**
+     * Readings clients are sent again once they moved by half a percent (and a thousandth); tanks by 1%
+     * of their size; flags, phases and the radius on any change.
+     */
+    private static final java.util.Map<String, Double> TANK_STEPS = java.util.Map.of(
+            "deuterium", FUEL_TANK_CAPACITY / 100.0, "tritium", FUEL_TANK_CAPACITY / 100.0,
+            "coolant", TANK_CAPACITY / 100.0, "plasmaSteam", TANK_CAPACITY / 100.0,
+            "liquidHelium", HELIUM_TANK_CAPACITY / 100.0, "warmHelium", HELIUM_TANK_CAPACITY / 100.0);
 
     private Status status = Status.UNFORMED;
     private Optional<TokamakStructure> structure = Optional.empty();
@@ -105,6 +123,16 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
     private final MultiblockMessenger messenger = new MultiblockMessenger("Tokamak");
     private boolean pendingRevalidation = true;
     private int syncCounter;
+    private final SyncThrottle throttle = SyncThrottle.forRecord(TokamakReadings.class, 0.005, 1.0e-3, TANK_STEPS);
+    private int clientSyncs;
+    /** The shell's auxiliaries and magnet drives of {@link #partsOf}, as last looked up; removed ones are skipped. */
+    private List<TokamakAuxiliary> auxiliaryCache = List.of();
+    private List<FusionMagnetInputBlockEntity> magnetCache = List.of();
+    private TokamakStructure partsOf;
+    private long partsFoundAt;
+    private int partLookups;
+    /** Where an unformed tokamak listens for block changes: around the controller and the torus it would form. */
+    private BoundingBox unformedBounds;
     // Fractional mB owed to (negative) or by (positive) the tanks.
     private double deuteriumBalance;
     private double tritiumBalance;
@@ -182,9 +210,12 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         }
         entity.serverTick();
         entity.updateBlockStateFlags();
-        if (++entity.syncCounter >= 10) {
+        if (++entity.syncCounter >= SYNC_INTERVAL) {
             entity.syncCounter = 0;
-            entity.markDirtyAndSync();
+            entity.setChanged();
+            if (entity.throttle.due(level.getGameTime(), SyncThrottle.valuesOf(entity.readings()), PerformanceConfig.forcedSyncTicks)) {
+                entity.markDirtyAndSync();
+            }
         }
     }
 
@@ -227,7 +258,9 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         }
         if (level.getGameTime() % OBSERVE_INTERVAL == 0) {
             notifyAuxiliaries(tokamak, readings());
-            if (sequence.phase() == TokamakPhase.BURN && plasma.gain() > 1) NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), NuclearEvent.FUSION_BREAKEVEN);
+            if (level.getGameTime() % AWARD_INTERVAL == 0 && sequence.phase() == TokamakPhase.BURN && plasma.gain() > 1) {
+                NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), NuclearEvent.FUSION_BREAKEVEN);
+            }
         }
     }
 
@@ -419,11 +452,45 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         if (level == null) {
             return;
         }
-        for (BlockPos pos : tokamak.functionalParts()) {
-            if (level.getBlockEntity(pos) instanceof TokamakAuxiliary auxiliary) {
+        refreshParts(tokamak);
+        for (TokamakAuxiliary auxiliary : auxiliaryCache) {
+            if (!(auxiliary instanceof BlockEntity blockEntity) || !blockEntity.isRemoved()) {
                 action.accept(auxiliary);
             }
         }
+    }
+
+    /**
+     * Looks the shell's auxiliaries and magnet drives up in the level when the structure changed or
+     * {@link #PART_REFRESH} ticks have passed; in between, every tick uses the ones found then.
+     */
+    private void refreshParts(TokamakStructure tokamak) {
+        long now = level.getGameTime();
+        if (partsOf == tokamak && now - partsFoundAt < PART_REFRESH && now >= partsFoundAt) {
+            return;
+        }
+        partsOf = tokamak;
+        partsFoundAt = now;
+        partLookups++;
+        List<TokamakAuxiliary> auxiliaries = new ArrayList<>();
+        for (BlockPos pos : tokamak.functionalParts()) {
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof TokamakAuxiliary auxiliary) {
+                auxiliaries.add(auxiliary);
+            }
+        }
+        List<FusionMagnetInputBlockEntity> magnets = new ArrayList<>();
+        for (BlockPos pos : tokamak.magnetInputs) {
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof FusionMagnetInputBlockEntity magnet) {
+                magnets.add(magnet);
+            }
+        }
+        auxiliaryCache = auxiliaries;
+        magnetCache = magnets;
+    }
+
+    /** Times the shell's parts were looked up in the level, for tests. */
+    public int partLookups() {
+        return partLookups;
     }
 
     /** Field the magnet drives ask for: their summed contribution over the drives a tokamak this size needs. */
@@ -431,9 +498,10 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         if (level == null) {
             return 0;
         }
+        refreshParts(tokamak);
         double drive = 0;
-        for (BlockPos pos : tokamak.magnetInputs) {
-            if (level.getBlockEntity(pos) instanceof FusionMagnetInputBlockEntity magnet) {
+        for (FusionMagnetInputBlockEntity magnet : magnetCache) {
+            if (!magnet.isRemoved()) {
                 drive += magnet.getConfinementContribution();
             }
         }
@@ -513,16 +581,39 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         pendingRevalidation = true;
     }
 
+    /**
+     * Formed: the torus. Unformed: where the blocks that let the controller find its torus can be (the
+     * shell beside it and the central solenoid, up to {@code maxMajorRadius + 2} blocks off on a
+     * cardinal line), plus the whole torus once a solenoid places it. Changes further off do not wake
+     * an unformed tokamak; a click on the controller still checks everything.
+     */
     @Override
     public BoundingBox interestBounds() {
         if (structure.isPresent()) {
             return structure.get().bounds();
         }
-        // The axis can be up to (maxRadius + 2) blocks away in any horizontal direction.
-        int reach = 2 * (Math.max(TokamakGeometry.MIN_RADIUS, FusionConfig.maxMajorRadius) + 2);
+        return unformedBounds != null ? unformedBounds : searchBounds();
+    }
+
+    /** Around the controller, as far as {@link TokamakStructureValidator#locate} looks for the central solenoid. */
+    private BoundingBox searchBounds() {
+        int reach = TokamakGeometry.controllerToAxis(Math.max(TokamakGeometry.MIN_RADIUS, FusionConfig.maxMajorRadius));
         BlockPos pos = getBlockPos();
         return new BoundingBox(pos.getX() - reach, pos.getY() - TokamakGeometry.HALF_HEIGHT, pos.getZ() - reach,
                 pos.getX() + reach, pos.getY() + TokamakGeometry.HALF_HEIGHT, pos.getZ() + reach);
+    }
+
+    /** Works out {@link #unformedBounds} from the blocks there now; true when they changed. */
+    private boolean updateUnformedBounds() {
+        BoundingBox next = searchBounds();
+        Optional<TokamakStructure> located = TokamakStructureValidator.locate(level, getBlockPos());
+        if (located.isPresent()) {
+            BoundingBox torus = located.get().bounds().inflatedBy(UNFORMED_MARGIN);
+            next = BoundingBox.encapsulatingBoxes(List.of(next, torus)).orElse(next);
+        }
+        boolean changed = !next.equals(unformedBounds);
+        unformedBounds = next;
+        return changed;
     }
 
     @Override
@@ -562,7 +653,11 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
             }
         } else {
             structure.ifPresent(this::unlinkParts);
+            boolean listenElsewhere = updateUnformedBounds();
             setStructure(Optional.empty());
+            if (listenElsewhere && !wasFormed) {
+                MultiblockRegistry.reindex(this);
+            }
             if (playerInitiated || wasFormed) {
                 messenger.status(level, playerInitiated ? player : null, Component.translatable(wasFormed ? "create_nuclearindustry.tokamak.message.broken"
                                 : "create_nuclearindustry.tokamak.message.incomplete", getValidationText())
@@ -590,6 +685,8 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
 
     private void unlinkParts(TokamakStructure tokamak) {
         forEachPart(tokamak, part -> part.unlink(getBlockPos()));
+        // Whatever stands in the shell now hears that the plasma is gone.
+        partsOf = null;
         notifyAuxiliaries(tokamak, TokamakReadings.NONE);
     }
 
@@ -889,12 +986,20 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         return level != null && level.isClientSide ? clientReadings.magnetTemperature() : magnets.getTemperature();
     }
 
+    /** Saves and updates the clients now; remembered by the throttle, so the next periodic check compares with it. */
     private void markDirtyAndSync() {
         setChanged();
         if (level != null && !level.isClientSide) {
+            clientSyncs++;
+            throttle.sent(level.getGameTime(), SyncThrottle.valuesOf(readings()));
             BlockState state = getBlockState();
             level.sendBlockUpdated(getBlockPos(), state, state, Block.UPDATE_CLIENTS);
         }
+    }
+
+    /** Client updates this controller sent, for tests. */
+    public int clientSyncCount() {
+        return clientSyncs;
     }
 
     // ------------------------------------------------------------------ goggles

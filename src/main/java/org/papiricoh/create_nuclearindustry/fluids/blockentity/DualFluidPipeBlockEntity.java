@@ -5,16 +5,22 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
 import org.papiricoh.create_nuclearindustry.fluids.block.DualFluidPipeBlock;
+import org.papiricoh.create_nuclearindustry.multiblock.NeighbourFluidHandlers;
 
+/**
+ * A pipe with two channels, steam and coolant, that pushes what it holds into every neighbour that
+ * takes fluid. The neighbours' handlers are kept between ticks ({@link NeighbourFluidHandlers}); the
+ * fluid shown in the pipe changes the block state for clients only, without waking the neighbours.
+ */
 public class DualFluidPipeBlockEntity extends BlockEntity {
 
     private static final int CHANNEL_CAPACITY = 8_000;
@@ -33,6 +39,7 @@ public class DualFluidPipeBlockEntity extends BlockEntity {
         }
     };
     private final IFluidHandler fluidHandler = new DualPipeFluidHandler();
+    private final NeighbourFluidHandlers neighbours = new NeighbourFluidHandlers(this, null);
 
     public DualFluidPipeBlockEntity(BlockPos pos, BlockState blockState) {
         super(AllNuclearEntities.DUAL_PIPE.get(), pos, blockState);
@@ -58,8 +65,8 @@ public class DualFluidPipeBlockEntity extends BlockEntity {
     private void pushToNeighbors(Level level, BlockPos pos) {
         boolean changed = false;
         for (Direction direction : Direction.values()) {
-            BlockPos neighborPos = pos.relative(direction);
-            IFluidHandler target = getNeighborFluidHandler(level, neighborPos, direction.getOpposite());
+            // A neighbouring dual pipe offers its own handler through the capability as well.
+            IFluidHandler target = neighbours.get(direction);
             if (target == null) {
                 continue;
             }
@@ -73,12 +80,15 @@ public class DualFluidPipeBlockEntity extends BlockEntity {
         }
     }
 
-    private IFluidHandler getNeighborFluidHandler(Level level, BlockPos neighborPos, Direction side) {
-        BlockEntity neighborEntity = level.getBlockEntity(neighborPos);
-        if (neighborEntity instanceof DualFluidPipeBlockEntity neighborPipe) {
-            return neighborPipe.fluidHandler;
-        }
-        return level.getCapability(Capabilities.FluidHandler.BLOCK, neighborPos, side);
+    /** Sides looked up afresh, for tests. */
+    public int neighbourLookups() {
+        return neighbours.lookups();
+    }
+
+    /** The handler this pipe pushes into across {@code side}, as it would this tick; for tests. */
+    @org.jetbrains.annotations.Nullable
+    public IFluidHandler neighbourHandler(Direction side) {
+        return neighbours.get(side);
     }
 
     private boolean pushTank(FluidTank tank, IFluidHandler target) {
@@ -120,7 +130,9 @@ public class DualFluidPipeBlockEntity extends BlockEntity {
         }
 
         if (state.getValue(DualFluidPipeBlock.VISUAL_FLUID) != newFluid) {
-            level.setBlock(pos, state.setValue(DualFluidPipeBlock.VISUAL_FLUID, newFluid), 3);
+            // Only what the pipe looks like: clients redraw it, neighbours are not told (no block updates,
+            // so radiation caches and multiblock snapshots around it stay valid).
+            level.setBlock(pos, state.setValue(DualFluidPipeBlock.VISUAL_FLUID, newFluid), Block.UPDATE_CLIENTS);
         }
     }
 

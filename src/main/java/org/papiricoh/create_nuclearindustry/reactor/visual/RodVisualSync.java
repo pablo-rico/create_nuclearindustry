@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Keeps a formed reactor's fuel channels showing what the controller holds (server side). Every
@@ -35,19 +36,22 @@ public final class RodVisualSync {
     private List<BlockPos> ordered = List.of();
     private int glow;
     private int timer;
+    /** Channel blocks rewritten so far, for tests: a glow step that holds must rewrite none. */
+    private int writes;
 
     /**
      * One tick of a formed reactor: refreshes the targets when due and pushes some of the pending
-     * channels.
+     * channels. The assemblies are only asked for when the targets are refreshed, so the ticks in
+     * between build no list of them.
      */
-    public void tick(Level level, ReactorStructureValidator.ReactorStructure structure, List<ReactorPhysicsSimulator.AssemblyView> assemblies,
-                     double powerFraction, boolean coolant) {
+    public void tick(Level level, ReactorStructureValidator.ReactorStructure structure,
+                     Supplier<List<ReactorPhysicsSimulator.AssemblyView>> assemblies, double powerFraction, boolean coolant) {
         if (level == null || level.isClientSide) {
             return;
         }
         if (++timer >= ReactorVisualsConfig.rodUpdateInterval) {
             timer = 0;
-            plan(level, structure, assemblies, powerFraction, coolant);
+            plan(level, structure, assemblies.get(), powerFraction, coolant);
         }
         push(level, ReactorVisualsConfig.rodUpdatesPerTick);
     }
@@ -105,6 +109,11 @@ public final class RodVisualSync {
     /** Channels still waiting to be rewritten. */
     public int pendingCount() {
         return pending.size();
+    }
+
+    /** Channel blocks rewritten since this reactor loaded. For tests. */
+    public int writes() {
+        return writes;
     }
 
     /**
@@ -181,6 +190,7 @@ public final class RodVisualSync {
             return false;
         }
         level.setBlock(pos, withLook(state, look), Block.UPDATE_CLIENTS);
+        writes++;
         return true;
     }
 

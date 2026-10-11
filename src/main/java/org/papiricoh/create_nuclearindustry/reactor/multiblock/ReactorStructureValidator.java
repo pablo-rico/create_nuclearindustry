@@ -1,13 +1,11 @@
 package org.papiricoh.create_nuclearindustry.reactor.multiblock;
 
-import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.Contraption;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
@@ -22,7 +20,6 @@ import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsRegistr
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -42,18 +39,17 @@ public class ReactorStructureValidator {
     public static final int MAX_HEIGHT = 12;
 
     public static MultiblockValidationResult<ReactorStructure> validate(Level level, BlockPos controllerPos) {
-        return validate(level, controllerPos, Optional.empty());
-    }
-
-    public static MultiblockValidationResult<ReactorStructure> validate(Level level, BlockPos controllerPos, Optional<ReactorStructure> previousStructure) {
-        return validate(level, controllerPos, previousStructure, false);
+        return validate(level, controllerPos, false);
     }
 
     /**
+     * The control channels are detected afresh every time (see {@link #detectControlChannels}), never
+     * carried over from the last structure, so a channel turned into a reflector or moderator column
+     * stops counting as one.
+     *
      * @param primaryCoolant the reactor holds pressurized loop coolant, so a missing pressurizer is worth a warning
      */
-    public static MultiblockValidationResult<ReactorStructure> validate(Level level, BlockPos controllerPos, Optional<ReactorStructure> previousStructure,
-                                                                        boolean primaryCoolant) {
+    public static MultiblockValidationResult<ReactorStructure> validate(Level level, BlockPos controllerPos, boolean primaryCoolant) {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
@@ -73,11 +69,7 @@ public class ReactorStructureValidator {
 
         DetectedBounds bounds = detected.get();
         ReactorStructure structure = new ReactorStructure(controllerPos, bounds.width(), bounds.height(), bounds.bottomY());
-        if (previousStructure.isPresent() && sameBounds(previousStructure.get(), structure)) {
-            structure.controlChannels.addAll(previousStructure.get().controlChannels);
-        } else {
-            detectControlChannels(level, structure);
-        }
+        structure.controlChannels.addAll(detectControlChannels(level, structure));
         validateShell(level, structure, errors);
         validateInterior(level, structure, errors, warnings);
         detectPressurizer(level, structure, warnings);
@@ -89,13 +81,6 @@ public class ReactorStructureValidator {
             return MultiblockValidationResult.invalid(errors, warnings);
         }
         return MultiblockValidationResult.valid(structure, warnings);
-    }
-
-    private static boolean sameBounds(ReactorStructure oldStructure, ReactorStructure newStructure) {
-        return oldStructure.controllerPos.equals(newStructure.controllerPos)
-                && oldStructure.width == newStructure.width
-                && oldStructure.height == newStructure.height
-                && oldStructure.bottomY == newStructure.bottomY;
     }
 
     private static Optional<DetectedBounds> detectBounds(Level level, BlockPos controllerPos, List<String> errors) {
@@ -198,50 +183,49 @@ public class ReactorStructureValidator {
         }
     }
 
-    private static void detectControlChannels(Level level, ReactorStructure structure) {
+    /**
+     * The interior columns that are control rod channels, by their lowest interior block. Only the
+     * bounds of {@code structure} are read, so the reactor can call this between validations to
+     * notice a channel appearing or going away. A column is a channel when any of:
+     * <ul>
+     *     <li>its lid block is open: air, or a piston part reaching in to drive the rods;</li>
+     *     <li>a control rod block sits anywhere in it or in its travel space above the lid;</li>
+     *     <li>a contraption carries a control rod through it (rods on a moving piston).</li>
+     * </ul>
+     * Air under a closed lid is an empty column: in play the rods leave upwards, so a channel in use
+     * always shows rods, a piston pole or an open lid.
+     */
+    public static Set<BlockPos> detectControlChannels(Level level, ReactorStructure structure) {
+        Set<BlockPos> channels = new HashSet<>();
+        List<AABB> movingRods = ControlRodGeometry.movingControlRods(level, structure);
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         int halfWidth = structure.width / 2;
         for (int x = structure.controllerPos.getX() - halfWidth + 1; x <= structure.controllerPos.getX() + halfWidth - 1; x++) {
             for (int z = structure.controllerPos.getZ() - halfWidth + 1; z <= structure.controllerPos.getZ() + halfWidth - 1; z++) {
-                if (hasControlRodInColumnOrAbove(level, structure, x, z)) {
-                    structure.controlChannels.add(new BlockPos(x, structure.bottomY + 1, z));
+                if (isControlChannelColumn(level, structure, x, z, movingRods, cursor)) {
+                    channels.add(new BlockPos(x, structure.bottomY + 1, z));
                 }
             }
         }
+        return channels;
     }
 
-    private static boolean hasControlRodInColumnOrAbove(Level level, ReactorStructure structure, int x, int z) {
-        if (isOpenControlChannelTop(level, structure, x, z)) {
+    private static boolean isControlChannelColumn(Level level, ReactorStructure structure, int x, int z, List<AABB> movingRods,
+                                                  BlockPos.MutableBlockPos cursor) {
+        BlockState lid = level.getBlockState(cursor.set(x, structure.topY, z));
+        if (lid.isAir() || isAllowedControlChannelMechanism(lid.getBlock())) {
             return true;
         }
-        for (int y = structure.bottomY + 1; y <= structure.topY + structure.innerHeight(); y++) {
-            if (level.getBlockState(new BlockPos(x, y, z)).is(AllNuclearBlocks.CONTROL_ROD.get())) {
+        int top = structure.topY + structure.innerHeight();
+        for (int y = structure.bottomY + 1; y <= top; y++) {
+            if (level.getBlockState(cursor.set(x, y, z)).is(AllNuclearBlocks.CONTROL_ROD.get())) {
                 return true;
             }
         }
-        return hasMovingControlRodInColumn(level, structure, x, z);
-    }
-
-    private static boolean isOpenControlChannelTop(Level level, ReactorStructure structure, int x, int z) {
-        return level.getBlockState(new BlockPos(x, structure.topY, z)).isAir();
-    }
-
-    private static boolean hasMovingControlRodInColumn(Level level, ReactorStructure structure, int x, int z) {
-        AABB searchBox = ControlRodGeometry.createControlRodSearchBox(structure);
-        for (AbstractContraptionEntity entity : level.getEntitiesOfClass(AbstractContraptionEntity.class, searchBox)) {
-            Contraption contraption = entity.getContraption();
-            if (contraption == null) {
-                continue;
-            }
-            for (Map.Entry<BlockPos, StructureTemplate.StructureBlockInfo> entry : contraption.getBlocks().entrySet()) {
-                StructureTemplate.StructureBlockInfo info = entry.getValue();
-                if (!info.state().is(AllNuclearBlocks.CONTROL_ROD.get())) {
-                    continue;
-                }
-                AABB rodBounds = ControlRodGeometry.movingBlockBounds(entity, entry.getKey());
-                for (int y = structure.bottomY + 1; y <= structure.topY + structure.innerHeight(); y++) {
-                    if (ControlRodGeometry.overlapsControlCell(rodBounds, new BlockPos(x, y, z))) {
-                        return true;
-                    }
+        for (AABB rod : movingRods) {
+            for (int y = structure.bottomY + 1; y <= top; y++) {
+                if (ControlRodGeometry.overlapsControlCell(rod, x, y, z)) {
+                    return true;
                 }
             }
         }
@@ -532,6 +516,17 @@ public class ReactorStructureValidator {
                 return false;
             }
             return pos.getY() >= bottomY + 1 && pos.getY() <= topY + innerHeight();
+        }
+
+        /**
+         * In an interior column, from the floor up to the top of the rods' travel space above the lid:
+         * where a block change can make a column a control channel or stop it being one.
+         */
+        public boolean isChannelReach(BlockPos pos) {
+            int halfWidth = width / 2;
+            return Math.abs(pos.getX() - controllerPos.getX()) < halfWidth
+                    && Math.abs(pos.getZ() - controllerPos.getZ()) < halfWidth
+                    && pos.getY() >= bottomY + 1 && pos.getY() <= topY + innerHeight();
         }
 
         public boolean isControlChannel(int x, int z) {

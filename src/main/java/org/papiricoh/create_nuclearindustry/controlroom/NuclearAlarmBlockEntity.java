@@ -20,7 +20,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/** Samples its target twice a second and compares the chosen reading with the threshold. */
+/**
+ * Samples its target twice a second and compares the chosen reading with the threshold. Alarms on one
+ * machine check on the same ticks and share its sample ({@link SharedReadings}); alarms on different
+ * machines check on different ticks, so a server full of alarms does not do all of it in one tick.
+ */
 public class NuclearAlarmBlockEntity extends SmartBlockEntity implements ControlRoomDevice {
     private static final int CHECK_INTERVAL = 10;
     private static final int RING_INTERVAL = 40;
@@ -31,7 +35,6 @@ public class NuclearAlarmBlockEntity extends SmartBlockEntity implements Control
     private GlobalPos target;
     private ScrollOptionBehaviour<AlarmMetric> metric;
     private ScrollValueBehaviour threshold;
-    private int checkCounter;
     private int ringCounter;
 
     public NuclearAlarmBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -59,9 +62,8 @@ public class NuclearAlarmBlockEntity extends SmartBlockEntity implements Control
         if (level == null || level.isClientSide) {
             return;
         }
-        if (++checkCounter >= CHECK_INTERVAL) {
-            checkCounter = 0;
-            check();
+        if (SharedReadings.due(level, getBlockPos(), target, CHECK_INTERVAL)) {
+            check(true);
         }
         if (isTripped() && ++ringCounter >= RING_INTERVAL) {
             ringCounter = 0;
@@ -91,10 +93,20 @@ public class NuclearAlarmBlockEntity extends SmartBlockEntity implements Control
 
     /** Samples the target now and lights or clears the alarm. */
     public void check() {
+        check(false);
+    }
+
+    /**
+     * Lights or clears the alarm. The twice-a-second check takes the sample other devices took of the
+     * same machine this tick ({@code shareSample}); a check after the operator changed something takes
+     * its own.
+     */
+    public void check(boolean shareSample) {
         if (level == null || level.isClientSide) {
             return;
         }
-        MonitorReading sample = MonitorReading.sample(LinkedTarget.resolve(level, getBlockPos(), target));
+        MonitorReading sample = shareSample ? SharedReadings.sample(level, getBlockPos(), target)
+                : MonitorReading.sample(LinkedTarget.resolve(level, getBlockPos(), target));
         boolean tripped = metric.get().tripped(sample, threshold.getValue());
         BlockState state = getBlockState();
         if (state.getValue(NuclearAlarmBlock.LIT) != tripped) {

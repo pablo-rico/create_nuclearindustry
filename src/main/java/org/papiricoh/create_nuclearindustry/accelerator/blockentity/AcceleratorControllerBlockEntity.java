@@ -54,6 +54,8 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
+import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
+import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +86,21 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
     private static final int SYNC_INTERVAL = 10;
     /** Above this the accelerator counts as a GeV machine for its advancement. */
     private static final double GEV = 1000.0;
+    /**
+     * How far an unformed controller listens for block changes, in blocks: a line built up to it re-forms
+     * by itself; a longer one forms when the player clicks the controller, which checks everything.
+     */
+    public static final int UNFORMED_REACH = 32;
+    /** Blocks around a broken structure's last bounds that an unformed controller keeps listening to. */
+    public static final int BROKEN_MARGIN = 2;
+    /** Ticks the source, terminal and attachments are kept before they are looked up again. */
+    public static final int PART_REFRESH = 20;
+    /**
+     * Readings clients are sent again once they moved by half a percent (and a thousandth); the
+     * hydrogen and helium tanks by 1% of their size; flags, phases and counts on any change.
+     */
+    private static final java.util.Map<String, Double> TANK_STEPS = java.util.Map.of(
+            "hydrogen", IonSourceBlockEntity.CAPACITY / 100.0, "liquidHelium", HELIUM_TANK_CAPACITY / 100.0);
 
     public enum Status { UNFORMED, FORMED, SUSPENDED }
 
@@ -97,7 +114,33 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
     private final MagnetModel magnets = new MagnetModel();
     private final MultiblockMessenger messenger = new MultiblockMessenger("Accelerator");
     private boolean pendingRevalidation = true;
+    /**
+     * The bounds of the structure this controller had before it broke, inflated by {@link #BROKEN_MARGIN}:
+     * kept in the unformed interest box until it forms again, so repairing a part further than
+     * {@link #UNFORMED_REACH} from the controller re-forms it by itself, as it did before the box shrank.
+     */
+    @Nullable
+    private BoundingBox brokenBounds;
     private int syncCounter;
+    private final SyncThrottle throttle = SyncThrottle.forRecord(BeamReadings.class, 0.005, 1.0e-3, TANK_STEPS);
+    private int clientSyncs;
+    /** The structure changed since the last broadcast, so clients' beam path is out of date. */
+    private boolean pathChanged = true;
+    /** The packets of the current broadcast carry the beam's path. */
+    private boolean broadcastPath = true;
+    /** Game time of the last broadcast. */
+    private long broadcastTime = Long.MIN_VALUE;
+    /** An update packet was made since the last broadcast: the broadcast's packet may have gone out. */
+    private boolean packetSinceBroadcast;
+    // Parts of {@link #partsOf}, as last looked up; checked for removal before use.
+    private AcceleratorStructure partsOf;
+    private long partsFoundAt;
+    private int partLookups;
+    @Nullable
+    private IonSourceBlockEntity sourceCache;
+    @Nullable
+    private BeamTerminal terminalCache;
+    private List<AcceleratorAttachment> attachmentCache = List.of();
     private double field;
     private double ringEnergy;
     private double energySetpoint = 1.0;
@@ -154,7 +197,10 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         entity.updateBlockState();
         if (++entity.syncCounter >= SYNC_INTERVAL) {
             entity.syncCounter = 0;
-            entity.markDirtyAndSync();
+            entity.setChanged();
+            if (entity.throttle.due(level.getGameTime(), entity.readings(), PerformanceConfig.forcedSyncTicks)) {
+                entity.markDirtyAndSync();
+            }
         }
     }
 
@@ -198,7 +244,8 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
             source.draw(AcceleratorConfig.hydrogenPerTick * currentSetpoint);
         }
         if (sequence.delivering() && budget.current() > 0) {
-            if (level.getBlockEntity(s.terminal()) instanceof BeamTerminal terminal) {
+            BeamTerminal terminal = terminal(s);
+            if (terminal != null) {
                 terminal.receiveBeam(budget.energy(), budget.current(), budget.power());
             }
             if (!firstBeamAwarded) {
@@ -375,8 +422,9 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         if (level == null) {
             return;
         }
-        for (BlockPos pos : s.functionalParts()) {
-            if (level.getBlockEntity(pos) instanceof AcceleratorAttachment attachment) {
+        refreshParts(s);
+        for (AcceleratorAttachment attachment : attachmentCache) {
+            if (!(attachment instanceof BlockEntity blockEntity) || !blockEntity.isRemoved()) {
                 action.accept(attachment);
             }
         }
@@ -384,7 +432,57 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
 
     @Nullable
     private IonSourceBlockEntity source(AcceleratorStructure s) {
-        return level != null && level.getBlockEntity(s.source) instanceof IonSourceBlockEntity source ? source : null;
+        if (level == null) {
+            return null;
+        }
+        refreshParts(s);
+        return sourceCache != null && !sourceCache.isRemoved() ? sourceCache : null;
+    }
+
+    @Nullable
+    private BeamTerminal terminal(AcceleratorStructure s) {
+        if (level == null) {
+            return null;
+        }
+        refreshParts(s);
+        return terminalCache != null && !(terminalCache instanceof BlockEntity blockEntity && blockEntity.isRemoved()) ? terminalCache : null;
+    }
+
+    /**
+     * Looks the source, the terminal and the attachments up in the level when the structure changed,
+     * one of them was replaced, or {@link #PART_REFRESH} ticks have passed; every tick in between uses
+     * the ones found then. Replacing one of them changes the structure's blocks, which re-forms it anyway.
+     */
+    private void refreshParts(AcceleratorStructure s) {
+        long now = level.getGameTime();
+        boolean replaced = sourceCache != null && sourceCache.isRemoved()
+                || terminalCache instanceof BlockEntity terminalEntity && terminalEntity.isRemoved();
+        if (partsOf == s && !replaced && now - partsFoundAt < PART_REFRESH && now >= partsFoundAt) {
+            return;
+        }
+        partsOf = s;
+        partsFoundAt = now;
+        partLookups++;
+        // Parts in unloaded chunks are left out rather than loading them; the next refresh finds them.
+        sourceCache = loadedBlockEntity(s.source) instanceof IonSourceBlockEntity source ? source : null;
+        terminalCache = loadedBlockEntity(s.terminal()) instanceof BeamTerminal terminal ? terminal : null;
+        List<AcceleratorAttachment> attachments = new ArrayList<>();
+        for (BlockPos pos : s.functionalParts()) {
+            if (loadedBlockEntity(pos) instanceof AcceleratorAttachment attachment) {
+                attachments.add(attachment);
+            }
+        }
+        attachmentCache = attachments;
+    }
+
+    @Nullable
+    private BlockEntity loadedBlockEntity(BlockPos pos) {
+        return level.isLoaded(pos) ? level.getBlockEntity(pos) : null;
+    }
+
+    /** Times the source, terminal and attachments were looked up in the level, for tests. */
+    public int partLookups() {
+        return partLookups;
     }
 
     private void updateBlockState() {
@@ -495,6 +593,7 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
     @Override
     public void setRemoved() {
         if (level != null && !level.isClientSide) {
+            partsOf = null;
             structure.ifPresent(s -> forEachAttachment(s, attachment -> attachment.observe(BeamReadings.NONE)));
             MultiblockRegistry.unregister(this);
             AcceleratorHooks.onRemoved.accept(this);
@@ -517,10 +616,11 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         if (structure.isPresent()) {
             return structure.get().bounds();
         }
-        int reach = Math.max(8, AcceleratorConfig.maxLineLength);
+        int reach = Math.min(UNFORMED_REACH, Math.max(8, AcceleratorConfig.maxLineLength));
         BlockPos pos = getBlockPos();
-        return new BoundingBox(pos.getX() - reach, pos.getY() - 2, pos.getZ() - reach, pos.getX() + reach, pos.getY() + 2,
-                pos.getZ() + reach);
+        BoundingBox around = new BoundingBox(pos.getX() - reach, pos.getY() - 2, pos.getZ() - reach, pos.getX() + reach,
+                pos.getY() + 2, pos.getZ() + reach);
+        return brokenBounds == null ? around : BoundingBox.encapsulatingBoxes(List.of(around, brokenBounds)).orElse(around);
     }
 
     @Override
@@ -556,6 +656,8 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
                 messenger.status(level, playerInitiated ? player : null, message);
             }
         } else {
+            // Whatever stands on the old line now hears that the beam is gone.
+            partsOf = null;
             structure.ifPresent(s -> forEachAttachment(s, attachment -> attachment.observe(BeamReadings.NONE)));
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
@@ -569,14 +671,22 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
     }
 
     private void setStructure(Optional<AcceleratorStructure> next) {
-        boolean boundsChanged = !structure.map(AcceleratorStructure::bounds).equals(next.map(AcceleratorStructure::bounds));
+        BoundingBox before = interestBounds();
+        if (next.isPresent()) {
+            brokenBounds = null;
+        } else if (structure.isPresent()) {
+            brokenBounds = structure.get().bounds().inflatedBy(BROKEN_MARGIN);
+        }
+        if (structure != next) {
+            pathChanged = true;
+        }
         structure = next;
         snapshot = next.isPresent() && level != null && !level.isClientSide
                 ? StructureSnapshot.capture(level, next.get().allPositions())
                 : null;
         status = next.isPresent() ? Status.FORMED : Status.UNFORMED;
         supply = AcceleratorSupply.NONE;
-        if (boundsChanged) {
+        if (!before.equals(interestBounds())) {
             MultiblockRegistry.reindex(this);
         }
     }
@@ -613,7 +723,8 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         if (level == null || structure.isEmpty()) {
             return 0;
         }
-        return level.getBlockEntity(structure.get().terminal()) instanceof BeamTerminal terminal ? terminal.activity() : 0;
+        BeamTerminal terminal = terminal(structure.get());
+        return terminal != null ? terminal.activity() : 0;
     }
 
     public Optional<AcceleratorStructure> getStructure() {
@@ -742,12 +853,33 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         return messenger;
     }
 
+    /**
+     * Saves and broadcasts an update to every player watching now; remembered by the throttle, so the
+     * next periodic check compares with it. Whether its packets carry the beam's path is settled here,
+     * not in {@link #getUpdatePacket}: only a broadcast reaches every client.
+     */
     private void markDirtyAndSync() {
         setChanged();
         if (level != null && !level.isClientSide) {
+            clientSyncs++;
+            long now = level.getGameTime();
+            // Broadcasts that go out in one packet count as one: the path stays in if either needed it.
+            if (SyncThrottle.startsNewBroadcast(packetSinceBroadcast, broadcastTime, now)) {
+                broadcastPath = false;
+            }
+            broadcastPath |= pathChanged;
+            pathChanged = false;
+            broadcastTime = now;
+            packetSinceBroadcast = false;
+            throttle.sent(now, this::readings);
             BlockState state = getBlockState();
             level.sendBlockUpdated(getBlockPos(), state, state, Block.UPDATE_CLIENTS);
         }
+    }
+
+    /** Client updates this controller sent, for tests. */
+    public int clientSyncCount() {
+        return clientSyncs;
     }
 
     // ------------------------------------------------------------------ goggles
@@ -841,6 +973,10 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         tag.putDouble("warmHeliumBalance", warmHeliumBalance);
         tag.put("liquidHelium", liquidHeliumTank.writeToNBT(provider, new CompoundTag()));
         tag.put("warmHelium", warmHeliumTank.writeToNBT(provider, new CompoundTag()));
+        if (brokenBounds != null) {
+            tag.putIntArray("brokenBounds", new int[]{brokenBounds.minX(), brokenBounds.minY(), brokenBounds.minZ(),
+                    brokenBounds.maxX(), brokenBounds.maxY(), brokenBounds.maxZ()});
+        }
     }
 
     @Override
@@ -861,14 +997,25 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         warmHeliumBalance = tag.getDouble("warmHeliumBalance");
         liquidHeliumTank.readFromNBT(provider, tag.getCompound("liquidHelium"));
         warmHeliumTank.readFromNBT(provider, tag.getCompound("warmHelium"));
+        int[] broken = tag.getIntArray("brokenBounds");
+        brokenBounds = broken.length == 6 ? new BoundingBox(broken[0], broken[1], broken[2], broken[3], broken[4], broken[5]) : null;
         pendingRevalidation = true;
     }
 
+    /** Everything clients show, as sent with the chunk. */
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        return writeUpdateTag(provider, true);
+    }
+
+    private CompoundTag writeUpdateTag(HolderLookup.Provider provider, boolean withPath) {
         CompoundTag tag = super.getUpdateTag(provider);
         tag.put("readings", readings().write());
         tag.putString("validation", lastValidation.primaryMessage());
+        if (!withPath) {
+            tag.putBoolean("pathUnchanged", true);
+            return tag;
+        }
         tag.putLongArray("injector", injectorPath().stream().mapToLong(BlockPos::asLong).toArray());
         tag.putLongArray("extraction", extractionPath().stream().mapToLong(BlockPos::asLong).toArray());
         tag.putLong("ringCenter", ringCenter().asLong());
@@ -876,9 +1023,16 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         return tag;
     }
 
+    /**
+     * An update packet leaves out the beam's path (waypoints, ring) while it is the one the clients
+     * already have: it only changes when the accelerator forms again. Making the packet changes
+     * nothing, so a packet NeoForge makes for a single player cannot keep the path from the others.
+     */
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
+        packetSinceBroadcast = true;
+        return ClientboundBlockEntityDataPacket.create(this,
+                (blockEntity, registries) -> writeUpdateTag(registries, broadcastPath || pathChanged));
     }
 
     @Override
@@ -890,6 +1044,9 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
         clientReadings = BeamReadings.read(tag.getCompound("readings"));
         clientValidation = tag.getString("validation");
+        if (tag.getBoolean("pathUnchanged")) {
+            return;
+        }
         clientInjector = positions(tag.getLongArray("injector"));
         clientExtraction = positions(tag.getLongArray("extraction"));
         clientRingCenter = BlockPos.of(tag.getLong("ringCenter"));

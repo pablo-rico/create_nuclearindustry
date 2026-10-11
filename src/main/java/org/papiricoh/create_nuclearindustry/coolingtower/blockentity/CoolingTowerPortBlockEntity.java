@@ -12,7 +12,6 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -20,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.coolingtower.block.CoolingTowerFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
 import org.papiricoh.create_nuclearindustry.multiblock.ControllerLink;
+import org.papiricoh.create_nuclearindustry.multiblock.NeighbourFluidHandlers;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
@@ -39,6 +39,8 @@ public class CoolingTowerPortBlockEntity extends BlockEntity implements IHaveGog
     private final IFluidHandler input = new PortHandler(true);
     private final IFluidHandler output = new PortHandler(false);
     private boolean clientLinked;
+    /** Tanks and pipes around the port; other tower ports are left out. */
+    private final NeighbourFluidHandlers neighbours = new NeighbourFluidHandlers(this, be -> be instanceof CoolingTowerPortBlockEntity);
 
     public CoolingTowerPortBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.COOLING_TOWER_FLUID_PORT.get(), pos, state);
@@ -63,11 +65,7 @@ public class CoolingTowerPortBlockEntity extends BlockEntity implements IHaveGog
         }
         boolean in = mode() == ReactorFluidPortMode.INPUT;
         for (Direction side : Direction.values()) {
-            BlockPos neighbourPos = getBlockPos().relative(side);
-            if (level.getBlockEntity(neighbourPos) instanceof CoolingTowerPortBlockEntity) {
-                continue;
-            }
-            IFluidHandler neighbour = level.getCapability(Capabilities.FluidHandler.BLOCK, neighbourPos, side.getOpposite());
+            IFluidHandler neighbour = neighbours.get(side);
             if (neighbour == null) {
                 continue;
             }

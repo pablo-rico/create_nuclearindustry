@@ -1,52 +1,51 @@
 package org.papiricoh.create_nuclearindustry.reactor.control;
 
-import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.Contraption;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.AABB;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 public final class ControlRodTracker {
     private ControlRodTracker() {}
 
+    /**
+     * Counts the channel cells a rod fills, standing or carried by a contraption. Each cell counts
+     * once; the channels are indexed by column first, so the cost grows with the cells looked at
+     * and the rods found, not with channels times rods.
+     */
     public static ControlRodScan scan(Level level, ReactorStructureValidator.ReactorStructure structure) {
         if (level == null || structure.controlChannels.isEmpty()) {
             return ControlRodScan.empty();
         }
 
-        Set<BlockPos> insertedPositions = new HashSet<>();
-        int staticSegments = scanStatic(level, structure, insertedPositions);
-        int movingSegments = scanContraptions(level, structure, insertedPositions);
-        int expectedSegments = structure.controlChannels.size() * structure.innerHeight();
-        float insertion = expectedSegments <= 0 ? 0.0f : Math.min(1.0f, insertedPositions.size() / (float) expectedSegments);
-        // Each channel on its own: a rod is worth most in the middle of the core, so where they are matters.
-        double[] channels = new double[structure.controlChannels.size()];
+        int channelCount = structure.controlChannels.size();
+        int[] channelX = new int[channelCount];
+        int[] channelZ = new int[channelCount];
         int i = 0;
+        // The structure's channel order is the set's iteration order: the per-channel split keeps it.
         for (BlockPos channel : structure.controlChannels) {
-            int inChannel = 0;
-            for (BlockPos pos : insertedPositions) {
-                if (pos.getX() == channel.getX() && pos.getZ() == channel.getZ()) {
-                    inChannel++;
-                }
-            }
-            channels[i++] = structure.innerHeight() <= 0 ? 0 : Math.min(1.0, inChannel / (double) structure.innerHeight());
+            channelX[i] = channel.getX();
+            channelZ[i++] = channel.getZ();
         }
-        return new ControlRodScan(insertion, staticSegments, movingSegments, insertedPositions.size(), expectedSegments, channels);
+        ControlRodGrid grid = new ControlRodGrid(channelX, channelZ, structure.bottomY + 1, structure.topY - structure.bottomY - 1);
+        int staticSegments = scanStatic(level, grid, channelX, channelZ);
+        int movingSegments = scanContraptions(level, structure, grid);
+        int expectedSegments = channelCount * structure.innerHeight();
+        int inserted = grid.filledCells();
+        float insertion = expectedSegments <= 0 ? 0.0f : Math.min(1.0f, inserted / (float) expectedSegments);
+        // Each channel on its own: a rod is worth most in the middle of the core, so where they are matters.
+        return new ControlRodScan(insertion, staticSegments, movingSegments, inserted, expectedSegments, grid.channelInsertions());
     }
 
-    private static int scanStatic(Level level, ReactorStructureValidator.ReactorStructure structure, Set<BlockPos> insertedPositions) {
+    private static int scanStatic(Level level, ControlRodGrid grid, int[] channelX, int[] channelZ) {
         int count = 0;
-        for (BlockPos channel : structure.controlChannels) {
-            for (int y = structure.bottomY + 1; y < structure.topY; y++) {
-                BlockPos pos = new BlockPos(channel.getX(), y, channel.getZ());
-                if (level.getBlockState(pos).is(AllNuclearBlocks.CONTROL_ROD.get()) && insertedPositions.add(pos)) {
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int c = 0; c < channelX.length; c++) {
+            int column = grid.column(channelX[c], channelZ[c]);
+            for (int y = grid.firstY(); y <= grid.lastY(); y++) {
+                cursor.set(channelX[c], y, channelZ[c]);
+                if (level.getBlockState(cursor).is(AllNuclearBlocks.CONTROL_ROD.get()) && grid.fill(column, y)) {
                     count++;
                 }
             }
@@ -54,26 +53,23 @@ public final class ControlRodTracker {
         return count;
     }
 
-    private static int scanContraptions(Level level, ReactorStructureValidator.ReactorStructure structure, Set<BlockPos> insertedPositions) {
+    /** Only the cells under each rod's bounds are tested, each looked up by its column. */
+    private static int scanContraptions(Level level, ReactorStructureValidator.ReactorStructure structure, ControlRodGrid grid) {
         int count = 0;
-        AABB searchBox = createSearchBox(structure);
-        for (AbstractContraptionEntity entity : level.getEntitiesOfClass(AbstractContraptionEntity.class, searchBox)) {
-            Contraption contraption = entity.getContraption();
-            if (contraption == null) {
+        for (AABB rod : ControlRodGeometry.movingControlRods(level, structure)) {
+            int minY = Math.max(grid.firstY(), ControlRodGrid.firstCell(rod.minY));
+            int maxY = Math.min(grid.lastY(), ControlRodGrid.lastCell(rod.maxY));
+            if (minY > maxY) {
                 continue;
             }
-
-            for (Map.Entry<BlockPos, StructureTemplate.StructureBlockInfo> entry : contraption.getBlocks().entrySet()) {
-                StructureTemplate.StructureBlockInfo info = entry.getValue();
-                if (!info.state().is(AllNuclearBlocks.CONTROL_ROD.get())) {
-                    continue;
-                }
-
-                AABB rodBounds = ControlRodGeometry.movingBlockBounds(entity, entry.getKey());
-                for (BlockPos channel : structure.controlChannels) {
-                    for (int y = structure.bottomY + 1; y < structure.topY; y++) {
-                        BlockPos cell = new BlockPos(channel.getX(), y, channel.getZ());
-                        if (ControlRodGeometry.overlapsControlCell(rodBounds, cell) && insertedPositions.add(cell)) {
+            for (int x = ControlRodGrid.firstCell(rod.minX); x <= ControlRodGrid.lastCell(rod.maxX); x++) {
+                for (int z = ControlRodGrid.firstCell(rod.minZ); z <= ControlRodGrid.lastCell(rod.maxZ); z++) {
+                    int column = grid.column(x, z);
+                    if (column < 0) {
+                        continue;
+                    }
+                    for (int y = minY; y <= maxY; y++) {
+                        if (ControlRodGeometry.overlapsControlCell(rod, x, y, z) && grid.fill(column, y)) {
                             count++;
                         }
                     }
@@ -81,10 +77,6 @@ public final class ControlRodTracker {
             }
         }
         return count;
-    }
-
-    private static AABB createSearchBox(ReactorStructureValidator.ReactorStructure structure) {
-        return ControlRodGeometry.createControlRodSearchBox(structure);
     }
 
     /**

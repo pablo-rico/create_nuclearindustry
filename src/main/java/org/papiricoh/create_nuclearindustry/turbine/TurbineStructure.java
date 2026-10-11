@@ -27,12 +27,15 @@ public final class TurbineStructure {
     /** Outer length along the axis, both end walls included. */
     public final int length;
     public final List<BlockPos> rotors = new ArrayList<>();
+    /** {@link #rotors} as packed positions, for {@link #ownsRotor}. */
+    private LongSet rotorSet;
     public final LongSet ports = new LongOpenHashSet();
     public int inputPorts;
     public int outputPorts;
     /** Exhaust ports send the expanded steam to a cooling tower instead of condensing it inside. */
     public int exhaustPorts;
     public int glassCount;
+    private BoundingBox bounds;
 
     public TurbineStructure(TurbineTier tier, BlockPos controllerPos, Direction outward, int hu, int hv, int length) {
         this.tier = tier;
@@ -90,8 +93,28 @@ public final class TurbineStructure {
         return ports.contains(pos.asLong());
     }
 
+    /**
+     * Whether {@code pos} is one of this turbine's rotor stages: a hash lookup, since every formed
+     * rotor asks on its random ticks. The set is built from {@link #rotors} once it is complete.
+     */
+    public boolean ownsRotor(BlockPos pos) {
+        LongSet set = rotorSet;
+        if (set == null || set.size() != rotors.size()) {
+            set = new LongOpenHashSet(rotors.size());
+            for (BlockPos rotor : rotors) {
+                set.add(rotor.asLong());
+            }
+            rotorSet = set;
+        }
+        return set.contains(pos.asLong());
+    }
+
+    /** The geometry never changes, so the box is worked out once. */
     public BoundingBox bounds() {
-        return BoundingBox.fromCorners(at(0, -hu, -hv), at(length - 1, hu, hv));
+        if (bounds == null) {
+            bounds = BoundingBox.fromCorners(at(0, -hu, -hv), at(length - 1, hu, hv));
+        }
+        return bounds;
     }
 
     /** Every block of the box, interior air included, for change tracking. */

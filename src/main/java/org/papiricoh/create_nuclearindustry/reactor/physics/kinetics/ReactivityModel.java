@@ -14,6 +14,11 @@ package org.papiricoh.create_nuclearindustry.reactor.physics.kinetics;
 public final class ReactivityModel {
     /** Temperatures the coefficients are measured from, Celsius. */
     public static final double REFERENCE_TEMPERATURE = 20.0;
+    /**
+     * Water's critical point, Celsius. Above it there is no liquid left to moderate less: the void
+     * term already counts the core as dry, so the moderator term stops growing here.
+     */
+    public static final double MODERATOR_TEMPERATURE_LIMIT = 374.0;
 
     public enum Coolant { WATER, HEAVY_WATER, PRESSURIZED }
 
@@ -41,8 +46,8 @@ public final class ReactivityModel {
                          double dopplerCoefficient, double moderatorCoefficient, double voidCoefficient,
                          double graphiteModeratorCoefficient, double graphiteVoidCoefficient,
                          double heavyWaterVoidCoefficient, double damageWorth, double dryCoreWorth) {
-        public static final Params DEFAULT = new Params(5000, 0.5, 10000, 12000, 0.5, 1500, 1000, 500,
-                -2.0, -4.0, -15.0, -1.0, 3.0, -5.0, 2000, 10000);
+        public static final Params DEFAULT = new Params(12000, 0.6, 24000, 22000, 0.5, 1500, 1000, 500,
+                -2.0, -4.0, -15.0, -1.0, 3.0, -5.0, 2000, 20000);
     }
 
     /**
@@ -79,6 +84,24 @@ public final class ReactivityModel {
         public double withoutRods() {
             return total() - rods;
         }
+
+        /** The same reactivity grouped the way a player reads it. */
+        public Parts parts() {
+            return new Parts(fuel + moderation + reflector + heavyWater, rods, doppler + moderator, voids, xenon, damage);
+        }
+    }
+
+    /**
+     * The breakdown grouped into what a player can act on, pcm: the fuel (with its graphite, reflector
+     * and heavy water), the rods, the temperature feedback (Doppler and moderator), the steam and
+     * missing water, the xenon and the damage. They add up to the net reactivity.
+     */
+    public record Parts(double fuel, double rods, double temperature, double voids, double xenon, double damage) {
+        public static final Parts NONE = new Parts(0, 0, 0, 0, 0, 0);
+
+        public double total() {
+            return fuel + rods + temperature + voids + xenon + damage;
+        }
     }
 
     private ReactivityModel() {}
@@ -103,7 +126,7 @@ public final class ReactivityModel {
         alphaModerator = lerp(alphaModerator, p.graphiteModeratorCoefficient(), m);
         alphaVoid = lerp(alphaVoid, p.graphiteVoidCoefficient(), m);
         double doppler = p.dopplerCoefficient() * (in.fuelTemperature() - REFERENCE_TEMPERATURE);
-        double moderator = alphaModerator * (in.coolantTemperature() - REFERENCE_TEMPERATURE);
+        double moderator = alphaModerator * (Math.min(in.coolantTemperature(), MODERATOR_TEMPERATURE_LIMIT) - REFERENCE_TEMPERATURE);
         double voids = alphaVoid * 100.0 * clamp(in.voidFraction())
                 - p.dryCoreWorth() * (1 - clamp(in.coverage())) * (1 - m);
         return new Breakdown(fuel, p.graphiteWorth() * m, p.reflectorWorth() * clamp(in.reflection()), heavy,

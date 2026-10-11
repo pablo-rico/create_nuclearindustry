@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -18,14 +19,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 import org.papiricoh.create_nuclearindustry.controlroom.ConfigurableDevice;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomDevice;
 import org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
+import org.papiricoh.create_nuclearindustry.controlroom.SharedReadings;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
+import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 
 import java.util.List;
@@ -34,6 +38,10 @@ import java.util.List;
  * A paper chart recorder: up to three pens draw readings of the linked machine on a moving strip of
  * paper. Each sample uses up a little paper; with none left the chart stops. The trace keeps the
  * last {@link ChartBuffer#CAPACITY} samples and can be torn off as a Chart Roll.
+ *
+ * <p>Clients get the visible end of the trace with the chunk; after that an update carries only the
+ * samples drawn since the last one, at most one update every {@link PerformanceConfig#screenSyncTicks}
+ * ticks, and the client appends them to its own copy.
  */
 public class ChartRecorderBlockEntity extends SmartBlockEntity implements ControlRoomDevice, ConfigurableDevice {
     public static final int MAX_PAPER = 64;
@@ -57,6 +65,28 @@ public class ChartRecorderBlockEntity extends SmartBlockEntity implements Contro
     private long drawn;
     private final ChartBuffer chart = new ChartBuffer();
     private final PaperHandler paperHandler = new PaperHandler();
+    /** Samples drawn that no update has carried yet. */
+    private boolean syncDue;
+    /** The next update carries the whole visible trace: the chart was cleared or replaced. */
+    private boolean fullSyncPending = true;
+    private long lastSyncTime = Long.MIN_VALUE / 2;
+    /** {@link #drawn} when the last update was broadcast ({@link #sendData}). */
+    private long broadcastDrawn;
+    /**
+     * {@link #drawn} at the broadcast before that: every client watching has at least these samples,
+     * so update packets carry the samples after it. Only {@link #sendData} moves it: a packet NeoForge
+     * makes for a single player must not make the other clients skip samples.
+     */
+    private long deltaFromDrawn;
+    /** The packets of the current broadcast carry the whole visible trace. */
+    private boolean broadcastFull = true;
+    /** Game time of the last broadcast. */
+    private long broadcastTime = Long.MIN_VALUE;
+    /** An update packet was made since the last broadcast: the broadcast's packet may have gone out. */
+    private boolean packetSinceBroadcast;
+    /** Set while an update packet is written, so {@link #write} sends only the new samples. */
+    private boolean writingDelta;
+    private int clientSyncs;
 
     public ChartRecorderBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -76,6 +106,9 @@ public class ChartRecorderBlockEntity extends SmartBlockEntity implements Contro
             counter = 0;
             sample();
         }
+        if (syncDue && level.getGameTime() - lastSyncTime >= Math.max(1, PerformanceConfig.screenSyncTicks)) {
+            notifyUpdate();
+        }
     }
 
     /** Draws one sample, if there is paper. Returns whether it drew. */
@@ -83,7 +116,7 @@ public class ChartRecorderBlockEntity extends SmartBlockEntity implements Contro
         if (level == null || level.isClientSide || paper <= 0) {
             return false;
         }
-        MonitorReading reading = MonitorReading.sample(LinkedTarget.resolve(level, getBlockPos(), target));
+        MonitorReading reading = SharedReadings.sample(level, getBlockPos(), target);
         float[] values = new float[ChartBuffer.MAX_PENS];
         for (int pen = 0; pen < values.length; pen++) {
             values[pen] = pens[pen] == null ? 0 : pens[pen].fraction(reading);
@@ -94,7 +127,9 @@ public class ChartRecorderBlockEntity extends SmartBlockEntity implements Contro
             sheetUsed = 0;
             setPaper(paper - 1);
         }
-        notifyUpdate();
+        // Sent with the next update, together with the samples drawn until then.
+        syncDue = true;
+        setChanged();
         return true;
     }
 
@@ -155,6 +190,7 @@ public class ChartRecorderBlockEntity extends SmartBlockEntity implements Contro
         ItemStack roll = new ItemStack(ControlRoom2Registry.CHART_ROLL.get());
         roll.set(ControlRoom2Registry.CHART_DATA.get(), ChartData.of(kind, pens, chart, ticksPerSample(), level.getGameTime()));
         chart.clear();
+        fullSyncPending = true;
         notifyUpdate();
         return roll;
     }
@@ -242,6 +278,7 @@ public class ChartRecorderBlockEntity extends SmartBlockEntity implements Contro
             }
             if (newKind != kind) {
                 chart.clear();
+                fullSyncPending = true;
             }
         }
         kind = newKind;
@@ -285,12 +322,72 @@ public class ChartRecorderBlockEntity extends SmartBlockEntity implements Contro
         tag.putInt("Paper", paper);
         tag.putInt("SheetUsed", sheetUsed);
         tag.putLong("Drawn", drawn);
+        if (writingDelta) {
+            // Only the samples drawn since the last packet; "Drawn" tells the client which it already has.
+            int fresh = (int) Math.min(VISIBLE, Math.max(0, drawn - deltaFromDrawn));
+            for (int pen = 0; pen < ChartBuffer.MAX_PENS; pen++) {
+                tag.putByteArray("Append" + pen, chart.newest(pen, fresh));
+            }
+            return;
+        }
         // Clients only draw the visible end of the trace.
         int keep = clientPacket ? Math.min(VISIBLE, chart.size()) : chart.size();
         for (int pen = 0; pen < ChartBuffer.MAX_PENS; pen++) {
-            byte[] all = chart.bytes(pen);
-            tag.putByteArray("Trace" + pen, java.util.Arrays.copyOfRange(all, all.length - keep, all.length));
+            tag.putByteArray("Trace" + pen, chart.newest(pen, keep));
         }
+    }
+
+    /**
+     * Every update after the chunk's: the samples drawn since the broadcast before the last one, unless
+     * the chart was cleared since. Making the packet changes nothing, so a packet made for a single
+     * player repeats the same samples; a client drops those it has by {@code Drawn}.
+     */
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this, (blockEntity, registries) -> packetTag(registries));
+    }
+
+    private CompoundTag packetTag(HolderLookup.Provider registries) {
+        packetSinceBroadcast = true;
+        CompoundTag tag = new CompoundTag();
+        writingDelta = !broadcastFull && !fullSyncPending;
+        try {
+            write(tag, registries, true);
+        } finally {
+            writingDelta = false;
+        }
+        return tag;
+    }
+
+    /**
+     * Broadcasts an update to every player watching; the level makes its one packet when it next sends
+     * the chunk's changes. The delta bookkeeping moves here and not in {@link #getUpdatePacket}: only a
+     * broadcast reaches every client. Broadcasts that go out in one packet count as one
+     * ({@link SyncThrottle#startsNewBroadcast}).
+     */
+    @Override
+    public void sendData() {
+        if (level != null && !level.isClientSide) {
+            clientSyncs++;
+            syncDue = false;
+            long now = level.getGameTime();
+            lastSyncTime = now;
+            if (SyncThrottle.startsNewBroadcast(packetSinceBroadcast, broadcastTime, now)) {
+                deltaFromDrawn = broadcastDrawn;
+                broadcastFull = false;
+            }
+            broadcastFull |= fullSyncPending;
+            fullSyncPending = false;
+            broadcastDrawn = drawn;
+            broadcastTime = now;
+            packetSinceBroadcast = false;
+        }
+        super.sendData();
+    }
+
+    /** Client updates this recorder asked for, for tests. */
+    public int clientSyncCount() {
+        return clientSyncs;
     }
 
     @Override
@@ -305,8 +402,28 @@ public class ChartRecorderBlockEntity extends SmartBlockEntity implements Contro
         speed = Mth.clamp(tag.getInt("Speed"), 0, SPEEDS.length - 1);
         paper = Mth.clamp(tag.getInt("Paper"), 0, MAX_PAPER);
         sheetUsed = Math.max(0, tag.getInt("SheetUsed"));
+        long before = drawn;
         drawn = Math.max(0, tag.getLong("Drawn"));
+        if (clientPacket && tag.contains("Append0")) {
+            appendNew(tag, before);
+            return;
+        }
         chart.load(tag.getByteArray("Trace0"), tag.getByteArray("Trace1"), tag.getByteArray("Trace2"));
+    }
+
+    /** Appends the samples of an update this copy does not have yet: those drawn after {@code had}. */
+    private void appendNew(CompoundTag tag, long had) {
+        byte[][] series = new byte[ChartBuffer.MAX_PENS][];
+        int sent = Integer.MAX_VALUE;
+        for (int pen = 0; pen < ChartBuffer.MAX_PENS; pen++) {
+            series[pen] = tag.getByteArray("Append" + pen);
+            sent = Math.min(sent, series[pen].length);
+        }
+        int fresh = (int) Math.max(0, Math.min(sent, drawn - had));
+        for (int pen = 0; pen < ChartBuffer.MAX_PENS; pen++) {
+            series[pen] = java.util.Arrays.copyOfRange(series[pen], series[pen].length - fresh, series[pen].length);
+        }
+        chart.append(series);
     }
 
     /** One slot that only takes paper, up to the tray's size. */

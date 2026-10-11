@@ -68,13 +68,31 @@ below for what changes in existing worlds.
   keep flowing. Both are configurable.
 - New readouts for reactivity, xenon and decay heat in the control panel,
   goggles and three new Display Link sources.
+- The net reactivity is shown split into its parts, in pcm with their signs,
+  so the numbers explain themselves: fuel (with graphite, reflector and
+  heavy water), rods, heat (Doppler and water temperature), steam and
+  missing water, and xenon. The goggles and the control panel show the line,
+  control room monitors get the four values, and a new Display Link source
+  "Reactor Reactivity Breakdown" prints it. A cold reactor with its rods in
+  reads for example "fuel +12000, rods -22000": that -10000 is its shutdown
+  margin, not a fault.
 - New reactor physics. The core follows real point kinetics with delayed
   neutrons, and hot fuel, hot water and steam all hold its power back:
   pulling a control rod out raises the power a little and the reactor
   settles by itself on a new, hotter power instead of running away to a
-  meltdown. With every rod out a low-enriched, water-cooled core stays below
-  about 1300 °C; graphite (with its positive void coefficient) or highly
-  enriched fuel can still take it into damage.
+  meltdown. A steady reactor reads a net reactivity of about 0 pcm; a shut
+  down one reads its (negative) shutdown margin.
+- As in a real reactor, fresh fuel holds far more reactivity than its own
+  heat can take back, so a reactor needs its control rods: with every rod
+  out, or none built, a core with water runs past its rated power until the
+  fuel is damaged. Starving it of water only holds it back while its fuel is
+  uncovered: when the water comes back, so does all that reactivity. Small
+  reactors with few rod blocks move in big steps; tall or several rod
+  channels give finer control.
+- Decay heat follows the real curve, from fission products that decay in
+  seconds to ones that last for hours, and builds up with how long the core
+  ran: a reactor that ran for hours and loses its water after a SCRAM keeps
+  heating for hours.
 - Power is proportional to the fuel: each fuel rod block is rated 50 MW (MOX
   more). The control panel, goggles, monitors, gauges, alarms, the Redstone
   Port (15 at 100%) and the automatic power controller of the desk now work
@@ -105,6 +123,15 @@ below for what changes in existing worlds.
   melting, meltdown, steam explosion, vessel breach, a hot reactor broken
   open, tokamak disruptions and trips, accelerator trips) go to chat, to the
   owner and to players within 64 blocks.
+- A formed reactor now notices when a control rod channel is rebuilt: rods
+  swapped for a Beryllium Reflector or Graphite Moderator column, or pulled
+  out, under a closed casing lid stop counting as a channel (the core loses
+  that rod capacity and gains the reflection or moderation) without cooling
+  or unforming it, and putting a rod back makes it a channel again. Rods
+  driven by Create pistons, with the piston pole in the lid or gaps above
+  and below them, keep their channel and never make the reactor recheck
+  itself. A reactor saved with such a leftover channel, or whose core was
+  changed while unloaded, gets the right rod capacity when it loads.
 
 ### Control room
 - Control Room Linker: click any block of a reactor, turbine or cooling tower
@@ -208,6 +235,69 @@ below for what changes in existing worlds.
 - Players accumulate a dose from carried material, nearby waste and fallout
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit
   and Geiger counter. Configurable and can be disabled.
+
+### Performance and multiplayer
+- Radiation exposure is much cheaper on servers: a player who stands still no
+  longer recasts every radiation ray every second. Rays are reused while they
+  are still being read and nothing changes along them, and are recast after a
+  minute at most (`performance.radiationRayCacheTicks` now counts from the last
+  use and defaults to 100; new `performance.radiationRayMaxAgeTicks`, 1200).
+  Control room monitors watching an area reuse their rays the same way.
+- Nuclear craters and water turned into contaminated water now update radiation
+  readings, containment buildings, shelters and multiblock structures as they
+  are dug: a wall blown away stops shielding at once and a breached containment
+  notices within a few ticks.
+- Fallout sources are looked up by chunk, fade continuously instead of in
+  one-second steps, and no longer mark the world data for saving every second.
+- Fission reactors send much smaller client updates: the fuel goes out as a
+  summary instead of one entry per assembly and the goggle readings are packed,
+  so a full 9x12x9 core costs no more bandwidth than a small one. A running
+  reactor updates nearby players at most once a second and only when something
+  visible changed (tank level in 2% steps, 2 °C, 0.5% power, 10 pcm, rods, fuel
+  slots, state, period, decay heat, the reactivity breakdown), with a refresh
+  every `performance.forcedSyncTicks` (100) regardless; SCRAM, meltdown and
+  formation still go out instantly. In creative, ctrl+pick-block on a running
+  controller now places a copy whose fuel is averaged over the assemblies.
+- Block changes near multiblocks are cheaper: structure bounds are remembered
+  when a controller is indexed, chunk unloads only look at that chunk's
+  controllers, and an unformed accelerator listens 32 blocks around its
+  controller (plus the bounds of its last formed structure) instead of 160; an
+  unformed tokamak only where its torus can be. Clicking the controller still
+  checks the whole structure.
+- Control room monitors send the graph history with the chunk and afterwards
+  only the new samples; chart recorders send at most one update per second
+  (`performance.screenSyncTicks`, 20), so at fast paper speeds the trace moves
+  forward about once a second. Screens and consoles work out their shape only
+  when a block next to them changes. Alarms and annunciators on one machine
+  share a sample; different machines check on different ticks.
+- Fluid ports, dual fluid pipes and containment penetrations remember the tanks
+  and pipes around them and their controller instead of looking all six sides
+  up every tick (fluid moves exactly as before), and a dual pipe changing the
+  fluid it shows no longer sends block updates to its neighbours.
+- Steam generator, cryogenic plant, tokamak, accelerator and containment monitor
+  controllers update players only when something they show changes visibly and
+  at least every `performance.forcedSyncTicks`; the accelerator sends its beam
+  path only when it forms. Tokamaks, accelerators and cryogenic plants look up
+  their parts once a second, not every tick, and the breakeven advancement is
+  checked every 5 seconds.
+- Spent fuel racks in one pool share one measurement of the water. A sealed
+  containment is not re-measured while none of its blocks changed (a safety
+  re-check every 4 minutes); an open Containment Monitor backs off to every 2
+  minutes. Shelter Filtration Units and the Repository Inspector survey less
+  often when nothing changed; the Vitrification Melter looks its recipe up only
+  when its contents or heat change, and its progress advances smoothly in the
+  goggles.
+- Nuclear blast waves only walk the ring of columns they sweep each tick (same
+  results).
+- Fixed two players opening different Nuclear Bombs or Launch Pads at the same
+  time seeing the wrong block's screen.
+- Missiles remember the chunk they keep loaded, so a world closed mid-flight no
+  longer leaves it force-loaded forever. Missiles from older saves only take
+  over a chunk their save proves they forced; chunks lost under older versions
+  can be freed with `/forceload remove`.
+- Fixed several internal registries (multiblocks, radiation emitters and ray
+  caches, containment, seismic network, craters being dug, delayed explosion
+  sounds, repository site cache) keeping a closed world in memory.
 
 ### Advancements
 - A progression tree of 24 advancements: the fuel cycle from raw uranium to
@@ -840,7 +930,8 @@ below for what changes in existing worlds.
   `fission.uraniumBurnPerNeutron`, `graphiteModeratorBonus`,
   `berylliumReflectorBonus` and `xenonWorth` are gone; their replacements
   (`fission.fuelBurnPerRod`, `fission.reactivity.*`) use other units, so old
-  values are not carried over. `pwr.heatTransfer` no longer does anything,
+  values are not carried over. `fission.decayHeatTimeTicks` is now the time
+  scale of five decay heat groups (20000 by default). `pwr.heatTransfer` no longer does anything,
   and `pwr.accidents.oxidationHeat` is now in kelvin of a rod's fuel (1.2 by
   default). Automatic power controllers on desks, power alarms and power
   gauges now read percent of the rated power: check their settings.

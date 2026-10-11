@@ -57,6 +57,11 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
     private boolean suspended;
     @Nullable
     private Direction lastFacing;
+    /** The largest turbine this controller could form facing {@link #unformedBoundsFacing}, kept so asking costs nothing. */
+    @Nullable
+    private BoundingBox unformedBounds;
+    @Nullable
+    private Direction unformedBoundsFacing;
     private int currentUse;
     private float recentUse;
     private float generatedSpeed;
@@ -229,9 +234,13 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
         if (structure.isPresent()) {
             return structure.get().bounds();
         }
-        TurbineStructure largest = new TurbineStructure(tier(), getBlockPos(), facing(),
-                TurbineStructureValidator.MAX_HALF, TurbineStructureValidator.MAX_HALF, TurbineStructureValidator.MAX_LENGTH);
-        return largest.bounds();
+        Direction facing = facing();
+        if (unformedBounds == null || unformedBoundsFacing != facing) {
+            unformedBoundsFacing = facing;
+            unformedBounds = new TurbineStructure(tier(), getBlockPos(), facing,
+                    TurbineStructureValidator.MAX_HALF, TurbineStructureValidator.MAX_HALF, TurbineStructureValidator.MAX_LENGTH).bounds();
+        }
+        return unformedBounds;
     }
 
     @Override

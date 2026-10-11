@@ -7,11 +7,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.PerformanceConfig;
+import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
@@ -20,15 +23,28 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * One block of a control room screen. Each monitor works out the rectangle of same-facing monitors
- * it belongs to; the bottom-left one (as seen from the front) is the origin, which holds the link,
- * samples the target once a second, keeps two minutes of history and draws the whole screen.
+ * One block of a control room screen. Each monitor belongs to a rectangle of same-facing monitors;
+ * the bottom-left one (as seen from the front) is the origin, which holds the link, samples the
+ * target once a second, keeps two minutes of history and draws the whole screen.
+ *
+ * <p>The screen's shape is worked out by one monitor for all of them when a block next to one of
+ * them changes (and by the origin, as a safety net, every {@link #CLUSTER_FALLBACK_INTERVAL} ticks),
+ * not by every monitor every two seconds. Clients get the history with the chunk; later updates carry
+ * only the samples recorded since the last one, and go out when the reading changed by a visible
+ * step, at most every {@link PerformanceConfig#screenSyncTicks} ticks, or every
+ * {@link PerformanceConfig#forcedSyncTicks} ticks while the graph has new samples.
  */
 public class ControlMonitorBlockEntity extends SmartBlockEntity implements ControlRoomDevice {
     public static final int MAX_SIZE = 8;
     public static final int HISTORY = 120;
     private static final int SAMPLE_INTERVAL = 20;
-    private static final int CLUSTER_CHECK_INTERVAL = 40;
+    /** The origin looks at its screen's shape again this often, in case a change went unnoticed. */
+    public static final int CLUSTER_FALLBACK_INTERVAL = 600;
+    /** A reading that moved by this share of its size (and at least the absolute step) is worth an update. */
+    private static final double VISIBLE_RELATIVE = 0.005;
+    private static final double VISIBLE_ABSOLUTE = 0.001;
+    /** One pixel row of the graph. */
+    private static final double VISIBLE_SERIES = 1.0 / 120.0;
 
     @Nullable
     private GlobalPos target;
@@ -44,6 +60,34 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
     private final float[] historyA = new float[HISTORY];
     private final float[] historyB = new float[HISTORY];
     private int historySize;
+    /** Samples recorded since the screen was placed or loaded: a client tells by it which samples it has. */
+    private long historySeq;
+    /** {@link #historySeq} when the last update was broadcast ({@link #sendData}). */
+    private long broadcastSeq;
+    /**
+     * {@link #historySeq} at the broadcast before that: every client watching has at least these
+     * samples, so update packets carry the samples after it. Only {@link #sendData} moves it, never
+     * the packet itself: NeoForge also makes update packets for a single player (a block break a
+     * claim mod cancelled, say), and such a packet must not make the others skip samples.
+     */
+    private long deltaFromSeq;
+    /** The packets of the current broadcast carry the whole history. */
+    private boolean broadcastFull = true;
+    /** Game time of the last broadcast. */
+    private long broadcastTime = Long.MIN_VALUE;
+    /** An update packet was made since the last broadcast: the broadcast's packet may have gone out. */
+    private boolean packetSinceBroadcast;
+    /** The reading the clients were last sent. */
+    private MonitorReading sentReading = MonitorReading.NONE;
+    private long lastSyncTime = Long.MIN_VALUE / 2;
+    /** The reading changed visibly since the last update. */
+    private boolean syncDue;
+    /** The next update carries the whole history: it was cleared or the screen changed. */
+    private boolean fullSyncPending = true;
+    /** Set while an update packet is written, so {@link #write} sends only the new samples. */
+    private boolean writingDelta;
+    private int clientSyncs;
+    private int clusterScans;
 
     public ControlMonitorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -59,13 +103,20 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         if (level == null || level.isClientSide) {
             return;
         }
-        if (clusterDirty || ++clusterCheckCounter >= CLUSTER_CHECK_INTERVAL) {
-            clusterCheckCounter = 0;
+        if (clusterDirty || isOrigin() && ++clusterCheckCounter >= CLUSTER_FALLBACK_INTERVAL) {
             updateCluster();
         }
-        if (isOrigin() && ++sampleCounter >= SAMPLE_INTERVAL) {
+        if (!isOrigin()) {
+            return;
+        }
+        if (++sampleCounter >= SAMPLE_INTERVAL) {
             sampleCounter = 0;
             sample();
+        }
+        long sinceSync = level.getGameTime() - lastSyncTime;
+        if (syncDue && sinceSync >= Math.max(1, PerformanceConfig.screenSyncTicks)
+                || historySeq != broadcastSeq && sinceSync >= PerformanceConfig.forcedSyncTicks) {
+            notifyUpdate();
         }
     }
 
@@ -109,8 +160,12 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
                 : Optional.empty();
     }
 
+    /**
+     * Works out the screen this monitor is part of and hands the answer to every monitor of it, so
+     * one search serves the whole screen.
+     */
     private void updateCluster() {
-        clusterDirty = false;
+        clusterScans++;
         Direction facing = facing();
         Direction right = facing.getCounterClockWise();
         Set<BlockPos> members = connected(facing, right);
@@ -124,26 +179,46 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         }
         int newWidth = maxR - minR + 1;
         int newHeight = maxY - minY + 1;
+        boolean rectangle = newWidth <= MAX_SIZE && newHeight <= MAX_SIZE && members.size() == newWidth * newHeight;
         BlockPos newOrigin = getBlockPos();
-        if (newWidth <= MAX_SIZE && newHeight <= MAX_SIZE && members.size() == newWidth * newHeight) {
-            for (BlockPos member : members) {
-                if (along(member, right) == minR && member.getY() == minY) {
-                    newOrigin = member;
-                }
+        for (BlockPos member : members) {
+            if (along(member, right) == minR && member.getY() == minY) {
+                newOrigin = member;
             }
-        } else {
-            newWidth = 1;
-            newHeight = 1;
         }
+        ControlMonitorBlockEntity screen = null;
+        for (BlockPos member : members) {
+            ControlMonitorBlockEntity monitor = member.equals(getBlockPos()) ? this
+                    : level.getBlockEntity(member) instanceof ControlMonitorBlockEntity other ? other : null;
+            if (monitor == null) {
+                continue;
+            }
+            if (rectangle) {
+                monitor.applyCluster(newOrigin, newWidth, newHeight);
+                if (member.equals(newOrigin)) {
+                    screen = monitor;
+                }
+            } else {
+                // Not a rectangle: every monitor is a screen of its own.
+                monitor.applyCluster(member, 1, 1);
+            }
+        }
+        if (screen != null && screen.target == null) {
+            screen.adoptTargetFrom(members);
+        }
+    }
+
+    /** Takes the screen worked out by a monitor of it. */
+    private void applyCluster(BlockPos newOrigin, int newWidth, int newHeight) {
+        clusterDirty = false;
+        clusterCheckCounter = 0;
         boolean changed = width != newWidth || height != newHeight || !newOrigin.equals(origin == null ? getBlockPos() : origin);
         width = newWidth;
         height = newHeight;
-        origin = newOrigin.equals(getBlockPos()) ? null : newOrigin;
-        if (isOrigin() && target == null) {
-            adoptTargetFrom(members);
-        }
+        origin = newOrigin.equals(getBlockPos()) ? null : newOrigin.immutable();
         if (changed) {
             sampleCounter = SAMPLE_INTERVAL;
+            fullSyncPending = true;
             notifyUpdate();
         }
     }
@@ -205,6 +280,7 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         }
         target = newTarget;
         historySize = 0;
+        fullSyncPending = true;
         page = 0;
         sampleCounter = SAMPLE_INTERVAL;
         if (level != null && !level.isClientSide) {
@@ -214,9 +290,12 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
     }
 
     private void sample() {
-        MonitorReading next = MonitorReading.sample(LinkedTarget.resolve(level, getBlockPos(), target));
+        MonitorReading next = SharedReadings.sample(level, getBlockPos(), target);
         if (next.kind() != reading.kind()) {
+            // The graph starts again: every client needs the whole (empty) history.
             historySize = 0;
+            fullSyncPending = true;
+            syncDue = true;
         }
         int previousSignal = reading.comparatorSignal();
         reading = next;
@@ -228,7 +307,24 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
                 level.updateNeighbourForOutputSignal(member, getBlockState().getBlock());
             }
         }
-        notifyUpdate();
+        if (visiblyChanged(sentReading, next)) {
+            syncDue = true;
+        }
+        setChanged();
+    }
+
+    /** Whether a screen showing {@code shown} would look different showing {@code next}. */
+    public static boolean visiblyChanged(MonitorReading shown, MonitorReading next) {
+        if (shown.kind() != next.kind() || !shown.status().equals(next.status()) || shown.values().length != next.values().length) {
+            return true;
+        }
+        for (int i = 0; i < next.values().length; i++) {
+            if (SyncThrottle.visiblyDifferent(shown.values()[i], next.values()[i], VISIBLE_ABSOLUTE, VISIBLE_RELATIVE)) {
+                return true;
+            }
+        }
+        return SyncThrottle.visiblyDifferent(shown.seriesA(), next.seriesA(), VISIBLE_SERIES, 0)
+                || SyncThrottle.visiblyDifferent(shown.seriesB(), next.seriesB(), VISIBLE_SERIES, 0);
     }
 
     private void record(float a, float b) {
@@ -240,6 +336,7 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         historyA[historySize] = a;
         historyB[historySize] = b;
         historySize++;
+        historySeq++;
     }
 
     /** Every block of this screen, from the origin. */
@@ -296,6 +393,67 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         };
     }
 
+    // ------------------------------------------------------------------ client updates
+
+    /**
+     * Every update after the chunk's: the samples recorded since the broadcast before the last one,
+     * unless the history was cleared since. Making the packet changes nothing, so a packet made for a
+     * single player repeats the same samples; a client drops those it has by their sequence number.
+     */
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this, (blockEntity, registries) -> packetTag(registries));
+    }
+
+    private CompoundTag packetTag(HolderLookup.Provider registries) {
+        packetSinceBroadcast = true;
+        CompoundTag tag = new CompoundTag();
+        writingDelta = !broadcastFull && !fullSyncPending;
+        try {
+            write(tag, registries, true);
+        } finally {
+            writingDelta = false;
+        }
+        return tag;
+    }
+
+    /**
+     * Broadcasts an update to every player watching; the level makes its one packet when it next sends
+     * the chunk's changes. The delta bookkeeping moves here and not in {@link #getUpdatePacket}: only a
+     * broadcast reaches every client.
+     */
+    @Override
+    public void sendData() {
+        if (level != null && !level.isClientSide) {
+            clientSyncs++;
+            syncDue = false;
+            sentReading = reading;
+            long now = level.getGameTime();
+            lastSyncTime = now;
+            if (SyncThrottle.startsNewBroadcast(packetSinceBroadcast, broadcastTime, now)) {
+                deltaFromSeq = broadcastSeq;
+                broadcastFull = false;
+            }
+            broadcastFull |= fullSyncPending;
+            fullSyncPending = false;
+            broadcastSeq = historySeq;
+            broadcastTime = now;
+            packetSinceBroadcast = false;
+        }
+        super.sendData();
+    }
+
+
+    /** Client updates this monitor asked for, for tests. */
+    public int clientSyncCount() {
+        return clientSyncs;
+    }
+
+    /** Searches for the shape of its screen this monitor made, for tests. */
+    public int clusterScanCount() {
+        return clusterScans;
+    }
+
     // ------------------------------------------------------------------ persistence
 
     @Override
@@ -309,8 +467,17 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         tag.putInt("Width", width);
         tag.putInt("Height", height);
         tag.put("Reading", reading.write());
-        tag.putIntArray("HistoryA", bits(historyA, historySize));
-        tag.putIntArray("HistoryB", bits(historyB, historySize));
+        if (clientPacket) {
+            tag.putLong("HistorySeq", historySeq);
+        }
+        if (writingDelta) {
+            int fresh = (int) Math.min(historySize, Math.max(0, historySeq - deltaFromSeq));
+            tag.putIntArray("AppendA", bits(historyA, historySize - fresh, historySize));
+            tag.putIntArray("AppendB", bits(historyB, historySize - fresh, historySize));
+            return;
+        }
+        tag.putIntArray("HistoryA", bits(historyA, 0, historySize));
+        tag.putIntArray("HistoryB", bits(historyB, 0, historySize));
     }
 
     @Override
@@ -322,6 +489,22 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         width = Math.max(1, Math.min(MAX_SIZE, tag.contains("Width") ? tag.getInt("Width") : 1));
         height = Math.max(1, Math.min(MAX_SIZE, tag.contains("Height") ? tag.getInt("Height") : 1));
         reading = tag.contains("Reading") ? MonitorReading.read(tag.getCompound("Reading")) : MonitorReading.NONE;
+        clusterDirty = true;
+        long had = historySeq;
+        long seq = tag.getLong("HistorySeq");
+        if (clientPacket && tag.contains("AppendA")) {
+            // An update: only the samples recorded after those this copy has.
+            int[] a = tag.getIntArray("AppendA");
+            int[] b = tag.getIntArray("AppendB");
+            int sent = Math.min(a.length, b.length);
+            int fresh = (int) Math.max(0, Math.min(sent, seq - had));
+            for (int i = sent - fresh; i < sent; i++) {
+                record(Float.intBitsToFloat(a[i]), Float.intBitsToFloat(b[i]));
+            }
+            historySeq = seq;
+            return;
+        }
+        historySeq = seq;
         int[] a = tag.getIntArray("HistoryA");
         int[] b = tag.getIntArray("HistoryB");
         historySize = Math.min(HISTORY, Math.min(a.length, b.length));
@@ -329,13 +512,12 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
             historyA[i] = Float.intBitsToFloat(a[i]);
             historyB[i] = Float.intBitsToFloat(b[i]);
         }
-        clusterDirty = true;
     }
 
-    private static int[] bits(float[] values, int size) {
-        int[] bits = new int[size];
-        for (int i = 0; i < size; i++) {
-            bits[i] = Float.floatToIntBits(values[i]);
+    private static int[] bits(float[] values, int from, int to) {
+        int[] bits = new int[Math.max(0, to - from)];
+        for (int i = from; i < to; i++) {
+            bits[i - from] = Float.floatToIntBits(values[i]);
         }
         return bits;
     }
@@ -344,5 +526,15 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
     public void setLevel(Level level) {
         super.setLevel(level);
         clusterDirty = true;
+    }
+
+    /** Turned with a wrench: the neighbours hear of it, and this monitor looks at its screen again itself. */
+    @Override
+    @SuppressWarnings("deprecation")
+    public void setBlockState(BlockState state) {
+        if (state != getBlockState()) {
+            clusterDirty = true;
+        }
+        super.setBlockState(state);
     }
 }

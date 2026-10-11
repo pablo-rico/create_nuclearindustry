@@ -7,12 +7,17 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig;
 import org.papiricoh.create_nuclearindustry.civildefense.shelter.ShelterCertification.Status;
+import org.papiricoh.create_nuclearindustry.multiblock.BlockChange;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.SealedVolume;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationTransmission;
 
@@ -27,11 +32,25 @@ import java.util.Objects;
  * rated by its explosion resistance and radiation transmission. A certified room goes into the
  * {@link ShelterRegistry}, filtering while the unit turns fast enough and is not overstressed.
  * Clients get the result for goggles.
+ *
+ * <p>The unit listens to block changes around it like a multiblock controller: a closed room
+ * whose blocks have not changed since its last survey is still the same room, so the routine
+ * rescan is skipped (up to {@link #MAX_QUIET_RESCANS} times in a row, as a safety net); an open one is rescanned less and less often (up to
+ * {@link #MAX_OPEN_BACKOFF} times the rescan interval) while nothing changes around it.
  */
-public class ShelterFiltrationUnitBlockEntity extends KineticBlockEntity {
+public class ShelterFiltrationUnitBlockEntity extends KineticBlockEntity implements MultiblockController {
     /** Where the survey starts: the air above the unit first, so a floor unit surveys its room. */
     private static final Direction[] START_ORDER = {Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.EAST,
             Direction.WEST, Direction.DOWN};
+    /** Blocks around an open unit whose changes may close its room. */
+    private static final int OPEN_REACH = 16;
+    /** Longest wait between surveys of an open room, in rescan intervals. */
+    public static final int MAX_OPEN_BACKOFF = 4;
+    /**
+     * Rescans a closed room skips while no change reached it, before surveying it anyway: a safety
+     * net for blocks changed without a neighbour update (some contraptions move blocks that way).
+     */
+    public static final int MAX_QUIET_RESCANS = 8;
 
     @Nullable
     private Survey survey;
@@ -47,6 +66,14 @@ public class ShelterFiltrationUnitBlockEntity extends KineticBlockEntity {
     private BlockPos weakWall;
     private double weakValue;
     private double needed;
+    /** The closed room of the last survey, walls included; null while open or not surveyed yet. */
+    @Nullable
+    private BoundingBox roomBounds;
+    /** A block changed within {@link #interestBounds()} since the last survey began. */
+    private boolean changedSinceSurvey;
+    private int openInterval;
+    private int quietRescans;
+    private int surveysStarted;
 
     public ShelterFiltrationUnitBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -59,7 +86,12 @@ public class ShelterFiltrationUnitBlockEntity extends KineticBlockEntity {
             return;
         }
         if (survey == null && --surveyTimer <= 0) {
-            startSurvey();
+            if (roomBounds != null && !changedSinceSurvey && ++quietRescans < MAX_QUIET_RESCANS) {
+                // The same closed room as last time: nothing new to measure.
+                surveyTimer = CivilDefenseConfig.shelterRescanTicks;
+            } else {
+                startSurvey();
+            }
         }
         if (survey != null && survey.room.step(survey, CivilDefenseConfig.shelterCellsPerTick) != SealedVolume.State.FILLING) {
             finishSurvey(survey);
@@ -78,7 +110,14 @@ public class ShelterFiltrationUnitBlockEntity extends KineticBlockEntity {
     }
 
     private void startSurvey() {
-        surveyTimer = CivilDefenseConfig.shelterRescanTicks;
+        int rescan = Math.max(1, CivilDefenseConfig.shelterRescanTicks);
+        openInterval = roomBounds == null && surveysStarted > 0 && !changedSinceSurvey
+                ? Math.min(rescan * MAX_OPEN_BACKOFF, Math.max(rescan, openInterval) * 2)
+                : rescan;
+        surveyTimer = openInterval;
+        changedSinceSurvey = false;
+        quietRescans = 0;
+        surveysStarted++;
         for (Direction direction : START_ORDER) {
             BlockPos start = worldPosition.relative(direction);
             if (level.isLoaded(start) && Survey.isAir(level, start)) {
@@ -86,12 +125,16 @@ public class ShelterFiltrationUnitBlockEntity extends KineticBlockEntity {
                 return;
             }
         }
+        setRoomBounds(null);
         conclude(Status.NO_ROOM, null, 0, null, 0, 0);
     }
 
     private void finishSurvey(Survey done) {
         survey = null;
         SealedVolume room = done.room;
+        setRoomBounds(room.state() == SealedVolume.State.SEALED
+                ? new BoundingBox(room.minX(), room.minY(), room.minZ(), room.maxX(), room.maxY(), room.maxZ()).inflatedBy(1)
+                : null);
         Status result = ShelterCertification.evaluate(room.state(), room.volume(), CivilDefenseConfig.shelterMaxVolume,
                 done.minResistance, done.maxTransmission,
                 CivilDefenseConfig.shelterMinWallResistance, CivilDefenseConfig.shelterMaxWallTransmission);
@@ -137,11 +180,68 @@ public class ShelterFiltrationUnitBlockEntity extends KineticBlockEntity {
     }
 
     @Override
+    public void initialize() {
+        super.initialize();
+        if (level != null && !level.isClientSide) {
+            MultiblockRegistry.register(this);
+        }
+    }
+
+    @Override
     public void invalidate() {
         if (level != null) {
             ShelterRegistry.revoke(level, worldPosition);
+            if (!level.isClientSide) {
+                MultiblockRegistry.unregister(this);
+            }
         }
         super.invalidate();
+    }
+
+    private void setRoomBounds(@Nullable BoundingBox bounds) {
+        if (!Objects.equals(bounds, roomBounds)) {
+            roomBounds = bounds;
+            MultiblockRegistry.reindex(this);
+        }
+    }
+
+    /** The closed room and its walls, or the blocks around the unit while its room is open. */
+    @Override
+    public BoundingBox interestBounds() {
+        return roomBounds != null ? roomBounds : new BoundingBox(worldPosition).inflatedBy(OPEN_REACH);
+    }
+
+    /** Every change is noted for the next routine survey; none triggers one early. */
+    @Override
+    public boolean shouldReactToBlockChange(BlockChange change) {
+        changedSinceSurvey = true;
+        return false;
+    }
+
+    /**
+     * Marks the room changed and brings the next survey within one rescan interval, even while an
+     * open room's back-off is longer: called for changes no neighbour update reports, such as a
+     * crater through the room ({@code MultiblockRegistry.areaChanged}).
+     */
+    @Override
+    public void requestStructureRevalidation(@Nullable Player player) {
+        changedSinceSurvey = true;
+        surveyTimer = Math.min(surveyTimer, Math.max(1, CivilDefenseConfig.shelterRescanTicks));
+    }
+
+    /** Surveys started since the unit was loaded; for tests. */
+    public int getSurveysStarted() {
+        return surveysStarted;
+    }
+
+    /** Current wait between surveys of an open room; for tests. */
+    public int getOpenInterval() {
+        return openInterval;
+    }
+
+    /** Makes the next tick the routine survey, so tests need not wait for it. */
+    public void expireSurveyTimer() {
+        surveyTimer = 0;
     }
 
     @Override

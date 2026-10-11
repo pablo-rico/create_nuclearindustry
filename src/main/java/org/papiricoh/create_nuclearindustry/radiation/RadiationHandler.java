@@ -20,6 +20,7 @@ import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.radiation.cache.BlockRadioactivity;
 import org.papiricoh.create_nuclearindustry.radiation.cache.RadiationCaches;
+import org.papiricoh.create_nuclearindustry.radiation.cache.RayCache;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.GeologicalStorage;
 import net.minecraft.server.level.ServerLevel;
@@ -31,9 +32,10 @@ import net.minecraft.world.phys.Vec3;
  * the shielding of the blocks in between and of worn armour, accumulates dose and applies its
  * symptoms. Dose decays slowly when exposure falls to background.
  * <p>
- * The block scan skips chunk sections whose palette holds nothing radioactive, and a player's
- * rays are reused (see {@link RadiationCaches}) while neither end moves and no block changes
- * along them; what each update cost is counted in {@link RadiationStats}.
+ * The block scan skips chunk sections whose palette holds nothing radioactive, fallout sources
+ * are looked up by chunk, and a player's rays (and a monitored spot's) are reused (see
+ * {@link RadiationCaches}) while neither end moves and no block changes along them; what each
+ * update cost is counted in {@link RadiationStats}.
  */
 public final class RadiationHandler {
     private static final int INTERVAL = 20;
@@ -153,12 +155,30 @@ public final class RadiationHandler {
 
     /**
      * Dose rate a bare body at {@code body} would take from its surroundings: radioactive blocks,
-     * fallout, emitters and contaminated ground, without anything carried. Used by control room monitors.
+     * fallout, emitters and contaminated ground, without anything carried. Every ray is cast now.
+     * Starts a new {@link RadiationStats}.
      */
     public static double ambientRate(ServerLevel level, Vec3 body) {
-        Rays rays = directRays(level);
+        RadiationStats.begin();
+        return ambientRate(level, body, directRays(level));
+    }
+
+    /**
+     * {@link #ambientRate(ServerLevel, Vec3)} with its rays reused from the level's cache of fixed
+     * spots, as a player's are: what control room monitors read again and again for the same
+     * spot. Starts a new {@link RadiationStats}.
+     */
+    public static double cachedAmbientRate(ServerLevel level, Vec3 body) {
+        RadiationStats.begin();
+        Rays rays = PerformanceConfig.radiationRayCacheTicks <= 0 ? directRays(level) : cachedRays(level, RadiationCaches.spots(level));
+        return ambientRate(level, body, rays);
+    }
+
+    private static double ambientRate(ServerLevel level, Vec3 body, Rays rays) {
+        long bodyBlock = BlockPos.containing(body).asLong();
         double ground = Config.contaminationEnabled
-                ? Contamination.exposure(level, body, body.y - 0.9, (from, to) -> rays.transmission(null, from, to, null))
+                ? Contamination.exposure(level, body, body.y - 0.9,
+                        (from, to) -> rays.transmission(new GroundRay(bodyBlock, from.y), from, to, null))
                 : 0;
         return blockRate(level, BlockPos.containing(body), body, rays) + emitterRate(level, body, rays)
                 + (falloutRate(level, body, rays) + ground) * ExposureModifiers.shelter(level, body);
@@ -191,22 +211,27 @@ public final class RadiationHandler {
     }
 
     /**
-     * Rays through the player's cache: reused for {@code performance.radiationRayCacheTicks} while
-     * both ends stay in their blocks and nothing changes in the chunks between them.
+     * Rays through the player's cache: reused while they are read again within
+     * {@code performance.radiationRayCacheTicks}, both ends stay in their blocks and nothing
+     * changes in the chunks between them.
      */
     private static Rays cachedRays(Player player) {
         Level level = player.level();
         if (level.isClientSide || PerformanceConfig.radiationRayCacheTicks <= 0) {
             return directRays(level);
         }
-        RadiationCaches.PlayerCache cache = RadiationCaches.of(player);
+        return cachedRays(level, RadiationCaches.of(player).rays());
+    }
+
+    private static Rays cachedRays(Level level, RayCache cache) {
         var changes = RadiationCaches.changes(level);
         long now = level.getGameTime();
         int ttl = PerformanceConfig.radiationRayCacheTicks;
+        int maxAge = PerformanceConfig.radiationRayMaxAgeTicks;
         return (key, from, to, ignore) -> {
             RadiationStats stats = RadiationStats.current();
             int cast = stats.raysCast;
-            double transmission = cache.rays().get(key, changes, now, ttl, from.x, from.z, to.x, to.z, () -> {
+            double transmission = cache.get(key, changes, now, ttl, maxAge, from.x, from.z, to.x, to.z, () -> {
                 stats.raysCast++;
                 return RadiationRay.transmission(level, from, to, ignore);
             });
@@ -307,24 +332,27 @@ public final class RadiationHandler {
         return rate;
     }
 
+    /** Fallout sources within {@link #FALLOUT_RANGE}, found through the chunks around the body. */
     private static double falloutRate(Level level, Vec3 body, Rays rays) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return 0;
         }
-        double rate = 0;
+        double[] rate = {0};
         long bodyBlock = BlockPos.containing(body).asLong();
-        for (FalloutData.Source source : FalloutData.get(serverLevel).sources()) {
+        long now = level.getGameTime();
+        RadiationStats stats = RadiationStats.current();
+        FalloutData.get(serverLevel).forEachNear(body, FALLOUT_RANGE, source -> {
+            stats.falloutSources++;
             Vec3 origin = Vec3.atCenterOf(source.pos());
-            double distance = origin.distanceTo(body);
-            if (distance <= FALLOUT_RANGE) {
-                double strength = source.currentStrength();
+            if (origin.distanceToSqr(body) <= FALLOUT_RANGE * FALLOUT_RANGE) {
+                double strength = source.currentStrength(now);
                 if (strength > 0) {
-                    rate += pointExposure(origin, strength, body,
+                    rate[0] += pointExposure(origin, strength, body,
                             rays.transmission(new BlockRay(source.pos().asLong(), bodyBlock), origin, body, null));
                 }
             }
-        }
-        return rate;
+        });
+        return rate[0];
     }
 
     /** Running reactors, RTGs and the like: the nearest {@link #EMITTER_LIMIT} within range. */

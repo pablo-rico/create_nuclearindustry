@@ -26,6 +26,8 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
+import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
+import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.physics.SteamGeneratorModel;
@@ -39,6 +41,10 @@ import java.util.function.Consumer;
  * tube bundles and boils feedwater into steam for the turbines, then leaves cold for the reactor's
  * cold leg. Its ports reach four tanks; {@link SteamGeneratorModel} decides each tick how much heat
  * crosses the tubes.
+ *
+ * <p>Clients are updated when something they show moved by a visible step (1% of a tank, a unit of
+ * a reading), checked every {@link #SYNC_INTERVAL} ticks, and at least every
+ * {@link PerformanceConfig#forcedSyncTicks} ticks; a steam generator at rest sends next to nothing.
  */
 public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
         implements MultiblockController, IHaveGoggleInformation, PlantReadable {
@@ -52,6 +58,12 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
     /** Rough thermal megawatts per heat unit per tick, for monitors and goggles. */
     public static final double MW_PER_HEAT = 5.0;
     private static final double AVERAGE = 0.1;
+    /**
+     * Visible steps of what clients show, in the order of {@link #syncValues}: 1% of each tank, a
+     * mB/t of steam, a tenth of a heat unit (half a MW), half a degree, half a bar and half a percent.
+     */
+    private static final double[] SYNC_STEPS = {PRIMARY_TANK / 100.0, PRIMARY_TANK / 100.0, SECONDARY_TANK / 100.0,
+            SECONDARY_TANK / 100.0, 0, 0, 0, 0, 0.5, 0.1, 0.5, 0.5, 0.005};
 
     private final FluidTank hotTank = tank(PRIMARY_TANK, NuclearFluidHelper::isHotPrimary);
     private final FluidTank coldTank = tank(PRIMARY_TANK, NuclearFluidHelper::isPrimaryCoolant);
@@ -67,6 +79,8 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
             MultiblockValidationResult.invalid(List.of("create_nuclearindustry.steam_generator.error.not_formed"), List.of());
     private boolean pendingRevalidation = true;
     private int syncTimer;
+    private final SyncThrottle throttle = new SyncThrottle(SYNC_STEPS, new double[SYNC_STEPS.length]);
+    private int clientSyncs;
     private int receivedThisTick;
     // Smoothed for display: mB/t of steam made, primary cooled and primary received, heat units/t
     private double steamRate;
@@ -124,8 +138,36 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
         wetFraction = result.wetFraction();
         if (++syncTimer >= SYNC_INTERVAL) {
             syncTimer = 0;
-            sendData();
+            if (throttle.due(level.getGameTime(), syncValues(), PerformanceConfig.forcedSyncTicks)) {
+                sendData();
+            }
         }
+    }
+
+    /** What clients show, as numbers for the {@link SyncThrottle}: tanks and their fluids, rates, pressure. */
+    private double[] syncValues() {
+        return new double[]{hotTank.getFluidAmount(), coldTank.getFluidAmount(), feedTank.getFluidAmount(),
+                steamTank.getFluidAmount(), fluidId(hotTank), fluidId(coldTank), fluidId(feedTank), fluidId(steamTank),
+                steamRate, heatRate, getPrimaryDrop(), pressure, wetFraction};
+    }
+
+    private static double fluidId(FluidTank tank) {
+        return net.minecraft.core.registries.BuiltInRegistries.FLUID.getId(tank.getFluid().getFluid());
+    }
+
+    /** Every update sent goes through here: counted, and remembered by the throttle. */
+    @Override
+    public void sendData() {
+        clientSyncs++;
+        if (level != null && !level.isClientSide) {
+            throttle.sent(level.getGameTime(), syncValues());
+        }
+        super.sendData();
+    }
+
+    /** Client updates this controller asked for, for tests. */
+    public int clientSyncCount() {
+        return clientSyncs;
     }
 
     private SteamGeneratorModel.Result exchange(SteamGeneratorStructure s) {

@@ -47,6 +47,44 @@ public final class ChartBuffer {
         }
     }
 
+    /**
+     * Adds stored samples, oldest first, one series per pen as {@link #bytes} gives them: how a client
+     * appends the samples an update brought instead of being sent the whole trace again. Series of
+     * different lengths are cut to the newest samples of the shortest; pens with no series record 0.
+     */
+    public void append(byte[]... series) {
+        int length = Integer.MAX_VALUE;
+        for (int pen = 0; pen < Math.min(MAX_PENS, series.length); pen++) {
+            if (series[pen] != null) {
+                length = Math.min(length, series[pen].length);
+            }
+        }
+        if (length == Integer.MAX_VALUE) {
+            return;
+        }
+        for (int i = 0; i < length; i++) {
+            int index;
+            if (size < CAPACITY) {
+                index = (start + size) % CAPACITY;
+                size++;
+            } else {
+                index = start;
+                start = (start + 1) % CAPACITY;
+            }
+            for (int pen = 0; pen < MAX_PENS; pen++) {
+                byte[] values = pen < series.length ? series[pen] : null;
+                pens[pen][index] = values == null ? 0 : values[values.length - length + i];
+            }
+        }
+    }
+
+    /** The newest {@code count} samples of {@code pen}, oldest first; fewer when the chart holds fewer. */
+    public byte[] newest(int pen, int count) {
+        byte[] all = bytes(pen);
+        int keep = Math.max(0, Math.min(count, all.length));
+        return Arrays.copyOfRange(all, all.length - keep, all.length);
+    }
+
     /** Sample {@code index} (0 = oldest) of {@code pen}, as a 0-1 fraction. */
     public float get(int pen, int index) {
         if (pen < 0 || pen >= MAX_PENS || index < 0 || index >= size) {

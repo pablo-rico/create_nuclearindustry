@@ -1,12 +1,22 @@
 package org.papiricoh.create_nuclearindustry.explosive;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.PerformanceConfig;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
+import org.papiricoh.create_nuclearindustry.radiation.cache.RadiationCaches;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,7 +25,14 @@ import java.util.List;
 /**
  * Digs nuclear craters a budget of columns and blocks per tick ({@code explosive.blastColumnsPerTick}
  * and {@code explosive.blastBlocksPerTick} in {@link PerformanceConfig}), from the centre outwards.
+ * Craters being dug live in memory and hold their level: they are dropped with it, and all of them
+ * when the server stops, so a world closed mid-crater does not stay in memory.
+ * <p>
+ * Blocks are removed with raw state changes (no neighbour updates, no block events), so after each
+ * tick's digging the crater tells what it changed itself: the radiation caches of every chunk it
+ * dug in, and the multiblock controllers whose structure the dug box reaches.
  */
+@EventBusSubscriber(modid = Create_NuclearIndustry.MODID)
 public class NuclearBlastManager {
     // Amplitud del ondulado del borde del crater, como fraccion del radio (0 = borde perfectamente liso).
     private static final double RIM_NOISE_AMPLITUDE = 0.05;
@@ -35,6 +52,27 @@ public class NuclearBlastManager {
             return null;
         }
         return new BlastJob(level, center, horizontalRadius, verticalRadius, intensity);
+    }
+
+    /** Craters still being dug in {@code level}; for tests. */
+    public static int pending(ServerLevel level) {
+        int count = 0;
+        for (BlastJob job : JOBS) {
+            if (job.level == level) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @SubscribeEvent
+    public static void onLevelUnload(LevelEvent.Unload event) {
+        JOBS.removeIf(job -> job.level == event.getLevel());
+    }
+
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event) {
+        JOBS.clear();
     }
 
     public static void onLevelTick(LevelTickEvent.Post event) {
@@ -69,6 +107,12 @@ public class NuclearBlastManager {
         private int lastChunkZ = Integer.MIN_VALUE;
         private int lastColumns;
         private int lastBlocks;
+        /** Chunks dug in during the current step, each announced to the radiation caches once. */
+        private final LongOpenHashSet dugChunks = new LongOpenHashSet();
+        // Box of the blocks removed during the current step; empty while minX > maxX.
+        private int dugMinX, dugMinY, dugMinZ, dugMaxX, dugMaxY, dugMaxZ;
+        @Nullable
+        private BoundingBox lastDug;
 
         private BlastJob(ServerLevel level, BlockPos center, int horizontalRadius, int verticalRadius, float intensity) {
             this.level = level;
@@ -88,6 +132,8 @@ public class NuclearBlastManager {
             int columnBudget = PerformanceConfig.blastColumnsPerTick;
             int blockBudget = PerformanceConfig.blastBlocksPerTick;
             double radiusSq = (double) horizontalRadius * horizontalRadius;
+            dugMinX = dugMinY = dugMinZ = Integer.MAX_VALUE;
+            dugMaxX = dugMaxY = dugMaxZ = Integer.MIN_VALUE;
             while (ring <= horizontalRadius && processedColumns < columnBudget && changedBlocks < blockBudget) {
                 Column column = nextColumn();
 
@@ -104,7 +150,47 @@ public class NuclearBlastManager {
             }
             lastColumns = processedColumns;
             lastBlocks = changedBlocks;
+            announce();
             return ring > horizontalRadius;
+        }
+
+        /**
+         * Tells the radiation caches and the multiblock controllers about this step's digging: raw
+         * state changes fire no block event, so without this cached rays would still see the
+         * vanished walls and a sealed building would keep thinking itself sealed. One change per
+         * chunk is enough (the radiation change log is per chunk), and one box for the controllers.
+         */
+        private void announce() {
+            if (dugMinX > dugMaxX) {
+                lastDug = null;
+                dugChunks.clear();
+                return;
+            }
+            BlockPos.MutableBlockPos probe = new BlockPos.MutableBlockPos();
+            var iterator = dugChunks.iterator();
+            while (iterator.hasNext()) {
+                long chunk = iterator.nextLong();
+                probe.set(ChunkPos.getX(chunk) << 4, center.getY(), ChunkPos.getZ(chunk) << 4);
+                RadiationCaches.blockChanged(level, probe);
+            }
+            dugChunks.clear();
+            lastDug = new BoundingBox(dugMinX, dugMinY, dugMinZ, dugMaxX, dugMaxY, dugMaxZ);
+            MultiblockRegistry.areaChanged(level, lastDug);
+        }
+
+        /** The box of the blocks the last {@link #step()} removed, or null if it removed none. */
+        @Nullable
+        public BoundingBox lastDug() {
+            return lastDug;
+        }
+
+        private void dug(BlockPos pos) {
+            dugMinX = Math.min(dugMinX, pos.getX());
+            dugMinY = Math.min(dugMinY, pos.getY());
+            dugMinZ = Math.min(dugMinZ, pos.getZ());
+            dugMaxX = Math.max(dugMaxX, pos.getX());
+            dugMaxY = Math.max(dugMaxY, pos.getY());
+            dugMaxZ = Math.max(dugMaxZ, pos.getZ());
         }
 
         /** Columns of the crater dug by the last {@link #step()}. */
@@ -186,6 +272,7 @@ public class NuclearBlastManager {
                 }
 
                 level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                dug(pos);
                 changed++;
             }
 
@@ -199,7 +286,11 @@ public class NuclearBlastManager {
                     break;
                 }
                 level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                dug(pos);
                 changed++;
+            }
+            if (changed > 0) {
+                dugChunks.add(ChunkPos.asLong((center.getX() + offsetX) >> 4, (center.getZ() + offsetZ) >> 4));
             }
             return changed;
         }

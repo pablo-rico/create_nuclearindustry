@@ -8,6 +8,7 @@ import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakReadings;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ReactivityModel;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.display.ReactorReadout;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PlantReadings;
@@ -37,7 +38,9 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     /** The fission core's physics, appended: rated power MW, net reactivity pcm, coolant °C, damage 0-1, period s, shutdown margin pcm. */
     public static final int R_RATED_POWER = 25, R_NET_REACTIVITY = 26, R_COOLANT_TEMP = 27, R_CORE_DAMAGE = 28, R_PERIOD = 29,
             R_SHUTDOWN_MARGIN = 30;
-    private static final int REACTOR_VALUES = 31;
+    /** The net reactivity split into its parts, pcm: fuel (with graphite, reflector, heavy water), rods, temperature, voids. */
+    public static final int R_REACTIVITY_FUEL = 31, R_REACTIVITY_RODS = 32, R_REACTIVITY_TEMPERATURE = 33, R_REACTIVITY_VOIDS = 34;
+    private static final int REACTOR_VALUES = 35;
     // Steam generator: water level 0-1, steam made mB/t, primary temperature drop °C, formed flag, heat moved MW
     public static final int S_LEVEL = 0, S_STEAM = 1, S_PRIMARY_DT = 2, S_FORMED = 3, S_HEAT = 4;
     // Containment: pressure bar, hydrogen fraction 0-1, sealed flag, vent open flag, airborne activity, free volume m³
@@ -155,6 +158,11 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
         double period = reactor.getPeriod();
         v[R_PERIOD] = Double.isFinite(period) ? (float) Math.max(-1.0e6, Math.min(1.0e6, period)) : 0.0f;
         v[R_SHUTDOWN_MARGIN] = (float) reactor.getShutdownMargin();
+        ReactivityModel.Parts parts = reactor.getReactivityParts();
+        v[R_REACTIVITY_FUEL] = (float) parts.fuel();
+        v[R_REACTIVITY_RODS] = (float) parts.rods();
+        v[R_REACTIVITY_TEMPERATURE] = (float) parts.temperature();
+        v[R_REACTIVITY_VOIDS] = (float) parts.voids();
         String status = ReactorReadout.STATUS.read(reactor).getString();
         float rated = Math.max(1.0f, v[R_RATED_POWER]);
         return new MonitorReading(TargetKind.REACTOR, status, v,
@@ -236,7 +244,7 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
         v[A_GROUND] = Config.contaminationEnabled
                 ? Contamination.get(area.level(), new net.minecraft.world.level.ChunkPos(area.pos()))
                 : 0;
-        v[A_EXPOSURE] = (float) RadiationHandler.ambientRate(area.level(), body);
+        v[A_EXPOSURE] = (float) RadiationHandler.cachedAmbientRate(area.level(), body);
         String status = v[A_EXPOSURE] >= Config.radiationBackgroundRate ? STATUS + "radiation" : STATUS + "clear";
         float groundMax = (float) Math.max(1.0e-3, Config.contaminationMax);
         return new MonitorReading(TargetKind.AREA, status, v, clamp01(v[A_EXPOSURE] / AREA_GRAPH_MAX), clamp01(v[A_GROUND] / groundMax));

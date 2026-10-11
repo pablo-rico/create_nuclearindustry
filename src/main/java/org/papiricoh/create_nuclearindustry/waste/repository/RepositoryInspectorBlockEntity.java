@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -15,6 +16,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.GeologicalStorage;
 import org.papiricoh.create_nuclearindustry.waste.WasteConfig;
 import org.papiricoh.create_nuclearindustry.waste.WastePackage;
@@ -23,14 +26,22 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Surveys the waste packages within {@link #RANGE} blocks every couple of seconds: how many
+ * Surveys the waste packages within {@link #RANGE} blocks every ten seconds (and once as soon as
+ * it is placed or loaded): how many
  * there are, how many count as stored and the score breakdown of the weakest one, so a player
  * digging a repository sees which barrier is missing. Read with goggles, a Display Link or a
- * comparator (stored share as 0-15).
+ * comparator (stored share as 0-15). The 17x17x17 box is read a chunk section at a time, and
+ * sections whose palette holds no waste package are skipped without reading a block.
  */
 public class RepositoryInspectorBlockEntity extends SmartBlockEntity implements IHaveGoggleInformation {
     public static final int RANGE = 8;
-    private static final int SCAN_INTERVAL = 40;
+    /** Ticks between surveys: repositories change slowly, and each survey assesses every package. */
+    public static final int SCAN_INTERVAL = 200;
+    /** Chunk sections the box's 2 * RANGE + 1 blocks span along each axis at most (two for RANGE 8). */
+    private static final int SECTIONS_PER_AXIS = (2 * RANGE + 1 + 14) / 16 + 1;
+    private static final byte UNKNOWN = 0;
+    private static final byte MAY_HOLD = 1;
+    private static final byte EMPTY = 2;
 
     private int packages;
     private int stored;
@@ -38,6 +49,8 @@ public class RepositoryInspectorBlockEntity extends SmartBlockEntity implements 
     private Block weakestBlock = Blocks.AIR;
     private RepositoryQuality.Breakdown weakest = RepositoryQuality.Breakdown.NONE;
     private boolean scanned;
+    private int scans;
+    private int blocksRead;
 
     public RepositoryInspectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -47,12 +60,57 @@ public class RepositoryInspectorBlockEntity extends SmartBlockEntity implements 
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {}
 
+    /**
+     * Surveys every {@link #SCAN_INTERVAL} ticks. {@code SmartBlockEntity.initialize} already calls
+     * this on the first tick, so a placed or loaded inspector surveys at once without a second call.
+     */
     @Override
     public void lazyTick() {
         super.lazyTick();
         if (level != null && !level.isClientSide) {
             scan();
         }
+    }
+
+    /**
+     * Whether the chunk section holding the block may hold a waste package. Sections whose palette
+     * has none, and blocks outside the build height, are skipped: the block-by-block read found
+     * nothing there either. Unloaded chunks are read as before. The verdict is worked out once per
+     * section and survey and kept in {@code verdicts} ({@link #UNKNOWN}, {@link #MAY_HOLD} or
+     * {@link #EMPTY}, one per section of the box, x then y then z), so a section full of drums does
+     * not look its chunk and palette up again for every block.
+     */
+    private boolean mayHoldPackages(int x, int y, int z, byte[] verdicts) {
+        int sx = SectionPos.blockToSectionCoord(x) - SectionPos.blockToSectionCoord(worldPosition.getX() - RANGE);
+        int sy = SectionPos.blockToSectionCoord(y) - SectionPos.blockToSectionCoord(worldPosition.getY() - RANGE);
+        int sz = SectionPos.blockToSectionCoord(z) - SectionPos.blockToSectionCoord(worldPosition.getZ() - RANGE);
+        int index = (sx * SECTIONS_PER_AXIS + sy) * SECTIONS_PER_AXIS + sz;
+        if (verdicts[index] == UNKNOWN) {
+            verdicts[index] = sectionMayHoldPackages(x, y, z) ? MAY_HOLD : EMPTY;
+        }
+        return verdicts[index] == MAY_HOLD;
+    }
+
+    private boolean sectionMayHoldPackages(int x, int y, int z) {
+        if (level.isOutsideBuildHeight(y)) {
+            return false;
+        }
+        LevelChunk chunk = level.getChunkSource().getChunkNow(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z));
+        if (chunk == null) {
+            return true;
+        }
+        LevelChunkSection section = chunk.getSection(chunk.getSectionIndex(y));
+        return !section.hasOnlyAir() && section.maybeHas(state -> WastePackage.of(state) != null);
+    }
+
+    /** Surveys run since the inspector was loaded; for tests. */
+    public int getScans() {
+        return scans;
+    }
+
+    /** Blocks the last survey read one by one (sections without packages are skipped); for tests. */
+    public int getBlocksRead() {
+        return blocksRead;
     }
 
     /** Surveys the packages in range now. Public so tests can drive it. */
@@ -67,10 +125,23 @@ public class RepositoryInspectorBlockEntity extends SmartBlockEntity implements 
         Block worstBlock = Blocks.AIR;
         RepositoryQuality.Breakdown worstBreakdown = RepositoryQuality.Breakdown.NONE;
         BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+        int read = 0;
+        byte[] verdicts = new byte[SECTIONS_PER_AXIS * SECTIONS_PER_AXIS * SECTIONS_PER_AXIS];
+        int minZ = worldPosition.getZ() - RANGE;
+        int maxZ = worldPosition.getZ() + RANGE;
+        // Same x, then y, then z order as before, so ties still pick the same weakest package.
         for (int dx = -RANGE; dx <= RANGE; dx++) {
             for (int dy = -RANGE; dy <= RANGE; dy++) {
-                for (int dz = -RANGE; dz <= RANGE; dz++) {
-                    at.set(worldPosition.getX() + dx, worldPosition.getY() + dy, worldPosition.getZ() + dz);
+                for (int z = minZ; z <= maxZ; z++) {
+                    int x = worldPosition.getX() + dx;
+                    int y = worldPosition.getY() + dy;
+                    if (!mayHoldPackages(x, y, z, verdicts)) {
+                        // None of this section can hold a package: jump to its last block along z.
+                        z = Math.min(maxZ, SectionPos.sectionToBlockCoord(SectionPos.blockToSectionCoord(z)) + 15);
+                        continue;
+                    }
+                    at.set(x, y, z);
+                    read++;
                     BlockState state = level.getBlockState(at);
                     WastePackage pack = WastePackage.of(state);
                     if (pack == null) {
@@ -91,6 +162,8 @@ public class RepositoryInspectorBlockEntity extends SmartBlockEntity implements 
                 }
             }
         }
+        scans++;
+        blocksRead = read;
         int signalBefore = signal();
         boolean changed = !scanned || count != packages || safe != stored || !worstBreakdown.equals(weakest) || !worstPos.equals(weakestPos);
         packages = count;

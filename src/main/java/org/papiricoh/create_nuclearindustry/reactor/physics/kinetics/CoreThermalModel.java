@@ -38,7 +38,7 @@ public final class CoreThermalModel {
     public record Params(double ratedPowerPerRod, double fuelRiseAtRated, double fuelHeatCapacity, double coolantHeatCapacity,
                          double structureHeatCapacity, double boilingTemperature, double ratedVoid, double passiveLoss,
                          double radiation, double chfMargin, double maxFuelTemperature) {
-        public static final Params DEFAULT = new Params(50, 600, 0.5, 1.5, 0.2, 285, 0.30, 0.0005, 2.0e-14, 1.25, 4500);
+        public static final Params DEFAULT = new Params(50, 600, 0.5, 1.5, 0.2, 285, 0.30, 0.00005, 3.0e-15, 1.25, 4500);
 
         /** Fuel to coolant conductance of one healthy, covered rod, MW/K. */
         public double conductance() {

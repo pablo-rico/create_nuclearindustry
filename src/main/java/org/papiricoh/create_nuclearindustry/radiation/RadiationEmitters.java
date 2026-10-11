@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,8 +20,14 @@ import java.util.WeakHashMap;
 /**
  * The radiation emitters loaded in each level, indexed by the chunk of their origin so a query
  * only looks at the chunks within range. An emitter's origin can move (a reactor's is the middle
- * of its core, known once it forms): the index files every emitter again at most once every
- * {@link #REINDEX_INTERVAL} ticks, and queries look one chunk beyond their range. Server side only.
+ * of its core, known once it forms): at most once every {@link #REINDEX_INTERVAL} ticks the index
+ * asks every emitter where it is and re-files only those that left their chunk; queries look one
+ * chunk beyond their range. Queries filter and sort by the origin remembered then, so a query
+ * never asks an emitter for its origin (a reactor's builds a new vector each time).
+ * <p>
+ * The index is dropped when its level unloads or the server stops (see
+ * {@link org.papiricoh.create_nuclearindustry.radiation.cache.RadiationCaches}): its emitters hold
+ * their level, so the weak map alone would never let go of it. Server side only.
  */
 public final class RadiationEmitters {
     /** Ticks between two refilings of a level's emitters under the chunk of their current origin. */
@@ -28,45 +35,91 @@ public final class RadiationEmitters {
 
     private static final Map<Level, Index> INDEX = new WeakHashMap<>();
 
+    /** An emitter with where it was when last asked. */
+    private static final class Filed {
+        final RadiationEmitter emitter;
+        Vec3 origin;
+        long chunk;
+
+        Filed(RadiationEmitter emitter, Vec3 origin) {
+            this.emitter = emitter;
+            this.origin = origin;
+            this.chunk = chunkKey(origin);
+        }
+    }
+
+    /** An emitter found by a query, with its squared distance, so the sort asks nothing of it. */
+    private record Found(RadiationEmitter emitter, double distanceSqr) {}
+
+    private static final Comparator<Found> NEAREST_FIRST = Comparator.comparingDouble(Found::distanceSqr);
+
     private static final class Index {
-        final Long2ObjectOpenHashMap<Set<RadiationEmitter>> byChunk = new Long2ObjectOpenHashMap<>();
-        final Map<RadiationEmitter, Long> chunkOf = new IdentityHashMap<>();
+        final Long2ObjectOpenHashMap<Set<Filed>> byChunk = new Long2ObjectOpenHashMap<>();
+        final Map<RadiationEmitter, Filed> filed = new IdentityHashMap<>();
         long lastReindex = Long.MIN_VALUE / 2;
 
-        void file(RadiationEmitter emitter, long chunk) {
-            Long previous = chunkOf.put(emitter, chunk);
-            if (previous != null && previous != chunk) {
-                unfile(emitter, previous);
+        void file(RadiationEmitter emitter, Vec3 origin) {
+            Filed entry = filed.get(emitter);
+            if (entry == null) {
+                entry = new Filed(emitter, origin);
+                filed.put(emitter, entry);
+                add(entry);
+            } else {
+                move(entry, origin);
             }
-            byChunk.computeIfAbsent(chunk, key -> Collections.newSetFromMap(new IdentityHashMap<>())).add(emitter);
         }
 
         void remove(RadiationEmitter emitter) {
-            Long chunk = chunkOf.remove(emitter);
-            if (chunk != null) {
-                unfile(emitter, chunk);
+            Filed entry = filed.remove(emitter);
+            if (entry != null) {
+                unfile(entry);
             }
         }
 
-        private void unfile(RadiationEmitter emitter, long chunk) {
-            Set<RadiationEmitter> set = byChunk.get(chunk);
+        /** Remembers {@code origin}; true if that took the entry to another chunk. */
+        boolean move(Filed entry, Vec3 origin) {
+            if (origin.equals(entry.origin)) {
+                return false;
+            }
+            entry.origin = origin;
+            long chunk = chunkKey(origin);
+            if (chunk == entry.chunk) {
+                return false;
+            }
+            unfile(entry);
+            entry.chunk = chunk;
+            add(entry);
+            return true;
+        }
+
+        private void add(Filed entry) {
+            byChunk.computeIfAbsent(entry.chunk, key -> Collections.newSetFromMap(new IdentityHashMap<>())).add(entry);
+        }
+
+        private void unfile(Filed entry) {
+            Set<Filed> set = byChunk.get(entry.chunk);
             if (set != null) {
-                set.remove(emitter);
+                set.remove(entry);
                 if (set.isEmpty()) {
-                    byChunk.remove(chunk);
+                    byChunk.remove(entry.chunk);
                 }
             }
         }
 
-        /** Drops removed emitters and files the rest under the chunk of where they are now. */
-        void reindex() {
-            for (RadiationEmitter emitter : new ArrayList<>(chunkOf.keySet())) {
-                if (emitter.isRemoved()) {
-                    remove(emitter);
-                } else {
-                    file(emitter, chunkKey(emitter.radiationOrigin()));
+        /** Drops removed emitters and re-files those whose origin left its chunk; returns how many moved. */
+        int reindex() {
+            int moved = 0;
+            Iterator<Filed> iterator = filed.values().iterator();
+            while (iterator.hasNext()) {
+                Filed entry = iterator.next();
+                if (entry.emitter.isRemoved()) {
+                    iterator.remove();
+                    unfile(entry);
+                } else if (move(entry, entry.emitter.radiationOrigin())) {
+                    moved++;
                 }
             }
+            return moved;
         }
     }
 
@@ -75,7 +128,7 @@ public final class RadiationEmitters {
     public static void register(RadiationEmitter emitter) {
         Level level = emitter.getLevel();
         if (level != null && !level.isClientSide) {
-            INDEX.computeIfAbsent(level, key -> new Index()).file(emitter, chunkKey(emitter.radiationOrigin()));
+            INDEX.computeIfAbsent(level, key -> new Index()).file(emitter, emitter.radiationOrigin());
         }
     }
 
@@ -89,25 +142,47 @@ public final class RadiationEmitters {
         }
     }
 
-    /** Files every emitter of the level under the chunk of its current origin now; for tests. */
-    public static void reindex(Level level) {
+    /**
+     * Asks every emitter of the level where it is now and re-files those that left their chunk,
+     * at once; for tests. Returns how many were re-filed.
+     */
+    public static int reindex(Level level) {
         Index index = INDEX.get(level);
-        if (index != null) {
-            index.reindex();
-            index.lastReindex = level.getGameTime();
+        if (index == null) {
+            return 0;
         }
+        index.lastReindex = level.getGameTime();
+        return index.reindex();
     }
 
     /** Emitters registered in the level, active or not. */
     public static int count(Level level) {
         Index index = INDEX.get(level);
-        return index == null ? 0 : index.chunkOf.size();
+        return index == null ? 0 : index.filed.size();
     }
 
-    /** Active emitters within {@code range} of {@code at}, nearest first, at most {@code limit}. */
+    /** Whether the level has an index; for tests of its clean-up. */
+    public static boolean indexed(Level level) {
+        return INDEX.containsKey(level);
+    }
+
+    /** Forgets the level's index, when it unloads. */
+    public static void forget(Level level) {
+        INDEX.remove(level);
+    }
+
+    /** Forgets every level's index, when the server stops. */
+    public static void forgetAll() {
+        INDEX.clear();
+    }
+
+    /**
+     * Active emitters within {@code range} of {@code at}, nearest first, at most {@code limit};
+     * where each one is comes from the last reindex, at most {@link #REINDEX_INTERVAL} ticks ago.
+     */
     public static List<RadiationEmitter> near(Level level, Vec3 at, double range, int limit) {
         Index index = INDEX.get(level);
-        if (index == null || index.chunkOf.isEmpty()) {
+        if (index == null || index.filed.isEmpty()) {
             return List.of();
         }
         long now = level.getGameTime();
@@ -115,14 +190,14 @@ public final class RadiationEmitters {
             index.reindex();
             index.lastReindex = now;
         }
-        List<RadiationEmitter> found = new ArrayList<>();
+        List<Found> found = new ArrayList<>();
         double rangeSqr = range * range;
         int minX = SectionPos.blockToSectionCoord(at.x - range) - 1, maxX = SectionPos.blockToSectionCoord(at.x + range) + 1;
         int minZ = SectionPos.blockToSectionCoord(at.z - range) - 1, maxZ = SectionPos.blockToSectionCoord(at.z + range) + 1;
         RadiationStats stats = RadiationStats.current();
         if ((long) (maxX - minX + 1) * (maxZ - minZ + 1) > index.byChunk.size()) {
             // Fewer occupied chunks than chunks in range: walk the occupied ones.
-            for (Long2ObjectMap.Entry<Set<RadiationEmitter>> entry : index.byChunk.long2ObjectEntrySet()) {
+            for (Long2ObjectMap.Entry<Set<Filed>> entry : index.byChunk.long2ObjectEntrySet()) {
                 int x = ChunkPos.getX(entry.getLongKey()), z = ChunkPos.getZ(entry.getLongKey());
                 if (x >= minX && x <= maxX && z >= minZ && z <= maxZ) {
                     stats.emitterChunks++;
@@ -132,7 +207,7 @@ public final class RadiationEmitters {
         } else {
             for (int x = minX; x <= maxX; x++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    Set<RadiationEmitter> set = index.byChunk.get(ChunkPos.asLong(x, z));
+                    Set<Filed> set = index.byChunk.get(ChunkPos.asLong(x, z));
                     if (set != null) {
                         stats.emitterChunks++;
                         collect(set, at, rangeSqr, found);
@@ -140,14 +215,26 @@ public final class RadiationEmitters {
                 }
             }
         }
-        found.sort(Comparator.comparingDouble(emitter -> emitter.radiationOrigin().distanceToSqr(at)));
-        return found.size() > limit ? found.subList(0, limit) : found;
+        if (found.isEmpty()) {
+            return List.of();
+        }
+        found.sort(NEAREST_FIRST);
+        int size = Math.min(limit, found.size());
+        List<RadiationEmitter> nearest = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            nearest.add(found.get(i).emitter());
+        }
+        return nearest;
     }
 
-    private static void collect(Set<RadiationEmitter> set, Vec3 at, double rangeSqr, List<RadiationEmitter> found) {
-        for (RadiationEmitter emitter : set) {
-            if (!emitter.isRemoved() && emitter.radiationStrength() > 0 && emitter.radiationOrigin().distanceToSqr(at) <= rangeSqr) {
-                found.add(emitter);
+    private static void collect(Set<Filed> set, Vec3 at, double rangeSqr, List<Found> found) {
+        for (Filed entry : set) {
+            if (entry.emitter.isRemoved() || entry.emitter.radiationStrength() <= 0) {
+                continue;
+            }
+            double distanceSqr = entry.origin.distanceToSqr(at);
+            if (distanceSqr <= rangeSqr) {
+                found.add(new Found(entry.emitter, distanceSqr));
             }
         }
     }

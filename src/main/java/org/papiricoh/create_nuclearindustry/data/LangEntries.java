@@ -218,6 +218,8 @@ public final class LangEntries {
         add("create_nuclearindustry.display_source.reactor_coolant_temperature", "Reactor Coolant Temperature",
                 "Temperatura del refrigerante del reactor");
         add("create_nuclearindustry.display_source.reactor_core_damage", "Reactor Fuel Damage", "Daño del combustible del reactor");
+        add("create_nuclearindustry.display_source.reactor_reactivity_parts", "Reactor Reactivity Breakdown (pcm)",
+                "Desglose de la reactividad del reactor (pcm)");
         add("itemGroup.create_nuclearindustry.nuclear_tab",
                 "Create: Nuclear industry",
                 "Create: Nuclear industry");
@@ -358,6 +360,9 @@ public final class LangEntries {
         add("gui.create_nuclearindustry.reactor.stress", "Fuel stress: %s%%  Damage: %s%%", "Tensión del comb.: %s%%  Daño: %s%%");
         add("gui.create_nuclearindustry.reactor.core", "Reactivity %s pcm  Xe -%s%%  Decay %s MW", "Reactividad %s pcm  Xe -%s%%  Residual %s MW");
         add("gui.create_nuclearindustry.reactor.excursion", "MELTING", "FUNDIÉNDOSE");
+        add("gui.create_nuclearindustry.reactor.reactivity_parts", "Fuel %s  Rods %s  Heat %s  Steam %s",
+                "Comb. %s  Barras %s  Calor %s  Vapor %s");
+        add("gui.create_nuclearindustry.reactor.reactivity_parts_short", "F %s  R %s  T %s  V %s", "C %s  B %s  T %s  V %s");
         add("gui.create_nuclearindustry.reactor.rods", "Rods: %s/%s inserted (%s%%)", "Barras: %s/%s insertadas (%s%%)");
         add("gui.create_nuclearindustry.reactor.scram_engaged", "SCRAM signal on: Redstone Ports in SCRAM mode emit",
                 "Señal de SCRAM activa: los Puertos de redstone en modo SCRAM emiten");

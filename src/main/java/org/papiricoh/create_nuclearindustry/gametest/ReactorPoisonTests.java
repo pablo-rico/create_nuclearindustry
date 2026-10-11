@@ -18,12 +18,14 @@ public class ReactorPoisonTests {
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void runningBuildsDecayHeatAndXenon(GameTestHelper helper) {
-        ReactorPhysicsSimulator physics = fuelled(0.4f);
+        // Hot water and fuel take back about 1600 pcm, so the rods sit a little higher than half.
+        ReactorPhysicsSimulator physics = fuelled(0.45f);
         for (int i = 0; i < 6000; i++) {
             physics.tick();
-            physics.applyExternalCooling(10_000.0, 0.0);
         }
-        helper.assertTrue(physics.getDecayHeat() > 0.5, "a core that ran keeps decay heat, got " + physics.getDecayHeat());
+        helper.assertTrue(physics.getRelativePower() > 0.1, "the core ran: " + physics.getRelativePower());
+        helper.assertTrue(physics.getDecayHeatPower() > 0.01 * physics.getRatedPower(),
+                "a core that ran keeps decay heat, got " + physics.getDecayHeatPower() + " MW");
         helper.assertTrue(physics.getXenon() > 0.01, "fission makes xenon, got " + physics.getXenon());
         helper.assertTrue(physics.getXenonPenalty() > 0.0, "xenon holds the core back");
         helper.succeed();

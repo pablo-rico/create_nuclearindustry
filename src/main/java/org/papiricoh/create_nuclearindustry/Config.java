@@ -42,9 +42,11 @@ public class Config
                     "the core after a SCRAM. Zero makes a reactor cool as soon as its chain reaction stops.")
             .defineInRange("fission.decayHeatFraction", 0.07, 0.0, 1.0);
     private static final ModConfigSpec.IntValue DECAY_HEAT_TIME = BUILDER
-            .comment("Ticks for decay heat to fall to about a third once fission stops (it also takes this long to build up).",
-                    "6000 is five minutes: long enough that a core that loses its water after a SCRAM still needs cooling.")
-            .defineInRange("fission.decayHeatTimeTicks", 6000, 1, 1_000_000);
+            .comment("Time scale of the decay heat, in ticks. Five groups of fission products decay in 1/100, 1/10, 1, 10 and",
+                    "100 times this (and take as long to build up): with 20000 (about 17 minutes) a core that ran for hours is",
+                    "down to under half its decay heat after 100 seconds, under a third after 17 minutes and a fifth after three",
+                    "hours, so a core that loses its water after a SCRAM heats up for hours.")
+            .defineInRange("fission.decayHeatTimeTicks", 20000, 1, 1_000_000);
     private static final ModConfigSpec.BooleanValue RADIATION_ENABLED = BUILDER
             .comment("Whether carrying or standing near radioactive material gives players a radiation dose.")
             .define("radiation.enabled", true);
@@ -160,7 +162,7 @@ public class Config
     public static int iodineHalfLifeTicks = 3600;
     public static int xenonHalfLifeTicks = 5400;
     public static double decayHeatFraction = 0.07;
-    public static int decayHeatTimeTicks = 6000;
+    public static int decayHeatTimeTicks = 20000;
     public static boolean radiationEnabled = true;
     public static double radiationDoseMultiplier = 1.0;
     public static double radiationDecayPerSecond = 1.0;

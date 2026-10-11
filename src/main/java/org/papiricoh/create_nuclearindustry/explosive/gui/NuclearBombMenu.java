@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.explosive.gui;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -8,9 +9,12 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
-import org.papiricoh.create_nuclearindustry.explosive.block.NuclearBombBlock;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
 
+/**
+ * The bomb's loading screen. On the client the bomb is found from the position sent with the menu
+ * ({@link #fromNetwork}), so two players opening two bombs each get their own.
+ */
 public class NuclearBombMenu extends AbstractContainerMenu {
     private final NuclearBombBlockEntity bomb;
     private final BlockPos bombPos;
@@ -19,14 +23,16 @@ public class NuclearBombMenu extends AbstractContainerMenu {
         this(containerId, playerInventory, bomb, bomb != null ? bomb.getBlockPos() : null);
     }
 
+    /** The menu on the receiving side: the bomb is the one at the position the server sent. */
+    public static NuclearBombMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+        BlockPos pos = buf.readBlockPos();
+        NuclearBombBlockEntity bomb = playerInventory.player.level().getBlockEntity(pos) instanceof NuclearBombBlockEntity found
+                ? found : null;
+        return new NuclearBombMenu(containerId, playerInventory, bomb, pos);
+    }
+
     public NuclearBombMenu(int containerId, Inventory playerInventory, NuclearBombBlockEntity bomb, BlockPos bombPos) {
         super(AllNuclearGUIs.NUCLEAR_BOMB_MENU.get(), containerId);
-        if (bomb == null && bombPos == null && net.minecraft.client.Minecraft.getInstance().level != null) {
-            bombPos = NuclearBombBlock.lastBombMenuPos;
-            if (bombPos != null && net.minecraft.client.Minecraft.getInstance().level.getBlockEntity(bombPos) instanceof NuclearBombBlockEntity bombBlockEntity) {
-                bomb = bombBlockEntity;
-            }
-        }
         this.bomb = bomb;
         this.bombPos = bombPos;
         if (this.bomb != null) {

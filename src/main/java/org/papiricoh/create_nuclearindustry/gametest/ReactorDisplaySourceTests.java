@@ -52,6 +52,7 @@ public class ReactorDisplaySourceTests {
             assertReads(helper, ReactorReadout.FUEL, reactor, "0%");
             assertReads(helper, ReactorReadout.CONTROL_RODS, reactor, "100%");
             assertReads(helper, ReactorReadout.COOLANT, reactor, "0 mB");
+            assertReads(helper, ReactorReadout.REACTIVITY_PARTS, reactor, "F+0 R+0 T+0 V+0 Xe+0");
         });
     }
 

@@ -51,6 +51,19 @@ class ReactivityPartsTest {
     }
 
     @Test
+    void thePartsGroupTheBreakdownAndAddUpToTheTotal() {
+        ReactivityModel.Breakdown b = new ReactivityModel.Breakdown(12000, 1500, 1000, 500, -1400, -9000, -1700, -1060, -450, -200);
+        ReactivityModel.Parts parts = b.parts();
+        assertEquals(15000, parts.fuel(), 1e-9);
+        assertEquals(-9000, parts.rods(), 1e-9);
+        assertEquals(-2760, parts.temperature(), 1e-9);
+        assertEquals(-450, parts.voids(), 1e-9);
+        assertEquals(-1400, parts.xenon(), 1e-9);
+        assertEquals(-200, parts.damage(), 1e-9);
+        assertEquals(b.total(), parts.total(), 1e-9);
+    }
+
+    @Test
     void graphiteAndAReflectorAddReactivity() {
         double bare = ReactivityModel.compute(R, cold(1, 0, 0, 0)).total();
         assertEquals(1500, ReactivityModel.compute(R, cold(1, 1, 0, 0)).total() - bare, 1e-9);
@@ -79,7 +92,7 @@ class ReactivityPartsTest {
                 20, 20, 0, 1, 0,  0.6, 0.002)).fuel();
         double empty = ReactivityModel.compute(R, new ReactivityModel.Inputs(1, 0, 0, 0.5, 0, 0, ReactivityModel.Coolant.WATER, 0, 0,
                 20, 20, 0, 1, 0,  0.6, 0.002)).fuel();
-        assertEquals(fresh / 2, burnt, 1e-9);
+        assertEquals(fresh * (1 - R.burnupDefect()), burnt, 1e-9);
         assertEquals(fresh, breeder, 1e-9);
         assertTrue(empty <= 0, "a half empty core cannot go critical: " + empty);
     }

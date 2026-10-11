@@ -2,11 +2,15 @@ package org.papiricoh.create_nuclearindustry.gametest;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.AfterBatch;
+import net.minecraft.gametest.framework.BeforeBatch;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
@@ -19,6 +23,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.multiblock.SealedVolume;
+import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitter;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitters;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
@@ -44,6 +49,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class PerformanceBenchmarks {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final String BATCH = "benchmark";
+    /**
+     * The radiation benchmarks, with random ticks off for the whole batch so the waste barrels never
+     * leak; the game rule is put back by {@link #afterRadiationBatch}, which runs however the batch ends.
+     */
+    private static final String RADIATION_BATCH = "benchmark_radiation";
+    private static int savedRandomTickSpeed = -1;
     /** Untimed runs first, so the timed ones measure compiled code. */
     private static final int WARMUP = 5;
 
@@ -189,10 +200,11 @@ public class PerformanceBenchmarks {
 
     /**
      * A player among four waste barrels, behind a wall, near two emitters: the once-a-second
-     * update, for a player who stays put (warm) and for one who just arrived (cold). The barrels and
-     * emitters only exist within one tick, so the barrels never leak and no other test meets them.
+     * update, for players who stay put (warm, updated every 20 ticks as in play) and for one who
+     * just arrived (cold). Random ticks are off for this batch ({@link #beforeRadiationBatch}), so
+     * the barrels never leak.
      */
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, required = false)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = RADIATION_BATCH, required = false, timeoutTicks = 200)
     public static void radiationUpdate(GameTestHelper helper) {
         Level level = helper.getLevel();
         for (int y = 1; y <= 3; y++) {
@@ -203,15 +215,12 @@ public class PerformanceBenchmarks {
         emitters.add(emitter(level, helper.absoluteVec(new Vec3(2.5, 2.5, 10.5))));
         emitters.add(emitter(level, helper.absoluteVec(new Vec3(10.5, 2.5, 2.5))));
         helper.runAfterDelay(2, () -> {
-            try {
-                barrels.forEach(barrel -> helper.setBlock(barrel, AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get()));
-                emitters.forEach(RadiationEmitters::register);
-                timeUpdates(helper, "among barrels");
-            } finally {
-                emitters.forEach(RadiationEmitters::unregister);
-                barrels.forEach(barrel -> helper.setBlock(barrel, Blocks.AIR));
-            }
-            helper.succeed();
+            barrels.forEach(barrel -> helper.setBlock(barrel, AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get()));
+            emitters.forEach(RadiationEmitters::register);
+        });
+        timeUpdates(helper, "among barrels", 3, () -> {
+            emitters.forEach(RadiationEmitters::unregister);
+            barrels.forEach(barrel -> helper.setBlock(barrel, Blocks.AIR));
         });
     }
 
@@ -219,7 +228,7 @@ public class PerformanceBenchmarks {
      * The common case: nothing radioactive within a few blocks, three running sources 15 to 30
      * blocks away, one behind a wall.
      */
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, required = false)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = RADIATION_BATCH, required = false, timeoutTicks = 200)
     public static void radiationUpdateInTheOpen(GameTestHelper helper) {
         Level level = helper.getLevel();
         for (int y = 1; y <= 4; y++) {
@@ -229,43 +238,81 @@ public class PerformanceBenchmarks {
         emitters.add(emitter(level, helper.absoluteVec(new Vec3(6.5 + 25, 2.5, 6.5))));
         emitters.add(emitter(level, helper.absoluteVec(new Vec3(6.5, 2.5, 6.5 - 20))));
         emitters.add(emitter(level, helper.absoluteVec(new Vec3(6.5 - 15, 2.5, 6.5 + 15))));
-        helper.runAfterDelay(2, () -> {
-            try {
-                emitters.forEach(RadiationEmitters::register);
-                timeUpdates(helper, "in the open");
-            } finally {
-                emitters.forEach(RadiationEmitters::unregister);
-            }
-            helper.succeed();
-        });
+        helper.runAfterDelay(2, () -> emitters.forEach(RadiationEmitters::register));
+        timeUpdates(helper, "in the open", 3, () -> emitters.forEach(RadiationEmitters::unregister));
     }
 
-    /** Times the update of a player who stays put (warm) and of one who just arrived (cold), at (6.5, 2, 6.5). */
-    private static void timeUpdates(GameTestHelper helper, String scene) {
+    @BeforeBatch(batch = RADIATION_BATCH)
+    public static void beforeRadiationBatch(ServerLevel level) {
+        GameRules.IntegerValue randomTicks = level.getGameRules().getRule(GameRules.RULE_RANDOMTICKING);
+        savedRandomTickSpeed = randomTicks.get();
+        randomTicks.set(0, level.getServer());
+    }
+
+    /** Puts random ticks back; the game test runner calls it when the batch passes, fails or times out. */
+    @AfterBatch(batch = RADIATION_BATCH)
+    public static void afterRadiationBatch(ServerLevel level) {
+        if (savedRandomTickSpeed >= 0) {
+            level.getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(savedRandomTickSpeed, level.getServer());
+            savedRandomTickSpeed = -1;
+        }
+    }
+
+    /** Players kept standing at the spot, each updated every {@link #UPDATE_INTERVAL} ticks. */
+    private static final int WARM_PLAYERS = 200;
+    /** Ticks between two updates of a player, as {@code RadiationHandler.onPlayerTick} runs them. */
+    private static final int UPDATE_INTERVAL = 20;
+
+    /**
+     * Times, at (6.5, 2, 6.5), the update of players who stay put at the real pace (each updated,
+     * then updated again {@link #UPDATE_INTERVAL} ticks later, timed; a first round warms the JIT
+     * up) and of players who just arrived (cold). Starts at {@code tick}, then runs {@code cleanup}
+     * and succeeds.
+     */
+    private static void timeUpdates(GameTestHelper helper, String scene, int tick, Runnable cleanup) {
         Vec3 spot = helper.absoluteVec(new Vec3(6.5, 2, 6.5));
-        Player warm = helper.makeMockPlayer(GameType.SURVIVAL);
-        warm.setPos(spot);
         Timer warmTimer = new Timer("radiation update " + scene + ", player standing still");
         Timer coldTimer = new Timer("radiation update " + scene + ", player just arrived");
-        for (int round = 0; round < 2; round++) {
-            // The first round warms the JIT up; only the second is kept.
-            Timer warmRound = round == 0 ? new Timer("") : warmTimer;
-            Timer coldRound = round == 0 ? new Timer("") : coldTimer;
-            for (int i = 0; i < 500; i++) {
-                warmRound.time(() -> RadiationHandler.update(warm));
-                Player cold = helper.makeMockPlayer(GameType.SURVIVAL);
-                cold.setPos(spot);
-                coldRound.time(() -> RadiationHandler.update(cold));
+        List<Player> warm = new ArrayList<>();
+        String[] coldStats = {""};
+        helper.runAfterDelay(tick, () -> {
+            for (int round = 0; round < 2; round++) {
+                // The first round warms the JIT up; only the second is kept.
+                Timer coldRound = round == 0 ? new Timer("") : coldTimer;
+                for (int i = 0; i < 500; i++) {
+                    Player cold = helper.makeMockPlayer(GameType.SURVIVAL);
+                    cold.setPos(spot);
+                    coldRound.time(() -> RadiationHandler.update(cold));
+                }
             }
-        }
-        double rate = RadiationHandler.exposureRate(warm);
-        String warmStats = RadiationStats.last().toString();
-        Player cold = helper.makeMockPlayer(GameType.SURVIVAL);
-        cold.setPos(spot);
-        RadiationHandler.exposureRate(cold);
-        helper.assertTrue(rate > 0, "the player is exposed");
-        warmTimer.log(String.format("%.2f rad/s; ", rate) + warmStats);
-        coldTimer.log(RadiationStats.last().toString());
+            coldStats[0] = RadiationStats.last().toString();
+            for (int i = 0; i < WARM_PLAYERS; i++) {
+                Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+                player.setPos(spot);
+                RadiationHandler.update(player);
+                warm.add(player);
+            }
+        });
+        // The first update a second later warms the JIT up; only the one after is kept.
+        helper.runAfterDelay(tick + UPDATE_INTERVAL, () -> {
+            Timer discard = new Timer("");
+            warm.forEach(player -> discard.time(() -> RadiationHandler.update(player)));
+        });
+        helper.runAfterDelay(tick + 2L * UPDATE_INTERVAL, () -> {
+            double rate;
+            String warmStats;
+            try {
+                warm.forEach(player -> warmTimer.time(() -> RadiationHandler.update(player)));
+                warmStats = RadiationStats.last().toString();
+                rate = warm.isEmpty() ? 0 : warm.get(0).getData(AllNuclearRadiation.RATE);
+            } finally {
+                cleanup.run();
+            }
+            helper.assertTrue(warm.size() == WARM_PLAYERS && rate > 0, "the players are exposed");
+            warmTimer.log(String.format("%.2f rad/s; ", rate) + warmStats);
+            coldTimer.log(coldStats[0]);
+            helper.succeed();
+        });
     }
 
     static RadiationEmitter emitter(Level level, Vec3 origin) {

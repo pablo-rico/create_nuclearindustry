@@ -27,6 +27,8 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
+import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
+import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +40,11 @@ import java.util.function.Predicate;
  * the tokamak comes back as liquid helium, or, with a Liquid Air port, air from outside comes out
  * as liquid air. Four internal tanks sit behind the ports; fractional amounts carry over between
  * ticks so slow plants still deliver.
+ *
+ * <p>Clients are updated when something they show moved by a visible step (1% of a tank, a tenth of
+ * a mB/t, a percent of compressor speed), checked every {@link #SYNC_INTERVAL} ticks, and at least
+ * every {@link PerformanceConfig#forcedSyncTicks} ticks. The compressors are looked up in the level
+ * once every {@link #COMPRESSOR_REFRESH} ticks, not every tick.
  */
 public class CryoplantControllerBlockEntity extends SmartBlockEntity implements MultiblockController, IHaveGoggleInformation {
     public static final int TANK_CAPACITY = 8_000;
@@ -46,6 +53,14 @@ public class CryoplantControllerBlockEntity extends SmartBlockEntity implements 
     private static final double AVERAGE = 0.1;
     /** Smoothed output above which the plant counts as running (lamp, frost, hum). */
     private static final double RUNNING_RATE = 0.05;
+    /** Ticks the compressor block entities are kept before they are looked up again. */
+    static final int COMPRESSOR_REFRESH = 20;
+    /**
+     * Visible steps of what clients show, in the order of {@link #syncValues}: 1% of each tank, the
+     * fluids, a twentieth of a mB/t (shown to a tenth) and half a percent of speed and precooling.
+     */
+    private static final double[] SYNC_STEPS = {TANK_CAPACITY / 100.0, TANK_CAPACITY / 100.0, NITROGEN_CAPACITY / 100.0,
+            TANK_CAPACITY / 100.0, 0, 0, 0, 0, 0.05, 0.05, 0.005, 0.005, 0};
 
     private final FluidTank warmHeliumTank = tank(TANK_CAPACITY, NuclearFluidHelper::isHelium);
     private final FluidTank liquidHeliumTank = tank(TANK_CAPACITY, NuclearFluidHelper::isLiquidHelium);
@@ -58,6 +73,14 @@ public class CryoplantControllerBlockEntity extends SmartBlockEntity implements 
             MultiblockValidationResult.invalid(List.of(CryoplantStructureValidator.KEY + "not_formed"), List.of());
     private boolean pendingRevalidation = true;
     private int syncTimer;
+    private final SyncThrottle throttle = new SyncThrottle(SYNC_STEPS, new double[SYNC_STEPS.length]);
+    private int clientSyncs;
+    /** The compressors of {@link #compressorsOf}, as last looked up; removed ones are skipped. */
+    private List<CryoplantCompressorBlockEntity> compressorCache = List.of();
+    @Nullable
+    private CryoplantStructure compressorsOf;
+    private int compressorCacheAge;
+    private int compressorLookups;
     // Fractional mB still owed to or by the tanks.
     private double heliumDebt;
     private double nitrogenDebt;
@@ -121,8 +144,41 @@ public class CryoplantControllerBlockEntity extends SmartBlockEntity implements 
         updateRunningState();
         if (++syncTimer >= SYNC_INTERVAL) {
             syncTimer = 0;
-            sendData();
+            if (throttle.due(level.getGameTime(), syncValues(), PerformanceConfig.forcedSyncTicks)) {
+                sendData();
+            }
         }
+    }
+
+    /** What clients show, as numbers for the {@link SyncThrottle}: tanks and their fluids, rates and the lamp. */
+    private double[] syncValues() {
+        return new double[]{warmHeliumTank.getFluidAmount(), liquidHeliumTank.getFluidAmount(), nitrogenTank.getFluidAmount(),
+                liquidAirTank.getFluidAmount(), fluidId(warmHeliumTank), fluidId(liquidHeliumTank), fluidId(nitrogenTank),
+                fluidId(liquidAirTank), rate, capacity, speed, precooling, rate >= RUNNING_RATE ? 1 : 0};
+    }
+
+    private static double fluidId(FluidTank tank) {
+        return net.minecraft.core.registries.BuiltInRegistries.FLUID.getId(tank.getFluid().getFluid());
+    }
+
+    /** Every update sent goes through here: counted, and remembered by the throttle. */
+    @Override
+    public void sendData() {
+        clientSyncs++;
+        if (level != null && !level.isClientSide) {
+            throttle.sent(level.getGameTime(), syncValues());
+        }
+        super.sendData();
+    }
+
+    /** Client updates this controller asked for, for tests. */
+    public int clientSyncCount() {
+        return clientSyncs;
+    }
+
+    /** Times the compressors were looked up in the level, for tests. */
+    public int compressorLookups() {
+        return compressorLookups;
     }
 
     private CryoplantModel.Result liquefy(CryoplantStructure s) {
@@ -154,14 +210,25 @@ public class CryoplantControllerBlockEntity extends SmartBlockEntity implements 
 
     /** The compressors' average share of rated speed: an idle compressor drags the plant down. */
     private double compressorSpeed(CryoplantStructure s) {
+        if (compressorsOf != s || ++compressorCacheAge >= COMPRESSOR_REFRESH) {
+            compressorsOf = s;
+            compressorCacheAge = 0;
+            compressorLookups++;
+            List<CryoplantCompressorBlockEntity> found = new java.util.ArrayList<>();
+            for (BlockPos pos : s.compressorPositions()) {
+                if (level.getBlockEntity(pos) instanceof CryoplantCompressorBlockEntity compressor) {
+                    found.add(compressor);
+                }
+            }
+            compressorCache = found;
+        }
         double sum = 0;
-        int count = 0;
-        for (BlockPos pos : s.compressorPositions()) {
-            count++;
-            if (level.getBlockEntity(pos) instanceof CryoplantCompressorBlockEntity compressor) {
+        for (CryoplantCompressorBlockEntity compressor : compressorCache) {
+            if (!compressor.isRemoved()) {
                 sum += compressor.speedFactor();
             }
         }
+        int count = s.compressorPositions().size();
         return count == 0 ? 0 : sum / count;
     }
 

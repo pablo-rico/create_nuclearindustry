@@ -23,11 +23,13 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
     private static final int TEMP_Y = 34;
     private static final int NEUTRON_Y = 58;
     private static final int FUEL_Y = 82;
-    private static final int POWER_Y = 112;
-    private static final int STATE_Y = 124;
-    private static final int STRESS_Y = 136;
-    private static final int CORE_Y = 148;
-    private static final int ROD_Y = 160;
+    // Seven text lines of 10 px fit between the fuel gauge (ends at 106) and the readout window's edge (180).
+    private static final int POWER_Y = 108;
+    private static final int STATE_Y = 118;
+    private static final int STRESS_Y = 128;
+    private static final int CORE_Y = 138;
+    private static final int PARTS_Y = 148;
+    private static final int ROD_Y = 158;
     /** Top of the fuel slots and the buttons beside them. */
     private static final int SLOT_Y = 192;
     private static final int GAUGE_WIDTH = 180;
@@ -161,6 +163,15 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
                 (reactivity > 0 ? "+" : "") + reactivity, Math.round(xenon * 100), Math.round(menu.getDecayHeatPower())),
                 CORE_Y, xenon >= 0.15 ? 0xFFFFAA00 : 0xFFBBBBFF);
 
+        Object[] parts = {signed(menu.getFuelReactivityPcm()), signed(menu.getRodReactivityPcm()),
+                signed(menu.getTemperatureReactivityPcm()), signed(menu.getVoidReactivityPcm())};
+        Component partsLine = Component.translatable("gui.create_nuclearindustry.reactor.reactivity_parts", parts);
+        if (font.width(partsLine) > GAUGE_WIDTH + 43) {
+            // five-digit terms do not fit the readout window with their words
+            partsLine = Component.translatable("gui.create_nuclearindustry.reactor.reactivity_parts_short", parts);
+        }
+        text(graphics, partsLine, PARTS_Y, 0xFF8888AA);
+
         text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.rods",
                 menu.getInsertedControlRodSegments(), menu.getExpectedControlRodSegments(),
                 Math.round(menu.getControlRodInsertionRatio() * 100)), ROD_Y, 0xFFFFAA00);
@@ -170,6 +181,10 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
         } else if (menu.isScramRequested()) {
             text(graphics, Component.translatable("gui.create_nuclearindustry.reactor.scram_engaged"), ROD_Y + 10, 0xFFFF5555);
         }
+    }
+
+    private static String signed(int pcm) {
+        return (pcm > 0 ? "+" : "") + pcm;
     }
 
     private void text(GuiGraphics graphics, Component text, int y, int color) {

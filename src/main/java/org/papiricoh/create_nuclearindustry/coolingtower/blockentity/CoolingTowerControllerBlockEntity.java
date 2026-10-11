@@ -67,6 +67,8 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
     private MultiblockValidationResult<CoolingTowerStructure> lastValidation =
             MultiblockValidationResult.invalid(List.of("Not formed"), List.of());
     private boolean pendingRevalidation = true;
+    /** The tallest tower this controller could form; it stands still, so the box is made once. */
+    private BoundingBox unformedBounds;
     private int currentUse;
     private float recentUse;
     private double fanBoost;
@@ -215,10 +217,13 @@ public class CoolingTowerControllerBlockEntity extends SmartBlockEntity implemen
             BoundingBox box = structure.get().bounds();
             return new BoundingBox(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY() + 2, box.maxZ());
         }
-        int reach = 2 * CoolingTowerGeometry.MAX_BASE_RADIUS + 1;
-        BlockPos pos = getBlockPos();
-        return new BoundingBox(pos.getX() - reach, pos.getY() - 1, pos.getZ() - reach,
-                pos.getX() + reach, pos.getY() + CoolingTowerGeometry.ABSOLUTE_MAX_HEIGHT, pos.getZ() + reach);
+        if (unformedBounds == null) {
+            int reach = 2 * CoolingTowerGeometry.MAX_BASE_RADIUS + 1;
+            BlockPos pos = getBlockPos();
+            unformedBounds = new BoundingBox(pos.getX() - reach, pos.getY() - 1, pos.getZ() - reach,
+                    pos.getX() + reach, pos.getY() + CoolingTowerGeometry.ABSOLUTE_MAX_HEIGHT, pos.getZ() + reach);
+        }
+        return unformedBounds;
     }
 
     @Override

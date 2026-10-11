@@ -34,7 +34,7 @@ public final class FissionCore {
      * @param iodineHalfLife    ticks
      * @param xenonHalfLife     ticks
      * @param decayFraction     share of the fission heat that comes later as decay heat
-     * @param decayTime         ticks the decay heat lags behind the power
+     * @param decayTime         time scale of the decay heat groups, ticks (see {@link DecayHeatModel})
      */
     public record Params(PointKinetics.Params kinetics, ReactivityModel.Params reactivity, CoreThermalModel.Params thermal,
                          CoreDamageModel.Params damage, boolean sixGroups, double delayedTimeScale, double maxWithdrawalRate,
@@ -42,7 +42,7 @@ public final class FissionCore {
                          double decayFraction, double decayTime) {
         public static final Params DEFAULT = new Params(PointKinetics.Params.DEFAULT, ReactivityModel.Params.DEFAULT,
                 CoreThermalModel.Params.DEFAULT, CoreDamageModel.Params.DEFAULT, true, 1.0, 100.0, 2800.0, true,
-                3600.0, 5400.0, 0.07, 6000.0);
+                3600.0, 5400.0, 0.07, 20000.0);
     }
 
     /**

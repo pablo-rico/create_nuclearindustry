@@ -66,6 +66,7 @@ import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControll
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.Config;
+import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitter;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitters;
 import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
@@ -146,6 +147,13 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private boolean pendingRevalidation = true;
     private int syncCounter;
     private int controlRodScanCounter;
+    /**
+     * A block changed where it can make a column a control channel or stop it being one: the next
+     * rod scan compares the channel set (see {@link #checkControlChannels}) instead of revalidating.
+     */
+    private boolean pendingChannelCheck;
+    /** The last channel check already found a different set; a second one in a row revalidates. */
+    private boolean channelMismatchSeen;
     private int scramRecoveryScanCounter;
     private int ticksSinceLoad;
     /** Enrichment of each burnt-out assembly waiting for space in the output slots. */
@@ -192,17 +200,56 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     /** Reached full power and has not fallen well below it since. */
     private boolean atFullPower;
 
-    /** Least ticks between two client updates while only contents and readings change. */
-    public static final int SYNC_INTERVAL = 10;
-    /** Something the clients show changed since the last update. */
+    /**
+     * Least ticks between two client updates, unless the state the clients act on changes (see
+     * {@link #syncState()}): a player action goes out at once if the last update is this old, held
+     * back until it is otherwise.
+     */
+    public static final int SYNC_INTERVAL = 20;
+    /** Steps of the readings that count as a visible change (see {@link #fillVisibleKey}). */
+    private static final double SYNC_TEMPERATURE_STEP = 2.0;
+    private static final double SYNC_POWER_STEPS = 200.0;
+    /** Steps per decade of the power on the logarithmic scale, so a source-range startup shows. */
+    private static final double SYNC_LOG_POWER_STEPS = 20.0;
+    private static final double SYNC_REACTIVITY_STEP = 10.0;
+    private static final double SYNC_MARGIN_STEP = 10.0;
+    private static final double SYNC_REACTIVITY_PART_STEP = 100.0;
+    /**
+     * Least change of a tank's percent that goes out on its own: a tank drained or filled slowly
+     * would otherwise send an update at every percent it crosses. Empty and full always go out.
+     */
+    private static final int SYNC_TANK_HYSTERESIS = 2;
+    /** Where the tanks' percents sit in the visible key, compared with {@link #SYNC_TANK_HYSTERESIS}. */
+    private static final int KEY_COOLANT_PERCENT = 1;
+    private static final int KEY_STEAM_PERCENT = 3;
+    private static final int VISIBLE_KEY_SIZE = 45;
+    /** Something a player did (or the reactor's state) changed since the last update: it goes out when allowed. */
     private boolean syncDirty;
+    /** Tanks or fuel slots changed since the last update; they go out once the change is visible. */
+    private boolean contentsDirty;
     private long lastSyncTime = Long.MIN_VALUE / 2;
+    /** What the clients see, quantized, as last sent and as now: readings go out when the two differ. */
+    private final int[] sentKey = new int[VISIBLE_KEY_SIZE];
+    private final int[] visibleKey = new int[VISIBLE_KEY_SIZE];
+    /** The loaded assemblies, asked for only when the fuel channels refresh. */
+    private final java.util.function.Supplier<List<ReactorPhysicsSimulator.AssemblyView>> assemblyViews =
+            () -> physicsSimulator.assemblyViews();
     /** {@link #syncState()} as the clients last got it: a change is sent at once. */
     private int lastSyncedState = -1;
     /** The structure as last sent in an update packet; later packets leave it out while it stands. */
     @org.jetbrains.annotations.Nullable
     private ReactorStructureValidator.ReactorStructure lastSentStructure;
     private int clientSyncs;
+    /** Visible keys compared with the last sent one, for tests. */
+    private int visibleKeyChecks;
+    /** Last time {@link #flushSync} compared the visible keys (or an update filled the sent one). */
+    private long lastKeyCheckTime = Long.MIN_VALUE / 2;
+    /** Contents or readings may have changed since the last comparison. */
+    private boolean keyCheckDue;
+    /** {@link #radiationOrigin()} as worked out for {@link #radiationOriginOf}; null when it must be redone. */
+    @org.jetbrains.annotations.Nullable
+    private Vec3 radiationOrigin;
+    private Optional<ReactorStructureValidator.ReactorStructure> radiationOriginOf = Optional.empty();
 
     private final FluidTank coolantTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isReactorCoolant) {
         @Override
@@ -288,12 +335,14 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
         entity.tickCuesAndVisuals();
 
+        boolean readingsDue = false;
         if (++entity.syncCounter >= 20) {
-            entity.markDirtyAndSync();
+            entity.setChanged();
             entity.syncCounter = 0;
             entity.checkIodinePit();
+            readingsDue = true;
         }
-        entity.flushSync();
+        entity.flushSync(readingsDue);
     }
 
     @Override
@@ -309,11 +358,21 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
     // ------------------------------------------------------------------ radiation
 
-    /** The middle of the reactor's core. */
+    /**
+     * The middle of the reactor's core. Asked for every emitter on each reindex of the radiation
+     * sources, so it is worked out once per structure (see {@link #setStructure}) and kept.
+     */
     @Override
     public Vec3 radiationOrigin() {
-        return currentStructure.map(structure -> structure.bounds().getCenter().getCenter())
-                .orElseGet(() -> Vec3.atCenterOf(getBlockPos()));
+        Vec3 origin = radiationOrigin;
+        if (origin == null || radiationOriginOf != currentStructure) {
+            // also covers a structure read from a packet, which does not go through setStructure
+            origin = currentStructure.map(structure -> structure.bounds().getCenter().getCenter())
+                    .orElseGet(() -> Vec3.atCenterOf(getBlockPos()));
+            radiationOrigin = origin;
+            radiationOriginOf = currentStructure;
+        }
+        return origin;
     }
 
     /** Proportional to the chain reaction: an idle or unformed reactor emits nothing. */
@@ -367,12 +426,29 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 pos.getX() + halfWidth, pos.getY(), pos.getZ() + halfWidth);
     }
 
+    /**
+     * Rods move through their channels all the time (Create pistons), so a change in a control channel
+     * or in the rods' travel space never revalidates by itself: it only flags a channel check, which
+     * the next rod scan runs cheaply. As this is the only hook that sees the position, the flag is set
+     * here and the method answers false. Everything else revalidates when it differs from the snapshot.
+     */
     @Override
     public boolean shouldReactToBlockChange(BlockChange change) {
         if (currentStructure.isPresent()) {
-            return structureSnapshot != null
-                    && structureSnapshot.isAffectedBy(change)
-                    && !currentStructure.get().isControlArea(change.pos());
+            ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
+            if (structure.isControlArea(change.pos())) {
+                pendingChannelCheck = true;
+                return false;
+            }
+            if (structureSnapshot != null && structureSnapshot.isAffectedBy(change)) {
+                return true;
+            }
+            if (change.pos().getY() > structure.topY && structure.isChannelReach(change.pos())) {
+                // A rod lowered towards a column that is not a channel yet; below the lid the snapshot
+                // already catches every change of block (fuel channels repainting their state are not one).
+                pendingChannelCheck = true;
+            }
+            return false;
         }
         return change.removed() || change.isMultiblockPart();
     }
@@ -382,6 +458,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 .equals(structure.map(ReactorStructureValidator.ReactorStructure::bounds));
         Optional<ReactorStructureValidator.ReactorStructure> previous = currentStructure;
         currentStructure = structure;
+        radiationOrigin = null;
         Level level = getLevel();
         if (level != null && !level.isClientSide) {
             if (structure.isEmpty()) {
@@ -408,6 +485,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private void revalidate(boolean playerInitiated, Player player) {
         messenger.setOwner(player);
         pendingRevalidation = false;
+        // the validation detects the channels afresh
+        pendingChannelCheck = false;
+        channelMismatchSeen = false;
 
         Level level = getLevel();
         if (level == null) {
@@ -417,7 +497,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
 
         ReactorStatus previousStatus = status;
         MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> result =
-                ReactorStructureValidator.validate(level, getBlockPos(), currentStructure, holdsPrimaryCoolant());
+                ReactorStructureValidator.validate(level, getBlockPos(), holdsPrimaryCoolant());
         lastValidation = result;
 
         if (result.formed() && result.structure().isPresent()) {
@@ -430,7 +510,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             status = previousStatus == ReactorStatus.SCRAMMED_HOT && ticksSinceLoad < LOAD_MELTDOWN_GRACE_TICKS
                     ? ReactorStatus.SCRAMMED_HOT
                     : ReactorStatus.FORMED;
-            if (structureChanged && !loadedStructureWithoutSnapshot) {
+            // A reactor just loaded keeps the simulator it saved, unless the core was changed while unloaded.
+            if (structureChanged && (!loadedStructureWithoutSnapshot || !simulatorMatches(newStructure))) {
                 ReactorPhysicsSimulator previousSimulator = physicsSimulator;
                 physicsSimulator = new ReactorPhysicsSimulator(newStructure.getUraniumRodCount(), newStructure.getControlRodCount(),
                         newStructure.moderation, newStructure.reflection);
@@ -491,6 +572,14 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
 
         markDirtyAndSync();
+    }
+
+    /** Whether the simulator was built for this core: same fuel, control channels, moderation and reflection. */
+    private boolean simulatorMatches(ReactorStructureValidator.ReactorStructure structure) {
+        return physicsSimulator.getUraniumRodCount() == structure.getUraniumRodCount()
+                && physicsSimulator.getControlRodCount() == structure.getControlRodCount()
+                && Math.abs(physicsSimulator.getModeration() - structure.moderation) < 1e-9
+                && Math.abs(physicsSimulator.getReflection() - structure.reflection) < 1e-9;
     }
 
     private boolean isDynamicControlChannelFailure(MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> result) {
@@ -583,6 +672,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             return;
         }
         controlRodScanCounter = 0;
+        if (!force && checkControlChannels(getLevel(), currentStructure.get())) {
+            return;
+        }
         lastControlRodScan = ControlRodTracker.scan(getLevel(), currentStructure.get());
         // Rods only move physically (Create pistons). A SCRAM is a redstone request, except for
         // reactors saved in manual SCRAM before that change, which hold their rods in until reset.
@@ -591,6 +683,33 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         } else {
             physicsSimulator.setChannelInsertions(lastControlRodScan.channelInsertions());
         }
+    }
+
+    /**
+     * Runs a flagged channel check: detects the channels again and, if they differ from the
+     * structure's on two checks in a row, asks for a revalidation (which keeps the core's fuel and
+     * heat, see {@link #revalidate}). The second look covers the tick in which Create turns the rods
+     * into a contraption and back. Rods moving inside the channels they already had change nothing.
+     *
+     * @return true when a revalidation was requested, so the rod scan waits for the new structure
+     */
+    private boolean checkControlChannels(Level level, ReactorStructureValidator.ReactorStructure structure) {
+        if (!pendingChannelCheck) {
+            return false;
+        }
+        if (ReactorStructureValidator.detectControlChannels(level, structure).equals(structure.controlChannels)) {
+            pendingChannelCheck = false;
+            channelMismatchSeen = false;
+            return false;
+        }
+        if (!channelMismatchSeen) {
+            channelMismatchSeen = true;
+            return false;
+        }
+        pendingChannelCheck = false;
+        channelMismatchSeen = false;
+        pendingRevalidation = true;
+        return true;
     }
 
     public boolean isManualScram() {
@@ -763,7 +882,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
 
         if (currentStructure.isPresent() && status != ReactorStatus.MELTDOWN) {
-            rodVisuals.tick(level, currentStructure.get(), physicsSimulator.assemblyViews(), power, coolantTank.getFluidAmount() > 0);
+            rodVisuals.tick(level, currentStructure.get(), assemblyViews, power, coolantTank.getFluidAmount() > 0);
         }
     }
 
@@ -1043,7 +1162,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     /**
      * Saves and asks for a client update: sent at once when the state the clients act on changed
      * (formed or not, SCRAM, meltdown, breach), otherwise at most once every {@link #SYNC_INTERVAL}
-     * ticks, the rest held back for {@link #flushSync()}.
+     * ticks, the rest held back for {@link #flushSync}.
      */
     private void markDirtyAndSync() {
         setChanged();
@@ -1055,24 +1174,165 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         }
     }
 
-    /** Tanks and fuel slots changed: saved now, shown with the next update. */
+    /**
+     * Tanks and fuel slots changed: saved now, shown once the change is one the clients can see
+     * (see {@link #flushSync}). A running reactor's tanks change every tick; this keeps that from
+     * sending an update every {@link #SYNC_INTERVAL} ticks by itself.
+     */
     private void contentsChanged() {
         setChanged();
-        syncDirty = true;
+        contentsDirty = true;
     }
 
-    /** Sends a held-back update once {@link #SYNC_INTERVAL} ticks have passed since the last. Every tick. */
-    private void flushSync() {
+    /**
+     * Most ticks between two client updates ({@link PerformanceConfig#forcedSyncTicks}): the slow
+     * readings (fuel burnup) go out at least this often. Never below {@link #SYNC_INTERVAL}.
+     */
+    public static int forcedSyncInterval() {
+        return Math.max(SYNC_INTERVAL, PerformanceConfig.forcedSyncTicks);
+    }
+
+    /**
+     * Every tick: sends what was held back, no sooner than {@link #SYNC_INTERVAL} ticks after the last
+     * update. A player's change goes out then; contents and readings only once they changed by a step
+     * the clients would see; and every {@link #forcedSyncInterval()} ticks an update goes out anyway.
+     * A running reactor's tanks change every tick, so the visible key is compared at most once every
+     * {@link #SYNC_INTERVAL} ticks, when the readings are due ({@code readingsDue}, once a second) or
+     * the contents changed since the last comparison.
+     */
+    private void flushSync(boolean readingsDue) {
         Level level = getLevel();
-        if (syncDirty && level != null && !level.isClientSide && level.getGameTime() - lastSyncTime >= SYNC_INTERVAL) {
-            sendSync(level);
+        if (level == null || level.isClientSide) {
+            return;
         }
+        if (contentsDirty || readingsDue) {
+            contentsDirty = false;
+            keyCheckDue = true;
+        }
+        long now = level.getGameTime();
+        long since = now - lastSyncTime;
+        if (since < SYNC_INTERVAL) {
+            return;
+        }
+        if (syncDirty || since >= forcedSyncInterval()) {
+            sendSync(level);
+            return;
+        }
+        if (keyCheckDue && now - lastKeyCheckTime >= SYNC_INTERVAL) {
+            keyCheckDue = false;
+            lastKeyCheckTime = now;
+            visibleKeyChecks++;
+            fillVisibleKey(visibleKey);
+            if (visibleKeyDiffers(visibleKey, sentKey)) {
+                sendSync(level);
+            }
+        }
+    }
+
+    /** Whether {@code now} shows something {@code sent} did not; the tanks only past their hysteresis. */
+    static boolean visibleKeyDiffers(int[] now, int[] sent) {
+        for (int i = 0; i < now.length; i++) {
+            if (now[i] == sent[i]) {
+                continue;
+            }
+            if (i == KEY_COOLANT_PERCENT || i == KEY_STEAM_PERCENT) {
+                if (Math.abs(now[i] - sent[i]) >= SYNC_TANK_HYSTERESIS || now[i] == 0 || now[i] == 100) {
+                    return true;
+                }
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * What the clients show (goggles, sounds, the control room), each reading cut to the step that
+     * shows: tanks by the percent, temperatures by {@link #SYNC_TEMPERATURE_STEP} degrees, power by
+     * half a percent of rated and by a twentieth of a decade, reactivity by {@link #SYNC_REACTIVITY_STEP}
+     * pcm and its parts by {@link #SYNC_REACTIVITY_PART_STEP}, the period by sign and decade, plus
+     * counts and flags. The fuel totals add up the assemblies, which is why {@link #flushSync} runs
+     * this at most once every {@link #SYNC_INTERVAL} ticks.
+     */
+    private void fillVisibleKey(int[] key) {
+        int i = 0;
+        key[i++] = syncState();
+        key[i++] = percent(coolantTank.getFluidAmount(), coolantTank.getCapacity());
+        key[i++] = coolantTank.isEmpty() ? 0 : System.identityHashCode(coolantTank.getFluid().getFluid());
+        key[i++] = percent(steamTank.getFluidAmount(), steamTank.getCapacity());
+        key[i++] = steamTank.isEmpty() ? 0 : System.identityHashCode(steamTank.getFluid().getFluid());
+        key[i++] = (int) Math.floor(physicsSimulator.getCoreTemperature() / SYNC_TEMPERATURE_STEP);
+        key[i++] = (int) Math.floor(physicsSimulator.getCoolantTemperature() / SYNC_TEMPERATURE_STEP);
+        key[i++] = (int) Math.floor(physicsSimulator.getRelativePower() * SYNC_POWER_STEPS);
+        key[i++] = (int) Math.floor(physicsSimulator.getNetReactivity() / SYNC_REACTIVITY_STEP);
+        key[i++] = (int) Math.floor(physicsSimulator.getCoreDamage() * 100.0);
+        key[i++] = (int) Math.floor(physicsSimulator.getXenonPenalty() * 100.0);
+        key[i++] = Math.round(physicsSimulator.getControlRodInsertion() * 100.0f);
+        key[i++] = Math.round(lastControlRodScan.insertionRatio() * 100.0f);
+        key[i++] = lastControlRodScan.insertedSegments();
+        key[i++] = lastControlRodScan.movingSegments();
+        key[i++] = lastControlRodScan.expectedSegments();
+        key[i++] = physicsSimulator.getLoadedAssemblyCount();
+        key[i++] = countInputFuel();
+        key[i++] = countOutputFuel();
+        key[i++] = pendingDepletedFuel.size();
+        key[i++] = Math.round(rodTarget * 100.0f);
+        key[i++] = (legacyScramHold ? 1 : 0) | (autoScram.isTripped() ? 2 : 0) | (autoScram.isEnabled() ? 4 : 0)
+                | (primaryLoop.heatersRunning() ? 8 : 0) | (primaryLoop.reliefStuck() ? 16 : 0)
+                | (physicsSimulator.isThermalExcursionActive() ? 32 : 0);
+        key[i++] = autoScram.getThreshold();
+        PlantReadings loop = primaryLoop.readings();
+        key[i++] = loop.pwr() ? 1 : 0;
+        key[i++] = Math.round(loop.pressure());
+        key[i++] = Math.round(loop.pressurizerLevel() * 100.0f);
+        key[i++] = Math.round(loop.vesselLevel() * 100.0f);
+        key[i++] = Math.round(loop.flow());
+        key[i++] = Math.round(loop.hotLeg());
+        key[i++] = Math.round(loop.coldLeg());
+        key[i++] = Math.round(accidents.containmentPressure() * 100.0f);
+        key[i++] = Math.round(accidents.containmentHydrogen() * 1000.0f);
+        key[i++] = getReactorState().ordinal();
+        key[i++] = (int) Math.round(physicsSimulator.getThermalStress());
+        key[i++] = (int) Math.floor(Math.log10(Math.max(1e-9, physicsSimulator.getRelativePower())) * SYNC_LOG_POWER_STEPS);
+        key[i++] = periodKey(physicsSimulator.getPeriod());
+        key[i++] = (int) Math.floor(physicsSimulator.core().decay().heat() * 100.0);
+        key[i++] = (int) Math.floor(physicsSimulator.getShutdownMargin() / SYNC_MARGIN_STEP);
+        double capacity = physicsSimulator.getFuelCapacity();
+        key[i++] = capacity <= 0 ? 0 : (int) Math.floor(physicsSimulator.getFuelRemaining() * 100.0 / capacity);
+        ReactivityModel.Parts parts = physicsSimulator.getReactivityParts();
+        key[i++] = (int) Math.floor(parts.fuel() / SYNC_REACTIVITY_PART_STEP);
+        key[i++] = (int) Math.floor(parts.rods() / SYNC_REACTIVITY_PART_STEP);
+        key[i++] = (int) Math.floor(parts.temperature() / SYNC_REACTIVITY_PART_STEP);
+        key[i++] = (int) Math.floor(parts.voids() / SYNC_REACTIVITY_PART_STEP);
+        key[i++] = (int) Math.floor(parts.xenon() / SYNC_REACTIVITY_PART_STEP);
+        key[i] = (int) Math.floor(parts.damage() / SYNC_REACTIVITY_PART_STEP);
+    }
+
+    /**
+     * The reactor period as the clients read it: its sign and its decade (seconds), 0 when steady
+     * (infinite, or longer than ten thousand seconds).
+     */
+    static int periodKey(double period) {
+        if (!Double.isFinite(period) || Math.abs(period) >= 1.0e4) {
+            return 0;
+        }
+        int decade = (int) Math.floor(Math.log10(Math.max(1.0e-3, Math.abs(period))));
+        return (period < 0 ? -1 : 1) * (10 + decade);
+    }
+
+    private static int percent(int amount, int capacity) {
+        return capacity <= 0 ? 0 : (int) (amount * 100L / capacity);
     }
 
     private void sendSync(Level level) {
         syncDirty = false;
+        contentsDirty = false;
         lastSyncTime = level.getGameTime();
         lastSyncedState = syncState();
+        fillVisibleKey(sentKey);
+        // the key was just worked out: the next comparison waits a full interval
+        keyCheckDue = false;
+        lastKeyCheckTime = lastSyncTime;
         clientSyncs++;
         BlockState state = getBlockState();
         level.sendBlockUpdated(getBlockPos(), state, state, Block.UPDATE_CLIENTS);
@@ -1090,6 +1350,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     /** Client updates this reactor has sent, for tests. */
     public int clientSyncCount() {
         return clientSyncs;
+    }
+
+    /** Times {@link #flushSync} compared the visible key with the last sent one, for tests. */
+    public int visibleKeyCheckCount() {
+        return visibleKeyChecks;
     }
 
     /** The answer to what {@code actor} just did, on their action bar; nothing without an actor. */
@@ -1129,6 +1394,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     /** How many times the structure was validated, for tests. */
     public int getValidationCount() {
         return validations;
+    }
+
+    /** The result of the last validation, errors and warnings included. */
+    public MultiblockValidationResult<ReactorStructureValidator.ReactorStructure> getLastValidation() {
+        return lastValidation;
     }
 
     /**
@@ -1411,6 +1681,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return isFormed() ? physicsSimulator.getNetReactivity() : 0.0;
     }
 
+    /** The net reactivity split into fuel, rods, temperature, voids, xenon and damage, pcm. */
+    public ReactivityModel.Parts getReactivityParts() {
+        return isFormed() ? physicsSimulator.getReactivityParts() : ReactivityModel.Parts.NONE;
+    }
+
     public double getCoreDamage() {
         return isFormed() ? physicsSimulator.getCoreDamage() : 0.0;
     }
@@ -1661,6 +1936,9 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 String.format(Locale.ROOT, "%.1f", snapshot.powerFraction() * 100), Math.round(snapshot.ratedPower())));
         tooltip.add(line("reactivity", ChatFormatting.GRAY, String.format(Locale.ROOT, "%+.0f", snapshot.netReactivity()),
                 String.format(Locale.ROOT, "%.2f", snapshot.reactivity())));
+        ReactivityModel.Parts parts = snapshot.reactivityParts();
+        tooltip.add(line("reactivity_parts", ChatFormatting.DARK_GRAY, pcm(parts.fuel()), pcm(parts.rods()), pcm(parts.temperature()),
+                pcm(parts.voids()), pcm(parts.xenon())));
         if (snapshot.xenonPenalty() >= 0.005) {
             tooltip.add(line("xenon", snapshot.xenonPenalty() >= 0.15 ? ChatFormatting.GOLD : ChatFormatting.GRAY,
                     Math.round(snapshot.xenonPenalty() * 100.0)));
@@ -1699,6 +1977,11 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     /** One indented goggle line, {@code create_nuclearindustry.reactor.goggles.<id>}. */
     private static Component line(String id, ChatFormatting style, Object... args) {
         return goggleLine(Component.translatable(GOGGLES + id, args), style);
+    }
+
+    /** A reactivity term with its sign, pcm. */
+    private static String pcm(double value) {
+        return String.format(Locale.ROOT, "%+d", Math.round(value));
     }
 
     /** {@link #line} for the reactor's ports, which show some of the same readings. */
@@ -1935,11 +2218,15 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     private CompoundTag writeUpdateTag(HolderLookup.Provider provider, boolean withStructure) {
         CompoundTag tag = super.getUpdateTag(provider);
         tag.putString("status", status.name());
-        tag.put("physics", writePhysicsTag());
+        // A summary of the fuel, not every assembly: the packet does not grow with the core.
+        CompoundTag physics = new CompoundTag();
+        physicsSimulator.serializeForClient(physics);
+        tag.put("physics", physics);
         tag.put("coolant", coolantTank.writeToNBT(provider, new CompoundTag()));
         tag.put("steam", steamTank.writeToNBT(provider, new CompoundTag()));
         tag.put("fuelInventory", fuelInventory.serializeNBT(provider));
-        writePendingDepleted(tag);
+        // Clients only count the assemblies waiting for an output slot.
+        tag.putInt("pendingDepletedFuel", pendingDepletedFuel.size());
         tag.putBoolean("manualScram", manualScram);
         tag.putBoolean("legacyScramHold", legacyScramHold);
         tag.putFloat("rodTarget", rodTarget);
@@ -1953,7 +2240,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             tag.put("controlRodScan", writeControlRodScanTag(lastControlRodScan));
         });
         tag.put("validation", writeValidationTag(lastValidation));
-        tag.put("displaySnapshot", writeDisplaySnapshot(createDisplaySnapshot()));
+        tag.put("displaySnapshot", packDisplaySnapshot(writeDisplaySnapshot(createDisplaySnapshot())));
         return tag;
     }
 
@@ -2002,7 +2289,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 ? readValidationTag(tag.getCompound("validation"))
                 : MultiblockValidationResult.invalid(List.of("Not formed"), List.of());
         displaySnapshot = tag.contains("displaySnapshot")
-                ? readDisplaySnapshot(tag.getCompound("displaySnapshot"))
+                ? readDisplaySnapshot(unpackDisplaySnapshot(tag.getCompound("displaySnapshot")))
                 : ReactorDisplaySnapshot.unsynced();
         hasDisplaySnapshot = tag.contains("displaySnapshot");
     }
@@ -2064,7 +2351,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 physicsSimulator.getNetReactivity(),
                 physicsSimulator.getPeriod(),
                 physicsSimulator.getCoreDamage(),
-                physicsSimulator.getShutdownMargin()
+                physicsSimulator.getShutdownMargin(),
+                physicsSimulator.getReactivityParts()
         );
     }
 
@@ -2125,6 +2413,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         tag.putDouble("period", Double.isFinite(snapshot.period()) ? snapshot.period() : 0);
         tag.putDouble("coreDamage", snapshot.coreDamage());
         tag.putDouble("shutdownMargin", snapshot.shutdownMargin());
+        ReactivityModel.Parts parts = snapshot.reactivityParts();
+        tag.putIntArray("reactivityParts", new int[] {(int) Math.round(parts.fuel()), (int) Math.round(parts.rods()),
+                (int) Math.round(parts.temperature()), (int) Math.round(parts.voids()), (int) Math.round(parts.xenon()),
+                (int) Math.round(parts.damage())});
         return tag;
     }
 
@@ -2180,8 +2472,141 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                 tag.getDouble("netReactivity"),
                 tag.getDouble("period") == 0 ? Double.POSITIVE_INFINITY : tag.getDouble("period"),
                 Math.max(0.0, Math.min(1.0, tag.getDouble("coreDamage"))),
-                tag.getDouble("shutdownMargin")
+                tag.getDouble("shutdownMargin"),
+                readReactivityParts(tag.getIntArray("reactivityParts"))
         );
+    }
+
+    private static ReactivityModel.Parts readReactivityParts(int[] parts) {
+        if (parts == null || parts.length != 6) {
+            return ReactivityModel.Parts.NONE;
+        }
+        return new ReactivityModel.Parts(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]);
+    }
+
+    /** Keys and tag types {@link #writeDisplaySnapshot} writes, sorted: the order a packed snapshot keeps. */
+    private record SnapshotSchema(String[] keys, byte[] types) {}
+
+    private static volatile SnapshotSchema snapshotSchema;
+
+    /** Worked out once from an empty snapshot, the same way on the server and on the client. */
+    private SnapshotSchema snapshotSchema() {
+        SnapshotSchema schema = snapshotSchema;
+        if (schema == null) {
+            CompoundTag template = writeDisplaySnapshot(ReactorDisplaySnapshot.empty());
+            String[] keys = template.getAllKeys().stream().sorted().toArray(String[]::new);
+            byte[] types = new byte[keys.length];
+            for (int i = 0; i < keys.length; i++) {
+                types[i] = template.getTagType(keys[i]);
+            }
+            schema = new SnapshotSchema(keys, types);
+            snapshotSchema = schema;
+        }
+        return schema;
+    }
+
+    /**
+     * The display snapshot for an update packet, without its fifty-odd key names: doubles in one
+     * array, ints, floats and flags in another, strings in a list, all in the order of
+     * {@link #snapshotSchema()}. Anything else (and any key the schema lacks) goes as it is under
+     * {@code x}. A third of the size of the named compound.
+     */
+    private CompoundTag packDisplaySnapshot(CompoundTag named) {
+        SnapshotSchema schema = snapshotSchema();
+        long[] doubles = new long[schema.keys().length];
+        int[] ints = new int[schema.keys().length];
+        int d = 0;
+        int n = 0;
+        ListTag strings = new ListTag();
+        CompoundTag rest = new CompoundTag();
+        Set<String> packed = new java.util.HashSet<>();
+        for (int k = 0; k < schema.keys().length; k++) {
+            String key = schema.keys()[k];
+            switch (schema.types()[k]) {
+                case Tag.TAG_DOUBLE -> doubles[d++] = Double.doubleToLongBits(named.getDouble(key));
+                case Tag.TAG_FLOAT -> ints[n++] = Float.floatToIntBits(named.getFloat(key));
+                case Tag.TAG_INT -> ints[n++] = named.getInt(key);
+                case Tag.TAG_BYTE -> ints[n++] = named.getByte(key);
+                case Tag.TAG_STRING -> strings.add(net.minecraft.nbt.StringTag.valueOf(named.getString(key)));
+                default -> {
+                    continue;
+                }
+            }
+            packed.add(key);
+        }
+        for (String key : named.getAllKeys()) {
+            if (!packed.contains(key)) {
+                rest.put(key, named.get(key));
+            }
+        }
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("n", schema.keys().length);
+        tag.putLongArray("d", java.util.Arrays.copyOf(doubles, d));
+        tag.putIntArray("i", java.util.Arrays.copyOf(ints, n));
+        tag.put("s", strings);
+        if (!rest.isEmpty()) {
+            tag.put("x", rest);
+        }
+        return tag;
+    }
+
+    /** Back to the named compound {@link #readDisplaySnapshot} reads; defaults if the sides' schemas differ. */
+    private CompoundTag unpackDisplaySnapshot(CompoundTag tag) {
+        if (!tag.contains("d", Tag.TAG_LONG_ARRAY)) {
+            return tag;
+        }
+        CompoundTag named = new CompoundTag();
+        SnapshotSchema schema = snapshotSchema();
+        long[] doubles = tag.getLongArray("d");
+        int[] ints = tag.getIntArray("i");
+        ListTag strings = tag.getList("s", Tag.TAG_STRING);
+        if (tag.getInt("n") == schema.keys().length) {
+            int d = 0;
+            int n = 0;
+            int t = 0;
+            for (int k = 0; k < schema.keys().length; k++) {
+                String key = schema.keys()[k];
+                switch (schema.types()[k]) {
+                    case Tag.TAG_DOUBLE -> {
+                        if (d < doubles.length) {
+                            named.putDouble(key, Double.longBitsToDouble(doubles[d++]));
+                        }
+                    }
+                    case Tag.TAG_FLOAT -> {
+                        if (n < ints.length) {
+                            named.putFloat(key, Float.intBitsToFloat(ints[n++]));
+                        }
+                    }
+                    case Tag.TAG_INT -> {
+                        if (n < ints.length) {
+                            named.putInt(key, ints[n++]);
+                        }
+                    }
+                    case Tag.TAG_BYTE -> {
+                        if (n < ints.length) {
+                            named.putByte(key, (byte) ints[n++]);
+                        }
+                    }
+                    case Tag.TAG_STRING -> {
+                        if (t < strings.size()) {
+                            named.putString(key, strings.getString(t++));
+                        }
+                    }
+                    default -> {
+                    }
+                }
+            }
+        }
+        CompoundTag rest = tag.getCompound("x");
+        for (String key : rest.getAllKeys()) {
+            named.put(key, rest.get(key));
+        }
+        return named;
+    }
+
+    /** The display snapshot as the last update brought it, on a client. For tests. */
+    public ReactorDisplaySnapshot receivedDisplaySnapshot() {
+        return displaySnapshot;
     }
 
     private CompoundTag writePhysicsTag() {
@@ -2406,7 +2831,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             double netReactivity,
             double period,
             double coreDamage,
-            double shutdownMargin
+            double shutdownMargin,
+            ReactivityModel.Parts reactivityParts
     ) {
         /** Fission power as a share of the rated power, 0 when there is none. */
         public double powerFraction() {
@@ -2473,7 +2899,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
                     0.0,
                     Double.POSITIVE_INFINITY,
                     0.0,
-                    0.0
+                    0.0,
+                    ReactivityModel.Parts.NONE
             );
         }
     }

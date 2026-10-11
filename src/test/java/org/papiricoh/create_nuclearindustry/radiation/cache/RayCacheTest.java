@@ -16,19 +16,51 @@ class RayCacheTest {
         });
     }
 
+    /** Expiry counts from the last use: a ray read again within its lifetime lives on. */
     @Test
-    void aRayIsReusedUntilItExpires() {
+    void aRayIsReusedUntilItGoesUnusedForItsLifetime() {
         RayCache cache = new RayCache();
         ChunkChangeLog log = new ChunkChangeLog();
         AtomicInteger casts = new AtomicInteger();
         Key key = new Key(1, 2);
         assertEquals(0.5, cast(cache, log, key, 100, 20, casts, 0.5));
-        assertEquals(0.5, cast(cache, log, key, 119, 20, casts, 0.9), "still cached at the last tick");
+        assertEquals(0.5, cast(cache, log, key, 120, 20, casts, 0.9), "still cached 20 ticks after its last use");
+        assertEquals(0.5, cast(cache, log, key, 140, 20, casts, 0.9), "and again, 40 ticks after it was cast");
         assertEquals(1, casts.get());
-        assertEquals(0.9, cast(cache, log, key, 120, 20, casts, 0.9), "expired: cast again");
+        assertEquals(0.9, cast(cache, log, key, 161, 20, casts, 0.9), "unused for more than 20 ticks: cast again");
         assertEquals(2, casts.get());
-        assertEquals(1, cache.hits());
+        assertEquals(2, cache.hits());
         assertEquals(2, cache.misses());
+    }
+
+    /** The once-a-second player update with the default lifetime: one cast, then hits for as long as nothing changes. */
+    @Test
+    void aRayReadEverySecondIsCastOnce() {
+        RayCache cache = new RayCache();
+        ChunkChangeLog log = new ChunkChangeLog();
+        AtomicInteger casts = new AtomicInteger();
+        Key key = new Key(1, 2);
+        for (long tick = 0; tick <= 20 * 30; tick += 20) {
+            cast(cache, log, key, tick, 100, casts, 0.5);
+            cache.prune(tick, 100, 0);
+        }
+        assertEquals(1, casts.get(), "thirty seconds of updates cast the ray once");
+        assertEquals(30, cache.hits());
+    }
+
+    @Test
+    void aRayInUseIsCastAgainOnceItReachesItsMaximumAge() {
+        RayCache cache = new RayCache();
+        ChunkChangeLog log = new ChunkChangeLog();
+        AtomicInteger casts = new AtomicInteger();
+        Key key = new Key(1, 2);
+        for (long tick = 0; tick < 200; tick += 20) {
+            cache.get(key, log, tick, 100, 100, 0.5, 0.5, 40.5, 0.5, () -> {
+                casts.incrementAndGet();
+                return 0.5;
+            });
+        }
+        assertEquals(2, casts.get(), "cast at 0 and again at 100, though read every 20 ticks");
     }
 
     @Test
@@ -78,9 +110,9 @@ class RayCacheTest {
         AtomicInteger casts = new AtomicInteger();
         cast(cache, log, new Key(1, 2), 0, 10, casts, 0.5);
         cast(cache, log, new Key(3, 4), 5, 10, casts, 0.5);
-        cache.prune(12);
-        assertEquals(1, cache.size(), "the first has expired, the second not");
-        cache.prune(15);
+        cache.prune(12, 10, 0);
+        assertEquals(1, cache.size(), "the first has gone unused for more than 10 ticks, the second not");
+        cache.prune(16, 10, 0);
         assertEquals(0, cache.size());
     }
 }

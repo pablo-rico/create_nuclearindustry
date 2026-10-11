@@ -100,16 +100,18 @@ public class ReactorModerationTests {
         return reactor.getStructure().get();
     }
 
-    /** Neutron level once settled at half rod insertion, with the core held cold. */
+    /**
+     * Neutron level a minute and a half after pulling the rods to just past half, where a bare core
+     * runs at part power once its fuel and water have warmed up.
+     */
     private static double steadyNeutrons(double moderation, double reflection) {
         ReactorPhysicsSimulator physics = new ReactorPhysicsSimulator(4, 4, moderation, reflection);
         for (int i = 0; i < 4; i++) {
             physics.loadFuelAssembly(5f);
         }
-        physics.setControlRodInsertion(0.5f);
-        for (int i = 0; i < 1500; i++) {
+        physics.setControlRodInsertion(0.45f);
+        for (int i = 0; i < 1800; i++) {
             physics.tick();
-            physics.applyExternalCooling(10_000.0, 0.0);
         }
         return physics.getNeutronLevel();
     }

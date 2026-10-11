@@ -9,22 +9,18 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.material.FluidState;
-import org.papiricoh.create_nuclearindustry.multiblock.SealedVolume;
 import org.papiricoh.create_nuclearindustry.spentfuel.CoolingGrade;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuel;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelConfig;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelPool;
+import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelPoolSurvey;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelRegistry;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,7 +29,8 @@ import java.util.List;
  * is deadly. The pool around it (found with a flood fill through water source blocks) soaks up
  * its decay heat; when the heat outruns the pool's cooling (its volume plus any Pool Coolers, shared
  * between the racks in it) the surplus builds up and boils the surface off, a layer at a time.
- * Open water bigger than the scan limit never boils.
+ * Open water bigger than the scan limit never boils. The racks of one pool share its flood fill
+ * ({@link SpentFuelPoolSurvey}), so a pool is measured once per interval however many racks it holds.
  */
 public class SpentFuelRackBlockEntity extends SpentFuelStorageBlockEntity {
     /** Updates between pool scans. */
@@ -80,7 +77,7 @@ public class SpentFuelRackBlockEntity extends SpentFuelStorageBlockEntity {
         }
         decayHeat = heat;
         if (--scanCountdown <= 0) {
-            scanPool();
+            surveyPool(false);
         }
         double seconds = lastHeatTime < 0 ? 1.0 : Mth.clamp((gameTime - lastHeatTime) / 20.0, 0.0, MAX_CATCH_UP);
         lastHeatTime = gameTime;
@@ -114,6 +111,7 @@ public class SpentFuelRackBlockEntity extends SpentFuelStorageBlockEntity {
                 && pool.topY() >= worldPosition.getY()) {
             boilStored -= pool.surface().size() * SpentFuelConfig.boilEnergyPerBlock;
             boilOffSurface();
+            // The water changed: measure it again rather than reuse the fill from before the boil.
             scanPool();
             waterDepth = countWaterAbove();
         }
@@ -129,67 +127,43 @@ public class SpentFuelRackBlockEntity extends SpentFuelStorageBlockEntity {
                 / Math.max(1, pool.racks());
     }
 
-    /** Flood-fills the water this rack sits in (or under), counting racks and coolers in it. Public for tests. */
+    /**
+     * Measures the water this rack sits in (or under) now, counting racks and coolers in it, and
+     * shares the fill with the other racks of the pool. Public for tests.
+     */
     public void scanPool() {
+        surveyPool(true);
+    }
+
+    /** Finds this rack's pool the way its periodic update does, reusing a shared fill. Public for tests. */
+    public void lookUpPool() {
+        surveyPool(false);
+    }
+
+    /**
+     * Finds this rack's pool: from the fill another rack of the same water made in the last
+     * {@link SpentFuelPoolSurvey#LIFETIME} ticks, or a new one when {@code fresh} or none is cached.
+     */
+    private void surveyPool(boolean fresh) {
         scanCountdown = SCAN_EVERY;
         if (level == null) {
             return;
         }
-        BlockPos start = isWaterSource(worldPosition) ? worldPosition
-                : isWaterSource(worldPosition.above()) ? worldPosition.above() : null;
+        boolean inWater = isWaterSource(worldPosition);
+        BlockPos start = inWater ? worldPosition : isWaterSource(worldPosition.above()) ? worldPosition.above() : null;
         if (start == null) {
             pool = Pool.NONE;
             return;
         }
-        int[] racks = {start.equals(worldPosition) ? 0 : 1};
-        double[] coolers = {0.0};
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        SealedVolume.World water = new SealedVolume.World() {
-            @Override
-            public boolean known(int x, int y, int z) {
-                return !level.isOutsideBuildHeight(y) && level.isLoaded(cursor.set(x, y, z));
-            }
-
-            @Override
-            public boolean passable(int x, int y, int z) {
-                cursor.set(x, y, z);
-                if (!isWaterSource(cursor)) {
-                    return false;
-                }
-                if (level.getBlockState(cursor).hasBlockEntity()) {
-                    BlockEntity entity = level.getBlockEntity(cursor);
-                    if (entity instanceof SpentFuelRackBlockEntity) {
-                        racks[0]++;
-                    } else if (entity instanceof PoolCoolerBlockEntity cooler) {
-                        coolers[0] += cooler.coolingCapacity();
-                    }
-                }
-                return true;
-            }
-
-            @Override
-            public double wallRating(int x, int y, int z) {
-                return 0.0;
-            }
-        };
-        SealedVolume volume = SealedVolume.fill(water, start.getX(), start.getY(), start.getZ(), SpentFuelConfig.poolScanLimit);
-        boolean sealed = volume.state() == SealedVolume.State.SEALED;
-        List<BlockPos> surface = new ArrayList<>();
-        if (sealed) {
-            for (int x = volume.minX(); x <= volume.maxX(); x++) {
-                for (int z = volume.minZ(); z <= volume.maxZ(); z++) {
-                    if (volume.contains(x, volume.maxY(), z)) {
-                        surface.add(new BlockPos(x, volume.maxY(), z));
-                    }
-                }
-            }
-        }
-        pool = new Pool(volume.volume(), sealed, Math.max(1, racks[0]), coolers[0], volume.maxY(), List.copyOf(surface));
+        SpentFuelPoolSurvey.Survey survey = fresh ? SpentFuelPoolSurvey.refresh(level, start) : SpentFuelPoolSurvey.of(level, start);
+        // A dry rack under the pool is not one of the racks the fill met in the water.
+        int racks = survey.racks() + (inWater ? 0 : 1);
+        pool = new Pool(survey.volume().volume(), survey.sealed(), Math.max(1, racks), survey.coolerCapacity(),
+                survey.topY(), survey.surface());
     }
 
     private boolean isWaterSource(BlockPos pos) {
-        FluidState fluid = level.getFluidState(pos);
-        return fluid.is(FluidTags.WATER) && fluid.isSource();
+        return SpentFuelPoolSurvey.isWaterSource(level, pos);
     }
 
     private int countWaterAbove() {

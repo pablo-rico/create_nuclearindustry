@@ -13,6 +13,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.Config;
+import org.papiricoh.create_nuclearindustry.radiation.cache.RadiationCaches;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -94,10 +95,15 @@ public final class WaterContamination {
         return converted;
     }
 
-    /** Turns {@code surface} into contaminated water if it is a plain water source, with the given chance. */
+    /**
+     * Turns {@code surface} into contaminated water if it is a plain water source, with the given chance.
+     * The change updates no neighbours, so it is told to the radiation caches here: the water's
+     * radioactivity and shielding are part of the rays cast across its chunk.
+     */
     public static boolean convertColumn(ServerLevel level, BlockPos surface, float chance, RandomSource random) {
         if (level.getBlockState(surface).is(Blocks.WATER) && level.getFluidState(surface).isSource() && random.nextFloat() < chance) {
             level.setBlock(surface, AllNuclearFluids.CONTAMINATED_WATER_BLOCK.get().defaultBlockState(), Block.UPDATE_CLIENTS);
+            RadiationCaches.blockChanged(level, surface);
             return true;
         }
         return false;

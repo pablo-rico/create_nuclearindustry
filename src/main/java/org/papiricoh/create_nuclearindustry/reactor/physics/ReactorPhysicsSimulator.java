@@ -438,7 +438,8 @@ public class ReactorPhysicsSimulator {
 
     /**
      * Every loaded assembly, in burn order (the first is the one burning), with how much of it is
-     * burnt: 0 fresh, 1 spent. Read-only; for showing the fuel in the channels.
+     * burnt: 0 fresh, 1 spent. Read-only; for showing the fuel in the channels. Builds a new list on
+     * each call: ask only when it is used (the channels refresh once a second).
      */
     public List<AssemblyView> assemblyViews() {
         List<AssemblyView> views = new ArrayList<>(assemblies.size());
@@ -574,6 +575,15 @@ public class ReactorPhysicsSimulator {
         return core.reactivity();
     }
 
+    /**
+     * The net reactivity split into what the player can act on: fuel, rods, temperature, voids, xenon,
+     * damage. An empty core has no chain reaction to read, so it shows zeros rather than the empty
+     * channels' loss and the dry core.
+     */
+    public ReactivityModel.Parts getReactivityParts() {
+        return hasFuel() ? core.breakdown().parts() : ReactivityModel.Parts.NONE;
+    }
+
     /** Reactivity all the rods could still hold back, pcm. */
     public double getShutdownMargin() {
         return core.shutdownMargin();
@@ -669,22 +679,79 @@ public class ReactorPhysicsSimulator {
         tag.putDouble("reflection", reflection);
     }
 
+    /**
+     * What a client needs of the core, for an update packet: the readings and a summary of the fuel
+     * (how many assemblies, their units, average enrichment and main kind) instead of one entry per
+     * assembly, so the packet stays the same size however big the core is. Clients never run the
+     * physics, so the delayed-neutron and decay-heat histories are left out too. The save keeps it all
+     * ({@link #serializeNBT}).
+     */
+    public void serializeForClient(CompoundTag tag) {
+        writeCore(tag, false);
+        CompoundTag fuel = new CompoundTag();
+        double units = 0.0;
+        double initial = 0.0;
+        double enrichment = 0.0;
+        double reactivity = 0.0;
+        double[] byKind = new double[FuelKind.values().length];
+        for (FuelAssembly assembly : assemblies) {
+            units += assembly.units;
+            initial += assembly.initialUnits;
+            enrichment += assembly.units * assembly.enrichment;
+            reactivity += assembly.reactivity;
+            byKind[assembly.kind.ordinal()] += Math.max(assembly.units, 1.0e-9);
+        }
+        FuelKind main = FuelKind.URANIUM;
+        for (FuelKind kind : FuelKind.values()) {
+            if (byKind[kind.ordinal()] > byKind[main.ordinal()]) {
+                main = kind;
+            }
+        }
+        int count = assemblies.size();
+        fuel.putInt("count", count);
+        fuel.putDouble("units", units);
+        fuel.putDouble("initialUnits", initial);
+        fuel.putFloat("enrichment", units <= 0.0 ? 0.0f : (float) (enrichment / units));
+        fuel.putDouble("reactivity", count == 0 ? 1.0 : reactivity / count);
+        fuel.putString("type", main.id());
+        tag.put("fuelSummary", fuel);
+        tag.putFloat("controlRodInsertion", controlRodInsertion);
+        tag.putInt("uraniumRodCount", uraniumRodCount);
+        tag.putInt("controlRodCount", controlRodCount);
+        tag.putDouble("moderation", moderation);
+        tag.putDouble("reflection", reflection);
+    }
+
     private void writeCore(CompoundTag tag) {
+        writeCore(tag, true);
+    }
+
+    /** @param histories whether to keep the delayed-neutron precursors and the decay heat groups (saves) */
+    private void writeCore(CompoundTag tag, boolean histories) {
         tag.putInt("kineticsVersion", KINETICS_VERSION);
         tag.putDouble("coreTemperature", core.fuelTemperature());
         tag.putDouble("coolantTemperature", core.coolantTemperature());
         tag.putDouble("neutronLevel", core.power() * NEUTRONS_AT_RATED);
+        tag.putDouble("coreDamage", core.damage());
+        tag.putDouble("rodReactivity", core.rodsApplied());
+        tag.putDouble("iodine", core.xenon().iodine());
+        tag.putDouble("xenon", core.xenon().xenon());
+        tag.putDouble("decayHeatRelative", core.decay().heat());
+        if (!histories) {
+            return;
+        }
         double[] precursors = core.kinetics().precursors();
         long[] packed = new long[precursors.length];
         for (int i = 0; i < precursors.length; i++) {
             packed[i] = Double.doubleToLongBits(precursors[i]);
         }
         tag.putLongArray("precursors", packed);
-        tag.putDouble("coreDamage", core.damage());
-        tag.putDouble("rodReactivity", core.rodsApplied());
-        tag.putDouble("iodine", core.xenon().iodine());
-        tag.putDouble("xenon", core.xenon().xenon());
-        tag.putDouble("decayHeatRelative", core.decay().heat());
+        double[] decayGroups = core.decay().groups();
+        long[] packedDecay = new long[decayGroups.length];
+        for (int i = 0; i < decayGroups.length; i++) {
+            packedDecay[i] = Double.doubleToLongBits(decayGroups[i]);
+        }
+        tag.putLongArray("decayGroups", packedDecay);
     }
 
     public void deserializeNBT(CompoundTag tag) {
@@ -733,7 +800,15 @@ public class ReactorPhysicsSimulator {
         core.restoreRods(current && tag.contains("rodReactivity") ? tag.getDouble("rodReactivity") : Double.NaN);
         core.xenon().set(tag.getDouble("iodine"), tag.getDouble("xenon"));
         if (current) {
-            core.decay().set(Math.max(0, tag.getDouble("decayHeatRelative")));
+            double[] decayGroups = null;
+            if (tag.contains("decayGroups", Tag.TAG_LONG_ARRAY)) {
+                long[] packed = tag.getLongArray("decayGroups");
+                decayGroups = new double[packed.length];
+                for (int i = 0; i < packed.length; i++) {
+                    decayGroups[i] = Double.longBitsToDouble(packed[i]);
+                }
+            }
+            core.decay().restore(decayGroups, Math.max(0, tag.getDouble("decayHeatRelative")));
         } else if (!inherited) {
             // The old decay heat was in degrees per tick of the single core temperature.
             setFissionProducts(tag.getDouble("iodine"), tag.getDouble("xenon"), Math.max(0, tag.getDouble("decayHeat")));
@@ -760,6 +835,10 @@ public class ReactorPhysicsSimulator {
             }
             return;
         }
+        if (tag.contains("fuelSummary", Tag.TAG_COMPOUND)) {
+            readFuelSummary(tag.getCompound("fuelSummary"));
+            return;
+        }
         // Saves from before enrichment mattered held a single fuel counter. Split it back into
         // 100-unit assemblies of the old 20% fuel, at neutral reactivity so nothing heats up on load.
         double legacy = clamp(tag.getDouble("fuelRemaining"), 0.0, uraniumRodCount * LEGACY_FUEL_PER_ASSEMBLY);
@@ -767,6 +846,25 @@ public class ReactorPhysicsSimulator {
             double units = Math.min(LEGACY_FUEL_PER_ASSEMBLY, legacy);
             assemblies.addLast(new FuelAssembly(FuelKind.URANIUM, LEGACY_FUEL_ENRICHMENT, units, LEGACY_FUEL_PER_ASSEMBLY, 1.0));
             legacy -= units;
+        }
+    }
+
+    /**
+     * A client's copy of the fuel from {@link #serializeForClient}: as many equal assemblies as the
+     * core holds, sharing its units, so the totals, the average enrichment and the burnup read the same.
+     */
+    private void readFuelSummary(CompoundTag fuel) {
+        int count = Math.min(Math.max(0, fuel.getInt("count")), uraniumRodCount);
+        if (count == 0) {
+            return;
+        }
+        double units = Math.max(0.0, fuel.getDouble("units")) / count;
+        double initial = Math.max(units, fuel.getDouble("initialUnits") / count);
+        FuelKind kind = FuelKind.fromId(fuel.getString("type"));
+        float enrichment = fuel.getFloat("enrichment");
+        double reactivity = fuel.getDouble("reactivity");
+        for (int i = 0; i < count; i++) {
+            assemblies.addLast(new FuelAssembly(kind, enrichment, units, initial, reactivity));
         }
     }
 

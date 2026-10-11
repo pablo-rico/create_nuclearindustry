@@ -10,6 +10,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
@@ -17,10 +18,14 @@ import org.papiricoh.create_nuclearindustry.reactor.physics.FuelKind;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
 
 /**
- * The fission core's kinetics in a real reactor (see {@link FissionTestBuilder}): pulling control
- * rods out gives a new, steady power instead of a runaway, a low-enriched core with every rod out
- * stays short of damage, losing the feed water stops the chain reaction, old saves load cool, and the
- * rated power grows with the fuel.
+ * The fission core's kinetics in a real reactor (see {@link FissionTestBuilder}): pulling a control
+ * rod out gives a new, steady power instead of a runaway, but fresh fuel holds far more reactivity
+ * than its heat takes back, so every rod out damages it; losing the feed water stops the chain
+ * reaction, old saves load cool, and the rated power grows with the fuel.
+ *
+ * <p>The test reactor has a single channel of three rod blocks, so each block is worth thousands of
+ * pcm: with 5% fuel one block out leaves it subcritical and two take it past its rated power. The
+ * steady runs load fuel a little richer, which one block out holds at part power.
  */
 @GameTestHolder(Create_NuclearIndustry.MODID)
 @PrefixGameTestTemplate(false)
@@ -30,13 +35,24 @@ public class ReactorKineticsTests {
         return FissionTestBuilder.ORIGIN.offset(1, FissionTestBuilder.SIZE - 2 - fromTop, 3);
     }
 
-    /** Six low-enriched assemblies in a reactor fed with water and drained of steam every tick. */
-    private static ReactorBlockEntity fedReactor(GameTestHelper helper) {
+    /**
+     * Opens the lid over the control rod column, as pulling rods out in play does: the rods leave
+     * upwards. Under a closed lid a column without rods is an empty column, not a channel.
+     */
+    private static void openLid(GameTestHelper helper) {
+        helper.setBlock(FissionTestBuilder.ORIGIN.offset(1, FissionTestBuilder.SIZE - 1, 3), Blocks.AIR);
+    }
+
+    /** Enrichment the test reactor runs at part power on with its top rod block out. */
+    private static final float PART_POWER_ENRICHMENT = 9f;
+
+    /** Six assemblies in a reactor fed with water and drained of steam every tick. */
+    private static ReactorBlockEntity fedReactor(GameTestHelper helper, float enrichment) {
         FissionTestBuilder.build(helper);
         ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);
         helper.runAfterDelay(5, () -> {
             for (int i = 0; i < 6; i++) {
-                reactor.getPhysicsSimulator().loadFuelAssembly(5f);
+                reactor.getPhysicsSimulator().loadFuelAssembly(enrichment);
             }
         });
         helper.onEachTick(() -> {
@@ -49,10 +65,12 @@ public class ReactorKineticsTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 3200)
-    public static void pullingRodsSettlesOnANewPower(GameTestHelper helper) {
-        ReactorBlockEntity reactor = fedReactor(helper);
-        helper.runAfterDelay(10, () -> helper.setBlock(rod(0), Blocks.AIR));
-        helper.runAfterDelay(200, () -> helper.setBlock(rod(1), Blocks.AIR));
+    public static void pullingARodSettlesOnANewPower(GameTestHelper helper) {
+        ReactorBlockEntity reactor = fedReactor(helper, PART_POWER_ENRICHMENT);
+        helper.runAfterDelay(10, () -> {
+            openLid(helper);
+            helper.setBlock(rod(0), Blocks.AIR);
+        });
         double[] earlier = new double[1];
         double[] peak = new double[1];
         helper.onEachTick(() -> peak[0] = Math.max(peak[0], reactor.getPhysicsSimulator().getCoreTemperature()));
@@ -60,45 +78,53 @@ public class ReactorKineticsTests {
         helper.runAfterDelay(3000, () -> {
             ReactorPhysicsSimulator physics = reactor.getPhysicsSimulator();
             double power = physics.getRelativePower();
-            helper.assertTrue(power > 0.1, "with one rod block left the core runs: " + power);
+            helper.assertTrue(power > 0.1 && power < 1.0, "with its top rod block out the core runs at part power: " + power);
             // Xenon still builds up slowly for hours; the chain reaction itself has settled.
             helper.assertTrue(Math.abs(power - earlier[0]) < 0.05 * power, "and has settled: " + earlier[0] + " -> " + power);
-            helper.assertTrue(peak[0] < 1200, "without a runaway: peak fuel " + peak[0] + " °C");
+            helper.assertTrue(peak[0] < 1500, "without a runaway: peak fuel " + peak[0] + " °C");
             helper.assertTrue(physics.getCoreDamage() == 0, "and without damage");
             helper.assertTrue(reactor.getSteamAmount() >= 0 && physics.getBoiledHeat() > 0, "boiling its water into steam");
             helper.succeed();
         });
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 3200)
-    public static void everyRodOutOfALowEnrichedCoreStaysShortOfDamage(GameTestHelper helper) {
-        ReactorBlockEntity reactor = fedReactor(helper);
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 6000)
+    public static void everyRodOutOfAFreshCoreDamagesIt(GameTestHelper helper) {
+        ReactorBlockEntity reactor = fedReactor(helper, 5f);
         helper.runAfterDelay(10, () -> {
+            openLid(helper);
             for (int i = 0; i < 3; i++) {
                 helper.setBlock(rod(i), Blocks.AIR);
             }
         });
-        double[] peak = new double[1];
-        helper.onEachTick(() -> peak[0] = Math.max(peak[0], reactor.getPhysicsSimulator().getCoreTemperature()));
-        helper.runAfterDelay(3000, () -> {
-            helper.assertTrue(reactor.isFormed(), "the reactor is still whole");
-            helper.assertTrue(peak[0] < 1500, "its hot water and fuel hold it back: peak " + peak[0] + " °C");
-            helper.assertTrue(reactor.getPhysicsSimulator().getCoreDamage() == 0, "no damage");
-            helper.succeed();
+        boolean[] reinserted = {false};
+        helper.onEachTick(() -> {
+            // Put the rods back as soon as the fuel is hurt, before it melts down in the arena.
+            if (!reinserted[0] && reactor.getPhysicsSimulator().getCoreDamage() > 0) {
+                reinserted[0] = true;
+                for (int i = 0; i < 3; i++) {
+                    helper.setBlock(rod(i), AllNuclearBlocks.CONTROL_ROD.get());
+                }
+            }
+        });
+        helper.succeedWhen(() -> {
+            helper.assertTrue(reinserted[0], "fresh fuel holds far more reactivity than its heat takes back: the fuel is damaged");
+            helper.assertTrue(reactor.getPhysicsSimulator().getRelativePower() < 0.01, "and the rods shut it down again: "
+                    + reactor.getPhysicsSimulator().getRelativePower());
         });
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 1600)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 4000)
     public static void losingTheWaterStopsTheChainReaction(GameTestHelper helper) {
         FissionTestBuilder.build(helper);
         ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);
         helper.runAfterDelay(5, () -> {
             for (int i = 0; i < 6; i++) {
-                reactor.getPhysicsSimulator().loadFuelAssembly(5f);
+                reactor.getPhysicsSimulator().loadFuelAssembly(PART_POWER_ENRICHMENT);
             }
-            reactor.fillCoolant(new FluidStack(Fluids.WATER, 16_000), IFluidHandler.FluidAction.EXECUTE);
+            reactor.fillCoolant(new FluidStack(Fluids.WATER, 6_000), IFluidHandler.FluidAction.EXECUTE);
+            openLid(helper);
             helper.setBlock(rod(0), Blocks.AIR);
-            helper.setBlock(rod(1), Blocks.AIR);
         });
         helper.onEachTick(() -> reactor.drainSteam(2000, IFluidHandler.FluidAction.EXECUTE));
         boolean[] ran = {false};

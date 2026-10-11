@@ -172,6 +172,8 @@ final class ReactorVisualsDataGen extends AreaDataGen {
         LangEntries.add(g + "coolant_temperature", "Coolant in the core: %s °C", "Refrigerante en el núcleo: %s °C");
         LangEntries.add(g + "power_level", "Fission power: %s%% of %s MW rated", "Potencia de fisión: %s%% de %s MW nominales");
         LangEntries.add(g + "reactivity", "Reactivity: %s pcm (fuel x%s)", "Reactividad: %s pcm (combustible x%s)");
+        LangEntries.add(g + "reactivity_parts", "  fuel %s · rods %s · heat %s · steam %s · xenon %s",
+                "  combustible %s · barras %s · calor %s · vapor %s · xenón %s");
         LangEntries.add(g + "xenon", "Xenon poisoning: -%s%%", "Envenenamiento por xenón: -%s%%");
         LangEntries.add(g + "decay_heat", "Decay heat: %s MW", "Calor residual: %s MW");
         LangEntries.add(g + "thermal_stress", "Fuel stress: %s%% of the way to melting", "Tensión del combustible: %s%% hasta fundirse");

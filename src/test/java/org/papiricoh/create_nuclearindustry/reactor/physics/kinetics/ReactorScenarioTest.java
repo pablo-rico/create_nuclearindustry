@@ -10,8 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Whole-core scenarios with the default numbers: a core built like the game's, cooled by boiling
  * water through its heat exchangers and ports. These pin what the redesign is for: withdrawing a rod
- * gives a new, steady power instead of a runaway, all rods out of a uranium core stays below melting,
- * losing the coolant damages it, and a big core behaves like a small one.
+ * gives a new, steady power instead of a runaway, but fresh fuel holds far more reactivity than its
+ * heat can take back, so a core needs its rods: with every rod out (or none built) it overheats and
+ * is damaged, half drained or not. Losing the coolant damages it too, and a big core behaves like a
+ * small one.
  */
 class ReactorScenarioTest {
     private static final FissionCore.Params D = FissionCore.Params.DEFAULT;
@@ -85,9 +87,12 @@ class ReactorScenarioTest {
         }
     }
 
-    /** A test core with two of its three rod blocks in, brought to its steady state from cold. */
-    private static Run steadyTestCore() {
-        Run run = new Run(Core.testCore(), 1.0 / 3);
+    /** Rod insertion that holds the large core at about half its rated power. */
+    private static final double HALF_POWER = 0.55;
+
+    /** A large core on its rods at about half power, brought to its steady state from cold. */
+    private static Run steadyCore() {
+        Run run = new Run(Core.large(), HALF_POWER);
         run.seconds(400);
         return run;
     }
@@ -101,51 +106,86 @@ class ReactorScenarioTest {
     }
 
     @Test
-    void theTestCoreSettlesWithOneBlockIn() {
-        Run run = steadyTestCore();
+    void aCoreSettlesOnItsRods() {
+        Run run = steadyCore();
         double before = run.power();
         run.seconds(30);
-        assertTrue(before > 0.2 && before < 1.2, "a steady power: " + before);
+        assertTrue(before > 0.2 && before < 1.0, "a steady power: " + before);
         assertEquals(before, run.power(), 0.02 * before, "and it stays there");
-        assertTrue(run.fission.fuelTemperature() < 1200, "at a sane temperature: " + run.fission.fuelTemperature());
+        assertTrue(run.fission.fuelTemperature() < 1000, "at a sane temperature: " + run.fission.fuelTemperature());
+        assertEquals(0, run.fission.reactivity(), 20, "critical: its net reactivity is nil");
     }
 
     @Test
-    void pullingTheLastBlockOfTheTestCoreNeverRunsAway() {
-        Run run = steadyTestCore();
-        run.withdrawBlocks(1);
-        run.seconds(400);
-        double settled = run.power();
-        run.seconds(30);
-        assertEquals(settled, run.power(), 0.03 * settled, "it settles again");
-        assertTrue(run.peakFuel < 2000, "all rods out of a uranium core stays well short of damage: " + run.peakFuel);
-        assertEquals(0, run.fission.damage(), 1e-9);
+    void everyRodOutOfAFreshUraniumCoreDamagesIt() {
+        Run run = steadyCore();
+        run.insertAll(0);
+        run.seconds(600);
+        assertTrue(run.peakFuel > 2000 && run.fission.damage() > 0, "fresh fuel holds far more reactivity than its heat takes back: "
+                + run.peakFuel + " °C, damage " + run.fission.damage());
     }
 
     @Test
-    void oneBlockOutOfALargeCoreAddsAFewPercent() {
-        Run run = new Run(Core.large(), 0.3);
-        run.seconds(400);
+    void aCoreWithNoControlRodsOverheats() {
+        Run run = new Run(new Core(12, 0, 3, 6, 3, 0), 0);
+        run.seconds(600);
+        assertTrue(run.peakFuel > 2000 && run.fission.damage() > 0, "nothing holds it back: " + run.peakFuel);
+    }
+
+    @Test
+    void aRodlessCoreRunningLowOnWaterSurgesWhenItIsRefilled() {
+        Run run = new Run(new Core(12, 3, 3, 6, 3, 0), 0);
+        run.coverage = 0.45;
+        run.seconds(300);
+        assertTrue(run.fission.damage() == 0, "uncovering the fuel takes its moderator away: " + run.peakFuel + " °C, power "
+                + run.power());
+        run.coverage = 1;
+        run.seconds(300);
+        assertTrue(run.peakFuel > 2000 && run.fission.damage() > 0, "but the water coming back brings every bit of reactivity "
+                + "back with nothing to hold it: " + run.peakFuel + " °C, damage " + run.fission.damage());
+    }
+
+    /**
+     * The reactor that prompted the new values: twelve 20% fuel blocks with some graphite, nine rod
+     * blocks, all of them out, and a tank at about an eighth. With the old values it looked stable
+     * because the fuel stood half out of the water; rich fuel with graphite now has more reactivity
+     * than the missing water takes away, so it damages itself even uncovered.
+     */
+    @Test
+    void aSmallGraphiteCoreOfRichFuelWithEveryRodOutDamagesItselfEvenOnLowWater() {
+        Run run = new Run(new Core(12, 3, 3, 6, 3, 0.25), 0);
+        run.reactivityOfFuel = 1.5;
+        run.coverage = 0.48;
+        run.seconds(300);
+        ReactivityModel.Parts parts = run.fission.breakdown().parts();
+        assertEquals(parts.total(), run.fission.reactivity(), 1e-6, "the parts add up to the net reactivity");
+        assertTrue(parts.rods() == 0 && parts.voids() < -5000, "the uncovered fuel is all that holds it: " + parts);
+        assertTrue(run.peakFuel > 2000 && run.fission.damage() > 0, "and that is not enough for 20% fuel with graphite: "
+                + run.peakFuel + " C, damage " + run.fission.damage());
+    }
+
+    @Test
+    void oneBlockOutOfALargeCoreRaisesItsPowerOneStep() {
+        Run run = steadyCore();
         double before = run.power();
         run.withdrawBlocks(1);
         run.seconds(120);
         double after = run.power();
         run.seconds(30);
         double change = after / before - 1;
-        assertTrue(change > 0.005 && change < 0.10, "one block out: " + (change * 100) + "% (" + before + " -> " + after + ")");
+        assertTrue(change > 0.02 && change < 0.30, "one block out: " + (change * 100) + "% (" + before + " -> " + after + ")");
         assertEquals(after, run.power(), 0.01 * after, "settled");
         assertTrue(run.fission.fuelTemperature() < 1200, "still cool: " + run.fission.fuelTemperature());
     }
 
     @Test
-    void allRodsOutThenInRecovers() {
-        Run run = new Run(Core.large(), 0.3);
-        run.seconds(200);
+    void aScramSoonAfterPullingEveryRodRecovers() {
+        Run run = steadyCore();
         run.insertAll(0);
-        run.seconds(60);
+        run.seconds(20);
         run.insertAll(1);
         run.seconds(300);
-        assertTrue(run.peakFuel < 2000, "pulling every rod is no meltdown in a uranium core: " + run.peakFuel);
+        assertTrue(run.peakFuel < 2000, "the rod drives free their reactivity slowly enough to SCRAM in time: " + run.peakFuel);
         assertTrue(run.power() < 0.01 && run.fission.fuelTemperature() < 450, "and it shuts down: " + run.power() + ", "
                 + run.fission.fuelTemperature());
     }
@@ -154,29 +194,33 @@ class ReactorScenarioTest {
     void aSmallAndALargeCoreBehaveAlike() {
         Core small = new Core(6, 1, 3, 3, 2, 0);
         Core large = new Core(240, 40, 3, 120, 80, 0);
-        Run a = new Run(small, 1.0 / 3);
-        Run b = new Run(large, 1.0 / 3);
+        Run a = new Run(small, 0.45);
+        Run b = new Run(large, 0.45);
         a.seconds(400);
         b.seconds(400);
         assertEquals(a.fission.fuelTemperature(), b.fission.fuelTemperature(), 0.01 * a.fission.fuelTemperature());
+        assertTrue(a.power() > 0.2, "at power: " + a.power());
         assertEquals(a.power(), b.power(), 0.01 * a.power());
     }
 
     @Test
-    void losingTheCoolantDamagesTheCore() {
-        Run run = new Run(Core.large(), 0.1);
-        run.seconds(300);
-        assertTrue(run.power() > 0.8, "running near full power first: " + run.power());
+    void losingTheCoolantLeavesTheCoreHeatingUpForAnHour() {
+        Run run = new Run(Core.large(), 0.52);
+        run.seconds(7200);
+        assertTrue(run.power() > 0.8, "running near full power for two hours first: " + run.power());
+        double running = run.fission.fuelTemperature();
         run.coverage = 0;
+        run.peakFuel = 0;
         run.seconds(1800);
         assertTrue(run.power() < 1.0e-3, "a dry core stops its chain reaction");
-        assertTrue(run.peakFuel > 2000 && run.fission.damage() > 0, "but its decay heat damages it: " + run.peakFuel + ", "
-                + run.fission.damage());
+        assertTrue(run.peakFuel > running + 600, "but its decay heat keeps heating it, with no water to take it: " + running
+                + " -> " + run.peakFuel);
+        assertTrue(run.fission.fuelTemperature() > 1500, "and half an hour later it is still hot: " + run.fission.fuelTemperature());
     }
 
     @Test
     void aBlockedSteamOutletHeatsTheCoreGradually() {
-        Run run = steadyTestCore();
+        Run run = steadyCore();
         double fuel = run.fission.fuelTemperature();
         run.removalScale = 0;
         run.seconds(5);
@@ -188,7 +232,7 @@ class ReactorScenarioTest {
 
     @Test
     void xenonPullsASteadyCoreDownOverTheFollowingHours() {
-        Run run = new Run(Core.large(), 0.3);
+        Run run = new Run(Core.large(), HALF_POWER);
         run.params = D;
         run.seconds(300);
         double early = run.power();

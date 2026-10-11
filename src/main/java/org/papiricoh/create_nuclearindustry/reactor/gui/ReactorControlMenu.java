@@ -57,7 +57,12 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     private static final int DATA_COOLANT_TEMPERATURE = 32;
     private static final int DATA_CORE_DAMAGE_PERMILLE = 33;
     private static final int DATA_NET_REACTIVITY = 34;
-    private static final int DATA_COUNT = 35;
+    // The net reactivity split into its parts, pcm (signed shorts)
+    private static final int DATA_REACTIVITY_FUEL = 35;
+    private static final int DATA_REACTIVITY_RODS = 36;
+    private static final int DATA_REACTIVITY_TEMPERATURE = 37;
+    private static final int DATA_REACTIVITY_VOIDS = 38;
+    private static final int DATA_COUNT = 39;
 
     /** {@link #clickMenuButton} ids. SCRAM engages the manual SCRAM, or resets once one is on. */
     public static final int BUTTON_TOGGLE_SCRAM = 0;
@@ -266,6 +271,26 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     /** Net reactivity, pcm (signed). */
     public int getNetReactivity() {
         return (short) reactorData.get(DATA_NET_REACTIVITY);
+    }
+
+    /** Reactivity of the fuel with its graphite, reflector and heavy water, pcm. */
+    public int getFuelReactivityPcm() {
+        return (short) reactorData.get(DATA_REACTIVITY_FUEL);
+    }
+
+    /** Reactivity the rods hold back, pcm (negative). */
+    public int getRodReactivityPcm() {
+        return (short) reactorData.get(DATA_REACTIVITY_RODS);
+    }
+
+    /** Reactivity the fuel and water temperatures take away, pcm. */
+    public int getTemperatureReactivityPcm() {
+        return (short) reactorData.get(DATA_REACTIVITY_TEMPERATURE);
+    }
+
+    /** Reactivity steam and missing water take away (or add, with graphite), pcm. */
+    public int getVoidReactivityPcm() {
+        return (short) reactorData.get(DATA_REACTIVITY_VOIDS);
     }
 
     @Override
@@ -536,7 +561,15 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         data[DATA_COOLANT_TEMPERATURE] = scaled(snapshot.coolantTemperature(), 1.0);
         data[DATA_CORE_DAMAGE_PERMILLE] = scaled(snapshot.coreDamage(), 1000.0);
         data[DATA_NET_REACTIVITY] = clampInt((int) Math.round(snapshot.netReactivity()), -32768, 32767);
+        data[DATA_REACTIVITY_FUEL] = pcm(snapshot.reactivityParts().fuel());
+        data[DATA_REACTIVITY_RODS] = pcm(snapshot.reactivityParts().rods());
+        data[DATA_REACTIVITY_TEMPERATURE] = pcm(snapshot.reactivityParts().temperature());
+        data[DATA_REACTIVITY_VOIDS] = pcm(snapshot.reactivityParts().voids());
         return data;
+    }
+
+    private static int pcm(double value) {
+        return clampInt((int) Math.round(value), -32768, 32767);
     }
 
     private static int scaled(double value, double scale) {

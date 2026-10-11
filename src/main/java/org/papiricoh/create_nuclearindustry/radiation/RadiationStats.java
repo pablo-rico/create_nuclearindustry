@@ -1,8 +1,9 @@
 package org.papiricoh.create_nuclearindustry.radiation;
 
 /**
- * What the last radiation update of a player cost: blocks looked at, chunk sections scanned or
- * skipped, rays cast or reused and emitter chunks searched. Counters for tests and benchmarks,
+ * What the last radiation update of a player (or reading of a monitored spot) cost: blocks looked
+ * at, chunk sections scanned or skipped, rays cast or reused, emitter chunks and fallout sources
+ * searched. Counters for tests and benchmarks,
  * which read them straight after {@link RadiationHandler#update} or
  * {@link RadiationHandler#exposureRate}; server thread only.
  */
@@ -21,6 +22,8 @@ public final class RadiationStats {
     public int raysReused;
     /** Chunks of the emitter index searched. */
     public int emitterChunks;
+    /** Fallout sources looked at (those in the chunks around the body). */
+    public int falloutSources;
 
     private RadiationStats() {}
 
@@ -42,6 +45,6 @@ public final class RadiationStats {
     @Override
     public String toString() {
         return "blocks " + blockLookups + ", sections " + sectionsScanned + " read / " + sectionsSkipped + " skipped, rays "
-                + raysCast + " cast / " + raysReused + " reused, emitter chunks " + emitterChunks;
+                + raysCast + " cast / " + raysReused + " reused, emitter chunks " + emitterChunks + ", fallout sources " + falloutSources;
     }
 }

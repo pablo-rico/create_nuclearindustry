@@ -41,6 +41,12 @@ public enum ReactorReadout {
             String.format(java.util.Locale.ROOT, "%+d pcm", Math.round(reactor.getNetReactivity())))),
     COOLANT_TEMPERATURE("reactor_coolant_temperature", true, reactor -> Component.literal(Math.round(reactor.getCoolantTemperature()) + "°C")),
     CORE_DAMAGE("reactor_core_damage", true, reactor -> Component.literal(Math.round(reactor.getCoreDamage() * 100) + "%")),
+    // The net reactivity split into fuel, rods, temperature, steam and xenon, pcm with their signs
+    REACTIVITY_PARTS("reactor_reactivity_parts", false, reactor -> {
+        var parts = reactor.getReactivityParts();
+        return Component.literal(String.format(java.util.Locale.ROOT, "F%+d R%+d T%+d V%+d Xe%+d", Math.round(parts.fuel()),
+                Math.round(parts.rods()), Math.round(parts.temperature()), Math.round(parts.voids()), Math.round(parts.xenon())));
+    }),
     STATUS("reactor_status", false, ReactorReadout::status);
 
     private final String id;

@@ -19,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomDevice;
 import org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
+import org.papiricoh.create_nuclearindustry.controlroom.SharedReadings;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -36,12 +37,17 @@ import java.util.Set;
  * Controller modules also step their loop every {@link ControlRoom2Config#pidInterval} ticks.
  * Pressurizer levers and the pressure controller repeat their orders every time the modules are
  * worked out, so the pressurizer lets go of them shortly after the desk goes away.
+ *
+ * <p>Which console a desk belongs to is worked out by one desk for the whole console, when a block
+ * next to one of its desks changes (and by the console's first desk, as a safety net, every
+ * {@link #CLUSTER_FALLBACK_INTERVAL} ticks), not by every desk every two seconds.
  */
 public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlRoomDevice {
     public static final int SLOTS = 4;
     public static final int MAX_CONSOLE = 64;
     private static final int EVALUATE_INTERVAL = 10;
-    private static final int CLUSTER_CHECK_INTERVAL = 40;
+    /** The console's first desk looks at the console again this often, in case a change went unnoticed. */
+    public static final int CLUSTER_FALLBACK_INTERVAL = 600;
 
     private final ControlModule[] modules = new ControlModule[SLOTS];
     private final ModuleLink[] links = new ModuleLink[SLOTS];
@@ -56,6 +62,7 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
     private int evaluateCounter;
     private int controlCounter;
     private int belowSignal;
+    private int clusterScans;
 
     // Origin only: the sample shared by the console this tick.
     private MonitorReading sample = MonitorReading.NONE;
@@ -89,8 +96,7 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
             lastShape = shape;
             afterChange();
         }
-        if (clusterDirty || ++clusterCheckCounter >= CLUSTER_CHECK_INTERVAL) {
-            clusterCheckCounter = 0;
+        if (clusterDirty || isOrigin() && ++clusterCheckCounter >= CLUSTER_FALLBACK_INTERVAL) {
             updateCluster();
         }
         boolean pulseEnded = false;
@@ -239,30 +245,57 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         clusterDirty = true;
     }
 
+    /** Works out the console this desk is part of and hands the answer to every desk of it. */
     private void updateCluster() {
-        clusterDirty = false;
+        clusterScans++;
         Set<BlockPos> members = connected();
         BlockPos first = members.stream()
                 .min(Comparator.<BlockPos>comparingInt(BlockPos::getX).thenComparingInt(BlockPos::getZ))
                 .orElse(getBlockPos());
-        boolean changed = consoleSize != members.size() || !first.equals(origin == null ? getBlockPos() : origin);
-        consoleSize = members.size();
-        origin = first.equals(getBlockPos()) ? null : first;
-        if (isOrigin() && target == null) {
+        List<ControlDeskBlockEntity> desks = new ArrayList<>(members.size());
+        ControlDeskBlockEntity console = null;
+        for (BlockPos member : members) {
+            ControlDeskBlockEntity desk = member.equals(getBlockPos()) ? this
+                    : level.getBlockEntity(member) instanceof ControlDeskBlockEntity other ? other : null;
+            if (desk != null) {
+                desks.add(desk);
+                if (member.equals(first)) {
+                    console = desk;
+                }
+            }
+        }
+        if (console != null && console.target == null) {
             // A console grown from linked desks keeps one of their links.
-            for (BlockPos member : members) {
-                if (level.getBlockEntity(member) instanceof ControlDeskBlockEntity desk && desk.target != null) {
-                    target = desk.target;
+            for (ControlDeskBlockEntity desk : desks) {
+                if (desk.target != null) {
+                    console.target = desk.target;
                     break;
                 }
             }
         }
-        if (!isOrigin()) {
-            origin().ifPresent(console -> target = console.target);
+        for (ControlDeskBlockEntity desk : desks) {
+            desk.applyCluster(first, members.size(), console);
+        }
+    }
+
+    /** Takes the console worked out by a desk of it. */
+    private void applyCluster(BlockPos first, int size, @Nullable ControlDeskBlockEntity console) {
+        clusterDirty = false;
+        clusterCheckCounter = 0;
+        boolean changed = consoleSize != size || !first.equals(origin == null ? getBlockPos() : origin);
+        consoleSize = size;
+        origin = first.equals(getBlockPos()) ? null : first.immutable();
+        if (!isOrigin() && console != null) {
+            target = console.target;
         }
         if (changed) {
             notifyUpdate();
         }
+    }
+
+    /** Searches for its console this desk made, for tests. */
+    public int clusterScanCount() {
+        return clusterScans;
     }
 
     /** Desks reachable side by side on this level, up to {@link #MAX_CONSOLE}. */
@@ -323,7 +356,7 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         ControlDeskBlockEntity console = origin().orElse(this);
         long now = level.getGameTime();
         if (console.sampledAt != now) {
-            console.sample = MonitorReading.sample(console.consoleTarget());
+            console.sample = SharedReadings.sample(level, console.getBlockPos(), console.target);
             console.sampledAt = now;
         }
         return console.sample;

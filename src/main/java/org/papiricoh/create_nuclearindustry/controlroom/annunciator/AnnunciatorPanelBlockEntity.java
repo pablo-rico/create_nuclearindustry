@@ -24,6 +24,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomBlocks;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomDevice;
 import org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
+import org.papiricoh.create_nuclearindustry.controlroom.SharedReadings;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModule;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
@@ -94,7 +95,6 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
 
     private final Window[] windows = new Window[WINDOWS];
     private final AnnunciatorLogic logic = new AnnunciatorLogic(WINDOWS);
-    private int checkCounter;
     private int hornCounter;
     private boolean ackPowered;
     private boolean resetPowered;
@@ -117,9 +117,9 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         if (level == null || level.isClientSide) {
             return;
         }
-        if (++checkCounter >= Math.max(1, ControlRoom2Config.annunciatorInterval)) {
-            checkCounter = 0;
-            check();
+        // On the same ticks as the other devices on its (first) machine, so they share its sample.
+        if (SharedReadings.due(level, getBlockPos(), firstTarget(), ControlRoom2Config.annunciatorInterval)) {
+            check(true);
         }
         if (logic.unacknowledged() && ++hornCounter >= HORN_INTERVAL) {
             hornCounter = 0;
@@ -127,8 +127,27 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         }
     }
 
+    /** The machine the first linked window watches, which sets the ticks this panel checks on. */
+    @Nullable
+    private GlobalPos firstTarget() {
+        for (Window window : windows) {
+            if (window != null && window.target != null) {
+                return window.target;
+            }
+        }
+        return null;
+    }
+
     /** Samples every window's target (each machine once) and steps the alarm sequence. */
     public void check() {
+        check(false);
+    }
+
+    /**
+     * Steps the alarm sequence. The periodic check takes the samples other devices took of the same
+     * machines this tick ({@code shareSamples}); a check after the operator changed something takes its own.
+     */
+    public void check(boolean shareSamples) {
         if (level == null || level.isClientSide) {
             return;
         }
@@ -140,7 +159,8 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
                 continue;
             }
             MonitorReading sample = samples.computeIfAbsent(window.target,
-                    target -> MonitorReading.sample(LinkedTarget.resolve(level, getBlockPos(), target)));
+                    target -> shareSamples ? SharedReadings.sample(level, getBlockPos(), target)
+                            : MonitorReading.sample(LinkedTarget.resolve(level, getBlockPos(), target)));
             tripped[i] = window.metric.tripped(sample, window.setting);
         }
         int flags = logic.update(tripped);

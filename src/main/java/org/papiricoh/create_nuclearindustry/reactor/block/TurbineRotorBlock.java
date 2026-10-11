@@ -57,7 +57,7 @@ public class TurbineRotorBlock extends RotatedPillarBlock {
     @Override
     protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         boolean claimed = MultiblockRegistry.affecting(level, pos, AbstractTurbineControllerBlockEntity.class).stream()
-                .anyMatch(controller -> controller.getStructure().map(s -> s.rotors.contains(pos)).orElse(false));
+                .anyMatch(controller -> controller.getStructure().map(s -> s.ownsRotor(pos)).orElse(false));
         if (!claimed) {
             level.setBlock(pos, state.setValue(FORMED, false), Block.UPDATE_CLIENTS);
         }

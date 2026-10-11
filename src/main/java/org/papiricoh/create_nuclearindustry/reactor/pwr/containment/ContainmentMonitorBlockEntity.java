@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.PlantReadable;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
@@ -32,22 +33,39 @@ import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.PlantAlarm;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReleasePath;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 /**
  * The controller of a containment building, placed inside it. It measures the sealed air around
- * itself (a budgeted flood fill, repeated when a wall or the inside changes and every
- * {@link #RESURVEY_INTERVAL} ticks) and runs a {@link ContainmentModel} of that air: steam,
+ * itself (a budgeted flood fill, repeated when a wall or the inside changes) and runs a
+ * {@link ContainmentModel} of that air: steam,
  * hydrogen and radioactivity let in by leaks, condensation on the walls, recombiners, filtered
  * vents, hydrogen burns, and a burst at the weakest wall when the pressure passes its rating.
  * Monitors and alarms read it as a {@link TargetKind#CONTAINMENT}; comparators read the pressure as
  * a share of what the weakest wall holds.
+ *
+ * <p>Measuring is the expensive part (up to {@code pwr.containmentMaxVolume} cells and a shape
+ * analysis), so the routine re-measurement every {@link #RESURVEY_INTERVAL} ticks only runs when a
+ * block changed in the building since the last one (or, as a safety net, every
+ * {@link #SEALED_QUIET_ROUTINES} intervals); an open monitor retries with a back-off that
+ * doubles from {@link #RESURVEY_INTERVAL} up to {@link #MAX_UNSEALED_INTERVAL}. Clients get the
+ * readings when what they show changes, and at least every
+ * {@link PerformanceConfig#forcedSyncTicks} ticks.
  */
 public class ContainmentMonitorBlockEntity extends SmartBlockEntity
         implements MultiblockController, PlantReadable, IHaveGoggleInformation {
-    /** Ticks between routine re-measurements. */
+    /** Ticks between routine re-measurements, when a block changed in the building since the last one. */
     public static final int RESURVEY_INTERVAL = 600;
+    /**
+     * Routine measurements a sealed building skips while no change reached it, before measuring it
+     * anyway: a safety net for blocks changed without telling anyone (some contraptions move blocks
+     * without a neighbour update).
+     */
+    public static final int SEALED_QUIET_ROUTINES = 8;
+    /** Longest wait between measurements of an open monitor while nothing changes around it. */
+    public static final int MAX_UNSEALED_INTERVAL = 4 * RESURVEY_INTERVAL;
     /** Ticks a change waits for others before the building is measured again. */
     private static final int SETTLE_TICKS = 10;
     /** The same while unsealed: building work nearby should not keep it measuring the open air. */
@@ -81,6 +99,17 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
     private int ruptures;
     private int ventTimer;
     private int syncTimer;
+    /** A block changed inside {@link #interestBounds()} since the last measurement began. */
+    private boolean changedSinceSurvey;
+    /** Current wait between routine measurements while unsealed. */
+    private int unsealedInterval = RESURVEY_INTERVAL;
+    /** Routine measurements skipped in a row while sealed. */
+    private int quietRoutines;
+    private int ticksSinceSync;
+    @Nullable
+    private int[] lastSent;
+    private int surveysStarted;
+    private int syncsSent;
     private long lastBurn = -1_000_000;
     private int openVents;
     // client copy
@@ -139,15 +168,18 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
         if (level == null || level.isClientSide) {
             return;
         }
-        if (++resurveyTimer >= RESURVEY_INTERVAL) {
+        if (++resurveyTimer >= (shape == null ? unsealedInterval : RESURVEY_INTERVAL)) {
             resurveyTimer = 0;
-            resurveyRequested = true;
+            routineResurvey();
         }
         if (settleTimer > 0) {
             settleTimer--;
         }
         if (survey == null && resurveyRequested && settleTimer == 0 && boundsLoaded()) {
             resurveyRequested = false;
+            changedSinceSurvey = false;
+            quietRoutines = 0;
+            surveysStarted++;
             survey = new ContainmentSurvey(level, worldPosition, PwrConfig.containmentMaxVolume);
         }
         if (survey != null) {
@@ -159,10 +191,64 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
         if (sealed()) {
             breathe();
         }
+        ticksSinceSync++;
         if (++syncTimer >= SYNC_INTERVAL) {
             syncTimer = 0;
-            sendData();
+            if (ticksSinceSync >= PerformanceConfig.forcedSyncTicks || !Arrays.equals(lastSent, shownToClients())) {
+                sendData();
+            }
         }
+    }
+
+    /**
+     * The routine re-measurement. A sealed building whose blocks have not changed is still the same
+     * building, so it is not measured again; changes that open or close it are measured at once
+     * anyway ({@link #shouldReactToBlockChange}). An open monitor keeps looking, less and less often,
+     * for walls closed out of its reach or without a block update. Its back-off ignores changes
+     * around it: a solid block placed nearby is measured at once anyway, and other changes (grass
+     * spreading, crops, doors) say nothing about walls, yet near a base they never stop and would
+     * keep the wait at its shortest. Sealing resets the back-off.
+     */
+    private void routineResurvey() {
+        if (shape != null) {
+            if (changedSinceSurvey || ++quietRoutines >= SEALED_QUIET_ROUTINES) {
+                resurveyRequested = true;
+            }
+            return;
+        }
+        unsealedInterval = Math.min(MAX_UNSEALED_INTERVAL, unsealedInterval * 2);
+        resurveyRequested = true;
+    }
+
+    /** What the goggles show, rounded as they show it: a change here is worth an update to clients. */
+    private int[] shownToClients() {
+        boolean formed = shape != null;
+        return new int[]{
+                sealed() ? 1 : 0,
+                survey != null ? 1 : 0,
+                (int) Math.round(model.pressure() * 200),
+                (int) Math.round(model.hydrogenFraction() * 10_000),
+                (int) Math.round(model.steamFraction() * 100),
+                (int) Math.round(model.temperature()),
+                (int) Math.round(model.activity() * 100),
+                formed && Double.isFinite(shape.weakestRating()) ? (int) Math.round(shape.weakestRating() * 100) : 0,
+                formed ? shape.volume() : 0,
+                formed ? shape.recombiners().size() : 0,
+                formed ? shape.vents().size() : 0,
+                openVents,
+                level != null && level.getGameTime() - lastBurn < 100 ? 1 : 0,
+                ruptured ? 1 : 0
+        };
+    }
+
+    @Override
+    public void sendData() {
+        if (level != null && !level.isClientSide) {
+            lastSent = shownToClients();
+            ticksSinceSync = 0;
+            syncsSent++;
+        }
+        super.sendData();
     }
 
     /** The chunks of the building as last saved are loaded, so a measurement now means something. */
@@ -184,6 +270,7 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
             if (surveyAfterChange) {
                 ruptured = false;
             }
+            unsealedInterval = RESURVEY_INTERVAL;
             setShape(next);
         } else if (done.reachedUnloaded() && wasSealed) {
             // Part of the building is not loaded: that says nothing about its walls; ask again later.
@@ -368,6 +455,8 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
      */
     @Override
     public boolean shouldReactToBlockChange(BlockChange change) {
+        // Only changes inside the interest bounds get here: any of them makes the next routine measurement worth it.
+        changedSinceSurvey = true;
         BlockPos pos = change.pos();
         boolean wall = !change.removed() && level != null && ContainmentSurvey.isWall(change.state(), level, pos);
         if (shape == null) {
@@ -379,8 +468,15 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
         return shape.contains(pos) && wall;
     }
 
+    /**
+     * Measures the building again once the changes settle. Also marks the building changed, so
+     * callers that skip {@link #shouldReactToBlockChange} (a crater through it, via
+     * {@code MultiblockRegistry.areaChanged}) are not mistaken for a quiet building by the routine
+     * measurement if this one cannot run yet.
+     */
     @Override
     public void requestStructureRevalidation(@Nullable Player player) {
+        changedSinceSurvey = true;
         resurveyRequested = true;
         surveyAfterChange = true;
         settleTimer = shape == null ? UNSEALED_SETTLE_TICKS : SETTLE_TICKS;
@@ -408,6 +504,26 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
 
     public boolean isSurveying() {
         return survey != null;
+    }
+
+    /** Measurements started since the monitor was loaded; for tests. */
+    public int getSurveysStarted() {
+        return surveysStarted;
+    }
+
+    /** Updates sent to clients since the monitor was loaded; for tests. */
+    public int getSyncsSent() {
+        return syncsSent;
+    }
+
+    /** Current wait between measurements while unsealed; for tests. */
+    public int getUnsealedInterval() {
+        return unsealedInterval;
+    }
+
+    /** Makes the next tick the routine re-measurement, so tests need not wait for it. */
+    public void expireRoutineTimer() {
+        resurveyTimer = Integer.MAX_VALUE - 1;
     }
 
     public int getOpenVents() {

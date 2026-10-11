@@ -32,12 +32,18 @@ import java.util.List;
  * no heater of its own: a Blaze Burner below has to be at least lit (heated), and a superheated
  * one melts twice as fast. Each kind of ingredient gets its own input slot, so a hopper full of
  * waste cannot crowd out the sand. The waste waiting inside irradiates through the melter's walls.
+ *
+ * <p>The recipe the melter can run is looked up again only when its contents or its heat change, not
+ * every tick. Clients get the melter's state when a melt starts or stops and when its contents
+ * change (at most every {@link #SYNC_INTERVAL} ticks), and advance the progress of a melt themselves.
  */
 public class VitrificationMelterBlockEntity extends SmartBlockEntity implements IHaveGoggleInformation, RadiationEmitter {
     public static final int INPUT_SLOTS = 3;
     public static final int OUTPUT_SLOT = INPUT_SLOTS;
     /** Share of the radiation of the waste inside that gets through the melter's shielding. */
     private static final double SHIELDING_TRANSMISSION = 0.25;
+    /** Shortest gap between two updates to clients for contents that changed. */
+    private static final int SYNC_INTERVAL = 10;
 
     private final ItemStackHandler inventory = new ItemStackHandler(INPUT_SLOTS + 1) {
         @Override
@@ -48,6 +54,8 @@ public class VitrificationMelterBlockEntity extends SmartBlockEntity implements 
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+            recipeStale = true;
+            contentsUnsent = true;
         }
     };
     /** Funnels, hoppers and chutes fill the inputs and take the canisters out. */
@@ -87,10 +95,21 @@ public class VitrificationMelterBlockEntity extends SmartBlockEntity implements 
     private ResourceLocation recipeId;
     private int progress;
     private int duration;
+    /** The contents changed since {@link #cachedRecipe} was looked up. */
+    private boolean recipeStale = true;
+    @Nullable
+    private HeatLevel cachedHeat;
+    /** What {@link #currentRecipe} found last, null for nothing; valid while neither contents nor heat change. */
+    @Nullable
+    private RecipeHolder<VitrificationRecipe> cachedRecipe;
+    /** The contents changed since the last update to clients. */
+    private boolean contentsUnsent;
+    private int recipeLookups;
+    private int syncsSent;
 
     public VitrificationMelterBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
-        setLazyTickRate(10);
+        setLazyTickRate(SYNC_INTERVAL);
     }
 
     @Override
@@ -146,6 +165,10 @@ public class VitrificationMelterBlockEntity extends SmartBlockEntity implements 
         }
         if (level.isClientSide) {
             org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualHooks.machineClientTick.accept(this);
+            // The server only says when a melt starts and stops: the progress in between runs here.
+            if (recipeId != null && progress < duration) {
+                progress = Math.min(duration, progress + (heatLevel() == HeatLevel.SEETHING ? 2 : 1));
+            }
             return;
         }
         HeatLevel heat = heatLevel();
@@ -178,9 +201,18 @@ public class VitrificationMelterBlockEntity extends SmartBlockEntity implements 
     @Override
     public void lazyTick() {
         super.lazyTick();
-        if (level != null && !level.isClientSide && recipeId != null) {
+        if (level != null && !level.isClientSide && contentsUnsent) {
             sendData();
         }
+    }
+
+    @Override
+    public void sendData() {
+        if (level != null && !level.isClientSide) {
+            contentsUnsent = false;
+            syncsSent++;
+        }
+        super.sendData();
     }
 
     /** The heat of the block below, read like a basin reads its burner. */
@@ -188,9 +220,24 @@ public class VitrificationMelterBlockEntity extends SmartBlockEntity implements 
         return level == null ? HeatLevel.NONE : BasinBlockEntity.getHeatLevelOf(level.getBlockState(worldPosition.below()));
     }
 
-    /** The recipe the melter can run right now: ingredients present, hot enough, room for the result. */
+    /**
+     * The recipe the melter can run right now: ingredients present, hot enough, room for the result.
+     * Every recipe is tried again only when the contents or the heat changed since the last look.
+     */
     @Nullable
     private RecipeHolder<VitrificationRecipe> currentRecipe(HeatLevel heat) {
+        if (!recipeStale && heat == cachedHeat) {
+            return cachedRecipe;
+        }
+        recipeStale = false;
+        cachedHeat = heat;
+        cachedRecipe = findRecipe(heat);
+        recipeLookups++;
+        return cachedRecipe;
+    }
+
+    @Nullable
+    private RecipeHolder<VitrificationRecipe> findRecipe(HeatLevel heat) {
         List<ItemStack> inputs = inputs();
         if (inputs.stream().allMatch(ItemStack::isEmpty)) {
             return null;
@@ -238,6 +285,16 @@ public class VitrificationMelterBlockEntity extends SmartBlockEntity implements 
 
     public boolean isMelting() {
         return recipeId != null;
+    }
+
+    /** Updates sent to clients since the melter was loaded; for tests. */
+    public int getSyncsSent() {
+        return syncsSent;
+    }
+
+    /** Times every recipe was tried since the melter was loaded; for tests. */
+    public int getRecipeLookups() {
+        return recipeLookups;
     }
 
     /** 0 to 1 through the current melt. */
@@ -301,6 +358,7 @@ public class VitrificationMelterBlockEntity extends SmartBlockEntity implements 
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
         inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
+        recipeStale = true;
         recipeId = tag.contains("Recipe") ? ResourceLocation.tryParse(tag.getString("Recipe")) : null;
         progress = tag.getInt("Progress");
         duration = tag.getInt("Duration");

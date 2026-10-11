@@ -11,11 +11,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.multiblock.NeighbourFluidHandlers;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 
 import java.util.List;
@@ -36,6 +36,8 @@ public class ContainmentPenetrationBlockEntity extends SmartBlockEntity implemen
     private final FluidTank towardNegative = tank();
     private final IFluidHandler negativeEnd = new End(towardPositive, towardNegative);
     private final IFluidHandler positiveEnd = new End(towardNegative, towardPositive);
+    /** What takes fluid at each outlet, kept between ticks. */
+    private final NeighbourFluidHandlers outlets = new NeighbourFluidHandlers(this, null);
 
     public ContainmentPenetrationBlockEntity(BlockPos pos, BlockState state) {
         super(PwrRegistry.CONTAINMENT_PENETRATION_ENTITY.get(), pos, state);
@@ -83,11 +85,10 @@ public class ContainmentPenetrationBlockEntity extends SmartBlockEntity implemen
         if (buffer.isEmpty()) {
             return;
         }
-        BlockPos target = worldPosition.relative(outlet);
-        if (!level.isLoaded(target)) {
+        if (!level.isLoaded(worldPosition.relative(outlet))) {
             return;
         }
-        IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, target, outlet.getOpposite());
+        IFluidHandler handler = outlets.get(outlet);
         if (handler == null) {
             return;
         }

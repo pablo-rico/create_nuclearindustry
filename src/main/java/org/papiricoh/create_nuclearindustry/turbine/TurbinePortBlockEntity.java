@@ -13,11 +13,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.papiricoh.create_nuclearindustry.multiblock.ControllerLink;
+import org.papiricoh.create_nuclearindustry.multiblock.NeighbourFluidHandlers;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
 import java.util.List;
@@ -35,6 +35,8 @@ public abstract class TurbinePortBlockEntity extends BlockEntity implements IHav
     private final IFluidHandler input = new PortHandler(true);
     private final IFluidHandler output = new PortHandler(false);
     private boolean clientLinked;
+    /** Tanks and pipes around the port; other turbine ports are left out. */
+    private final NeighbourFluidHandlers neighbours = new NeighbourFluidHandlers(this, be -> be instanceof TurbinePortBlockEntity);
 
     protected TurbinePortBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -61,11 +63,7 @@ public abstract class TurbinePortBlockEntity extends BlockEntity implements IHav
         }
         boolean in = mode() == ReactorFluidPortMode.INPUT;
         for (Direction side : Direction.values()) {
-            BlockPos neighbourPos = getBlockPos().relative(side);
-            if (level.getBlockEntity(neighbourPos) instanceof TurbinePortBlockEntity) {
-                continue;
-            }
-            IFluidHandler neighbour = level.getCapability(Capabilities.FluidHandler.BLOCK, neighbourPos, side.getOpposite());
+            IFluidHandler neighbour = neighbours.get(side);
             if (neighbour == null) {
                 continue;
             }
@@ -113,6 +111,16 @@ public abstract class TurbinePortBlockEntity extends BlockEntity implements IHav
 
     protected Optional<AbstractTurbineControllerBlockEntity> controller() {
         return link.find();
+    }
+
+    /** Sides looked up afresh, for tests. */
+    public int neighbourLookups() {
+        return neighbours.lookups();
+    }
+
+    /** Times the controller was looked up in the level, for tests. */
+    public int controllerLookups() {
+        return link.levelLookups();
     }
 
     public boolean isLinked() {

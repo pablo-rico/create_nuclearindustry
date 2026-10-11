@@ -13,7 +13,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -21,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoConfig;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.ControllerLink;
+import org.papiricoh.create_nuclearindustry.multiblock.NeighbourFluidHandlers;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 
 import java.util.List;
@@ -37,6 +37,8 @@ public class CryoplantPortBlockEntity extends BlockEntity implements IHaveGoggle
             (controller, pos) -> controller.getStructure().map(s -> s.ownsPort(pos)).orElse(false));
     private final IFluidHandler handler = new PortHandler();
     private boolean clientLinked;
+    /** Tanks and pipes around the port; other plant ports are left out. */
+    private final NeighbourFluidHandlers neighbours = new NeighbourFluidHandlers(this, be -> be instanceof CryoplantPortBlockEntity);
 
     public CryoplantPortBlockEntity(BlockPos pos, BlockState state) {
         super(CryoRegistry.CRYOPLANT_PORT_ENTITY.get(), pos, state);
@@ -47,6 +49,9 @@ public class CryoplantPortBlockEntity extends BlockEntity implements IHaveGoggle
     }
 
     public void tick() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
         // Only a real change of controller may invalidate the capability: Create's pipes reset
         // their fluid network on every invalidation, so doing it on each rescan stops the flow.
         var before = link.linkedPos();
@@ -64,11 +69,7 @@ public class CryoplantPortBlockEntity extends BlockEntity implements IHaveGoggle
         }
         boolean input = mode().input();
         for (Direction side : Direction.values()) {
-            BlockPos next = getBlockPos().relative(side);
-            if (level.getBlockEntity(next) instanceof CryoplantPortBlockEntity) {
-                continue;
-            }
-            IFluidHandler neighbour = level.getCapability(Capabilities.FluidHandler.BLOCK, next, side.getOpposite());
+            IFluidHandler neighbour = neighbours.get(side);
             if (neighbour == null) {
                 continue;
             }
@@ -115,6 +116,16 @@ public class CryoplantPortBlockEntity extends BlockEntity implements IHaveGoggle
 
     private Optional<CryoplantControllerBlockEntity> controller() {
         return link.find();
+    }
+
+    /** Sides looked up afresh, for tests. */
+    public int neighbourLookups() {
+        return neighbours.lookups();
+    }
+
+    /** Times the controller was looked up in the level, for tests. */
+    public int controllerLookups() {
+        return link.levelLookups();
     }
 
     public boolean isLinked() {

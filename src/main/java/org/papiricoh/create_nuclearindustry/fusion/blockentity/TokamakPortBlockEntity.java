@@ -14,11 +14,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakStructure;
 import org.papiricoh.create_nuclearindustry.multiblock.ControllerLink;
+import org.papiricoh.create_nuclearindustry.multiblock.NeighbourFluidHandlers;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
 import java.util.List;
@@ -36,6 +36,8 @@ public abstract class TokamakPortBlockEntity extends BlockEntity implements IHav
 
     private final ControllerLink<FusionReactorBlockEntity> link;
     private boolean clientLinked;
+    /** Tanks and pipes around the port; other tokamak ports are left out. */
+    private final NeighbourFluidHandlers neighbours = new NeighbourFluidHandlers(this, be -> be instanceof TokamakPortBlockEntity);
 
     protected TokamakPortBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state,
                                      BiPredicate<TokamakStructure, BlockPos> ownsPort) {
@@ -72,8 +74,8 @@ public abstract class TokamakPortBlockEntity extends BlockEntity implements IHav
     private void exchangeWithNeighbours() {
         boolean input = getMode() == ReactorFluidPortMode.INPUT;
         for (Direction side : Direction.values()) {
-            IFluidHandler neighbour = level.getCapability(Capabilities.FluidHandler.BLOCK, getBlockPos().relative(side), side.getOpposite());
-            if (neighbour == null || level.getBlockEntity(getBlockPos().relative(side)) instanceof TokamakPortBlockEntity) {
+            IFluidHandler neighbour = neighbours.get(side);
+            if (neighbour == null) {
                 continue;
             }
             if (input) {
