@@ -61,6 +61,8 @@ public final class NuclearWorldgen {
                     context.register(org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry.BLAST_WAVE_DAMAGE,
                             new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".blast_wave",
                                     net.minecraft.world.damagesource.DamageScaling.NEVER, 0.1f));
+                    context.register(org.papiricoh.create_nuclearindustry.fuelcycle.fan.NuclearFanTypes.ACID_DAMAGE,
+                            new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".acid", 0.1f));
                 });
     }
 

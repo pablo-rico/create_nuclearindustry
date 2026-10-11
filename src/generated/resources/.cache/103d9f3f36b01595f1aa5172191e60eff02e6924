@@ -1,4 +1,5 @@
-// 1.21.1	2026-10-10T18:26:46.2348618	Registries
+// 1.21.1	2026-10-11T02:54:38.660658	Registries
+83a233d15e406f0d7d590df7d0b9ea098dc7fc6b data/create_nuclearindustry/damage_type/acid.json
 9d0bd42953aad445717b44b182f3fc63b4107bef data/create_nuclearindustry/damage_type/blast_wave.json
 53502d9d627dae77fa09f36ebaa6f20f950890c3 data/create_nuclearindustry/damage_type/plutonium_burn.json
 5c62302d02c233c0b744f7c894b3b889c2c6970f data/create_nuclearindustry/damage_type/radiation.json

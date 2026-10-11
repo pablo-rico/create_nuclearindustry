@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_radioactive_waste": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:radioactive_waste"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "create_nuclearindustry:crafting/irradiation_source"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_radioactive_waste"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "create_nuclearindustry:crafting/irradiation_source"
+    ]
+  }
+}

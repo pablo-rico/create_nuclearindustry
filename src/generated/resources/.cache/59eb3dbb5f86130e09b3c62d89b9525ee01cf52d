@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-11T02:27:55.9589861	Loot Tables
+// 1.21.1	2026-10-11T02:54:38.6548768	Loot Tables
 13c05f487af479a2691bf45b4d60b1e69d36ac47 data/create_nuclearindustry/loot_table/blocks/air_raid_siren.json
 6976bb627a0364fe3995e6c3818535869708f1af data/create_nuclearindustry/loot_table/blocks/annunciator_panel.json
 27f7c000f9413a61974f3cd67a1d8f71c6fd755c data/create_nuclearindustry/loot_table/blocks/bentonite.json
@@ -54,6 +54,7 @@ d80eebad7cea31d685356cbb640191b9ed97d7ed data/create_nuclearindustry/loot_table/
 f9cc7a87bafa47ac193b83add998957226816065 data/create_nuclearindustry/loot_table/blocks/graphite_moderator.json
 73e6e71b3490d5b1f01b3dfb82b6c2d0d3b6d23f data/create_nuclearindustry/loot_table/blocks/hand_crank_siren.json
 c43d10630d20ff8fc98097ea62dc566ba5774478 data/create_nuclearindustry/loot_table/blocks/heat_exchanger.json
+27e2e43d76e84b1a4a86c384923d5222f6e031a6 data/create_nuclearindustry/loot_table/blocks/irradiation_source.json
 ce7e23980fa7c56de2a27d4091a0d389093cbbe1 data/create_nuclearindustry/loot_table/blocks/launch_pad.json
 4e9439e3c91b6e0cb773597d00d134c403fc5f67 data/create_nuclearindustry/loot_table/blocks/lead_blast_door.json
 26f100813a9aa9ce9f8707f2a1acb5a11381fcfa data/create_nuclearindustry/loot_table/blocks/nuclear_alarm.json

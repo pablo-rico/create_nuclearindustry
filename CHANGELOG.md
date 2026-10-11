@@ -638,6 +638,47 @@ below for what changes in existing worlds.
 <!-- WP-A -->
 
 ### Renewable materials, fan treatments and thorium
+- Two new bulk fan treatments next to Create's. Acid leaching: an Encased Fan
+  blowing through placed or flowing sulfuric acid (now placeable, with a
+  bucket); a yellow current that sizzles on the items and burns creatures
+  caught in it. Irradiation: a fan blowing through the new Irradiation Source
+  (a capsule of waste in an open cage, which air passes through); a green,
+  crackling current that turns thorium dioxide into irradiated thorium and
+  depleted uranium into irradiated depleted uranium, and gives a radiation dose
+  to creatures in it (armour shielding and iodide count). Both work on items on
+  the ground, on belts and on depots; the last catalyst the air passes decides
+  the treatment, as with Create's. JEI shows them like Create's fan
+  categories.
+- Base materials without ore, at one to two times the ore route's cost per
+  unit. Crushing granite, tuff (Create's recipe keeps its nuggets), deepslate or
+  cobbled deepslate gives fines; acid leaching them gives uranium concentrate
+  and a little thorium dioxide (granite), spodumene concentrate (tuff), or
+  uranium concentrate and fluorite (deepslate).
+- Washing sand, red sand or gravel now sometimes gives heavy mineral sand
+  (Create's results are kept). Acid leaching it gives thorium dioxide, the only
+  source of thorium, with a chance of uranium concentrate and beryllium.
+- Brine: water boiled down in a heated basin. A centrifuge spins it into
+  lithium carbonate, borax and water. An amidoxime adsorbent (string, bone meal
+  and water) picks the uranium out of water or brine; acid leaching the loaded
+  adsorbent gives uranium concentrate and returns half of the adsorbent.
+- Decontamination: acid leaching low-level waste, spent D-T pellets and
+  depleted RTG pellets gives clean iron nuggets and Radioactive Sludge, which an
+  Item Drain pours out as contaminated water.
+- Thorium fuel: three thorium dioxide and one seed (low-enriched uranium
+  dioxide or uranium-233 dioxide) compact into four pellets, assembled into
+  Thorium Reactor Fuel like uranium. It starts at about half the reactivity of
+  low-enriched uranium and grows more reactive as it breeds uranium-233,
+  peaking about half way through its burn; it lasts 40% longer and runs a
+  little cooler. Spent thorium fuel cools in pools and casks like the other
+  spent fuels and reprocesses (THOREX): crush it, dissolve the fragments in
+  nitric acid, and centrifuge the solution into uranium-233 nitrate, recovered
+  acid, thorium dioxide and high-level waste; the uranium-233 denitrates into
+  oxide for new pellets. Irradiated thorium dissolved in nitric acid also gives
+  a little uranium-233, and irradiated depleted uranium a trace of plutonium
+  through the spent fuel solution.
+- New items are radioactive where it makes sense (uranium-233 and spent thorium
+  fuel the most). New config: `fuelcycle.irradiationDosePerSecond` and
+  `fuelcycle.acidDamagePerSecond`.
 <!-- WP-B -->
 
 ### Guide: advancements, Ponder and JEI

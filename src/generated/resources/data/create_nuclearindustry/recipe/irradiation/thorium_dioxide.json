@@ -1,0 +1,13 @@
+{
+  "type": "create_nuclearindustry:irradiation",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:thorium_dioxide"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:irradiated_thorium"
+    }
+  ]
+}

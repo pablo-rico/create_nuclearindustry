@@ -94,6 +94,7 @@
     "create_nuclearindustry:fusion_rf_antenna",
     "create_nuclearindustry:fusion_viewport",
     "create_nuclearindustry:reactor_viewport",
+    "create_nuclearindustry:irradiation_source",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false
