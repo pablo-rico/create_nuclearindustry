@@ -1,0 +1,35 @@
+{
+  "criteria": {
+    "has": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:particle_accelerator_controller"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "create_nuclearindustry:textures/block/beam_quadrupole_side.png",
+    "description": {
+      "translate": "advancement.create_nuclearindustry.accelerator.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:particle_accelerator_controller"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancement.create_nuclearindustry.accelerator.title"
+    }
+  },
+  "requirements": [
+    [
+      "has"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

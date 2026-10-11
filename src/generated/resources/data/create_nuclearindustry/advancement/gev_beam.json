@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:synchrotron",
+  "criteria": {
+    "gev_beam": {
+      "conditions": {
+        "event": "gev_beam"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.gev_beam.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:beam_quadrupole"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.gev_beam.title"
+    }
+  },
+  "requirements": [
+    [
+      "gev_beam"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

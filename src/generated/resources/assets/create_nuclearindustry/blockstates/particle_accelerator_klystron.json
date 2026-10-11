@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "create_nuclearindustry:block/particle_accelerator_klystron",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "create_nuclearindustry:block/particle_accelerator_klystron",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/particle_accelerator_klystron"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/particle_accelerator_klystron",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "create_nuclearindustry:block/particle_accelerator_klystron",
+      "x": 270
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/particle_accelerator_klystron",
+      "y": 270
+    }
+  }
+}

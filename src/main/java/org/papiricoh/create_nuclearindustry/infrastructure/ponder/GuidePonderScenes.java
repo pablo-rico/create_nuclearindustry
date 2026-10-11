@@ -5,6 +5,7 @@ import net.createmod.ponder.api.registration.PonderTagRegistrationHelper;
 import net.createmod.ponder.api.scene.PonderStoryBoard;
 import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.AcceleratorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CivilDefenseScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FanTreatmentScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FuelCycleScenes;
@@ -33,6 +34,7 @@ public final class GuidePonderScenes {
         boards.put(GuidePonderText.FUEL_CYCLE, FuelCycleScenes::oreToFuel);
         boards.put(GuidePonderText.ACID_LEACHING, FanTreatmentScenes::acidLeaching);
         boards.put(GuidePonderText.IRRADIATION, FanTreatmentScenes::irradiation);
+        boards.put(GuidePonderText.ACCELERATOR_LINAC, AcceleratorScenes::linac);
         return boards;
     }
 

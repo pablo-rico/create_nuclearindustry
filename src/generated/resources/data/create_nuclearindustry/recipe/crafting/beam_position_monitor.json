@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "item": "create_nuclearindustry:beam_pipe"
+    },
+    "R": {
+      "item": "minecraft:comparator"
+    }
+  },
+  "pattern": [
+    "E",
+    "P",
+    "R"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:beam_position_monitor"
+  }
+}

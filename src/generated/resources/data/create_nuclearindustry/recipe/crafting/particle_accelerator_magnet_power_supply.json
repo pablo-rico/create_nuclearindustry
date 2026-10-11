@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "M": {
+      "item": "create:brass_casing"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    "BRB",
+    "CMC",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:particle_accelerator_magnet_power_supply"
+  }
+}

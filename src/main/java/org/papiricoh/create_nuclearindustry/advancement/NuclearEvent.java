@@ -36,7 +36,12 @@ public enum NuclearEvent {
     FUSION_BREAKEVEN,
     DISRUPTION,
     MISSILE_LAUNCHED,
-    NUCLEAR_SHELL_FIRED;
+    NUCLEAR_SHELL_FIRED,
+    // Particle accelerator
+    ACCELERATOR_FORMED,
+    FIRST_BEAM,
+    RING_FORMED,
+    GEV_BEAM;
 
     public String id() {
         return name().toLowerCase(Locale.ROOT);

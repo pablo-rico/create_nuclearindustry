@@ -21,6 +21,8 @@ public enum BeamTripCause {
     NO_RF_POWER,
     /** The ion source has no hydrogen. */
     NO_ION_GAS,
+    /** The ion source has no shaft turning it and no Forge Energy. */
+    NO_SOURCE_POWER,
     /** A personnel interlock is open: a door into the beam area. */
     INTERLOCK,
     /** The linac is too weak for the ring it feeds. */

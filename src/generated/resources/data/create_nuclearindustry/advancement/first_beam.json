@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:accelerator_formed",
+  "criteria": {
+    "first_beam": {
+      "conditions": {
+        "event": "first_beam"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.first_beam.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:beam_rf_cavity"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.first_beam.title"
+    }
+  },
+  "requirements": [
+    [
+      "first_beam"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -5,6 +5,7 @@ import org.papiricoh.create_nuclearindustry.accelerator.physics.ActivationModel;
 import org.papiricoh.create_nuclearindustry.accelerator.physics.AnnihilationModel;
 import org.papiricoh.create_nuclearindustry.accelerator.physics.AntimatterModel;
 import org.papiricoh.create_nuclearindustry.accelerator.physics.BeamModel;
+import org.papiricoh.create_nuclearindustry.accelerator.physics.BeamSequence;
 import org.papiricoh.create_nuclearindustry.fusion.heating.HeatingDrive;
 
 /**
@@ -267,6 +268,11 @@ public final class AcceleratorConfig {
                 superconductingCavityPower, d.quadSpacing(), d.ringCellsPerQuad(), normalDipoleField,
                 superconductingDipoleField, d.rigidity(), injectionRatio, d.goodVacuum(), d.badVacuum(),
                 d.baseTransmission(), ringDuty, d.rampPerCavity());
+    }
+
+    /** The startup sequence's grace times and limits. */
+    public static BeamSequence.Params sequence() {
+        return BeamSequence.Params.DEFAULT;
     }
 
     /** The klystron's drive curve, from the current config. */

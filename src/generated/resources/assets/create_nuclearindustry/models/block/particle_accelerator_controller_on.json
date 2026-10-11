@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "create_nuclearindustry:block/particle_accelerator_controller_bottom",
+    "east": "create_nuclearindustry:block/particle_accelerator_controller_side",
+    "north": "create_nuclearindustry:block/particle_accelerator_controller_beam",
+    "particle": "create_nuclearindustry:block/particle_accelerator_controller_side",
+    "south": "create_nuclearindustry:block/particle_accelerator_controller_front_on",
+    "up": "create_nuclearindustry:block/particle_accelerator_controller_top",
+    "west": "create_nuclearindustry:block/particle_accelerator_controller_side"
+  }
+}

@@ -65,6 +65,21 @@ public class AllNuclearSounds {
     /** Items crackling in a fan's air current past a radioactive block. */
     public static final DeferredHolder<SoundEvent, SoundEvent> IRRADIATION_CRACKLE = variableRange("irradiation_crackle");
 
+    /** The accelerator's klystrons and cavities filling with radio-frequency power, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ACCELERATOR_RF_HUM = variableRange("accelerator_rf_hum");
+    /** The accelerator's magnets ramping their field, looped; its pitch follows the beam energy. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> MAGNET_RAMP = variableRange("magnet_ramp");
+    /** A superconducting magnet quenching: a bang and the hiss of venting helium. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> MAGNET_QUENCH = variableRange("magnet_quench");
+    /** The beam kicked into the dump. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> BEAM_DUMP = variableRange("beam_dump");
+    /** A personnel interlock tripping the beam. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> INTERLOCK_BUZZER = variableRange("interlock_buzzer");
+    /** A magnetic confinement vessel's field, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CONFINEMENT_HUM = variableRange("confinement_hum");
+    /** The annihilation generator running, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ANNIHILATION_DRONE = variableRange("annihilation_drone");
+
     private static DeferredHolder<SoundEvent, SoundEvent> variableRange(String name) {
         return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(
                 ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, name)));

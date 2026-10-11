@@ -49,6 +49,7 @@ public final class BeamSequence {
      * @param magnetPower     share of the magnet power supplies the magnets need that are running, 0..1
      * @param rfDrive         share of the cavities' radio-frequency power that is there, 0..1
      * @param ionGas          the ion source has hydrogen
+     * @param sourcePowered   the ion source turns (or has Forge Energy)
      * @param interlocksClear every personnel interlock is closed
      * @param ring            the machine has a ring
      * @param injectionOk     the linac is strong enough for the ring
@@ -57,7 +58,8 @@ public final class BeamSequence {
      */
     public record Conditions(boolean formed, boolean pumpsCanReach, boolean atBeamVacuum, boolean superconducting,
                              double liquidHelium, boolean magnetsReady, boolean quenching, double field,
-                             double magnetPower, double rfDrive, boolean ionGas, boolean interlocksClear, boolean ring,
+                             double magnetPower, double rfDrive, boolean ionGas, boolean sourcePowered,
+                             boolean interlocksClear, boolean ring,
                              boolean injectionOk, boolean atEnergy, double lossFraction) {}
 
     /** A change of phase this tick; {@code cause} is set when it was a trip. */
@@ -116,6 +118,9 @@ public final class BeamSequence {
         }
         if (!c.ionGas()) {
             return BeamTripCause.NO_ION_GAS;
+        }
+        if (!c.sourcePowered()) {
+            return BeamTripCause.NO_SOURCE_POWER;
         }
         if (!c.interlocksClear()) {
             return BeamTripCause.INTERLOCK;
@@ -206,9 +211,9 @@ public final class BeamSequence {
             if (!c.interlocksClear()) {
                 return trip(BeamTripCause.INTERLOCK);
             }
-            gasTicks = c.ionGas() ? 0 : gasTicks + 1;
+            gasTicks = c.ionGas() && c.sourcePowered() ? 0 : gasTicks + 1;
             if (gasTicks > p.gasGraceTicks()) {
-                return trip(BeamTripCause.NO_ION_GAS);
+                return trip(c.ionGas() ? BeamTripCause.NO_SOURCE_POWER : BeamTripCause.NO_ION_GAS);
             }
             lossTicks = c.lossFraction() > p.lossTripFraction() ? lossTicks + 1 : 0;
             if (lossTicks > p.lossGraceTicks()) {
@@ -247,6 +252,9 @@ public final class BeamSequence {
                     }
                     if (!c.ionGas()) {
                         return trip(BeamTripCause.NO_ION_GAS);
+                    }
+                    if (!c.sourcePowered()) {
+                        return trip(BeamTripCause.NO_SOURCE_POWER);
                     }
                     if (c.ring()) {
                         if (!c.injectionOk()) {

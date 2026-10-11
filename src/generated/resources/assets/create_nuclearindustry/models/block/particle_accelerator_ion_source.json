@@ -1,0 +1,9 @@
+{
+  "parent": "create_nuclearindustry:block/accelerator_machine",
+  "textures": {
+    "back": "create_nuclearindustry:block/particle_accelerator_ion_source_back",
+    "front": "create_nuclearindustry:block/particle_accelerator_ion_source_front",
+    "particle": "create_nuclearindustry:block/particle_accelerator_ion_source_side",
+    "side": "create_nuclearindustry:block/particle_accelerator_ion_source_side"
+  }
+}

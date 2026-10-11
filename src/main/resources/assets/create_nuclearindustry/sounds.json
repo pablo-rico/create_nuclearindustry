@@ -171,5 +171,68 @@
         "stream": false
       }
     ]
+  },
+  "accelerator_rf_hum": {
+    "subtitle": "subtitle.create_nuclearindustry.accelerator_rf_hum",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:accelerator_rf_hum",
+        "stream": false
+      }
+    ]
+  },
+  "magnet_ramp": {
+    "subtitle": "subtitle.create_nuclearindustry.magnet_ramp",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:magnet_ramp",
+        "stream": false
+      }
+    ]
+  },
+  "magnet_quench": {
+    "subtitle": "subtitle.create_nuclearindustry.magnet_quench",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:magnet_quench",
+        "stream": false
+      }
+    ]
+  },
+  "beam_dump": {
+    "subtitle": "subtitle.create_nuclearindustry.beam_dump",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:beam_dump",
+        "stream": false
+      }
+    ]
+  },
+  "interlock_buzzer": {
+    "subtitle": "subtitle.create_nuclearindustry.interlock_buzzer",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:interlock_buzzer",
+        "stream": false
+      }
+    ]
+  },
+  "confinement_hum": {
+    "subtitle": "subtitle.create_nuclearindustry.confinement_hum",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:confinement_hum",
+        "stream": false
+      }
+    ]
+  },
+  "annihilation_drone": {
+    "subtitle": "subtitle.create_nuclearindustry.annihilation_drone",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:annihilation_drone",
+        "stream": false
+      }
+    ]
   }
 }

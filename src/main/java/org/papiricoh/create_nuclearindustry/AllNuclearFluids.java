@@ -67,6 +67,8 @@ public class AllNuclearFluids {
     // ---------------------------------------------------------------- fusion fuel
     public static final NuclearFluid DEUTERIUM_FLUID = gas("deuterium", 0xB05CD6FF, -90, 80, 300, 0);
     public static final NuclearFluid TRITIUM_FLUID = gas("tritium", 0xB0FF66AA, -85, 80, 300, 2);
+    // Electrolysis gas: what the particle accelerator's ion source strips into protons.
+    public static final NuclearFluid HYDROGEN_FLUID = gas("hydrogen", 0x90F2F4FF, -100, 60, 300, 0);
 
     // ---------------------------------------------------------------- process chemicals
     // Placeable: a pool of it is the catalyst of the acid leaching fan treatment.
@@ -139,6 +141,7 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> HEAVY_STEAM = HEAVY_STEAM_FLUID.source();
     public static final Supplier<FlowingFluid> FLOWING_HEAVY_STEAM = HEAVY_STEAM_FLUID.flowing();
     public static final Supplier<FlowingFluid> DEUTERIUM = DEUTERIUM_FLUID.source();
+    public static final Supplier<FlowingFluid> HYDROGEN = HYDROGEN_FLUID.source();
     public static final Supplier<FlowingFluid> FLOWING_DEUTERIUM = DEUTERIUM_FLUID.flowing();
     public static final Supplier<FlowingFluid> TRITIUM = TRITIUM_FLUID.source();
     public static final Supplier<FlowingFluid> FLOWING_TRITIUM = TRITIUM_FLUID.flowing();

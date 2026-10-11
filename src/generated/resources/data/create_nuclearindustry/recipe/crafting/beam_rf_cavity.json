@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "item": "create_nuclearindustry:beam_pipe"
+    }
+  },
+  "pattern": [
+    "CEC",
+    "CPC",
+    "CEC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:beam_rf_cavity"
+  }
+}

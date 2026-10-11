@@ -1,0 +1,17 @@
+{
+  "type": "create_nuclearindustry:electrolysis",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:brine"
+    }
+  ],
+  "processing_time": 60,
+  "results": [
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:hydrogen"
+    }
+  ]
+}

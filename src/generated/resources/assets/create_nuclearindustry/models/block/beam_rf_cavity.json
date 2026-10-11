@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "create_nuclearindustry:block/beam_rf_cavity_end",
+    "side": "create_nuclearindustry:block/beam_rf_cavity_side"
+  }
+}

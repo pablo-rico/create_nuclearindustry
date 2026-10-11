@@ -98,6 +98,17 @@
     "create_nuclearindustry:fusion_viewport",
     "create_nuclearindustry:reactor_viewport",
     "create_nuclearindustry:irradiation_source",
+    "create_nuclearindustry:particle_accelerator_controller",
+    "create_nuclearindustry:particle_accelerator_ion_source",
+    "create_nuclearindustry:beam_pipe",
+    "create_nuclearindustry:beam_rf_cavity",
+    "create_nuclearindustry:beam_quadrupole",
+    "create_nuclearindustry:beam_bending_magnet",
+    "create_nuclearindustry:beam_position_monitor",
+    "create_nuclearindustry:beam_dump",
+    "create_nuclearindustry:particle_accelerator_klystron",
+    "create_nuclearindustry:particle_accelerator_magnet_power_supply",
+    "create_nuclearindustry:particle_accelerator_vacuum_pump",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

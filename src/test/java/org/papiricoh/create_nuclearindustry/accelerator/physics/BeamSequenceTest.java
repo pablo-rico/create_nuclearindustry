@@ -27,7 +27,7 @@ class BeamSequenceTest {
 
         BeamSequence.Conditions c() {
             return new BeamSequence.Conditions(formed, pumps, vacuum, sc, helium, cold, quench, field, magnetPower, rf, gas,
-                    interlocks, ring, injection, atEnergy, loss);
+                    true, interlocks, ring, injection, atEnergy, loss);
         }
 
         Plant formed(boolean v) { return new Plant(v, pumps, vacuum, sc, helium, cold, quench, field, magnetPower, rf, gas, interlocks, ring, injection, atEnergy, loss); }

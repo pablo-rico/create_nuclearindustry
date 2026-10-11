@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:first_beam",
+  "criteria": {
+    "ring_formed": {
+      "conditions": {
+        "event": "ring_formed"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.synchrotron.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:beam_bending_magnet"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.synchrotron.title"
+    }
+  },
+  "requirements": [
+    [
+      "ring_formed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

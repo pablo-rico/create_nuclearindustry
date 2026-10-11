@@ -100,6 +100,7 @@ public final class PlantJeiInfo {
         // The renewable fuel cycle and the guide keep their own lists.
         pages.addAll(FuelCycleInfo.pages());
         pages.addAll(GuideJeiInfo.pages());
+        pages.addAll(org.papiricoh.create_nuclearindustry.accelerator.AcceleratorInfo.pages());
         return pages;
     }
 

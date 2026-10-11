@@ -19,6 +19,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.accelerator.AcceleratorRegistry;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearEventTrigger;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
@@ -52,6 +53,7 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
     public static final String CIVIL_DEFENSE = "civil_defense";
     public static final String FUSION = "fusion";
     public static final String WEAPONS = "weapons";
+    public static final String ACCELERATOR = "accelerator";
 
     /** The background of each tab, by the id of its root. */
     public static final Map<String, ResourceLocation> BACKGROUNDS = Map.of(
@@ -60,7 +62,8 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
             WASTE, texture("bentonite"),
             CIVIL_DEFENSE, texture("blast_door_frame"),
             FUSION, texture("fusion_cryostat_casing"),
-            WEAPONS, texture("launch_pad_base"));
+            WEAPONS, texture("launch_pad_base"),
+            ACCELERATOR, texture("beam_quadrupole_side"));
 
     public NuclearAdvancementProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries,
                                       ExistingFileHelper existingFiles) {
@@ -367,7 +370,24 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
                             "Launch a missile from a launch pad", "Lanza un misil desde una plataforma de lanzamiento"),
                     task("dirty_detonation", "weapons", AllNuclearItems.DIRTY_BOMB, event(NuclearEvent.DIRTY_DETONATION),
                             "Spreading the Waste", "Repartiendo los residuos",
-                            "Witness a dirty bomb go off", "Presencia la explosión de una bomba sucia"))
+                            "Witness a dirty bomb go off", "Presencia la explosión de una bomba sucia")),
+            tab(ACCELERATOR,
+                    task("accelerator", null, AcceleratorRegistry.CONTROLLER_ITEM, has(AcceleratorRegistry.CONTROLLER_ITEM),
+                            "Particle Physics", "Física de partículas",
+                            "Make a Particle Accelerator Controller", "Fabrica un controlador de acelerador de partículas"),
+                    task("accelerator_formed", "accelerator", AcceleratorRegistry.ION_SOURCE_ITEM, event(NuclearEvent.ACCELERATOR_FORMED),
+                            "Line of Sight", "En línea recta",
+                            "Form a particle accelerator: an ion source, a beamline and a dump or target at its end",
+                            "Forma un acelerador de partículas: una fuente de iones, una línea de haz y un absorbedor o un blanco al final"),
+                    task("first_beam", "accelerator_formed", AcceleratorRegistry.RF_CAVITY_ITEM, event(NuclearEvent.FIRST_BEAM),
+                            "First Beam", "Primer haz",
+                            "Send a beam down the line", "Haz llegar un haz al final de la línea"),
+                    task("synchrotron", "first_beam", AcceleratorRegistry.BENDING_MAGNET_ITEM, event(NuclearEvent.RING_FORMED),
+                            "Going in Circles", "Dando vueltas",
+                            "Feed a synchrotron ring from your linac", "Alimenta un anillo sincrotrón con tu linac"),
+                    with(task("gev_beam", "synchrotron", AcceleratorRegistry.QUADRUPOLE_ITEM, event(NuclearEvent.GEV_BEAM),
+                            "Giga Electron Volts", "Gigaelectronvoltios",
+                            "Accelerate a beam to 1 GeV or more", "Acelera un haz a 1 GeV o más"), AdvancementType.GOAL, false))
     );
 
     /** The tab roots, in the order the tabs appear. */

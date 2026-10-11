@@ -150,8 +150,32 @@ public final class GuidePonderText {
                             "El bloque también te irradia a ti: blíndalo y mantente lejos mientras trabaja.")),
             List.of("irradiation_source", "thorium_dioxide", "irradiated_thorium", "irradiated_depleted_uranium", FAN));
 
+    // ------------------------------------------------------------------ particle accelerator
+
+    public static final Scene ACCELERATOR_LINAC = new Scene("accelerator_linac", "accelerator_linac",
+            line("Building a Linac", "Construir un linac"),
+            List.of(
+                    line("A particle accelerator starts at its controller. The beam leaves it on the face opposite its panel.",
+                            "Un acelerador de partículas empieza en su controlador. El haz sale por la cara opuesta a su panel."),
+                    line("Right in front of it goes the Ion Source, with its shaft across the beam. It turns hydrogen into protons: fill it by pipe.",
+                            "Justo delante va la Fuente de iones, con el eje de través al haz. Convierte hidrógeno en protones: llénala por tubería."),
+                    line("From the source the beamline runs on. Each RF Cavity adds energy: a longer linac with more cavities reaches higher energies.",
+                            "Desde la fuente sigue la línea de haz. Cada Cavidad de radiofrecuencia añade energía: un linac más largo con más cavidades llega más alto."),
+                    line("Quadrupole Magnets keep the beam focused. Put one at least every four blocks, or most of the beam is lost on the walls.",
+                            "Los Imanes cuadrupolares mantienen el haz enfocado. Pon uno al menos cada cuatro bloques, o casi todo el haz se pierde contra las paredes."),
+                    line("The line ends in a Beam Dump or a target. The dump soaks up the whole beam, and becomes radioactive doing it.",
+                            "La línea termina en un Absorbedor del haz o en un blanco. El absorbedor se traga todo el haz, y se vuelve radiactivo al hacerlo."),
+                    line("Klystrons, Magnet Power Supplies and Vacuum Pumps beside the line power it, from a shaft or with Forge Energy.",
+                            "Los Klistrones, las Fuentes de alimentación de imanes y las Bombas de vacío junto a la línea la alimentan, con un eje o con Forge Energy."),
+                    line("Right-click the controller to open its panel and start the beam. It glows through the windows of the Beam Pipes.",
+                            "Haz clic derecho en el controlador para abrir su panel y arrancar el haz. Se ve brillar por las ventanas de los Tubos de haz.")),
+            List.of("particle_accelerator_controller", "particle_accelerator_ion_source", "beam_pipe", "beam_rf_cavity", "beam_quadrupole",
+                    "beam_dump", "particle_accelerator_klystron", "particle_accelerator_magnet_power_supply",
+                    "particle_accelerator_vacuum_pump"));
+
     /** Every guide scene, in the order they are registered. */
-    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, MISSILE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION);
+    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, MISSILE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
+            ACCELERATOR_LINAC);
 
     private GuidePonderText() {}
 

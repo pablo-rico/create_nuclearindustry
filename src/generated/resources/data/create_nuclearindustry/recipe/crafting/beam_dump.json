@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:copper_block"
+    },
+    "G": {
+      "item": "create_nuclearindustry:graphite"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "IGI",
+    "GBG",
+    "IGI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:beam_dump"
+  }
+}

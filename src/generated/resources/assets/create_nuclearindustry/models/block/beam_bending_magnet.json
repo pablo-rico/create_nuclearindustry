@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "create_nuclearindustry:block/beam_bending_magnet_top",
+    "east": "create_nuclearindustry:block/beam_bending_magnet_side",
+    "north": "create_nuclearindustry:block/beam_bending_magnet_front",
+    "particle": "create_nuclearindustry:block/beam_bending_magnet_side",
+    "south": "create_nuclearindustry:block/beam_bending_magnet_back",
+    "up": "create_nuclearindustry:block/beam_bending_magnet_top",
+    "west": "create_nuclearindustry:block/beam_bending_magnet_side"
+  }
+}

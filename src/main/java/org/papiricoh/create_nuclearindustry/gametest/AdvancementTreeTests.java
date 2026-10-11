@@ -39,7 +39,7 @@ public class AdvancementTreeTests {
         List<NuclearAdvancementProvider.Entry> entries = NuclearAdvancementProvider.ENTRIES;
         helper.assertTrue(entries.size() >= 40, "the guide has at least 40 advancements, found " + entries.size());
         List<NuclearAdvancementProvider.Entry> roots = NuclearAdvancementProvider.roots();
-        helper.assertTrue(roots.size() == 6, "six tabs, found " + roots.size() + " roots");
+        helper.assertTrue(roots.size() == 7, "seven tabs, found " + roots.size() + " roots");
         Set<String> tabs = new HashSet<>();
         for (NuclearAdvancementProvider.Entry root : roots) {
             helper.assertTrue(root.tab().equals(root.id()), root.id() + " is the root of its own tab");
@@ -52,7 +52,7 @@ public class AdvancementTreeTests {
         }
         helper.assertTrue(tabs.contains(NuclearAdvancementProvider.FUEL_CYCLE), "the original root still roots the fuel cycle tab");
         helper.assertTrue(new HashSet<>(NuclearAdvancementProvider.BACKGROUNDS.keySet()).equals(tabs), "a background for every tab");
-        helper.assertTrue(new HashSet<>(NuclearAdvancementProvider.BACKGROUNDS.values()).size() == 6, "every tab has its own background");
+        helper.assertTrue(new HashSet<>(NuclearAdvancementProvider.BACKGROUNDS.values()).size() == 7, "every tab has its own background");
         helper.succeed();
     }
 

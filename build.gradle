@@ -49,6 +49,8 @@ runs {
 
     gameTestServer {
         systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        // -Pgametests=ClassA,ClassB runs only those test classes (see gametest/GameTestFilter).
+        systemProperty 'create_nuclearindustry.gametests', (project.findProperty('gametests') ?: '').toString()
     }
 
     data {
