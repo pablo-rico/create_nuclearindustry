@@ -29,6 +29,11 @@ import java.util.function.BiPredicate;
  * A fluid port in the tokamak shell. The handler is exposed on every face, and the port
  * also trades directly with adjacent tanks so long pipe runs around a big torus are not
  * needed.
+ *
+ * <p>The capability is one handler for the life of the port, which picks the input or output side
+ * on every call, so it is never invalidated: Create's pipe networks keep the handler they drain from
+ * and never look it up again, and an invalidation (each time the tokamak re-formed) left them stuck
+ * until the world was reloaded.
  */
 public abstract class TokamakPortBlockEntity extends BlockEntity implements IHaveGoggleInformation, FusionReactorBlockEntity.TokamakPart {
     /** Matches {@link FusionReactorBlockEntity#PORT_THROUGHPUT}, so a port fed by a tank alongside keeps up. */
@@ -38,6 +43,7 @@ public abstract class TokamakPortBlockEntity extends BlockEntity implements IHav
     private boolean clientLinked;
     /** Tanks and pipes around the port; other tokamak ports are left out. */
     private final NeighbourFluidHandlers neighbours = new NeighbourFluidHandlers(this, be -> be instanceof TokamakPortBlockEntity);
+    private final IFluidHandler handler = new ModeHandler();
 
     protected TokamakPortBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state,
                                      BiPredicate<TokamakStructure, BlockPos> ownsPort) {
@@ -60,8 +66,7 @@ public abstract class TokamakPortBlockEntity extends BlockEntity implements IHav
         if (level == null || level.isClientSide) {
             return;
         }
-        // Only a real change of controller may invalidate the capability: Create's pipes reset
-        // their fluid network on every invalidation, so doing it on each rescan stops the flow.
+        // Clients only hear of real changes of controller, not of every rescan.
         var before = link.linkedPos();
         if (link.tick() && !link.linkedPos().equals(before)) {
             syncLinkState();
@@ -87,6 +92,10 @@ public abstract class TokamakPortBlockEntity extends BlockEntity implements IHav
     }
 
     public IFluidHandler getFluidHandler(Direction direction) {
+        return handler;
+    }
+
+    private IFluidHandler current() {
         return getMode() == ReactorFluidPortMode.INPUT ? inputHandler() : outputHandler();
     }
 
@@ -120,10 +129,10 @@ public abstract class TokamakPortBlockEntity extends BlockEntity implements IHav
         }
     }
 
+    /** Tells clients the link changed. The capability stays as it is (see the class comment). */
     private void syncLinkState() {
         setChanged();
         if (level != null && !level.isClientSide) {
-            level.invalidateCapabilities(getBlockPos());
             BlockState state = getBlockState();
             level.sendBlockUpdated(getBlockPos(), state, state, Block.UPDATE_CLIENTS);
         }
@@ -164,6 +173,44 @@ public abstract class TokamakPortBlockEntity extends BlockEntity implements IHav
     @Override
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
         clientLinked = tag.getBoolean("linked");
+    }
+
+    /** The input or output handler, whichever the port's mode picks now. */
+    private final class ModeHandler implements IFluidHandler {
+        @Override
+        public int getTanks() {
+            return current().getTanks();
+        }
+
+        @Override
+        public net.neoforged.neoforge.fluids.FluidStack getFluidInTank(int tank) {
+            return current().getFluidInTank(tank);
+        }
+
+        @Override
+        public int getTankCapacity(int tank) {
+            return current().getTankCapacity(tank);
+        }
+
+        @Override
+        public boolean isFluidValid(int tank, net.neoforged.neoforge.fluids.FluidStack stack) {
+            return current().isFluidValid(tank, stack);
+        }
+
+        @Override
+        public int fill(net.neoforged.neoforge.fluids.FluidStack resource, FluidAction action) {
+            return current().fill(resource, action);
+        }
+
+        @Override
+        public net.neoforged.neoforge.fluids.FluidStack drain(net.neoforged.neoforge.fluids.FluidStack resource, FluidAction action) {
+            return current().drain(resource, action);
+        }
+
+        @Override
+        public net.neoforged.neoforge.fluids.FluidStack drain(int maxDrain, FluidAction action) {
+            return current().drain(maxDrain, action);
+        }
     }
 
     /** A handler that delegates to the linked controller, or holds nothing while unlinked. */

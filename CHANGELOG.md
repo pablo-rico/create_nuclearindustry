@@ -242,6 +242,11 @@ below for what changes in existing worlds.
   capability every second, which kept resetting Create pipe networks: water
   pumped out of a turbine never reached its tank and the turbine stalled
   with a full condensate tank.
+- Plasma steam pumped from a tokamak, and condensate pumped out of a
+  turbine, no longer stop for good after the tokamak or the turbine
+  re-forms (a disruption, a broken and replaced block, a click on the
+  controller). The pipes stayed full and the pump kept turning, but nothing
+  flowed until the world was reloaded.
 - Turbine casings now craft four at a time. Ports work on every side and
   no longer scan the area on every call.
 
