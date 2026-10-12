@@ -480,6 +480,15 @@ def tritium_cell():
     return _cell(214, TRITIUM, TRITIUM)
 
 
+# Liquid helium: frost-white with a pale blue cast, like the cryogenic plant's frost.
+LIQUID_HELIUM = Ramp("#2b4a5c", "#3f6a80", "#5a8ea6", "#7fb0c6", "#a6cfe0", "#cce6f0", "#eef8fb")
+
+
+@item("liquid_helium_cell")
+def liquid_helium_cell():
+    return _cell(219, LIQUID_HELIUM, CYAN)
+
+
 @item("dt_fuel_pellet")
 def dt_fuel_pellet():
     t = Tex(16, 16, 215)

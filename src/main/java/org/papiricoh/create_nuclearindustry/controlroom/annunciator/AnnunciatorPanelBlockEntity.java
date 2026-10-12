@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.controlroom.annunciator;
 
+import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.core.BlockPos;
@@ -48,8 +49,8 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         private GlobalPos target;
         private TargetKind kind = TargetKind.NONE;
         private AlarmMetric metric = AlarmMetric.TEMPERATURE;
-        /** 70 of 100 is 2800 °C for the default temperature metric, the automatic SCRAM's default. */
-        private int setting = 70;
+        /** 35 of 100 is 1400 °C for the default temperature metric, the automatic SCRAM's default (40 °C a step). */
+        private int setting = AutoScram.DEFAULT_THRESHOLD / 40;
         private String label = "";
 
         @Nullable

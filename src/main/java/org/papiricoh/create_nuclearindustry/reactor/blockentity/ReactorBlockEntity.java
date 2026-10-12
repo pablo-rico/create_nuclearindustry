@@ -2075,10 +2075,10 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
     }
 
     private ChatFormatting getTemperatureColor(double temperature) {
-        if (temperature >= 3500.0) {
+        if (temperature >= FissionConfig.dangerTemperature()) {
             return ChatFormatting.RED;
         }
-        if (temperature >= 2000.0) {
+        if (temperature >= FissionConfig.warningTemperature()) {
             return ChatFormatting.GOLD;
         }
         if (temperature >= 500.0) {

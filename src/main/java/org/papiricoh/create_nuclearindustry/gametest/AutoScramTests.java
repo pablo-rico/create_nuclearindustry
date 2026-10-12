@@ -15,6 +15,7 @@ import org.papiricoh.create_nuclearindustry.reactor.block.ReactorRedstonePortBlo
 import org.papiricoh.create_nuclearindustry.reactor.block.RedstonePortMode;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
+import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
 import org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlMenu;
 
 /** The automatic SCRAM trips on temperature, latches, and only raises the SCRAM signal. */
@@ -36,11 +37,12 @@ public class AutoScramTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
-    public static void defaultsOnAt2800(GameTestHelper helper) {
+    public static void defaultsOnJustUnderCladdingFailure(GameTestHelper helper) {
         FissionTestBuilder.build(helper);
         AutoScram auto = FissionTestBuilder.controller(helper).getAutoScram();
         helper.assertTrue(auto.isEnabled(), "automatic SCRAM is on by default");
-        helper.assertTrue(auto.getThreshold() == 2800, "default threshold is 2800, got " + auto.getThreshold());
+        helper.assertTrue(auto.getThreshold() == AutoScram.DEFAULT_THRESHOLD && auto.getThreshold() < FissionConfig.claddingFailureTemperature,
+                "the default trips before the cladding fails, got " + auto.getThreshold());
         helper.succeed();
     }
 
@@ -48,7 +50,7 @@ public class AutoScramTests {
     public static void oldSavesWithoutKeysUseDefaults(GameTestHelper helper) {
         FissionTestBuilder.build(helper);
         ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);
-        reactor.adjustAutoScramThreshold(-1500);
+        reactor.adjustAutoScramThreshold(-500);
         reactor.toggleAutoScram();
         var registries = helper.getLevel().registryAccess();
         CompoundTag tag = reactor.saveWithoutMetadata(registries);
@@ -56,8 +58,30 @@ public class AutoScramTests {
         tag.remove("autoScramThreshold");
         tag.remove("autoScramTripped");
         reactor.loadWithComponents(tag, registries);
-        helper.assertTrue(reactor.getAutoScram().isEnabled() && reactor.getAutoScram().getThreshold() == 2800,
+        helper.assertTrue(reactor.getAutoScram().isEnabled() && reactor.getAutoScram().getThreshold() == AutoScram.DEFAULT_THRESHOLD,
                 "a save without the keys gets the defaults");
+        helper.succeed();
+    }
+
+    /** A reactor saved on the old 2800 °C default (where the fuel now melts) takes the new default; a set threshold is kept. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void theOldDefaultThresholdMigratesButASetOneIsKept(GameTestHelper helper) {
+        FissionTestBuilder.build(helper);
+        ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);
+        var registries = helper.getLevel().registryAccess();
+        CompoundTag tag = reactor.saveWithoutMetadata(registries);
+        tag.remove("autoScramVersion");
+        tag.putInt("autoScramThreshold", 2800);
+        reactor.loadWithComponents(tag, registries);
+        helper.assertTrue(reactor.getAutoScram().getThreshold() == AutoScram.DEFAULT_THRESHOLD,
+                "the old default moves to the new one, got " + reactor.getAutoScram().getThreshold());
+        tag.putInt("autoScramThreshold", 2600);
+        reactor.loadWithComponents(tag, registries);
+        helper.assertTrue(reactor.getAutoScram().getThreshold() == 2600, "a threshold the operator set is kept");
+        tag = reactor.saveWithoutMetadata(registries);
+        tag.putInt("autoScramThreshold", 2800);
+        reactor.loadWithComponents(tag, registries);
+        helper.assertTrue(reactor.getAutoScram().getThreshold() == 2800, "and 2800 chosen on purpose after the change stays");
         helper.succeed();
     }
 
@@ -119,7 +143,7 @@ public class AutoScramTests {
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
             ReactorControlMenu menu = new ReactorControlMenu(0, player.getInventory(), reactor);
             menu.clickMenuButton(player, ReactorControlMenu.BUTTON_THRESHOLD_UP);
-            helper.assertTrue(reactor.getAutoScram().getThreshold() == 2900, "+ adds 100");
+            helper.assertTrue(reactor.getAutoScram().getThreshold() == AutoScram.DEFAULT_THRESHOLD + 100, "+ adds 100");
             for (int i = 0; i < 20; i++) {
                 menu.clickMenuButton(player, ReactorControlMenu.BUTTON_THRESHOLD_UP_BIG);
             }

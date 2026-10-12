@@ -280,6 +280,9 @@ public final class LangEntries {
         add("item.create_nuclearindustry.tritium_cell",
                 "Tritium Cell",
                 "Célula de Tritio");
+        add("item.create_nuclearindustry.liquid_helium_cell",
+                "Liquid Helium Cell",
+                "Celda de helio líquido");
         add("item.create_nuclearindustry.dt_fuel_pellet",
                 "D-T Fuel Pellet (Legacy)",
                 "Pellet de combustible D-T (antiguo)");
@@ -497,7 +500,6 @@ public final class LangEntries {
         add(m + "state", "%s%%  signal %s", "%s%%  señal %s");
         add(m + "label", "Label", "Etiqueta");
         add(m + "label.hint", "Label (optional)", "Etiqueta (opcional)");
-        add(m + "function", "Function: %s", "Función: %s");
         add(m + "output", "Redstone: %s", "Redstone: %s");
         add(m + "frequency", "Link frequency", "Frecuencia de enlace");
         add(m + "type.push_button", "Push Button", "Pulsador");
@@ -987,6 +989,20 @@ public final class LangEntries {
                 "%s: total acumulado a cero");
         add(p + "dose.reset.all", "%s: dose and lifetime total reset",
                 "%s: dosis y total acumulado a cero");
+        add(p + "spawn.done", "Placed %s with its corner at %s (controller at %s): %s",
+                "Colocado %s con su esquina en %s (controlador en %s): %s");
+        add(p + "spawn.formed", "formed", "formado");
+        add(p + "spawn.unformed", "not formed: %s", "sin formar: %s");
+        add(p + "spawn.measuring", "the monitor is still measuring the room", "el monitor aún está midiendo la sala");
+        add(p + "spawn.name.reactor", "a 5x5x5 fission reactor", "un reactor de fisión de 5x5x5");
+        add(p + "spawn.name.turbine", "a 5x5x8 steam turbine", "una turbina de vapor de 5x5x8");
+        add(p + "spawn.name.fusion_turbine", "a 5x5x8 plasma steam turbine", "una turbina de vapor de plasma de 5x5x8");
+        add(p + "spawn.name.cooling_tower", "a cooling tower of radius 4", "una torre de refrigeración de radio 4");
+        add(p + "spawn.name.tokamak", "a tokamak of major radius 4", "un tokamak de radio mayor 4");
+        add(p + "spawn.name.accelerator", "a linac with eight cavities", "un linac con ocho cavidades");
+        add(p + "spawn.name.steam_generator", "a 3x3x4 steam generator", "un generador de vapor de 3x3x4");
+        add(p + "spawn.name.cryoplant", "a 3x3x4 cryogenic plant", "una planta criogénica de 3x3x4");
+        add(p + "spawn.name.containment", "a 7x6x7 containment room", "una sala de contención de 7x6x7");
         String h = "hud.create_nuclearindustry.";
         add(h + "rate", "☢ %s rad/s", "☢ %s rad/s");
         add(h + "dose", "Dose %s rad", "Dosis %s rad");

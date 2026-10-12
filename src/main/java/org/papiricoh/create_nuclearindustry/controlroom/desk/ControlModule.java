@@ -43,6 +43,8 @@ public final class ControlModule {
             FUSION_POWER_SCALE = TokamakScales.POWER_MAX;
     /** Where an automatic fusion power controller starts: about what a tokamak of radius 4 makes. */
     public static final int FUSION_POWER_DEFAULT_SETTING = 25;
+    /** 22% of the 4000 C scale: 880 C, about the fuel at rated power. */
+    private static final int TEMPERATURE_DEFAULT_SETTING = 22;
     private static final String KEY = "create_nuclearindustry.control_module.";
 
     private final ModuleType type;
@@ -204,6 +206,9 @@ public final class ControlModule {
                     this.setting = Math.round((float) (PwrConfig.pressureSetpoint / PRESSURE_SCALE * 100.0));
                 } else if (function == ModuleFunction.AUTO_FUSION_POWER) {
                     this.setting = FUSION_POWER_DEFAULT_SETTING;
+                } else if (function == ModuleFunction.AUTO_TEMPERATURE) {
+                    // Rated power runs the fuel near 900 C; 2000 C (the old half scale) is past the cladding failure.
+                    this.setting = TEMPERATURE_DEFAULT_SETTING;
                 }
             }
             this.function = function;

@@ -33,8 +33,11 @@ xenonWorthPcm = 2800.0
 ratedPowerPerRod = 50.0
 steamEnergy = 2.0
 
+[fission.thermal]
+maxSuperheat = 50.0
+
 [fission.damage]
-claddingFailureTemperature = 2000.0
+claddingFailureTemperature = 1500.0
 fuelMeltingTemperature = 2800.0
 meltdownDamage = 0.75
 
@@ -151,18 +154,35 @@ sustituyen a parte de las barras. Un reactor sin barras que marca −8000 de
   pupitre trabajan en % de esa potencia nominal, así que un reactor grande y uno
   pequeño se manejan igual. El reactor puede pasar del 100 %.
 - **Vapor**: sale exactamente el calor que se lleva el agua dividido por
-  `fission.thermal.steamEnergy` (MW por mB/t). Si el vapor no sale (tanque lleno,
-  puertos o intercambiadores insuficientes), el agua del núcleo se calienta y la
-  potencia baja sola, poco a poco. Sin agua el núcleo se seca: la reacción en
-  cadena se para (`fission.reactivity.dryCoreWorth`), pero el calor residual lo
-  sigue calentando.
+  `fission.thermal.steamEnergy` (MW por mB/t). **La potencia térmica en régimen
+  nunca pasa de lo que sale como vapor**: con pocos intercambiadores, puertos
+  justos o el tanque de vapor lleno, la potencia se queda en ese techo aunque se
+  saquen más barras. Lo que cambia entonces es la temperatura: el agua del núcleo
+  solo admite `fission.thermal.maxSuperheat` (50 K) por encima de la ebullición;
+  al llegar ahí se convierte en vapor (el término «Vapor» del desglose cae hasta
+  −1500 pcm) y, una vez el agua está en ese techo, el calor que no puede salir se
+  queda en el combustible, que sube hasta que su Doppler frena la reacción: unos
+  500 °C por cada 1000 pcm de barras de más a partir de ahí (los primeros ~1000
+  pcm los absorbe el vapor del sobrecalentamiento). Con el vapor atascado del todo (tanque lleno, salida cerrada) el vapor
+  que se forma en el núcleo para la reacción en segundos, pero el calor residual
+  sigue entrando en un combustible que ya no puede enfriarse: hay que liberar la
+  salida. Sin agua el núcleo se seca: la reacción en cadena se para
+  (`fission.reactivity.dryCoreWorth`), pero el calor residual lo sigue calentando.
+  El vapor del núcleo tarda alrededor de un segundo en seguir a los cambios, así
+  que una salida que se abre y cierra a cada tick (una turbina que vacía el
+  tanque a trompicones) no hace oscilar la potencia.
 - **Daño del combustible**: por encima de `fission.damage.claddingFailureTemperature`
-  (2000 °C) fallan las vainas y el núcleo acumula daño permanente (se ve en las
-  gafas y la GUI, y suelta actividad); por encima de
-  `fission.damage.fuelMeltingTemperature` (2800 °C) el combustible se funde y el
-  daño corre. Con `fission.damage.meltdownDamage` (75 %) el núcleo se funde del
-  todo (corium, ver *Accidentes*). Recargar combustible nuevo reduce el daño en
-  proporción.
+  (1500 °C, el circonio de las vainas) fallan las vainas y el núcleo acumula daño
+  permanente (se ve en las gafas y la GUI como «estrés del combustible», y suelta
+  actividad); por encima de `fission.damage.fuelMeltingTemperature` (2800 °C) el
+  combustible se funde y el daño corre. Con `fission.damage.meltdownDamage` (75 %)
+  el núcleo se funde del todo (corium, ver *Accidentes*). Recargar combustible
+  nuevo reduce el daño en proporción. A potencia nominal el combustible va a unos
+  885 °C (`fuelRiseAtRated` por encima del agua): queda cerca de 2× de margen de
+  sobrepotencia antes del daño. Los estados del reactor siguen a estos umbrales:
+  *Aviso* desde el fallo de vainas (también la alarma de temperatura y el sonido),
+  *Crítico* a medio camino de la fusión (2150 °C) y *Fusión* desde la temperatura
+  de fusión.
 - **Velocidad de las barras**: al sacar barras, la reactividad que liberan entra
   como mucho a `fission.kinetics.maxWithdrawalRate` pcm por segundo, la velocidad
   de los accionamientos. Así un pistón que saca una barra de golpe no lleva el
@@ -231,7 +251,8 @@ sustituyen a parte de las barras. Un reactor sin barras que marca −8000 de
 | `fission.thermal.ratedVoid` | 0,3 | Vapor en un núcleo que hierve su potencia nominal |
 | `fission.thermal.chfMargin` | 1,25 | Flujo crítico sobre lo que dan los intercambiadores: por encima el combustible se envuelve en vapor y se enfría mucho peor |
 | `fission.thermal.maxFuelTemperature` | 4500 | El combustible nunca pasa de aquí (°C) |
-| `fission.damage.claddingFailureTemperature` | 2000 | °C a los que fallan las vainas y empieza el daño |
+| `fission.thermal.maxSuperheat` | 50 | Kelvin por encima de la ebullición a los que puede llegar el agua del núcleo cuando el vapor no sale; a partir de ahí el calor se queda en el combustible |
+| `fission.damage.claddingFailureTemperature` | 1500 | °C a los que fallan las vainas y empieza el daño; desde aquí el reactor marca *Aviso* |
 | `fission.damage.fuelMeltingTemperature` | 2800 | °C a los que se funde el combustible |
 | `fission.damage.claddingRate` | 0,004 | Daño por segundo 800 K por encima del fallo de vainas (crece con el cuadrado) |
 | `fission.damage.meltingRate` / `meltingRateMax` | 0,01 / 0,1 | Daño por segundo al empezar a fundirse y 1200 K por encima |
@@ -244,12 +265,19 @@ se guardó con el modelo antiguo carga con el combustible a 1500 °C como mucho 
 sin daño, y se reasienta en su nueva potencia.
 
 Las barras de control solo se mueven físicamente, con pistones de Create. El
-SCRAM (botón del panel o SCRAM automático, activado por defecto a 2800 °C) no
-las mueve: enciende la señal de los Puertos de redstone en modo SCRAM hasta que
-se rearma, y esa señal es la que hay que llevar a los pistones. El umbral se
-ajusta en el panel (no es una opción de configuración) y solo se puede rearmar
-cuando el núcleo está 200 °C por debajo. A 2800 °C el combustible ya se funde:
-conviene bajar el umbral a 1500–1800 °C, antes de que fallen las vainas.
+SCRAM (botón del panel o SCRAM automático, activado por defecto a 1400 °C, justo
+por debajo del fallo de vainas) no las mueve: enciende la señal de los Puertos
+de redstone en modo SCRAM hasta que se rearma, y esa señal es la que hay que
+llevar a los pistones. El umbral se ajusta en el panel (no es una opción de
+configuración) y solo se puede rearmar cuando el núcleo está 200 °C por debajo.
+Los reactores guardados conservan el umbral que tuvieran (2800 °C en partidas
+antiguas: a esa temperatura el combustible ya se funde, conviene bajarlo). Las
+ventanas «CORE TEMP HI» y «HI-HI» del preajuste del anunciador quedan a 1000 y
+1200 °C.
+
+**Al actualizar la física térmica**: la config guardada conserva
+`claddingFailureTemperature = 2000`; para tener el daño nuevo hay que ponerla a
+1500 (o borrar la clave). `maxSuperheat` se añade solo.
 
 Cada canal de combustible aloja un elemento. El reactor solo acepta elementos
 combustibles al 3% o mas; el uranio metalico suelto ya no es combustible. El
@@ -260,6 +288,74 @@ combustible gastado conserva el enriquecimiento con el que entro.
 - `linkRange`: distancia maxima, en bloques, entre un monitor, panel o alarma y
   lo que tiene enlazado. El objetivo ademas tiene que estar en un chunk cargado
   de la misma dimension; si no, la pantalla muestra "Sin señal".
+
+### Configurar una pantalla con la llave
+
+Clic derecho con la llave inglesa sobre cualquier bloque de un Monitor de sala
+de control abre su configuracion (agachado, la llave hace lo de siempre; con la
+mano vacia se sigue cambiando de pagina). La configuracion es de la pantalla
+entera: la guarda su bloque de abajo a la izquierda y, si la pantalla crece o se
+une a otra, pasa al nuevo origen. No hay claves en el archivo de config; todo se
+elige en el juego:
+
+- **Titulo**: hasta 24 caracteres, sin codigos de formato. Vacio, la pantalla
+  muestra el tipo de maquina, como antes.
+- **Disposicion**: *Automatica* (lo de siempre: en una pantalla grande, lecturas
+  y grafica en dos paginas, juntas a partir de 3x2 bloques; en un solo bloque,
+  una lectura por pagina), *Solo lecturas*, *Solo grafica* o *Lecturas y
+  grafica* (juntas en cualquier pantalla de dos bloques o mas: lado a lado si es
+  mas ancha que alta, una encima de otra si no; un solo bloque muestra la grafica
+  despues de sus lecturas).
+- **Grafica A / Grafica B**: que dibuja cada linea de la grafica de dos minutos.
+  Se puede elegir cualquier lectura de medidor de la maquina enlazada, o *Por
+  defecto* (la pareja habitual: temperatura y potencia en un reactor, etc.).
+  Cambiarlas borra la grafica.
+- **Lecturas**: la lista de filas de la maquina con su valor en vivo. Haz clic
+  en una para elegirla y usa los botones de la derecha para mostrarla u
+  ocultarla y subirla o bajarla; el ultimo boton vuelve al orden habitual con
+  todas visibles. Las filas que no aplican (dano del combustible sin dano,
+  filas del circuito presurizado en un reactor de ebullicion directa, causa del
+  disparo de un tokamak sin disparar) siguen sin salir aunque esten visibles.
+  En un solo bloque, cada pagina es una de las lecturas visibles.
+
+El servidor comprueba cada cambio: el jugador tiene que estar al alcance del
+bloque, y solo se aceptan filas y series del tipo de maquina enlazada.
+
+### Configurar un módulo de pupitre con la llave
+
+Clic derecho con la llave inglesa sobre un módulo de un Pupitre de control abre
+su configuración (agachado, la llave lo quita). Tampoco tiene claves en el
+archivo de config:
+
+- **Cabecera**: el tipo de módulo, la máquina a la que está enlazada la consola
+  (pasa el ratón por encima para ver su posición) y su estado. Debajo, en verde
+  si la función elegida sirve para esa máquina y en rojo si no hace nada en ella
+  y por qué (necesita otra máquina, el reactor no tiene presionador, la alarma o
+  la lectura elegida es de otra máquina).
+- **Función**: la lista de funciones del módulo, con una descripción al pasar el
+  ratón. Las que la máquina enlazada no puede usar salen en gris con lo que
+  necesitan y no se pueden elegir. Una consola sin enlazar (o sin señal) muestra
+  todas, para poder montar el pupitre antes de enlazarlo.
+- **Alarma / Lectura**: en un piloto de alarma o un medidor, la lista de las
+  alarmas o lecturas que tiene esa máquina, cada una con su valor en vivo (la
+  alarma elegida sale en rojo si con el umbral actual ya encendería el piloto).
+  Si la elección guardada no es de esa máquina sale en gris al principio de la
+  lista. Al pasar a piloto de alarma o a medidor se elige la primera que sirve.
+- **Controlador**: en un módulo controlador, el botón de automático / en espera,
+  qué hace y la línea de consigna con lo que pide ahora.
+- **Umbral, consigna o nivel**: con la rueda del ratón sobre la casilla; 5 por
+  paso y 1 con Mayús (el nivel de redstone va de 0 a 15 de 1 en 1).
+- **Etiqueta**: hasta 16 caracteres, sin códigos de formato.
+- **Salida**: tres botones, ninguna, bajo el pupitre o por Redstone Link. Con
+  Redstone Link, las dos casillas de la columna izquierda fijan la frecuencia
+  (clic con un objeto; con la mano vacía se borra). A la derecha del inventario,
+  la señal que saca el módulo ahora mismo (0-15).
+
+Mientras alguien tiene esta pantalla abierta, el primer pupitre de la consola
+reenvía su muestra cada segundo para que los valores estén al día. El servidor
+comprueba cada cambio como antes: el jugador tiene que estar al alcance, el tipo
+de módulo tiene que admitir la función y la etiqueta se recorta; una función de
+otra máquina se guarda (por si se cambia el enlace) pero el módulo sigue apagado.
 
 ## Fusion (tokamak)
 
@@ -359,6 +455,24 @@ Las bobinas superconductoras del tokamak se enfrían con helio líquido. La
 **planta criogénica** lo licúa y la **bomba de vacío** mantiene el vacío de la
 cámara del plasma.
 
+- **Pozo de helio**: el primer paso de la cadena (helio gaseoso → planta
+  criogénica → helio líquido). Un bloque movido por un eje que entra por la
+  cara trasera; el frontal, con el manómetro, mira al jugador al colocarlo.
+  Saca de la roca `cryo.heliumWell.rate` mB/t de helio gaseoso a la velocidad
+  nominal (`cryo.heliumWell.ratedSpeed`): con los valores por defecto,
+  0,02 mB/t, es decir 24 mB por minuto. Por debajo de la nominal produce en
+  proporción a las RPM y por debajo de `cryo.heliumWell.minSpeed`, nada; si
+  la red está sobrecargada tampoco. Carga la red con `cryo.heliumWell.stress`
+  SU/RPM. Guarda hasta 1000 mB y cada tick empuja hasta
+  `cryo.heliumWell.transfer` mB a los tanques o máquinas que tenga al lado
+  (por cualquier cara salvo la del eje); también se puede vaciar con
+  tuberías, pero no admite fluidos. Con el tanque lleno deja de extraer. Las
+  gafas muestran el ritmo en mB/min, el tanque y el aviso de velocidad
+  insuficiente. Lleva su helio a un puerto de *Entrada de helio caliente* de
+  la planta criogénica.
+- **Celda de helio líquido**: un Surtidor llena una Célula de gas vacía con
+  250 mB de helio líquido y un Escurridor la vuelve a vaciar, para
+  llevar helio líquido a mano.
 - **Planta criogénica**: bloque de 3x3 de Carcasa de la planta criogénica, de
   3 a 5 bloques de alto. El controlador va en el centro de una pared lateral
   mirando hacia fuera; se forma con clic derecho. El centro de las capas
@@ -422,6 +536,11 @@ cámara del plasma.
 | `cryo.vacuumPump.minSpeed` | 32 | RPM mínimas de la bomba de vacío |
 | `cryo.vacuumPump.ratedSpeed` | 128 | RPM a las que cuenta como una bomba completa |
 | `cryo.vacuumPump.stress` | 2048 | Estrés de la bomba de vacío, SU/RPM |
+| `cryo.heliumWell.rate` | 0.02 | Helio gaseoso que saca el pozo a la velocidad nominal, mB/t |
+| `cryo.heliumWell.minSpeed` | 32 | RPM mínimas del pozo de helio |
+| `cryo.heliumWell.ratedSpeed` | 128 | RPM de producción completa del pozo |
+| `cryo.heliumWell.stress` | 1024 | Estrés del pozo de helio, SU/RPM |
+| `cryo.heliumWell.transfer` | 40 | mB por tick que el pozo empuja a lo que tiene al lado |
 
 ## Calentamiento del plasma, ventanas y sonido
 
@@ -535,6 +654,7 @@ Comandos de depuracion (nivel de permiso 2):
 
 | Comando | Que hace |
 |---|---|
+| `/nuclear spawn <estructura> [pos] [fuelled]` | Coloca una máquina ya formada con su esquina noroeste inferior en `pos` (o dos bloques al este y al sur de quien lo ejecuta), vaciando antes el espacio que ocupa: `reactor` (5x5x5; con `fuelled`, seis ensamblajes al 5 % y el tanque de agua lleno), `turbine` y `fusion_turbine` (5x5x8), `cooling_tower` (radio 4, 12 capas), `tokamak` (radio 4, con motor creativo en el accionamiento de imanes), `accelerator` (linac de 8 cavidades con sus tres máquinas), `steam_generator` y `cryoplant` (3x3x4) y `containment` (sala de 7x6x7 con monitor). Son las mismas estructuras que prueban los tests |
 | `/nuclear contamination query [pos]` | Valor y gravedad del chunk |
 | `/nuclear contamination add <pos> <rad/s> [radio]` | Crea contaminacion, con caida hacia el borde del radio (en chunks) |
 | `/nuclear contamination set <pos> <rad/s>` | Fija el valor de un chunk |
@@ -691,7 +811,7 @@ una cadena de accidente realista. Cada parte se puede apagar con
   la vaina, entre el combustible y su agua) el circonio reacciona con el vapor;
   da calor extra y dos mol de hidrógeno por mol de circonio, hasta agotar
   `zirconiumPerRod` por barra. El combustible nuevo trae vainas nuevas.
-- **Daño del combustible**: por encima de 2000 °C el combustible se daña (ver
+- **Daño del combustible**: por encima de 1500 °C el combustible se daña (ver
   *Fision*); las vainas rotas sueltan parte de su actividad y el chat avisa a
   los jugadores cercanos.
 - **Rotura de la vasija**: un reactor a presión que pasa `vesselFailureTicks`

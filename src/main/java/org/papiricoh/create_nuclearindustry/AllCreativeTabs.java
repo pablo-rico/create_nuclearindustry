@@ -126,6 +126,7 @@ public class AllCreativeTabs {
                 output.accept(AllNuclearItems.LITHIUM_6_BREEDER_ASSEMBLY.value());
                 output.accept(AllNuclearItems.DEUTERIUM_CELL.value());
                 output.accept(AllNuclearItems.TRITIUM_CELL.value());
+                output.accept(AllNuclearItems.LIQUID_HELIUM_CELL.value());
                 output.accept(AllNuclearItems.SPENT_DT_PELLET.value());
                 NuclearFeatures.fillCreativeTab(parameters, output);
                 CBCNuclearIntegration.addCreativeItems(output);

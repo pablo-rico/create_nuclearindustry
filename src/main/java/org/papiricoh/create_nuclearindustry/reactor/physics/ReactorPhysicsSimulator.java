@@ -25,13 +25,11 @@ import java.util.List;
  * coolant is doing ({@link #setCoolant}), then reads back the power, the heat the coolant took and
  * the temperatures. Power is relative to the core's rated power, which grows with its fuel rods, so
  * a big core and a small one are equally stable. The "core temperature" everything shows is the
- * fuel's, on the same 0-4000 °C scale as always.
+ * fuel's, on the same 0-4000 °C scale as always. The states follow the damage thresholds of the
+ * config: Warning where the cladding starts to fail, Melting where the fuel melts
+ * ({@link FissionConfig#warningTemperature()} and friends).
  */
 public class ReactorPhysicsSimulator {
-    /** Temperatures the states and alarms use, Celsius. */
-    private static final double WARNING_TEMP = 2000.0;
-    private static final double DANGER_TEMP = 3500.0;
-    private static final double MELTDOWN_TEMP = 4000.0;
     /** The neutron level shown is the relative power times this: 1000 at rated power. */
     private static final double NEUTRONS_AT_RATED = 1000.0;
     private static final double MAX_NEUTRON_LEVEL = 2000.0;
@@ -40,8 +38,10 @@ public class ReactorPhysicsSimulator {
     /** Units per assembly before the enrichment-based fuel model; used for old saves. */
     private static final double LEGACY_FUEL_PER_ASSEMBLY = 100.0;
     private static final float LEGACY_FUEL_ENRICHMENT = 20.0f;
-    /** Saves before the kinetics model are clamped to this on load, so an old hot core cannot melt at once. */
-    private static final double LEGACY_TEMPERATURE_CAP = 1500.0;
+    /** Saves before the kinetics model are clamped under the cladding failure on load, so an old hot core cannot damage itself at once. */
+    private static double legacyTemperatureCap() {
+        return FissionConfig.warningTemperature() - 100.0;
+    }
     private static final int KINETICS_VERSION = 2;
     /** What a bare simulator is cooled by until a block entity says otherwise: plenty of boiling water. */
     private static final CoreThermalModel.Boundary IDEAL_COOLING =
@@ -481,12 +481,15 @@ public class ReactorPhysicsSimulator {
         return capacity + Math.max(0, uraniumRodCount - assemblies.size()) * Config.fuelUnitsPerAssembly;
     }
 
-    /** A hot reactor just loaded: rods in, the chain reaction stopped, the fuel no hotter than critical. */
+    /**
+     * A hot reactor just loaded: rods in, the chain reaction stopped, the fuel no hotter than
+     * critical (well under melting, so the hot shutdown can hand back to the running state).
+     */
     public void forceScramForLoad() {
         setControlRodInsertion(1.0f);
         FissionCore.Params p = FissionConfig.core();
         core.restoreKinetics(p, weightedByUnits(a -> a.kind.delayedFraction()), Math.min(core.power(), 0.05), null);
-        double fuel = Math.min(core.fuelTemperature(), DANGER_TEMP);
+        double fuel = Math.min(core.fuelTemperature(), FissionConfig.dangerTemperature());
         core.thermal().restore(fuel, Math.min(core.coolantTemperature(), fuel));
     }
 
@@ -615,12 +618,14 @@ public class ReactorPhysicsSimulator {
         return core.fuelTemperature() >= FissionConfig.fuelMeltingTemperature;
     }
 
+    /** The fuel is at its melting point or past it (the Melting state). */
     public boolean isMeltingDown() {
-        return core.fuelTemperature() > MELTDOWN_TEMP;
+        return core.fuelTemperature() > FissionConfig.meltdownTemperature();
     }
 
+    /** The fuel is hot enough to damage itself (the Warning state and above). */
     public boolean isCritical() {
-        return core.fuelTemperature() > WARNING_TEMP;
+        return core.fuelTemperature() > FissionConfig.warningTemperature();
     }
 
     public boolean isRunning() {
@@ -636,11 +641,11 @@ public class ReactorPhysicsSimulator {
      */
     public ReactorState getState() {
         double t = core.fuelTemperature();
-        if (t > MELTDOWN_TEMP) {
+        if (t > FissionConfig.meltdownTemperature()) {
             return ReactorState.MELTING;
-        } else if (t > DANGER_TEMP) {
+        } else if (t > FissionConfig.dangerTemperature()) {
             return ReactorState.CRITICAL;
-        } else if (t > WARNING_TEMP) {
+        } else if (t > FissionConfig.warningTemperature()) {
             return ReactorState.WARNING;
         } else if (core.power() > RUNNING_POWER) {
             return ReactorState.RUNNING;
@@ -731,6 +736,8 @@ public class ReactorPhysicsSimulator {
         tag.putInt("kineticsVersion", KINETICS_VERSION);
         tag.putDouble("coreTemperature", core.fuelTemperature());
         tag.putDouble("coolantTemperature", core.coolantTemperature());
+        tag.putDouble("voidFraction", core.thermal().voidFraction());
+        tag.putDouble("boilingVoid", core.thermal().boilingVoid());
         tag.putDouble("neutronLevel", core.power() * NEUTRONS_AT_RATED);
         tag.putDouble("coreDamage", core.damage());
         tag.putDouble("rodReactivity", core.rodsApplied());
@@ -781,12 +788,12 @@ public class ReactorPhysicsSimulator {
         double fuel = Math.max(20.0, tag.getDouble("coreTemperature"));
         double n = Math.max(0, tag.getDouble("neutronLevel")) / NEUTRONS_AT_RATED;
         if (!current) {
-            fuel = Math.min(fuel, LEGACY_TEMPERATURE_CAP);
+            fuel = Math.min(fuel, legacyTemperatureCap());
             n = Math.min(n, 1.0);
         }
         double coolant = tag.contains("coolantTemperature") ? tag.getDouble("coolantTemperature")
                 : Math.min(fuel, FissionConfig.boilingTemperature);
-        core.thermal().restore(fuel, coolant);
+        core.thermal().restore(fuel, coolant, tag.getDouble("voidFraction"), tag.getDouble("boilingVoid"));
         double[] precursors = null;
         if (current && tag.contains("precursors", Tag.TAG_LONG_ARRAY)) {
             long[] packed = tag.getLongArray("precursors");

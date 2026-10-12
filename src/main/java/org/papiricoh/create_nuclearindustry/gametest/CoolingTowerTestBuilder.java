@@ -23,7 +23,7 @@ import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
  * the west of the bottom wall layer facing west, a steam input in the floor on the south edge
  * and a water output in the floor on the north edge.
  */
-final class CoolingTowerTestBuilder {
+public final class CoolingTowerTestBuilder {
     final BlockPos center;
     final CoolingTowerGeometry geometry;
 
@@ -33,6 +33,11 @@ final class CoolingTowerTestBuilder {
     }
 
     static CoolingTowerTestBuilder build(GameTestHelper helper, BlockPos center, int baseRadius, int height) {
+        return build(BlockPlacer.of(helper), center, baseRadius, height);
+    }
+
+    /** A tower of {@code baseRadius} and {@code height} around the floor centre {@code center} of {@code placer}. */
+    public static CoolingTowerTestBuilder build(BlockPlacer helper, BlockPos center, int baseRadius, int height) {
         CoolingTowerTestBuilder tower = new CoolingTowerTestBuilder(center, CoolingTowerGeometry.of(baseRadius, height));
         BlockState casing = AllNuclearBlocks.COOLING_TOWER_CASING.get().defaultBlockState();
         for (int y = 0; y < height; y++) {
@@ -40,19 +45,19 @@ final class CoolingTowerTestBuilder {
                 for (int dz = -baseRadius; dz <= baseRadius; dz++) {
                     CoolingTowerGeometry.Cell cell = tower.geometry.classify(dx, y, dz);
                     if (cell == CoolingTowerGeometry.Cell.FLOOR || cell == CoolingTowerGeometry.Cell.WALL) {
-                        helper.setBlock(center.offset(dx, y, dz), casing);
+                        helper.set(center.offset(dx, y, dz), casing);
                     }
                 }
             }
         }
-        helper.setBlock(tower.controllerPos(), AllNuclearBlocks.COOLING_TOWER_CONTROLLER.get().defaultBlockState()
+        helper.set(tower.controllerPos(), AllNuclearBlocks.COOLING_TOWER_CONTROLLER.get().defaultBlockState()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.WEST));
-        helper.setBlock(tower.inputPos(), port(ReactorFluidPortMode.INPUT));
-        helper.setBlock(tower.outputPos(), port(ReactorFluidPortMode.OUTPUT));
+        helper.set(tower.inputPos(), port(ReactorFluidPortMode.INPUT));
+        helper.set(tower.outputPos(), port(ReactorFluidPortMode.OUTPUT));
         return tower;
     }
 
-    BlockPos controllerPos() {
+    public BlockPos controllerPos() {
         return center.offset(-geometry.radius(1), 1, 0);
     }
 

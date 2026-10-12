@@ -26,6 +26,11 @@ public class NuclearEmptyingRecipes extends StandardProcessingRecipeGen<Emptying
             .output(AllNuclearItems.EMPTY_GAS_CELL.get())
             .output(AllNuclearFluids.TRITIUM.get(), 250));
 
+    GeneratedRecipe LIQUID_HELIUM_CELL = create("liquid_helium_cell", b -> b
+            .require(AllNuclearItems.LIQUID_HELIUM_CELL.get())
+            .output(AllNuclearItems.EMPTY_GAS_CELL.get())
+            .output(AllNuclearFluids.LIQUID_HELIUM.get(), 250));
+
     // Pellets from the old fusion ring are no longer burnt; their tritium seeds a tokamak.
     GeneratedRecipe DT_FUEL_PELLET = create("dt_fuel_pellet", b -> b
             .require(AllNuclearItems.DT_FUEL_PELLET.get())

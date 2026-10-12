@@ -135,6 +135,88 @@ class ReactivityPartsTest {
     }
 
     @Test
+    void theWaterStopsAtItsSuperheatCeilingAndTheFuelKeepsTheRest() {
+        CoreThermalModel t = new CoreThermalModel();
+        t.restore(600, 285);
+        CoreThermalModel.Boiling blocked = new CoreThermalModel.Boiling(1, 0, 1.0e6);
+        double ceiling = T.boilingTemperature() + T.maxSuperheat();
+        for (int i = 0; i < 20 * 10; i++) {
+            t.step(T, blocked, 1, 10, 0, 0.05);
+        }
+        assertEquals(ceiling, t.coolantTemperature(), 0.01, "the water is driven no further than its ceiling");
+        double fuel = t.fuelTemperature();
+        CoreThermalModel.Result r = CoreThermalModel.Result.NONE;
+        for (int i = 0; i < 20; i++) {
+            r = t.step(T, blocked, 1, T.ratedPowerPerRod(), 0, 0.05);
+        }
+        double rise = t.fuelTemperature() - fuel;
+        double allOfIt = T.ratedPowerPerRod() / T.fuelHeatCapacity();
+        assertTrue(rise > 0.9 * allOfIt && rise <= allOfIt, "every bit of heat then stays in the fuel (less what it radiates): "
+                + rise + " of " + allOfIt + " K in a second");
+        assertEquals(1, r.voidFraction(), 0.05, "and the core is all steam");
+    }
+
+    @Test
+    void voidsFollowTheirTargetWithALag() {
+        CoreThermalModel t = new CoreThermalModel();
+        t.restore(885, 285);
+        CoreThermalModel.Boiling open = new CoreThermalModel.Boiling(1, 1.0e6, 1.0e6);
+        CoreThermalModel.Result r = CoreThermalModel.Result.NONE;
+        for (int i = 0; i < 20 * 60; i++) {
+            r = t.step(T, open, 1, T.ratedPowerPerRod(), 0, 0.05);
+        }
+        assertEquals(T.ratedVoid(), r.voidFraction(), 0.02, "boiling off rated power: the rated void");
+        // The outlet shuts for one tick: the void barely moves, instead of jumping to the flashing water's.
+        CoreThermalModel.Boiling shut = new CoreThermalModel.Boiling(1, 0, 1.0e6);
+        CoreThermalModel.Result shutTick = t.step(T, shut, 1, T.ratedPowerPerRod(), 0, 0.05);
+        assertTrue(Math.abs(shutTick.voidFraction() - r.voidFraction()) < 0.03, "one tick moves it little: " + shutTick.voidFraction());
+        // Held shut, it gets there within a few time constants.
+        CoreThermalModel.Result held = shutTick;
+        for (int i = 0; i < 20 * 5; i++) {
+            held = t.step(T, shut, 1, T.ratedPowerPerRod(), 0, 0.05);
+        }
+        assertTrue(held.voidFraction() > 0.5, "held shut, the flashing water fills the core with steam: " + held.voidFraction());
+    }
+
+    @Test
+    void aRestoredCoreKeepsItsVoidThroughItsFirstStep() {
+        CoreThermalModel t = new CoreThermalModel();
+        t.restore(885, 285);
+        CoreThermalModel.Boiling half = new CoreThermalModel.Boiling(0.5, 1.0e6, 1.0e6);
+        CoreThermalModel.Result r = CoreThermalModel.Result.NONE;
+        for (int i = 0; i < 20 * 60; i++) {
+            r = t.step(T, half, 1, T.ratedPowerPerRod(), 0, 0.05);
+        }
+        double voids = r.voidFraction();
+        assertTrue(voids > 0.5 && t.boilingVoid() > 0 && t.boilingVoid() < voids, "half uncovered and boiling: " + voids);
+        // Saved and loaded: the whole core's void and the bubbles are restored apart, so the first step
+        // after loading reads the same void and the power does not bump.
+        CoreThermalModel loaded = new CoreThermalModel();
+        loaded.restore(t.fuelTemperature(), t.coolantTemperature(), voids, t.boilingVoid());
+        assertEquals(voids, loaded.voidFraction(), 1e-12, "restored as saved");
+        CoreThermalModel.Result first = loaded.step(T, half, 1, T.ratedPowerPerRod(), 0, 0.05);
+        assertEquals(voids, first.voidFraction(), 0.005, "and the first step does not move it: " + first.voidFraction());
+        // The core's own reading is the thermal model's, restored with it.
+        FissionCore core = new FissionCore();
+        core.thermal().restore(885, 285, 0.3, 0.3);
+        assertEquals(0.3, core.voidFraction(), 1e-12, "the core reads the restored void before its first tick");
+    }
+
+    @Test
+    void heatPastTheWaterCeilingGoesToTheFuelNotNowhere() {
+        CoreThermalModel t = new CoreThermalModel();
+        // A save from the old model: water at 400 C, past the 335 C ceiling, with the outlet shut.
+        t.restore(600, 400);
+        CoreThermalModel.Boiling shut = new CoreThermalModel.Boiling(1, 0, 1.0e6);
+        double fuelEnergy = t.fuelTemperature() * T.fuelHeatCapacity();
+        double waterEnergy = t.coolantTemperature() * (T.coolantHeatCapacity() + T.structureHeatCapacity());
+        t.step(T, shut, 1, 0, 0, 0.05);
+        double after = t.fuelTemperature() * T.fuelHeatCapacity() + t.coolantTemperature() * (T.coolantHeatCapacity() + T.structureHeatCapacity());
+        assertEquals(T.boilingTemperature() + T.maxSuperheat(), t.coolantTemperature(), 1e-9, "the water drops to its ceiling");
+        assertEquals(fuelEnergy + waterEnergy, after, 0.5, "and what it could not hold is in the fuel (less a little radiation)");
+    }
+
+    @Test
     void aDryCorePassesLittleHeat() {
         CoreThermalModel wet = new CoreThermalModel();
         CoreThermalModel dry = new CoreThermalModel();
@@ -160,9 +242,10 @@ class ReactivityPartsTest {
 
     @Test
     void damageStartsWithTheCladdingAndRunsAwayAsTheFuelMelts() {
-        assertEquals(0, CoreDamageModel.rate(D, 1900), 1e-12);
-        assertEquals(D.claddingRate(), CoreDamageModel.rate(D, 2800), 1e-9);
-        assertTrue(CoreDamageModel.rate(D, 3200) > 5 * CoreDamageModel.rate(D, 2700), "molten fuel slumps fast");
+        assertEquals(0, CoreDamageModel.rate(D, D.claddingFailure() - 100), 1e-12);
+        assertEquals(D.claddingRate(), CoreDamageModel.rate(D, D.claddingFailure() + 800), 1e-9);
+        assertTrue(CoreDamageModel.rate(D, D.fuelMelting() + 400) > 5 * CoreDamageModel.rate(D, D.fuelMelting() - 100),
+                "molten fuel slumps fast");
         CoreDamageModel damage = new CoreDamageModel();
         int seconds = 0;
         while (!damage.meltedDown(D) && seconds < 600) {

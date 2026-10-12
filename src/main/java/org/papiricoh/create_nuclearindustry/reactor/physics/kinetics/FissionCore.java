@@ -76,7 +76,6 @@ public final class FissionCore {
     private final XenonModel xenon = new XenonModel();
     private final DecayHeatModel decay = new DecayHeatModel();
     private double rodsApplied = Double.NaN;
-    private double voidFraction;
     private ReactivityModel.Breakdown breakdown = new ReactivityModel.Breakdown(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     private CoreThermalModel.Result thermalResult = CoreThermalModel.Result.NONE;
     private double ratedPower;
@@ -98,7 +97,7 @@ public final class FissionCore {
         double xenonPcm = p.xenonPoisoning() ? xenon.penalty(p.xenonWorth()) : 0;
         breakdown = ReactivityModel.compute(p.reactivity(), new ReactivityModel.Inputs(in.fuelReactivity(), in.burnt(),
                 in.noDefectShare(), in.emptyFraction(), in.moderation(), in.reflection(), in.coolant(), xenonPcm, rodsApplied,
-                thermal.fuelTemperature(), thermal.coolantTemperature(), voidFraction, coverage(in.boundary()), damage.damage(),
+                thermal.fuelTemperature(), thermal.coolantTemperature(), thermal.voidFraction(), coverage(in.boundary()), damage.damage(),
                 in.pwrVoidWorth(),
                 in.pwrTemperatureCoefficient()));
 
@@ -114,7 +113,6 @@ public final class FissionCore {
         double perRod = p.thermal().ratedPowerPerRod() * Math.max(0, in.heatFactor());
         double heatPerRod = ((1 - fraction) * n + decay.heat()) * perRod + Math.max(0, in.oxidationHeat());
         thermalResult = thermal.step(p.thermal(), in.boundary(), in.rods(), heatPerRod, damage.damage(), TICK);
-        voidFraction = thermalResult.voidFraction();
         damage.step(p.damage(), thermal.fuelTemperature(), TICK);
         if (p.xenonPoisoning()) {
             xenon.tick(Math.min(1, n), p.iodineHalfLife(), p.xenonHalfLife());
@@ -170,8 +168,9 @@ public final class FissionCore {
         return damage.damage();
     }
 
+    /** Steam in the core, 0..1, as the thermal model last stepped or restored it. */
     public double voidFraction() {
-        return voidFraction;
+        return thermal.voidFraction();
     }
 
     public ReactivityModel.Breakdown breakdown() {

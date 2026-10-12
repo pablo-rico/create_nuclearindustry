@@ -1,4 +1,5 @@
-// 1.21.1	2026-10-06T17:59:50.359444	create_nuclearindustry's processing recipes: emptying
+// 1.21.1	2026-10-12T02:35:52.8494138	create_nuclearindustry's processing recipes: emptying
 dcc89b16dc02990020fb3c67bbfd2d055139be62 data/create_nuclearindustry/recipe/emptying/deuterium_cell.json
 db476308c3b3795418f78a2645faad4c66b80d9f data/create_nuclearindustry/recipe/emptying/dt_fuel_pellet.json
+14f3ef038483dcdb18b9f828f5cddf97f38c5773 data/create_nuclearindustry/recipe/emptying/liquid_helium_cell.json
 2597b6c3e0873437d87c15d817f6b4edcbe3b5b6 data/create_nuclearindustry/recipe/emptying/tritium_cell.json

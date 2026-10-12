@@ -36,11 +36,11 @@ class ReactorSoundModelTest {
         assertTrue(ReactorSoundModel.klaxonWanted(true, 600));
         assertFalse(ReactorSoundModel.klaxonWanted(true, 60), "a cold core is quiet");
         assertFalse(ReactorSoundModel.klaxonWanted(false, 600), "no SCRAM, no klaxon");
-        assertFalse(ReactorSoundModel.alarmWanted(true, 1500));
-        assertTrue(ReactorSoundModel.alarmWanted(true, 2500));
-        assertTrue(ReactorSoundModel.alarmPitch(3900) > ReactorSoundModel.alarmPitch(2100), "more urgent near meltdown");
+        assertFalse(ReactorSoundModel.alarmWanted(true, 1400, 1500));
+        assertTrue(ReactorSoundModel.alarmWanted(true, 2500, 1500));
+        assertTrue(ReactorSoundModel.alarmPitch(2700, 1500, 2800) > ReactorSoundModel.alarmPitch(1600, 1500, 2800), "more urgent near meltdown");
         for (double t = 0; t <= 6000; t += 250) {
-            inRange(ReactorSoundModel.alarmVolume(t), ReactorSoundModel.alarmPitch(t));
+            inRange(ReactorSoundModel.alarmVolume(t, 1500, 2800), ReactorSoundModel.alarmPitch(t, 1500, 2800));
         }
     }
 

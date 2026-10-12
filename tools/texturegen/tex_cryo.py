@@ -320,3 +320,90 @@ def fusion_vacuum_pump_rotor_hub():
     t.disc(8, 8, 4, FCOPPER[5])
     t.disc(8, 8, 2, GRAPHITE[1])
     return t
+
+
+# ======================================================================================
+# helium well: the chain's first helium, a shaft-driven wellhead in the cold-box language
+# ======================================================================================
+
+@block("helium_well_front")
+def helium_well_front():
+    """A bolted steel face with the wellhead pressure gauge and a frosty sample valve."""
+    t = Tex(seed=940)
+    brushed(t, STEEL, base=3.4, amp=0.6, seed=940)
+    outline(t, 0, 0, 15, 15, STEEL[1])
+    bevel(t, 1, 1, 14, 14, STEEL, hi=STEEL[5], lo=STEEL[0])
+    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        bolt(t, x, y, STEEL)
+    # the gauge: a brass bezel, pale dial and a needle well into the green
+    t.disc(8, 6.5, 3.6, BRASS[2])
+    t.disc(8, 6.5, 2.9, FROST)
+    t.ring(8, 6.5, 2.9, 2.4, FROST_DIM)
+    t.line(8, 7, 10, 5, DARK[0])
+    t.set(8, 7, STEEL[1])
+    t.set(5, 7, CYAN[3])
+    t.set(11, 7, WARN[4])
+    # the valve below it, rimed over where the cold gas leaves
+    t.hline(5, 10, 12, STEEL[1])
+    t.rect(7, 10, 8, 11, STEEL[4])
+    t.hline(6, 9, 10, CYAN[4])
+    t.hline(5, 10, 13, FROST_DIM)
+    _frost(t, 940, 0.06, rows=(12, 13))
+    return t
+
+
+@block("helium_well_side")
+def helium_well_side():
+    """Steel casing with a helium band: the well's housing."""
+    t = Tex(seed=941)
+    casing(t, STEEL, seed=941, seam=False)
+    vents(t, 3, 4, 12, 9, STEEL, step=2)
+    t.hline(3, 12, 11, CYAN[4])
+    t.hline(3, 12, 12, CYAN[2])
+    _frost(t, 941, 0.05, rows=(13,))
+    return t
+
+
+@block("helium_well_top")
+def helium_well_top():
+    """The wellhead cap: a bolted flange over the bore, frost on its rim."""
+    t = Tex(seed=942)
+    brushed(t, STEEL, base=3.2, amp=0.6, seed=942)
+    t.disc(8, 8, 5.6, STEEL[2])
+    t.ring(8, 8, 5.6, 4.7, STEEL[5])
+    t.ring(8, 8, 6.0, 5.6, STEEL[1])
+    for a in range(0, 360, 60):
+        r = math.radians(a)
+        t.set(round(8 + math.cos(r) * 5.1 - 0.5), round(8 + math.sin(r) * 5.1 - 0.5), STEEL[6])
+    t.disc(8, 8, 3.0, CRYO[4])
+    t.ring(8, 8, 3.0, 2.3, CRYO[2])
+    t.disc(8, 8, 1.1, DARK[1])
+    outline(t, 0, 0, 15, 15, STEEL[1])
+    bevel(t, 1, 1, 14, 14, STEEL, hi=STEEL[5], lo=STEEL[0])
+    _frost(t, 942, 0.1)
+    return t
+
+
+@block("helium_well_back")
+def helium_well_back():
+    """A 2-pixel bolted rim (drawn proud of the face) around the recess the shaft enters."""
+    t = Tex(seed=943)
+    for y in range(16):
+        for x in range(16):
+            t.set(x, y, DARK[2] if math.hypot(x + 0.5 - 8, y + 0.5 - 8) > 3.2 else DARK[1])
+    t.ring(8, 8, 3.2, 2.5, STEEL[2])
+    for y in range(16):
+        for x in range(16):
+            if x < 2 or y < 2 or x > 13 or y > 13:
+                n = fbm(x, y, 943, 16, 16, 2, 5.0)
+                t.set(x, y, STEEL[3 if n < 0.5 else 4])
+    outline(t, 0, 0, 15, 15, STEEL[1])
+    t.hline(1, 14, 1, STEEL[5])
+    t.vline(1, 1, 14, STEEL[5])
+    t.hline(1, 14, 14, STEEL[1])
+    t.vline(14, 1, 14, STEEL[1])
+    for x, y in ((0, 0), (14, 0), (0, 14), (14, 14)):
+        t.set(x, y, STEEL[6])
+        t.set(x + 1, y + 1, STEEL[0])
+    outline(t, 2, 2, 13, 13, DARK[0])
+    return t

@@ -74,6 +74,8 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> LITHIUM_6_BREEDER_ASSEMBLY = ITEMS.register("lithium_6_breeder_assembly", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> DEUTERIUM_CELL = ITEMS.register("deuterium_cell", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> TRITIUM_CELL = ITEMS.register("tritium_cell", () -> new Item(new Item.Properties().stacksTo(16)));
+    /** 250 mB of liquid helium in a gas cell: carries a cryogenic plant's output to a tokamak by hand. */
+    public static final DeferredHolder<Item, ? extends Item> LIQUID_HELIUM_CELL = ITEMS.register("liquid_helium_cell", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> DT_FUEL_PELLET = ITEMS.register("dt_fuel_pellet", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<Item, ? extends Item> SPENT_DT_PELLET = ITEMS.register("spent_dt_pellet", () -> new Item(new Item.Properties().stacksTo(16)));
 

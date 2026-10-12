@@ -36,33 +36,38 @@ public final class FissionTestBuilder {
 
     /** The same reactor with its lowest corner at {@code origin}. */
     public static void build(GameTestHelper helper, BlockPos origin, boolean controlRods) {
+        build(BlockPlacer.of(helper), origin, controlRods);
+    }
+
+    /** The reactor with its lowest corner at {@code origin} of {@code placer}. */
+    public static void build(BlockPlacer helper, BlockPos origin, boolean controlRods) {
         BlockState casing = AllNuclearBlocks.REACTOR_CASING.get().defaultBlockState();
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < SIZE; y++) {
                 for (int z = 0; z < SIZE; z++) {
                     boolean shell = x == 0 || y == 0 || z == 0 || x == SIZE - 1 || y == SIZE - 1 || z == SIZE - 1;
                     if (shell) {
-                        helper.setBlock(origin.offset(x, y, z), casing);
+                        helper.set(origin.offset(x, y, z), casing);
                     }
                 }
             }
         }
 
         for (int y = 1; y < SIZE - 1; y++) {
-            helper.setBlock(origin.offset(1, y, 1), AllNuclearBlocks.URANIUM_ROD.get());
-            helper.setBlock(origin.offset(3, y, 3), AllNuclearBlocks.URANIUM_ROD.get());
-            helper.setBlock(origin.offset(2, y, 2), AllNuclearBlocks.HEAT_EXCHANGER.get());
+            helper.set(origin.offset(1, y, 1), AllNuclearBlocks.URANIUM_ROD.get());
+            helper.set(origin.offset(3, y, 3), AllNuclearBlocks.URANIUM_ROD.get());
+            helper.set(origin.offset(2, y, 2), AllNuclearBlocks.HEAT_EXCHANGER.get());
             if (controlRods) {
-                helper.setBlock(origin.offset(1, y, 3), AllNuclearBlocks.CONTROL_ROD.get());
+                helper.set(origin.offset(1, y, 3), AllNuclearBlocks.CONTROL_ROD.get());
             }
         }
         if (!controlRods) {
-            helper.setBlock(origin.offset(1, SIZE - 1, 3), net.minecraft.world.level.block.Blocks.AIR);
+            helper.set(origin.offset(1, SIZE - 1, 3), net.minecraft.world.level.block.Blocks.AIR);
         }
 
-        helper.setBlock(coolantPortAt(origin), port(Direction.WEST, ReactorFluidPortMode.INPUT));
-        helper.setBlock(steamPortAt(origin), port(Direction.EAST, ReactorFluidPortMode.OUTPUT));
-        helper.setBlock(controllerAt(origin), AllNuclearBlocks.REACTOR_CONTROLLER.get());
+        helper.set(coolantPortAt(origin), port(Direction.WEST, ReactorFluidPortMode.INPUT));
+        helper.set(steamPortAt(origin), port(Direction.EAST, ReactorFluidPortMode.OUTPUT));
+        helper.set(controllerAt(origin), AllNuclearBlocks.REACTOR_CONTROLLER.get());
     }
 
     public static BlockPos controllerAt(BlockPos origin) {

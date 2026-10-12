@@ -23,6 +23,8 @@ class ReactorScenarioTest {
             D.xenonHalfLife(), D.decayFraction(), D.decayTime());
     private static final double STEAM_MW_PER_MB = 2.0;
     private static final int TICKS_PER_SECOND = 20;
+    /** Fuel temperature where the cladding fails: the first damage. */
+    private static final double DAMAGE = D.damage().claddingFailure();
 
     /** A core: fuel rods, control channels and their height, heat exchangers and port pairs. */
     private record Core(int rods, int channels, int channelHeight, int exchangers, int portPairs, double moderation) {
@@ -56,6 +58,13 @@ class ReactorScenarioTest {
         double reactivityOfFuel = 1.0;
         FissionCore.Params params = P;
         double peakFuel;
+        /** A steam tank between the core and its turbine, mB: -1 for none (the removal is the exchangers'). */
+        double tank = -1;
+        double tankCapacity = 16000;
+        double turbineDraw;
+        double steamCarry;
+        double minPower = Double.MAX_VALUE;
+        double maxPower;
 
         Run(Core core, double insertion) {
             this.core = core;
@@ -73,13 +82,36 @@ class ReactorScenarioTest {
         }
 
         void seconds(double s) {
+            minPower = Double.MAX_VALUE;
+            maxPower = 0;
             for (int i = 0; i < s * TICKS_PER_SECOND; i++) {
+                double removal = core.maxRemoval() * removalScale;
+                if (tank >= 0) {
+                    removal = Math.min(removal, Math.max(0, tankCapacity - tank) * STEAM_MW_PER_MB);
+                }
                 CoreThermalModel.Boundary boundary = coverage <= 0 ? new CoreThermalModel.Dry()
-                        : new CoreThermalModel.Boiling(coverage, core.maxRemoval() * removalScale, core.chf());
+                        : new CoreThermalModel.Boiling(coverage, removal, core.chf());
                 fission.tick(params, new FissionCore.Inputs(core.rods(), true, 1.0, 650, reactivityOfFuel, 0, 0, 0, core.moderation(), 0,
                         ReactivityModel.Coolant.WATER, core.maxAbsorption(), channels, boundary, 0, 0.6, 0.002));
+                if (tank >= 0) {
+                    steamCarry += fission.thermalResult().boiled() / STEAM_MW_PER_MB;
+                    int steam = (int) steamCarry;
+                    steamCarry -= steam;
+                    tank = Math.min(tankCapacity, tank + steam);
+                    // The turbine takes its steam in gulps, once a second: the outlet shuts whenever the tank is full.
+                    if (i % TICKS_PER_SECOND == 0) {
+                        tank = Math.max(0, tank - turbineDraw * TICKS_PER_SECOND);
+                    }
+                }
                 peakFuel = Math.max(peakFuel, fission.fuelTemperature());
+                minPower = Math.min(minPower, fission.power());
+                maxPower = Math.max(maxPower, fission.power());
             }
+        }
+
+        /** Peak-to-peak swing of the power over the last run, as a share of its peak. */
+        double powerSwing() {
+            return maxPower <= 0 ? 0 : (maxPower - minPower) / maxPower;
         }
 
         double power() {
@@ -121,7 +153,7 @@ class ReactorScenarioTest {
         Run run = steadyCore();
         run.insertAll(0);
         run.seconds(600);
-        assertTrue(run.peakFuel > 2000 && run.fission.damage() > 0, "fresh fuel holds far more reactivity than its heat takes back: "
+        assertTrue(run.peakFuel > DAMAGE && run.fission.damage() > 0, "fresh fuel holds far more reactivity than its heat takes back: "
                 + run.peakFuel + " °C, damage " + run.fission.damage());
     }
 
@@ -129,7 +161,7 @@ class ReactorScenarioTest {
     void aCoreWithNoControlRodsOverheats() {
         Run run = new Run(new Core(12, 0, 3, 6, 3, 0), 0);
         run.seconds(600);
-        assertTrue(run.peakFuel > 2000 && run.fission.damage() > 0, "nothing holds it back: " + run.peakFuel);
+        assertTrue(run.peakFuel > DAMAGE && run.fission.damage() > 0, "nothing holds it back: " + run.peakFuel);
     }
 
     @Test
@@ -141,7 +173,7 @@ class ReactorScenarioTest {
                 + run.power());
         run.coverage = 1;
         run.seconds(300);
-        assertTrue(run.peakFuel > 2000 && run.fission.damage() > 0, "but the water coming back brings every bit of reactivity "
+        assertTrue(run.peakFuel > DAMAGE && run.fission.damage() > 0, "but the water coming back brings every bit of reactivity "
                 + "back with nothing to hold it: " + run.peakFuel + " °C, damage " + run.fission.damage());
     }
 
@@ -160,7 +192,7 @@ class ReactorScenarioTest {
         ReactivityModel.Parts parts = run.fission.breakdown().parts();
         assertEquals(parts.total(), run.fission.reactivity(), 1e-6, "the parts add up to the net reactivity");
         assertTrue(parts.rods() == 0 && parts.voids() < -5000, "the uncovered fuel is all that holds it: " + parts);
-        assertTrue(run.peakFuel > 2000 && run.fission.damage() > 0, "and that is not enough for 20% fuel with graphite: "
+        assertTrue(run.peakFuel > DAMAGE && run.fission.damage() > 0, "and that is not enough for 20% fuel with graphite: "
                 + run.peakFuel + " C, damage " + run.fission.damage());
     }
 
@@ -175,7 +207,7 @@ class ReactorScenarioTest {
         double change = after / before - 1;
         assertTrue(change > 0.02 && change < 0.30, "one block out: " + (change * 100) + "% (" + before + " -> " + after + ")");
         assertEquals(after, run.power(), 0.01 * after, "settled");
-        assertTrue(run.fission.fuelTemperature() < 1200, "still cool: " + run.fission.fuelTemperature());
+        assertTrue(run.fission.fuelTemperature() < DAMAGE - 300, "still cool: " + run.fission.fuelTemperature());
     }
 
     @Test
@@ -185,7 +217,7 @@ class ReactorScenarioTest {
         run.seconds(20);
         run.insertAll(1);
         run.seconds(300);
-        assertTrue(run.peakFuel < 2000, "the rod drives free their reactivity slowly enough to SCRAM in time: " + run.peakFuel);
+        assertTrue(run.peakFuel < DAMAGE, "the rod drives free their reactivity slowly enough to SCRAM in time: " + run.peakFuel);
         assertTrue(run.power() < 0.01 && run.fission.fuelTemperature() < 450, "and it shuts down: " + run.power() + ", "
                 + run.fission.fuelTemperature());
     }
@@ -218,16 +250,77 @@ class ReactorScenarioTest {
         assertTrue(run.fission.fuelTemperature() > 1500, "and half an hour later it is still hot: " + run.fission.fuelTemperature());
     }
 
+    /**
+     * The steam has nowhere to go: the water is driven to its superheat ceiling and flashes to steam,
+     * and the void shuts the chain reaction down within seconds. The decay heat then has no water to
+     * go to and creeps into the fuel, so the outlet must be freed, but a core at half power is not
+     * damaged by it.
+     */
     @Test
-    void aBlockedSteamOutletHeatsTheCoreGradually() {
+    void aBlockedSteamOutletShutsTheCoreDownOnItsOwnSteam() {
         Run run = steadyCore();
         double fuel = run.fission.fuelTemperature();
+        double ceiling = D.thermal().boilingTemperature() + D.thermal().maxSuperheat();
         run.removalScale = 0;
         run.seconds(5);
         assertTrue(run.fission.fuelTemperature() - fuel < 150, "no jump: " + (run.fission.fuelTemperature() - fuel));
+        assertEquals(ceiling, run.fission.coolantTemperature(), 1, "the water stops at its ceiling");
+        run.seconds(30);
+        assertTrue(run.power() < 0.1, "the flashing water pulls the power down by itself: " + run.power());
+        double afterShutdown = run.fission.fuelTemperature();
         run.seconds(600);
-        assertTrue(run.power() < 0.2, "the hot water pulls the power down by itself: " + run.power());
-        assertTrue(run.peakFuel < 2000, "without damage: " + run.peakFuel);
+        assertTrue(run.fission.fuelTemperature() > afterShutdown + 100, "the decay heat has nowhere to go but the fuel: "
+                + afterShutdown + " -> " + run.fission.fuelTemperature());
+        assertTrue(run.peakFuel < DAMAGE && run.fission.damage() == 0, "without damage from half power: " + run.peakFuel);
+    }
+
+    /**
+     * The reactor that prompted this: twelve 20% fuel blocks, nine rod blocks, and only two heat
+     * exchangers' worth of steam. The power cannot exceed what leaves as steam, so pulling more rods
+     * used to change nothing while the water silently soaked the reactivity. Now the water stops at
+     * its ceiling and each block out heats the fuel by hundreds of degrees, until it is damaged.
+     */
+    @Test
+    void aSteamBoundCoreStillAnswersItsRods() {
+        Run run = new Run(new Core(12, 3, 3, 2, 3, 0), 1.0);
+        run.reactivityOfFuel = 1.5;
+        run.seconds(60);
+        double removal = run.core.maxRemoval();
+        double[] fuelByBlocksOut = new double[10];
+        double peakPower = 0;
+        for (int out = 1; out <= 9; out++) {
+            for (int c = 0; c < 3; c++) {
+                int inChannel = out / 3 + (c < out % 3 ? 1 : 0);
+                run.channels[c] = 1.0 - inChannel / 3.0;
+            }
+            run.seconds(300);
+            // Settled: the last minute of each step, after the withdrawal's transient has passed.
+            run.seconds(60);
+            peakPower = Math.max(peakPower, run.maxPower * run.fission.ratedPower());
+            fuelByBlocksOut[out] = run.fission.fuelTemperature();
+            if (run.fission.damage() > 0) {
+                break;
+            }
+        }
+        assertTrue(peakPower < removal * 1.05, "settled, the power never beats the steam that leaves: " + peakPower + " of " + removal);
+        assertTrue(fuelByBlocksOut[4] > 500 && fuelByBlocksOut[5] > fuelByBlocksOut[4] + 300,
+                "the first block past criticality is a few hundred degrees, the next is hundreds more: " + Arrays.toString(fuelByBlocksOut));
+        assertTrue(run.fission.damage() > 0 && run.peakFuel > DAMAGE, "and the rods out damage it, steam bound or not: "
+                + Arrays.toString(fuelByBlocksOut));
+    }
+
+    /** The turbine takes less than the core makes: the tank fills, the outlet chokes, and the power holds steady. */
+    @Test
+    void aChokedSteamTankDoesNotMakeThePowerSawtooth() {
+        Run run = new Run(new Core(12, 3, 3, 6, 3, 0), 0.45);
+        run.tank = 0;
+        run.turbineDraw = 100;
+        run.seconds(300);
+        assertTrue(run.tank > run.tankCapacity * 0.9, "the turbine cannot keep up: " + run.tank);
+        run.seconds(60);
+        assertTrue(run.power() > 0.2, "the core runs on at what the turbine takes: " + run.power());
+        assertTrue(run.powerSwing() < 0.05, "steadily: " + run.powerSwing() * 100 + "% peak to peak");
+        assertTrue(run.fission.damage() == 0 && run.fission.fuelTemperature() < DAMAGE, "no harm done: " + run.fission.fuelTemperature());
     }
 
     @Test
@@ -246,6 +339,6 @@ class ReactorScenarioTest {
         Core core = new Core(6, 1, 3, 3, 1, 1.0);
         Run run = new Run(core, 0);
         run.seconds(600);
-        assertTrue(run.peakFuel > 2000, "graphite keeps moderating when the water boils: " + run.peakFuel);
+        assertTrue(run.peakFuel > DAMAGE, "graphite keeps moderating when the water boils: " + run.peakFuel);
     }
 }

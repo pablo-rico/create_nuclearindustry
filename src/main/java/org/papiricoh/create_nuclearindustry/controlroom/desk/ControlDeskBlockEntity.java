@@ -48,6 +48,8 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
     private static final int EVALUATE_INTERVAL = 10;
     /** The console's first desk looks at the console again this often, in case a change went unnoticed. */
     public static final int CLUSTER_FALLBACK_INTERVAL = 600;
+    /** How often the console's first desk resends its sample while a module setup screen is open. */
+    public static final int VIEWER_SYNC_INTERVAL = 20;
 
     private final ControlModule[] modules = new ControlModule[SLOTS];
     private final ModuleLink[] links = new ModuleLink[SLOTS];
@@ -69,6 +71,16 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
     private long sampledAt = Long.MIN_VALUE;
     @Nullable
     private DeskShape lastShape;
+    /**
+     * Origin only, not saved: module setup screens open on this console. While there is one, the desk's
+     * sync carries the console's sample every {@link #VIEWER_SYNC_INTERVAL} ticks for its live values.
+     */
+    private int viewers;
+    private int viewerSyncCounter;
+    /** Client only: the console summary last synced for an open setup screen, or null. */
+    @Nullable
+    private ConsoleSummary syncedSummary;
+    private long syncedAt = Long.MIN_VALUE;
 
     public ControlDeskBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -114,6 +126,10 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         if (pulseEnded || ++evaluateCounter >= EVALUATE_INTERVAL) {
             evaluateCounter = 0;
             evaluate();
+        }
+        if (viewers > 0 && isOrigin() && ++viewerSyncCounter >= VIEWER_SYNC_INTERVAL) {
+            viewerSyncCounter = 0;
+            sendData();
         }
     }
 
@@ -362,6 +378,32 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         return console.sample;
     }
 
+    /** A module setup screen opened on this console (call on the origin). */
+    public void addViewer() {
+        viewers++;
+        viewerSyncCounter = 0;
+    }
+
+    /** A module setup screen on this console closed (call on the desk {@link #addViewer} was called on). */
+    public void removeViewer() {
+        viewers = Math.max(0, viewers - 1);
+    }
+
+    /** Module setup screens open on this console, as counted by its origin. */
+    public int viewers() {
+        return viewers;
+    }
+
+    /**
+     * Client side: the console's summary as last synced for an open setup screen, or null when none came
+     * at or after game time {@code notBefore} (an older one belongs to a screen opened earlier).
+     */
+    @Nullable
+    public ConsoleSummary syncedSummary(long notBefore) {
+        ControlDeskBlockEntity console = origin().orElse(this);
+        return console.syncedSummary != null && console.syncedAt >= notBefore ? console.syncedSummary : null;
+    }
+
     // ------------------------------------------------------------------ shown state and redstone
 
     private void evaluate() {
@@ -480,6 +522,9 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         }
         tag.putInt("ConsoleSize", consoleSize);
         tag.putInt("BelowSignal", belowSignal);
+        if (clientPacket && viewers > 0 && isOrigin() && level != null && !level.isClientSide) {
+            tag.put("ConsoleSample", ConsoleSummary.of(this).write());
+        }
     }
 
     @Override
@@ -502,6 +547,10 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         origin = tag.contains("Origin") ? BlockPos.of(tag.getLong("Origin")) : null;
         consoleSize = Math.max(1, tag.getInt("ConsoleSize"));
         belowSignal = tag.getInt("BelowSignal");
+        if (clientPacket && tag.contains("ConsoleSample", Tag.TAG_COMPOUND)) {
+            syncedSummary = ConsoleSummary.read(tag.getCompound("ConsoleSample"));
+            syncedAt = level != null ? level.getGameTime() : Long.MIN_VALUE;
+        }
         clusterDirty = true;
         if (!clientPacket && level != null && !level.isClientSide) {
             refreshLinks();

@@ -7,6 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.PerformanceConfig;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
 import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
 
 import java.util.ArrayDeque;
@@ -33,8 +35,11 @@ import java.util.Set;
  * only the samples recorded since the last one, and go out when the reading changed by a visible
  * step, at most every {@link PerformanceConfig#screenSyncTicks} ticks, or every
  * {@link PerformanceConfig#forcedSyncTicks} ticks while the graph has new samples.
+ *
+ * <p>The origin also holds the screen's {@link MonitorConfig}, set up with a wrench from any of its
+ * monitors: the setup goes to the origin as the link does, and to the new origin when screens join.
  */
-public class ControlMonitorBlockEntity extends SmartBlockEntity implements ControlRoomDevice {
+public class ControlMonitorBlockEntity extends SmartBlockEntity implements ControlRoomDevice, ConfigurableDevice {
     public static final int MAX_SIZE = 8;
     public static final int HISTORY = 120;
     private static final int SAMPLE_INTERVAL = 20;
@@ -56,6 +61,7 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
     private boolean clusterDirty = true;
     private int clusterCheckCounter;
     private int sampleCounter = SAMPLE_INTERVAL;
+    private MonitorConfig config = MonitorConfig.DEFAULT;
     private MonitorReading reading = MonitorReading.NONE;
     private final float[] historyA = new float[HISTORY];
     private final float[] historyB = new float[HISTORY];
@@ -203,8 +209,20 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
                 monitor.applyCluster(member, 1, 1);
             }
         }
-        if (screen != null && screen.target == null) {
-            screen.adoptTargetFrom(members);
+        if (screen != null) {
+            ControlMonitorBlockEntity donor = screen.target == null ? screen.adoptTargetFrom(members) : null;
+            if (screen.config.isDefault()) {
+                screen.adoptConfigFrom(members, donor);
+            }
+            // Only the origin keeps a setup: a member's leftover one must not come back as the screen's
+            // when the screen is later reset to its defaults.
+            for (BlockPos member : members) {
+                if (!member.equals(screen.getBlockPos()) && level.getBlockEntity(member) instanceof ControlMonitorBlockEntity monitor
+                        && !monitor.config.isDefault()) {
+                    monitor.config = MonitorConfig.DEFAULT;
+                    monitor.setChanged();
+                }
+            }
         }
     }
 
@@ -223,17 +241,47 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         }
     }
 
-    /** A screen grown from linked monitors keeps the link of one of them. */
-    private void adoptTargetFrom(Set<BlockPos> members) {
+    /** A screen grown from linked monitors keeps the link of one of them, which it returns. */
+    @Nullable
+    private ControlMonitorBlockEntity adoptTargetFrom(Set<BlockPos> members) {
         for (BlockPos member : members) {
             if (!member.equals(getBlockPos()) && level.getBlockEntity(member) instanceof ControlMonitorBlockEntity monitor
                     && monitor.target != null) {
                 target = monitor.target;
                 monitor.target = null;
                 monitor.setChanged();
-                return;
+                return monitor;
             }
         }
+        return null;
+    }
+
+    /**
+     * A screen grown from set-up monitors keeps the setup of one of them: the one whose link it took
+     * when that one was set up, so a screen that grows keeps both its link and its setup.
+     */
+    private void adoptConfigFrom(Set<BlockPos> members, @Nullable ControlMonitorBlockEntity preferred) {
+        ControlMonitorBlockEntity donor = preferred != null && !preferred.config.isDefault() ? preferred : null;
+        if (donor == null) {
+            for (BlockPos member : members) {
+                if (!member.equals(getBlockPos()) && level.getBlockEntity(member) instanceof ControlMonitorBlockEntity monitor
+                        && !monitor.config.isDefault()) {
+                    donor = monitor;
+                    break;
+                }
+            }
+        }
+        if (donor == null || donor == this) {
+            return;
+        }
+        config = donor.config;
+        donor.config = MonitorConfig.DEFAULT;
+        donor.setChanged();
+        historySize = 0;
+        page = 0;
+        fullSyncPending = true;
+        setChanged();
+        notifyUpdate();
     }
 
     /** Same-facing monitors reachable sideways or up and down in the screen's plane. */
@@ -289,6 +337,79 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         notifyUpdate();
     }
 
+    // ------------------------------------------------------------------ setup
+
+    /** This screen's setup, from the origin. */
+    public MonitorConfig getConfig() {
+        return origin().map(monitor -> monitor.config).orElse(MonitorConfig.DEFAULT);
+    }
+
+    /**
+     * Sets the screen up (on the origin, whichever monitor it is called on). A new series starts the
+     * graph again and a new layout goes back to the first page; the next update carries the whole state.
+     */
+    public void setConfig(MonitorConfig newConfig) {
+        Optional<ControlMonitorBlockEntity> screen = origin();
+        if (screen.isPresent() && screen.get() != this) {
+            screen.get().setConfig(newConfig);
+            return;
+        }
+        MonitorConfig old = config;
+        config = newConfig == null ? MonitorConfig.DEFAULT : newConfig;
+        if (old.seriesA() != config.seriesA() || old.seriesB() != config.seriesB()) {
+            historySize = 0;
+        }
+        if (old.layout() != config.layout()) {
+            page = 0;
+        }
+        page = Math.floorMod(page, pageCount());
+        fullSyncPending = true;
+        setChanged();
+        notifyUpdate();
+    }
+
+    /**
+     * A setup from the wrench screen ({@link ConfigureDevicePayload}), sanitised for what the screen
+     * watches and applied on the origin. The screen opens on the clicked monitor, which may be far
+     * from the origin of a big screen, so any monitor of it takes the setup.
+     */
+    @Override
+    public boolean configure(int part, CompoundTag tag) {
+        ControlMonitorBlockEntity screen = origin().orElse(null);
+        if (screen == null) {
+            return false;
+        }
+        screen.setConfig(MonitorConfig.read(tag).sanitize(screen.targetKind()));
+        return true;
+    }
+
+    /**
+     * What this screen watches: the kind of the last reading or, while it has no signal, the kind of
+     * the linked block if it is loaded (on the server). NONE when unlinked or unknown.
+     */
+    public TargetKind targetKind() {
+        TargetKind kind = reading.kind();
+        if (kind != TargetKind.NONE && kind != TargetKind.NO_SIGNAL) {
+            return kind;
+        }
+        if (target != null && level != null && !level.isClientSide && level.dimension().equals(target.dimension())
+                && level.isLoaded(target.pos())) {
+            return LinkedTarget.kindAt(level, target.pos());
+        }
+        return TargetKind.NONE;
+    }
+
+    /** What the graph's first line plots for {@code next}: the series the screen was set up with, or the usual one. */
+    private float seriesA(MonitorReading next) {
+        GaugeReading chosen = config.seriesA();
+        return chosen != null && chosen.kind() == next.kind() ? chosen.fraction(next) : next.seriesA();
+    }
+
+    private float seriesB(MonitorReading next) {
+        GaugeReading chosen = config.seriesB();
+        return chosen != null && chosen.kind() == next.kind() ? chosen.fraction(next) : next.seriesB();
+    }
+
     private void sample() {
         MonitorReading next = SharedReadings.sample(level, getBlockPos(), target);
         if (next.kind() != reading.kind()) {
@@ -300,7 +421,7 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         int previousSignal = reading.comparatorSignal();
         reading = next;
         if (next.kind() != TargetKind.NONE && next.kind() != TargetKind.NO_SIGNAL) {
-            record(next.seriesA(), next.seriesB());
+            record(seriesA(next), seriesB(next));
         }
         if (previousSignal != next.comparatorSignal()) {
             for (BlockPos member : members()) {
@@ -376,13 +497,24 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
     }
 
     /**
-     * Big screens switch between readings and the graph; a single block steps through its most
-     * important readings, the first rows the renderer lists for the kind of target.
+     * Big screens laid out {@link MonitorLayout#AUTO} switch between readings and the graph; the
+     * other layouts show one page. A single block steps through its most important readings (the
+     * first rows of its kind of target) or through every row it was set up to show, then shows the
+     * graph when laid out {@link MonitorLayout#BOTH}; laid out {@link MonitorLayout#CHART} it only plots.
      */
     public int pageCount() {
         if (width > 1 || height > 1) {
-            return 2;
+            return config.layout() == MonitorLayout.AUTO ? 2 : 1;
         }
+        if (config.layout() == MonitorLayout.CHART) {
+            return 1;
+        }
+        int readings = config.customRows() ? Math.max(1, MonitorRow.visible(reading, config).size()) : readingPages();
+        return readings + (config.layout() == MonitorLayout.BOTH ? 1 : 0);
+    }
+
+    /** Pages of a single block whose rows nobody arranged: the first rows of its kind of target. */
+    private int readingPages() {
         return switch (reading.kind()) {
             case REACTOR -> reading.flag(MonitorReading.R_PWR) ? 10 : 6;
             case STEAM_GENERATOR, CONTAINMENT -> 4;
@@ -478,6 +610,10 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         }
         tag.putIntArray("HistoryA", bits(historyA, 0, historySize));
         tag.putIntArray("HistoryB", bits(historyB, 0, historySize));
+        // The setup seldom changes: it goes with the whole state, never in a delta.
+        if (!config.isDefault()) {
+            tag.put("Config", config.write());
+        }
     }
 
     @Override
@@ -505,6 +641,7 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
             return;
         }
         historySeq = seq;
+        config = tag.contains("Config", Tag.TAG_COMPOUND) ? MonitorConfig.read(tag.getCompound("Config")) : MonitorConfig.DEFAULT;
         int[] a = tag.getIntArray("HistoryA");
         int[] b = tag.getIntArray("HistoryB");
         historySize = Math.min(HISTORY, Math.min(a.length, b.length));

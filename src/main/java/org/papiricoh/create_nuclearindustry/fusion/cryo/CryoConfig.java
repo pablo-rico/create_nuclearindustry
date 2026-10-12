@@ -4,7 +4,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.physics.CryoplantModel;
 
 /**
- * Common config for the cryogenic plant, the tokamak's vacuum pumps and cryogenic ports, under {@code cryo.*}. Values are defined on the shared builder
+ * Common config for the helium well, the cryogenic plant, the tokamak's vacuum pumps and cryogenic ports, under {@code cryo.*}. Values are defined on the shared builder
  * by {@link org.papiricoh.create_nuclearindustry.Config} and copied into public statics on load.
  */
 public final class CryoConfig {
@@ -20,6 +20,11 @@ public final class CryoConfig {
     private static ModConfigSpec.DoubleValue PUMP_MIN_SPEED;
     private static ModConfigSpec.DoubleValue PUMP_RATED_SPEED;
     private static ModConfigSpec.DoubleValue PUMP_STRESS;
+    private static ModConfigSpec.DoubleValue WELL_RATE;
+    private static ModConfigSpec.DoubleValue WELL_MIN_SPEED;
+    private static ModConfigSpec.DoubleValue WELL_RATED_SPEED;
+    private static ModConfigSpec.DoubleValue WELL_STRESS;
+    private static ModConfigSpec.IntValue WELL_TRANSFER;
 
     public static double heliumPerLayer = 2.0;
     public static double airPerLayer = 5.0;
@@ -33,6 +38,11 @@ public final class CryoConfig {
     public static double pumpMinSpeed = 32.0;
     public static double pumpRatedSpeed = 128.0;
     public static double pumpStress = 2_048.0;
+    public static double heliumWellRate = 0.02;
+    public static double heliumWellMinSpeed = 32.0;
+    public static double heliumWellRatedSpeed = 128.0;
+    public static double heliumWellStress = 1_024.0;
+    public static int heliumWellTransfer = 40;
 
     private CryoConfig() {}
 
@@ -77,6 +87,21 @@ public final class CryoConfig {
         PUMP_STRESS = builder
                 .comment("Stress impact of a tokamak vacuum pump, in SU per RPM.")
                 .defineInRange("cryo.vacuumPump.stress", 2_048.0, 0.0, 1.0e6);
+        WELL_RATE = builder
+                .comment("Helium gas a helium well draws out of the rock at rated speed, in mB per tick (0.02 = 24 mB a minute).")
+                .defineInRange("cryo.heliumWell.rate", 0.02, 0.0, 1000.0);
+        WELL_MIN_SPEED = builder
+                .comment("Slowest speed at which a helium well draws any helium, in RPM. From here output grows with the speed.")
+                .defineInRange("cryo.heliumWell.minSpeed", 32.0, 0.0, 256.0);
+        WELL_RATED_SPEED = builder
+                .comment("Helium well speed that gives full output, in RPM.")
+                .defineInRange("cryo.heliumWell.ratedSpeed", 128.0, 1.0, 256.0);
+        WELL_STRESS = builder
+                .comment("Stress impact of a helium well, in SU per RPM.")
+                .defineInRange("cryo.heliumWell.stress", 1_024.0, 0.0, 1.0e6);
+        WELL_TRANSFER = builder
+                .comment("Helium a helium well pushes per tick into the tanks and machines right next to it, in mB.")
+                .defineInRange("cryo.heliumWell.transfer", 40, 0, 100_000);
     }
 
     public static void bake() {
@@ -92,6 +117,11 @@ public final class CryoConfig {
         pumpMinSpeed = PUMP_MIN_SPEED.get();
         pumpRatedSpeed = PUMP_RATED_SPEED.get();
         pumpStress = PUMP_STRESS.get();
+        heliumWellRate = WELL_RATE.get();
+        heliumWellMinSpeed = WELL_MIN_SPEED.get();
+        heliumWellRatedSpeed = WELL_RATED_SPEED.get();
+        heliumWellStress = WELL_STRESS.get();
+        heliumWellTransfer = WELL_TRANSFER.get();
     }
 
     /** The plant model's parameters from the current config. */

@@ -26,12 +26,16 @@ public final class ContainmentTestBuilder {
 
     /** Walls, floor and roof of {@code wall} from {@code min} to {@code max}; air inside. */
     public static void room(GameTestHelper helper, BlockPos min, BlockPos max, Block wall) {
+        room(BlockPlacer.of(helper), min, max, wall);
+    }
+
+    public static void room(BlockPlacer helper, BlockPos min, BlockPos max, Block wall) {
         for (int x = min.getX(); x <= max.getX(); x++) {
             for (int y = min.getY(); y <= max.getY(); y++) {
                 for (int z = min.getZ(); z <= max.getZ(); z++) {
                     boolean shell = x == min.getX() || x == max.getX() || y == min.getY() || y == max.getY()
                             || z == min.getZ() || z == max.getZ();
-                    helper.setBlock(new BlockPos(x, y, z), shell ? wall : Blocks.AIR);
+                    helper.set(new BlockPos(x, y, z), shell ? wall : Blocks.AIR);
                 }
             }
         }
@@ -39,8 +43,13 @@ public final class ContainmentTestBuilder {
 
     /** The standard concrete room with its monitor. */
     public static void concreteRoom(GameTestHelper helper) {
-        room(helper, ROOM_MIN, ROOM_MAX, PwrRegistry.CONTAINMENT_CONCRETE.get());
-        helper.setBlock(MONITOR, PwrRegistry.CONTAINMENT_MONITOR.get());
+        concreteRoom(BlockPlacer.of(helper), BlockPos.ZERO);
+    }
+
+    /** The standard concrete room with its monitor, moved by {@code offset} from where the tests have it. */
+    public static void concreteRoom(BlockPlacer helper, BlockPos offset) {
+        room(helper, ROOM_MIN.offset(offset), ROOM_MAX.offset(offset), PwrRegistry.CONTAINMENT_CONCRETE.get());
+        helper.set(MONITOR.offset(offset), PwrRegistry.CONTAINMENT_MONITOR.get());
     }
 
     @Nullable

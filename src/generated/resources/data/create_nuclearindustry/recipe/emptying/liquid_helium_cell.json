@@ -1,0 +1,17 @@
+{
+  "type": "create:emptying",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:liquid_helium_cell"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:empty_gas_cell"
+    },
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:liquid_helium"
+    }
+  ]
+}

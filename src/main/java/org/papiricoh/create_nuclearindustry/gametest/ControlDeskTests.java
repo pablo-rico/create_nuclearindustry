@@ -3,6 +3,7 @@ package org.papiricoh.create_nuclearindustry.gametest;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.redstone.link.IRedstoneLinkable;
 import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency;
+import io.netty.buffer.Unpooled;
 import net.createmod.catnip.data.Couple;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,6 +11,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -21,12 +23,17 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomDevice;
+import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
+import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ConfigureModulePayload;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ConsoleSummary;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModule;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModuleMenu;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.DeskShape;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleChoices;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleFunction;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.OutputMode;
@@ -319,6 +326,93 @@ public class ControlDeskTests {
             boolean fuel = tokamak.isFuelEnabled();
             helper.assertTrue(desk.press(0, false), "the lever acts on the tokamak");
             helper.assertTrue(tokamak.isFuelEnabled() != fuel, "and switches its fuel");
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void theModuleMenuCarriesTheConsoleSummary(GameTestHelper helper) {
+        FissionTestBuilder.build(helper);
+        BlockPos pos = new BlockPos(8, 1, 8);
+        placeDesks(helper, Direction.NORTH, pos);
+        helper.runAfterDelay(5, () -> {
+            ControlDeskBlockEntity desk = helper.getBlockEntity(pos);
+            helper.assertTrue(desk.insert(0, ModuleType.LAMP), "the lamp should fit");
+            BlockPos controller = helper.absolutePos(FissionTestBuilder.CONTROLLER);
+            desk.setTarget(GlobalPos.of(helper.getLevel().dimension(), controller));
+
+            // What the server puts in the open packet, read back as the client does.
+            RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+            ControlModuleMenu.writeOpening(buf, desk.getBlockPos(), 0, ConsoleSummary.of(desk));
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            ControlModuleMenu menu = ControlModuleMenu.fromNetwork(1, player.getInventory(), buf);
+            helper.assertTrue(menu.deskPos().equals(desk.getBlockPos()) && menu.slot() == 0, "the menu knows its desk and slot");
+            helper.assertTrue(menu.consoleKind() == TargetKind.REACTOR, "the screen learns the console reads a reactor, got " + menu.consoleKind());
+            helper.assertFalse(menu.consoleStatus().isEmpty(), "and its status");
+            helper.assertTrue(menu.openingSummary().target() != null && menu.openingSummary().target().pos().equals(controller),
+                    "and where it is");
+            MonitorReading sample = menu.consoleSample();
+            helper.assertTrue(sample.values().length > MonitorReading.R_TEMPERATURE, "the sample carries the reactor's values");
+            float expected = desk.consoleSample().value(MonitorReading.R_TEMPERATURE);
+            helper.assertTrue(Math.abs(sample.value(MonitorReading.R_TEMPERATURE) - expected) < 1.0e-3f,
+                    "including its temperature, " + expected + " °C, got " + sample.value(MonitorReading.R_TEMPERATURE));
+
+            // Live values: an open screen makes the console's first desk put its sample in the sync.
+            helper.assertFalse(desk.getUpdateTag(helper.getLevel().registryAccess()).contains("ConsoleSample"),
+                    "no sample in the sync while nobody has the screen open");
+            ControlModuleMenu open = new ControlModuleMenu(2, player.getInventory(), desk.getBlockPos(), 0, ConsoleSummary.of(desk));
+            open.watch(desk);
+            helper.assertTrue(desk.viewers() == 1, "the open screen is counted on the console");
+            CompoundTag watched = desk.getUpdateTag(helper.getLevel().registryAccess());
+            helper.assertTrue(watched.contains("ConsoleSample")
+                            && ConsoleSummary.read(watched.getCompound("ConsoleSample")).kind() == TargetKind.REACTOR,
+                    "with it open, the sync carries the reactor's sample");
+            open.removed(player);
+            helper.assertTrue(desk.viewers() == 0, "and closing the screen lets go");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void aFunctionForAnotherMachineIsStillRefused(GameTestHelper helper) {
+        FissionTestBuilder.build(helper);
+        ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);
+        BlockPos pos = new BlockPos(8, 1, 8);
+        placeDesks(helper, Direction.NORTH, pos);
+        helper.runAfterDelay(5, () -> {
+            ControlDeskBlockEntity desk = helper.getBlockEntity(pos);
+            helper.assertTrue(desk.insert(0, ModuleType.LEVER), "the lever should fit");
+            desk.setTarget(GlobalPos.of(helper.getLevel().dimension(), helper.absolutePos(FissionTestBuilder.CONTROLLER)));
+            Player near = helper.makeMockPlayer(GameType.SURVIVAL);
+            near.setPos(helper.absoluteVec(new net.minecraft.world.phys.Vec3(8, 1, 6)));
+            CompoundTag config = new ControlModule(ModuleType.LEVER).withFunction(ModuleFunction.TOKAMAK_HEATING)
+                    .writeConfig(helper.getLevel().registryAccess());
+            helper.assertTrue(ConfigureModulePayload.apply(near, new ConfigureModulePayload(helper.absolutePos(pos), 0, config)),
+                    "the server takes a lever's tokamak function, so the console can be relinked later");
+            ControlModule module = desk.module(0);
+            helper.assertTrue(module != null && module.function() == ModuleFunction.TOKAMAK_HEATING, "the function is kept as chosen");
+            helper.assertTrue(ModuleChoices.fit(ModuleFunction.TOKAMAK_HEATING, TargetKind.REACTOR, reactor.hasPressurizer())
+                    == ModuleChoices.Fit.WRONG_MACHINE, "the screen greys it out on a reactor's console");
+            helper.assertFalse(module.active(), "on a reactor it stays dark");
+            boolean scramBefore = reactor.isScramRequested();
+            helper.assertFalse(desk.press(0, false), "and a click does nothing");
+            helper.assertTrue(reactor.isScramRequested() == scramBefore, "nor touches the reactor");
+
+            // A function the module type does not have is still turned away by the server.
+            config.putString("Function", ModuleFunction.ROD_TARGET.name());
+            ConfigureModulePayload.apply(near, new ConfigureModulePayload(helper.absolutePos(pos), 0, config));
+            ControlModule kept = desk.module(0);
+            helper.assertTrue(kept != null && kept.function() == ModuleFunction.TOKAMAK_HEATING, "a lever cannot take a dial's function");
+
+            // A pressurizer lever on a reactor without a pressurizer is greyed out and inert as well.
+            if (!reactor.hasPressurizer()) {
+                CompoundTag heaters = new ControlModule(ModuleType.LEVER).withFunction(ModuleFunction.PZR_HEATERS)
+                        .writeConfig(helper.getLevel().registryAccess());
+                ConfigureModulePayload.apply(near, new ConfigureModulePayload(helper.absolutePos(pos), 0, heaters));
+                helper.assertTrue(ModuleChoices.fit(ModuleFunction.PZR_HEATERS, TargetKind.REACTOR, false) == ModuleChoices.Fit.NO_PRESSURIZER,
+                        "the screen says the reactor lacks a pressurizer");
+                helper.assertFalse(desk.press(0, false), "and the lever does nothing");
+            }
+            helper.succeed();
         });
     }
 

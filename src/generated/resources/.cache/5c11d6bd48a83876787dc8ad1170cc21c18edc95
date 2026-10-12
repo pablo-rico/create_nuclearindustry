@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-11T02:54:38.6574732	Item Models: create_nuclearindustry
+// 1.21.1	2026-10-12T02:35:52.8421938	Item Models: create_nuclearindustry
 c751b3309684aa5733087dd1d1e82066016215f0 assets/create_nuclearindustry/models/item/amidoxime_adsorbent.json
 fccc0b3906cad2d70c08267cc63e216be0021679 assets/create_nuclearindustry/models/item/chart_roll.json
 c279da8b457f7bbc3f512760b1b68d845675006a assets/create_nuclearindustry/models/item/containment_door.json
@@ -30,6 +30,7 @@ ba71264fa5933f27203a5bc073996b4761dc0d96 assets/create_nuclearindustry/models/it
 15656a393f11bd0e277b22f909b086f73c2f52d7 assets/create_nuclearindustry/models/item/incomplete_uranium_reactor_fuel.json
 59403d433da05fe962641ad5f2ae992274427794 assets/create_nuclearindustry/models/item/irradiated_depleted_uranium.json
 0c3029497b15cc29703675553b64c6bc77b683d6 assets/create_nuclearindustry/models/item/irradiated_thorium.json
+d48033aa910e72006875b2fc71b0111840249444 assets/create_nuclearindustry/models/item/liquid_helium_cell.json
 9902c542053867604ef718ac0ddbcf03e807ecf1 assets/create_nuclearindustry/models/item/lithium_carbonate.json
 cf62aec80e9781c87e47bc9903a09c652cb261a8 assets/create_nuclearindustry/models/item/loaded_adsorbent.json
 ebde79d2881b6bb5a4b644fad2128044c22d691a assets/create_nuclearindustry/models/item/low_level_waste.json

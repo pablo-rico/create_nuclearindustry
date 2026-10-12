@@ -31,13 +31,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * breeding blankets on top and bottom, controller on the east equator, ports above and
  * below it, an injector on the west and a magnet drive on the south driven by a creative motor.
  */
-final class TokamakTestBuilder {
+public final class TokamakTestBuilder {
     static final BlockPos CENTER = new BlockPos(20, 4, 20);
 
     private TokamakTestBuilder() {}
 
     static BlockPos controller(int radius) {
-        return CENTER.offset(TokamakGeometry.controllerToAxis(radius), 0, 0);
+        return controller(CENTER, radius);
+    }
+
+    /** The controller on the east equator of a tokamak of {@code radius} around {@code center}. */
+    public static BlockPos controller(BlockPos center, int radius) {
+        return center.offset(TokamakGeometry.controllerToAxis(radius), 0, 0);
     }
 
     static BlockPos injector(int radius) {
@@ -57,35 +62,48 @@ final class TokamakTestBuilder {
     }
 
     static void build(GameTestHelper helper, int radius, boolean blankets, int motorRpm) {
+        build(BlockPlacer.of(helper), CENTER, radius, blankets, motorRpm);
+    }
+
+    /**
+     * A tokamak of {@code radius} around {@code center} of {@code placer}, with a creative motor on its
+     * magnet drive when {@code motorRpm} is above 0.
+     */
+    public static void build(BlockPlacer helper, BlockPos CENTER, int radius, boolean blankets, int motorRpm) {
         TokamakGeometry geometry = TokamakGeometry.of(radius);
+        BlockPos controllerPos = controller(CENTER, radius);
+        BlockPos injectorPos = CENTER.offset(-TokamakGeometry.controllerToAxis(radius), 0, 0);
+        BlockPos magnetPos = CENTER.offset(0, 0, TokamakGeometry.controllerToAxis(radius));
         BlockState coil = AllNuclearBlocks.FUSION_ELECTROMAGNET.get().defaultBlockState();
         BlockState blanket = (blankets ? AllNuclearBlocks.FUSION_BREEDING_BLANKET : AllNuclearBlocks.FUSION_ACCELERATOR_SEGMENT)
                 .get().defaultBlockState();
         for (int i = 0; i < geometry.shellCount(); i++) {
             int dy = geometry.shellY(i);
             BlockPos pos = CENTER.offset(geometry.shellX(i), dy, geometry.shellZ(i));
-            helper.setBlock(pos, Math.abs(dy) == TokamakGeometry.HALF_HEIGHT ? blanket : coil);
+            helper.set(pos, Math.abs(dy) == TokamakGeometry.HALF_HEIGHT ? blanket : coil);
         }
         for (int dy = -TokamakGeometry.HALF_HEIGHT; dy <= TokamakGeometry.HALF_HEIGHT; dy++) {
-            helper.setBlock(CENTER.offset(0, dy, 0), AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get());
+            helper.set(CENTER.offset(0, dy, 0), AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get());
         }
 
-        helper.setBlock(coolantPort(radius), AllNuclearBlocks.FUSION_FLUID_PORT.get().defaultBlockState()
+        helper.set(controllerPos.above(), AllNuclearBlocks.FUSION_FLUID_PORT.get().defaultBlockState()
                 .setValue(FusionFluidPortBlock.FACING, Direction.EAST).setValue(FusionFluidPortBlock.MODE, ReactorFluidPortMode.INPUT));
-        helper.setBlock(steamPort(radius), AllNuclearBlocks.FUSION_FLUID_PORT.get().defaultBlockState()
+        helper.set(controllerPos.below(), AllNuclearBlocks.FUSION_FLUID_PORT.get().defaultBlockState()
                 .setValue(FusionFluidPortBlock.FACING, Direction.EAST).setValue(FusionFluidPortBlock.MODE, ReactorFluidPortMode.OUTPUT));
-        helper.setBlock(injector(radius), AllNuclearBlocks.FUSION_FUEL_INJECTOR.get().defaultBlockState()
+        helper.set(injectorPos, AllNuclearBlocks.FUSION_FUEL_INJECTOR.get().defaultBlockState()
                 .setValue(FusionFuelInjectorBlock.FACING, Direction.WEST).setValue(FusionFuelInjectorBlock.MODE, ReactorFluidPortMode.INPUT));
-        helper.setBlock(magnetInput(radius), AllNuclearBlocks.FUSION_MAGNET_INPUT.get().defaultBlockState()
+        helper.set(magnetPos, AllNuclearBlocks.FUSION_MAGNET_INPUT.get().defaultBlockState()
                 .setValue(FusionMagnetInputBlock.FACING, Direction.SOUTH));
         if (motorRpm > 0) {
-            BlockPos motorPos = magnetInput(radius).south();
+            BlockPos motorPos = magnetPos.south();
             Block motor = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("create", "creative_motor"));
-            helper.setBlock(motorPos, motor.defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
-            CreativeMotorBlockEntity motorEntity = helper.getBlockEntity(motorPos);
-            motorEntity.generatedSpeed.setValue(motorRpm);
+            helper.set(motorPos, motor.defaultBlockState().setValue(BlockStateProperties.FACING, Direction.NORTH));
+            CreativeMotorBlockEntity motorEntity = helper.blockEntity(motorPos, CreativeMotorBlockEntity.class);
+            if (motorEntity != null) {
+                motorEntity.generatedSpeed.setValue(motorRpm);
+            }
         }
-        helper.setBlock(controller(radius), AllNuclearBlocks.FUSION_CONTROLLER.get());
+        helper.set(controllerPos, AllNuclearBlocks.FUSION_CONTROLLER.get());
     }
 
     static FusionReactorBlockEntity tokamak(GameTestHelper helper, int radius) {

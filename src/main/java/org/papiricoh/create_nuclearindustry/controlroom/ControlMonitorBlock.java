@@ -4,8 +4,12 @@ import com.mojang.serialization.MapCodec;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -18,7 +22,8 @@ import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 
 /**
  * A control room screen. Monitors side by side facing the same way join into one rectangular
- * screen of up to 8x8. Right-click with an empty hand to change page; a comparator reads the main value.
+ * screen of up to 8x8. Right-click with an empty hand to change page, with a wrench to set the
+ * screen up (title, layout, rows and graph); a comparator reads the main value.
  */
 public class ControlMonitorBlock extends HorizontalDirectionalBlock implements IBE<ControlMonitorBlockEntity> {
     public static final MapCodec<ControlMonitorBlock> CODEC = simpleCodec(ControlMonitorBlock::new);
@@ -44,11 +49,24 @@ public class ControlMonitorBlock extends HorizontalDirectionalBlock implements I
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
+    /**
+     * The linker links; a wrench opens the setup screen on the clicked monitor, which hands the setup
+     * to its screen's origin, so a wall of monitors can be set up from any block within reach.
+     */
     @Override
-    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level,
-                                                                  BlockPos pos, Player player, net.minecraft.world.InteractionHand hand,
-                                                                  BlockHitResult hitResult) {
-        return ControlRoomBlocks.linkerFirst(stack);
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+                                              InteractionHand hand, BlockHitResult hitResult) {
+        ItemInteractionResult linker = ControlRoomBlocks.linkerFirst(stack);
+        if (linker == ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION) {
+            return linker;
+        }
+        if (stack.is(ControlRoomBlocks.WRENCHES) && !player.isShiftKeyDown()) {
+            if (player instanceof ServerPlayer serverPlayer) {
+                DeviceMenu.open(serverPlayer, ControlRoom2Registry.MONITOR_MENU, pos, 0, state.getBlock().getName());
+            }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @Override

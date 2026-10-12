@@ -27,7 +27,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-/** Lang, models, tags, data maps, loot and recipes for the cryogenic plant, the tokamak's vacuum pumps and cryogenic ports. */
+/** Lang, models, tags, data maps, loot and recipes for the helium well, the cryogenic plant, the tokamak's vacuum pumps and cryogenic ports. */
 final class CryoDataGen extends AreaDataGen {
     static final CryoDataGen INSTANCE = new CryoDataGen();
 
@@ -41,6 +41,14 @@ final class CryoDataGen extends AreaDataGen {
         LangEntries.block("cryoplant_compressor", "Helium Compressor", "Compresor de helio");
         LangEntries.block("fusion_cryo_port", "Tokamak Cryogenic Port", "Puerto criogénico del tokamak");
         LangEntries.block("fusion_vacuum_pump", "Tokamak Vacuum Pump", "Bomba de vacío del tokamak");
+        LangEntries.block("helium_well", "Helium Well", "Pozo de helio");
+
+        String well = "create_nuclearindustry.helium_well.";
+        LangEntries.add(well + "drawing", "Drawing helium: %s mB/min (%s%% of rated speed)",
+                "Extrayendo helio: %s mB/min (%s%% de la velocidad nominal)");
+        LangEntries.add(well + "too_slow", "Too slow: needs %s RPM", "Demasiado lento: necesita %s RPM");
+        LangEntries.add(well + "full", "Tank full: pipe the helium away", "Tanque lleno: saca el helio por tubería");
+        LangEntries.add(well + "tank", "Helium: %s / %s mB", "Helio: %s / %s mB");
 
         String plant = "create_nuclearindustry.cryoplant.";
         LangEntries.add(plant + "formed", "Cryogenic plant formed [3x3x%s, %s compressors]",
@@ -115,6 +123,9 @@ final class CryoDataGen extends AreaDataGen {
         LangEntries.add(info + "cryoplant",
                 "The Cryogenic Plant liquefies the helium that keeps a tokamak's coils superconducting. Build a 3x3 block of Cryogenic Plant Casing 3 to 5 high, with the controller in the middle of a side wall facing out, at least one Helium Compressor in the walls with its shaft side facing out, and Cryogenic Plant Ports (the wrench sets what each one carries). Warm helium goes in through a Warm helium in port and leaves a Liquid helium out port as liquid: 2 mB/t per layer of height at 128 RPM, less when slower and nothing below 32 RPM. The plant loads the network with 10240 SU/RPM per layer, shared among its compressors. About 1% of the helium leaks out on every pass. Liquid nitrogen fed through a nitrogen port pre-cools it for 50% more output, boiling off 1 mB of nitrogen per mB of liquid helium. A plant with a Liquid Air port liquefies air instead, 5 mB/t per layer: centrifuge the liquid air into liquid nitrogen and the helium for a first charge.",
                 "La Planta criogénica licúa el helio que mantiene superconductoras las bobinas de un tokamak. Construye un bloque de 3x3 de Carcasa de la planta criogénica de 3 a 5 de alto, con el controlador en el centro de una pared lateral mirando hacia fuera, al menos un Compresor de helio en las paredes con el lado del eje hacia fuera y Puertos de la planta criogénica (la llave inglesa elige lo que lleva cada uno). El helio caliente entra por un puerto de Entrada de helio caliente y sale líquido por uno de Salida de helio líquido: 2 mB/t por capa de altura a 128 RPM, menos si gira más despacio y nada por debajo de 32 RPM. La planta carga la red con 10240 SU/RPM por capa, repartidas entre sus compresores. Cerca del 1% del helio se escapa en cada paso. El nitrógeno líquido que entra por un puerto de nitrógeno la preenfría y produce un 50% más, gastando 1 mB de nitrógeno por cada mB de helio líquido. Una planta con un puerto de Aire líquido licúa aire en su lugar, 5 mB/t por capa: centrifuga el aire líquido para sacar nitrógeno líquido y el helio de la primera carga.");
+        LangEntries.add(info + "helium_well",
+                "The Helium Well is the first step towards liquid helium. Turned by a shaft through its back, it draws traces of helium gas out of the rock: 0.02 mB/t (24 mB a minute) at 128 RPM, less when slower and nothing below 32 RPM, for 1024 SU/RPM. It keeps up to 1000 mB and pushes the gas into tanks and machines on any other side, or pipes can drain it; when full it stops. Feed the helium gas to a Cryogenic Plant's Warm helium in port and it comes out as liquid helium, which Spouts can put in gas cells.",
+                "El Pozo de helio es el primer paso hacia el helio líquido. Movido por un eje que entra por detrás, saca trazas de helio gaseoso de la roca: 0,02 mB/t (24 mB por minuto) a 128 RPM, menos si gira más despacio y nada por debajo de 32 RPM, con 1024 SU/RPM. Guarda hasta 1000 mB y empuja el gas a los tanques y máquinas de cualquier otro lado, o se puede sacar por tubería; cuando se llena, se para. Lleva el helio gaseoso a un puerto de Entrada de helio caliente de una Planta criogénica y saldrá como helio líquido, que los Surtidores pueden meter en celdas de gas.");
         LangEntries.add(info + "tokamak_cryo_port",
                 "Tokamak Cryogenic Ports go in the tokamak shell. In input mode they take liquid helium in to cool the superconducting coils; in output mode they give back the warm helium gas the coils boil off, for a cryogenic plant to liquefy again. The wrench toggles the mode. They connect to pipes, and also push or pull on their own with a tank or Cryogenic Plant Port right next to them, so the plant can stand against the shell. A tokamak cannot start until liquid helium has cooled its coils.",
                 "Los Puertos criogénicos del tokamak van en la carcasa del tokamak. En modo entrada reciben helio líquido para enfriar las bobinas superconductoras; en modo salida devuelven el helio gaseoso caliente que hierve en las bobinas, para que una planta criogénica lo vuelva a licuar. La llave inglesa cambia el modo. Se conectan a tuberías y además empujan o tiran por sí solos de un tanque o un Puerto de la planta criogénica que tengan justo al lado, así que la planta puede ir pegada a la carcasa. Un tokamak no puede arrancar hasta que el helio líquido haya enfriado sus bobinas.");
@@ -152,6 +163,10 @@ final class CryoDataGen extends AreaDataGen {
                 provider.models().getExistingFile(provider.modLoc("block/cryoplant_compressor")));
         facing(provider, CryoRegistry.FUSION_VACUUM_PUMP.get(),
                 provider.models().getExistingFile(provider.modLoc("block/fusion_vacuum_pump")));
+        // Hand-written: a gauge front and a recessed back where the half shaft goes in.
+        ModelFile well = provider.models().getExistingFile(provider.modLoc("block/helium_well"));
+        provider.horizontalBlock(CryoRegistry.HELIUM_WELL.get(), well);
+        provider.simpleBlockItem(CryoRegistry.HELIUM_WELL.get(), well);
 
         Map<ReactorFluidPortMode, ModelFile> cryoPorts = new EnumMap<>(ReactorFluidPortMode.class);
         for (ReactorFluidPortMode mode : ReactorFluidPortMode.values()) {

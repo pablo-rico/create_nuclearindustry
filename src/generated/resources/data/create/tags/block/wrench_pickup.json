@@ -88,6 +88,7 @@
     "create_nuclearindustry:cryoplant_casing",
     "create_nuclearindustry:cryoplant_port",
     "create_nuclearindustry:cryoplant_compressor",
+    "create_nuclearindustry:helium_well",
     "create_nuclearindustry:fusion_cryo_port",
     "create_nuclearindustry:fusion_vacuum_pump",
     "create_nuclearindustry:fusion_neutral_beam_injector",

@@ -25,12 +25,14 @@ import org.papiricoh.create_nuclearindustry.fusion.cryo.tokamak.FusionCryoPortBl
 import org.papiricoh.create_nuclearindustry.fusion.cryo.tokamak.FusionCryoPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.tokamak.FusionVacuumPumpBlock;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.tokamak.FusionVacuumPumpBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.cryo.well.HeliumWellBlock;
+import org.papiricoh.create_nuclearindustry.fusion.cryo.well.HeliumWellBlockEntity;
 
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-/** Content for the cryogenic plant, the tokamak's vacuum pumps and cryogenic ports: blocks, items and block entities register here. */
+/** Content for the helium well, the cryogenic plant, the tokamak's vacuum pumps and cryogenic ports: blocks, items and block entities register here. */
 public final class CryoRegistry implements NuclearFeature {
     public static final CryoRegistry INSTANCE = new CryoRegistry();
 
@@ -41,6 +43,10 @@ public final class CryoRegistry implements NuclearFeature {
     public static final DeferredHolder<Block, CryoplantPortBlock> CRYOPLANT_PORT = block("cryoplant_port", CryoplantPortBlock::new, steel());
     public static final DeferredHolder<Block, CryoplantCompressorBlock> CRYOPLANT_COMPRESSOR = block("cryoplant_compressor",
             CryoplantCompressorBlock::new, steel().noOcclusion());
+
+    // ---------------------------------------------------------------- helium well (the chain's first helium)
+    public static final DeferredHolder<Block, HeliumWellBlock> HELIUM_WELL = block("helium_well", HeliumWellBlock::new,
+            steel().noOcclusion());
 
     // ---------------------------------------------------------------- tokamak shell parts
     public static final DeferredHolder<Block, FusionCryoPortBlock> FUSION_CRYO_PORT = block("fusion_cryo_port", FusionCryoPortBlock::new,
@@ -54,6 +60,7 @@ public final class CryoRegistry implements NuclearFeature {
     public static final DeferredHolder<Item, BlockItem> CRYOPLANT_COMPRESSOR_ITEM = item(CRYOPLANT_COMPRESSOR);
     public static final DeferredHolder<Item, BlockItem> FUSION_CRYO_PORT_ITEM = item(FUSION_CRYO_PORT);
     public static final DeferredHolder<Item, BlockItem> FUSION_VACUUM_PUMP_ITEM = item(FUSION_VACUUM_PUMP);
+    public static final DeferredHolder<Item, BlockItem> HELIUM_WELL_ITEM = item(HELIUM_WELL);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CryoplantControllerBlockEntity>> CRYOPLANT_CONTROLLER_ENTITY =
             AllNuclearEntities.ENTITIES.register("cryoplant_controller", () -> BlockEntityType.Builder.of(
@@ -70,6 +77,9 @@ public final class CryoRegistry implements NuclearFeature {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FusionVacuumPumpBlockEntity>> FUSION_VACUUM_PUMP_ENTITY =
             AllNuclearEntities.ENTITIES.register("fusion_vacuum_pump", () -> BlockEntityType.Builder.of(
                     FusionVacuumPumpBlockEntity::new, FUSION_VACUUM_PUMP.get()).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HeliumWellBlockEntity>> HELIUM_WELL_ENTITY =
+            AllNuclearEntities.ENTITIES.register("helium_well", () -> BlockEntityType.Builder.of(
+                    HeliumWellBlockEntity::new, HELIUM_WELL.get()).build(null));
 
     /** Every block of the cryogenic plant: they all re-form it when placed. */
     public static final List<Supplier<? extends Block>> PLANT_PARTS = List.of(CRYOPLANT_CONTROLLER, CRYOPLANT_CASING,
@@ -104,10 +114,13 @@ public final class CryoRegistry implements NuclearFeature {
                 (port, direction) -> port.getFluidHandler(direction));
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, FUSION_CRYO_PORT_ENTITY.get(),
                 (port, direction) -> port.getFluidHandler(direction));
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, HELIUM_WELL_ENTITY.get(),
+                (well, direction) -> well.getFluidHandler(direction));
     }
 
     @Override
     public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+        output.accept(HELIUM_WELL_ITEM.get());
         output.accept(CRYOPLANT_CONTROLLER_ITEM.get());
         output.accept(CRYOPLANT_CASING_ITEM.get());
         output.accept(CRYOPLANT_PORT_ITEM.get());

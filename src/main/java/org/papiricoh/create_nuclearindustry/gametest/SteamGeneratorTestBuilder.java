@@ -18,16 +18,21 @@ public final class SteamGeneratorTestBuilder {
     private SteamGeneratorTestBuilder() {}
 
     public static void build(GameTestHelper helper, BlockPos bottomCenter, int height) {
+        build(BlockPlacer.of(helper), bottomCenter, height);
+    }
+
+    /** The generator standing on {@code bottomCenter} of {@code placer}. */
+    public static void build(BlockPlacer helper, BlockPos bottomCenter, int height) {
         for (int y = 0; y < height; y++) {
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
                     boolean tube = dx == 0 && dz == 0 && y > 0 && y < height - 1;
-                    helper.setBlock(bottomCenter.offset(dx, y, dz), tube
+                    helper.set(bottomCenter.offset(dx, y, dz), tube
                             ? PwrRegistry.STEAM_GENERATOR_TUBE_BUNDLE.get() : PwrRegistry.STEAM_GENERATOR_CASING.get());
                 }
             }
         }
-        helper.setBlock(controller(bottomCenter), PwrRegistry.STEAM_GENERATOR_CONTROLLER.get().defaultBlockState()
+        helper.set(controller(bottomCenter), PwrRegistry.STEAM_GENERATOR_CONTROLLER.get().defaultBlockState()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
         port(helper, primaryIn(bottomCenter), SteamGeneratorPortRole.PRIMARY_IN);
         port(helper, primaryOut(bottomCenter), SteamGeneratorPortRole.PRIMARY_OUT);
@@ -36,7 +41,11 @@ public final class SteamGeneratorTestBuilder {
     }
 
     public static void port(GameTestHelper helper, BlockPos pos, SteamGeneratorPortRole role) {
-        helper.setBlock(pos, PwrRegistry.STEAM_GENERATOR_PORT.get().defaultBlockState().setValue(SteamGeneratorPortBlock.ROLE, role));
+        port(BlockPlacer.of(helper), pos, role);
+    }
+
+    public static void port(BlockPlacer helper, BlockPos pos, SteamGeneratorPortRole role) {
+        helper.set(pos, PwrRegistry.STEAM_GENERATOR_PORT.get().defaultBlockState().setValue(SteamGeneratorPortBlock.ROLE, role));
     }
 
     public static BlockPos controller(BlockPos bottomCenter) {

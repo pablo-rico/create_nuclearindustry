@@ -14,6 +14,7 @@ import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEnti
 import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.block.ReliefValveBlock;
+import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorSoundModel;
 
 import java.util.ArrayList;
@@ -106,7 +107,7 @@ public final class ReactorClientEffects {
         return switch (kind) {
             case HUM -> ReactorSoundModel.humWanted(formed, snapshot.powerFraction());
             case KLAXON -> formed && ReactorSoundModel.klaxonWanted(reactor.isScramActive(), snapshot.coreTemperature());
-            case ALARM -> ReactorSoundModel.alarmWanted(formed, snapshot.coreTemperature());
+            case ALARM -> ReactorSoundModel.alarmWanted(formed, snapshot.coreTemperature(), FissionConfig.warningTemperature());
             case HISS -> formed && at != null && isOutputPort(reactor.getLevel(), at) && !reactor.getPrimaryLoop().readings().pwr()
                     && ReactorSoundModel.flowWanted(steamFlowPerPort(reactor));
             case BUBBLING -> formed && at != null && isOutputPort(reactor.getLevel(), at) && reactor.getPrimaryLoop().readings().pwr()

@@ -49,6 +49,7 @@ public final class FissionConfig {
     private static ModConfigSpec.DoubleValue RATED_VOID;
     private static ModConfigSpec.DoubleValue CHF_MARGIN;
     private static ModConfigSpec.DoubleValue MAX_FUEL_TEMPERATURE;
+    private static ModConfigSpec.DoubleValue MAX_SUPERHEAT;
     private static ModConfigSpec.DoubleValue CLADDING_FAILURE;
     private static ModConfigSpec.DoubleValue FUEL_MELTING;
     private static ModConfigSpec.DoubleValue CLADDING_RATE;
@@ -91,7 +92,8 @@ public final class FissionConfig {
     public static double ratedVoid = 0.30;
     public static double chfMargin = 1.25;
     public static double maxFuelTemperature = 4500;
-    public static double claddingFailureTemperature = 2000;
+    public static double maxSuperheat = 50;
+    public static double claddingFailureTemperature = 1500;
     public static double fuelMeltingTemperature = 2800;
     public static double claddingDamageRate = 0.004;
     public static double meltingDamageRate = 0.01;
@@ -181,9 +183,14 @@ public final class FissionConfig {
                 .defineInRange("fission.thermal.chfMargin", 1.25, 1.0, 100.0);
         MAX_FUEL_TEMPERATURE = b.comment("The fuel never gets hotter than this, Celsius.")
                 .defineInRange("fission.thermal.maxFuelTemperature", 4500.0, 1000.0, 10000.0);
+        MAX_SUPERHEAT = b.comment("How far above boiling the core's water can be driven when its steam cannot leave, in kelvin.",
+                        "Past it the water takes no more heat: the fuel heats up instead, so a steam-bound core still",
+                        "answers its rods with its temperature.")
+                .defineInRange("fission.thermal.maxSuperheat", 50.0, 5.0, 1000.0);
 
-        CLADDING_FAILURE = b.comment("Fuel temperature where the cladding starts to fail and the core takes damage, Celsius.")
-                .defineInRange("fission.damage.claddingFailureTemperature", 2000.0, 500.0, 10000.0);
+        CLADDING_FAILURE = b.comment("Fuel temperature where the cladding starts to fail and the core takes damage, Celsius.",
+                        "The core's Warning state and its over-temperature alarm start here.")
+                .defineInRange("fission.damage.claddingFailureTemperature", 1500.0, 500.0, 10000.0);
         FUEL_MELTING = b.comment("Fuel temperature where the fuel itself melts and the damage runs fast, Celsius.")
                 .defineInRange("fission.damage.fuelMeltingTemperature", 2800.0, 500.0, 10000.0);
         CLADDING_RATE = b.comment("Core damage per second 800 K above cladding failure (it grows with the square of the overheat).")
@@ -234,6 +241,7 @@ public final class FissionConfig {
         ratedVoid = RATED_VOID.get();
         chfMargin = CHF_MARGIN.get();
         maxFuelTemperature = MAX_FUEL_TEMPERATURE.get();
+        maxSuperheat = MAX_SUPERHEAT.get();
         claddingFailureTemperature = CLADDING_FAILURE.get();
         fuelMeltingTemperature = Math.max(FUEL_MELTING.get(), claddingFailureTemperature + 1);
         claddingDamageRate = CLADDING_RATE.get();
@@ -261,6 +269,22 @@ public final class FissionConfig {
     public static CoreThermalModel.Params thermal() {
         CoreThermalModel.Params d = CoreThermalModel.Params.DEFAULT;
         return new CoreThermalModel.Params(ratedPowerPerRod, fuelRiseAtRated, fuelHeatCapacity, coolantHeatCapacity,
-                structureHeatCapacity, boilingTemperature, ratedVoid, d.passiveLoss(), d.radiation(), chfMargin, maxFuelTemperature);
+                structureHeatCapacity, boilingTemperature, ratedVoid, d.passiveLoss(), d.radiation(), chfMargin, maxFuelTemperature,
+                maxSuperheat);
+    }
+
+    /** Fuel temperature, Celsius, from which the core reads Warning: where its cladding starts to fail. */
+    public static double warningTemperature() {
+        return claddingFailureTemperature;
+    }
+
+    /** Fuel temperature, Celsius, from which the core reads Critical: halfway from cladding failure to melting. */
+    public static double dangerTemperature() {
+        return (claddingFailureTemperature + fuelMeltingTemperature) / 2;
+    }
+
+    /** Fuel temperature, Celsius, from which the core reads Melting: where its fuel melts. */
+    public static double meltdownTemperature() {
+        return fuelMeltingTemperature;
     }
 }

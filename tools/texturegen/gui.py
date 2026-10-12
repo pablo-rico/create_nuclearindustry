@@ -87,17 +87,36 @@ def reactor_control():
 
 @gui("control_module")
 def control_module():
-    # Setup screen of a desk module: header, settings window, player inventory.
-    w, h = 200, 222
+    """ControlModuleScreen: 256x240. Coordinates are the screen's constants.
+
+    The lists, the setting value and the live signal are drawn by the screen over these recesses.
+    """
+    w, h = 256, 240
     t = _plate(w, h, 405)
-    _recess(t, 6, 4, w - 7, 16)
-    _recess(t, 6, 18, w - 7, 124)
-    _recess(t, 12, 136, 187, 217)
+    # header: module type and console, warning and machine status (two text lines)
+    _recess(t, 6, 4, w - 7, 26)
+    # function list (left, 98x84 at 7,40) and options / description (right, 139x84 at 110,40)
+    _recess(t, 6, 39, 105, 124)
+    _recess(t, 109, 39, w - 7, 124)
+    # setting input (96x16 at 91,129) between the label box and the three output buttons
+    _recess(t, 90, 128, 187, 145)
+    # link column: Redstone Link icon at (14,156), frequency wells at (14,178) and (14,200)
+    _recess(t, 8, 150, 36, 235)
+    _slot(t, 14, 178)
+    _slot(t, 14, 200)
+    # player inventory
+    _recess(t, 40, 150, 217, 235)
     for row in range(3):
         for col in range(9):
-            _slot(t, 20 + col * 18, 140 + row * 18)
+            _slot(t, 48 + col * 18, 158 + row * 18)
     for col in range(9):
-        _slot(t, 20 + col * 18, 198)
+        _slot(t, 48 + col * 18, 216)
+    # signal meter: value at the top, trough 231..238 x 168..227 filled from the bottom, 4 px a level
+    _recess(t, 220, 150, w - 7, 235)
+    t.rect(230, 167, 239, 228, DARK[0])
+    t.rect(231, 168, 238, 227, DARK[2])
+    for level in range(1, 15):
+        t.hline(231, 232, 228 - 4 * level, DARK[4])
     return t
 
 

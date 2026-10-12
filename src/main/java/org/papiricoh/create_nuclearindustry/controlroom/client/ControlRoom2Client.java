@@ -25,5 +25,6 @@ public final class ControlRoom2Client implements NuclearFeatureClient {
     public void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ControlRoom2Registry.CHART_RECORDER_MENU.get(), ChartRecorderScreen::new);
         event.register(ControlRoom2Registry.ANNUNCIATOR_MENU.get(), AnnunciatorScreen::new);
+        event.register(ControlRoom2Registry.MONITOR_MENU.get(), MonitorConfigScreen::new);
     }
 }

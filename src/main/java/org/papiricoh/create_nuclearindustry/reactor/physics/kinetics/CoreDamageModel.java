@@ -20,7 +20,7 @@ public final class CoreDamageModel {
      */
     public record Params(double claddingFailure, double fuelMelting, double claddingRate, double meltingRate,
                          double meltingRateMax, double meltdown) {
-        public static final Params DEFAULT = new Params(2000, 2800, 0.004, 0.01, 0.1, 0.75);
+        public static final Params DEFAULT = new Params(1500, 2800, 0.004, 0.01, 0.1, 0.75);
     }
 
     private double damage;

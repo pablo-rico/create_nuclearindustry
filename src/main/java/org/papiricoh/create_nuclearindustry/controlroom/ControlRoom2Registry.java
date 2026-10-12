@@ -63,6 +63,10 @@ public final class ControlRoom2Registry implements NuclearFeature {
     public static final DeferredHolder<MenuType<?>, MenuType<DeviceMenu>> ANNUNCIATOR_MENU = AllNuclearGUIs.MENUS.register("annunciator_panel",
             () -> IMenuTypeExtension.create((id, inventory, buf) ->
                     new DeviceMenu(ControlRoom2Registry.ANNUNCIATOR_MENU.get(), id, inventory, buf.readBlockPos(), buf.readVarInt())));
+    /** The wrench setup of a Control Room Monitor's screen, opened on the clicked monitor. */
+    public static final DeferredHolder<MenuType<?>, MenuType<DeviceMenu>> MONITOR_MENU = AllNuclearGUIs.MENUS.register("control_monitor",
+            () -> IMenuTypeExtension.create((id, inventory, buf) ->
+                    new DeviceMenu(ControlRoom2Registry.MONITOR_MENU.get(), id, inventory, buf.readBlockPos(), buf.readVarInt())));
 
     /** A torn-off chart, on a Chart Roll. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ChartData>> CHART_DATA =

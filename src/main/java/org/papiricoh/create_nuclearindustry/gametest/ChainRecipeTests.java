@@ -46,7 +46,9 @@ public class ChainRecipeTests {
             "electrolysis/heavy_water",
             "electrolysis/deuterium",
             "filling/deuterium_cell",
-            "emptying/tritium_cell");
+            "emptying/tritium_cell",
+            "filling/liquid_helium_cell",
+            "emptying/liquid_helium_cell");
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void everyChainRecipeIsLoaded(GameTestHelper helper) {

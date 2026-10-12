@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearSounds;
 import org.papiricoh.create_nuclearindustry.client.sound.MachineLoopSound;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
+import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorSoundModel;
 
 /**
@@ -61,7 +62,7 @@ final class ReactorLoopSound extends MachineLoopSound<ReactorBlockEntity> {
         return switch (kind) {
             case HUM -> ReactorSoundModel.humVolume(snapshot.powerFraction());
             case KLAXON -> 1.0f;
-            case ALARM -> ReactorSoundModel.alarmVolume(snapshot.coreTemperature());
+            case ALARM -> ReactorSoundModel.alarmVolume(snapshot.coreTemperature(), FissionConfig.warningTemperature(), FissionConfig.meltdownTemperature());
             case HISS -> ReactorSoundModel.hissVolume(ReactorClientEffects.steamFlowPerPort(machine));
             case BUBBLING -> ReactorSoundModel.bubblingVolume(ReactorClientEffects.primaryFlowPerPort(machine));
             case RELIEF -> ReactorSoundModel.RELIEF_VOLUME;
@@ -74,7 +75,7 @@ final class ReactorLoopSound extends MachineLoopSound<ReactorBlockEntity> {
         return switch (kind) {
             case HUM -> ReactorSoundModel.humPitch(snapshot.powerFraction());
             case KLAXON -> 1.0f;
-            case ALARM -> ReactorSoundModel.alarmPitch(snapshot.coreTemperature());
+            case ALARM -> ReactorSoundModel.alarmPitch(snapshot.coreTemperature(), FissionConfig.warningTemperature(), FissionConfig.meltdownTemperature());
             case HISS -> ReactorSoundModel.hissPitch(ReactorClientEffects.steamFlowPerPort(machine));
             case BUBBLING -> ReactorSoundModel.bubblingPitch(ReactorClientEffects.primaryFlowPerPort(machine));
             case RELIEF -> ReactorSoundModel.RELIEF_PITCH;

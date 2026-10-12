@@ -1,3 +1,4 @@
-// 1.21.1	2026-10-06T17:59:50.359854	create_nuclearindustry's processing recipes: filling
+// 1.21.1	2026-10-12T02:35:52.8514491	create_nuclearindustry's processing recipes: filling
 7c90ec734f81b974c7e52bd0459dac0057e62bf2 data/create_nuclearindustry/recipe/filling/deuterium_cell.json
+fb62a6d34776e26dff130580a543416805c2d122 data/create_nuclearindustry/recipe/filling/liquid_helium_cell.json
 64152d26ddf2fdf681c95b3c9f3f547407f8824c data/create_nuclearindustry/recipe/filling/tritium_cell.json

@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.controlroom;
 
+import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform;
@@ -28,8 +29,8 @@ import java.util.List;
 public class NuclearAlarmBlockEntity extends SmartBlockEntity implements ControlRoomDevice {
     private static final int CHECK_INTERVAL = 10;
     private static final int RING_INTERVAL = 40;
-    /** 70 of 100 is 2800 °C for the default temperature alarm, the automatic SCRAM's default. */
-    private static final int DEFAULT_SETTING = 70;
+    /** 35 of 100 is 1400 °C for the default temperature alarm, the automatic SCRAM's default (40 °C a step). */
+    private static final int DEFAULT_SETTING = AutoScram.DEFAULT_THRESHOLD / 40;
 
     @Nullable
     private GlobalPos target;

@@ -24,5 +24,6 @@ public final class CryoClient implements NuclearFeatureClient {
                 context -> new CryoRotorRenderer<>(context, CryoPartials.COMPRESSOR_IMPELLER));
         event.registerBlockEntityRenderer(CryoRegistry.FUSION_VACUUM_PUMP_ENTITY.get(),
                 context -> new CryoRotorRenderer<>(context, CryoPartials.VACUUM_PUMP_ROTOR));
+        event.registerBlockEntityRenderer(CryoRegistry.HELIUM_WELL_ENTITY.get(), HeliumWellRenderer::new);
     }
 }

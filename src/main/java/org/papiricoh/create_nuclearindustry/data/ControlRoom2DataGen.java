@@ -54,6 +54,35 @@ final class ControlRoom2DataGen extends AreaDataGen {
         controller();
         plantReadings();
         tokamak();
+        monitorSetup();
+        moduleScreen();
+    }
+
+    /** The wrench setup of a Control Room Monitor's screen. */
+    private static void monitorSetup() {
+        String s = "create_nuclearindustry.monitor.setup.";
+        add(s + "title", "Title", "Título");
+        add(s + "layout", "Layout", "Disposición");
+        add(s + "layout.auto", "Automatic", "Automática");
+        add(s + "layout.list", "Readings only", "Solo lecturas");
+        add(s + "layout.chart", "Graph only", "Solo gráfica");
+        add(s + "layout.both", "Readings and graph", "Lecturas y gráfica");
+        add(s + "series_a", "Graph A", "Gráfica A");
+        add(s + "series_b", "Graph B", "Gráfica B");
+        add(s + "series.default", "Default", "Por defecto");
+        add(s + "rows", "Readings", "Lecturas");
+        add(s + "rows.unlinked", "Link the screen first", "Enlaza antes la pantalla");
+        add(s + "rows.up", "Move up", "Subir");
+        add(s + "rows.down", "Move down", "Bajar");
+        add(s + "rows.default", "Default: usual order, all shown", "Por defecto: orden habitual, todas visibles");
+        add(s + "rows.shown", "Shown", "Visible");
+        add(s + "rows.hidden", "Hidden", "Oculta");
+        add(s + "rows.show", "Show this reading", "Mostrar esta lectura");
+        add(s + "rows.hide", "Hide this reading", "Ocultar esta lectura");
+        add("create_nuclearindustry.monitor.no_rows", "No readings shown", "Ninguna lectura visible");
+        add("jei.create_nuclearindustry.info.control_monitor",
+                "Right-click a Monitor with a wrench to set up its screen, from any of its blocks: a title of your own, the layout (readings, graph, both, or the automatic one that switches on click), what the graph's two lines plot, and which readings it lists in which order. Click a reading in the list to show or hide it or move it up or down. A screen that grows keeps its setup.",
+                "Haz clic derecho en un Monitor con una llave inglesa para configurar su pantalla, desde cualquiera de sus bloques: un título propio, la disposición (lecturas, gráfica, ambas o la automática que cambia al hacer clic), qué dibujan las dos líneas de la gráfica y qué lecturas lista y en qué orden. Haz clic en una lectura de la lista para mostrarla, ocultarla, subirla o bajarla. Una pantalla que crece conserva su configuración.");
     }
 
     private static void chartRecorder() {
@@ -322,5 +351,96 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(r + "containment_pressure", "Containment pressure", "Presión de la contención");
         add(r + "containment_hydrogen", "Containment hydrogen", "Hidrógeno en la contención");
         add(r + "containment_activity", "Containment airborne activity (log)", "Actividad en el aire de la contención (log.)");
+    }
+
+    /**
+     * The setup screen of a desk module: header, captions, what each function does, what it needs, the
+     * setting input and the output, frequency and signal hints.
+     */
+    private static void moduleScreen() {
+        String m = "create_nuclearindustry.control_module.";
+        String s = m + "screen.";
+        add(s + "console", "Console: %s", "Consola: %s");
+        add(s + "unlinked", "Not linked: every function is listed", "Sin enlazar: se muestran todas las funciones");
+        add(s + "works", "Works on this console", "Funciona con esta consola");
+        add(s + "warning.machine", "Does nothing here: needs %s", "Aquí no hace nada: necesita %s");
+        add(s + "warning.pressurizer", "Does nothing here: the reactor has no pressurizer",
+                "Aquí no hace nada: el reactor no tiene presionador");
+        add(s + "warning.running", "Does nothing here: needs a reactor, turbine, tower or tokamak",
+                "Aquí no hace nada: necesita un reactor, turbina, torre o tokamak");
+        add(s + "needs", "Needs: %s", "Necesita: %s");
+        add(s + "needs_pressurizer", "Needs a reactor with a pressurizer", "Necesita un reactor con presionador");
+        add(s + "needs_machine", "Needs a reactor, turbine, cooling tower or tokamak",
+                "Necesita un reactor, turbina, torre de refrigeración o tokamak");
+        add(s + "functions", "Function", "Función");
+        add(s + "metrics", "Alarm", "Alarma");
+        add(s + "readings", "Reading", "Lectura");
+        add(s + "controller", "Controller", "Controlador");
+        add(s + "about", "What it does", "Qué hace");
+        add(s + "no_metrics", "No alarms for this machine", "No hay alarmas para esta máquina");
+        add(s + "no_readings", "No readings for this machine", "No hay lecturas para esta máquina");
+        add(s + "flag_on", "ON", "SÍ");
+        add(s + "flag_off", "off", "no");
+        add(s + "threshold", "Threshold", "Umbral");
+        add(s + "setpoint", "Setpoint", "Consigna");
+        add(s + "level", "Level", "Nivel");
+        add(s + "no_setting", "No setting", "Sin ajuste");
+        add(s + "scroll", "Scroll to change it", "Usa la rueda para cambiarlo");
+        add(s + "scroll_fine", "Hold Shift for steps of 1", "Mantén Mayús para pasos de 1");
+        add(s + "mode_hint", "Click to switch between automatic and standby", "Haz clic para cambiar entre automático y en espera");
+        add(s + "output_hint.none", "The module keeps its signal to itself", "El módulo no saca su señal");
+        add(s + "output_hint.below", "Powers the block below the desk and the one behind it",
+                "Alimenta el bloque bajo el pupitre y el de detrás");
+        add(s + "output_hint.link", "Sends its signal on a Redstone Link frequency: set it in the two slots on the left",
+                "Manda su señal por una frecuencia de Redstone Link: fíjala en los dos huecos de la izquierda");
+        add(s + "frequency_hint", "Click with an item to set it, with an empty hand to clear it",
+                "Haz clic con un objeto para fijarla, con la mano vacía para borrarla");
+        add(s + "frequency_off", "Choose the Redstone Link output to use it", "Elige la salida por Redstone Link para usarla");
+        add(s + "signal", "Redstone signal: %s", "Señal de redstone: %s");
+        add(s + "signal_hint", "What the module puts out now, 0-15", "Lo que saca ahora el módulo, de 0 a 15");
+        String f = m + "function.";
+        add(f + "scram.desc", "Shuts the reactor down at once (SCRAM); press it again to reset.",
+                "Para el reactor de golpe (SCRAM); púlsalo otra vez para rearmarlo.");
+        add(f + "pulse.desc", "Sends a short redstone pulse.", "Manda un pulso corto de redstone.");
+        add(f + "auto_scram.desc", "Turns the reactor's automatic SCRAM on or off.",
+                "Activa o desactiva el SCRAM automático del reactor.");
+        add(f + "tokamak_fuel.desc", "Turns the tokamak on or off: up starts it, down shuts it down safely.",
+                "Enciende o apaga el tokamak: arriba lo arranca, abajo lo para de forma segura.");
+        add(f + "toggle.desc", "Switches a redstone output on or off.", "Enciende o apaga una salida de redstone.");
+        add(f + "rod_target.desc", "Sets the control rod target, 0-100%. Click to raise it, sneak-click to lower it.",
+                "Fija el objetivo de las barras de control, 0-100 %. Clic para subirlo, agachado para bajarlo.");
+        add(f + "scram_threshold.desc", "Sets the core temperature at which the automatic SCRAM trips.",
+                "Fija la temperatura del núcleo a la que salta el SCRAM automático.");
+        add(f + "signal_level.desc", "Puts out a redstone level from 0 to 15, set here or by clicking the dial.",
+                "Saca un nivel de redstone de 0 a 15, fijado aquí o con clics en la rueda.");
+        add(f + "lamp_scram.desc", "Lights while the reactor's SCRAM signal is on.",
+                "Se enciende mientras la señal de SCRAM del reactor está activa.");
+        add(f + "lamp_running.desc", "Lights while the machine runs: chain reaction, turbine or tower working, plasma burning.",
+                "Se enciende mientras la máquina funciona: reacción en cadena, turbina o torre trabajando, plasma ardiendo.");
+        add(f + "lamp_no_signal.desc", "Lights while the console gets no signal from its machine.",
+                "Se enciende mientras la consola no recibe señal de su máquina.");
+        add(f + "lamp_alarm.desc", "Lights while the chosen alarm passes its threshold.",
+                "Se enciende mientras la alarma elegida pasa de su umbral.");
+        add(f + "reading.desc", "A needle showing the chosen reading, full scale at the top.",
+                "Una aguja que muestra la lectura elegida, con el fondo de escala arriba.");
+        add(f + "auto_power.desc", "Moves the rod target to hold the reactor's power at the setpoint, in % of its rated power.",
+                "Mueve el objetivo de las barras para mantener la potencia del reactor en la consigna, en % de la nominal.");
+        add(f + "auto_temperature.desc", "Moves the rod target to hold the core temperature at the setpoint.",
+                "Mueve el objetivo de las barras para mantener la temperatura del núcleo en la consigna.");
+        add(f + "pzr_heaters.desc", "Runs every pressurizer heater as a backup, whatever its own mode.",
+                "Enciende todos los calentadores del presionador como respaldo, sea cual sea su modo.");
+        add(f + "pzr_spray.desc", "Opens the pressurizer spray fully, as long as the cold leg flows.",
+                "Abre del todo el rociado del presionador, mientras circule la rama fría.");
+        add(f + "auto_pressure.desc", "Runs the pressurizer heaters and spray to hold the primary pressure at the setpoint.",
+                "Maneja los calentadores y el rociado del presionador para mantener la presión del primario en la consigna.");
+        add(f + "lamp_relief_open.desc", "Lights while the pressurizer's relief valve is open.",
+                "Se enciende mientras la válvula de alivio del presionador está abierta.");
+        add(f + "tokamak_start.desc", "Starts the tokamak's startup sequence; if it refuses, it says why.",
+                "Inicia la secuencia de arranque del tokamak; si se niega, dice por qué.");
+        add(f + "tokamak_shutdown.desc", "Shuts the tokamak down safely.", "Para el tokamak de forma segura.");
+        add(f + "tokamak_heating.desc", "Turns the tokamak's auxiliary heating on or off, at the level it was set to.",
+                "Enciende o apaga el calentamiento auxiliar del tokamak, al nivel que tenía.");
+        add(f + "auto_fusion_power.desc", "Sets the tokamak's fuelling, then its heating, to hold the fusion power at the setpoint.",
+                "Ajusta el combustible del tokamak, y después su calentamiento, para mantener la potencia de fusión en la consigna.");
     }
 }

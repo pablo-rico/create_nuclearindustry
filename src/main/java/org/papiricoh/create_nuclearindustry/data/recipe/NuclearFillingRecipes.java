@@ -26,6 +26,11 @@ public class NuclearFillingRecipes extends StandardProcessingRecipeGen<FillingRe
             .require(AllNuclearFluids.TRITIUM.get(), 250)
             .output(AllNuclearItems.TRITIUM_CELL.get()));
 
+    GeneratedRecipe LIQUID_HELIUM_CELL = create("liquid_helium_cell", b -> b
+            .require(AllNuclearItems.EMPTY_GAS_CELL.get())
+            .require(AllNuclearFluids.LIQUID_HELIUM.get(), 250)
+            .output(AllNuclearItems.LIQUID_HELIUM_CELL.get()));
+
     public NuclearFillingRecipes(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries, Create_NuclearIndustry.MODID);
     }

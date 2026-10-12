@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "create_nuclearindustry:block/helium_well",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/helium_well"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/helium_well",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/helium_well",
+      "y": 270
+    }
+  }
+}

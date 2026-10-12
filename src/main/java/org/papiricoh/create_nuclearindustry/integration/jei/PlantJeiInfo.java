@@ -91,6 +91,8 @@ public final class PlantJeiInfo {
         pages.add(items("shelter", CivilDefenseRegistry.SHELTER_FILTRATION_UNIT_ITEM));
 
         // Cryogenic plant and the tokamak's vacuum
+        pages.add(new Page("helium_well", stacks(CryoRegistry.HELIUM_WELL_ITEM, AllNuclearItems.LIQUID_HELIUM_CELL),
+                fluids(AllNuclearFluids.HELIUM, AllNuclearFluids.LIQUID_HELIUM)));
         pages.add(new Page("cryoplant", stacks(CryoRegistry.CRYOPLANT_CONTROLLER_ITEM, CryoRegistry.CRYOPLANT_CASING_ITEM,
                 CryoRegistry.CRYOPLANT_PORT_ITEM, CryoRegistry.CRYOPLANT_COMPRESSOR_ITEM),
                 fluids(AllNuclearFluids.LIQUID_AIR, AllNuclearFluids.LIQUID_NITROGEN)));

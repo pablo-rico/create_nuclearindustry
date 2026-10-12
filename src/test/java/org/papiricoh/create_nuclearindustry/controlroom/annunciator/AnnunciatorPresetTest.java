@@ -66,8 +66,8 @@ class AnnunciatorPresetTest {
 
     @Test
     void theCoreAlarmsLightBeforeTheAutomaticScram() {
-        assertEquals(50, window(AnnunciatorPreset.REACTOR_CORE, 0).setting(), "2000 °C");
-        assertEquals(60, window(AnnunciatorPreset.REACTOR_CORE, 1).setting(), "2400 °C, under the 2800 °C automatic SCRAM");
+        assertEquals(25, window(AnnunciatorPreset.REACTOR_CORE, 0).setting(), "1000 °C");
+        assertEquals(30, window(AnnunciatorPreset.REACTOR_CORE, 1).setting(), "1200 °C, under the 1400 °C automatic SCRAM and the 1500 °C cladding failure");
     }
 
     @Test

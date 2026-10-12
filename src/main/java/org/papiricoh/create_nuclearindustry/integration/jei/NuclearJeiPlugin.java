@@ -179,6 +179,8 @@ public class NuclearJeiPlugin implements IModPlugin {
         registration.addIngredientInfo(List.of(new ItemStack(AllNuclearItems.CONTROL_ROOM_LINKER.get()),
                         new ItemStack(AllNuclearItems.CONTROL_MONITOR.get()), new ItemStack(AllNuclearItems.NUCLEAR_ALARM.get())),
                 VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.control_room"));
+        registration.addIngredientInfo(new ItemStack(AllNuclearItems.CONTROL_MONITOR.get()), VanillaTypes.ITEM_STACK,
+                Component.translatable("jei.create_nuclearindustry.info.control_monitor"));
         List<ItemStack> desk = new java.util.ArrayList<>(List.of(new ItemStack(AllNuclearItems.REACTOR_CONTROL_PANEL.get())));
         AllNuclearItems.CONTROL_MODULES.values().forEach(module -> desk.add(new ItemStack(module.get())));
         registration.addIngredientInfo(desk, VanillaTypes.ITEM_STACK, Component.translatable("jei.create_nuclearindustry.info.control_desk"));

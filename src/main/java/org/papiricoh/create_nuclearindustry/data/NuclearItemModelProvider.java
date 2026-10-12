@@ -52,6 +52,7 @@ public class NuclearItemModelProvider extends ItemModelProvider {
                 AllNuclearItems.SPODUMENE_CONCENTRATE,
                 AllNuclearItems.LITHIUM_CARBONATE,
                 AllNuclearItems.EMPTY_GAS_CELL,
+                AllNuclearItems.LIQUID_HELIUM_CELL,
                 AllNuclearItems.GEIGER_COUNTER,
                 AllNuclearItems.HAZMAT_HELMET,
                 AllNuclearItems.HAZMAT_CHESTPLATE,

@@ -27,7 +27,7 @@ public class AllNuclearGUIs {
 
     public static final DeferredHolder<MenuType<?>, MenuType<org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModuleMenu>> CONTROL_MODULE_MENU =
             MENUS.register("control_module", () -> net.neoforged.neoforge.common.extensions.IMenuTypeExtension.create(
-                    (containerId, inventory, buf) -> new org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModuleMenu(containerId, inventory, buf.readBlockPos(), buf.readVarInt())));
+                    org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModuleMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<LaunchPadMenu>> LAUNCH_PAD_MENU =
             MENUS.register("launch_pad", () -> IMenuTypeExtension.create(LaunchPadMenu::fromNetwork));

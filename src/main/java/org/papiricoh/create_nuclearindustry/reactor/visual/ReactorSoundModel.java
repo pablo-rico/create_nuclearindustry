@@ -12,10 +12,6 @@ public final class ReactorSoundModel {
     public static final double FULL_POWER_RESET_FRACTION = 0.8;
     /** Core temperature, °C, below which a scrammed core is cold: the klaxon stops. */
     public static final double COLD_SHUTDOWN_TEMPERATURE = 100.0;
-    /** Core temperature, °C, above which the over-temperature alarm sounds (the simulator's warning zone). */
-    public static final double WARNING_TEMPERATURE = 2000.0;
-    /** Core temperature, °C, at which the core melts. */
-    public static final double MELTDOWN_TEMPERATURE = 4000.0;
     /** Steam through one output port at which its hiss is loudest, mB/t. */
     public static final double FULL_STEAM_FLOW = 160.0;
     /** Rotation at which a machine's sound is highest, RPM. */
@@ -51,23 +47,27 @@ public final class ReactorSoundModel {
         return scrammed && temperature >= COLD_SHUTDOWN_TEMPERATURE;
     }
 
-    /** The over-temperature alarm sounds in the warning zone and above. */
-    public static boolean alarmWanted(boolean formed, double temperature) {
-        return formed && temperature > WARNING_TEMPERATURE;
+    /**
+     * The over-temperature alarm sounds in the warning zone and above.
+     *
+     * @param warning core temperature, °C, where the warning zone starts (the cladding failure temperature)
+     */
+    public static boolean alarmWanted(boolean formed, double temperature, double warning) {
+        return formed && temperature > warning;
     }
 
-    /** How far into the warning zone the core is, 0 at the warning temperature, 1 at meltdown. */
-    public static double danger(double temperature) {
-        return clamp01((temperature - WARNING_TEMPERATURE) / (MELTDOWN_TEMPERATURE - WARNING_TEMPERATURE));
+    /** How far into the warning zone the core is, 0 at {@code warning}, 1 at {@code meltdown}. */
+    public static double danger(double temperature, double warning, double meltdown) {
+        return clamp01((temperature - warning) / Math.max(1, meltdown - warning));
     }
 
-    public static float alarmVolume(double temperature) {
-        return (float) (0.6 + 0.4 * danger(temperature));
+    public static float alarmVolume(double temperature, double warning, double meltdown) {
+        return (float) (0.6 + 0.4 * danger(temperature, warning, meltdown));
     }
 
     /** The alarm rises in pitch as the core nears meltdown. */
-    public static float alarmPitch(double temperature) {
-        return (float) (1.0 + 0.25 * danger(temperature));
+    public static float alarmPitch(double temperature, double warning, double meltdown) {
+        return (float) (1.0 + 0.25 * danger(temperature, warning, meltdown));
     }
 
     // ------------------------------------------------------------------ steam and coolant

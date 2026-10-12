@@ -617,6 +617,46 @@ public enum AlarmMetric implements INamedIconOptions {
         return applies(sample) && tripped(reading(sample), setting);
     }
 
+    /**
+     * The metric's value in a sample, in the units of its threshold, for setup screens to show next to
+     * it; NaN when the sample does not carry it (another machine, a reactor without a pressurized loop).
+     */
+    public float liveValue(MonitorReading sample) {
+        return applies(sample) ? reading(sample) : Float.NaN;
+    }
+
+    /** True for on/off metrics (SCRAM, relief valve, trip...), which take no threshold. */
+    public boolean isFlag() {
+        return "-".equals(format(0));
+    }
+
+    /**
+     * A {@link #liveValue} printed in the metric's units, like {@link #format} prints a threshold. Flags
+     * print as 1 or 0; screens word them themselves.
+     */
+    public String formatValue(float value) {
+        return switch (this) {
+            case TEMPERATURE -> formatted("%.0f°C", value);
+            case PLASMA_TEMPERATURE -> formatted("%.0f°", value);
+            case AREA_RADIATION -> formatted("%.2f rad/s", value);
+            case PRESSURE_HIGH, PRESSURE_LOW -> formatted("%.1f bar", value);
+            case CONTAINMENT_PRESSURE -> formatted("%.2f bar", value);
+            case SUBCOOLING_LOW, SG_PRIMARY_DT_LOW -> formatted("%.1f°C", value);
+            case LOSS_OF_FLOW, SG_STEAM_LOW -> formatted("%.0f mB/t", value);
+            case HYDROGEN -> formatted("%.2f%%", value);
+            case CONTAINMENT_ACTIVITY -> formatted("%.3g", value);
+            case VACUUM_POOR -> TokamakScales.formatPressure(value);
+            case MAGNET_TEMPERATURE -> formatted("%.1f K", value);
+            case FUSION_GAIN_LOW -> TokamakScales.formatGain(value);
+            case SCRAM, RELIEF_OPEN, CONTAINMENT_OPEN, TOKAMAK_TRIP -> value > 0 ? "1" : "0";
+            default -> formatted("%.0f%%", value);
+        };
+    }
+
+    private static String formatted(String pattern, float value) {
+        return String.format(Locale.ROOT, pattern, value);
+    }
+
     @Override
     public AllIcons getIcon() {
         return icon;

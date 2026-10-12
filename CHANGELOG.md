@@ -18,6 +18,31 @@ below for what changes in existing worlds.
 - Ores drop with Fortune and Silk Touch, so ore crushing works.
 
 ### Fission reactor
+- Temperature matters again. The cladding now fails at 1500 °C instead of
+  2000 (`fission.damage.claddingFailureTemperature`; the fuel still melts at
+  2800), so a core at rated power (about 885 °C) has roughly twice its rated
+  power of margin before it damages itself. The Warning, Critical and Melting
+  states, the over-temperature alarm and the fuel stress reading all follow the
+  config thresholds (1500 / 2150 / 2800 °C). The automatic SCRAM now defaults to
+  1400 °C, just under the damage, and the annunciator preset's CORE TEMP HI and
+  HI-HI windows sit at 1000 and 1200 °C, and new Nuclear Alarms and the desk's
+  automatic temperature controller start at 1400 and 880 °C. Saved reactors
+  still on the old 2800 °C default move to the new one on load (a threshold you
+  set is kept), and a saved config keeps 2000 °C until you change it. A plant
+  that used to run between 1500 and 2000 °C will start damaging its fuel: pull
+  its rods back a step.
+- A steam-bound core answers its rods. The thermal power can never exceed the
+  steam that leaves (exchangers, ports, steam tank space), and the core's water
+  used to soak up any extra reactivity by heating far past boiling, so pulling
+  more rods changed nothing. The water can now only be driven
+  `fission.thermal.maxSuperheat` (50 K) above boiling: past that it flashes to
+  steam (the first thousand pcm or so go into that void) and the heat stays in
+  the fuel, which then climbs about 500 °C per 1000 pcm of extra rod withdrawal
+  until it is damaged. With the steam path shut
+  altogether the flashing water stops the chain reaction within seconds, but the
+  decay heat then goes into fuel that cannot cool: free the outlet.
+- The steam void in the core follows its target with a one-second lag, so a
+  turbine draining the steam tank in fits no longer saws the reactor's power.
 - Only assembled fuel at 3% or more is accepted. Each fuel channel holds one
   assembly; richer fuel lasts longer and is more reactive.
 - Spent fuel keeps its enrichment and is reprocessed (PUREX) for plutonium
@@ -144,6 +169,14 @@ below for what changes in existing worlds.
   the world: readings with gauges for the linked machine and, on bigger
   screens, a two-minute graph. Click to change page; comparators read the
   main value.
+- Right-click a monitor with a wrench to set its screen up, from any block
+  of it: a title of your own instead of the machine's name, the layout
+  (automatic as before, readings only, graph only, or readings and graph
+  together on any screen of two blocks or more), what the graph's two lines
+  plot (any gauge reading of the linked machine) and which readings it lists,
+  in which order, each one shown or hidden. A single block pages through the
+  readings you chose. A screen that grows keeps its setup; screens nobody set
+  up look exactly as before.
 - Control Desks: sloping consoles that join side by side and round corners
   (inner and outer, like stairs) into one console with one link. Each straight
   desk holds four control modules and each corner two, one on each arm (in
@@ -157,6 +190,19 @@ below for what changes in existing worlds.
   light up until the rods reach the target, to drive the clutch and gearshift
   of the pistons. Reactor Control Panels from earlier builds turn into desks
   with SCRAM, auto SCRAM, rod target and threshold modules.
+- New setup screen for desk modules (wrench a module). The header names the
+  module and the machine its console is linked to, with that machine's status,
+  and warns in red when the chosen function does nothing there. Functions are
+  a list, each with a description on hover; the ones the linked machine cannot
+  use are greyed out and say what they need (a tokamak, a reactor with a
+  pressurizer...). Alarm lamps and gauges pick from lists of only the alarms
+  and readings that machine has, each showing its live value (an alarm that
+  would light as set shows red). Controllers get an automatic/standby switch,
+  a description and their setpoint with what they are asking for now. Scroll
+  the threshold, setpoint or redstone level (5 a notch, 1 with Shift); the
+  redstone output is three buttons; the Redstone Link frequency slots and a
+  meter of the module's live signal sit beside the inventory. A console that
+  is not linked yet still lists everything.
 - The control room also watches tokamaks: plasma temperature, power,
   confinement, instability and fuel on monitors, desks and alarms.
 - Nuclear Alarm: rings, lights up and powers every side when the chosen
@@ -238,6 +284,14 @@ below for what changes in existing worlds.
 - Players accumulate a dose from carried material, nearby waste and fallout
   from accidents, with nausea, weakness and radiation sickness. Hazmat suit
   and Geiger counter. Configurable and can be disabled.
+
+### Commands
+- `/nuclear spawn <structure> [pos] [fuelled]` places a machine already formed
+  (for testing and creative builds): a fission reactor (`fuelled` loads it and
+  fills its water), steam and plasma turbines, a cooling tower, a tokamak with
+  a creative motor on its magnet drive, a linac with its machines, a steam
+  generator, a cryogenic plant and a containment room. The space it needs is
+  cleared first and the reply says whether it formed and, if not, why.
 
 ### Performance and multiplayer
 - Radiation exposure is much cheaper on servers: a player who stands still no
@@ -738,6 +792,17 @@ below for what changes in existing worlds.
   chamber pressure.
 - JEI info pages for the plant, the cryogenic port and the vacuum pump. All
   of it is configurable under `cryo.*`.
+
+### Helium well and liquid helium cell
+- New Helium Well, the first step towards liquid helium: a single kinetic
+  block (1024 SU/RPM) with its shaft at the back that slowly draws helium gas
+  out of the rock, 0.02 mB/t (24 mB a minute) at 128 RPM, less when slower and
+  nothing below 32 RPM. It holds 1000 mB and pushes the gas into tanks and
+  machines beside it, or pipes can drain it; when full it stops. Feed it to a
+  cryogenic plant to make liquid helium. Goggles show its rate and tank, and
+  JEI explains the chain. Configurable under `cryo.heliumWell.*`.
+- New Liquid Helium Cell: Spouts fill an Empty Gas Cell with 250 mB of liquid
+  helium, and Item Drains empty it again.
 
 ### Plasma heating, viewports and sound
 - Neutral Beam Injector: a tokamak shell block with a shaft on its outer

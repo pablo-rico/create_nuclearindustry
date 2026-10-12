@@ -8,6 +8,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.plant.CryoplantCompressorBlock;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.plant.CryoplantPortBlock;
@@ -19,15 +20,20 @@ import org.papiricoh.create_nuclearindustry.fusion.cryo.plant.CryoplantPortMode;
  * wall of that layer, and compressors up the south wall, each driven by its own creative motor so
  * no single motor carries the whole plant's stress.
  */
-final class CryoplantTestBuilder {
+public final class CryoplantTestBuilder {
 
     private CryoplantTestBuilder() {}
 
     static void build(GameTestHelper helper, BlockPos bottomCenter, int height, int compressors, int rpm) {
+        build(BlockPlacer.of(helper), bottomCenter, height, compressors, rpm);
+    }
+
+    /** The plant standing on {@code bottomCenter} of {@code placer}, each compressor driven by a creative motor at {@code rpm}. */
+    public static void build(BlockPlacer helper, BlockPos bottomCenter, int height, int compressors, int rpm) {
         for (int y = 0; y < height; y++) {
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
-                    helper.setBlock(bottomCenter.offset(dx, y, dz), CryoRegistry.CRYOPLANT_CASING.get());
+                    helper.set(bottomCenter.offset(dx, y, dz), CryoRegistry.CRYOPLANT_CASING.get());
                 }
             }
         }
@@ -35,28 +41,39 @@ final class CryoplantTestBuilder {
         port(helper, liquidOut(bottomCenter), CryoplantPortMode.LIQUID_HELIUM_OUT);
         for (int i = 0; i < compressors; i++) {
             BlockPos pos = compressor(bottomCenter, i);
-            helper.setBlock(pos, CryoRegistry.CRYOPLANT_COMPRESSOR.get().defaultBlockState()
+            helper.set(pos, CryoRegistry.CRYOPLANT_COMPRESSOR.get().defaultBlockState()
                     .setValue(CryoplantCompressorBlock.FACING, Direction.SOUTH));
             motor(helper, pos.south(), Direction.NORTH, rpm);
         }
-        helper.setBlock(controller(bottomCenter), CryoRegistry.CRYOPLANT_CONTROLLER.get().defaultBlockState()
+        helper.set(controller(bottomCenter), CryoRegistry.CRYOPLANT_CONTROLLER.get().defaultBlockState()
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 
     static void port(GameTestHelper helper, BlockPos pos, CryoplantPortMode mode) {
-        helper.setBlock(pos, CryoRegistry.CRYOPLANT_PORT.get().defaultBlockState().setValue(CryoplantPortBlock.MODE, mode));
+        port(BlockPlacer.of(helper), pos, mode);
+    }
+
+    public static void port(BlockPlacer helper, BlockPos pos, CryoplantPortMode mode) {
+        helper.set(pos, CryoRegistry.CRYOPLANT_PORT.get().defaultBlockState().setValue(CryoplantPortBlock.MODE, mode));
     }
 
     /** Places a Create creative motor at {@code pos} with its shaft toward {@code shaft}, turning at {@code rpm}. */
     static CreativeMotorBlockEntity motor(GameTestHelper helper, BlockPos pos, Direction shaft, int rpm) {
+        return motor(BlockPlacer.of(helper), pos, shaft, rpm);
+    }
+
+    @Nullable
+    public static CreativeMotorBlockEntity motor(BlockPlacer helper, BlockPos pos, Direction shaft, int rpm) {
         Block motor = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("create", "creative_motor"));
-        helper.setBlock(pos, motor.defaultBlockState().setValue(BlockStateProperties.FACING, shaft));
-        CreativeMotorBlockEntity motorEntity = helper.getBlockEntity(pos);
-        motorEntity.generatedSpeed.setValue(rpm);
+        helper.set(pos, motor.defaultBlockState().setValue(BlockStateProperties.FACING, shaft));
+        CreativeMotorBlockEntity motorEntity = helper.blockEntity(pos, CreativeMotorBlockEntity.class);
+        if (motorEntity != null) {
+            motorEntity.generatedSpeed.setValue(rpm);
+        }
         return motorEntity;
     }
 
-    static BlockPos controller(BlockPos bottomCenter) {
+    public static BlockPos controller(BlockPos bottomCenter) {
         return bottomCenter.offset(0, 1, -1);
     }
 

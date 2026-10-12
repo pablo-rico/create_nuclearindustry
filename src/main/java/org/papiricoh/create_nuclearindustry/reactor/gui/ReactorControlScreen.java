@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.reactor.gui;
 
+import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -199,8 +200,8 @@ public class ReactorControlScreen extends AbstractContainerScreen<ReactorControl
 
     private static int tempColor(double temp) {
         if (temp < 500) return 0xFF55FF55;
-        if (temp < 2000) return 0xFFFFAA00;
-        if (temp < 3500) return 0xFFFF7733;
+        if (temp < FissionConfig.warningTemperature()) return 0xFFFFAA00;
+        if (temp < FissionConfig.dangerTemperature()) return 0xFFFF7733;
         return 0xFFFF3333;
     }
 

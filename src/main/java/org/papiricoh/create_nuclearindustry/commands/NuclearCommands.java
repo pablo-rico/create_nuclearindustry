@@ -17,6 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 
@@ -24,8 +25,8 @@ import java.util.Collection;
 import java.util.function.Function;
 
 /**
- * {@code /nuclear}: debug and admin tools for ground contamination and player dose. Needs
- * permission level 2 (cheats or operator).
+ * {@code /nuclear}: debug and admin tools for ground contamination, player dose and placing the
+ * mod's machines already formed ({@code /nuclear spawn}). Needs permission level 2 (cheats or operator).
  */
 public final class NuclearCommands {
     private static final String PREFIX = "commands.create_nuclearindustry.";
@@ -40,7 +41,43 @@ public final class NuclearCommands {
         dispatcher.register(Commands.literal("nuclear")
                 .requires(source -> source.hasPermission(2))
                 .then(contamination())
-                .then(dose()));
+                .then(dose())
+                .then(spawn()));
+    }
+
+    /**
+     * {@code /nuclear spawn <structure> [pos] [fuelled]}: one of {@link StructurePreset}, its corner at
+     * {@code pos} or two blocks east and south of the caller, formed at once. {@code fuelled} loads
+     * and fills a reactor.
+     */
+    private static LiteralArgumentBuilder<CommandSourceStack> spawn() {
+        var spawn = Commands.literal("spawn");
+        for (StructurePreset preset : StructurePreset.values()) {
+            var fuelledHere = Commands.literal("fuelled").executes(ctx -> spawn(ctx.getSource(), preset, null, true));
+            var at = Commands.argument("pos", BlockPosArgument.blockPos())
+                    .executes(ctx -> spawn(ctx.getSource(), preset, BlockPosArgument.getLoadedBlockPos(ctx, "pos"), false))
+                    .then(Commands.literal("fuelled")
+                            .executes(ctx -> spawn(ctx.getSource(), preset, BlockPosArgument.getLoadedBlockPos(ctx, "pos"), true)));
+            spawn.then(Commands.literal(preset.id())
+                    .executes(ctx -> spawn(ctx.getSource(), preset, null, false))
+                    .then(fuelledHere)
+                    .then(at));
+        }
+        return spawn;
+    }
+
+    private static int spawn(CommandSourceStack source, StructurePreset preset, @Nullable BlockPos pos, boolean fuelled) {
+        ServerLevel level = source.getLevel();
+        BlockPos origin = pos != null ? pos : BlockPos.containing(source.getPosition()).offset(2, 0, 2);
+        StructurePreset.Spawned spawned = preset.spawn(level, origin, fuelled);
+        boolean formed = StructurePreset.formed(level, spawned.controller());
+        Component name = Component.translatable(PREFIX + "spawn.name." + preset.id());
+        Component status = formed
+                ? Component.translatable(PREFIX + "spawn.formed")
+                : Component.translatable(PREFIX + "spawn.unformed", StructurePreset.problem(level, spawned.controller()));
+        source.sendSuccess(() -> Component.translatable(PREFIX + "spawn.done", name, origin.toShortString(),
+                spawned.controller().toShortString(), status), true);
+        return formed ? 1 : 0;
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> contamination() {

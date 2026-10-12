@@ -42,14 +42,29 @@ public final class AcceleratorTestBuilder {
         return FIRST.south(i);
     }
 
+    /** The {@code i}-th beamline block of a linac whose controller stands at {@code controller}. */
+    public static BlockPos cell(BlockPos controller, int i) {
+        return controller.south(2 + i);
+    }
+
+    /** The beam dump at the end of a linac whose controller stands at {@code controller}. */
+    public static BlockPos dump(BlockPos controller) {
+        return cell(controller, LENGTH);
+    }
+
     /**
      * A linac of {@link #LENGTH} blocks: {@code cavities} RF cavities, quadrupoles every fourth block
      * when {@code focused}, beam pipe for the rest, and a dump at the end.
      */
     public static void linac(GameTestHelper helper, int cavities, boolean focused) {
-        helper.setBlock(CONTROLLER, AcceleratorRegistry.CONTROLLER.get().defaultBlockState()
+        linac(BlockPlacer.of(helper), CONTROLLER, cavities, focused);
+    }
+
+    /** The same linac running south from {@code controller} of {@code placer}. */
+    public static void linac(BlockPlacer helper, BlockPos controller, int cavities, boolean focused) {
+        helper.set(controller, AcceleratorRegistry.CONTROLLER.get().defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.SOUTH));
-        helper.setBlock(SOURCE, AcceleratorRegistry.ION_SOURCE.get().defaultBlockState()
+        helper.set(controller.south(), AcceleratorRegistry.ION_SOURCE.get().defaultBlockState()
                 .setValue(BlockStateProperties.FACING, Direction.UP));
         int placedCavities = 0;
         for (int i = 0; i < LENGTH; i++) {
@@ -62,9 +77,9 @@ public final class AcceleratorTestBuilder {
             } else {
                 block = AcceleratorRegistry.BEAM_PIPE.get();
             }
-            helper.setBlock(cell(i), along(block, Direction.Axis.Z));
+            helper.set(cell(controller, i), along(block, Direction.Axis.Z));
         }
-        helper.setBlock(DUMP, AcceleratorRegistry.BEAM_DUMP.get().defaultBlockState());
+        helper.set(dump(controller), AcceleratorRegistry.BEAM_DUMP.get().defaultBlockState());
     }
 
     /** A beamline block turned along {@code axis}. */
@@ -75,11 +90,15 @@ public final class AcceleratorTestBuilder {
 
     /** A klystron, magnet supply and pump beside the line, shafts facing away from it, no motors. */
     public static void machines(GameTestHelper helper) {
-        helper.setBlock(cell(1).east(), AcceleratorRegistry.KLYSTRON.get().defaultBlockState()
+        machines(BlockPlacer.of(helper), CONTROLLER);
+    }
+
+    public static void machines(BlockPlacer helper, BlockPos controller) {
+        helper.set(cell(controller, 1).east(), AcceleratorRegistry.KLYSTRON.get().defaultBlockState()
                 .setValue(BlockStateProperties.FACING, Direction.EAST));
-        helper.setBlock(cell(2).east(), AcceleratorRegistry.MAGNET_POWER_SUPPLY.get().defaultBlockState()
+        helper.set(cell(controller, 2).east(), AcceleratorRegistry.MAGNET_POWER_SUPPLY.get().defaultBlockState()
                 .setValue(BlockStateProperties.FACING, Direction.EAST));
-        helper.setBlock(cell(3).east(), AcceleratorRegistry.VACUUM_PUMP.get().defaultBlockState()
+        helper.set(cell(controller, 3).east(), AcceleratorRegistry.VACUUM_PUMP.get().defaultBlockState()
                 .setValue(BlockStateProperties.FACING, Direction.EAST));
     }
 

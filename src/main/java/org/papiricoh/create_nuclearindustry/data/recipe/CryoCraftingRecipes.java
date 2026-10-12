@@ -15,7 +15,7 @@ import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Crafting recipes for the cryogenic plant and the tokamak's cryogenic ports and vacuum pumps:
+ * Crafting recipes for the helium well, the cryogenic plant and the tokamak's cryogenic ports and vacuum pumps:
  * cryostat casing for the cold parts, Create's pumps, shafts and precision mechanisms for the
  * moving ones.
  */
@@ -27,8 +27,23 @@ public class CryoCraftingRecipes extends RecipeProvider {
 
     @Override
     protected void buildRecipes(RecipeOutput output) {
+        well(output);
         plant(output);
         tokamakParts(output);
+    }
+
+    /** The helium well comes before any cryostat casing: Create andesite parts, a shaft and copper tubing. */
+    private void well(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, CryoRegistry.HELIUM_WELL_ITEM.get())
+                .pattern(" S ")
+                .pattern("CAC")
+                .pattern(" P ")
+                .define('S', CreateItems.get("shaft"))
+                .define('C', CreateItems.get("copper_sheet"))
+                .define('A', CreateItems.get("andesite_casing"))
+                .define('P', CreateItems.get("fluid_pipe"))
+                .unlockedBy("has_andesite_casing", has(CreateItems.get("andesite_casing")))
+                .save(output, id("crafting/helium_well"));
     }
 
     /** Insulated casing around copper heat exchangers; the compressor is a Create pump on a shaft. */
