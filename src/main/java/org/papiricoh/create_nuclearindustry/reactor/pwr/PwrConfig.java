@@ -94,7 +94,7 @@ public final class PwrConfig {
                 .defineInRange("pwr.coreTemperatureRise", 35.0, 5.0, 80.0);
         ENTHALPY_PER_MB = builder
                 .comment("Heat one mB of primary coolant carries from the core to the steam generator.",
-                        "A reactor boiling its water directly takes 0.225 per mB, so a lower value needs more flow.")
+                        "A steam generator boils its feedwater with 0.225 per mB, so a lower value needs more flow.")
                 .defineInRange("pwr.enthalpyPerMb", 0.12, 0.01, 10.0);
         HEAT_TRANSFER = builder
                 .comment("Core cooling per °C between the core and the cold leg, in °C per tick, while the water covers the core.")

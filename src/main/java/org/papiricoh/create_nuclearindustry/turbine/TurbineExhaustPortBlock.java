@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 
 /**
  * Turbine face block that lets the expanded steam out as exhaust for a cooling tower. A turbine
@@ -54,7 +55,7 @@ public class TurbineExhaustPortBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, PartPlacement.facingPlayer(context));
     }
 
     @Override

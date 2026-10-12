@@ -56,8 +56,8 @@ public class TurbineExhaustTests {
         });
         keepRunning(helper, s, turbine);
         helper.succeedWhen(() -> {
-            helper.assertTrue(turbine.getCurrentUse() == 320, "it still expands 320 mB/t, got " + turbine.getCurrentUse());
-            float expected = TurbineTier.STEAM.capacityFor(320) * AbstractTurbineControllerBlockEntity.EXHAUST_POWER_MULTIPLIER;
+            helper.assertTrue(turbine.getCurrentUse() == 160, "it still expands 160 mB/t, got " + turbine.getCurrentUse());
+            float expected = TurbineTier.STEAM.capacityFor(160) * AbstractTurbineControllerBlockEntity.EXHAUST_POWER_MULTIPLIER;
             helper.assertTrue(Math.abs(turbine.calculateAddedStressCapacity() - expected) < 1f,
                     "twice the capacity of a condensing turbine, " + turbine.calculateAddedStressCapacity() + " vs " + expected);
             helper.assertTrue(turbine.getCondensateTank().isEmpty() || turbine.getCondensateTank().getFluid().is(AllNuclearFluids.EXHAUST_STEAM.get()),
@@ -71,10 +71,10 @@ public class TurbineExhaustTests {
         AbstractTurbineControllerBlockEntity turbine = helper.getBlockEntity(CONTROLLER);
         keepRunning(helper, s, turbine);
         helper.succeedWhen(() -> {
-            helper.assertTrue(turbine.getCurrentUse() == 320, "expands 320 mB/t, got " + turbine.getCurrentUse()
+            helper.assertTrue(turbine.getCurrentUse() == 160, "expands 160 mB/t, got " + turbine.getCurrentUse()
                     + " formed=" + turbine.getStructure().isPresent() + " " + turbine.getDisplay().message()
                     + " steam=" + turbine.getSteamTank().getFluidAmount() + " out=" + turbine.getCondensateTank().getFluidAmount());
-            helper.assertTrue(Math.abs(turbine.calculateAddedStressCapacity() - TurbineTier.STEAM.capacityFor(320)) < 1f,
+            helper.assertTrue(Math.abs(turbine.calculateAddedStressCapacity() - TurbineTier.STEAM.capacityFor(160)) < 1f,
                     "a condensing turbine keeps the base capacity");
             helper.assertTrue(turbine.getCondensateTank().isEmpty() || turbine.getCondensateTank().getFluid().is(Fluids.WATER), "and gives water");
         });

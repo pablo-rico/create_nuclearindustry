@@ -12,8 +12,8 @@ public final class ReactorSoundModel {
     public static final double FULL_POWER_RESET_FRACTION = 0.8;
     /** Core temperature, °C, below which a scrammed core is cold: the klaxon stops. */
     public static final double COLD_SHUTDOWN_TEMPERATURE = 100.0;
-    /** Steam through one output port at which its hiss is loudest, mB/t. */
-    public static final double FULL_STEAM_FLOW = 160.0;
+    /** Steam through one output port at which its hiss is loudest, mB/t: 320 MW of boiling at the default steam energy. */
+    public static final double FULL_STEAM_FLOW = 80.0;
     /** Rotation at which a machine's sound is highest, RPM. */
     public static final double FULL_RPM = 256.0;
 

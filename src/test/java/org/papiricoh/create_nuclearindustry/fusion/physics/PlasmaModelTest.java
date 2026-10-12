@@ -254,8 +254,9 @@ class PlasmaModelTest {
         }
         assertTrue(model.getTemperature() >= PlasmaModel.IGNITION_TEMP && model.getTemperature() < PlasmaModel.DANGER_TEMP,
                 "R=" + radius + " settled at " + model.getTemperature());
-        double steamPerCell = out.steamProduced() / run.volume();
-        assertTrue(steamPerCell > 0.7 && steamPerCell < 2.5, "steam per plasma cell " + steamPerCell);
+        // Heat the coolant takes per plasma cell, MW: the steam it makes over the steam per MW.
+        double heatPerCell = out.steamProduced() / PlasmaModel.STEAM_PER_MW / run.volume();
+        assertTrue(heatPerCell > 0.44 && heatPerCell < 1.56, "coolant heat per plasma cell " + heatPerCell);
     }
 
     @Test

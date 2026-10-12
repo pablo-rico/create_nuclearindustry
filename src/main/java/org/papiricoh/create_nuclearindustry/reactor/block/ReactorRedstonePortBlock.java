@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorRedstonePortBlockEntity;
 
 /**
@@ -65,7 +66,7 @@ public class ReactorRedstonePortBlock extends BaseEntityBlock {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         // The panel faces the player placing it, who stands outside the reactor.
-        return defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, PartPlacement.facingPlayer(context));
     }
 
     @Override

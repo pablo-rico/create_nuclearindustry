@@ -51,7 +51,7 @@ public final class PlasmaModel {
     /** Share of the fusion power the alpha particles leave in the plasma. */
     public static final double PLASMA_HEATING_SHARE = 0.2;
     /** mB/t of plasma steam per MW of fusion power taken out by the coolant. */
-    public static final double STEAM_PER_MW = 1.6;
+    public static final double STEAM_PER_MW = 0.8;
     public static final double DD_POWER_FACTOR = 0.3;
     /** T made directly per mB of D burnt in the D-D branch. */
     public static final double DD_DIRECT_TRITIUM = 0.25;

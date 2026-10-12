@@ -87,8 +87,8 @@ public final class FissionConfig {
     public static double coolantHeatCapacity = 1.5;
     public static double structureHeatCapacity = 0.2;
     public static double boilingTemperature = 285;
-    public static double steamEnergy = 2.0;
-    public static double heavyWaterSteamEnergy = 3.1;
+    public static double steamEnergy = 4.0;
+    public static double heavyWaterSteamEnergy = 6.2;
     public static double ratedVoid = 0.30;
     public static double chfMargin = 1.25;
     public static double maxFuelTemperature = 4500;
@@ -172,10 +172,11 @@ public final class FissionConfig {
         BOILING_TEMPERATURE = b.comment("Temperature the core's water boils at, Celsius.")
                 .defineInRange("fission.thermal.boilingTemperature", 285.0, 100.0, 400.0);
         STEAM_ENERGY = b.comment("Heat one mB per tick of water carries off as steam, in MW. Steam output is the heat removed",
-                        "divided by this.")
-                .defineInRange("fission.thermal.steamEnergy", 2.0, 0.01, 1000.0);
+                        "divided by this, and the water fed in follows it. The heat exchangers keep their MW whatever it is;",
+                        "the ports, pumps and turbines move mB, so a higher value needs fewer of them per MW.")
+                .defineInRange("fission.thermal.steamEnergyPerMb", 4.0, 0.01, 1000.0);
         HEAVY_STEAM_ENERGY = b.comment("The same for heavy water, in MW per mB/t.")
-                .defineInRange("fission.thermal.heavyWaterSteamEnergy", 3.1, 0.01, 1000.0);
+                .defineInRange("fission.thermal.heavySteamEnergyPerMb", 6.2, 0.01, 1000.0);
         RATED_VOID = b.comment("Steam void of a core boiling off its rated power, 0-1.")
                 .defineInRange("fission.thermal.ratedVoid", 0.30, 0.0, 1.0);
         CHF_MARGIN = b.comment("Critical heat flux over what the heat exchangers rate: above it the fuel blankets in steam and",

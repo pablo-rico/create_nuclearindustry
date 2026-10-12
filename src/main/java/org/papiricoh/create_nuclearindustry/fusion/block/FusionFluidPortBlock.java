@@ -31,6 +31,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellBlock;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFluidPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
 /**
@@ -65,7 +66,7 @@ public class FusionFluidPortBlock extends BaseEntityBlock implements TokamakShel
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState()
-                .setValue(FACING, context.getClickedFace())
+                .setValue(FACING, PartPlacement.facingPlayer(context))
                 .setValue(MODE, ReactorFluidPortMode.INPUT);
     }
 

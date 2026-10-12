@@ -22,6 +22,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellBlock;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionMagnetInputBlockEntity;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 
 /**
  * Kinetic drive for the confinement field: takes a Create shaft on its facing axis and converts
@@ -50,7 +51,7 @@ public class FusionMagnetInputBlock extends KineticBlock implements EntityBlock,
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getClickedFace());
+        return defaultBlockState().setValue(FACING, PartPlacement.facingPlayer(context));
     }
 
     @Override

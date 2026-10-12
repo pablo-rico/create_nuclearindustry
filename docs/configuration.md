@@ -31,7 +31,7 @@ xenonWorthPcm = 2800.0
 
 [fission.thermal]
 ratedPowerPerRod = 50.0
-steamEnergy = 2.0
+steamEnergyPerMb = 4.0
 
 [fission.thermal]
 maxSuperheat = 50.0
@@ -52,7 +52,7 @@ disruptionExplosions = true
 linkRange = 128
 
 [coolingTower]
-passivePerBlock = 1.0
+condensePerBlock = 0.5
 fanStress = 8.0
 fanBoostPerFan = 0.25
 maxFanBoost = 1.0
@@ -88,22 +88,23 @@ scrubberStress = 8.0
 ## Turbinas
 
 Las turbinas son cajas de 3 a 7 bloques de ancho y alto (impares) y de 3 a 16 de
-largo, con una columna de rotores en el eje. Cada rotor expande 80 mB/t de vapor
-(40 de vapor de plasma) y cada par de puertos entrada/salida deja pasar 320 (160);
-el menor de los dos limites manda.
+largo, con una columna de rotores en el eje. Cada rotor expande 40 mB/t de vapor
+(20 de vapor de plasma) y cada par de puertos entrada/salida deja pasar 160 (80);
+el menor de los dos limites manda. Una bomba de Create a 256 RPM mueve 128 mB/t,
+así que una línea con una bomba casi llena un par de puertos.
 
 Con un Puerto de escape de turbina, la turbina no condensa dentro: saca el vapor
 como vapor de escape hacia una torre de refrigeración y su capacidad se duplica
 con el mismo caudal. Si el escape no tiene salida, la turbina se para igual que
 con el tanque de condensado lleno.
 
-Las capacidades son la contribucion de stress por RPM por cada 320 mB/t de vapor
-(160 de vapor de plasma) expandidos; Create la multiplica por la velocidad. Las
+Las capacidades son la contribucion de stress por RPM por cada 160 mB/t de vapor
+(80 de vapor de plasma) expandidos; Create la multiplica por la velocidad. Las
 turbinas giran a 64 RPM. Duplicar una capacidad duplica su output con el mismo vapor.
 
 ## Torres de refrigeración
 
-Una torre de radio de base Rb y altura H condensa `Rb * H * passivePerBlock`
+Una torre de radio de base Rb y altura H condensa `Rb * H * condensePerBlock`
 mB/t de vapor (o vapor pesado) en agua (o agua pesada), 1:1. Cada ventilador a
 256 RPM o más suma `fanBoostPerFan` de esa capacidad (proporcional por debajo,
 nada por debajo de 16 RPM), hasta `maxFanBoost` en total, y consume `fanStress`
@@ -154,7 +155,11 @@ sustituyen a parte de las barras. Un reactor sin barras que marca −8000 de
   pupitre trabajan en % de esa potencia nominal, así que un reactor grande y uno
   pequeño se manejan igual. El reactor puede pasar del 100 %.
 - **Vapor**: sale exactamente el calor que se lleva el agua dividido por
-  `fission.thermal.steamEnergy` (MW por mB/t). **La potencia térmica en régimen
+  `fission.thermal.steamEnergyPerMb` (MW por mB/t, 4 por defecto: 600 MW son
+  150 mB/t de agua entrando y de vapor saliendo). Cada intercambiador saca 160 MW
+  sea cual sea ese valor; cada puerto de fluido deja pasar 160 mB/t y una bomba de
+  Create a 256 RPM mueve 128 mB/t, así que un valor más alto pide menos puertos,
+  bombas y turbina por MW. **La potencia térmica en régimen
   nunca pasa de lo que sale como vapor**: con pocos intercambiadores, puertos
   justos o el tanque de vapor lleno, la potencia se queda en ese techo aunque se
   saquen más barras. Lo que cambia entonces es la temperatura: el agua del núcleo
@@ -247,7 +252,7 @@ sustituyen a parte de las barras. Un reactor sin barras que marca −8000 de
 | `fission.thermal.fuelHeatCapacity` | 0,5 | Capacidad calorífica del combustible de una barra (MJ/K); más alta, el núcleo se calienta y enfría más despacio |
 | `fission.thermal.coolantHeatCapacity` / `structureHeatCapacity` | 1,5 / 0,2 | Capacidad calorífica del agua y del acero alrededor de cada barra (MJ/K) |
 | `fission.thermal.boilingTemperature` | 285 | Temperatura (°C) a la que hierve el agua del núcleo |
-| `fission.thermal.steamEnergy` / `heavyWaterSteamEnergy` | 2 / 3,1 | MW que se lleva cada mB/t de vapor (agua / agua pesada) |
+| `fission.thermal.steamEnergyPerMb` / `heavySteamEnergyPerMb` | 4 / 6,2 | MW que se lleva cada mB/t de vapor (agua / agua pesada) |
 | `fission.thermal.ratedVoid` | 0,3 | Vapor en un núcleo que hierve su potencia nominal |
 | `fission.thermal.chfMargin` | 1,25 | Flujo crítico sobre lo que dan los intercambiadores: por encima el combustible se envuelve en vapor y se enfría mucho peor |
 | `fission.thermal.maxFuelTemperature` | 4500 | El combustible nunca pasa de aquí (°C) |

@@ -28,7 +28,7 @@ public class TurbineStructureTests {
         helper.assertTrue(result.formed(), "3x3x3 should form: " + result.primaryMessage());
         TurbineStructure s = result.structure().orElseThrow();
         helper.assertTrue(s.rotorCount() == 1 && s.inputPorts == 1 && s.outputPorts == 1, "one rotor, one port pair");
-        helper.assertTrue(s.throughputLimit() == 80, "one rotor limits flow to 80, got " + s.throughputLimit());
+        helper.assertTrue(s.throughputLimit() == 40, "one rotor limits flow to 40, got " + s.throughputLimit());
         helper.succeed();
     }
 

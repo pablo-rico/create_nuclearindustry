@@ -51,7 +51,7 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
     private static final int PRIMARY_TANK = 8_000;
     private static final int SECONDARY_TANK = 16_000;
     private static final int SYNC_INTERVAL = 10;
-    /** Heat that boils one mB of feedwater: what a reactor boiling its water directly spends on it. */
+    /** Heat that boils one mB of feedwater, MJ: about what a reactor boiling its water directly spends on it (0.2). */
     private static final double STEAM_HEAT_PER_MB = 0.225;
     /** Feedwater that keeps one tube bundle block under water, mB. */
     private static final double WET_INVENTORY_PER_TUBE = 500.0;

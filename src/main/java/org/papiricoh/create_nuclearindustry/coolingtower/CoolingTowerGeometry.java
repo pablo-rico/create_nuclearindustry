@@ -127,7 +127,7 @@ public final class CoolingTowerGeometry {
         return rho <= outer[y] ? Cell.WALL : Cell.OUTSIDE;
     }
 
-    /** Condensing capacity without fans: one mB/t per block of base radius per layer. */
+    /** Condensing capacity without fans: {@code perBlock} mB/t per block of base radius per layer. */
     public int passiveCapacity(double perBlock) {
         return (int) Math.round(baseRadius * height * perBlock);
     }

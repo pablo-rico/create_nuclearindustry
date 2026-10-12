@@ -247,8 +247,26 @@ below for what changes in existing worlds.
   re-forms (a disruption, a broken and replaced block, a click on the
   controller). The pipes stayed full and the pump kept turning, but nothing
   flowed until the world was reloaded.
+- Every mB of steam now carries twice the heat, so reactors need half the
+  pumping: a boiling reactor's steam carries 4 MW per mB/t (heavy water 6.2),
+  a tokamak makes 0.8 mB/t of plasma steam per MW, and one Create pump at
+  256 RPM (128 mB/t) feeds or empties about 512 MW of a fission reactor.
+  Turbines expand 40 mB/t per rotor and 160 per port pair (20 and 80 for
+  plasma steam) for the same power as before, and cooling towers condense
+  half their base radius times their height in mB/t, so a fission or fusion
+  plant makes the same rotational power from each MW. Heat exchangers keep
+  their 160 MW. A pressurized water reactor's steam already carried about
+  this much heat, so it now makes about twice the rotational power per MW,
+  close to a boiling reactor's.
 - Turbine casings now craft four at a time. Ports work on every side and
   no longer scan the area on every call.
+
+### Placing machine parts
+- Reactor, turbine, tokamak and cooling tower ports, the reactor temperature
+  sensor, the tokamak's fuel injector and magnet drive, and the turbine
+  outputs now face the player who places them, not away from the block that
+  was clicked: a port set into a wall from outside faces out, with no block
+  needed behind it. Sneak while placing to face it the other way.
 
 ### Cooling towers
 - New hyperboloid Cooling Tower multiblock: base radius 4 to 16, height from
@@ -984,6 +1002,11 @@ below for what changes in existing worlds.
   physics and radiation.
 
 ### Upgrading
+- The settings `fission.thermal.steamEnergy`, `fission.thermal.heavyWaterSteamEnergy`
+  and `coolingTower.passivePerBlock` are now `steamEnergyPerMb`,
+  `heavySteamEnergyPerMb` and `condensePerBlock`, with the new defaults (4.0,
+  6.2 and 0.5). Values set under the old names are dropped so the new steam
+  balance applies; set them again under the new names to keep a custom value.
 - Old fuel assemblies count as 20% fuel; old spent fuel as 5%. Loaded reactor
   fuel converts to 20% assemblies at its previous reactivity.
 - Old centrifuges keep their items in the output slots; they can be taken out

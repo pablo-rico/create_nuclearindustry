@@ -406,14 +406,14 @@ public final class LangEntries {
                 "Heavy fallout turns the surface of lakes and rivers into Contaminated Water. It irradiates; a centrifuge separates it into clean water and low-level waste.",
                 "La lluvia radiactiva intensa convierte la superficie de lagos y ríos en Agua contaminada. Irradia; una centrífuga la separa en agua limpia y residuos de baja actividad.");
         add("jei.create_nuclearindustry.info.turbine",
-                "A box multiblock 3-7 blocks wide and high and 3-16 long, with a rotor column on its axis and this block at the centre of one end. Each rotor expands 80 mB/t of steam (40 of plasma steam); each input/output port pair passes 320 (160). Reinforced Turbine Glass shows the rotor and steam inside.",
-                "Un multibloque en forma de caja de 3 a 7 bloques de ancho y alto y de 3 a 16 de largo, con una columna de rotores en su eje y este bloque en el centro de un extremo. Cada rotor expande 80 mB/t de vapor (40 de vapor de plasma); cada par de puertos entrada/salida deja pasar 320 (160). El Vidrio reforzado de turbina deja ver el rotor y el vapor.");
+                "A box multiblock 3-7 blocks wide and high and 3-16 long, with a rotor column on its axis and this block at the centre of one end. Each rotor expands 40 mB/t of steam (20 of plasma steam); each input/output port pair passes 160 (80). Reinforced Turbine Glass shows the rotor and steam inside.",
+                "Un multibloque en forma de caja de 3 a 7 bloques de ancho y alto y de 3 a 16 de largo, con una columna de rotores en su eje y este bloque en el centro de un extremo. Cada rotor expande 40 mB/t de vapor (20 de vapor de plasma); cada par de puertos entrada/salida deja pasar 160 (80). El Vidrio reforzado de turbina deja ver el rotor y el vapor.");
         add("jei.create_nuclearindustry.info.reactor_redstone_port",
                 "Part of a reactor's shell. It puts out a 0-15 signal on its panel side: temperature, power, fuel, coolant or steam, or the SCRAM signal, which turns on when SCRAM is pressed or the automatic SCRAM trips. Control rods only move with pistons, so wire the SCRAM signal to them. Wrench to change the mode, sneak-wrench to turn it.",
                 "Forma parte de la carcasa de un reactor. Da una señal de 0 a 15 por la cara del panel: temperatura, potencia, combustible, refrigerante o vapor, o la señal de SCRAM, que se enciende al pulsar SCRAM o al dispararse el SCRAM automático. Las barras de control solo se mueven con pistones, así que conecta a ellos la señal de SCRAM. Llave para cambiar el modo; agachado con la llave para girarlo.");
         add("jei.create_nuclearindustry.info.cooling_tower",
-                "A hyperboloid of Cooling Tower Casing that turns steam or turbine exhaust back into water (heavy into heavy water). A turbine with an Exhaust Port sends its spent steam here and makes twice the power. Base radius 4 to 16, on a full floor; the walls narrow to a waist and flare out at the open top. It condenses its base radius times its height in mB/t, and Fans in the bottom wall layers add up to double that. Ports go in the floor or the two wall layers above it; the controller sits in the bottom wall layer facing out. See its Ponder scene.",
-                "Un hiperboloide de Carcasa de torre de refrigeración que vuelve a convertir en agua el vapor o el escape de las turbinas (el pesado, en agua pesada). Una turbina con Puerto de escape le manda su vapor gastado y genera el doble de potencia. Radio de base de 4 a 16, sobre un suelo completo; las paredes se estrechan hasta una cintura y se abren en la cima, que queda abierta. Condensa su radio de base por su altura en mB/t, y los Ventiladores de las capas bajas de la pared añaden hasta el doble. Los puertos van en el suelo o en las dos capas de pared sobre él; el controlador va en la capa más baja de la pared, mirando hacia fuera. Consulta su escena de Ponder.");
+                "A hyperboloid of Cooling Tower Casing that turns steam or turbine exhaust back into water (heavy into heavy water). A turbine with an Exhaust Port sends its spent steam here and makes twice the power. Base radius 4 to 16, on a full floor; the walls narrow to a waist and flare out at the open top. It condenses half its base radius times its height in mB/t, and Fans in the bottom wall layers add up to double that. Ports go in the floor or the two wall layers above it; the controller sits in the bottom wall layer facing out. See its Ponder scene.",
+                "Un hiperboloide de Carcasa de torre de refrigeración que vuelve a convertir en agua el vapor o el escape de las turbinas (el pesado, en agua pesada). Una turbina con Puerto de escape le manda su vapor gastado y genera el doble de potencia. Radio de base de 4 a 16, sobre un suelo completo; las paredes se estrechan hasta una cintura y se abren en la cima, que queda abierta. Condensa la mitad de su radio de base por su altura en mB/t, y los Ventiladores de las capas bajas de la pared añaden hasta el doble. Los puertos van en el suelo o en las dos capas de pared sobre él; el controlador va en la capa más baja de la pared, mirando hacia fuera. Consulta su escena de Ponder.");
         add("jei.create_nuclearindustry.info.depleted_uranium",
                 "Depleted uranium (under 0.7%) is dense: a block of it lets only 10% of radiation through, the best shield there is. Its heavy plate armour protects better than diamond and, as a full set, stops 98% of radiation, but slows you by about a sixth. A crusher turns the block back into metal.",
                 "El uranio empobrecido (menos del 0,7%) es muy denso: un bloque deja pasar solo el 10% de la radiación, el mejor blindaje que hay. Su armadura de placas protege más que el diamante y, completa, detiene el 98% de la radiación, pero te ralentiza más o menos una sexta parte. Una trituradora devuelve el bloque a metal.");
@@ -788,8 +788,8 @@ public final class LangEntries {
                 "Fans in the three bottom wall layers, facing out, add up to a quarter more each at 256 RPM, at most doubling the tower.",
                 "Los Ventiladores en las tres capas bajas de la pared, mirando hacia fuera, añaden hasta una cuarta parte más cada uno a 256 RPM, como mucho el doble de la torre.");
         add("create_nuclearindustry.ponder.cooling_tower.text_9",
-                "It condenses its base radius times its height in mB/t, 48 here. A turbine with an Exhaust Port sends it its spent steam instead of condensing it, and makes twice the power.",
-                "Condensa su radio de base por su altura en mB/t, 48 aquí. Una turbina con Puerto de escape le manda su vapor gastado en lugar de condensarlo, y genera el doble de potencia.");
+                "It condenses half its base radius times its height in mB/t, 24 here. A turbine with an Exhaust Port sends it its spent steam instead of condensing it, and makes twice the power.",
+                "Condensa la mitad de su radio de base por su altura en mB/t, 24 aquí. Una turbina con Puerto de escape le manda su vapor gastado en lugar de condensarlo, y genera el doble de potencia.");
         add("create_nuclearindustry.ponder.turbine.header",
                 "Building a Steam Turbine",
                 "Construir una turbina de vapor");
@@ -797,8 +797,8 @@ public final class LangEntries {
                 "A turbine is a box of casing: 3 to 7 blocks wide and high, and 3 to 16 blocks long.",
                 "Una turbina es una caja de carcasa: de 3 a 7 bloques de ancho y alto, y de 3 a 16 de largo.");
         add("create_nuclearindustry.ponder.turbine.text_2",
-                "A column of rotors runs down its axis. Every rotor stage expands 80 mB/t of steam.",
-                "Una columna de rotores recorre su eje. Cada etapa de rotor expande 80 mB/t de vapor.");
+                "A column of rotors runs down its axis. Every rotor stage expands 40 mB/t of steam.",
+                "Una columna de rotores recorre su eje. Cada etapa de rotor expande 40 mB/t de vapor.");
         add("create_nuclearindustry.ponder.turbine.text_3",
                 "Reinforced Turbine Glass can replace casing anywhere on a face, but not on edges or corners.",
                 "El Vidrio reforzado de turbina puede sustituir la carcasa en cualquier punto de una cara, pero no en aristas ni esquinas.");
@@ -806,8 +806,8 @@ public final class LangEntries {
                 "Fluid Ports go on the faces. One set to INPUT takes the steam...",
                 "Los Puertos de fluido van en las caras. Uno en ENTRADA recibe el vapor...");
         add("create_nuclearindustry.ponder.turbine.text_5",
-                "...and one set to OUTPUT returns the condensed water. Each pair passes 320 mB/t.",
-                "...y otro en SALIDA devuelve el agua condensada. Cada par deja pasar 320 mB/t.");
+                "...and one set to OUTPUT returns the condensed water. Each pair passes 160 mB/t.",
+                "...y otro en SALIDA devuelve el agua condensada. Cada par deja pasar 160 mB/t.");
         add("create_nuclearindustry.ponder.turbine.text_6",
                 "The Turbine Output sits at the centre of one end, its shaft pointing out. Right-click it to form the turbine.",
                 "La Salida de turbina va en el centro de un extremo, con el eje hacia fuera. Haz clic derecho para formar la turbina.");
@@ -824,8 +824,8 @@ public final class LangEntries {
                 "A turbine is a box of casing: 3 to 7 blocks wide and high, and 3 to 16 blocks long.",
                 "Una turbina es una caja de carcasa: de 3 a 7 bloques de ancho y alto, y de 3 a 16 de largo.");
         add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_2",
-                "A column of rotors runs down its axis. Every rotor stage expands 40 mB/t of plasma steam.",
-                "Una columna de rotores recorre su eje. Cada etapa de rotor expande 40 mB/t de vapor de plasma.");
+                "A column of rotors runs down its axis. Every rotor stage expands 20 mB/t of plasma steam.",
+                "Una columna de rotores recorre su eje. Cada etapa de rotor expande 20 mB/t de vapor de plasma.");
         add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_3",
                 "Reinforced Turbine Glass can replace casing anywhere on a face, but not on edges or corners.",
                 "El Vidrio reforzado de turbina puede sustituir la carcasa en cualquier punto de una cara, pero no en aristas ni esquinas.");
@@ -833,8 +833,8 @@ public final class LangEntries {
                 "Fluid Ports go on the faces. One set to INPUT takes the plasma steam...",
                 "Los Puertos de fluido van en las caras. Uno en ENTRADA recibe el vapor de plasma...");
         add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_5",
-                "...and one set to OUTPUT returns the condensed water. Each pair passes 160 mB/t.",
-                "...y otro en SALIDA devuelve el agua condensada. Cada par deja pasar 160 mB/t.");
+                "...and one set to OUTPUT returns the condensed water. Each pair passes 80 mB/t.",
+                "...y otro en SALIDA devuelve el agua condensada. Cada par deja pasar 80 mB/t.");
         add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_6",
                 "The Plasma Turbine sits at the centre of one end, its shaft pointing out. Right-click it to form the turbine.",
                 "La Turbina de plasma va en el centro de un extremo, con el eje hacia fuera. Haz clic derecho para formar la turbina.");

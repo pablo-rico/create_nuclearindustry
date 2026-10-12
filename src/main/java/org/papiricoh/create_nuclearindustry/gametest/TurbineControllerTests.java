@@ -56,23 +56,23 @@ public class TurbineControllerTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
-    public static void oneRotorExpandsEightyPerTick(GameTestHelper helper) {
-        runAndExpectUse(helper, TurbineTier.STEAM, 3, 3, 3, false, 80);
+    public static void oneRotorExpandsFortyPerTick(GameTestHelper helper) {
+        runAndExpectUse(helper, TurbineTier.STEAM, 3, 3, 3, false, 40);
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void fourRotorsWithTwoPortPairsExpandFull(GameTestHelper helper) {
-        runAndExpectUse(helper, TurbineTier.STEAM, 5, 5, 6, true, 320);
+        runAndExpectUse(helper, TurbineTier.STEAM, 5, 5, 6, true, 160);
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void onePortPairCapsALongTurbine(GameTestHelper helper) {
-        runAndExpectUse(helper, TurbineTier.STEAM, 3, 3, 10, false, 320);
+        runAndExpectUse(helper, TurbineTier.STEAM, 3, 3, 10, false, 160);
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
-    public static void plasmaRotorsExpandFortyEach(GameTestHelper helper) {
-        runAndExpectUse(helper, TurbineTier.PLASMA, 3, 3, 6, false, 160);
+    public static void plasmaRotorsExpandTwentyEach(GameTestHelper helper) {
+        runAndExpectUse(helper, TurbineTier.PLASMA, 3, 3, 6, false, 80);
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)

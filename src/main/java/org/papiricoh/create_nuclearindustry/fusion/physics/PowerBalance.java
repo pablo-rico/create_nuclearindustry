@@ -8,8 +8,8 @@ package org.papiricoh.create_nuclearindustry.fusion.physics;
  * <p>The defaults are the mod's balance numbers: a neutral beam injector is rated 20 MW for 32768
  * SU/RPM and an RF antenna 12 MW for 13312 SU/RPM (about 1600 and 1100 SU/RPM per MW, a wall-plug
  * efficiency well below 1); a cryogenic plant layer liquefies 2 mB/t of helium for 10240 SU/RPM; a
- * vacuum pump costs 2048 SU/RPM; the plasma turbine gives 409.6 SU/RPM per mB/t of plasma steam, and
- * the coolant carries 80% of the fusion power out as 1.6 mB/t of steam per MW. So the heating alone
+ * vacuum pump costs 2048 SU/RPM; the plasma turbine gives 819.2 SU/RPM per mB/t of plasma steam, and
+ * the coolant carries 80% of the fusion power out as 0.8 mB/t of steam per MW. So the heating alone
  * breaks even near Q = 3, and a whole R=4 plant somewhat above Q = 4.
  */
 public final class PowerBalance {
@@ -25,7 +25,7 @@ public final class PowerBalance {
     public record Params(double nbiStressPerMw, double rfStressPerMw, double cryoStressPerHelium, double pumpStress,
                          double magnetDriveStress, double turbinePerSteam) {
         public static final Params DEFAULT = new Params(32768.0 / 20.0, 13312.0 / 12.0, 10240.0 / 2.0, 2048.0,
-                1024.0, 409.6);
+                1024.0, 819.2);
     }
 
     /**

@@ -28,6 +28,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.coolingtower.blockentity.CoolingTowerPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
 /** INPUT takes steam into the tower, OUTPUT gives the condensed water. Wrench toggles the mode. */
@@ -55,7 +56,7 @@ public class CoolingTowerFluidPortBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, PartPlacement.facingPlayer(context));
     }
 
     @Override

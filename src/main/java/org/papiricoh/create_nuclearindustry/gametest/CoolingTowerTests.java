@@ -34,7 +34,7 @@ public class CoolingTowerTests {
             helper.assertTrue(controller.getStructure().isPresent(), "tower should form: " + controller.getValidationMessage());
             helper.assertTrue(controller.getStructure().get().baseRadius() == 4 && controller.getStructure().get().height() == 12,
                     "tower should measure radius 4, 12 high");
-            helper.assertTrue(controller.getCapacity() == 48, "passive capacity is radius x height, got " + controller.getCapacity());
+            helper.assertTrue(controller.getCapacity() == 24, "passive capacity is half radius x height, got " + controller.getCapacity());
         });
     }
 
@@ -52,7 +52,7 @@ public class CoolingTowerTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(controller.getStructure().isPresent(), "a radius 7, 20 high tower should form: "
                     + controller.getValidationMessage());
-            helper.assertTrue(controller.getCapacity() == 140, "capacity 7 x 20, got " + controller.getCapacity());
+            helper.assertTrue(controller.getCapacity() == 70, "capacity 7 x 20 / 2, got " + controller.getCapacity());
         });
     }
 
@@ -118,7 +118,7 @@ public class CoolingTowerTests {
         });
         helper.runAfterDelay(25, () -> {
             int water = controller.getWaterTank().getFluidAmount();
-            helper.assertTrue(water >= 912 && water <= 1008, "20 ticks at 48 mB/t should give about 960 mB, got " + water);
+            helper.assertTrue(water >= 456 && water <= 504, "20 ticks at 24 mB/t should give about 480 mB, got " + water);
             helper.assertTrue(controller.getWaterTank().getFluid().is(net.minecraft.world.level.material.Fluids.WATER),
                     "steam condenses to water");
             helper.succeed();
@@ -142,7 +142,7 @@ public class CoolingTowerTests {
         CoolingTowerControllerBlockEntity controller = tower.controller(helper);
         helper.succeedWhen(() -> {
             controller.refreshFans();
-            helper.assertTrue(controller.getCapacity() == 60, "a fan at 256 RPM adds 25%, got " + controller.getCapacity());
+            helper.assertTrue(controller.getCapacity() == 30, "a fan at 256 RPM adds 25%, got " + controller.getCapacity());
         });
     }
 
@@ -154,7 +154,7 @@ public class CoolingTowerTests {
         helper.runAfterDelay(30, () -> {
             helper.assertTrue(controller.getStructure().isPresent(), "tower with a fan should form: " + controller.getValidationMessage());
             controller.refreshFans();
-            helper.assertTrue(controller.getCapacity() == 48, "a fan under 16 RPM adds nothing, got " + controller.getCapacity());
+            helper.assertTrue(controller.getCapacity() == 24, "a fan under 16 RPM adds nothing, got " + controller.getCapacity());
             helper.succeed();
         });
     }

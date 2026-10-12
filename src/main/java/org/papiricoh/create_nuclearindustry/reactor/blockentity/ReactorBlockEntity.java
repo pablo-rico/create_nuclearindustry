@@ -98,7 +98,12 @@ import java.util.Set;
 public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable, MultiblockController, RadiationEmitter {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int TANK_CAPACITY = 16_000;
-    private static final int HEAT_EXCHANGER_STEAM_PER_TICK = 80;
+    /**
+     * Heat one heat exchanger takes from the core, MW: an exchanger moves heat, so its rating does not
+     * depend on how much heat a mB of steam carries ({@link FissionConfig#steamEnergy}).
+     */
+    private static final double HEAT_EXCHANGER_MW = 160.0;
+    /** Water in or steam out one fluid port passes, mB/t: a port moves fluid, so this is in mB. */
     private static final int FLUID_PORT_STEAM_PER_TICK = 160;
     // Balance parameters for external coolant heat removal.
     /** Water that keeps the whole core covered, mB: less uncovers part of it. */
@@ -980,7 +985,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         double coreHeat = physicsSimulator.getRemovedHeat() * FissionCore.TICK * HEAT_UNITS_PER_MJ;
         PrimaryLoop.Result result = primaryLoop.tick(new PrimaryLoop.Context(coreHeat, cold, hot, hotCapacity, stack, autoHeaters,
                 manualHeaters, ReliefValveBlock.isolated(level, stack.reliefValve()), level.random.nextDouble()));
-        double maxHeatMw = structure.heatExchangerCount * HEAT_EXCHANGER_STEAM_PER_TICK * FissionConfig.steamEnergy;
+        double maxHeatMw = structure.heatExchangerCount * HEAT_EXCHANGER_MW;
         physicsSimulator.setCoolant(new CoreThermalModel.Pressurized(primaryLoop.averageTemperature(), primaryLoop.voidFraction(),
                 primaryLoop.coverage(), maxHeatMw), ReactivityModel.Coolant.PRESSURIZED);
         physicsSimulator.setCoolantFeedback(result.feedback());
@@ -1051,7 +1056,7 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             return;
         }
         ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
-        double chf = structure.heatExchangerCount * HEAT_EXCHANGER_STEAM_PER_TICK * energyPerMb * FissionConfig.chfMargin;
+        double chf = structure.heatExchangerCount * exchangerSteamPerTick() * energyPerMb * FissionConfig.chfMargin;
         if (coolant.isEmpty()) {
             physicsSimulator.setCoolant(new CoreThermalModel.Dry(), ReactivityModel.Coolant.WATER);
             return;
@@ -1068,10 +1073,18 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
             return 0;
         }
         ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
-        int exchangerLimit = structure.heatExchangerCount * HEAT_EXCHANGER_STEAM_PER_TICK;
+        int exchangerLimit = (int) Math.floor(structure.heatExchangerCount * exchangerSteamPerTick());
         int coolantPortLimit = structure.coolantInputPortCount * FLUID_PORT_STEAM_PER_TICK;
         int steamPortLimit = structure.steamOutputPortCount * FLUID_PORT_STEAM_PER_TICK;
         return Math.min(exchangerLimit, Math.min(coolantPortLimit, steamPortLimit));
+    }
+
+    /**
+     * Steam one heat exchanger boils, mB/t: its MW in light-water steam. Heavy water boils the same
+     * mB, each carrying more heat, as it always has.
+     */
+    private static double exchangerSteamPerTick() {
+        return HEAT_EXCHANGER_MW / Math.max(1.0e-9, FissionConfig.steamEnergy);
     }
 
     private void tryLoadFuelAssembly() {

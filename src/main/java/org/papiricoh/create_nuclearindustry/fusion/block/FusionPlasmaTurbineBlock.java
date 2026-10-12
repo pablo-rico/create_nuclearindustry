@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionPlasmaTurbineBlockEntity;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 
 /**
  * Standalone plasma turbine: consumes plasma steam (piped in from a plasma port) and generates a
@@ -47,7 +48,7 @@ public class FusionPlasmaTurbineBlock extends KineticBlock implements EntityBloc
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getClickedFace());
+        return defaultBlockState().setValue(FACING, PartPlacement.facingPlayer(context));
     }
 
     @Override
