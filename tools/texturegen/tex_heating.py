@@ -12,6 +12,7 @@ into the plasma chamber, the sides carry the hardware that says what the block i
 
 from blocks import CUTOUT_BLOCKS, block  # noqa: F401
 from fusion_materials import COPPER, GRAPHITE, INLET, TITANIUM, panel
+from fusion_materials import framed_bearing as _heater_front
 from gui import gui  # noqa: F401
 from items import item  # noqa: F401
 from palette import CYAN, PLASMA, WARN, WHITE
@@ -22,37 +23,6 @@ QUARTZ = [(214, 226, 226, 255), (236, 244, 242, 255), (170, 190, 192, 255)]
 
 # The viewport is a window: clear glass in a titanium frame.
 CUTOUT_BLOCKS["fusion_viewport"] = (16, 16)
-
-
-# ======================================================================================
-# shared heater frame
-# ======================================================================================
-
-def _heater_front(accent):
-    """Frame bolted round a recessed bearing plate; ``accent`` colours the frame's lamp."""
-    t = panel()
-    # The outer 3px are the proud frame: lit top-left, shadowed bottom-right.
-    bevel(t, 0, 0, 15, 15, TITANIUM, hi=TITANIUM[5], lo=TITANIUM[1])
-    bevel(t, 1, 1, 14, 14, TITANIUM, hi=TITANIUM[4], lo=TITANIUM[2], corner=False)
-    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
-        t.set(x, y, TITANIUM[6])
-        t.set(x + 1, y + 1, TITANIUM[1])
-    # Recess floor, in shadow under the frame's top and left edges.
-    t.rect(3, 3, 12, 12, GRAPHITE[2])
-    t.hline(3, 12, 3, GRAPHITE[0])
-    t.vline(3, 3, 12, GRAPHITE[0])
-    t.hline(4, 12, 4, GRAPHITE[1])
-    t.vline(4, 4, 12, GRAPHITE[1])
-    # Shaft bearing: a titanium collar round a dark bore.
-    t.ring(8, 8, 3.6, 2.4, TITANIUM[4])
-    t.set(6, 5, TITANIUM[6])
-    t.set(5, 6, TITANIUM[6])
-    t.set(10, 10, TITANIUM[2])
-    t.rect(6, 6, 9, 9, GRAPHITE[0])
-    # Status lamp on the top bar.
-    t.set(12, 1, accent)
-    t.set(12, 0, TITANIUM[2])
-    return t
 
 
 # ======================================================================================

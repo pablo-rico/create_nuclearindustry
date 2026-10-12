@@ -2,6 +2,7 @@ package org.papiricoh.create_nuclearindustry.turbine.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import net.createmod.catnip.platform.NeoForgeCatnipServices;
 import net.createmod.catnip.render.CachedBuffers;
@@ -21,9 +22,10 @@ import org.papiricoh.create_nuclearindustry.turbine.TurbineDisplay;
 import org.papiricoh.create_nuclearindustry.turbine.TurbineStructure;
 
 /**
- * Draws a formed turbine from its controller: one long rotor whose blades reach almost to
- * the walls, spinning with the Create network, and the working fluid filling the casing
- * from the top as the tank fills.
+ * Draws a turbine from its controller: the half shaft turning in the controller's outer face,
+ * as on the tokamak's heaters, and once formed one long rotor whose blades reach almost to the
+ * walls, spinning with the Create network, and the working fluid filling the casing from the
+ * top as the tank fills.
  */
 public class TurbineRenderer<T extends AbstractTurbineControllerBlockEntity> extends KineticBlockEntityRenderer<T> {
     private static final float BLADE_CLEARANCE = 0.06f;
@@ -40,11 +42,15 @@ public class TurbineRenderer<T extends AbstractTurbineControllerBlockEntity> ext
 
     @Override
     protected void renderSafe(T turbine, float partialTicks, PoseStack ms, MultiBufferSource buffers, int light, int overlay) {
+        BlockState state = turbine.getBlockState();
+        // Drawn here whatever the Flywheel backend, like the heaters' shafts.
+        SuperByteBuffer shaft = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, state);
+        standardKineticRotationTransform(shaft, turbine, light).renderInto(ms, buffers.getBuffer(RenderType.solid()));
+
         TurbineDisplay display = turbine.getDisplay();
         if (!display.formed() || turbine.getLevel() == null) {
             return;
         }
-        BlockState state = turbine.getBlockState();
         Direction outward = state.getValue(BlockStateProperties.FACING);
         TurbineStructure shape = new TurbineStructure(turbine.tier(), turbine.getBlockPos(), outward,
                 display.hu(), display.hv(), display.length());

@@ -340,25 +340,48 @@ def turbine_rotor_core():
     return t
 
 
+def _output_frame():
+    """Steel twin of the tokamak's framed bearing: the model stands the outer 3px 2px proud of
+    the 10x10 recess the drive shaft turns in."""
+    t = Tex(seed=27)
+    brushed(t, STEEL, base=3.4, amp=0.6, seed=27)
+    outline(t, 0, 0, 15, 15, STEEL[1])
+    bevel(t, 1, 1, 14, 14, STEEL, hi=STEEL[5], lo=STEEL[1], corner=False)
+    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        bolt(t, x, y, STEEL)
+    # Recess floor, in shadow under the frame's top and left edges.
+    t.rect(3, 3, 12, 12, DARK[2])
+    t.hline(3, 12, 3, DARK[0])
+    t.vline(3, 3, 12, DARK[0])
+    t.hline(4, 12, 4, DARK[1])
+    t.vline(4, 4, 12, DARK[1])
+    return t
+
+
 @block("turbine_output_front")
 def turbine_output_front():
-    t = Tex(seed=27)
-    casing(t, STEEL, seed=27, seam=False)
-    t.disc(8, 8, 6.2, STEEL[3])
-    t.ring(8, 8, 6.2, 5.4, STEEL[5])
-    t.ring(8, 8, 6.5, 6.1, STEEL[0])
-    t.disc(8, 8, 5.0, DARK[1])
-    for a in range(0, 360, 30):
-        r = math.radians(a)
-        t.line(8 + math.cos(r) * 1.6, 8 + math.sin(r) * 1.6,
-               8 + math.cos(r) * 4.8, 8 + math.sin(r) * 4.8, STEEL[4])
-    t.disc(8, 8, 1.8, STEEL[2])
-    glow(t, 8, 8, 6.0, CRYO[6], 0.10)
+    """The shaft end in the turbine's end wall: a brass coupling flange round the bearing."""
+    t = _output_frame()
+    t.ring(8, 8, 4.6, 3.7, BRASS[3])
+    for x, y in ((4, 7), (7, 4)):
+        t.set(x, y, BRASS[5])
+    for x, y in ((11, 8), (8, 11)):
+        t.set(x, y, BRASS[1])
+    t.ring(8, 8, 3.6, 2.4, STEEL[4])
+    t.set(6, 5, STEEL[6])
+    t.set(5, 6, STEEL[6])
+    t.set(10, 10, STEEL[2])
+    t.rect(6, 6, 9, 9, DARK[0])
+    # Exhaust louvres on the bottom bar, as on the casing.
+    for x in (4, 7, 10):
+        t.hline(x, x + 1, 13, DARK[1])
+        t.hline(x, x + 1, 14, STEEL[5])
     return t
 
 
 @block("turbine_output_side")
 def turbine_output_side():
+    """The bearing housing: the shaft line runs front to back between two clamp rings."""
     t = Tex(seed=28)
     casing(t, STEEL, seed=28, seam=False)
     t.rect(0, 5, 15, 10, STEEL[4])
@@ -366,8 +389,26 @@ def turbine_output_side():
     t.hline(0, 15, 5, STEEL[6])
     t.hline(0, 15, 10, STEEL[1])
     for x in (3, 12):
-        t.vline(x, 5, 10, STEEL[1])
-        t.vline(x + 1, 5, 10, STEEL[5])
+        t.vline(x, 4, 11, BRASS[4])
+        t.vline(x + 1, 4, 11, BRASS[1])
+    return t
+
+
+@block("turbine_output_back")
+def turbine_output_back():
+    """Seen from inside the turbine: the brass hub the rotor is keyed to."""
+    t = Tex(seed=29)
+    brushed(t, DARK, base=2.6, amp=0.6, seed=29)
+    bevel(t, 0, 0, 15, 15, DARK, hi=DARK[4], lo=DARK[0])
+    t.disc(8, 8, 5.6, BRASS[3])
+    t.ring(8, 8, 5.6, 4.8, BRASS[5])
+    t.ring(8, 8, 5.9, 5.5, BRASS[0])
+    t.disc(8, 8, 3.0, BRASS[2])
+    for a in range(0, 360, 60):
+        r = math.radians(a)
+        t.line(8 + math.cos(r) * 3.2, 8 + math.sin(r) * 3.2,
+               8 + math.cos(r) * 4.6, 8 + math.sin(r) * 4.6, BRASS[1])
+    t.disc(8, 8, 1.6, DARK[0])
     return t
 
 

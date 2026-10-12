@@ -233,11 +233,14 @@ below for what changes in existing worlds.
 ### Turbines
 - Steam and plasma turbines are box multiblocks: 3 to 7 blocks wide and
   high, 3 to 16 long, with a rotor column on the axis and the output at
-  the centre of one end. Each rotor expands 80 mB/t of steam (40 of plasma
-  steam), each port pair passes 320 (160); the smaller limit applies.
+  the centre of one end. Each rotor expands 40 mB/t of steam (20 of plasma
+  steam), each port pair passes 160 (80); the smaller limit applies.
 - New Reinforced Turbine Glass with connected textures for the faces.
 - A formed turbine renders one large spinning rotor and the steam filling
   it, and hums with its load.
+- The steam turbine output and the plasma turbine look like the tokamak's
+  heaters: a bolted frame round a recess where a half shaft turns with the
+  network, formed or not, and a rotor hub on the face inside the turbine.
 - Turbine, cooling tower and tokamak ports no longer invalidate their fluid
   capability every second, which kept resetting Create pipe networks: water
   pumped out of a turbine never reached its tank and the turbine stalled
