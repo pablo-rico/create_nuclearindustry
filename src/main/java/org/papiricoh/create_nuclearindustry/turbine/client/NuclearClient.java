@@ -17,8 +17,5 @@ public final class NuclearClient {
         modEventBus.addListener(NuclearModelSwaps::onModifyBakingResult);
         TurbineClientHooks.install(TurbineClientEffects::tick);
         CoolingTowerClientHooks.install(CoolingTowerClientEffects::tick);
-        if (java.nio.file.Files.exists(java.nio.file.Path.of("nuclear_tour.flag"))) {
-            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(org.papiricoh.create_nuclearindustry.dev.DevScreenshotTour::onTick);
-        }
     }
 }
