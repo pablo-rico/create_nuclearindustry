@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:reactor_running",
+  "criteria": {
+    "scram": {
+      "conditions": {
+        "event": "scram"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.scram.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:control_rod"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.scram.title"
+    }
+  },
+  "requirements": [
+    [
+      "scram"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

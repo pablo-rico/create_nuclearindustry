@@ -36,6 +36,15 @@ preserved, including the two-pixel tube shading period.
 | `blocks.py` | one function per block texture |
 | `items.py` | one function per item texture, built from silhouette masks |
 | `fluids.py` | animated steam still/flow (+ `.mcmeta`) |
+| `gui.py` | container screen backgrounds (reactor and tokamak panels) |
+| `armor.py` | hazmat armor layers (64x32 humanoid UV) and mob effect icons |
+
+`blocks.CUTOUT_BLOCKS` lists textures with transparent pixels: the reinforced turbine
+glass and its 64x64 connected-texture sheet (Create's RECTANGLE layout, 4x4 tiles,
+index = column + 4 * row). `validate.py` checks those at their own sizes.
+
+Structure templates (GameTest arenas and the tokamak and turbine Ponder schematics) are written by
+`tools/structgen/`; GameTests check that each Ponder schematic forms.
 
 ## Conventions
 

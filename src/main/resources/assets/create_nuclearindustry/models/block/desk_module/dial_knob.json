@@ -1,0 +1,252 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_dial",
+    "part": "create_nuclearindustry:block/desk_dial"
+  },
+  "elements": [
+    {
+      "name": "skirt_x",
+      "from": [
+        6,
+        0.75,
+        7
+      ],
+      "to": [
+        10,
+        1.25,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            0,
+            16,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            12,
+            0,
+            16,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            12,
+            0,
+            14,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            12,
+            0,
+            14,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            12,
+            1,
+            16,
+            3
+          ],
+          "rotation": 180,
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "skirt_z",
+      "from": [
+        7,
+        0.75,
+        6
+      ],
+      "to": [
+        9,
+        1.25,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            0,
+            14,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            12,
+            0,
+            14,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            12,
+            0,
+            16,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            12,
+            0,
+            16,
+            0.5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            12,
+            1,
+            14,
+            5
+          ],
+          "rotation": 180,
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "knob",
+      "from": [
+        6.5,
+        0.75,
+        6.5
+      ],
+      "to": [
+        9.5,
+        2.5,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            0,
+            11,
+            1.75
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            8,
+            0,
+            11,
+            1.75
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            8,
+            0,
+            11,
+            1.75
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            11,
+            1.75
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            8,
+            4,
+            11,
+            7
+          ],
+          "rotation": 180,
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "pointer",
+      "from": [
+        7.75,
+        0.75,
+        10
+      ],
+      "to": [
+        8.25,
+        1.5,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14,
+            6,
+            14.5,
+            6.75
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            14,
+            6,
+            14.5,
+            6.75
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            14,
+            6,
+            14.5,
+            6.75
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            14,
+            6,
+            14.5,
+            6.75
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            14,
+            6,
+            14.5,
+            6.5
+          ],
+          "texture": "#part"
+        }
+      }
+    }
+  ]
+}

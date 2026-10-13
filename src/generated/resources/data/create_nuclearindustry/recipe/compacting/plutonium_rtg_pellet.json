@@ -1,0 +1,16 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:plutonium_dioxide"
+    },
+    {
+      "item": "create:iron_sheet"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:plutonium_rtg_pellet"
+    }
+  ]
+}

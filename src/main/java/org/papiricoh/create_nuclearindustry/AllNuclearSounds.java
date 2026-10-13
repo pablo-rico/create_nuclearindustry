@@ -17,5 +17,73 @@ public class AllNuclearSounds {
                             "nuclear_explosion"
                     )));
 
+    /** One steady siren tone, looped; sirens bend its pitch into a wail as it plays. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> AIR_RAID_SIREN =
+            SOUNDS.register("air_raid_siren", () ->
+                    SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(
+                            Create_NuclearIndustry.MODID,
+                            "air_raid_siren"
+                    )));
+
+    // ---------------------------------------------------------------- tokamak (sounds made by tools/soundgen)
+    /** The coils' hum, looped; the tokamak raises its pitch and volume with the field. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> MAGNET_HUM = variableRange("magnet_hum");
+    /** The burning plasma's low roar, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLASMA_RUMBLE = variableRange("plasma_rumble");
+    /** The crack of the central solenoid pulse that breaks the gas down into plasma. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLASMA_BREAKDOWN = variableRange("plasma_breakdown");
+    /** The cryogenic plant's compressors, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CRYOPLANT_HUM = variableRange("cryoplant_hum");
+
+    // ---------------------------------------------------------------- fission reactor and its plant (sounds made by tools/soundgen)
+    /** The running core's hum, looped; the reactor raises its pitch and volume with power. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> REACTOR_HUM = variableRange("reactor_hum");
+    /** The thud of the control rods dropping into the core on a SCRAM. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> REACTOR_SCRAM = variableRange("reactor_scram");
+    /** The control room klaxon after a SCRAM, looped while the core is still hot. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> REACTOR_KLAXON = variableRange("reactor_klaxon");
+    /** The over-temperature alarm, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> REACTOR_OVERTEMP_ALARM = variableRange("reactor_overtemp_alarm");
+    /** Steam rushing through an output port, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> STEAM_HISS = variableRange("steam_hiss");
+    /** Coolant boiling and bubbling in the core, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> COOLANT_BUBBLING = variableRange("coolant_bubbling");
+    /** The pressurizer's relief valve lifting. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> RELIEF_VALVE_LIFT = variableRange("relief_valve_lift");
+
+    // ---------------------------------------------------------------- fuel cycle machines (sounds made by tools/soundgen)
+    /** A gas centrifuge spinning, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CENTRIFUGE_WHINE = variableRange("centrifuge_whine");
+    /** The electrolyzer's cells, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ELECTROLYZER_BUZZ = variableRange("electrolyzer_buzz");
+    /** The vitrification melter's furnace, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> MELTER_ROAR = variableRange("melter_roar");
+    /** A radioisotope generator's thermocouples, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> RTG_HUM = variableRange("rtg_hum");
+    /** Acid eating into items in a fan's air current. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ACID_SIZZLE = variableRange("acid_sizzle");
+    /** Items crackling in a fan's air current past a radioactive block. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> IRRADIATION_CRACKLE = variableRange("irradiation_crackle");
+
+    /** The accelerator's klystrons and cavities filling with radio-frequency power, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ACCELERATOR_RF_HUM = variableRange("accelerator_rf_hum");
+    /** The accelerator's magnets ramping their field, looped; its pitch follows the beam energy. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> MAGNET_RAMP = variableRange("magnet_ramp");
+    /** A superconducting magnet quenching: a bang and the hiss of venting helium. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> MAGNET_QUENCH = variableRange("magnet_quench");
+    /** The beam kicked into the dump. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> BEAM_DUMP = variableRange("beam_dump");
+    /** A personnel interlock tripping the beam. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> INTERLOCK_BUZZER = variableRange("interlock_buzzer");
+    /** A magnetic confinement vessel's field, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CONFINEMENT_HUM = variableRange("confinement_hum");
+    /** The annihilation generator running, looped. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ANNIHILATION_DRONE = variableRange("annihilation_drone");
+
+    private static DeferredHolder<SoundEvent, SoundEvent> variableRange(String name) {
+        return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(
+                ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, name)));
+    }
+
     public static void init() {}
 }

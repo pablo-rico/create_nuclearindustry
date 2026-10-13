@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:tokamak_formed",
+  "criteria": {
+    "cryoplant_formed": {
+      "conditions": {
+        "event": "cryoplant_formed"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.cryoplant.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:cryoplant_controller"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.cryoplant.title"
+    }
+  },
+  "requirements": [
+    [
+      "cryoplant_formed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,163 @@
+{
+  "values": {
+    "create_nuclearindustry:cemented_waste_drum": {
+      "per_second": 1.5
+    },
+    "create_nuclearindustry:compacted_waste_drum": {
+      "per_second": 0.4
+    },
+    "create_nuclearindustry:contaminated_water_bucket": {
+      "per_second": 0.3
+    },
+    "create_nuclearindustry:corium": {
+      "heat_per_second": 2.0,
+      "per_second": 20.0
+    },
+    "create_nuclearindustry:crushed_raw_uranium": {
+      "per_second": 0.01
+    },
+    "create_nuclearindustry:depleted_mox_reactor_fuel": {
+      "per_second": 6.0
+    },
+    "create_nuclearindustry:depleted_rtg_pellet": {
+      "per_second": 1.0
+    },
+    "create_nuclearindustry:depleted_thorium_reactor_fuel": {
+      "per_second": 5.0
+    },
+    "create_nuclearindustry:depleted_uranium_reactor_fuel": {
+      "per_second": 4.0
+    },
+    "create_nuclearindustry:dt_fuel_pellet": {
+      "per_second": 0.05
+    },
+    "create_nuclearindustry:enriched_uranium_blend": {
+      "per_second": 0.3
+    },
+    "create_nuclearindustry:heavy_mineral_sand": {
+      "per_second": 0.02
+    },
+    "create_nuclearindustry:high_level_waste": {
+      "heat_per_second": 0.5,
+      "per_second": 15.0
+    },
+    "create_nuclearindustry:incomplete_thorium_reactor_fuel": {
+      "per_second": 1.0
+    },
+    "create_nuclearindustry:irradiated_depleted_uranium": {
+      "per_second": 1.5
+    },
+    "create_nuclearindustry:irradiated_thorium": {
+      "per_second": 2.0
+    },
+    "create_nuclearindustry:irradiation_source": {
+      "per_second": 3.0
+    },
+    "create_nuclearindustry:loaded_adsorbent": {
+      "per_second": 0.01
+    },
+    "create_nuclearindustry:low_level_waste": {
+      "per_second": 0.5
+    },
+    "create_nuclearindustry:mox_fuel_pellet": {
+      "per_second": 1.5
+    },
+    "create_nuclearindustry:mox_reactor_fuel": {
+      "per_second": 4.0
+    },
+    "create_nuclearindustry:plutonium": {
+      "heat_per_second": 1.0,
+      "per_second": 8.0
+    },
+    "create_nuclearindustry:plutonium_dioxide": {
+      "heat_per_second": 0.75,
+      "per_second": 6.0
+    },
+    "create_nuclearindustry:plutonium_rtg_pellet": {
+      "per_second": 4.0
+    },
+    "create_nuclearindustry:primary_coolant_bucket": {
+      "per_second": 0.5
+    },
+    "create_nuclearindustry:radioactive_sludge": {
+      "per_second": 0.5
+    },
+    "create_nuclearindustry:radioactive_waste": {
+      "per_second": 6.0
+    },
+    "create_nuclearindustry:radioactive_waste_barrel": {
+      "per_second": 1.0
+    },
+    "create_nuclearindustry:raw_uranium": {
+      "per_second": 0.01
+    },
+    "create_nuclearindustry:solidified_corium": {
+      "heat_per_second": 0.5,
+      "per_second": 8.0
+    },
+    "create_nuclearindustry:spent_dt_pellet": {
+      "per_second": 0.2
+    },
+    "create_nuclearindustry:spent_fuel_fragments": {
+      "per_second": 3.0
+    },
+    "create_nuclearindustry:thorium_dioxide": {
+      "per_second": 0.05
+    },
+    "create_nuclearindustry:thorium_fuel_pellet": {
+      "per_second": 0.8
+    },
+    "create_nuclearindustry:thorium_reactor_fuel": {
+      "per_second": 2.0
+    },
+    "create_nuclearindustry:thorium_spent_fragments": {
+      "per_second": 3.0
+    },
+    "create_nuclearindustry:tritium_cell": {
+      "per_second": 0.05
+    },
+    "create_nuclearindustry:uranium": {
+      "per_second": 1.5,
+      "scales_with_enrichment": true
+    },
+    "create_nuclearindustry:uranium_233_dioxide": {
+      "per_second": 2.0
+    },
+    "create_nuclearindustry:uranium_concentrate": {
+      "per_second": 0.02
+    },
+    "create_nuclearindustry:uranium_dioxide": {
+      "per_second": 1.5,
+      "scales_with_enrichment": true
+    },
+    "create_nuclearindustry:uranium_fuel_pellet": {
+      "per_second": 1.5,
+      "scales_with_enrichment": true
+    },
+    "create_nuclearindustry:uranium_reactor_fuel": {
+      "per_second": 3.0,
+      "scales_with_enrichment": true
+    },
+    "create_nuclearindustry:uranyl_nitrate": {
+      "per_second": 1.5,
+      "scales_with_enrichment": true
+    },
+    "create_nuclearindustry:vitrified_waste_canister": {
+      "heat_per_second": 1.0,
+      "per_second": 8.0
+    },
+    "create_nuclearindustry:waste_rtg_pellet": {
+      "per_second": 3.0
+    },
+    "create_nuclearindustry:weapons_grade_plutonium_core": {
+      "heat_per_second": 4.0,
+      "per_second": 25.0
+    },
+    "create_nuclearindustry:weapons_grade_uranium_core": {
+      "per_second": 12.0
+    },
+    "create_nuclearindustry:yellowcake": {
+      "per_second": 0.03
+    }
+  }
+}

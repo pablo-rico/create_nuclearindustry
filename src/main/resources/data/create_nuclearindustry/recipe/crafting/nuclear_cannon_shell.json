@@ -13,7 +13,7 @@
   ],
   "key": {
     "C": {
-      "item": "create_nuclearindustry:weapons_grade_uranium_core"
+      "tag": "create_nuclearindustry:nuclear_warhead_cores"
     },
     "N": {
       "item": "create_nuclearindustry:nuclear_bomb"

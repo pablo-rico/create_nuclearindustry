@@ -1,0 +1,34 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "tag": "create_nuclearindustry:barrel_waste"
+    },
+    {
+      "tag": "create_nuclearindustry:barrel_waste"
+    },
+    {
+      "tag": "create_nuclearindustry:barrel_waste"
+    },
+    {
+      "tag": "create_nuclearindustry:barrel_waste"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "item": "create:iron_sheet"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:radioactive_waste_barrel"
+    }
+  ]
+}

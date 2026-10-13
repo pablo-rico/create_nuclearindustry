@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:tokamak_ignition",
+  "criteria": {
+    "disruption": {
+      "conditions": {
+        "event": "disruption"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.disruption.description"
+    },
+    "frame": "goal",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:fusion_electromagnet"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.disruption.title"
+    }
+  },
+  "requirements": [
+    [
+      "disruption"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

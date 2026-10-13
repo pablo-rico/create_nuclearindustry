@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:reactor_casing"
+    },
+    "Q": {
+      "item": "minecraft:comparator"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    " R ",
+    "QCQ",
+    " R "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:reactor_redstone_port"
+  }
+}

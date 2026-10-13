@@ -1,0 +1,34 @@
+{
+  "parent": "create_nuclearindustry:fusion",
+  "criteria": {
+    "has": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:lithium_6"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.lithium_6.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:lithium_6"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.lithium_6.title"
+    }
+  },
+  "requirements": [
+    [
+      "has"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

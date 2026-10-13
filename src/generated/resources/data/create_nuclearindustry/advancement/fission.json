@@ -1,0 +1,35 @@
+{
+  "criteria": {
+    "has": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:reactor_casing"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "create_nuclearindustry:textures/block/reactor_casing.png",
+    "description": {
+      "translate": "advancement.create_nuclearindustry.fission.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:reactor_controller"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancement.create_nuclearindustry.fission.title"
+    }
+  },
+  "requirements": [
+    [
+      "has"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

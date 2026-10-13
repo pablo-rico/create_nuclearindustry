@@ -1,0 +1,68 @@
+{
+  "criteria": {
+    "deuterium_cell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:deuterium_cell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "fusion_controller": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:fusion_controller"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "lithium": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:lithium"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "superconductor_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:superconductor_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "create_nuclearindustry:textures/block/fusion_cryostat_casing.png",
+    "description": {
+      "translate": "advancement.create_nuclearindustry.fusion.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:fusion_controller"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancement.create_nuclearindustry.fusion.title"
+    }
+  },
+  "requirements": [
+    [
+      "lithium",
+      "deuterium_cell",
+      "superconductor_ingot",
+      "fusion_controller"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

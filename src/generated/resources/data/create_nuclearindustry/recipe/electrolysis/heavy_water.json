@@ -1,0 +1,17 @@
+{
+  "type": "create_nuclearindustry:electrolysis",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 1000,
+      "fluid": "minecraft:water"
+    }
+  ],
+  "processing_time": 100,
+  "results": [
+    {
+      "amount": 10,
+      "id": "create_nuclearindustry:heavy_water"
+    }
+  ]
+}

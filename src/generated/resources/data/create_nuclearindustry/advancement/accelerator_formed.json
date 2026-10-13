@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:accelerator",
+  "criteria": {
+    "accelerator_formed": {
+      "conditions": {
+        "event": "accelerator_formed"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.accelerator_formed.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:particle_accelerator_ion_source"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.accelerator_formed.title"
+    }
+  },
+  "requirements": [
+    [
+      "accelerator_formed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

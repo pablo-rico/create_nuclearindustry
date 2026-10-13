@@ -1,0 +1,629 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/straight"
+      },
+      "when": {
+        "facing": "north",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left"
+      },
+      "when": {
+        "facing": "north",
+        "left": "false",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right"
+      },
+      "when": {
+        "facing": "north",
+        "right": "false",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/inner"
+      },
+      "when": {
+        "facing": "north",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "north",
+        "left": "false",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right"
+      },
+      "when": {
+        "facing": "north",
+        "right": "false",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/inner",
+        "y": 90
+      },
+      "when": {
+        "facing": "north",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left"
+      },
+      "when": {
+        "facing": "north",
+        "left": "false",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "north",
+        "right": "false",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/outer"
+      },
+      "when": {
+        "facing": "north",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left"
+      },
+      "when": {
+        "facing": "north",
+        "left": "false",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "north",
+        "right": "false",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/outer",
+        "y": 90
+      },
+      "when": {
+        "facing": "north",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "north",
+        "left": "false",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right"
+      },
+      "when": {
+        "facing": "north",
+        "right": "false",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/straight",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "left": "false",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "right": "false",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/inner",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left"
+      },
+      "when": {
+        "facing": "east",
+        "left": "false",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "right": "false",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/inner",
+        "y": 180
+      },
+      "when": {
+        "facing": "east",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "left": "false",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "east",
+        "right": "false",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/outer",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "left": "false",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right"
+      },
+      "when": {
+        "facing": "east",
+        "right": "false",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/outer",
+        "y": 180
+      },
+      "when": {
+        "facing": "east",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "east",
+        "left": "false",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "right": "false",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/straight",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "left": "false",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "right": "false",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/inner",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "south",
+        "left": "false",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "right": "false",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/inner",
+        "y": 270
+      },
+      "when": {
+        "facing": "south",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "left": "false",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "south",
+        "right": "false",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/outer",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "left": "false",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "south",
+        "right": "false",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/outer",
+        "y": 270
+      },
+      "when": {
+        "facing": "south",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "south",
+        "left": "false",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "right": "false",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/straight",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "left": "false",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "right": "false",
+        "shape": "straight"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/inner",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "west",
+        "left": "false",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "right": "false",
+        "shape": "inner_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/inner"
+      },
+      "when": {
+        "facing": "west",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "left": "false",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right"
+      },
+      "when": {
+        "facing": "west",
+        "right": "false",
+        "shape": "inner_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/outer",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "left": "false",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "west",
+        "right": "false",
+        "shape": "outer_left"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/outer"
+      },
+      "when": {
+        "facing": "west",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_left"
+      },
+      "when": {
+        "facing": "west",
+        "left": "false",
+        "shape": "outer_right"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/control_desk/cap_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "right": "false",
+        "shape": "outer_right"
+      }
+    }
+  ]
+}

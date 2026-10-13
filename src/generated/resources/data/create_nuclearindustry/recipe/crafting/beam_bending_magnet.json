@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "create_nuclearindustry:beam_pipe"
+    }
+  },
+  "pattern": [
+    "III",
+    "CPC",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:beam_bending_magnet"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "F": {
+      "item": "create:fluid_pipe"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    " F ",
+    "CCC",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:recombiner"
+  }
+}

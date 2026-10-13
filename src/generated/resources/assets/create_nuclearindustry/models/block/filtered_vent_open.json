@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "create_nuclearindustry:block/containment_concrete",
+    "side": "create_nuclearindustry:block/filtered_vent_open"
+  }
+}

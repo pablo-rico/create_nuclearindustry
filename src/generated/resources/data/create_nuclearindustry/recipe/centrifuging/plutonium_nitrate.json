@@ -1,0 +1,29 @@
+{
+  "type": "create_nuclearindustry:centrifuging",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 1000,
+      "fluid": "create_nuclearindustry:spent_fuel_solution"
+    }
+  ],
+  "processing_time": 300,
+  "results": [
+    {
+      "count": 2,
+      "id": "create_nuclearindustry:high_level_waste"
+    },
+    {
+      "chance": 0.5,
+      "id": "create_nuclearindustry:high_level_waste"
+    },
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:plutonium_nitrate"
+    },
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:nitric_acid"
+    }
+  ]
+}

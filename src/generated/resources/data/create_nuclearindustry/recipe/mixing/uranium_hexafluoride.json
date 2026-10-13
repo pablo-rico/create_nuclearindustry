@@ -1,0 +1,20 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "superheated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:yellowcake"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:hydrofluoric_acid"
+    }
+  ],
+  "results": [
+    {
+      "amount": 500,
+      "id": "create_nuclearindustry:uranium_hexafluoride"
+    }
+  ]
+}

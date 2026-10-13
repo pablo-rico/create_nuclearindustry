@@ -1,0 +1,25 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "tag": "create_nuclearindustry:uranium_ingots"
+      },
+      "max_enrichment": 3.0,
+      "min_enrichment": 0.7
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:hydrofluoric_acid"
+    }
+  ],
+  "results": [
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:uranium_hexafluoride"
+    }
+  ]
+}

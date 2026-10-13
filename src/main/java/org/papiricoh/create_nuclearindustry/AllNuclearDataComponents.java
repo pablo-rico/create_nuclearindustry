@@ -23,5 +23,17 @@ public class AllNuclearDataComponents {
                     .persistent(BlockPos.CODEC)
                     .networkSynchronized(BlockPos.STREAM_CODEC));
 
+    /** What a Control Room Linker points at: a machine's controller, or any block for its radiation. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<net.minecraft.core.GlobalPos>> LINKED_TARGET =
+            DATA_COMPONENTS.registerComponentType("linked_target", builder -> builder
+                    .persistent(net.minecraft.core.GlobalPos.CODEC)
+                    .networkSynchronized(net.minecraft.core.GlobalPos.STREAM_CODEC));
+
+    /** Fraction of an RTG pellet's heat left, 1 when fresh. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Float>> RTG_CHARGE =
+            DATA_COMPONENTS.registerComponentType("rtg_charge", builder -> builder
+                    .persistent(Codec.FLOAT)
+                    .networkSynchronized(ByteBufCodecs.FLOAT));
+
     public static void init() {}
 }

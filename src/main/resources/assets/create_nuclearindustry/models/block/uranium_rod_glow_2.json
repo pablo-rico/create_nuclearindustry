@@ -1,0 +1,67 @@
+{
+  "render_type": "minecraft:translucent",
+  "ambientocclusion": false,
+  "textures": {
+    "glow": "create_nuclearindustry:block/uranium_rod_cherenkov",
+    "particle": "create_nuclearindustry:block/uranium_rod_cherenkov"
+  },
+  "elements": [
+    {
+      "from": [
+        1.25,
+        1,
+        1.25
+      ],
+      "to": [
+        14.75,
+        15,
+        14.75
+      ],
+      "shade": false,
+      "neoforge_data": {
+        "color": "A0FFFFFF",
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#glow"
+        },
+        "south": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#glow"
+        },
+        "east": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#glow"
+        },
+        "west": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#glow"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "type": "create:emptying",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:radioactive_sludge"
+    }
+  ],
+  "results": [
+    {
+      "amount": 500,
+      "id": "create_nuclearindustry:contaminated_water"
+    }
+  ]
+}

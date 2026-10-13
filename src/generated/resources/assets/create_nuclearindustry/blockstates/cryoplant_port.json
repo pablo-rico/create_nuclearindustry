@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "mode=helium_in": {
+      "model": "create_nuclearindustry:block/cryoplant_port_helium_in"
+    },
+    "mode=liquid_air_out": {
+      "model": "create_nuclearindustry:block/cryoplant_port_liquid_air_out"
+    },
+    "mode=liquid_helium_out": {
+      "model": "create_nuclearindustry:block/cryoplant_port_liquid_helium_out"
+    },
+    "mode=nitrogen_in": {
+      "model": "create_nuclearindustry:block/cryoplant_port_nitrogen_in"
+    }
+  }
+}

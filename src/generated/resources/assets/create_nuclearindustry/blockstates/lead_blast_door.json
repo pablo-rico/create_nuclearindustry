@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "leaf=closed": {
+      "model": "create_nuclearindustry:block/lead_blast_door"
+    },
+    "leaf=moving": {
+      "model": "create_nuclearindustry:block/lead_blast_door"
+    },
+    "leaf=open": {
+      "model": "create_nuclearindustry:block/lead_blast_door"
+    }
+  }
+}

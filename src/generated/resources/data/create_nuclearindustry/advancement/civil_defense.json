@@ -1,0 +1,101 @@
+{
+  "criteria": {
+    "air_raid_siren": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:air_raid_siren"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "blast_door_controller": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:blast_door_controller"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "geiger_counter": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:geiger_counter"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "hand_crank_siren": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:hand_crank_siren"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "hazmat_helmet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:hazmat_helmet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "seismic_detector": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:seismic_detector"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "shelter_filtration_unit": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:shelter_filtration_unit"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "create_nuclearindustry:textures/block/blast_door_frame.png",
+    "description": {
+      "translate": "advancement.create_nuclearindustry.civil_defense.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:air_raid_siren"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancement.create_nuclearindustry.civil_defense.title"
+    }
+  },
+  "requirements": [
+    [
+      "geiger_counter",
+      "hazmat_helmet",
+      "air_raid_siren",
+      "hand_crank_siren",
+      "seismic_detector",
+      "blast_door_controller",
+      "shelter_filtration_unit"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

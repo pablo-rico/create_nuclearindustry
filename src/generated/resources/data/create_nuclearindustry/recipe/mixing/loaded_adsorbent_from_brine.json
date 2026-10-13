@@ -1,0 +1,18 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:amidoxime_adsorbent"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 100,
+      "fluid": "create_nuclearindustry:brine"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:loaded_adsorbent"
+    }
+  ]
+}

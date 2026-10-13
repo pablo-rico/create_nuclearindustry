@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "create_nuclearindustry:block/shelter_filtration_unit",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "create_nuclearindustry:block/shelter_filtration_unit"
+    },
+    "axis=z": {
+      "model": "create_nuclearindustry:block/shelter_filtration_unit",
+      "x": 90
+    }
+  }
+}

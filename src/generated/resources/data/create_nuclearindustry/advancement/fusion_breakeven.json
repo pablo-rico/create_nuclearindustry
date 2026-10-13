@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:tokamak_ignition",
+  "criteria": {
+    "fusion_breakeven": {
+      "conditions": {
+        "event": "fusion_breakeven"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.fusion_breakeven.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:dt_fuel_pellet"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.fusion_breakeven.title"
+    }
+  },
+  "requirements": [
+    [
+      "fusion_breakeven"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

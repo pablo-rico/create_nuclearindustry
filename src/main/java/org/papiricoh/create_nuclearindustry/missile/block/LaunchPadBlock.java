@@ -27,7 +27,6 @@ import org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadMenuProvider;
 public class LaunchPadBlock extends BaseEntityBlock {
     public static final BooleanProperty POWERED = BooleanProperty.create("powered");
     public static final MapCodec<LaunchPadBlock> CODEC = simpleCodec(LaunchPadBlock::new);
-    public static BlockPos lastMenuPos;
 
     public LaunchPadBlock(Properties properties) {
         super(properties);
@@ -67,14 +66,14 @@ public class LaunchPadBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
         if (level.getBlockEntity(pos) instanceof LaunchPadBlockEntity pad) {
-            lastMenuPos = pos;
             pad.setChanged();
             level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
             MenuProvider provider = new SimpleMenuProvider(
                     new LaunchPadMenuProvider(pos)::createMenu,
                     Component.literal("Launch Pad")
             );
-            player.openMenu(provider);
+            // The position travels with the menu, so each player's screen finds its own block.
+            player.openMenu(provider, buf -> buf.writeBlockPos(pos));
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

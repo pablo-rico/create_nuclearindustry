@@ -1,0 +1,49 @@
+{
+  "values": {
+    "#c:glass_blocks": {
+      "bar": 1.05
+    },
+    "create_nuclearindustry:blast_door_controller": {
+      "bar": 10.0
+    },
+    "create_nuclearindustry:blast_door_frame": {
+      "bar": 10.0
+    },
+    "create_nuclearindustry:containment_concrete": {
+      "bar": 6.0
+    },
+    "create_nuclearindustry:containment_door": {
+      "bar": 8.0
+    },
+    "create_nuclearindustry:containment_monitor": {
+      "bar": 10.0
+    },
+    "create_nuclearindustry:containment_penetration": {
+      "bar": 6.0
+    },
+    "create_nuclearindustry:core_catcher": {
+      "bar": 8.0
+    },
+    "create_nuclearindustry:filtered_vent": {
+      "bar": 6.0
+    },
+    "create_nuclearindustry:lead_blast_door": {
+      "bar": 10.0
+    },
+    "create_nuclearindustry:recombiner": {
+      "bar": 10.0
+    },
+    "create_nuclearindustry:steel_blast_door": {
+      "bar": 10.0
+    },
+    "create_nuclearindustry:steel_liner": {
+      "bar": 8.0
+    },
+    "minecraft:iron_block": {
+      "bar": 4.0
+    },
+    "minecraft:obsidian": {
+      "bar": 6.0
+    }
+  }
+}

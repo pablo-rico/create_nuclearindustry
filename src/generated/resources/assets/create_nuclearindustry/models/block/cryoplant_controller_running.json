@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "create_nuclearindustry:block/cryoplant_controller_running",
+    "side": "create_nuclearindustry:block/cryoplant_casing",
+    "top": "create_nuclearindustry:block/cryoplant_casing_top"
+  }
+}

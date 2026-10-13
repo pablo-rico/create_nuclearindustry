@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:reactor_running",
+  "criteria": {
+    "meltdown": {
+      "conditions": {
+        "event": "meltdown"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.meltdown.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:reactor_casing"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.meltdown.title"
+    }
+  },
+  "requirements": [
+    [
+      "meltdown"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

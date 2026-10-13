@@ -1,0 +1,252 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_module_base",
+    "plate": "create_nuclearindustry:block/desk_module_base",
+    "part": "create_nuclearindustry:block/desk_gauge"
+  },
+  "elements": [
+    {
+      "name": "plate",
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        0.5,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "east": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "south": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "west": {
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ],
+          "texture": "#plate"
+        },
+        "up": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "rotation": 180,
+          "texture": "#plate"
+        }
+      }
+    },
+    {
+      "name": "housing",
+      "from": [
+        5.5,
+        0.5,
+        6
+      ],
+      "to": [
+        10.5,
+        4.5,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            10,
+            8
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            0,
+            8,
+            4,
+            12
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            0,
+            8,
+            4,
+            12
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            4,
+            8,
+            9,
+            12
+          ],
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "hood",
+      "from": [
+        5.25,
+        4.5,
+        5.5
+      ],
+      "to": [
+        10.75,
+        5,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10,
+            5,
+            15.5,
+            5.5
+          ],
+          "texture": "#part"
+        },
+        "south": {
+          "uv": [
+            10,
+            5,
+            15.5,
+            5.5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            10,
+            5,
+            14.5,
+            5.5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            10,
+            5,
+            14.5,
+            5.5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            10,
+            0,
+            15.5,
+            4.5
+          ],
+          "rotation": 180,
+          "texture": "#part"
+        },
+        "down": {
+          "uv": [
+            10,
+            0,
+            15.5,
+            4.5
+          ],
+          "texture": "#part"
+        }
+      }
+    },
+    {
+      "name": "hub",
+      "from": [
+        7.5,
+        1.25,
+        5.65
+      ],
+      "to": [
+        8.5,
+        1.75,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10,
+            6,
+            11,
+            6.5
+          ],
+          "texture": "#part"
+        },
+        "east": {
+          "uv": [
+            10,
+            6,
+            10.35,
+            6.5
+          ],
+          "texture": "#part"
+        },
+        "west": {
+          "uv": [
+            10,
+            6,
+            10.35,
+            6.5
+          ],
+          "texture": "#part"
+        },
+        "up": {
+          "uv": [
+            10,
+            6,
+            11,
+            6.35
+          ],
+          "texture": "#part"
+        },
+        "down": {
+          "uv": [
+            10,
+            6,
+            11,
+            6.35
+          ],
+          "texture": "#part"
+        }
+      }
+    }
+  ]
+}

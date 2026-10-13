@@ -48,12 +48,7 @@ public class NuclearReactorControllerBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        // Only tick on server side
-        if (level.isClientSide) {
-            return null;
-        }
-
-        // Return the ticker if the block entity type matches
+        // Both sides: the client tick only plays the reactor's sounds (see ReactorVisualHooks)
         return blockEntityType == AllNuclearEntities.REACTOR.get() ? (lvl, pos, blockState, blockEntity) -> {
             if (blockEntity instanceof ReactorBlockEntity reactor) {
                 ReactorBlockEntity.tick(lvl, pos, blockState, reactor);

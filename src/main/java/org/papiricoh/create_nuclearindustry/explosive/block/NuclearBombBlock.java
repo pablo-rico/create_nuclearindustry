@@ -27,7 +27,6 @@ import org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenuProvide
 public class NuclearBombBlock extends BaseEntityBlock {
     public static final BooleanProperty POWERED = BooleanProperty.create("powered");
     public static final MapCodec<NuclearBombBlock> CODEC = simpleCodec(NuclearBombBlock::new);
-    public static BlockPos lastBombMenuPos;
 
     public NuclearBombBlock(Properties properties) {
         super(properties);
@@ -67,14 +66,14 @@ public class NuclearBombBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
         if (level.getBlockEntity(pos) instanceof NuclearBombBlockEntity bomb) {
-            lastBombMenuPos = pos;
             bomb.setChanged();
             level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
             MenuProvider provider = new SimpleMenuProvider(
                     new NuclearBombMenuProvider(pos)::createMenu,
-                    Component.literal("Nuclear Bomb")
+                    Component.translatable(state.getBlock().getDescriptionId())
             );
-            player.openMenu(provider);
+            // The position travels with the menu, so each player's screen finds its own block.
+            player.openMenu(provider, buf -> buf.writeBlockPos(pos));
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

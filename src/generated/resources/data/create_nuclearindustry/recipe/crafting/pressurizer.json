@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:reactor_casing"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "T": {
+      "item": "create:fluid_tank"
+    }
+  },
+  "pattern": [
+    "PPP",
+    "PTP",
+    " C "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:pressurizer"
+  }
+}

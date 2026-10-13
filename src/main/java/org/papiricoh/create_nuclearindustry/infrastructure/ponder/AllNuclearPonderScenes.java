@@ -1,20 +1,45 @@
 package org.papiricoh.create_nuclearindustry.infrastructure.ponder;
 
 import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
+import net.createmod.ponder.api.registration.PonderTagRegistrationHelper;
+import net.createmod.ponder.api.scene.PonderStoryBoard;
 import net.minecraft.resources.ResourceLocation;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
-import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FusionPlasmaTurbineScenes;
-import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FusionReactorScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ContainmentDoorScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ControlRoomScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CoolingTowerScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CryoplantScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.PlantScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorModerationScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorRedstoneScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.RtgScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ScrubberScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TokamakScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TurbineScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.WasteStorageScenes;
 
 public class AllNuclearPonderScenes {
+    /** The ponder tag of the "Nuclear power plant" series. */
+    public static final ResourceLocation PLANT_TAG = id(PlantPonderText.TAG_ID);
+
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path);
     }
 
     public static void register(PonderSceneRegistrationHelper<ResourceLocation> helper) {
+        helper.addStoryBoard(id("reactor_redstone_port"), "reactor_controller", ReactorRedstoneScenes::redstonePort);
+        helper.addStoryBoard(id("reactor_controller"), "reactor_controller", ReactorRedstoneScenes::redstonePort);
+        helper.addStoryBoard(id("radioactive_waste_barrel"), "waste_storage", WasteStorageScenes::storage);
+        helper.addStoryBoard(id("radiation_scrubber"), "centrifuge", ScrubberScenes::scrubber);
+        for (String part : new String[]{"rtg", "plutonium_rtg_pellet", "waste_rtg_pellet"}) {
+            helper.addStoryBoard(id(part), "centrifuge", RtgScenes::rtg);
+        }
+        for (String part : new String[]{"cooling_tower_controller", "cooling_tower_casing", "cooling_tower_fluid_port", "cooling_tower_fan"}) {
+            helper.addStoryBoard(id(part), "cooling_tower", CoolingTowerScenes::tower);
+        }
         helper.addStoryBoard(
                 id("centrifuge"),
                 "centrifuge",
@@ -25,22 +50,77 @@ public class AllNuclearPonderScenes {
                 "reactor_controller",
                 ReactorScenes::assembly
         );
-        // El reactor de fusion se ancla a todos sus bloques de estructura principales.
-        helper.addStoryBoard(id("fusion_controller"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_accelerator_segment"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_accelerator_corner"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_electromagnet"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_magnet_input"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_fluid_port"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_fuel_injector"), "fusion_controller", FusionReactorScenes::assembly);
-        helper.addStoryBoard(id("fusion_plasma_turbine"), "turbine", FusionPlasmaTurbineScenes::generation);
-        helper.addStoryBoard(id("fusion_turbine_casing"), "turbine", FusionPlasmaTurbineScenes::generation);
-        helper.addStoryBoard(id("fusion_turbine_rotor"), "turbine", FusionPlasmaTurbineScenes::generation);
-        helper.addStoryBoard(id("fusion_turbine_fluid_port"), "turbine", FusionPlasmaTurbineScenes::generation);
-        // La turbina se ancla a todos sus componentes para que el ponder aparezca desde cualquiera de ellos.
-        helper.addStoryBoard(id("turbine_output"), "turbine", TurbineScenes::assembly);
-        helper.addStoryBoard(id("turbine_rotor"), "turbine", TurbineScenes::assembly);
-        helper.addStoryBoard(id("turbine_casing"), "turbine", TurbineScenes::assembly);
-        helper.addStoryBoard(id("turbine_fluid_port"), "turbine", TurbineScenes::assembly);
+        // The tokamak storyboard is reachable from every block it is built from.
+        for (String part : new String[]{"fusion_controller", "fusion_central_solenoid", "fusion_accelerator_segment",
+                "fusion_electromagnet", "fusion_breeding_blanket", "fusion_cryostat_casing", "fusion_magnet_input",
+                "fusion_fluid_port", "fusion_fuel_injector"}) {
+            helper.addStoryBoard(id(part), "tokamak", TokamakScenes::assembly);
+        }
+        for (String part : new String[]{"fusion_controller", "fusion_magnet_input", "fusion_vacuum_pump", "fusion_cryo_port",
+                "fusion_neutral_beam_injector", "fusion_rf_antenna", "fusion_viewport"}) {
+            helper.addStoryBoard(id(part), "tokamak_startup", TokamakScenes::startup);
+        }
+        for (String part : new String[]{"cryoplant_controller", "cryoplant_casing", "cryoplant_port", "cryoplant_compressor",
+                "fusion_cryo_port"}) {
+            helper.addStoryBoard(id(part), "cryoplant", CryoplantScenes::plant);
+        }
+        for (String part : new String[]{"graphite_moderator", "beryllium_reflector", "reactor_controller"}) {
+            helper.addStoryBoard(id(part), "reactor_controller", ReactorModerationScenes::moderation);
+        }
+        for (String part : new String[]{"control_monitor", "reactor_control_panel", "nuclear_alarm", "control_room_linker",
+                "reactor_redstone_port", "push_button_module", "lever_module", "dial_module", "lamp_module", "gauge_module",
+                "key_switch_module"}) {
+            helper.addStoryBoard(id(part), "control_room", ControlRoomScenes::controlRoom);
+        }
+        helper.addStoryBoard(id("electrolyzer"), "centrifuge", CentrifugeScenes::electrolysis);
+        // Turbine storyboards are reachable from every block they are built from.
+        for (String part : new String[]{"turbine_output", "turbine_rotor", "turbine_casing", "turbine_fluid_port", "reinforced_turbine_glass"}) {
+            helper.addStoryBoard(id(part), "turbine", TurbineScenes::steam);
+        }
+        for (String part : new String[]{"fusion_plasma_turbine", "fusion_turbine_rotor", "fusion_turbine_casing",
+                "fusion_turbine_fluid_port", "reinforced_turbine_glass"}) {
+            helper.addStoryBoard(id(part), "fusion_turbine", TurbineScenes::plasma);
+        }
+        registerPlantSeries(helper);
+        // After the series, so a containment part shows the plant scenes first.
+        for (String part : new String[]{"containment_door", "containment_concrete", "steel_liner"}) {
+            helper.addStoryBoard(id(part), "containment_door", ContainmentDoorScenes::door);
+        }
+        GuidePonderScenes.register(helper);
+    }
+
+    /**
+     * The "Nuclear power plant" series. Ponder chains the scenes of one item in the order they are
+     * registered, so registering scene by scene keeps the series in order on every item that has more
+     * than one of them; the hubs (reactor and steam generator controllers) show all five, the overview first.
+     */
+    private static void registerPlantSeries(PonderSceneRegistrationHelper<ResourceLocation> helper) {
+        storyBoard(helper, PlantPonderText.OVERVIEW, PlantScenes::overview);
+        storyBoard(helper, PlantPonderText.HEAT_LOOP, PlantScenes::heatLoop);
+        storyBoard(helper, PlantPonderText.GENERATION, PlantScenes::generation);
+        storyBoard(helper, PlantPonderText.CONTROL_SAFETY, PlantScenes::controlSafety);
+        storyBoard(helper, PlantPonderText.WASTE, PlantScenes::waste);
+    }
+
+    private static void storyBoard(PonderSceneRegistrationHelper<ResourceLocation> helper, PlantPonderText.Scene scene,
+                                   PonderStoryBoard board) {
+        for (String component : PlantPonderText.componentsOf(scene)) {
+            helper.addStoryBoard(id(component), scene.schematic(), board, PLANT_TAG);
+        }
+    }
+
+    /** Puts every part of the plant under the series' tag, with the reactor controller as its icon. */
+    public static void registerTags(PonderTagRegistrationHelper<ResourceLocation> helper) {
+        helper.registerTag(PLANT_TAG)
+                .title(PlantPonderText.TAG_TITLE.english())
+                .description(PlantPonderText.TAG_DESCRIPTION.english())
+                .item(AllNuclearBlocks.REACTOR_CONTROLLER.get(), true, false)
+                .addToIndex()
+                .register();
+        var tag = helper.addToTag(PLANT_TAG);
+        for (String component : PlantPonderText.tagComponents()) {
+            tag.add(id(component));
+        }
+        GuidePonderScenes.registerTags(helper);
     }
 }

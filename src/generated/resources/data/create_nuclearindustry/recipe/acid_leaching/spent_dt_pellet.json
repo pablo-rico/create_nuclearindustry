@@ -1,0 +1,18 @@
+{
+  "type": "create_nuclearindustry:acid_leaching",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:spent_dt_pellet"
+    }
+  ],
+  "results": [
+    {
+      "count": 3,
+      "id": "minecraft:iron_nugget"
+    },
+    {
+      "chance": 0.25,
+      "id": "create_nuclearindustry:radioactive_sludge"
+    }
+  ]
+}

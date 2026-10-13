@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:fusion_accelerator_corner"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:fusion_accelerator_segment"
+  }
+}

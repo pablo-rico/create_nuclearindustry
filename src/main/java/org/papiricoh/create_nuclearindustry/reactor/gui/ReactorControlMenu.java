@@ -28,7 +28,7 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     private static final int DATA_FUEL_X10 = 4;
     private static final int DATA_FUEL_CAPACITY_X10 = 5;
     private static final int DATA_ROD_POSITION_PERMILLE = 6;
-    private static final int DATA_POWER_X10 = 7;
+    private static final int DATA_POWER_MW = 7;
     private static final int DATA_STEAM_RATE_X10 = 8;
     private static final int DATA_THERMAL_STRESS = 9;
     private static final int DATA_THERMAL_EXCURSION = 10;
@@ -42,7 +42,37 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     private static final int DATA_FUEL_INPUT = 18;
     private static final int DATA_FUEL_OUTPUT = 19;
     private static final int DATA_PENDING_DEPLETED = 20;
-    private static final int DATA_COUNT = 21;
+    private static final int DATA_FUEL_ENRICHMENT_X10 = 21;
+    private static final int DATA_MANUAL_SCRAM = 22;
+    private static final int DATA_AUTO_ENABLED = 23;
+    private static final int DATA_AUTO_THRESHOLD = 24;
+    private static final int DATA_AUTO_TRIPPED = 25;
+    private static final int DATA_SCRAM_REQUESTED = 26;
+    private static final int DATA_XENON_PERMILLE = 27;
+    private static final int DATA_DECAY_HEAT_X10 = 28;
+    private static final int DATA_REACTIVITY_X100 = 29;
+    /** Fission power as permille of the rated power, the rated power in MW and the core's new readings. */
+    private static final int DATA_POWER_PERMILLE = 30;
+    private static final int DATA_RATED_POWER = 31;
+    private static final int DATA_COOLANT_TEMPERATURE = 32;
+    private static final int DATA_CORE_DAMAGE_PERMILLE = 33;
+    private static final int DATA_NET_REACTIVITY = 34;
+    // The net reactivity split into its parts, pcm (signed shorts)
+    private static final int DATA_REACTIVITY_FUEL = 35;
+    private static final int DATA_REACTIVITY_RODS = 36;
+    private static final int DATA_REACTIVITY_TEMPERATURE = 37;
+    private static final int DATA_REACTIVITY_VOIDS = 38;
+    private static final int DATA_COUNT = 39;
+
+    /** {@link #clickMenuButton} ids. SCRAM engages the manual SCRAM, or resets once one is on. */
+    public static final int BUTTON_TOGGLE_SCRAM = 0;
+    public static final int BUTTON_THRESHOLD_DOWN = 1;
+    public static final int BUTTON_THRESHOLD_UP = 2;
+    public static final int BUTTON_THRESHOLD_DOWN_BIG = 3;
+    public static final int BUTTON_THRESHOLD_UP_BIG = 4;
+    public static final int BUTTON_TOGGLE_AUTO = 5;
+    public static final int THRESHOLD_STEP = 100;
+    public static final int THRESHOLD_BIG_STEP = 500;
 
     private final ReactorBlockEntity reactor;
     private final BlockPos reactorPos;
@@ -93,15 +123,15 @@ public class ReactorControlMenu extends AbstractContainerMenu {
                 ? reactor.getFuelInventory()
                 : new ItemStackHandler(ReactorBlockEntity.FUEL_SLOT_COUNT);
         for (int slot = 0; slot < ReactorBlockEntity.FUEL_INPUT_SLOTS; slot++) {
-            addSlot(new FuelSlot(fuelInventory, reactor, slot, 20 + slot * 18, 180, true));
+            addSlot(new FuelSlot(fuelInventory, reactor, slot, 20 + slot * 18, 192, true));
         }
         for (int slot = 0; slot < ReactorBlockEntity.FUEL_OUTPUT_SLOTS; slot++) {
-            addSlot(new FuelSlot(fuelInventory, reactor, ReactorBlockEntity.FUEL_INPUT_SLOTS + slot, 164 + slot * 18, 180, false));
+            addSlot(new FuelSlot(fuelInventory, reactor, ReactorBlockEntity.FUEL_INPUT_SLOTS + slot, 164 + slot * 18, 192, false));
         }
     }
 
     private void addPlayerInventorySlots(Inventory playerInventory) {
-        int startY = 222;
+        int startY = 234;
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 addSlot(new Slot(playerInventory, col + row * 9 + 9, 48 + col * 18, startY + row * 18));
@@ -154,8 +184,118 @@ public class ReactorControlMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public boolean clickMenuButton(Player player, int id) {
+        if (id < BUTTON_TOGGLE_SCRAM || id > BUTTON_TOGGLE_AUTO) {
+            return false;
+        }
+        ReactorBlockEntity liveReactor = getReactorEntity(player);
+        if (liveReactor == null || player.level().isClientSide) {
+            return liveReactor != null;
+        }
+        switch (id) {
+            case BUTTON_TOGGLE_SCRAM -> {
+                liveReactor.requestStructureRevalidation(player);
+                if (liveReactor.isScramRequested()) {
+                    liveReactor.resetScram();
+                } else {
+                    liveReactor.setManualScram(true);
+                }
+            }
+            case BUTTON_THRESHOLD_DOWN -> liveReactor.adjustAutoScramThreshold(-THRESHOLD_STEP);
+            case BUTTON_THRESHOLD_UP -> liveReactor.adjustAutoScramThreshold(THRESHOLD_STEP);
+            case BUTTON_THRESHOLD_DOWN_BIG -> liveReactor.adjustAutoScramThreshold(-THRESHOLD_BIG_STEP);
+            case BUTTON_THRESHOLD_UP_BIG -> liveReactor.adjustAutoScramThreshold(THRESHOLD_BIG_STEP);
+            case BUTTON_TOGGLE_AUTO -> liveReactor.toggleAutoScram();
+            default -> {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isAutoScramEnabled() {
+        return reactorData.get(DATA_AUTO_ENABLED) != 0;
+    }
+
+    public int getAutoScramThreshold() {
+        return reactorData.get(DATA_AUTO_THRESHOLD);
+    }
+
+    public boolean isAutoScramTripped() {
+        return reactorData.get(DATA_AUTO_TRIPPED) != 0;
+    }
+
+    public boolean isScramRequested() {
+        return reactorData.get(DATA_SCRAM_REQUESTED) != 0;
+    }
+
+    public float getFuelEnrichment() {
+        return reactorData.get(DATA_FUEL_ENRICHMENT_X10) / 10.0f;
+    }
+
+    public boolean isManualScram() {
+        return reactorData.get(DATA_MANUAL_SCRAM) != 0;
+    }
+
+    public double getXenonPenalty() {
+        return reactorData.get(DATA_XENON_PERMILLE) / 1000.0;
+    }
+
+    public double getDecayHeatPower() {
+        return reactorData.get(DATA_DECAY_HEAT_X10) / 10.0;
+    }
+
+    public double getReactivity() {
+        return reactorData.get(DATA_REACTIVITY_X100) / 100.0;
+    }
+
+    /** Fission power as a share of the rated power (1 = rated). */
+    public double getPowerFraction() {
+        return reactorData.get(DATA_POWER_PERMILLE) / 1000.0;
+    }
+
+    /** Rated thermal power, MW. */
+    public int getRatedPower() {
+        return reactorData.get(DATA_RATED_POWER);
+    }
+
+    public double getCoolantTemperature() {
+        return reactorData.get(DATA_COOLANT_TEMPERATURE);
+    }
+
+    /** Core damage, 0..1. */
+    public double getCoreDamage() {
+        return reactorData.get(DATA_CORE_DAMAGE_PERMILLE) / 1000.0;
+    }
+
+    /** Net reactivity, pcm (signed). */
+    public int getNetReactivity() {
+        return (short) reactorData.get(DATA_NET_REACTIVITY);
+    }
+
+    /** Reactivity of the fuel with its graphite, reflector and heavy water, pcm. */
+    public int getFuelReactivityPcm() {
+        return (short) reactorData.get(DATA_REACTIVITY_FUEL);
+    }
+
+    /** Reactivity the rods hold back, pcm (negative). */
+    public int getRodReactivityPcm() {
+        return (short) reactorData.get(DATA_REACTIVITY_RODS);
+    }
+
+    /** Reactivity the fuel and water temperatures take away, pcm. */
+    public int getTemperatureReactivityPcm() {
+        return (short) reactorData.get(DATA_REACTIVITY_TEMPERATURE);
+    }
+
+    /** Reactivity steam and missing water take away (or add, with graphite), pcm. */
+    public int getVoidReactivityPcm() {
+        return (short) reactorData.get(DATA_REACTIVITY_VOIDS);
+    }
+
+    @Override
     public boolean stillValid(Player player) {
-        return reactorPos != null && player.blockPosition().closerThan(reactorPos, 8.0);
+        return org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard.stillValid(reactor, player);
     }
 
     /**
@@ -204,7 +344,7 @@ public class ReactorControlMenu extends AbstractContainerMenu {
      * Gets power output for display.
      */
     public double getPowerOutput() {
-        return reactorData.get(DATA_POWER_X10) / 10.0;
+        return reactorData.get(DATA_POWER_MW);
     }
 
     /**
@@ -393,7 +533,7 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         data[DATA_FUEL_X10] = scaled(snapshot.fuelRemaining(), 10.0);
         data[DATA_FUEL_CAPACITY_X10] = scaled(snapshot.fuelCapacity(), 10.0);
         data[DATA_ROD_POSITION_PERMILLE] = scaled(snapshot.controlRodPosition(), 1000.0);
-        data[DATA_POWER_X10] = scaled(snapshot.powerOutput(), 10.0);
+        data[DATA_POWER_MW] = scaled(snapshot.powerOutput(), 1.0);
         data[DATA_STEAM_RATE_X10] = scaled(snapshot.steamGenerationRate(), 10.0);
         data[DATA_THERMAL_STRESS] = clampInt(Math.round((float) snapshot.thermalStress()), 0, 100);
         data[DATA_THERMAL_EXCURSION] = snapshot.thermalExcursionActive() ? 1 : 0;
@@ -407,7 +547,29 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         data[DATA_FUEL_INPUT] = clampInt(snapshot.inputFuelCount(), 0, 32767);
         data[DATA_FUEL_OUTPUT] = clampInt(snapshot.outputFuelCount(), 0, 32767);
         data[DATA_PENDING_DEPLETED] = clampInt(snapshot.pendingDepletedFuel(), 0, 32767);
+        data[DATA_FUEL_ENRICHMENT_X10] = scaled(snapshot.fuelEnrichment(), 10.0);
+        data[DATA_MANUAL_SCRAM] = snapshot.manualScram() ? 1 : 0;
+        data[DATA_AUTO_ENABLED] = reactor.getAutoScram().isEnabled() ? 1 : 0;
+        data[DATA_AUTO_THRESHOLD] = reactor.getAutoScram().getThreshold();
+        data[DATA_AUTO_TRIPPED] = reactor.getAutoScram().isTripped() ? 1 : 0;
+        data[DATA_SCRAM_REQUESTED] = reactor.isScramRequested() ? 1 : 0;
+        data[DATA_XENON_PERMILLE] = scaled(snapshot.xenonPenalty(), 1000.0);
+        data[DATA_DECAY_HEAT_X10] = scaled(snapshot.decayHeatPower(), 10.0);
+        data[DATA_REACTIVITY_X100] = scaled(snapshot.reactivity(), 100.0);
+        data[DATA_POWER_PERMILLE] = scaled(snapshot.powerFraction(), 1000.0);
+        data[DATA_RATED_POWER] = scaled(snapshot.ratedPower(), 1.0);
+        data[DATA_COOLANT_TEMPERATURE] = scaled(snapshot.coolantTemperature(), 1.0);
+        data[DATA_CORE_DAMAGE_PERMILLE] = scaled(snapshot.coreDamage(), 1000.0);
+        data[DATA_NET_REACTIVITY] = clampInt((int) Math.round(snapshot.netReactivity()), -32768, 32767);
+        data[DATA_REACTIVITY_FUEL] = pcm(snapshot.reactivityParts().fuel());
+        data[DATA_REACTIVITY_RODS] = pcm(snapshot.reactivityParts().rods());
+        data[DATA_REACTIVITY_TEMPERATURE] = pcm(snapshot.reactivityParts().temperature());
+        data[DATA_REACTIVITY_VOIDS] = pcm(snapshot.reactivityParts().voids());
         return data;
+    }
+
+    private static int pcm(double value) {
+        return clampInt((int) Math.round(value), -32768, 32767);
     }
 
     private static int scaled(double value, double scale) {
@@ -418,8 +580,11 @@ public class ReactorControlMenu extends AbstractContainerMenu {
         return Math.max(min, Math.min(max, value));
     }
 
+    /** Server-side data slots. The snapshot is taken once per game tick, not once per slot. */
     private static class LiveReactorData implements ContainerData {
         private final ReactorBlockEntity reactor;
+        private int[] cached = emptyInitialData();
+        private long cachedAt = Long.MIN_VALUE;
 
         private LiveReactorData(ReactorBlockEntity reactor) {
             this.reactor = reactor;
@@ -430,7 +595,12 @@ public class ReactorControlMenu extends AbstractContainerMenu {
             if (index < 0 || index >= DATA_COUNT) {
                 return 0;
             }
-            return snapshot(reactor)[index];
+            long now = reactor.getLevel() == null ? 0 : reactor.getLevel().getGameTime();
+            if (now != cachedAt) {
+                cached = snapshot(reactor);
+                cachedAt = now;
+            }
+            return cached[index];
         }
 
         @Override

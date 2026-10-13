@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:fusion_cryostat_casing"
+    },
+    "E": {
+      "item": "create_nuclearindustry:fusion_electromagnet"
+    },
+    "S": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    }
+  },
+  "pattern": [
+    " S ",
+    "ECE",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:fusion_central_solenoid"
+  }
+}

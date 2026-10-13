@@ -18,6 +18,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import rbasamoyai.createbigcannons.index.CBCMunitionPropertiesHandlers;
+import rbasamoyai.createbigcannons.munitions.big_cannon.BigCannonProjectileBlockEntity;
 import rbasamoyai.createbigcannons.munitions.big_cannon.BigCannonProjectileRenderer;
 import rbasamoyai.createbigcannons.munitions.big_cannon.ProjectileBlockItem;
 import rbasamoyai.createbigcannons.munitions.config.MunitionPropertiesHandler;
@@ -55,6 +56,31 @@ public final class CBCNuclearContent {
                     NUCLEAR_CANNON_SHELL_BLOCK.get()
             ).build(null));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<DepletedUraniumAPShotProjectile>> DEPLETED_URANIUM_AP_SHOT_PROJECTILE =
+            ENTITY_TYPES.register("depleted_uranium_ap_shot", () -> EntityType.Builder.<DepletedUraniumAPShotProjectile>of(
+                            DepletedUraniumAPShotProjectile::new, MobCategory.MISC)
+                    .sized(0.8f, 0.8f)
+                    .fireImmune()
+                    .clientTrackingRange(16)
+                    .updateInterval(1)
+                    .build("depleted_uranium_ap_shot"));
+
+    public static final DeferredHolder<Block, DepletedUraniumAPShotBlock> DEPLETED_URANIUM_AP_SHOT_BLOCK =
+            BLOCKS.register("depleted_uranium_ap_shot", () -> new DepletedUraniumAPShotBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .strength(5.0f, 12.0f)
+                    .noOcclusion()));
+
+    public static final DeferredHolder<Item, ProjectileBlockItem> DEPLETED_URANIUM_AP_SHOT =
+            ITEMS.register("depleted_uranium_ap_shot", () -> new ProjectileBlockItem(DEPLETED_URANIUM_AP_SHOT_BLOCK.get(),
+                    new Item.Properties().stacksTo(16)));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BigCannonProjectileBlockEntity>> DEPLETED_URANIUM_AP_SHOT_BLOCK_ENTITY =
+            BLOCK_ENTITY_TYPES.register("depleted_uranium_ap_shot", () -> BlockEntityType.Builder.<BigCannonProjectileBlockEntity>of(
+                    (pos, state) -> new BigCannonProjectileBlockEntity(CBCNuclearContent.DEPLETED_URANIUM_AP_SHOT_BLOCK_ENTITY.get(), pos, state),
+                    DEPLETED_URANIUM_AP_SHOT_BLOCK.get()
+            ).build(null));
+
     private CBCNuclearContent() {}
 
     public static void init(IEventBus modEventBus) {
@@ -70,15 +96,22 @@ public final class CBCNuclearContent {
 
     public static void addCreativeItems(CreativeModeTab.Output output) {
         output.accept(NUCLEAR_CANNON_SHELL.get());
+        output.accept(DEPLETED_URANIUM_AP_SHOT.get());
     }
 
     private static void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> MunitionPropertiesHandler.registerProjectileHandler(
-                NUCLEAR_CANNON_SHELL_PROJECTILE.get(),
-                CBCMunitionPropertiesHandlers.COMMON_SHELL_BIG_CANNON_PROJECTILE));
+        event.enqueueWork(() -> {
+            MunitionPropertiesHandler.registerProjectileHandler(
+                    NUCLEAR_CANNON_SHELL_PROJECTILE.get(),
+                    CBCMunitionPropertiesHandlers.COMMON_SHELL_BIG_CANNON_PROJECTILE);
+            MunitionPropertiesHandler.registerProjectileHandler(
+                    DEPLETED_URANIUM_AP_SHOT_PROJECTILE.get(),
+                    CBCMunitionPropertiesHandlers.INERT_BIG_CANNON_PROJECTILE);
+        });
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(NUCLEAR_CANNON_SHELL_PROJECTILE.get(), BigCannonProjectileRenderer::new);
+        event.registerEntityRenderer(DEPLETED_URANIUM_AP_SHOT_PROJECTILE.get(), BigCannonProjectileRenderer::new);
     }
 }

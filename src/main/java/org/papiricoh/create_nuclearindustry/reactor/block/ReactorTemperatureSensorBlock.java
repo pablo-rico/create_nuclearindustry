@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorTemperatureSensorBlockEntity;
 
 public class ReactorTemperatureSensorBlock extends BaseEntityBlock {
@@ -55,7 +56,7 @@ public class ReactorTemperatureSensorBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getClickedFace());
+        return defaultBlockState().setValue(FACING, PartPlacement.facingPlayer(context));
     }
 
     @Override
@@ -109,9 +110,10 @@ public class ReactorTemperatureSensorBlock extends BaseEntityBlock {
         return true;
     }
 
+    /** {@code direction} is the side of the neighbour being powered, so the output side is the facing. */
     @Override
     protected int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-        return direction == state.getValue(FACING) ? state.getValue(POWER) : 0;
+        return direction.getOpposite() == state.getValue(FACING) ? state.getValue(POWER) : 0;
     }
 
     @Override

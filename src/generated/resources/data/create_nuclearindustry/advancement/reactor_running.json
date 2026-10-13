@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:reactor_formed",
+  "criteria": {
+    "reactor_running": {
+      "conditions": {
+        "event": "reactor_running"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.reactor_running.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:uranium_rod"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.reactor_running.title"
+    }
+  },
+  "requirements": [
+    [
+      "reactor_running"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

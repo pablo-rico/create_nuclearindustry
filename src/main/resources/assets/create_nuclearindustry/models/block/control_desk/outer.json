@@ -1,0 +1,155 @@
+{
+  "parent": "minecraft:block/block",
+  "loader": "create_nuclearindustry:control_desk_corner",
+  "corner": "outer",
+  "textures": {
+    "particle": "create_nuclearindustry:block/control_desk_body",
+    "surface": "create_nuclearindustry:block/control_desk_surface",
+    "body": "create_nuclearindustry:block/control_desk_body",
+    "trim": "create_nuclearindustry:block/control_desk_trim"
+  },
+  "elements": [
+    {
+      "name": "plinth",
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        16,
+        1,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#trim"
+        },
+        "west": {
+          "texture": "#trim"
+        },
+        "down": {
+          "texture": "#trim",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "cabinet",
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "to": [
+        16,
+        9,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            7,
+            15,
+            15
+          ],
+          "texture": "#body"
+        },
+        "west": {
+          "uv": [
+            1,
+            7,
+            16,
+            15
+          ],
+          "texture": "#body"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "armrest_n",
+      "from": [
+        0.25,
+        8,
+        0.25
+      ],
+      "to": [
+        16,
+        9.5,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#trim"
+        },
+        "west": {
+          "texture": "#trim"
+        },
+        "south": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "armrest_w",
+      "from": [
+        0.25,
+        8,
+        1.5
+      ],
+      "to": [
+        1.5,
+        9.5,
+        16
+      ],
+      "faces": {
+        "west": {
+          "texture": "#trim"
+        },
+        "east": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "post",
+      "from": [
+        14,
+        9,
+        14
+      ],
+      "to": [
+        16,
+        15.5,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#trim"
+        },
+        "west": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        }
+      }
+    }
+  ]
+}

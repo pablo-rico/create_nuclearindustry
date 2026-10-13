@@ -1,0 +1,20 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "minecraft:gunpowder"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:sulfuric_acid"
+    }
+  ],
+  "results": [
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:nitric_acid"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:fusion",
+  "criteria": {
+    "tokamak_formed": {
+      "conditions": {
+        "event": "tokamak_formed"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.tokamak_formed.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:fusion_central_solenoid"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.tokamak_formed.title"
+    }
+  },
+  "requirements": [
+    [
+      "tokamak_formed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

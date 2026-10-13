@@ -1,0 +1,17 @@
+{
+  "type": "create:splashing",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:crushed_raw_uranium"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:uranium_concentrate"
+    },
+    {
+      "chance": 0.3,
+      "id": "create_nuclearindustry:uranium_concentrate"
+    }
+  ]
+}

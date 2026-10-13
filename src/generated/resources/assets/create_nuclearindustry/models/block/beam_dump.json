@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "create_nuclearindustry:block/beam_dump_bottom",
+    "side": "create_nuclearindustry:block/beam_dump_side",
+    "top": "create_nuclearindustry:block/beam_dump_top"
+  }
+}

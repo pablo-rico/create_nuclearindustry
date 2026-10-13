@@ -11,20 +11,17 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorTemperatureSensorBlock;
-import org.papiricoh.create_nuclearindustry.reactor.event.ReactorManager;
-import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
+import org.papiricoh.create_nuclearindustry.multiblock.ControllerLink;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 public class ReactorTemperatureSensorBlockEntity extends BlockEntity implements IHaveGoggleInformation {
-    private static final int LINK_SCAN_INTERVAL = 20;
     private static final double MIN_SIGNAL_TEMPERATURE = 20.0;
     private static final double MAX_SIGNAL_TEMPERATURE = 3500.0;
 
-    private Optional<BlockPos> linkedController = Optional.empty();
-    private int linkScanCounter;
+    private final ControllerLink<ReactorBlockEntity> link = new ControllerLink<>(this, ReactorBlockEntity.class,
+            (reactor, pos) -> reactor.getStructure().map(structure -> structure.containsTemperatureSensor(pos)).orElse(false));
 
     public ReactorTemperatureSensorBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.REACTOR_TEMPERATURE_SENSOR.get(), pos, state);
@@ -34,30 +31,25 @@ public class ReactorTemperatureSensorBlockEntity extends BlockEntity implements 
         if (level == null || level.isClientSide) {
             return;
         }
-        if (++linkScanCounter >= LINK_SCAN_INTERVAL) {
-            linkScanCounter = 0;
-            linkedController = findLinkedReactor().map(ReactorBlockEntity::getBlockPos);
+        if (link.tick()) {
             updatePower();
         }
     }
 
     public void notifyLinkedReactorChanged(Player player) {
-        Optional<ReactorBlockEntity> reactor = findLinkedReactor();
-        linkedController = reactor.map(ReactorBlockEntity::getBlockPos);
-        reactor.ifPresent(linkedReactor -> linkedReactor.requestStructureRevalidation(player));
+        link.refresh().ifPresent(reactor -> reactor.requestStructureRevalidation(player));
         updatePower();
         setChanged();
     }
 
     public void setLinkedController(BlockPos controllerPos) {
-        linkedController = Optional.of(controllerPos);
+        link.link(controllerPos);
         updatePower();
         setChanged();
     }
 
     public void clearLinkedController(BlockPos controllerPos) {
-        if (linkedController.map(controllerPos::equals).orElse(false)) {
-            linkedController = Optional.empty();
+        if (link.unlink(controllerPos)) {
             updatePower();
             setChanged();
         }
@@ -68,30 +60,7 @@ public class ReactorTemperatureSensorBlockEntity extends BlockEntity implements 
     }
 
     private Optional<ReactorBlockEntity> findLinkedReactor() {
-        if (level == null) {
-            return Optional.empty();
-        }
-        Optional<ReactorBlockEntity> cached = getCachedLinkedReactor();
-        if (cached.isPresent()) {
-            return cached;
-        }
-        return ReactorManager.getReactorsInRange(level, getBlockPos(), ReactorStructureValidator.MAX_WIDTH + ReactorStructureValidator.MAX_HEIGHT)
-                .stream()
-                .filter(reactor -> reactor.getStructure().map(structure -> structure.containsTemperatureSensor(getBlockPos())).orElse(false))
-                .sorted(Comparator.comparingLong(reactor -> reactor.getBlockPos().asLong()))
-                .findFirst();
-    }
-
-    private Optional<ReactorBlockEntity> getCachedLinkedReactor() {
-        if (level == null || linkedController.isEmpty()) {
-            return Optional.empty();
-        }
-        if (level.getBlockEntity(linkedController.get()) instanceof ReactorBlockEntity reactor
-                && reactor.getStructure().map(structure -> structure.containsTemperatureSensor(getBlockPos())).orElse(false)) {
-            return Optional.of(reactor);
-        }
-        linkedController = Optional.empty();
-        return Optional.empty();
+        return link.find();
     }
 
     private void updatePower() {
@@ -125,7 +94,7 @@ public class ReactorTemperatureSensorBlockEntity extends BlockEntity implements 
         if (reactor.isPresent()) {
             return "Linked";
         }
-        if (linkedController.isPresent()) {
+        if (link.linkedPos().isPresent()) {
             return "Structure incomplete";
         }
         return "No reactor";

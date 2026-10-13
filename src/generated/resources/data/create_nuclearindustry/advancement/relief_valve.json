@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:steam_generator",
+  "criteria": {
+    "relief_valve_lifted": {
+      "conditions": {
+        "event": "relief_valve_lifted"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.relief_valve.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:relief_valve"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.relief_valve.title"
+    }
+  },
+  "requirements": [
+    [
+      "relief_valve_lifted"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

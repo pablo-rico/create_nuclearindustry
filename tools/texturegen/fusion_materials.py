@@ -39,6 +39,37 @@ def recess(t, box=(4, 4, 11, 11)):
     bevel(t, x0, y0, x1, y1, TITANIUM, hi=TITANIUM[0], lo=TITANIUM[5])
 
 
+def framed_bearing(accent):
+    """Frame bolted round a recessed bearing plate; ``accent`` colours the frame's lamp.
+
+    The front of every tokamak machine that takes or gives a shaft: its model stands the outer 3px
+    2px proud of the 10x10 recess the half shaft turns in.
+    """
+    t = panel()
+    # The outer 3px are the proud frame: lit top-left, shadowed bottom-right.
+    bevel(t, 0, 0, 15, 15, TITANIUM, hi=TITANIUM[5], lo=TITANIUM[1])
+    bevel(t, 1, 1, 14, 14, TITANIUM, hi=TITANIUM[4], lo=TITANIUM[2], corner=False)
+    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        t.set(x, y, TITANIUM[6])
+        t.set(x + 1, y + 1, TITANIUM[1])
+    # Recess floor, in shadow under the frame's top and left edges.
+    t.rect(3, 3, 12, 12, GRAPHITE[2])
+    t.hline(3, 12, 3, GRAPHITE[0])
+    t.vline(3, 3, 12, GRAPHITE[0])
+    t.hline(4, 12, 4, GRAPHITE[1])
+    t.vline(4, 4, 12, GRAPHITE[1])
+    # Shaft bearing: a titanium collar round a dark bore.
+    t.ring(8, 8, 3.6, 2.4, TITANIUM[4])
+    t.set(6, 5, TITANIUM[6])
+    t.set(5, 6, TITANIUM[6])
+    t.set(10, 10, TITANIUM[2])
+    t.rect(6, 6, 9, 9, GRAPHITE[0])
+    # Status lamp on the top bar.
+    t.set(12, 1, accent)
+    t.set(12, 0, TITANIUM[2])
+    return t
+
+
 def port(output=False, turbine=False):
     t = panel()
     recess(t)
@@ -131,7 +162,36 @@ def controller(state):
     return t
 
 
-def turbine():
+def turbine_front():
+    """The plasma turbine's shaft end, framed like the heaters, with a copper generator flange."""
+    t = framed_bearing(OUTLET)
+    # Bolted coupling flange round the bearing collar.
+    t.ring(8, 8, 4.6, 3.7, COPPER[3])
+    for x, y in ((4, 7), (7, 4)):
+        t.set(x, y, COPPER[5])
+    for x, y in ((11, 8), (8, 11)):
+        t.set(x, y, COPPER[1])
+    # Plasma steam exhaust slots on the bottom bar.
+    for x in (4, 7, 10):
+        t.hline(x, x + 1, 13, GRAPHITE[0])
+        t.hline(x, x + 1, 14, TITANIUM[5])
+    return t
+
+
+def turbine_side():
+    """The bearing housing: the shaft line runs front to back between two clamp rings."""
+    t = panel()
+    for y, color in ((5, GRAPHITE[1]), (6, TITANIUM[5]), (7, TITANIUM[4]),
+                     (8, TITANIUM[3]), (9, TITANIUM[2]), (10, GRAPHITE[1])):
+        t.hline(0, 15, y, color)
+    for x in (4, 10):
+        t.vline(x, 4, 11, COPPER[4])
+        t.vline(x + 1, 4, 11, COPPER[1])
+    return t
+
+
+def turbine_back():
+    """Seen from inside the turbine: the hub the rotor's blades are keyed to."""
     t = panel()
     recess(t, (3, 3, 12, 12))
     t.disc(8, 8, 4, GRAPHITE[2])
@@ -163,14 +223,59 @@ def blade():
     return t
 
 
+def solenoid_side():
+    """Tall stack of superconducting windings in a titanium bore."""
+    t = Tex(seed=141)
+    for y in range(16):
+        for x in range(16):
+            t.set(x, y, COPPER[4 if y % 2 == 0 else 2])
+    for x in (0, 1, 14, 15):
+        for y in range(16):
+            t.set(x, y, TITANIUM[2 if x in (0, 15) else 4])
+    for y in (0, 15):
+        t.hline(0, 15, y, GRAPHITE[2])
+    for y in (5, 10):
+        t.hline(2, 13, y, GRAPHITE[3])
+    for x in range(3, 13, 3):
+        t.set(x, 7, COPPER[6])
+    return t
+
+
+def solenoid_top():
+    t = panel()
+    t.disc(8, 8, 6.5, GRAPHITE[2])
+    t.ring(8, 8, 6.5, 5.5, TITANIUM[5])
+    for r in (4.5, 3.0):
+        t.ring(8, 8, r, r - 0.8, COPPER[4])
+    t.disc(8, 8, 1.4, GRAPHITE[0])
+    return t
+
+
+def blanket():
+    """Lithium-6 breeder modules behind a beryllium first wall."""
+    t = panel()
+    recess(t, (2, 2, 13, 13))
+    for y in range(3, 13, 3):
+        for x in range(3, 13, 3):
+            t.rect(x, y, x + 1, y + 1, (205, 219, 208, 255))
+            t.set(x, y, (234, 240, 223, 255))
+            t.set(x + 1, y + 1, (140, 158, 159, 255))
+    return t
+
+
 FUSION_BLOCKS = {
+    "fusion_central_solenoid_side": solenoid_side,
+    "fusion_central_solenoid_top": solenoid_top,
+    "fusion_breeding_blanket": blanket,
     "fusion_cryostat_casing": panel,
     "fusion_electromagnet": electromagnet,
     "fusion_magnet_input": magnet_input,
     "fusion_accelerator_segment": accelerator,
     "fusion_accelerator_corner": lambda: accelerator(True),
     "fusion_fuel_injector": injector,
-    "fusion_plasma_turbine": turbine,
+    "fusion_plasma_turbine_front": turbine_front,
+    "fusion_plasma_turbine_side": turbine_side,
+    "fusion_plasma_turbine_back": turbine_back,
     "fusion_controller_off": lambda: controller("off"),
     "fusion_controller_on": lambda: controller("on"),
     "fusion_controller_ignited": lambda: controller("ignited"),

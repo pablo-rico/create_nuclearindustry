@@ -1,0 +1,4 @@
+// 1.21.1	2026-10-06T17:59:50.358278	create_nuclearindustry's processing recipes: splashing
+961a733723f04790cff2c4770f73f29e52da20eb data/create_nuclearindustry/recipe/splashing/boron.json
+53e6ce1ed10f29d5d5103b37037d1e42fb2d0f4f data/create_nuclearindustry/recipe/splashing/spodumene_concentrate.json
+69b2c370984ed46603d88c677a64d58784f9de0a data/create_nuclearindustry/recipe/splashing/uranium_concentrate.json

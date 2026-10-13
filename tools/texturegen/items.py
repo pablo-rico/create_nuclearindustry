@@ -3,8 +3,9 @@
 import math
 
 from common import trefoil
-from palette import (BLACK, BRASS, CONCRETE, COPPER, CRYO, CYAN, DANGER, DARK, LEAD,
-                     LITHIUM, PLASMA, RADIUM, STEEL, TRITIUM, URANIUM, WARN, WHITE)
+from palette import (BLACK, BRASS, CARBONATE, CONCRETE, COPPER, CRYO, CYAN, DANGER, DARK,
+                     FLUORITE, LEAD, LITHIUM, PLASMA, RADIUM, SPODUMENE, STEEL, TRITIUM, UO2,
+                     URANIUM, WARN, WHITE, YELLOWCAKE)
 from pixelkit import (Ramp, Tex, fbm, glow, item_outline, mix, shade, speckle)
 
 ITEMS = {}
@@ -479,6 +480,15 @@ def tritium_cell():
     return _cell(214, TRITIUM, TRITIUM)
 
 
+# Liquid helium: frost-white with a pale blue cast, like the cryogenic plant's frost.
+LIQUID_HELIUM = Ramp("#2b4a5c", "#3f6a80", "#5a8ea6", "#7fb0c6", "#a6cfe0", "#cce6f0", "#eef8fb")
+
+
+@item("liquid_helium_cell")
+def liquid_helium_cell():
+    return _cell(219, LIQUID_HELIUM, CYAN)
+
+
 @item("dt_fuel_pellet")
 def dt_fuel_pellet():
     t = Tex(16, 16, 215)
@@ -582,4 +592,544 @@ def target_designator():
         t.set(x, 6, DARK[5])
     glow(t, 8.5, 9.5, 5.0, CYAN[6], 0.28)
     item_outline(t, DARK[0])
+    return t
+
+
+# ======================================================================================
+# processing chain
+# ======================================================================================
+
+GRANULES = [
+    "................",
+    "................",
+    "................",
+    "................",
+    "......##..##....",
+    "....######.##...",
+    "...#########....",
+    "..###########...",
+    "..############..",
+    ".#############..",
+    ".##############.",
+    "..############..",
+    "...##########...",
+    "................",
+    "................",
+    "................",
+]
+
+
+def _powder(seed, ramp, grain=1.1, sparkle=None, sparkle_chance=0.0, shape=PILE):
+    """A heap of fine material lit from the top-left, optionally flecked."""
+    t = solid(shape, ramp, seed=seed, base=3.9, grain=grain, outline=False)
+    pts = mask_from(shape)
+    if sparkle is not None:
+        for (x, y) in sorted(pts):
+            if fbm(x, y, seed + 41, 16, 16, 2, 3.0) > 1.0 - sparkle_chance:
+                t.set(x, y, sparkle)
+    item_outline(t, ramp[0])
+    return t
+
+
+def _crystal(seed, ramp, facets=5, sparkle=WHITE):
+    """Angular mineral chunk with bright cleavage planes."""
+    t = solid(CHUNK, ramp, seed=seed, base=3.6, grain=0.6, outline=False)
+    pts = mask_from(CHUNK)
+    for (x, y) in sorted(pts):
+        if (x - y) % facets == 0 and (x, y - 1) in pts and (x + 1, y) in pts:
+            t.set(x, y, ramp[6])
+        elif (x - y) % facets == 1 and (x, y + 1) in pts:
+            t.set(x, y, ramp[2])
+    top = min(pts, key=lambda p: (p[1], p[0]))
+    t.set(top[0] + 1, top[1] + 1, sparkle)
+    item_outline(t, ramp[0])
+    return t
+
+
+@item("crushed_raw_uranium")
+def crushed_raw_uranium():
+    rock = Ramp("#343b2c", "#50573c", "#70764a", "#919258", "#b1b476", "#ced199", "#e2e6bc")
+    return _powder(230, rock, grain=1.3, sparkle=URANIUM[5], sparkle_chance=0.22, shape=GRANULES)
+
+
+@item("uranium_concentrate")
+def uranium_concentrate():
+    return _powder(231, URANIUM.tinted(DARK[2], 0.45), grain=1.2, sparkle=RADIUM[5], sparkle_chance=0.12)
+
+
+@item("yellowcake")
+def yellowcake():
+    return _powder(232, YELLOWCAKE, grain=0.9, sparkle=YELLOWCAKE[6], sparkle_chance=0.10)
+
+
+@item("uranium_dioxide")
+def uranium_dioxide():
+    return _powder(233, UO2, grain=0.8, sparkle=RADIUM[3], sparkle_chance=0.08)
+
+
+@item("uranium_fuel_pellet")
+def uranium_fuel_pellet():
+    # A sintered ceramic cylinder seen from the side: flat ends, satin barrel.
+    t = Tex(16, 16, 234)
+    pts = rect_pts(5, 3, 10, 12)
+    sculpt(t, pts, UO2, base=3.8, seed=234, grain=0.35)
+    for y in range(3, 13):
+        t.set(5, y, UO2[5])
+        t.set(6, y, UO2[4])
+        t.set(10, y, UO2[1])
+    t.hline(5, 10, 3, UO2[6])
+    t.hline(5, 10, 4, UO2[4])
+    t.hline(5, 10, 12, UO2[1])
+    for y in (6, 9):
+        t.hline(6, 9, y, UO2[2])
+    t.set(7, 5, RADIUM[5])
+    glow(t, 8, 8, 5.0, RADIUM[6], 0.12)
+    item_outline(t, UO2[0])
+    return t
+
+
+@item("incomplete_uranium_reactor_fuel")
+def incomplete_uranium_reactor_fuel():
+    t = _fuel_bundle(235, URANIUM, STEEL)
+    # Only the left half of the cladding is filled so far.
+    for x in range(8, 13):
+        for y in range(3, 12):
+            t.set(x, y, DARK[2] if x % 2 else DARK[1])
+    for y in range(3, 12):
+        t.set(12, y, DARK[0])
+    return t
+
+
+@item("radioactive_waste")
+def radioactive_waste():
+    # Vitrified waste: dark glass slag with a sickly glow.
+    glass = Ramp("#14201a", "#1f3125", "#2b4431", "#3a5a3e", "#4e744d", "#68935f", "#8ab27a")
+    t = solid(CHUNK, glass, seed=236, base=3.2, grain=1.0, outline=False)
+    pts = mask_from(CHUNK)
+    for (x, y) in sorted(pts):
+        if fbm(x, y, 236, 16, 16, 3, 4.0) > 0.66:
+            t.set(x, y, RADIUM[6])
+    glow(t, 7.5, 8.5, 7.0, RADIUM[6], 0.20)
+    item_outline(t, glass[0])
+    return t
+
+
+@item("fluorite")
+def fluorite():
+    return _crystal(237, FLUORITE, facets=4)
+
+
+@item("raw_spodumene")
+def raw_spodumene():
+    return _crystal(238, SPODUMENE, facets=6, sparkle=LITHIUM[6])
+
+
+@item("crushed_spodumene")
+def crushed_spodumene():
+    return _powder(239, SPODUMENE, grain=1.3, sparkle=SPODUMENE[6], sparkle_chance=0.18, shape=GRANULES)
+
+
+@item("spodumene_concentrate")
+def spodumene_concentrate():
+    return _powder(240, SPODUMENE.tinted(WHITE, 0.25), grain=1.0, sparkle=LITHIUM[5], sparkle_chance=0.10)
+
+
+@item("lithium_carbonate")
+def lithium_carbonate():
+    return _powder(241, CARBONATE, grain=0.7, sparkle=WHITE, sparkle_chance=0.12)
+
+
+@item("empty_gas_cell")
+def empty_gas_cell():
+    hollow = Ramp("#1b2224", "#253033", "#303e41", "#3c4d50", "#4b5f62", "#5d7477", "#738c8e")
+    return _cell(242, hollow, STEEL)
+
+
+# ======================================================================================
+# radiation protection
+# ======================================================================================
+
+@item("geiger_counter")
+def geiger_counter():
+    t = Tex(16, 16, 243)
+    body = rect_pts(3, 4, 12, 14)
+    sculpt(t, body, BRASS, base=3.8, seed=243, grain=0.4)
+    # probe on a coiled lead
+    t.rect(11, 1, 13, 4, DARK[3])
+    t.set(12, 0, DARK[5])
+    # dial
+    t.disc(7.5, 8.5, 3.1, DARK[1])
+    t.disc(7.5, 8.5, 2.4, (226, 223, 197, 255))
+    t.line(7, 9, 9, 7, DANGER[5])
+    t.set(7, 9, DARK[0])
+    # speaker grille and button
+    for x in range(5, 11, 2):
+        t.set(x, 12, DARK[2])
+    t.set(11, 13, RADIUM[6])
+    item_outline(t, BRASS[0])
+    return t
+
+
+HAZMAT = WARN
+
+
+def _hazmat(art, seed, visor=False):
+    t = solid(art, HAZMAT, seed=seed, base=3.9, grain=0.6, outline=False)
+    if visor:
+        t.rect(5, 6, 10, 8, DARK[1])
+        t.rect(6, 6, 9, 7, (110, 160, 170, 255))
+    item_outline(t, HAZMAT[0])
+    return t
+
+
+HELMET = [
+    "................",
+    "................",
+    "....########....",
+    "...##########...",
+    "..############..",
+    "..############..",
+    "..############..",
+    "..############..",
+    "..############..",
+    "..###......###..",
+    "..###......###..",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+]
+
+CHEST = [
+    "................",
+    "..####....####..",
+    ".##############.",
+    ".##############.",
+    ".##############.",
+    "..############..",
+    "...##########...",
+    "...##########...",
+    "...##########...",
+    "...##########...",
+    "...##########...",
+    "...##########...",
+    "...##########...",
+    "................",
+    "................",
+    "................",
+]
+
+LEGGINGS = [
+    "................",
+    "...##########...",
+    "...##########...",
+    "...##########...",
+    "...####..####...",
+    "...####..####...",
+    "...####..####...",
+    "...####..####...",
+    "...####..####...",
+    "...####..####...",
+    "...####..####...",
+    "...####..####...",
+    "................",
+    "................",
+    "................",
+    "................",
+]
+
+BOOTS = [
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "..####....####..",
+    "..####....####..",
+    "..####....####..",
+    "..####....####..",
+    "..#####...#####.",
+    "..#####...#####.",
+    "................",
+    "................",
+    "................",
+    "................",
+]
+
+
+@item("hazmat_helmet")
+def hazmat_helmet():
+    return _hazmat(HELMET, 244, visor=True)
+
+
+@item("hazmat_chestplate")
+def hazmat_chestplate():
+    t = _hazmat(CHEST, 245)
+    trefoil(t, 8, 8, 2.6, DARK[0])
+    return t
+
+
+@item("hazmat_leggings")
+def hazmat_leggings():
+    t = _hazmat(LEGGINGS, 246)
+    t.hline(3, 12, 3, DARK[2])
+    return t
+
+
+@item("hazmat_boots")
+def hazmat_boots():
+    t = _hazmat(BOOTS, 247)
+    t.hline(2, 6, 11, DARK[1])
+    t.hline(10, 15, 11, DARK[1])
+    return t
+
+
+DU = LEAD
+
+
+def _du_piece(art, seed):
+    t = solid(art, DU, seed=seed, base=3.2, grain=0.8, outline=False)
+    item_outline(t, DU[0])
+    return t
+
+
+@item("depleted_uranium_helmet")
+def depleted_uranium_helmet():
+    t = _du_piece(HELMET, 254)
+    t.hline(5, 10, 7, DARK[0])
+    return t
+
+
+@item("depleted_uranium_chestplate")
+def depleted_uranium_chestplate():
+    t = _du_piece(CHEST, 255)
+    trefoil(t, 8, 8, 2.6, WARN[5])
+    return t
+
+
+@item("depleted_uranium_leggings")
+def depleted_uranium_leggings():
+    t = _du_piece(LEGGINGS, 256)
+    t.hline(3, 12, 3, DARK[1])
+    return t
+
+
+@item("depleted_uranium_boots")
+def depleted_uranium_boots():
+    t = _du_piece(BOOTS, 257)
+    t.hline(2, 6, 11, DARK[0])
+    t.hline(10, 15, 11, DARK[0])
+    return t
+
+
+# ------------------------------------------------------------------ reprocessing and plutonium
+
+PLUTONIUM = Ramp("#2a2230", "#3f3347", "#56475f", "#6e5c79", "#887393", "#a48eae", "#c2adca")
+
+
+@item("spent_fuel_fragments")
+def spent_fuel_fragments():
+    # Sheared cladding and fuel: steel slivers mixed with dark ceramic.
+    t = _powder(260, LEAD, grain=1.3, sparkle=RADIUM[4], sparkle_chance=0.06)
+    for (x, y) in ((4, 9), (5, 9), (9, 7), (10, 7), (11, 7), (7, 11), (8, 11)):
+        t.set(x, y, STEEL[5])
+    return t
+
+
+@item("uranyl_nitrate")
+def uranyl_nitrate():
+    return _crystal(261, YELLOWCAKE.tinted(URANIUM[5], 0.4), facets=6, sparkle=URANIUM[6])
+
+
+@item("plutonium_dioxide")
+def plutonium_dioxide():
+    return _powder(262, PLUTONIUM.tinted(URANIUM[3], 0.25), grain=0.9, sparkle=PLASMA[5], sparkle_chance=0.10)
+
+
+@item("plutonium")
+def plutonium():
+    # Plutonium is warm to the touch: a dull ingot with a faint ember glow.
+    t = _ingot(263, PLUTONIUM)
+    glow(t, 8, 8, 7.0, PLASMA[5], 0.16)
+    return t
+
+
+@item("weapons_grade_plutonium_core")
+def weapons_grade_plutonium_core():
+    # A nickel-plated plutonium pit: a bright sphere with a warm glow.
+    t = Tex(16, 16, 264)
+    for y in range(16):
+        for x in range(16):
+            d = math.hypot(x + 0.5 - 8, y + 0.5 - 8)
+            if d <= 6.2:
+                light = 1.0 - math.hypot(x + 0.5 - 6, y + 0.5 - 6) / 9.0
+                t.set(x, y, PLUTONIUM[max(1, min(6, int(round(1 + light * 5.5))))])
+    t.ring(8, 8, 6.4, 5.6, PLUTONIUM[0])
+    t.disc(6, 6, 1.2, WHITE)
+    glow(t, 8, 8, 7.0, PLASMA[5], 0.2)
+    item_outline(t, PLUTONIUM[0])
+    return t
+
+
+# ------------------------------------------------------------------ MOX fuel
+
+MOX = PLUTONIUM.tinted(UO2[3], 0.45)
+
+
+@item("mox_fuel_pellet")
+def mox_fuel_pellet():
+    t = Tex(16, 16, 265)
+    pts = rect_pts(5, 3, 10, 12)
+    sculpt(t, pts, MOX, base=3.8, seed=265, grain=0.35)
+    for y in range(3, 13):
+        t.set(5, y, MOX[5])
+        t.set(6, y, MOX[4])
+        t.set(10, y, MOX[1])
+    t.hline(5, 10, 3, MOX[6])
+    t.hline(5, 10, 4, MOX[4])
+    t.hline(5, 10, 12, MOX[1])
+    for y in (6, 9):
+        t.hline(6, 9, y, MOX[2])
+    t.set(7, 5, PLASMA[5])
+    glow(t, 8, 8, 5.0, PLASMA[5], 0.12)
+    item_outline(t, MOX[0])
+    return t
+
+
+@item("mox_reactor_fuel")
+def mox_reactor_fuel():
+    return _fuel_bundle(266, MOX, STEEL, glow_ramp=PLASMA)
+
+
+@item("incomplete_mox_reactor_fuel")
+def incomplete_mox_reactor_fuel():
+    t = _fuel_bundle(267, MOX, STEEL)
+    for x in range(8, 13):
+        for y in range(3, 12):
+            t.set(x, y, DARK[2] if x % 2 else DARK[1])
+    for y in range(3, 12):
+        t.set(12, y, DARK[0])
+    return t
+
+
+@item("depleted_mox_reactor_fuel")
+def depleted_mox_reactor_fuel():
+    dull = MOX.tinted(LEAD[3], 0.6)
+    return _fuel_bundle(268, dull, STEEL.tinted(DARK[3], 0.4), glow_ramp=None, spent=True)
+
+
+# ------------------------------------------------------------------ RTG pellets
+
+def _rtg_pellet(seed, core, glow_color=None):
+    # A cylindrical heat source in an iron capsule.
+    t = Tex(16, 16, seed)
+    pts = rect_pts(4, 3, 11, 12)
+    sculpt(t, pts, STEEL, base=3.8, seed=seed, grain=0.3)
+    t.rect(6, 5, 9, 10, core[4])
+    t.vline(6, 5, 10, core[6])
+    t.vline(9, 5, 10, core[2])
+    if glow_color:
+        glow(t, 7.5, 7.5, 5.0, glow_color, 0.22)
+    item_outline(t, STEEL[0])
+    return t
+
+
+@item("plutonium_rtg_pellet")
+def plutonium_rtg_pellet():
+    return _rtg_pellet(270, PLUTONIUM, PLASMA[6])
+
+
+@item("waste_rtg_pellet")
+def waste_rtg_pellet():
+    return _rtg_pellet(271, RADIUM, RADIUM[6])
+
+
+@item("depleted_rtg_pellet")
+def depleted_rtg_pellet():
+    return _rtg_pellet(272, LEAD)
+
+
+# ======================================================================================
+# moderator
+# ======================================================================================
+
+@item("graphite")
+def graphite():
+    # Dull, slightly glossy graphite bar.
+    graphite = LEAD.tinted(DARK[0], 0.6)
+    return _ingot(240, graphite)
+
+
+# ======================================================================================
+# control room
+# ======================================================================================
+
+LINKER = [
+    "................",
+    "..........##....",
+    ".........####...",
+    "........######..",
+    ".......######...",
+    "......######....",
+    ".....######.....",
+    "....######......",
+    "...######.......",
+    "..######........",
+    ".######.........",
+    ".#####..........",
+    "..###...........",
+    "................",
+    "................",
+    "................",
+]
+
+
+@item("control_room_linker")
+def control_room_linker():
+    # A brass-tipped wand with a cyan link lamp.
+    t = Tex(16, 16, 241)
+    pts = mask_from(LINKER)
+    sculpt(t, pts, DARK, base=4.0, seed=241, grain=0.5)
+    for (x, y) in ((11, 1), (12, 2), (11, 2), (12, 3), (13, 3)):
+        t.set(x, y, BRASS[5])
+    t.disc(10.5, 4.5, 1.3, CYAN[5])
+    t.set(10, 4, CYAN[6])
+    for (x, y) in ((4, 9), (5, 8), (6, 7)):
+        t.set(x, y, DARK[6])
+    glow(t, 10.5, 4.5, 4.0, CYAN[6], 0.3)
+    item_outline(t, DARK[0])
+    return t
+
+
+# ======================================================================================
+# medicine
+# ======================================================================================
+
+@item("potassium_iodide")
+def potassium_iodide():
+    # A blister strip of white tablets.
+    t = Tex(16, 16, 242)
+    foil = STEEL.tinted(WHITE, 0.25)
+    pts = rect_pts(2, 4, 13, 11)
+    sculpt(t, pts, foil, base=4.6, seed=242, grain=0.3)
+    for cx, cy in ((4.5, 6.5), (8, 6.5), (11.5, 6.5), (4.5, 9.5), (8, 9.5), (11.5, 9.5)):
+        t.disc(cx, cy, 1.4, CARBONATE[5])
+        t.set(int(cx - 0.5), int(cy - 0.5), WHITE)
+    t.hline(2, 13, 8, foil[2])
+    item_outline(t, foil[0])
+    return t
+
+
+@item("prussian_blue")
+def prussian_blue():
+    # A two-tone capsule, deep blue and white.
+    blue = Ramp("#14183a", "#1f2a63", "#2b3d8c", "#3a55b0", "#5577cc", "#7f9be0", "#b5c6f2")
+    t = Tex(16, 16, 243)
+    left = capsule_pts(4, 11, 8, 7, 2.6)
+    right = capsule_pts(8, 7, 12, 3, 2.6)
+    sculpt(t, left, blue, base=4.0, seed=243, grain=0.3)
+    sculpt(t, right, CARBONATE, base=4.4, seed=244, grain=0.3)
+    item_outline(t, blue[0])
     return t

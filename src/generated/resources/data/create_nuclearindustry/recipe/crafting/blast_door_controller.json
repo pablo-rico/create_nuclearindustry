@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "F": {
+      "item": "create_nuclearindustry:blast_door_frame"
+    },
+    "M": {
+      "item": "create:precision_mechanism"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    " M ",
+    "SFS",
+    " R "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:blast_door_controller"
+  }
+}

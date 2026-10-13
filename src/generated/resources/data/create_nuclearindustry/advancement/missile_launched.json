@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:weapons",
+  "criteria": {
+    "missile_launched": {
+      "conditions": {
+        "event": "missile_launched"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.missile_launched.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:missile"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.missile_launched.title"
+    }
+  },
+  "requirements": [
+    [
+      "missile_launched"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

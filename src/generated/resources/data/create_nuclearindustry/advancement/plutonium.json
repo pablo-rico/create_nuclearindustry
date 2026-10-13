@@ -1,0 +1,34 @@
+{
+  "parent": "create_nuclearindustry:reactor_fuel",
+  "criteria": {
+    "has": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:plutonium"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.plutonium.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:plutonium"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.plutonium.title"
+    }
+  },
+  "requirements": [
+    [
+      "has"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

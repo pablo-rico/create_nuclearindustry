@@ -1,0 +1,38 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:plutonium_dioxide"
+    },
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:uranium_dioxide"
+      },
+      "max_enrichment": 0.7,
+      "min_enrichment": 0.0
+    },
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:uranium_dioxide"
+      },
+      "max_enrichment": 0.7,
+      "min_enrichment": 0.0
+    },
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:uranium_dioxide"
+      },
+      "max_enrichment": 0.7,
+      "min_enrichment": 0.0
+    }
+  ],
+  "results": [
+    {
+      "count": 4,
+      "id": "create_nuclearindustry:mox_fuel_pellet"
+    }
+  ]
+}

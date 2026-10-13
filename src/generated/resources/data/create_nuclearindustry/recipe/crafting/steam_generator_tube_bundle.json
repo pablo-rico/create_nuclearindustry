@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "F": {
+      "item": "create:fluid_pipe"
+    },
+    "P": {
+      "item": "create:copper_sheet"
+    }
+  },
+  "pattern": [
+    "PFP",
+    "FPF",
+    "PFP"
+  ],
+  "result": {
+    "count": 2,
+    "id": "create_nuclearindustry:steam_generator_tube_bundle"
+  }
+}

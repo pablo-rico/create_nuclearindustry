@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "create_nuclearindustry:block/spent_fuel_rack_bottom",
+    "side": "create_nuclearindustry:block/spent_fuel_rack_side",
+    "top": "create_nuclearindustry:block/spent_fuel_rack_top_loaded"
+  }
+}

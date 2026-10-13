@@ -12,12 +12,11 @@ import java.util.List;
 /**
  * Consumes a large amount of Create stress to energize the confinement field. The contribution it
  * reports (0..1) scales with shaft speed once above the minimum, and the controller reads it each
- * tick. While the plasma is ignited the confinement cost tapers off (self-sustaining field).
+ * tick.
  */
 public class FusionMagnetInputBlockEntity extends KineticBlockEntity {
     private static final float MIN_CONFINEMENT_SPEED = 64.0f;
     private static final float RATED_SPEED = 192.0f;
-    private static final float CONFINEMENT_STRESS = 1024.0f;
 
     public FusionMagnetInputBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.FUSION_MAGNET_INPUT.get(), pos, state);
@@ -38,22 +37,23 @@ public class FusionMagnetInputBlockEntity extends KineticBlockEntity {
 
     @Override
     public float calculateStressApplied() {
-        return CONFINEMENT_STRESS;
+        return (float) org.papiricoh.create_nuclearindustry.fusion.FusionConfig.magnetInputStress;
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
-        tooltip.add(Component.literal("Confinement Magnet Drive").withStyle(ChatFormatting.AQUA));
+        tooltip.add(Component.translatable("block.create_nuclearindustry.fusion_magnet_input").withStyle(ChatFormatting.AQUA));
         float speed = Math.abs(getSpeed());
         if (speed < MIN_CONFINEMENT_SPEED) {
-            tooltip.add(Component.literal("  Status: Spin up (need " + (int) MIN_CONFINEMENT_SPEED + " RPM)")
-                    .withStyle(ChatFormatting.RED));
+            tooltip.add(Component.literal("  ").append(Component.translatable("create_nuclearindustry.tokamak.drive.spin_up",
+                    (int) MIN_CONFINEMENT_SPEED)).withStyle(ChatFormatting.RED));
         } else {
-            tooltip.add(Component.literal(String.format("  Confinement: %.0f%%", getConfinementContribution() * 100.0))
-                    .withStyle(ChatFormatting.GREEN));
+            tooltip.add(Component.literal("  ").append(Component.translatable("create_nuclearindustry.tokamak.drive.field",
+                    Math.round(getConfinementContribution() * 100.0))).withStyle(ChatFormatting.GREEN));
         }
-        tooltip.add(Component.literal(String.format("  Speed: %.1f RPM", speed)).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("  ").append(Component.translatable("create_nuclearindustry.tokamak.drive.speed",
+                String.format("%.1f", speed))).withStyle(ChatFormatting.GRAY));
         return true;
     }
 }

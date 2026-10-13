@@ -1,0 +1,32 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "createbigcannons"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " U ",
+    "UUU",
+    " S "
+  ],
+  "key": {
+    "U": {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:uranium"
+      },
+      "min_enrichment": 0.0,
+      "max_enrichment": 0.7
+    },
+    "S": {
+      "tag": "minecraft:wooden_slabs"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:depleted_uranium_ap_shot"
+  }
+}

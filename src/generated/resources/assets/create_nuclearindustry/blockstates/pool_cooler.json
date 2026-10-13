@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "waterlogged=false": {
+      "model": "create_nuclearindustry:block/pool_cooler"
+    },
+    "waterlogged=true": {
+      "model": "create_nuclearindustry:block/pool_cooler"
+    }
+  }
+}

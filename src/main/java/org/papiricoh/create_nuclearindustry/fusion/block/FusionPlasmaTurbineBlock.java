@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionPlasmaTurbineBlockEntity;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 
 /**
  * Standalone plasma turbine: consumes plasma steam (piped in from a plasma port) and generates a
@@ -47,7 +48,7 @@ public class FusionPlasmaTurbineBlock extends KineticBlock implements EntityBloc
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getClickedFace());
+        return defaultBlockState().setValue(FACING, PartPlacement.facingPlayer(context));
     }
 
     @Override
@@ -81,5 +82,24 @@ public class FusionPlasmaTurbineBlock extends KineticBlock implements EntityBloc
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    @Override
+    protected net.minecraft.world.InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                                                   net.minecraft.world.entity.player.Player player,
+                                                                   net.minecraft.world.phys.BlockHitResult hit) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof org.papiricoh.create_nuclearindustry.turbine.AbstractTurbineControllerBlockEntity turbine) {
+            turbine.attemptFormation(player);
+        }
+        return net.minecraft.world.InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock())
+                && level.getBlockEntity(pos) instanceof org.papiricoh.create_nuclearindustry.turbine.AbstractTurbineControllerBlockEntity turbine) {
+            turbine.onControllerRemoved();
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }

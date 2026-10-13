@@ -1,0 +1,4 @@
+// 1.21.1	2026-10-06T17:59:50.358838	create_nuclearindustry's processing recipes: electrolysis
+32d13b7fea78bc09bde88db6b7ebeebaf72144e5 data/create_nuclearindustry/recipe/electrolysis/deuterium.json
+8488543bbd70e0d6b2bcd785d8f377530eb9fd0c data/create_nuclearindustry/recipe/electrolysis/heavy_water.json
+bff742a694f5af336321e8e2e490d223221b99b5 data/create_nuclearindustry/recipe/electrolysis/lithium.json

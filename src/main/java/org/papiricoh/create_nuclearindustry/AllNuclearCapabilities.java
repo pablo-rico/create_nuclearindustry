@@ -7,11 +7,14 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 public class AllNuclearCapabilities {
     @SubscribeEvent
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
-                AllNuclearEntities.CENTRIFUGE.get(),
-                (centrifuge, direction) -> centrifuge.getItemHandler(direction)
-        );
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, AllNuclearEntities.CENTRIFUGE.get(),
+                (machine, direction) -> machine.getItemHandler(direction));
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, AllNuclearEntities.CENTRIFUGE.get(),
+                (machine, direction) -> machine.getFluidHandler(direction));
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, AllNuclearEntities.ELECTROLYZER.get(),
+                (machine, direction) -> machine.getItemHandler(direction));
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, AllNuclearEntities.ELECTROLYZER.get(),
+                (machine, direction) -> machine.getFluidHandler(direction));
 
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
@@ -37,6 +40,30 @@ public class AllNuclearCapabilities {
                 (port, direction) -> port.getFluidHandler(direction)
         );
 
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                AllNuclearEntities.COOLING_TOWER_FLUID_PORT.get(),
+                (port, direction) -> port.getFluidHandler(direction)
+        );
+
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                AllNuclearEntities.RTG.get(),
+                (rtg, direction) -> rtg.getAutomationHandler()
+        );
+
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                AllNuclearEntities.RADIATION_SCRUBBER.get(),
+                (scrubber, direction) -> scrubber.getAutomationHandler()
+        );
+
+        event.registerBlockEntity(
+                Capabilities.FluidHandler.BLOCK,
+                AllNuclearEntities.TURBINE_EXHAUST_PORT.get(),
+                (port, direction) -> port.getFluidHandler(direction)
+        );
+
         // ---- Fusion reactor ----
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
@@ -45,9 +72,9 @@ public class AllNuclearCapabilities {
         );
 
         event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
+                Capabilities.FluidHandler.BLOCK,
                 AllNuclearEntities.FUSION_FUEL_INJECTOR.get(),
-                (port, direction) -> port.getItemHandler(direction)
+                (port, direction) -> port.getFluidHandler(direction)
         );
 
         event.registerBlockEntity(
@@ -55,5 +82,7 @@ public class AllNuclearCapabilities {
                 AllNuclearEntities.FUSION_TURBINE_FLUID_PORT.get(),
                 (port, direction) -> port.getFluidHandler(direction)
         );
+
+        NuclearFeatures.registerCapabilities(event);
     }
 }

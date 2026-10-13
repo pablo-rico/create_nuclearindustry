@@ -3,11 +3,14 @@ package org.papiricoh.create_nuclearindustry.fusion.block;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -21,19 +24,26 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
-import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellBlock;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFuelInjectorBlockEntity;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
+import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
-public class FusionFuelInjectorBlock extends BaseEntityBlock {
+public class FusionFuelInjectorBlock extends BaseEntityBlock implements TokamakShellBlock {
+
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
+    public static final EnumProperty<ReactorFluidPortMode> MODE = EnumProperty.create("mode", ReactorFluidPortMode.class);
     public static final MapCodec<FusionFuelInjectorBlock> CODEC = simpleCodec(FusionFuelInjectorBlock::new);
+    private static final TagKey<Item> WRENCHES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "tools/wrench"));
 
     public FusionFuelInjectorBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(MODE, ReactorFluidPortMode.INPUT));
     }
 
     @Override
@@ -43,13 +53,13 @@ public class FusionFuelInjectorBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, MODE);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getClickedFace());
+        return defaultBlockState().setValue(FACING, PartPlacement.facingPlayer(context));
     }
 
     @Nullable
@@ -61,51 +71,53 @@ public class FusionFuelInjectorBlock extends BaseEntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                               InteractionHand hand, BlockHitResult hitResult) {
-        if (!stack.is(AllNuclearItems.DT_FUEL_PELLET.get())) {
+        if (!(level.getBlockEntity(pos) instanceof FusionFuelInjectorBlockEntity injector)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof FusionFuelInjectorBlockEntity injector) {
-            if (!injector.hasLinkedReactor()) {
-                player.displayClientMessage(Component.literal("§cInjector not linked to a formed reactor"), true);
-            } else if (injector.insertFuelByHand(stack)) {
-                player.displayClientMessage(Component.literal("§aInserted D-T fuel pellet"), true);
-            } else {
-                player.displayClientMessage(Component.literal("§eFuel buffer full"), true);
+        if (stack.is(WRENCHES)) {
+            if (!level.isClientSide) {
+                level.setBlock(pos, player.isShiftKeyDown()
+                        ? state.setValue(FACING, Direction.values()[(state.getValue(FACING).ordinal() + 1) % 6])
+                        : state.setValue(MODE, state.getValue(MODE).next()), UPDATE_ALL);
+                injector.notifyLinkedReactorChanged(player);
             }
+            return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide);
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof FusionFuelInjectorBlockEntity injector) {
-            ItemStack spent = injector.extractSpentByHand();
-            if (!spent.isEmpty()) {
-                if (!player.getInventory().add(spent)) {
-                    player.drop(spent, false);
-                }
-                player.displayClientMessage(Component.literal("§aCollected spent pellets"), true);
-            } else if (!injector.hasLinkedReactor()) {
-                player.displayClientMessage(Component.literal("§cInjector not linked to a formed reactor"), true);
-            }
+        if (level.isClientSide) {
+            return ItemInteractionResult.SUCCESS;
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        if (!injector.hasLinkedReactor()) {
+            player.displayClientMessage(Component.literal("§cInjector not linked to a formed tokamak"), true);
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        ItemStack result = injector.useCell(stack);
+        if (result == null) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
+        if (!player.getInventory().add(result)) {
+            player.drop(result, false);
+        }
+        return ItemInteractionResult.SUCCESS;
     }
 
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return type == AllNuclearEntities.FUSION_FUEL_INJECTOR.get()
-                ? (lvl, pos, blockState, blockEntity) -> {
-                    if (blockEntity instanceof FusionFuelInjectorBlockEntity port) {
-                        port.tick();
-                    }
-                }
+                ? (lvl, pos, blockState, blockEntity) -> ((FusionFuelInjectorBlockEntity) blockEntity).tick()
                 : null;
     }
 
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    @Override
+    public TokamakShellRole tokamakRole(BlockState state) {
+        return state.getValue(MODE) == ReactorFluidPortMode.INPUT ? TokamakShellRole.FUEL_IN : TokamakShellRole.FUEL_OUT;
     }
 }

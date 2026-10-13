@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create:copper_casing"
+    },
+    "F": {
+      "item": "create:fluid_pipe"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "P": {
+      "item": "create:mechanical_pump"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    "IFI",
+    "CPC",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:particle_accelerator_vacuum_pump"
+  }
+}

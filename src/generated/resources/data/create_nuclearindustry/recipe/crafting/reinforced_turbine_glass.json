@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "PGP",
+    "G G",
+    "PGP"
+  ],
+  "result": {
+    "count": 4,
+    "id": "create_nuclearindustry:reinforced_turbine_glass"
+  }
+}

@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.missile.gui;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -8,9 +9,12 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
-import org.papiricoh.create_nuclearindustry.missile.block.LaunchPadBlock;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 
+/**
+ * The launch pad's loading screen. On the client the pad is found from the position sent with the
+ * menu ({@link #fromNetwork}), so two players opening two pads each get their own.
+ */
 public class LaunchPadMenu extends AbstractContainerMenu {
     private final LaunchPadBlockEntity pad;
     private final BlockPos padPos;
@@ -19,14 +23,16 @@ public class LaunchPadMenu extends AbstractContainerMenu {
         this(containerId, playerInventory, pad, pad != null ? pad.getBlockPos() : null);
     }
 
+    /** The menu on the receiving side: the pad is the one at the position the server sent. */
+    public static LaunchPadMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+        BlockPos pos = buf.readBlockPos();
+        LaunchPadBlockEntity pad = playerInventory.player.level().getBlockEntity(pos) instanceof LaunchPadBlockEntity found
+                ? found : null;
+        return new LaunchPadMenu(containerId, playerInventory, pad, pos);
+    }
+
     public LaunchPadMenu(int containerId, Inventory playerInventory, LaunchPadBlockEntity pad, BlockPos padPos) {
         super(AllNuclearGUIs.LAUNCH_PAD_MENU.get(), containerId);
-        if (pad == null && padPos == null && net.minecraft.client.Minecraft.getInstance().level != null) {
-            padPos = LaunchPadBlock.lastMenuPos;
-            if (padPos != null && net.minecraft.client.Minecraft.getInstance().level.getBlockEntity(padPos) instanceof LaunchPadBlockEntity padBlockEntity) {
-                pad = padBlockEntity;
-            }
-        }
         this.pad = pad;
         this.padPos = padPos;
         if (this.pad != null) {
@@ -96,7 +102,7 @@ public class LaunchPadMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return padPos != null && player.blockPosition().closerThan(padPos, 8.0);
+        return org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard.stillValid(pad, player);
     }
 
     public LaunchPadBlockEntity getPad() {

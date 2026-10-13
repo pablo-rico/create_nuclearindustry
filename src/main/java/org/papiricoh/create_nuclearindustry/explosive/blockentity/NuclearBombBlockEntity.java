@@ -15,8 +15,11 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
-import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
-import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
+import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
+import org.papiricoh.create_nuclearindustry.explosive.FissileMaterial;
+import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
 
 public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
@@ -28,7 +31,7 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
     private final ItemStackHandler inventory = new ItemStackHandler(SLOT_COUNT) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return isValidUranium(stack);
+            return isValidCharge(stack);
         }
 
         @Override
@@ -51,18 +54,23 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         if (!powered) {
             if (countdown >= 0) {
                 countdown = -1;
+                ThreatRegistry.withdraw(level, getBlockPos());
                 markDirtyAndSync();
             }
             return;
         }
 
-        if (getValidUraniumCount() <= 0) {
+        if (!hasCharge()) {
+            if (countdown >= 0) {
+                ThreatRegistry.withdraw(level, getBlockPos());
+            }
             countdown = -1;
             return;
         }
 
         if (countdown < 0) {
             countdown = COUNTDOWN_TICKS;
+            reportThreat();
             markDirtyAndSync();
             return;
         }
@@ -70,9 +78,27 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         countdown--;
         if (countdown <= 0) {
             detonate();
-        } else if (countdown % 20 == 0) {
-            markDirtyAndSync();
+        } else {
+            reportThreat();
+            if (countdown % 20 == 0) {
+                markDirtyAndSync();
+            }
         }
+    }
+
+    /** Warns the sirens around while counting down; reported every tick, so it survives a reload. */
+    private void reportThreat() {
+        int radius = isDirty() ? DirtyWarheadStats.falloutRadius(getRadiologicalLoad())
+                : NuclearDetonation.falloutRadius(getEstimatedRadius());
+        ThreatRegistry.report(level, getBlockPos(), getBlockPos(), radius, countdown);
+    }
+
+    @Override
+    public void setRemoved() {
+        if (level != null) {
+            ThreatRegistry.withdraw(level, getBlockPos());
+        }
+        super.setRemoved();
     }
 
     public ItemStackHandler getInventory() {
@@ -87,28 +113,13 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         return COUNTDOWN_TICKS;
     }
 
+    /** Warhead units loaded: one per weapons-grade uranium, two per plutonium. */
     public int getValidUraniumCount() {
-        int count = 0;
-        for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            ItemStack stack = inventory.getStackInSlot(slot);
-            if (isValidUranium(stack)) {
-                count += stack.getCount();
-            }
-        }
-        return count;
+        return FissileMaterial.units(inventory, 0, SLOT_COUNT);
     }
 
     public float getAverageEnrichment() {
-        int count = 0;
-        float total = 0.0f;
-        for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            ItemStack stack = inventory.getStackInSlot(slot);
-            if (isValidUranium(stack)) {
-                count += stack.getCount();
-                total += UraniumItem.getEnrichment(stack) * stack.getCount();
-            }
-        }
-        return count == 0 ? 0.0f : total / count;
+        return FissileMaterial.averageEnrichment(inventory, 0, SLOT_COUNT);
     }
 
     public float getEstimatedPower() {
@@ -123,8 +134,33 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         return WarheadStats.verticalRadius(getValidUraniumCount(), getAverageEnrichment());
     }
 
+    /** Weapons-grade uranium or plutonium. */
+    public boolean isValidFissile(ItemStack stack) {
+        return FissileMaterial.isWeaponsFissile(stack);
+    }
+
+    /** What this bomb takes: fissile material, or for a dirty bomb anything else radioactive. */
+    public boolean isValidCharge(ItemStack stack) {
+        return isDirty() ? DirtyWarheadStats.isRadiological(stack) : isValidFissile(stack);
+    }
+
+    /** Kept for callers from before plutonium: same as {@link #isValidCharge}. */
     public boolean isValidUranium(ItemStack stack) {
-        return stack.is(AllNuclearItems.URANIUM.get()) && UraniumItem.getEnrichment(stack) >= REQUIRED_ENRICHMENT;
+        return isValidCharge(stack);
+    }
+
+    /** A Dirty Bomb block rather than a Nuclear Bomb. */
+    public boolean isDirty() {
+        return getBlockState().is(AllNuclearBlocks.DIRTY_BOMB.get());
+    }
+
+    public boolean hasCharge() {
+        return isDirty() ? getRadiologicalLoad() > 0 : getValidUraniumCount() > 0;
+    }
+
+    /** Radioactivity of a dirty bomb's load, in rad/s. */
+    public float getRadiologicalLoad() {
+        return DirtyWarheadStats.load(inventory, 0, SLOT_COUNT);
     }
 
     private void detonate() {
@@ -134,16 +170,22 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         }
 
         BlockPos center = getBlockPos();
+        ThreatRegistry.withdraw(level, center);
+        if (isDirty()) {
+            float load = getRadiologicalLoad();
+            clearContent();
+            level.removeBlock(center, false);
+            NuclearDetonation.detonateDirty(serverLevel, center.getCenter(), load);
+            return;
+        }
         float power = getEstimatedPower();
         int horizontalRadius = getEstimatedRadius();
         int verticalRadius = getEstimatedVerticalRadius();
         float intensity = WarheadStats.intensity(getAverageEnrichment());
         clearContent();
         level.removeBlock(center, false);
-        NuclearExplosionSoundManager.playDelayedForWorld(serverLevel, center.getCenter());
-        level.explode(null, center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5,
-                Math.min(64.0f, power * 0.35f), Level.ExplosionInteraction.BLOCK);
-        NuclearBlastManager.start(serverLevel, center, horizontalRadius, verticalRadius, intensity);
+        NuclearDetonation.detonate(serverLevel, center.getCenter(),
+                power, horizontalRadius, verticalRadius, intensity);
     }
 
     private void markDirtyAndSync() {

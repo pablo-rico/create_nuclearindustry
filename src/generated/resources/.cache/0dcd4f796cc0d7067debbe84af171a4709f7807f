@@ -1,0 +1,3 @@
+// 1.21.1	2026-10-06T22:56:35.976136	Tags for minecraft:damage_type mod id create_nuclearindustry
+bbf37d31bb0386475b87502d2f951a6a1c720935 data/minecraft/tags/damage_type/bypasses_armor.json
+69fdf0a86ac6ff00ee8ec16c25d2eaf61c233ded data/minecraft/tags/damage_type/no_knockback.json

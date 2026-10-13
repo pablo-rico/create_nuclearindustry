@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "W": {
+      "item": "minecraft:yellow_wool"
+    }
+  },
+  "pattern": [
+    "W W",
+    "WIW",
+    "WWW"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:hazmat_chestplate"
+  }
+}

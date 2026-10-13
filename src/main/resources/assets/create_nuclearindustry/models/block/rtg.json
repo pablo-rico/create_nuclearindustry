@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/rtg_side",
+    "side": "create_nuclearindustry:block/rtg_side",
+    "front": "create_nuclearindustry:block/rtg_front",
+    "back": "create_nuclearindustry:block/rtg_back"
+  },
+  "elements": [
+    {
+      "from": [1, 1, 3],
+      "to": [15, 15, 16],
+      "faces": {
+        "north": {"uv": [1, 1, 15, 15], "texture": "#front"},
+        "south": {"uv": [1, 1, 15, 15], "texture": "#back", "cullface": "south"},
+        "east": {"uv": [0, 1, 13, 15], "texture": "#side"},
+        "west": {"uv": [3, 1, 16, 15], "texture": "#side"},
+        "up": {"uv": [1, 0, 15, 13], "texture": "#side", "rotation": 90},
+        "down": {"uv": [1, 3, 15, 16], "texture": "#side", "rotation": 90}
+      }
+    },
+    {
+      "from": [0, 0, 14],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#back"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#back", "cullface": "south"},
+        "east": {"uv": [14, 0, 16, 16], "texture": "#back", "cullface": "east"},
+        "west": {"uv": [0, 0, 2, 16], "texture": "#back", "cullface": "west"},
+        "up": {"uv": [0, 14, 16, 16], "texture": "#back", "cullface": "up"},
+        "down": {"uv": [0, 0, 16, 2], "texture": "#back", "cullface": "down"}
+      }
+    }
+  ]
+}

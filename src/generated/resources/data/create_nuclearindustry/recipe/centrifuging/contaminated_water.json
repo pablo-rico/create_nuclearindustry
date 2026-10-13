@@ -1,0 +1,21 @@
+{
+  "type": "create_nuclearindustry:centrifuging",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 1000,
+      "fluid": "create_nuclearindustry:contaminated_water"
+    }
+  ],
+  "processing_time": 100,
+  "results": [
+    {
+      "chance": 0.1,
+      "id": "create_nuclearindustry:low_level_waste"
+    },
+    {
+      "amount": 1000,
+      "id": "minecraft:water"
+    }
+  ]
+}

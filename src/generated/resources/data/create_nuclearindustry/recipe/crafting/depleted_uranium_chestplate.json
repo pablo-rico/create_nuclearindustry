@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "U": {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:uranium"
+      },
+      "max_enrichment": 0.7,
+      "min_enrichment": 0.0
+    }
+  },
+  "pattern": [
+    "U U",
+    "UUU",
+    "UUU"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:depleted_uranium_chestplate"
+  }
+}

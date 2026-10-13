@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:fusion_cryostat_casing"
+    },
+    "G": {
+      "item": "create_nuclearindustry:reinforced_turbine_glass"
+    },
+    "Q": {
+      "item": "minecraft:quartz"
+    }
+  },
+  "pattern": [
+    "CGC",
+    "GQG",
+    "CGC"
+  ],
+  "result": {
+    "count": 4,
+    "id": "create_nuclearindustry:fusion_viewport"
+  }
+}

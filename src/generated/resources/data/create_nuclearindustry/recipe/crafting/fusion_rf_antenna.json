@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:fusion_cryostat_casing"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "K": {
+      "item": "create:copper_sheet"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    "KEK",
+    "KCK",
+    "RSR"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:fusion_rf_antenna"
+  }
+}

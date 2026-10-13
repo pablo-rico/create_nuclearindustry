@@ -20,6 +20,10 @@ import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionTurbineFlui
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFuelPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFluidPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.coolingtower.blockentity.CoolingTowerControllerBlockEntity;
+import org.papiricoh.create_nuclearindustry.coolingtower.blockentity.CoolingTowerFanBlockEntity;
+import org.papiricoh.create_nuclearindustry.coolingtower.blockentity.CoolingTowerPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorRedstonePortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorTemperatureSensorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.TurbineFluidPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.TurbineOutputBlockEntity;
@@ -53,6 +57,37 @@ public class AllNuclearEntities {
                     AllNuclearBlocks.REACTOR_TEMPERATURE_SENSOR.get()
             ).build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.radiation.scrubber.RadiationScrubberBlockEntity>> RADIATION_SCRUBBER =
+            ENTITIES.register("radiation_scrubber", () -> BlockEntityType.Builder.of(
+                    org.papiricoh.create_nuclearindustry.radiation.scrubber.RadiationScrubberBlockEntity::new,
+                    AllNuclearBlocks.RADIATION_SCRUBBER.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.rtg.RtgBlockEntity>> RTG =
+            ENTITIES.register("rtg", () -> BlockEntityType.Builder.of(
+                    org.papiricoh.create_nuclearindustry.rtg.RtgBlockEntity::new, AllNuclearBlocks.RTG.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.turbine.TurbineExhaustPortBlockEntity>> TURBINE_EXHAUST_PORT =
+            ENTITIES.register("turbine_exhaust_port", () -> BlockEntityType.Builder.of(
+                    org.papiricoh.create_nuclearindustry.turbine.TurbineExhaustPortBlockEntity::new, AllNuclearBlocks.TURBINE_EXHAUST_PORT.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoolingTowerControllerBlockEntity>> COOLING_TOWER_CONTROLLER =
+            ENTITIES.register("cooling_tower_controller", () -> BlockEntityType.Builder.of(
+                    CoolingTowerControllerBlockEntity::new, AllNuclearBlocks.COOLING_TOWER_CONTROLLER.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoolingTowerPortBlockEntity>> COOLING_TOWER_FLUID_PORT =
+            ENTITIES.register("cooling_tower_fluid_port", () -> BlockEntityType.Builder.of(
+                    CoolingTowerPortBlockEntity::new, AllNuclearBlocks.COOLING_TOWER_FLUID_PORT.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoolingTowerFanBlockEntity>> COOLING_TOWER_FAN =
+            ENTITIES.register("cooling_tower_fan", () -> BlockEntityType.Builder.of(
+                    CoolingTowerFanBlockEntity::new, AllNuclearBlocks.COOLING_TOWER_FAN.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ReactorRedstonePortBlockEntity>> REACTOR_REDSTONE_PORT =
+            ENTITIES.register("reactor_redstone_port", () -> BlockEntityType.Builder.of(
+                    ReactorRedstonePortBlockEntity::new,
+                    AllNuclearBlocks.REACTOR_REDSTONE_PORT.get()
+            ).build(null));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DualFluidPipeBlockEntity>> DUAL_PIPE =
             ENTITIES.register("dual_fluid_pipe", () -> BlockEntityType.Builder.of(
                     DualFluidPipeBlockEntity::new,
@@ -63,6 +98,12 @@ public class AllNuclearEntities {
             ENTITIES.register("centrifuge", () -> BlockEntityType.Builder.of(
                     CentrifugeBlockEntity::new,
                     AllNuclearBlocks.CENTRIFUGE.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.chemistry.electrolyzer.ElectrolyzerBlockEntity>> ELECTROLYZER =
+            ENTITIES.register("electrolyzer", () -> BlockEntityType.Builder.of(
+                    org.papiricoh.create_nuclearindustry.chemistry.electrolyzer.ElectrolyzerBlockEntity::new,
+                    AllNuclearBlocks.ELECTROLYZER.get()
             ).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TurbineOutputBlockEntity>> TURBINE_OUTPUT =
@@ -80,7 +121,26 @@ public class AllNuclearEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NuclearBombBlockEntity>> NUCLEAR_BOMB =
             ENTITIES.register("nuclear_bomb", () -> BlockEntityType.Builder.of(
                     NuclearBombBlockEntity::new,
-                    AllNuclearBlocks.NUCLEAR_BOMB.get()
+                    AllNuclearBlocks.NUCLEAR_BOMB.get(),
+                    AllNuclearBlocks.DIRTY_BOMB.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlockEntity>> CONTROL_MONITOR =
+            ENTITIES.register("control_monitor", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlockEntity(AllNuclearEntities.CONTROL_MONITOR.get(), pos, state),
+                    AllNuclearBlocks.CONTROL_MONITOR.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity>> REACTOR_CONTROL_PANEL =
+            ENTITIES.register("reactor_control_panel", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity(AllNuclearEntities.REACTOR_CONTROL_PANEL.get(), pos, state),
+                    AllNuclearBlocks.REACTOR_CONTROL_PANEL.get()
+            ).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<org.papiricoh.create_nuclearindustry.controlroom.NuclearAlarmBlockEntity>> NUCLEAR_ALARM =
+            ENTITIES.register("nuclear_alarm", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new org.papiricoh.create_nuclearindustry.controlroom.NuclearAlarmBlockEntity(AllNuclearEntities.NUCLEAR_ALARM.get(), pos, state),
+                    AllNuclearBlocks.NUCLEAR_ALARM.get()
             ).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LaunchPadBlockEntity>> LAUNCH_PAD =

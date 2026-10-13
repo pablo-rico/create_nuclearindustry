@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:scram",
+  "criteria": {
+    "iodine_pit": {
+      "conditions": {
+        "event": "iodine_pit"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.iodine_pit.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:reactor_temperature_sensor"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.iodine_pit.title"
+    }
+  },
+  "requirements": [
+    [
+      "iodine_pit"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

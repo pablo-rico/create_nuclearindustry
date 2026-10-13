@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "create_nuclearindustry:block/pressurizer_top",
+    "side": "create_nuclearindustry:block/pressurizer_heater_port_manual"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:radioactive_waste"
+    },
+    {
+      "item": "create_nuclearindustry:radioactive_waste"
+    },
+    {
+      "item": "create_nuclearindustry:radioactive_waste"
+    },
+    {
+      "item": "create_nuclearindustry:radioactive_waste"
+    },
+    {
+      "item": "create:iron_sheet"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:waste_rtg_pellet"
+    }
+  ]
+}

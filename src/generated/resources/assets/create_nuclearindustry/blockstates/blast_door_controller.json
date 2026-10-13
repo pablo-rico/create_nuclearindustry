@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "create_nuclearindustry:block/blast_door_controller",
+      "y": 90
+    },
+    "axis=z": {
+      "model": "create_nuclearindustry:block/blast_door_controller"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "create_nuclearindustry:block/nuclear_alarm"
+    },
+    "lit=true": {
+      "model": "create_nuclearindustry:block/nuclear_alarm_lit"
+    }
+  }
+}

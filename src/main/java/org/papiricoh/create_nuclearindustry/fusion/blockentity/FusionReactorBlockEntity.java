@@ -1,22 +1,23 @@
 package org.papiricoh.create_nuclearindustry.fusion.blockentity;
 
 import com.mojang.logging.LogUtils;
-import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Clearable;
+import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
@@ -24,117 +25,550 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
-import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
+import org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements;
+import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
+import org.papiricoh.create_nuclearindustry.fusion.FusionConfig;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakAuxiliary;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakClientHooks;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakControl;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
+import org.papiricoh.create_nuclearindustry.fusion.display.TokamakPanel;
+import org.papiricoh.create_nuclearindustry.panel.PanelCard;
+import org.papiricoh.create_nuclearindustry.panel.PanelSource;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakReadings;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakSupply;
+import org.papiricoh.create_nuclearindustry.fusion.api.TripCause;
 import org.papiricoh.create_nuclearindustry.fusion.block.FusionReactorControllerBlock;
-import org.papiricoh.create_nuclearindustry.fusion.event.FusionReactorManager;
-import org.papiricoh.create_nuclearindustry.fusion.multiblock.FusionStructureValidator;
-import org.papiricoh.create_nuclearindustry.fusion.multiblock.FusionStructureValidator.FusionStructure;
-import org.papiricoh.create_nuclearindustry.fusion.physics.FusionPhysicsSimulator;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakGeometry;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakStructure;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakStructureValidator;
+import org.papiricoh.create_nuclearindustry.fusion.physics.MagnetModel;
+import org.papiricoh.create_nuclearindustry.fusion.physics.PlasmaModel;
+import org.papiricoh.create_nuclearindustry.fusion.physics.StartupSequence;
+import org.papiricoh.create_nuclearindustry.fusion.physics.TokamakPhysicsSimulator;
+import org.papiricoh.create_nuclearindustry.fusion.physics.VacuumModel;
+import org.papiricoh.create_nuclearindustry.multiblock.BlockChange;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
+import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
+import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
+import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
+import org.papiricoh.create_nuclearindustry.PerformanceConfig;
+import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable {
+/**
+ * Tokamak controller. Owns the plasma, the coils, the vacuum and the startup sequence, the fuel,
+ * coolant, plasma steam and helium tanks, and the structure found by {@link TokamakStructureValidator}.
+ * Ports and injectors are thin proxies onto these tanks; heaters and pumps in the shell offer their
+ * share through {@link TokamakAuxiliary}.
+ *
+ * <p>Each tick: the pumps set the chamber pressure, liquid helium cools the coils and the magnet
+ * drives set the field, the {@link StartupSequence} moves through its phases, and while there is a
+ * plasma the {@link PlasmaModel} burns what the fuelling and heating give it. Tank amounts are whole
+ * millibuckets, so fractional draws and returns are carried over in balances.
+ */
+public class FusionReactorBlockEntity extends BlockEntity implements PanelSource, MultiblockController, TokamakControl {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final int TANK_CAPACITY = 16_000;
-    private static final int MAX_PLASMA_STEAM_TANK = 16_000;
-    private static final double COOLING_PER_MB = 0.5;
-    public static final int FUEL_INPUT_SLOT = 0;
-    public static final int FUEL_OUTPUT_SLOT = 1;
+    public static final int FUEL_TANK_CAPACITY = 8_000;
+    public static final int TANK_CAPACITY = 16_000;
+    public static final int HELIUM_TANK_CAPACITY = 8_000;
+    /** Injectors in OUTPUT mode never drain the tritium tank below this. */
+    public static final int TRITIUM_RESERVE = 1_000;
+    /**
+     * Plasma steam a matched pair of coolant and steam ports can take out per tick: about 310 MW of
+     * fusion power, so one pair carries an R=4 tokamak at its default density with room to spare.
+     */
+    public static final int PORT_THROUGHPUT = 400;
+    /** Highest fuelling setpoint, as the Greenwald fraction it would hold at full field. */
+    public static final double MAX_FUEL_DENSITY = 1.5;
+    private static final int LEGACY_PELLET_FLUID = 250;
+    /** Released tritium contaminates the hall for a couple of in-game hours. */
+    private static final int DISRUPTION_CONTAMINATION_TICKS = 6_000;
+    private static final double DISRUPTION_RADIATION = 8.0;
+    /** How often auxiliaries hear the plasma state, in ticks. */
+    private static final int OBSERVE_INTERVAL = 10;
+    /** How long the tritium overflow warning stays up after bred tritium found no room. */
+    private static final int OVERFLOW_WARNING_TICKS = 100;
+    /** How often the readings are compared with what clients were last sent, in ticks. */
+    private static final int SYNC_INTERVAL = 10;
+    /** How often players near a burning tokamak are told it passed breakeven, in ticks. */
+    private static final int AWARD_INTERVAL = 100;
+    /** Ticks the shell's heaters, pumps and magnet drives are kept before they are looked up again. */
+    public static final int PART_REFRESH = 20;
+    /** Blocks around a located but unformed torus that still count as part of it. */
+    private static final int UNFORMED_MARGIN = 2;
+    /**
+     * Readings clients are sent again once they moved by half a percent (and a thousandth); tanks by 1%
+     * of their size; flags, phases and the radius on any change.
+     */
+    private static final java.util.Map<String, Double> TANK_STEPS = java.util.Map.of(
+            "deuterium", FUEL_TANK_CAPACITY / 100.0, "tritium", FUEL_TANK_CAPACITY / 100.0,
+            "coolant", TANK_CAPACITY / 100.0, "plasmaSteam", TANK_CAPACITY / 100.0,
+            "liquidHelium", HELIUM_TANK_CAPACITY / 100.0, "warmHelium", HELIUM_TANK_CAPACITY / 100.0);
 
-    private FusionStatus status = FusionStatus.UNFORMED;
-    private Optional<FusionStructure> currentStructure = Optional.empty();
-    private FusionStructureValidator.FusionValidationResult lastValidation =
-            FusionStructureValidator.FusionValidationResult.invalid(List.of("Not formed"), List.of());
-    private FusionPhysicsSimulator physics = new FusionPhysicsSimulator(0, 1);
+    private Status status = Status.UNFORMED;
+    private Optional<TokamakStructure> structure = Optional.empty();
+    private StructureSnapshot snapshot;
+    private MultiblockValidationResult<TokamakStructure> lastValidation =
+            MultiblockValidationResult.invalid(List.of(TokamakStructureValidator.NOT_FORMED), List.of());
+    private final TokamakPhysicsSimulator physics = new TokamakPhysicsSimulator();
+    private final MagnetModel magnets = new MagnetModel();
+    private final VacuumModel vacuum = new VacuumModel();
+    private final StartupSequence sequence = new StartupSequence();
+    private final MultiblockMessenger messenger = new MultiblockMessenger("Tokamak");
     private boolean pendingRevalidation = true;
     private int syncCounter;
-    private Optional<UUID> ownerUUID = Optional.empty();
-    private Player ownerPlayer;
+    private final SyncThrottle throttle = SyncThrottle.forRecord(TokamakReadings.class, 0.005, 1.0e-3, TANK_STEPS);
+    private int clientSyncs;
+    /** The shell's auxiliaries and magnet drives of {@link #partsOf}, as last looked up; removed ones are skipped. */
+    private List<TokamakAuxiliary> auxiliaryCache = List.of();
+    private List<FusionMagnetInputBlockEntity> magnetCache = List.of();
+    private TokamakStructure partsOf;
+    private long partsFoundAt;
+    private int partLookups;
+    /** Where an unformed tokamak listens for block changes: around the controller and the torus it would form. */
+    private BoundingBox unformedBounds;
+    // Fractional mB owed to (negative) or by (positive) the tanks.
+    private double deuteriumBalance;
+    private double tritiumBalance;
+    private double tritiumCredit;
+    private double liquidHeliumBalance;
+    private double warmHeliumBalance;
+    private double coolantBalance;
+    private double fieldTarget;
+    private int tritiumOverflowTicks;
+    private boolean redstonePowered;
+    private boolean upgradeNotice;
+    private final List<ItemStack> legacyDrops = new ArrayList<>();
 
-    // Synced display summary (so goggles show data client-side without rebuilding the structure).
-    private boolean dispFormed;
-    private String dispDimensions = "";
-    private int dispElectromagnets;
-    private int dispMagnetInputs;
-    private int dispCoolantPorts;
-    private int dispPlasmaPorts;
-    private int dispFuelInjectors;
-    private String dispValidationMessage = "Not formed";
+    // Operator settings (TokamakControl).
+    private double fuelRate;
+    private boolean fuelRateSet;
+    private double dtRatio = 0.5;
+    private boolean heatingEnabled = true;
+    private double heatingLevel = 1.0;
+    private TokamakSupply supply = TokamakSupply.NONE;
+    /** Replaces what the shell's auxiliaries offer; only game tests set it. */
+    private TokamakSupply supplyOverride;
 
-    private final FluidTank coolantTank = new FluidTank(TANK_CAPACITY, NuclearFluidHelper::isCoolant) {
-        @Override
-        protected void onContentsChanged() {
-            markDirtyAndSync();
-        }
-    };
-    private final FluidTank plasmaSteamTank = new FluidTank(MAX_PLASMA_STEAM_TANK, NuclearFluidHelper::isPlasmaSteam) {
-        @Override
-        protected void onContentsChanged() {
-            markDirtyAndSync();
-        }
-    };
-    private final ItemStackHandler fuelInventory = new ItemStackHandler(2) {
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            if (slot == FUEL_INPUT_SLOT) {
-                return stack.is(AllNuclearItems.DT_FUEL_PELLET.get());
-            }
-            return stack.is(AllNuclearItems.SPENT_DT_PELLET.get());
-        }
+    // Structure summary and readings synced to clients for goggles, the GUI and the renderer.
+    private int dispRadius;
+    private int dispCoils;
+    private int dispBlankets;
+    private double dispCoverage;
+    private String dispValidationMessage = TokamakStructureValidator.NOT_FORMED;
+    private BlockPos dispCenter = BlockPos.ZERO;
+    private TokamakReadings clientReadings = TokamakReadings.NONE;
+    /** Set by a Ponder scene: the readings and centre are a preview, whatever side the Ponder world claims to be. */
+    private boolean ponderPreview;
 
-        @Override
-        protected void onContentsChanged(int slot) {
-            markDirtyAndSync();
-        }
-    };
+    private final FluidTank deuteriumTank = tank(FUEL_TANK_CAPACITY, NuclearFluidHelper::isDeuterium);
+    private final FluidTank tritiumTank = tank(FUEL_TANK_CAPACITY, NuclearFluidHelper::isTritium);
+    private final FluidTank coolantTank = tank(TANK_CAPACITY, NuclearFluidHelper::isTokamakCoolant);
+    private final FluidTank plasmaSteamTank = tank(TANK_CAPACITY, NuclearFluidHelper::isPlasmaSteam);
+    private final FluidTank liquidHeliumTank = tank(HELIUM_TANK_CAPACITY, NuclearFluidHelper::isLiquidHelium);
+    private final FluidTank warmHeliumTank = tank(HELIUM_TANK_CAPACITY, NuclearFluidHelper::isHelium);
+
+    /** The coils' helium loop: cryogenic ports fill the liquid tank and drain the warm one. */
+    public record CryoTanks(FluidTank liquidHelium, FluidTank warmHelium) {}
+
+    private final CryoTanks cryoTanks = new CryoTanks(liquidHeliumTank, warmHeliumTank);
+
+    public enum Status { UNFORMED, FORMED, SUSPENDED }
 
     public FusionReactorBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.FUSION_CONTROLLER.get(), pos, state);
     }
 
+    private FluidTank tank(int capacity, java.util.function.Predicate<FluidStack> validator) {
+        return new FluidTank(capacity, validator) {
+            @Override
+            protected void onContentsChanged() {
+                setChanged();
+            }
+        };
+    }
+
+    // ------------------------------------------------------------------ ticking
+
     public static void tick(Level level, BlockPos pos, BlockState state, FusionReactorBlockEntity entity) {
-        if (level == null || level.isClientSide) {
+        if (entity.ponderPreview) {
             return;
         }
+        if (level.isClientSide) {
+            TokamakClientHooks.clientTick.accept(entity);
+            return;
+        }
+        entity.dropLegacyItems();
         if (entity.pendingRevalidation) {
             entity.revalidate(false, null);
         }
-
-        if (entity.status == FusionStatus.FORMED || entity.status == FusionStatus.IGNITED) {
-            entity.physics.setConfinementInput(entity.readConfinementInput());
-            entity.tryLoadFuel();
-            boolean contained = entity.physics.tick();
-            entity.processCoolantLoop();
-            entity.updateBlockStateFlags();
-            if (!contained) {
-                entity.handleContainmentBreach();
-                return;
-            }
-            entity.status = entity.physics.isIgnited() ? FusionStatus.IGNITED : FusionStatus.FORMED;
-        }
-
-        if (++entity.syncCounter >= 20) {
+        entity.serverTick();
+        entity.updateBlockStateFlags();
+        if (++entity.syncCounter >= SYNC_INTERVAL) {
             entity.syncCounter = 0;
-            entity.markDirtyAndSync();
+            entity.setChanged();
+            if (entity.throttle.due(level.getGameTime(), SyncThrottle.valuesOf(entity.readings()), PerformanceConfig.forcedSyncTicks)) {
+                entity.markDirtyAndSync();
+            }
         }
     }
+
+    private void serverTick() {
+        if (upgradeNotice) {
+            upgradeNotice = false;
+            messenger.log(Component.translatable("create_nuclearindustry.tokamak.message.upgraded"));
+        }
+        if (structure.isEmpty()) {
+            status = Status.UNFORMED;
+            runUnformed();
+            return;
+        }
+        TokamakStructure tokamak = structure.get();
+        if (!isLoaded(level, tokamak.bounds())) {
+            // Part of the torus is unloaded: everything waits.
+            status = Status.SUSPENDED;
+            return;
+        }
+        status = Status.FORMED;
+        supply = collectSupply(tokamak);
+        fieldTarget = readMagnetDrive(tokamak);
+
+        PlasmaModel plasma = physics.model();
+        VacuumModel.Params vacuumParams = FusionConfig.vacuumParams();
+        MagnetModel.Params magnetParams = FusionConfig.magnetParams();
+        StartupSequence.Params startupParams = FusionConfig.startupParams();
+
+        vacuum.tick(vacuumParams, pumping(tokamak), plasma.hasPlasma());
+        runMagnets(tokamak, magnetParams, plasma.hasPlasma());
+        handle(sequence.tick(startupParams, conditions(tokamak, vacuumParams, magnetParams)));
+
+        if (plasma.hasPlasma()) {
+            runPlasma(tokamak);
+        } else if (sequence.phase() == TokamakPhase.OFFLINE) {
+            plasma.rechargeSolenoid(FusionConfig.plasmaParams());
+        }
+        if (tritiumOverflowTicks > 0) {
+            tritiumOverflowTicks--;
+        }
+        if (level.getGameTime() % OBSERVE_INTERVAL == 0) {
+            notifyAuxiliaries(tokamak, readings());
+            if (level.getGameTime() % AWARD_INTERVAL == 0 && sequence.phase() == TokamakPhase.BURN && plasma.gain() > 1) {
+                NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), NuclearEvent.FUSION_BREAKEVEN);
+            }
+        }
+    }
+
+    /** No structure: the chamber is open, the coils warm and any sequence winds down at once. */
+    private void runUnformed() {
+        vacuum.vent();
+        if (physics.model().hasPlasma() || physics.isBurning()) {
+            physics.quench();
+        }
+        magnets.dropField();
+        magnets.tick(FusionConfig.magnetParams(), new MagnetModel.Inputs(1, 0, false, false, false, 0));
+        if (sequence.phase() != TokamakPhase.OFFLINE) {
+            handle(sequence.trip(TripCause.STRUCTURE));
+            handle(sequence.tick(FusionConfig.startupParams(), new StartupSequence.Conditions(false, false, false, 0,
+                    false, false, 0, 0, 0, false, PlasmaModel.AMBIENT_TEMP, 0, 0)));
+        }
+        physics.model().rechargeSolenoid(FusionConfig.plasmaParams());
+        fieldTarget = 0;
+        supply = TokamakSupply.NONE;
+    }
+
+    private static boolean isLoaded(Level level, BoundingBox box) {
+        return level.hasChunksAt(box.minX(), box.minZ(), box.maxX(), box.maxZ());
+    }
+
+    private double pumping(TokamakStructure tokamak) {
+        return supply.pumpSpeed() / VacuumModel.pumpsNeeded(tokamak.majorRadius());
+    }
+
+    private StartupSequence.Conditions conditions(TokamakStructure tokamak, VacuumModel.Params vacuumParams,
+                                                  MagnetModel.Params magnetParams) {
+        PlasmaModel plasma = physics.model();
+        return new StartupSequence.Conditions(true, VacuumModel.canReachPlasmaVacuum(vacuumParams, pumping(tokamak)),
+                vacuum.atPlasmaVacuum(vacuumParams), liquidHeliumTank.getFluidAmount(), magnets.ready(),
+                magnets.quenching(magnetParams), magnets.getField(), fieldTarget, deuteriumTank.getFluidAmount(),
+                plasma.hasPlasma(), plasma.getTemperature(), plasma.getDensity(), plasma.getFusionPower());
+    }
+
+    private void runMagnets(TokamakStructure tokamak, MagnetModel.Params params, boolean plasmaPresent) {
+        double used = magnets.tick(params, new MagnetModel.Inputs(tokamak.geometry.sectorCount(), fieldTarget,
+                sequence.cooling(), sequence.energize(plasmaPresent), plasmaPresent,
+                liquidHeliumTank.getFluidAmount() + liquidHeliumBalance));
+        liquidHeliumBalance -= used;
+        // Boiled-off helium goes back to the plant as warm gas; a full return tank vents it.
+        warmHeliumBalance += used;
+        liquidHeliumBalance = settle(liquidHeliumTank, liquidHeliumBalance, AllNuclearFluids.LIQUID_HELIUM.get(), false);
+        warmHeliumBalance = settle(warmHeliumTank, warmHeliumBalance, AllNuclearFluids.HELIUM.get(), false);
+    }
+
+    private void runPlasma(TokamakStructure tokamak) {
+        PlasmaModel plasma = physics.model();
+        boolean fuelling = sequence.fuelling();
+        double heatShare = heatingEnabled ? heatingLevel : 0;
+
+        // Fuelling at the setpoint and D:T mix; whichever isotope runs short is made up with the other.
+        double wantD = fuelling ? fuelRate * dtRatio : 0;
+        double wantT = fuelling ? fuelRate * (1 - dtRatio) : 0;
+        double availableD = Math.max(0, deuteriumTank.getFluidAmount() + deuteriumBalance);
+        double availableT = Math.max(0, tritiumTank.getFluidAmount() + tritiumBalance);
+        double injectD = Math.min(wantD, availableD);
+        double injectT = Math.min(wantT, availableT);
+        double short_ = wantD + wantT - injectD - injectT;
+        if (short_ > 0) {
+            double moreD = Math.min(short_, availableD - injectD);
+            injectD += moreD;
+            injectT += Math.min(short_ - moreD, availableT - injectT);
+        }
+
+        // The beams take their deuterium after the fuelling; short of it, they inject less power.
+        double beamDemand = fuelling ? supply.nbiDeuteriumDemand() * heatShare : 0;
+        double beamDeuterium = Math.min(beamDemand, Math.max(0, availableD - injectD));
+        double beamShare = beamDemand > 0 ? beamDeuterium / beamDemand : 1;
+        double beamPower = fuelling ? supply.nbiPower() * heatShare * beamShare : 0;
+        double rfPower = fuelling ? supply.rfPower() * heatShare : 0;
+
+        int steamCapacity = Math.min(Math.min(tokamak.coolantPortCount, tokamak.steamPortCount) * PORT_THROUGHPUT,
+                plasmaSteamTank.getSpace());
+        PlasmaModel.Outputs out = plasma.tick(FusionConfig.plasmaParams(), new PlasmaModel.Inputs(
+                tokamak.plasmaVolume(), tokamak.majorRadius(), tokamak.coilCoverage(FusionConfig.coilsPerSector),
+                magnets.getField(), tokamak.blanketFraction(), injectD, injectT, sequence.ohmic(), beamPower,
+                beamDeuterium, rfPower, coolantTank.getFluidAmount() + coolantBalance, steamCapacity,
+                sequence.terminating()));
+
+        deuteriumBalance += out.deuteriumRecycled() - injectD - beamDeuterium;
+        tritiumBalance += out.tritiumRecycled() - injectT;
+        deuteriumBalance = settle(deuteriumTank, deuteriumBalance, AllNuclearFluids.DEUTERIUM.get(), true);
+        tritiumBalance = settle(tritiumTank, tritiumBalance, AllNuclearFluids.TRITIUM.get(), true);
+
+        // Bred tritium goes to the tank; injectors in OUTPUT mode hand out what is above the reserve.
+        // With no room left the blankets stop breeding and the operator is warned; nothing is vented.
+        tritiumCredit += out.tritiumBred();
+        int bred = (int) Math.floor(tritiumCredit);
+        if (bred > 0) {
+            int filled = tritiumTank.fill(new FluidStack(AllNuclearFluids.TRITIUM.get(), bred), IFluidHandler.FluidAction.EXECUTE);
+            if (filled < bred) {
+                tritiumOverflowTicks = OVERFLOW_WARNING_TICKS;
+            }
+            tritiumCredit -= bred;
+        }
+
+        // Helium ash pumped out of the plasma tops up the coils' helium loop.
+        warmHeliumBalance += out.heliumRemoved();
+        warmHeliumBalance = settle(warmHeliumTank, warmHeliumBalance, AllNuclearFluids.HELIUM.get(), false);
+
+        // Coolant boils to plasma steam. Heavy water left in the tank from before is used up the same way.
+        coolantBalance -= out.steamProduced();
+        int steam = (int) Math.floor(-coolantBalance);
+        if (steam > 0) {
+            FluidStack coolant = coolantTank.drain(steam, IFluidHandler.FluidAction.EXECUTE);
+            plasmaSteamTank.fill(new FluidStack(AllNuclearFluids.PLASMA_STEAM.get(), coolant.getAmount()), IFluidHandler.FluidAction.EXECUTE);
+            coolantBalance += steam;
+        }
+
+        if (!plasma.hasPlasma()) {
+            physics.quench();
+        }
+        if (plasma.isDisrupting()) {
+            disrupt(tokamak);
+        }
+    }
+
+    /**
+     * Moves whole millibuckets between a tank and its fractional balance: draws what the balance owes,
+     * fills what it holds. A fill that does not fit stays in the balance when {@code keep}, so fuel
+     * pumped out of the plasma is never lost; otherwise the excess is vented.
+     */
+    private static double settle(FluidTank tank, double balance, net.minecraft.world.level.material.Fluid fluid, boolean keep) {
+        if (balance <= -1) {
+            int owed = (int) Math.floor(-balance);
+            balance += tank.drain(owed, IFluidHandler.FluidAction.EXECUTE).getAmount();
+            // Never owe more than a tick's worth beyond what the tank had.
+            balance = Math.max(balance, -1);
+        } else if (balance >= 1) {
+            int held = (int) Math.floor(balance);
+            int filled = tank.fill(new FluidStack(fluid, held), IFluidHandler.FluidAction.EXECUTE);
+            balance -= keep ? filled : held;
+        }
+        return balance;
+    }
+
+    private void handle(StartupSequence.Transition transition) {
+        if (transition == null) {
+            return;
+        }
+        if (transition.to() == TokamakPhase.BREAKDOWN) {
+            double puff = FusionConfig.breakdownDeuterium;
+            deuteriumBalance -= puff;
+            deuteriumBalance = settle(deuteriumTank, deuteriumBalance, AllNuclearFluids.DEUTERIUM.get(), true);
+            physics.model().breakdown(puff);
+        }
+        if (transition.to() == TokamakPhase.BURN && level != null) {
+            NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), NuclearEvent.TOKAMAK_IGNITION);
+            messenger.log(Component.translatable("create_nuclearindustry.tokamak.message.burning"));
+        }
+        TripCause cause = transition.cause();
+        if (cause != null && cause != TripCause.NONE && cause != TripCause.DISRUPTION) {
+            MutableComponent message = cause == TripCause.OPERATOR
+                    ? Component.translatable("create_nuclearindustry.tokamak.message.shutdown").withStyle(ChatFormatting.YELLOW)
+                    : Component.translatable("create_nuclearindustry.tokamak.message.trip", Component.translatable(cause.langKey()))
+                    .withStyle(ChatFormatting.RED);
+            if (cause == TripCause.OPERATOR) {
+                messenger.status(level, messenger.owner(level), message);
+            } else {
+                messenger.alert(level, getBlockPos(), message);
+            }
+        }
+        if (transition.to() == TokamakPhase.OFFLINE) {
+            physics.quench();
+            messenger.log(Component.translatable("create_nuclearindustry.tokamak.message.offline"));
+        }
+        markDirtyAndSync();
+    }
+
+    /** Sums what the heaters and pumps in the shell offer this tick. */
+    private TokamakSupply collectSupply(TokamakStructure tokamak) {
+        if (supplyOverride != null) {
+            return supplyOverride;
+        }
+        TokamakSupply.Builder builder = TokamakSupply.builder();
+        forEachAuxiliary(tokamak, auxiliary -> auxiliary.contribute(builder));
+        return builder.build();
+    }
+
+    private void notifyAuxiliaries(TokamakStructure tokamak, TokamakReadings readings) {
+        forEachAuxiliary(tokamak, auxiliary -> auxiliary.observe(readings));
+    }
+
+    private void forEachAuxiliary(TokamakStructure tokamak, java.util.function.Consumer<TokamakAuxiliary> action) {
+        if (level == null) {
+            return;
+        }
+        refreshParts(tokamak);
+        for (TokamakAuxiliary auxiliary : auxiliaryCache) {
+            if (!(auxiliary instanceof BlockEntity blockEntity) || !blockEntity.isRemoved()) {
+                action.accept(auxiliary);
+            }
+        }
+    }
+
+    /**
+     * Looks the shell's auxiliaries and magnet drives up in the level when the structure changed or
+     * {@link #PART_REFRESH} ticks have passed; in between, every tick uses the ones found then.
+     */
+    private void refreshParts(TokamakStructure tokamak) {
+        long now = level.getGameTime();
+        if (partsOf == tokamak && now - partsFoundAt < PART_REFRESH && now >= partsFoundAt) {
+            return;
+        }
+        partsOf = tokamak;
+        partsFoundAt = now;
+        partLookups++;
+        List<TokamakAuxiliary> auxiliaries = new ArrayList<>();
+        for (BlockPos pos : tokamak.functionalParts()) {
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof TokamakAuxiliary auxiliary) {
+                auxiliaries.add(auxiliary);
+            }
+        }
+        List<FusionMagnetInputBlockEntity> magnets = new ArrayList<>();
+        for (BlockPos pos : tokamak.magnetInputs) {
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof FusionMagnetInputBlockEntity magnet) {
+                magnets.add(magnet);
+            }
+        }
+        auxiliaryCache = auxiliaries;
+        magnetCache = magnets;
+    }
+
+    /** Times the shell's parts were looked up in the level, for tests. */
+    public int partLookups() {
+        return partLookups;
+    }
+
+    /** Field the magnet drives ask for: their summed contribution over the drives a tokamak this size needs. */
+    private double readMagnetDrive(TokamakStructure tokamak) {
+        if (level == null) {
+            return 0;
+        }
+        refreshParts(tokamak);
+        double drive = 0;
+        for (FusionMagnetInputBlockEntity magnet : magnetCache) {
+            if (!magnet.isRemoved()) {
+                drive += magnet.getConfinementContribution();
+            }
+        }
+        int needed = Math.max(1, (int) Math.ceil(tokamak.majorRadius() / 4.0));
+        return Math.min(1.0, drive / needed);
+    }
+
+    /** A disruption dumps the plasma energy into the vessel wall. */
+    private void disrupt(TokamakStructure tokamak) {
+        BlockPos pos = getBlockPos();
+        LOGGER.warn("Tokamak disruption at {}", pos);
+        physics.quench();
+        handle(sequence.trip(TripCause.DISRUPTION));
+        // The tritium inventory escapes into the hall.
+        if (!tritiumTank.isEmpty()) {
+            FalloutData.contaminate(level, pos, DISRUPTION_RADIATION, DISRUPTION_CONTAMINATION_TICKS);
+        }
+        tritiumTank.setFluid(FluidStack.EMPTY);
+        tritiumBalance = 0;
+        tritiumCredit = 0;
+        messenger.alert(level, pos, Component.translatable("create_nuclearindustry.tokamak.message.disruption", pos.toShortString())
+                .withStyle(ChatFormatting.DARK_RED));
+        NuclearAdvancements.awardMachine(level, pos, messenger.owner(level), NuclearEvent.DISRUPTION);
+        if (!FusionConfig.disruptionExplosions || !(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        TokamakGeometry geometry = tokamak.geometry;
+        float power = (float) Math.min(12.0, 2.0 + 0.5 * tokamak.majorRadius());
+        for (int i = 0; i < 3; i++) {
+            int index = serverLevel.random.nextInt(geometry.shellCount());
+            BlockPos at = tokamak.center.offset(geometry.shellX(index), geometry.shellY(index), geometry.shellZ(index));
+            serverLevel.explode(null, at.getX() + 0.5, at.getY() + 0.5, at.getZ() + 0.5, power, Level.ExplosionInteraction.BLOCK);
+        }
+    }
+
+    private void updateBlockStateFlags() {
+        if (level == null) {
+            return;
+        }
+        BlockState state = getBlockState();
+        if (!state.hasProperty(FusionReactorControllerBlock.ON)) {
+            return;
+        }
+        boolean on = status == Status.FORMED && sequence.phase() != TokamakPhase.OFFLINE;
+        boolean ignited = sequence.phase() == TokamakPhase.BURN;
+        if (state.getValue(FusionReactorControllerBlock.ON) != on || state.getValue(FusionReactorControllerBlock.IGNITED) != ignited) {
+            level.setBlock(getBlockPos(), state.setValue(FusionReactorControllerBlock.ON, on)
+                    .setValue(FusionReactorControllerBlock.IGNITED, ignited), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    // ------------------------------------------------------------------ structure
 
     @Override
     public void onLoad() {
         super.onLoad();
         if (level != null && !level.isClientSide) {
-            FusionReactorManager.registerReactor(level, getBlockPos(), this);
+            MultiblockRegistry.register(this);
         }
     }
 
     @Override
     public void setRemoved() {
         if (level != null && !level.isClientSide) {
-            FusionReactorManager.unregisterReactor(level, getBlockPos());
+            MultiblockRegistry.unregister(this);
         }
         super.setRemoved();
     }
@@ -143,366 +577,589 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
         revalidate(true, player);
     }
 
+    @Override
     public void requestStructureRevalidation(Player player) {
-        if (player != null) {
-            ownerPlayer = player;
-            ownerUUID = Optional.of(player.getUUID());
-        }
+        messenger.setOwner(player);
         pendingRevalidation = true;
     }
 
-    public boolean shouldReactToBlockChange(BlockPos changedPos) {
-        if (currentStructure.isPresent()) {
-            return currentStructure.get().contains(changedPos);
+    /**
+     * Formed: the torus. Unformed: where the blocks that let the controller find its torus can be (the
+     * shell beside it and the central solenoid, up to {@code maxMajorRadius + 2} blocks off on a
+     * cardinal line), plus the whole torus once a solenoid places it. Changes further off do not wake
+     * an unformed tokamak; a click on the controller still checks everything.
+     */
+    @Override
+    public BoundingBox interestBounds() {
+        if (structure.isPresent()) {
+            return structure.get().bounds();
         }
-        return changedPos.closerThan(getBlockPos(), FusionStructureValidator.MAX_SIZE + 2);
+        return unformedBounds != null ? unformedBounds : searchBounds();
     }
 
-    private double readConfinementInput() {
-        if (level == null || currentStructure.isEmpty()) {
-            return 0.0;
+    /** Around the controller, as far as {@link TokamakStructureValidator#locate} looks for the central solenoid. */
+    private BoundingBox searchBounds() {
+        int reach = TokamakGeometry.controllerToAxis(Math.max(TokamakGeometry.MIN_RADIUS, FusionConfig.maxMajorRadius));
+        BlockPos pos = getBlockPos();
+        return new BoundingBox(pos.getX() - reach, pos.getY() - TokamakGeometry.HALF_HEIGHT, pos.getZ() - reach,
+                pos.getX() + reach, pos.getY() + TokamakGeometry.HALF_HEIGHT, pos.getZ() + reach);
+    }
+
+    /** Works out {@link #unformedBounds} from the blocks there now; true when they changed. */
+    private boolean updateUnformedBounds() {
+        BoundingBox next = searchBounds();
+        Optional<TokamakStructure> located = TokamakStructureValidator.locate(level, getBlockPos());
+        if (located.isPresent()) {
+            BoundingBox torus = located.get().bounds().inflatedBy(UNFORMED_MARGIN);
+            next = BoundingBox.encapsulatingBoxes(List.of(next, torus)).orElse(next);
         }
-        double field = 0.0;
-        for (BlockPos magnetPos : currentStructure.get().magnetInputs) {
-            if (level.getBlockEntity(magnetPos) instanceof FusionMagnetInputBlockEntity magnet) {
-                field = Math.max(field, magnet.getConfinementContribution());
-            }
+        boolean changed = !next.equals(unformedBounds);
+        unformedBounds = next;
+        return changed;
+    }
+
+    @Override
+    public boolean shouldReactToBlockChange(BlockChange change) {
+        if (structure.isPresent()) {
+            return snapshot != null && snapshot.isAffectedBy(change);
         }
-        return field;
+        return change.removed() || change.isMultiblockPart();
     }
 
     private void revalidate(boolean playerInitiated, Player player) {
-        if (player != null) {
-            ownerPlayer = player;
-            ownerUUID = Optional.of(player.getUUID());
-        }
+        messenger.setOwner(player);
         pendingRevalidation = false;
         if (level == null) {
             return;
         }
-
-        FusionStatus previousStatus = status;
-        FusionStructureValidator.FusionValidationResult result =
-                FusionStructureValidator.validate(level, getBlockPos(), currentStructure);
+        boolean wasFormed = structure.isPresent();
+        MultiblockValidationResult<TokamakStructure> result = TokamakStructureValidator.validate(level, getBlockPos());
         lastValidation = result;
-
         if (result.formed() && result.structure().isPresent()) {
-            FusionStructure newStructure = result.structure().get();
-            boolean changed = currentStructure.isEmpty() || !sameStructure(currentStructure.get(), newStructure);
-            currentStructure = Optional.of(newStructure);
-            if (changed) {
-                physics = new FusionPhysicsSimulator(newStructure.electromagnetCount(), newStructure.size);
-                status = FusionStatus.FORMED;
-            } else if (status == FusionStatus.UNFORMED || status == FusionStatus.DISRUPTED) {
-                status = FusionStatus.FORMED;
+            TokamakStructure next = result.structure().get();
+            structure.ifPresent(this::unlinkParts);
+            setStructure(Optional.of(next));
+            linkParts(next);
+            if (!fuelRateSet) {
+                fuelRate = defaultFuelRate();
             }
-            linkStructureParts(newStructure);
-            if (playerInitiated || previousStatus == FusionStatus.UNFORMED) {
-                sendPlayerMessage("§bFusion reactor formed §8[" + newStructure.dimensionsText() + "]");
+            fuelRate = Math.min(fuelRate, maxFuelRate());
+            if (playerInitiated || !wasFormed) {
+                NuclearAdvancements.awardMachine(level, getBlockPos(), messenger.owner(level), NuclearEvent.TOKAMAK_FORMED);
+                MutableComponent message = Component.translatable("create_nuclearindustry.tokamak.message.formed",
+                        next.dimensionsText()).withStyle(ChatFormatting.AQUA);
+                if (!result.warnings().isEmpty()) {
+                    message.append(" ").append(TokamakStructureValidator.text(result.warnings().get(0)).copy().withStyle(ChatFormatting.YELLOW));
+                }
+                messenger.status(level, playerInitiated ? player : null, message);
             }
-            markDirtyAndSync();
-            return;
-        }
-
-        if (previousStatus == FusionStatus.FORMED || previousStatus == FusionStatus.IGNITED) {
-            currentStructure.ifPresent(this::clearStructureParts);
-            if (playerInitiated) {
-                sendPlayerMessage("§cFusion reactor disrupted: " + result.primaryMessage());
-            }
-        } else if (playerInitiated) {
-            sendPlayerMessage("§cFusion reactor incomplete: " + result.primaryMessage());
-        }
-        currentStructure = Optional.empty();
-        status = FusionStatus.UNFORMED;
-        physics = new FusionPhysicsSimulator(0, 1);
-        markDirtyAndSync();
-    }
-
-    private boolean sameStructure(FusionStructure a, FusionStructure b) {
-        return a.size == b.size
-                && a.ringY == b.ringY
-                && a.electromagnetCount() == b.electromagnetCount()
-                && a.magnetInputs.equals(b.magnetInputs)
-                && a.fluidPorts.equals(b.fluidPorts)
-                && a.fuelInjectors.equals(b.fuelInjectors);
-    }
-
-    private void linkStructureParts(FusionStructure structure) {
-        if (level == null || level.isClientSide) {
-            return;
-        }
-        for (BlockPos portPos : structure.fluidPorts) {
-            if (level.getBlockEntity(portPos) instanceof FusionFluidPortBlockEntity port) {
-                port.setLinkedController(getBlockPos());
-            }
-        }
-        for (BlockPos injectorPos : structure.fuelInjectors) {
-            if (level.getBlockEntity(injectorPos) instanceof FusionFuelInjectorBlockEntity injector) {
-                injector.setLinkedController(getBlockPos());
-            }
-        }
-    }
-
-    private void clearStructureParts(FusionStructure structure) {
-        if (level == null || level.isClientSide) {
-            return;
-        }
-        for (BlockPos portPos : structure.fluidPorts) {
-            if (level.getBlockEntity(portPos) instanceof FusionFluidPortBlockEntity port) {
-                port.clearLinkedController(getBlockPos());
-            }
-        }
-        for (BlockPos injectorPos : structure.fuelInjectors) {
-            if (level.getBlockEntity(injectorPos) instanceof FusionFuelInjectorBlockEntity injector) {
-                injector.clearLinkedController(getBlockPos());
-            }
-        }
-    }
-
-    private void tryLoadFuel() {
-        if (!physics.canLoadFuel()) {
-            return;
-        }
-        ItemStack input = fuelInventory.getStackInSlot(FUEL_INPUT_SLOT);
-        if (!input.is(AllNuclearItems.DT_FUEL_PELLET.get())) {
-            return;
-        }
-        ItemStack spent = new ItemStack(AllNuclearItems.SPENT_DT_PELLET.get());
-        if (!fuelInventory.insertItem(FUEL_OUTPUT_SLOT, spent, true).isEmpty()) {
-            return; // output blocked
-        }
-        ItemStack extracted = fuelInventory.extractItem(FUEL_INPUT_SLOT, 1, false);
-        if (extracted.isEmpty()) {
-            return;
-        }
-        if (physics.loadFuel()) {
-            fuelInventory.insertItem(FUEL_OUTPUT_SLOT, spent, false);
         } else {
-            fuelInventory.insertItem(FUEL_INPUT_SLOT, extracted, false);
+            structure.ifPresent(this::unlinkParts);
+            boolean listenElsewhere = updateUnformedBounds();
+            setStructure(Optional.empty());
+            if (listenElsewhere && !wasFormed) {
+                MultiblockRegistry.reindex(this);
+            }
+            if (playerInitiated || wasFormed) {
+                messenger.status(level, playerInitiated ? player : null, Component.translatable(wasFormed ? "create_nuclearindustry.tokamak.message.broken"
+                                : "create_nuclearindustry.tokamak.message.incomplete", getValidationText())
+                        .withStyle(ChatFormatting.RED));
+            }
         }
-    }
-
-    private void processCoolantLoop() {
-        double rate = physics.getPlasmaSteamRate();
-        if (rate <= 0.0 || plasmaSteamTank.getSpace() <= 0) {
-            return;
-        }
-        FluidStack coolant = coolantTank.getFluid();
-        if (coolant.isEmpty()) {
-            return;
-        }
-        int steamToProduce = Math.max(0, (int) Math.ceil(rate));
-        FluidStack produced = new FluidStack(AllNuclearFluids.PLASMA_STEAM.get(), steamToProduce);
-        int acceptedSteam = plasmaSteamTank.fill(produced, IFluidHandler.FluidAction.SIMULATE);
-        if (acceptedSteam <= 0) {
-            return;
-        }
-        int amount = Math.min(Math.min(steamToProduce, acceptedSteam), coolantTank.getFluidAmount());
-        FluidStack drained = coolantTank.drain(amount, IFluidHandler.FluidAction.EXECUTE);
-        if (drained.isEmpty()) {
-            return;
-        }
-        plasmaSteamTank.fill(new FluidStack(AllNuclearFluids.PLASMA_STEAM.get(), drained.getAmount()), IFluidHandler.FluidAction.EXECUTE);
-        physics.applyExternalCooling(drained.getAmount() * COOLING_PER_MB);
-    }
-
-    private void updateBlockStateFlags() {
-        if (level == null || level.isClientSide) {
-            return;
-        }
-        BlockState state = getBlockState();
-        if (!state.hasProperty(FusionReactorControllerBlock.ON)) {
-            return;
-        }
-        boolean on = status == FusionStatus.FORMED || status == FusionStatus.IGNITED;
-        boolean ignited = physics.isIgnited();
-        if (state.getValue(FusionReactorControllerBlock.ON) != on
-                || state.getValue(FusionReactorControllerBlock.IGNITED) != ignited) {
-            level.setBlock(getBlockPos(),
-                    state.setValue(FusionReactorControllerBlock.ON, on).setValue(FusionReactorControllerBlock.IGNITED, ignited),
-                    Block.UPDATE_CLIENTS);
-        }
-    }
-
-    private void handleContainmentBreach() {
-        if (!(level instanceof ServerLevel serverLevel)) {
-            return;
-        }
-        BlockPos pos = getBlockPos();
-        LOGGER.warn("Fusion containment breach at {}", pos);
-        int size = currentStructure.map(s -> s.size).orElse(FusionStructureValidator.MIN_SIZE);
-        status = FusionStatus.DISRUPTED;
-        currentStructure.ifPresent(this::clearStructureParts);
-        currentStructure = Optional.empty();
-        physics = new FusionPhysicsSimulator(0, 1);
         markDirtyAndSync();
-        sendPlayerMessage("§4Plasma containment breach at " + pos);
-
-        // Moderate, localized blast — reuses the crater system at a fraction of the nuke's scale.
-        NuclearBlastManager.start(serverLevel, pos, size, Math.max(1, size / 2), 0.3f);
-        serverLevel.explode(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                12.0f, Level.ExplosionInteraction.BLOCK);
     }
 
+    private void setStructure(Optional<TokamakStructure> next) {
+        boolean boundsChanged = !structure.map(TokamakStructure::bounds).equals(next.map(TokamakStructure::bounds));
+        structure = next;
+        snapshot = next.isPresent() && level != null && !level.isClientSide
+                ? StructureSnapshot.capture(level, next.get().allPositions())
+                : null;
+        status = next.isPresent() ? Status.FORMED : Status.UNFORMED;
+        if (boundsChanged) {
+            MultiblockRegistry.reindex(this);
+        }
+    }
+
+    private void linkParts(TokamakStructure tokamak) {
+        forEachPart(tokamak, part -> part.link(getBlockPos()));
+    }
+
+    private void unlinkParts(TokamakStructure tokamak) {
+        forEachPart(tokamak, part -> part.unlink(getBlockPos()));
+        // Whatever stands in the shell now hears that the plasma is gone.
+        partsOf = null;
+        notifyAuxiliaries(tokamak, TokamakReadings.NONE);
+    }
+
+    private void forEachPart(TokamakStructure tokamak, java.util.function.Consumer<TokamakPart> action) {
+        if (level == null) {
+            return;
+        }
+        for (BlockPos pos : tokamak.functionalParts()) {
+            if (level.getBlockEntity(pos) instanceof TokamakPart part) {
+                action.accept(part);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ controls
+
+    /** Old fuel switch, kept for the desk lever: "on" asks for a start, "off" for a shutdown. */
+    public boolean isFuelEnabled() {
+        TokamakPhase phase = phase();
+        return phase != TokamakPhase.OFFLINE && phase != TokamakPhase.RAMP_DOWN;
+    }
+
+    public void setFuelEnabled(boolean enabled) {
+        if (enabled) {
+            requestStart();
+        } else {
+            requestShutdown();
+        }
+    }
+
+    /** A redstone signal on the controller: a rising edge asks for a start. */
+    public void onRedstoneSignal(boolean powered) {
+        if (powered && !redstonePowered) {
+            requestStart();
+        }
+        if (powered != redstonePowered) {
+            redstonePowered = powered;
+            setChanged();
+        }
+    }
+
+    @Override
+    public TripCause requestStart() {
+        if (level == null || level.isClientSide) {
+            return TripCause.NONE;
+        }
+        TripCause result;
+        TokamakPhase before = sequence.phase();
+        if (structure.isEmpty()) {
+            result = TripCause.STRUCTURE;
+            sequence.trip(TripCause.STRUCTURE);
+        } else {
+            TokamakStructure tokamak = structure.get();
+            if (supply == TokamakSupply.NONE || supplyOverride != null) {
+                supply = collectSupply(tokamak);
+            }
+            fieldTarget = readMagnetDrive(tokamak);
+            result = sequence.requestStart(FusionConfig.startupParams(),
+                    conditions(tokamak, FusionConfig.vacuumParams(), FusionConfig.magnetParams()));
+        }
+        if (before == TokamakPhase.OFFLINE) {
+            if (result == TripCause.NONE) {
+                messenger.status(level, messenger.owner(level), Component.translatable("create_nuclearindustry.tokamak.message.starting").withStyle(ChatFormatting.AQUA));
+            } else {
+                messenger.status(level, messenger.owner(level), Component.translatable("create_nuclearindustry.tokamak.message.start_blocked",
+                        Component.translatable(result.langKey())).withStyle(ChatFormatting.RED));
+            }
+        }
+        markDirtyAndSync();
+        return result;
+    }
+
+    @Override
+    public void requestShutdown() {
+        handle(sequence.requestShutdown());
+        markDirtyAndSync();
+    }
+
+    @Override
+    public void setFuelRate(double millibucketsPerTick) {
+        double clamped = Double.isFinite(millibucketsPerTick) ? Math.max(0, Math.min(maxFuelRate(), millibucketsPerTick)) : fuelRate;
+        fuelRateSet = true;
+        if (clamped != fuelRate) {
+            fuelRate = clamped;
+            markDirtyAndSync();
+        }
+    }
+
+    @Override
+    public void setDtRatio(double deuteriumShare) {
+        double clamped = Double.isFinite(deuteriumShare) ? Math.max(0, Math.min(1, deuteriumShare)) : dtRatio;
+        if (clamped != dtRatio) {
+            dtRatio = clamped;
+            markDirtyAndSync();
+        }
+    }
+
+    @Override
+    public void setHeating(boolean enabled, double level) {
+        double clamped = Double.isFinite(level) ? Math.max(0, Math.min(1, level)) : heatingLevel;
+        if (enabled != heatingEnabled || clamped != heatingLevel) {
+            heatingEnabled = enabled;
+            heatingLevel = clamped;
+            markDirtyAndSync();
+        }
+    }
+
+    @Override
+    public double maxFuelRate() {
+        int volume = structure.map(TokamakStructure::plasmaVolume).orElse(0);
+        return Math.max(1.0, PlasmaModel.fuelRateFor(FusionConfig.plasmaParams(), volume, MAX_FUEL_DENSITY));
+    }
+
+    /** The player working the controls gets the tokamak's messages. */
+    public void setOperator(Player player) {
+        messenger.setOwner(player);
+    }
+
+    public boolean isHeatingEnabled() {
+        return heatingEnabled;
+    }
+
+    public double getHeatingLevel() {
+        return heatingLevel;
+    }
+
+    public double getFuelRate() {
+        return fuelRate;
+    }
+
+    public double getDtRatio() {
+        return dtRatio;
+    }
+
+    /** Fuelling that holds this tokamak at the configured share of its density limit. */
+    public double defaultFuelRate() {
+        int volume = structure.map(TokamakStructure::plasmaVolume).orElse(0);
+        return PlasmaModel.fuelRateFor(FusionConfig.plasmaParams(), volume, FusionConfig.defaultDensity);
+    }
+
+    @Override
+    public TokamakPhase phase() {
+        return level != null && level.isClientSide ? clientReadings.phase() : sequence.phase();
+    }
+
+    @Override
+    public TripCause tripCause() {
+        return level != null && level.isClientSide ? clientReadings.tripCause() : sequence.tripCause();
+    }
+
+    @Override
+    public TokamakReadings readings() {
+        if (ponderPreview || level != null && level.isClientSide) {
+            return clientReadings;
+        }
+        if (structure.isEmpty()) {
+            return TokamakReadings.NONE;
+        }
+        PlasmaModel plasma = physics.model();
+        return new TokamakReadings(true, status == Status.SUSPENDED, getMajorRadius(), sequence.phase(), sequence.tripCause(),
+                plasma.getTemperature(), plasma.getInstability(), plasma.getConfinement(), plasma.getDensity(),
+                plasma.ashFraction(), plasma.getFusionPower(), plasma.getHeatingPower(), plasma.gain(),
+                plasma.getBurnRate(), plasma.getTritiumBreedingRatio(), plasma.getMode() == PlasmaModel.Mode.DT,
+                magnets.getField(), fieldTarget, magnets.getTemperature(), vacuum.getPressure(),
+                fuelRate, dtRatio, heatingEnabled, heatingLevel,
+                deuteriumTank.getFluidAmount(), tritiumTank.getFluidAmount(), coolantTank.getFluidAmount(),
+                plasmaSteamTank.getFluidAmount(), liquidHeliumTank.getFluidAmount(), warmHeliumTank.getFluidAmount(),
+                tritiumOverflowTicks > 0);
+    }
+
+    /** What the heaters and pumps offered on the last tick. */
+    public TokamakSupply getSupply() {
+        return supply;
+    }
+
+    /** Game tests only: stand in for the shell's heaters and pumps; null goes back to the real ones. */
+    public void setSupplyOverride(TokamakSupply override) {
+        supplyOverride = override;
+    }
+
+    /**
+     * Game tests only: skips the slow parts of a start, as if the chamber had been pumped down and the
+     * coils cooled and energised already. The sequence still walks every phase.
+     */
+    public void primeForTest() {
+        vacuum.restore(FusionConfig.vacuumParams().basePressure());
+        magnets.restore(1.0, MagnetModel.OPERATING_TEMPERATURE);
+    }
+
+    public CryoTanks cryoTanks() {
+        return cryoTanks;
+    }
+
+    /**
+     * Ponder only: makes this schematic controller show a plasma of the given state around
+     * {@code center}, with no structure or physics behind it.
+     */
+    public void previewPlasma(BlockPos center, TokamakReadings readings) {
+        dispCenter = center.immutable();
+        dispRadius = readings.majorRadius();
+        clientReadings = readings;
+        ponderPreview = true;
+    }
+
+    /** The point on the axis at the plasma's mid-plane; synced to clients for the renderer. */
+    public BlockPos getCenter() {
+        return ponderPreview || level != null && level.isClientSide ? dispCenter : structure.map(s -> s.center).orElse(BlockPos.ZERO);
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public Optional<TokamakStructure> getStructure() {
+        return structure;
+    }
+
+    public TokamakPhysicsSimulator getPhysics() {
+        return physics;
+    }
+
+    /** Field the magnet drives ask for, 0..1. */
+    public double getMagnetDrive() {
+        return level != null && level.isClientSide ? clientReadings.fieldTarget() : fieldTarget;
+    }
+
+    public boolean isFormed() {
+        return ponderPreview || level != null && level.isClientSide ? dispRadius > 0 : structure.isPresent();
+    }
+
+    public int getMajorRadius() {
+        return ponderPreview || level != null && level.isClientSide ? dispRadius : structure.map(TokamakStructure::majorRadius).orElse(0);
+    }
+
+    public int getCoilCount() {
+        return level != null && level.isClientSide ? dispCoils : structure.map(s -> s.coilCount).orElse(0);
+    }
+
+    public int getBlanketCount() {
+        return level != null && level.isClientSide ? dispBlankets : structure.map(s -> s.blanketCount).orElse(0);
+    }
+
+    public double getCoilCoverage() {
+        return level != null && level.isClientSide ? dispCoverage
+                : structure.map(s -> s.coilCoverage(FusionConfig.coilsPerSector)).orElse(0.0);
+    }
+
+    /** Why the tokamak is not formed (or its first warning), as a lang key with arguments; see {@link #getValidationText()}. */
+    public String getValidationKey() {
+        return level != null && level.isClientSide ? dispValidationMessage : lastValidation.primaryMessage();
+    }
+
+    /** Why the tokamak is not formed, or its first warning, in the reader's language. */
+    public Component getValidationText() {
+        return TokamakStructureValidator.text(getValidationKey());
+    }
+
+    /** {@link #getValidationText()} resolved in the server's language (English), for plain-text readers. */
+    public String getValidationMessage() {
+        return getValidationText().getString();
+    }
+
+    public FluidTank getDeuteriumTank() {
+        return deuteriumTank;
+    }
+
+    public FluidTank getTritiumTank() {
+        return tritiumTank;
+    }
+
+    public FluidTank getCoolantTank() {
+        return coolantTank;
+    }
+
+    public FluidTank getPlasmaSteamTank() {
+        return plasmaSteamTank;
+    }
+
+    /** Routes deuterium and tritium into their own tanks. */
+    public int fillFuel(FluidStack resource, IFluidHandler.FluidAction action) {
+        if (NuclearFluidHelper.isDeuterium(resource)) {
+            return deuteriumTank.fill(resource, action);
+        }
+        if (NuclearFluidHelper.isTritium(resource)) {
+            return tritiumTank.fill(resource, action);
+        }
+        return 0;
+    }
+
+    public FluidStack drainSurplusTritium(int maxDrain, IFluidHandler.FluidAction action) {
+        int surplus = Math.max(0, tritiumTank.getFluidAmount() - TRITIUM_RESERVE);
+        return surplus <= 0 ? FluidStack.EMPTY : tritiumTank.drain(Math.min(maxDrain, surplus), action);
+    }
+
+    /** Coil temperature, kelvin. */
+    public double getMagnetTemperature() {
+        return level != null && level.isClientSide ? clientReadings.magnetTemperature() : magnets.getTemperature();
+    }
+
+    /** Saves and updates the clients now; remembered by the throttle, so the next periodic check compares with it. */
     private void markDirtyAndSync() {
         setChanged();
         if (level != null && !level.isClientSide) {
+            clientSyncs++;
+            throttle.sent(level.getGameTime(), SyncThrottle.valuesOf(readings()));
             BlockState state = getBlockState();
             level.sendBlockUpdated(getBlockPos(), state, state, Block.UPDATE_CLIENTS);
         }
     }
 
-    private void sendPlayerMessage(String message) {
-        if (level == null) {
-            return;
-        }
-        if (ownerPlayer != null && ownerPlayer.isAlive()) {
-            ownerPlayer.displayClientMessage(Component.literal(message), false);
-            return;
-        }
-        if (ownerUUID.isPresent()) {
-            Player player = level.getPlayerByUUID(ownerUUID.get());
-            if (player != null && player.isAlive()) {
-                ownerPlayer = player;
-                player.displayClientMessage(Component.literal(message), false);
-                return;
-            }
-        }
-        LOGGER.debug("[Fusion] {}", message);
+    /** Client updates this controller sent, for tests. */
+    public int clientSyncCount() {
+        return clientSyncs;
     }
 
-    // ---- accessors used by ports ----
+    // ------------------------------------------------------------------ goggles
 
-    public int getTankCapacity() {
-        return TANK_CAPACITY;
+    /** The tokamak's card on the panel: a summary, or its details while sneaking. */
+    @Override
+    public PanelCard panelCard(net.minecraft.world.phys.Vec3 hit, boolean detailed) {
+        return TokamakPanel.card(this, detailed);
     }
 
-    public int getCoolantAmount() {
-        return coolantTank.getFluidAmount();
+    /** Q as text: a number, or the infinity sign once the plasma is ignited. */
+    public static String gainText(double gain) {
+        return Double.isInfinite(gain) ? "∞" : String.format("%.1f", gain);
     }
 
-    public int getPlasmaSteamAmount() {
-        return plasmaSteamTank.getFluidAmount();
+    /** Chamber pressure as text, in pascals. */
+    public static String vacuumText(double log10Pascals) {
+        return String.format("%.0e Pa", Math.pow(10, log10Pascals)).replace("e+0", "e").replace("e-0", "e-");
     }
 
-    public FluidStack getCoolantFluid() {
-        return coolantTank.getFluid().copy();
-    }
-
-    public FluidStack getPlasmaSteamFluid() {
-        return plasmaSteamTank.getFluid().copy();
-    }
-
-    public int fillCoolant(FluidStack resource, IFluidHandler.FluidAction action) {
-        return NuclearFluidHelper.isCoolant(resource) ? coolantTank.fill(resource, action) : 0;
-    }
-
-    public FluidStack drainPlasmaSteam(FluidStack resource, IFluidHandler.FluidAction action) {
-        return NuclearFluidHelper.isPlasmaSteam(resource) ? plasmaSteamTank.drain(resource, action) : FluidStack.EMPTY;
-    }
-
-    public FluidStack drainPlasmaSteam(int maxDrain, IFluidHandler.FluidAction action) {
-        return plasmaSteamTank.drain(maxDrain, action);
-    }
-
-    public ItemStackHandler getFuelInventory() {
-        return fuelInventory;
-    }
-
-    public Optional<FusionStructure> getStructure() {
-        return currentStructure;
-    }
-
-    // ---- goggles ----
+    // ------------------------------------------------------------------ persistence
 
     @Override
-    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        boolean formed = level != null && level.isClientSide ? dispFormed : currentStructure.isPresent();
-        tooltip.add(Component.literal("Fusion Reactor").withStyle(ChatFormatting.AQUA));
-        tooltip.add(Component.literal("  Structure: " + (formed ? "Formed" : "Incomplete"))
-                .withStyle(formed ? ChatFormatting.GREEN : ChatFormatting.RED));
-        if (!formed) {
-            tooltip.add(Component.literal("  " + dispValidationMessage).withStyle(ChatFormatting.RED));
-            return true;
-        }
-        tooltip.add(Component.literal("  Ring: " + dispDimensions).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Electromagnets: " + dispElectromagnets + " (drives: " + dispMagnetInputs + ")")
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Coolant ports: " + dispCoolantPorts + "  Plasma ports: " + dispPlasmaPorts)
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Fuel injectors: " + dispFuelInjectors).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  State: " + physics.getState().getDisplayName())
-                .withStyle(physics.isIgnited() ? ChatFormatting.GOLD : ChatFormatting.GRAY));
-        tooltip.add(Component.literal(String.format("  Plasma temp: %.0f / %.0f", physics.getPlasmaTemperature(), FusionPhysicsSimulator.MAX_PLASMA_TEMP))
-                .withStyle(getTempColor(physics.getPlasmaTemperature())));
-        tooltip.add(Component.literal(String.format("  Confinement: %.0f%%", physics.getConfinementField() * 100.0))
-                .withStyle(physics.getConfinementField() >= 0.65 ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
-        tooltip.add(Component.literal(String.format("  Instability: %.0f%%", physics.getInstability()))
-                .withStyle(physics.getInstability() >= 60.0 ? ChatFormatting.RED : ChatFormatting.GRAY));
-        tooltip.add(Component.literal(String.format("  Fusion power: %.0f MW", physics.getFusionPower())).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal(String.format("  D-T fuel: %.0f / %.0f", physics.getFuelRemaining(), physics.getFuelCapacity())).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Coolant: " + coolantTank.getFluidAmount() + "/" + TANK_CAPACITY + " mB").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Plasma steam: " + plasmaSteamTank.getFluidAmount() + "/" + MAX_PLASMA_STEAM_TANK + " mB").withStyle(ChatFormatting.GRAY));
-        return true;
-    }
-
-    private ChatFormatting getTempColor(double temp) {
-        if (temp >= FusionPhysicsSimulator.MAX_PLASMA_TEMP * 0.9) return ChatFormatting.RED;
-        if (temp >= FusionPhysicsSimulator.IGNITION_TEMP) return ChatFormatting.GOLD;
-        if (temp >= FusionPhysicsSimulator.AMBIENT_TEMP + 50) return ChatFormatting.YELLOW;
-        return ChatFormatting.GREEN;
-    }
-
-    // ---- NBT ----
-
-    @Override
-    public void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
+        writeCommon(tag, provider);
+        tag.putDouble("deuteriumBalance", deuteriumBalance);
+        tag.putDouble("tritiumBalance", tritiumBalance);
+        tag.putDouble("tritiumCredit", tritiumCredit);
+        tag.putDouble("liquidHeliumBalance", liquidHeliumBalance);
+        tag.putDouble("warmHeliumBalance", warmHeliumBalance);
+        tag.putDouble("coolantBalance", coolantBalance);
+        tag.putDouble("magnetField", magnets.getField());
+        tag.putDouble("magnetTemperature", magnets.getTemperature());
+        tag.putDouble("vacuum", vacuum.getPressure());
+        tag.putInt("phaseTicks", sequence.phaseTicks());
+        tag.putBoolean("pendingStart", sequence.pendingStart());
+        tag.putBoolean("redstonePowered", redstonePowered);
+        tag.putBoolean("fuelRateSet", fuelRateSet);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
+        readCommon(tag, provider);
+        deuteriumBalance = tag.getDouble("deuteriumBalance");
+        tritiumBalance = tag.getDouble("tritiumBalance");
+        tritiumCredit = tag.getDouble("tritiumCredit");
+        liquidHeliumBalance = tag.getDouble("liquidHeliumBalance");
+        warmHeliumBalance = tag.getDouble("warmHeliumBalance");
+        coolantBalance = tag.getDouble("coolantBalance");
+        magnets.restore(tag.getDouble("magnetField"),
+                tag.contains("magnetTemperature") ? tag.getDouble("magnetTemperature") : MagnetModel.AMBIENT_TEMPERATURE);
+        vacuum.restore(tag.contains("vacuum") ? tag.getDouble("vacuum") : VacuumModel.ATMOSPHERE);
+        redstonePowered = tag.getBoolean("redstonePowered");
+        fuelRateSet = tag.getBoolean("fuelRateSet");
+        boolean legacy = !tag.contains("phase");
+        if (legacy) {
+            // Saved before the startup sequence: the plasma cannot carry on without vacuum and cold
+            // coils, so it is shut down cleanly and the owner is told what the tokamak now needs.
+            boolean wasBurning = physics.wasLegacyBurning();
+            physics.clearLegacy();
+            physics.quench();
+            sequence.restore(TokamakPhase.OFFLINE, wasBurning ? TripCause.STRUCTURE : TripCause.NONE, 0, false);
+            upgradeNotice = wasBurning;
+            if (wasBurning) {
+                LOGGER.info("Tokamak at {} was burning in an older version; it is now offline and needs a start", getBlockPos());
+            }
+        } else {
+            sequence.restore(TokamakReadingsNbt.phase(tag.getString("phase")), TokamakReadingsNbt.trip(tag.getString("tripCause")),
+                    tag.getInt("phaseTicks"), tag.getBoolean("pendingStart"));
+        }
+        if (tag.contains("fuelInventory")) {
+            migrateLegacyPellets(tag.getCompound("fuelInventory"), provider);
+        }
+        pendingRevalidation = true;
+    }
+
+    private void writeCommon(CompoundTag tag, HolderLookup.Provider provider) {
         tag.putString("status", status.name());
         CompoundTag physicsTag = new CompoundTag();
         physics.serializeNBT(physicsTag);
         tag.put("physics", physicsTag);
+        tag.put("deuterium", deuteriumTank.writeToNBT(provider, new CompoundTag()));
+        tag.put("tritium", tritiumTank.writeToNBT(provider, new CompoundTag()));
         tag.put("coolant", coolantTank.writeToNBT(provider, new CompoundTag()));
         tag.put("plasmaSteam", plasmaSteamTank.writeToNBT(provider, new CompoundTag()));
-        tag.put("fuelInventory", fuelInventory.serializeNBT(provider));
+        tag.put("liquidHelium", liquidHeliumTank.writeToNBT(provider, new CompoundTag()));
+        tag.put("warmHelium", warmHeliumTank.writeToNBT(provider, new CompoundTag()));
+        tag.putDouble("fuelRate", fuelRate);
+        tag.putDouble("dtRatio", dtRatio);
+        tag.putBoolean("heatingEnabled", heatingEnabled);
+        tag.putDouble("heatingLevel", heatingLevel);
+        tag.putString("phase", sequence.phase().name());
+        tag.putString("tripCause", sequence.tripCause().name());
     }
 
-    @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.loadAdditional(tag, provider);
-        status = readStatus(tag.getString("status"));
-        if (tag.contains("physics")) {
-            physics.deserializeNBT(tag.getCompound("physics"));
+    private void readCommon(CompoundTag tag, HolderLookup.Provider provider) {
+        try {
+            status = Status.valueOf(tag.getString("status"));
+        } catch (IllegalArgumentException ignored) {
+            status = Status.UNFORMED;
         }
-        if (tag.contains("coolant")) {
-            coolantTank.readFromNBT(provider, tag.getCompound("coolant"));
+        physics.deserializeNBT(tag.getCompound("physics"));
+        deuteriumTank.readFromNBT(provider, tag.getCompound("deuterium"));
+        tritiumTank.readFromNBT(provider, tag.getCompound("tritium"));
+        coolantTank.readFromNBT(provider, tag.getCompound("coolant"));
+        plasmaSteamTank.readFromNBT(provider, tag.getCompound("plasmaSteam"));
+        liquidHeliumTank.readFromNBT(provider, tag.getCompound("liquidHelium"));
+        warmHeliumTank.readFromNBT(provider, tag.getCompound("warmHelium"));
+        fuelRate = Math.max(0, tag.getDouble("fuelRate"));
+        dtRatio = tag.contains("dtRatio") ? Math.max(0, Math.min(1, tag.getDouble("dtRatio"))) : 0.5;
+        heatingEnabled = !tag.contains("heatingEnabled") || tag.getBoolean("heatingEnabled");
+        heatingLevel = tag.contains("heatingLevel") ? Math.max(0, Math.min(1, tag.getDouble("heatingLevel"))) : 1.0;
+    }
+
+    /**
+     * Controllers from the flat fusion ring kept D-T pellets. Each unused pellet becomes
+     * 250 mB of deuterium and of tritium; spent pellets are dropped next to the controller.
+     */
+    private void migrateLegacyPellets(CompoundTag inventoryTag, HolderLookup.Provider provider) {
+        ItemStackHandler legacy = new ItemStackHandler(2);
+        legacy.deserializeNBT(provider, inventoryTag);
+        ItemStack pellets = legacy.getStackInSlot(0);
+        if (pellets.is(AllNuclearItems.DT_FUEL_PELLET.get())) {
+            int amount = pellets.getCount() * LEGACY_PELLET_FLUID;
+            deuteriumTank.fill(new FluidStack(AllNuclearFluids.DEUTERIUM.get(), amount), IFluidHandler.FluidAction.EXECUTE);
+            tritiumTank.fill(new FluidStack(AllNuclearFluids.TRITIUM.get(), amount), IFluidHandler.FluidAction.EXECUTE);
         }
-        if (tag.contains("plasmaSteam")) {
-            plasmaSteamTank.readFromNBT(provider, tag.getCompound("plasmaSteam"));
+        ItemStack spent = legacy.getStackInSlot(1);
+        if (!spent.isEmpty()) {
+            legacyDrops.add(spent.copy());
         }
-        if (tag.contains("fuelInventory")) {
-            fuelInventory.deserializeNBT(provider, tag.getCompound("fuelInventory"));
+    }
+
+    private void dropLegacyItems() {
+        if (legacyDrops.isEmpty() || level == null) {
+            return;
         }
-        pendingRevalidation = true;
+        BlockPos pos = getBlockPos();
+        for (ItemStack stack : legacyDrops) {
+            Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, stack);
+        }
+        legacyDrops.clear();
+        setChanged();
     }
 
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
         CompoundTag tag = super.getUpdateTag(provider);
-        tag.putString("status", status.name());
-        CompoundTag physicsTag = new CompoundTag();
-        physics.serializeNBT(physicsTag);
-        tag.put("physics", physicsTag);
-        tag.put("coolant", coolantTank.writeToNBT(provider, new CompoundTag()));
-        tag.put("plasmaSteam", plasmaSteamTank.writeToNBT(provider, new CompoundTag()));
-        tag.putBoolean("dispFormed", currentStructure.isPresent());
-        tag.putString("dispDimensions", currentStructure.map(FusionStructure::dimensionsText).orElse(""));
-        tag.putInt("dispElectromagnets", currentStructure.map(FusionStructure::electromagnetCount).orElse(0));
-        tag.putInt("dispMagnetInputs", currentStructure.map(s -> s.magnetInputCount).orElse(0));
-        tag.putInt("dispCoolantPorts", currentStructure.map(s -> s.coolantPortCount).orElse(0));
-        tag.putInt("dispPlasmaPorts", currentStructure.map(s -> s.plasmaPortCount).orElse(0));
-        tag.putInt("dispFuelInjectors", currentStructure.map(s -> s.fuelInjectorCount).orElse(0));
+        writeCommon(tag, provider);
+        tag.putInt("dispRadius", structure.map(TokamakStructure::majorRadius).orElse(0));
+        tag.putInt("dispCoils", structure.map(s -> s.coilCount).orElse(0));
+        tag.putInt("dispBlankets", structure.map(s -> s.blanketCount).orElse(0));
+        tag.putDouble("dispCoverage", structure.map(s -> s.coilCoverage(FusionConfig.coilsPerSector)).orElse(0.0));
         tag.putString("dispValidationMessage", lastValidation.primaryMessage());
+        tag.putLong("dispCenter", structure.map(s -> s.center).orElse(BlockPos.ZERO).asLong());
+        tag.put("readings", TokamakReadingsNbt.write(readings()));
         return tag;
     }
 
@@ -518,48 +1175,20 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
 
     @Override
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
-        super.handleUpdateTag(tag, provider);
-        status = readStatus(tag.getString("status"));
-        if (tag.contains("physics")) {
-            physics.deserializeNBT(tag.getCompound("physics"));
-        }
-        if (tag.contains("coolant")) {
-            coolantTank.readFromNBT(provider, tag.getCompound("coolant"));
-        }
-        if (tag.contains("plasmaSteam")) {
-            plasmaSteamTank.readFromNBT(provider, tag.getCompound("plasmaSteam"));
-        }
-        dispFormed = tag.getBoolean("dispFormed");
-        dispDimensions = tag.getString("dispDimensions");
-        dispElectromagnets = tag.getInt("dispElectromagnets");
-        dispMagnetInputs = tag.getInt("dispMagnetInputs");
-        dispCoolantPorts = tag.getInt("dispCoolantPorts");
-        dispPlasmaPorts = tag.getInt("dispPlasmaPorts");
-        dispFuelInjectors = tag.getInt("dispFuelInjectors");
+        readCommon(tag, provider);
+        dispRadius = tag.getInt("dispRadius");
+        dispCoils = tag.getInt("dispCoils");
+        dispBlankets = tag.getInt("dispBlankets");
+        dispCoverage = tag.getDouble("dispCoverage");
         dispValidationMessage = tag.getString("dispValidationMessage");
-        if (dispValidationMessage.isEmpty()) {
-            dispValidationMessage = "Not formed";
-        }
+        dispCenter = BlockPos.of(tag.getLong("dispCenter"));
+        clientReadings = TokamakReadingsNbt.read(tag.getCompound("readings"));
     }
 
-    @Override
-    public void clearContent() {
-        fuelInventory.setStackInSlot(FUEL_INPUT_SLOT, ItemStack.EMPTY);
-        fuelInventory.setStackInSlot(FUEL_OUTPUT_SLOT, ItemStack.EMPTY);
-    }
+    /** A tokamak block that proxies onto the controller. */
+    public interface TokamakPart {
+        void link(BlockPos controllerPos);
 
-    private FusionStatus readStatus(String name) {
-        try {
-            return FusionStatus.valueOf(name);
-        } catch (IllegalArgumentException ignored) {
-            return FusionStatus.UNFORMED;
-        }
-    }
-
-    private enum FusionStatus {
-        UNFORMED,
-        FORMED,
-        IGNITED,
-        DISRUPTED
+        void unlink(BlockPos controllerPos);
     }
 }

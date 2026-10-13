@@ -1,0 +1,4 @@
+// 1.21.1	2026-10-06T23:04:07.151378	create_nuclearindustry's sequenced assembly recipes
+8572d7e79958ebd8c9e4fd6fec697bc391f054d2 data/create_nuclearindustry/recipe/sequenced_assembly/high_uranium_reactor_fuel.json
+44f7d49a41bbb3e12fc331feab074a0858ea036c data/create_nuclearindustry/recipe/sequenced_assembly/low_uranium_reactor_fuel.json
+2c97025e9784e4781c5be41c06efbceae781fb9f data/create_nuclearindustry/recipe/sequenced_assembly/mox_reactor_fuel.json

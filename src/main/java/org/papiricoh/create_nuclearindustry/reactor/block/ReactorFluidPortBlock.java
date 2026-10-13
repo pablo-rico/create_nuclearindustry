@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorFluidPortBlockEntity;
 
 public class ReactorFluidPortBlock extends BaseEntityBlock {
@@ -55,7 +56,7 @@ public class ReactorFluidPortBlock extends BaseEntityBlock {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState()
-                .setValue(FACING, context.getClickedFace())
+                .setValue(FACING, PartPlacement.facingPlayer(context))
                 .setValue(MODE, ReactorFluidPortMode.INPUT);
     }
 

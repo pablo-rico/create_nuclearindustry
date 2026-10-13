@@ -1,0 +1,7 @@
+{
+  "parent": "create_nuclearindustry:block/turbine/rotor_hub",
+  "textures": {
+    "core": "create_nuclearindustry:block/fusion_turbine_rotor_core",
+    "particle": "create_nuclearindustry:block/fusion_turbine_rotor_core"
+  }
+}

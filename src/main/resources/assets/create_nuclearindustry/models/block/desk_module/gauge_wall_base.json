@@ -1,0 +1,361 @@
+{
+  "credit": "Create: Nuclear Industry",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_module_base",
+    "plate": "create_nuclearindustry:block/desk_module_base",
+    "part": "create_nuclearindustry:block/desk_gauge_wall"
+  },
+  "elements": [
+    {
+      "name": "plate",
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        0.5,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#plate",
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ]
+        },
+        "east": {
+          "texture": "#plate",
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ]
+        },
+        "south": {
+          "texture": "#plate",
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#plate",
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ]
+        },
+        "up": {
+          "texture": "#plate",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "face",
+      "from": [
+        5.5,
+        0.5,
+        5.5
+      ],
+      "to": [
+        10.5,
+        0.9,
+        10.5
+      ],
+      "faces": {
+        "up": {
+          "texture": "#part",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "rim_far",
+      "from": [
+        5.25,
+        0.5,
+        10.5
+      ],
+      "to": [
+        10.75,
+        1.4,
+        10.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#part",
+          "uv": [
+            10,
+            2,
+            16,
+            2.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "rim_near",
+      "from": [
+        5.25,
+        0.5,
+        5.25
+      ],
+      "to": [
+        10.75,
+        1.4,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#part",
+          "uv": [
+            10,
+            2,
+            16,
+            2.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "rim_left",
+      "from": [
+        10.5,
+        0.5,
+        5.5
+      ],
+      "to": [
+        10.75,
+        1.4,
+        10.5
+      ],
+      "faces": {
+        "east": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#part",
+          "uv": [
+            10,
+            2,
+            16,
+            2.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "rim_right",
+      "from": [
+        5.25,
+        0.5,
+        5.5
+      ],
+      "to": [
+        5.5,
+        1.4,
+        10.5
+      ],
+      "faces": {
+        "east": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#part",
+          "uv": [
+            10,
+            0,
+            16,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#part",
+          "uv": [
+            10,
+            2,
+            16,
+            2.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "hub",
+      "from": [
+        7.7,
+        0.9,
+        6.2
+      ],
+      "to": [
+        8.3,
+        1.25,
+        6.8
+      ],
+      "faces": {
+        "north": {
+          "texture": "#part",
+          "uv": [
+            10,
+            4,
+            11,
+            4.5
+          ]
+        },
+        "south": {
+          "texture": "#part",
+          "uv": [
+            10,
+            4,
+            11,
+            4.5
+          ]
+        },
+        "east": {
+          "texture": "#part",
+          "uv": [
+            10,
+            4,
+            11,
+            4.5
+          ]
+        },
+        "west": {
+          "texture": "#part",
+          "uv": [
+            10,
+            4,
+            11,
+            4.5
+          ]
+        },
+        "up": {
+          "texture": "#part",
+          "uv": [
+            10,
+            4,
+            11,
+            5
+          ]
+        }
+      }
+    }
+  ]
+}

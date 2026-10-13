@@ -1,0 +1,7 @@
+// 1.21.1	2026-10-10T22:47:30.1574118	Plasma heating crafting recipes
+403382f281b83ea0dd4916a6827898342b4e871d data/create_nuclearindustry/advancement/recipes/building_blocks/crafting/fusion_viewport.json
+5627eb7a1da3767fe2b44aa79b39b6a2b9880c03 data/create_nuclearindustry/advancement/recipes/misc/crafting/fusion_neutral_beam_injector.json
+09e9d48335e5865a85719648d4a3c468e62dab67 data/create_nuclearindustry/advancement/recipes/misc/crafting/fusion_rf_antenna.json
+78b808bca635333a6950607cf4a0a6f05a068947 data/create_nuclearindustry/recipe/crafting/fusion_neutral_beam_injector.json
+203c5e951553ccce765e2956159c8ba469e85363 data/create_nuclearindustry/recipe/crafting/fusion_rf_antenna.json
+88933953b92cc12d221341baf57d0548e80a6280 data/create_nuclearindustry/recipe/crafting/fusion_viewport.json

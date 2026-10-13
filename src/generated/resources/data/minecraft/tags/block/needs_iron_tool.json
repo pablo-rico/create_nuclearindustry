@@ -1,0 +1,14 @@
+{
+  "values": [
+    "create_nuclearindustry:uranium_ore",
+    "create_nuclearindustry:borax_ore",
+    "create_nuclearindustry:spodumene_ore",
+    "create_nuclearindustry:solidified_corium",
+    "create_nuclearindustry:core_catcher",
+    "create_nuclearindustry:containment_door",
+    "create_nuclearindustry:blast_door_frame",
+    "create_nuclearindustry:steel_blast_door",
+    "create_nuclearindustry:lead_blast_door",
+    "create_nuclearindustry:blast_door_controller"
+  ]
+}

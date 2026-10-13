@@ -1,0 +1,6 @@
+{
+  "values": [
+    "create_nuclearindustry:radioactive_waste",
+    "create_nuclearindustry:high_level_waste"
+  ]
+}

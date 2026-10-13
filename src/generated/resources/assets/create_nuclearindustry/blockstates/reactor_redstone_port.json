@@ -1,0 +1,188 @@
+{
+  "variants": {
+    "facing=down,mode=coolant": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 90
+    },
+    "facing=down,mode=fuel": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 90
+    },
+    "facing=down,mode=power": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 90
+    },
+    "facing=down,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 90
+    },
+    "facing=down,mode=rod_withdraw": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 90
+    },
+    "facing=down,mode=scram": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port_scram",
+      "x": 90
+    },
+    "facing=down,mode=steam": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 90
+    },
+    "facing=down,mode=temperature": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 90
+    },
+    "facing=east,mode=coolant": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 90
+    },
+    "facing=east,mode=fuel": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 90
+    },
+    "facing=east,mode=power": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 90
+    },
+    "facing=east,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 90
+    },
+    "facing=east,mode=rod_withdraw": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 90
+    },
+    "facing=east,mode=scram": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port_scram",
+      "y": 90
+    },
+    "facing=east,mode=steam": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 90
+    },
+    "facing=east,mode=temperature": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 90
+    },
+    "facing=north,mode=coolant": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port"
+    },
+    "facing=north,mode=fuel": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port"
+    },
+    "facing=north,mode=power": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port"
+    },
+    "facing=north,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port"
+    },
+    "facing=north,mode=rod_withdraw": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port"
+    },
+    "facing=north,mode=scram": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port_scram"
+    },
+    "facing=north,mode=steam": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port"
+    },
+    "facing=north,mode=temperature": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port"
+    },
+    "facing=south,mode=coolant": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 180
+    },
+    "facing=south,mode=fuel": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 180
+    },
+    "facing=south,mode=power": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 180
+    },
+    "facing=south,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 180
+    },
+    "facing=south,mode=rod_withdraw": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 180
+    },
+    "facing=south,mode=scram": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port_scram",
+      "y": 180
+    },
+    "facing=south,mode=steam": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 180
+    },
+    "facing=south,mode=temperature": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 180
+    },
+    "facing=up,mode=coolant": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 270
+    },
+    "facing=up,mode=fuel": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 270
+    },
+    "facing=up,mode=power": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 270
+    },
+    "facing=up,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 270
+    },
+    "facing=up,mode=rod_withdraw": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 270
+    },
+    "facing=up,mode=scram": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port_scram",
+      "x": 270
+    },
+    "facing=up,mode=steam": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 270
+    },
+    "facing=up,mode=temperature": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "x": 270
+    },
+    "facing=west,mode=coolant": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 270
+    },
+    "facing=west,mode=fuel": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 270
+    },
+    "facing=west,mode=power": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 270
+    },
+    "facing=west,mode=rod_insert": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 270
+    },
+    "facing=west,mode=rod_withdraw": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 270
+    },
+    "facing=west,mode=scram": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port_scram",
+      "y": 270
+    },
+    "facing=west,mode=steam": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 270
+    },
+    "facing=west,mode=temperature": {
+      "model": "create_nuclearindustry:block/reactor_redstone_port",
+      "y": 270
+    }
+  }
+}

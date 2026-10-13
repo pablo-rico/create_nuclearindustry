@@ -1,0 +1,31 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:spent_fuel_fragments"
+      },
+      "max_enrichment": 0.7,
+      "min_enrichment": 0.0
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:nitric_acid"
+    }
+  ],
+  "results": [
+    {
+      "components": {
+        "create_nuclearindustry:enrichment": 0.3
+      },
+      "id": "create_nuclearindustry:uranyl_nitrate"
+    },
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:spent_fuel_solution"
+    }
+  ]
+}

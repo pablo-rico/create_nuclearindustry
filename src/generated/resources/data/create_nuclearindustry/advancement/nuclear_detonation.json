@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:weapons_core",
+  "criteria": {
+    "nuclear_detonation": {
+      "conditions": {
+        "event": "nuclear_detonation"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.nuclear_detonation.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:nuclear_bomb"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.nuclear_detonation.title"
+    }
+  },
+  "requirements": [
+    [
+      "nuclear_detonation"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

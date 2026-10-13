@@ -1,0 +1,28 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:low_enriched_uranium_hexafluoride"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "minecraft:water"
+    }
+  ],
+  "results": [
+    {
+      "components": {
+        "create_nuclearindustry:enrichment": 5.0
+      },
+      "id": "create_nuclearindustry:uranium_dioxide"
+    },
+    {
+      "amount": 100,
+      "id": "create_nuclearindustry:hydrofluoric_acid"
+    }
+  ]
+}

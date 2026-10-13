@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "create_nuclearindustry:block/repository_inspector_front",
+    "side": "create_nuclearindustry:block/repository_inspector_side",
+    "top": "create_nuclearindustry:block/repository_inspector_top"
+  }
+}

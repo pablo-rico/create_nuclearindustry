@@ -6,13 +6,24 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.papiricoh.create_nuclearindustry.AllNuclearSounds;
+import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Plays the bang of a detonation to each player in the level once the sound has had time to reach
+ * them. Sounds still on their way hold the player and the level, so they are dropped with the level
+ * and when the server stops.
+ */
+@EventBusSubscriber(modid = Create_NuclearIndustry.MODID)
 public final class NuclearExplosionSoundManager {
     private static final double SOUND_SPEED_BLOCKS_PER_TICK = 17.15;
     private static final double FULL_VOLUME_DISTANCE = 96.0;
@@ -32,6 +43,27 @@ public final class NuclearExplosionSoundManager {
             float volume = volumeForDistance(distance);
             PENDING_SOUNDS.add(new PendingSound(level, player, origin, gameTime + delayTicks, volume, seed));
         }
+    }
+
+    /** Sounds still on their way in {@code level}; for tests. */
+    public static int pending(ServerLevel level) {
+        int count = 0;
+        for (PendingSound sound : PENDING_SOUNDS) {
+            if (sound.level == level) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @SubscribeEvent
+    public static void onLevelUnload(LevelEvent.Unload event) {
+        PENDING_SOUNDS.removeIf(sound -> sound.level == event.getLevel());
+    }
+
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event) {
+        PENDING_SOUNDS.clear();
     }
 
     public static void onLevelTick(LevelTickEvent.Post event) {

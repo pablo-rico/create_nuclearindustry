@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:turbine",
+  "criteria": {
+    "cooling_tower_formed": {
+      "conditions": {
+        "event": "cooling_tower_formed"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.cooling_tower.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:cooling_tower_controller"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.cooling_tower.title"
+    }
+  },
+  "requirements": [
+    [
+      "cooling_tower_formed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

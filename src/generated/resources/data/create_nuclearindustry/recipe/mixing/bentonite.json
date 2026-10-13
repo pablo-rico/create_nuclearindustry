@@ -1,0 +1,17 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "minecraft:clay"
+    },
+    {
+      "item": "create_nuclearindustry:borax_salt"
+    }
+  ],
+  "results": [
+    {
+      "count": 2,
+      "id": "create_nuclearindustry:bentonite"
+    }
+  ]
+}

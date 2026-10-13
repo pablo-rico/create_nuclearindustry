@@ -1,0 +1,71 @@
+{
+  "credit": "Create: Nuclear Industry",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_gauge_wall",
+    "part": "create_nuclearindustry:block/desk_gauge_wall"
+  },
+  "elements": [
+    {
+      "name": "needle",
+      "from": [
+        7.9,
+        1.0,
+        6.5
+      ],
+      "to": [
+        8.1,
+        1.1,
+        9.6
+      ],
+      "faces": {
+        "up": {
+          "texture": "#part",
+          "uv": [
+            12,
+            8,
+            12.25,
+            11
+          ],
+          "rotation": 180
+        },
+        "north": {
+          "texture": "#part",
+          "uv": [
+            12,
+            8,
+            12.25,
+            8.2
+          ]
+        },
+        "south": {
+          "texture": "#part",
+          "uv": [
+            12,
+            8,
+            12.25,
+            8.2
+          ]
+        },
+        "east": {
+          "texture": "#part",
+          "uv": [
+            12,
+            8,
+            12.2,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#part",
+          "uv": [
+            12,
+            8,
+            12.2,
+            11
+          ]
+        }
+      }
+    }
+  ]
+}

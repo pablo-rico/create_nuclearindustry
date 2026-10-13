@@ -14,20 +14,16 @@ import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
-import org.papiricoh.create_nuclearindustry.reactor.event.ReactorManager;
-import org.papiricoh.create_nuclearindustry.reactor.multiblock.ReactorStructureValidator;
+import org.papiricoh.create_nuclearindustry.multiblock.ControllerLink;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGoggleInformation {
-    private static final int LINK_SCAN_INTERVAL = 20;
-
     private final IFluidHandler inputHandler = new PortFluidHandler(ReactorFluidPortMode.INPUT);
     private final IFluidHandler outputHandler = new PortFluidHandler(ReactorFluidPortMode.OUTPUT);
-    private Optional<BlockPos> linkedController = Optional.empty();
-    private int linkScanCounter;
+    private final ControllerLink<ReactorBlockEntity> link = new ControllerLink<>(this, ReactorBlockEntity.class,
+            (reactor, pos) -> reactor.getStructure().map(structure -> structure.containsFluidPort(pos)).orElse(false));
 
     public ReactorFluidPortBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.REACTOR_FLUID_PORT.get(), pos, state);
@@ -37,10 +33,7 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
         if (level == null || level.isClientSide) {
             return;
         }
-        if (++linkScanCounter >= LINK_SCAN_INTERVAL) {
-            linkScanCounter = 0;
-            linkedController = findLinkedReactor().map(ReactorBlockEntity::getBlockPos);
-        }
+        link.tick();
     }
 
     public IFluidHandler getFluidHandler(Direction direction) {
@@ -51,20 +44,18 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
     }
 
     public void notifyLinkedReactorChanged(Player player) {
-        Optional<ReactorBlockEntity> reactor = findLinkedReactor();
-        linkedController = reactor.map(ReactorBlockEntity::getBlockPos);
-        reactor.ifPresent(linkedReactor -> linkedReactor.requestStructureRevalidation(player));
+        link.refresh().ifPresent(reactor -> reactor.requestStructureRevalidation(player));
         setChanged();
     }
 
     public void setLinkedController(BlockPos controllerPos) {
-        linkedController = Optional.of(controllerPos);
-        setChanged();
+        if (link.link(controllerPos)) {
+            setChanged();
+        }
     }
 
     public void clearLinkedController(BlockPos controllerPos) {
-        if (linkedController.map(controllerPos::equals).orElse(false)) {
-            linkedController = Optional.empty();
+        if (link.unlink(controllerPos)) {
             setChanged();
         }
     }
@@ -74,56 +65,30 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
     }
 
     private Optional<ReactorBlockEntity> findLinkedReactor() {
-        if (level == null) {
-            return Optional.empty();
-        }
-        Optional<ReactorBlockEntity> cached = getCachedLinkedReactor();
-        if (cached.isPresent()) {
-            return cached;
-        }
-        return ReactorManager.getReactorsInRange(level, getBlockPos(), ReactorStructureValidator.MAX_WIDTH + ReactorStructureValidator.MAX_HEIGHT)
-                .stream()
-                .filter(reactor -> reactor.getStructure().map(structure -> structure.containsFluidPort(getBlockPos())).orElse(false))
-                .sorted(Comparator.comparingLong(reactor -> reactor.getBlockPos().asLong()))
-                .findFirst();
+        return link.find();
     }
 
-    private Optional<ReactorBlockEntity> getCachedLinkedReactor() {
-        if (level == null || linkedController.isEmpty()) {
-            return Optional.empty();
-        }
-        if (level.getBlockEntity(linkedController.get()) instanceof ReactorBlockEntity reactor
-                && reactor.getStructure().map(structure -> structure.containsFluidPort(getBlockPos())).orElse(false)) {
-            return Optional.of(reactor);
-        }
-        linkedController = Optional.empty();
-        return Optional.empty();
-    }
-
-    private String linkStatus() {
-        Optional<ReactorBlockEntity> reactor = findLinkedReactor();
-        if (reactor.isPresent()) {
-            return "Linked";
-        }
-        if (linkedController.isPresent()) {
-            return "Structure incomplete";
-        }
-        return "No reactor";
+    private Component linkStatus() {
+        return ReactorBlockEntity.portLinkStatus(findLinkedReactor().isPresent(), link.linkedPos().isPresent());
     }
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         ReactorFluidPortMode mode = getMode();
-        tooltip.add(Component.literal("Reactor Fluid Port").withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.literal("  Mode: " + mode.displayName())
-                .withStyle(mode == ReactorFluidPortMode.INPUT ? ChatFormatting.AQUA : ChatFormatting.YELLOW));
-        tooltip.add(Component.literal("  Connect pump on: " + getBlockState().getValue(ReactorFluidPortBlock.FACING).getName().toUpperCase())
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("  Status: " + linkStatus())
-                .withStyle(findLinkedReactor().isPresent() ? ChatFormatting.GREEN : ChatFormatting.RED));
+        tooltip.add(Component.translatable("block.create_nuclearindustry.reactor_fluid_port").withStyle(ChatFormatting.GOLD));
+        tooltip.add(ReactorBlockEntity.portLine("mode", mode == ReactorFluidPortMode.INPUT ? ChatFormatting.AQUA : ChatFormatting.YELLOW,
+                ReactorBlockEntity.portMode(mode)));
+        tooltip.add(ReactorBlockEntity.portLine("connect_pump", ChatFormatting.GRAY,
+                ReactorBlockEntity.portSide(getBlockState().getValue(ReactorFluidPortBlock.FACING))));
+        tooltip.add(ReactorBlockEntity.portLine("status", findLinkedReactor().isPresent() ? ChatFormatting.GREEN : ChatFormatting.RED,
+                linkStatus()));
         findLinkedReactor().ifPresent(reactor -> {
-            tooltip.add(Component.literal("  Coolant: " + reactor.getCoolantAmount() + "/" + reactor.getTankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("  Steam: " + reactor.getSteamAmount() + "/" + reactor.getTankCapacity() + " mB").withStyle(ChatFormatting.GRAY));
+            tooltip.add(ReactorBlockEntity.goggleLine("coolant", ChatFormatting.GRAY, reactor.getCoolantAmount(), reactor.getTankCapacity()));
+            tooltip.add(ReactorBlockEntity.goggleLine("steam", ChatFormatting.GRAY, reactor.getSteamAmount(), reactor.getTankCapacity()));
+            if (reactor.plantReadings().pwr()) {
+                tooltip.add(Component.literal("  ").append(Component.translatable(mode == ReactorFluidPortMode.INPUT
+                        ? "create_nuclearindustry.pwr.port.cold_leg" : "create_nuclearindustry.pwr.port.hot_leg")).withStyle(ChatFormatting.AQUA));
+            }
         });
         return true;
     }
@@ -154,12 +119,13 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
 
         @Override
         public boolean isFluidValid(int tank, FluidStack stack) {
-            return handlerMode == ReactorFluidPortMode.INPUT && NuclearFluidHelper.isCoolant(stack);
+            return handlerMode == ReactorFluidPortMode.INPUT
+                    && findLinkedReactor().map(reactor -> reactor.acceptsCoolant(stack)).orElse(NuclearFluidHelper.isCoolant(stack));
         }
 
         @Override
         public int fill(FluidStack resource, FluidAction action) {
-            if (handlerMode != ReactorFluidPortMode.INPUT || !NuclearFluidHelper.isCoolant(resource)) {
+            if (handlerMode != ReactorFluidPortMode.INPUT || !NuclearFluidHelper.isReactorCoolant(resource) && !NuclearFluidHelper.isHotPrimary(resource)) {
                 return 0;
             }
             return findLinkedReactor().map(reactor -> reactor.fillCoolant(resource, action)).orElse(0);
@@ -167,7 +133,7 @@ public class ReactorFluidPortBlockEntity extends BlockEntity implements IHaveGog
 
         @Override
         public FluidStack drain(FluidStack resource, FluidAction action) {
-            if (handlerMode != ReactorFluidPortMode.OUTPUT || !NuclearFluidHelper.isTurbineSteam(resource)) {
+            if (handlerMode != ReactorFluidPortMode.OUTPUT || !NuclearFluidHelper.isReactorOutput(resource)) {
                 return FluidStack.EMPTY;
             }
             return findLinkedReactor().map(reactor -> reactor.drainSteam(resource, action)).orElse(FluidStack.EMPTY);

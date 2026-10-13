@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "T": {
+      "item": "minecraft:glass_pane"
+    }
+  },
+  "pattern": [
+    " E ",
+    "BTB",
+    " R "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:geiger_counter"
+  }
+}

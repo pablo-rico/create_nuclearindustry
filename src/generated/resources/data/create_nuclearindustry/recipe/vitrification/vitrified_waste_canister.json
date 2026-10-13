@@ -1,0 +1,33 @@
+{
+  "type": "create_nuclearindustry:vitrification",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:high_level_waste"
+    },
+    {
+      "item": "create_nuclearindustry:high_level_waste"
+    },
+    {
+      "item": "create_nuclearindustry:high_level_waste"
+    },
+    {
+      "item": "create_nuclearindustry:high_level_waste"
+    },
+    {
+      "tag": "minecraft:sand"
+    },
+    {
+      "tag": "minecraft:sand"
+    },
+    {
+      "item": "create_nuclearindustry:borax_salt"
+    }
+  ],
+  "processing_time": 200,
+  "results": [
+    {
+      "id": "create_nuclearindustry:vitrified_waste_canister"
+    }
+  ]
+}

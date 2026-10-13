@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "B": {
+      "item": "create_nuclearindustry:beryllium"
+    },
+    "C": {
+      "item": "create_nuclearindustry:reactor_casing"
+    },
+    "P": {
+      "item": "create:copper_sheet"
+    }
+  },
+  "pattern": [
+    "BPB",
+    "PCP",
+    "BPB"
+  ],
+  "result": {
+    "count": 2,
+    "id": "create_nuclearindustry:beryllium_reflector"
+  }
+}

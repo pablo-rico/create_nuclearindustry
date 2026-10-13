@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "create_nuclearindustry:block/containment_penetration_horizontal",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "create_nuclearindustry:block/containment_penetration"
+    },
+    "axis=z": {
+      "model": "create_nuclearindustry:block/containment_penetration_horizontal",
+      "x": 90
+    }
+  }
+}

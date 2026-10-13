@@ -1,0 +1,202 @@
+{
+  "credit": "Create: Nuclear Industry",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/advanced_link_side",
+    "plate": "create_nuclearindustry:block/advanced_link_plate",
+    "side": "create_nuclearindustry:block/advanced_link_side",
+    "tip": "create_nuclearindustry:block/advanced_link_tip_transmitter"
+  },
+  "elements": [
+    {
+      "name": "plate",
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        14,
+        3,
+        14
+      ],
+      "faces": {
+        "up": {
+          "texture": "#plate",
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        },
+        "down": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            12,
+            12
+          ],
+          "cullface": "down"
+        },
+        "north": {
+          "texture": "#side",
+          "uv": [
+            0,
+            12,
+            12,
+            15
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            0,
+            12,
+            12,
+            15
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            0,
+            12,
+            12,
+            15
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            0,
+            12,
+            12,
+            15
+          ]
+        }
+      }
+    },
+    {
+      "name": "rod",
+      "from": [
+        12,
+        3,
+        7.5
+      ],
+      "to": [
+        13,
+        10,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side",
+          "uv": [
+            13,
+            0,
+            14,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            13,
+            0,
+            14,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            13,
+            0,
+            14,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            13,
+            0,
+            14,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "tip",
+      "from": [
+        11.5,
+        10,
+        7
+      ],
+      "to": [
+        13.5,
+        12,
+        9
+      ],
+      "faces": {
+        "up": {
+          "texture": "#tip",
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#tip",
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "north": {
+          "texture": "#tip",
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#tip",
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#tip",
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#tip",
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ]
+        }
+      }
+    }
+  ]
+}

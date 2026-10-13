@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "create_nuclearindustry:block/fusion_central_solenoid_horizontal",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "create_nuclearindustry:block/fusion_central_solenoid"
+    },
+    "axis=z": {
+      "model": "create_nuclearindustry:block/fusion_central_solenoid_horizontal",
+      "x": 90
+    }
+  }
+}

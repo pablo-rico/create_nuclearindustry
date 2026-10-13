@@ -1,0 +1,21 @@
+{
+  "type": "create_nuclearindustry:acid_leaching",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:heavy_mineral_sand"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:thorium_dioxide"
+    },
+    {
+      "chance": 0.1,
+      "id": "create_nuclearindustry:uranium_concentrate"
+    },
+    {
+      "chance": 0.1,
+      "id": "create_nuclearindustry:beryllium"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "blade": "create_nuclearindustry:block/turbine_blade",
+    "particle": "create_nuclearindustry:block/turbine_blade"
+  },
+  "elements": [
+    {
+      "from": [8, 2, 7.5],
+      "to": [16, 14, 8.5],
+      "rotation": {"origin": [8, 8, 8], "axis": "x", "angle": 22.5},
+      "faces": {
+        "north": {"uv": [0, 2, 8, 14], "texture": "#blade"},
+        "south": {"uv": [8, 2, 16, 14], "texture": "#blade"},
+        "east": {"uv": [7, 2, 8, 14], "texture": "#blade"},
+        "up": {"uv": [8, 7, 16, 8], "texture": "#blade"},
+        "down": {"uv": [8, 8, 16, 9], "texture": "#blade"}
+      }
+    }
+  ]
+}

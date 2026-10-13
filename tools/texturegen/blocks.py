@@ -44,6 +44,12 @@ def borax_ore():
     return mineral("stone", borax, offset=1)
 
 
+@block("spodumene_ore")
+def spodumene_ore():
+    from palette import SPODUMENE
+    return mineral("stone", SPODUMENE, offset=3)
+
+
 # ======================================================================================
 # fission tier - casings and structure
 # ======================================================================================
@@ -195,6 +201,39 @@ def reactor_temperature_sensor():
     return t
 
 
+@block("reactor_redstone_port")
+def reactor_redstone_port():
+    return _reactor_redstone_port(False)
+
+
+@block("reactor_redstone_port_scram")
+def reactor_redstone_port_scram():
+    return _reactor_redstone_port(True)
+
+
+def _reactor_redstone_port(scram):
+    STEEL = REACTOR_STEEL
+    t = Tex(seed=24 if scram else 23)
+    steel_panel(t)
+    # Recessed socket with a redstone lamp; the SCRAM variant gets a hazard-striped bezel.
+    t.rect(4, 4, 11, 11, DARK[1])
+    bevel(t, 4, 4, 11, 11, STEEL)
+    if scram:
+        for i in range(4, 12):
+            for j in (4, 11):
+                t.set(i, j, WARN[5] if (i // 2) % 2 == 0 else DARK[0])
+                t.set(j, i, WARN[5] if (i // 2) % 2 == 0 else DARK[0])
+    t.rect(6, 6, 9, 9, DANGER[1])
+    t.rect(7, 7, 8, 8, DANGER[5] if scram else DANGER[3])
+    t.set(7, 7, DANGER[6])
+    glow(t, 7.5, 7.5, 3.0, DANGER[6], 0.3 if scram else 0.15)
+    # comparator-style output pins along the bottom edge
+    for x in (5, 8, 10):
+        t.set(x, 13, STEEL[6])
+        t.set(x, 14, STEEL[1])
+    return t
+
+
 @block("reactor_controller_off")
 def reactor_controller_off():
     return _reactor_controller(False)
@@ -301,25 +340,48 @@ def turbine_rotor_core():
     return t
 
 
+def _output_frame():
+    """Steel twin of the tokamak's framed bearing: the model stands the outer 3px 2px proud of
+    the 10x10 recess the drive shaft turns in."""
+    t = Tex(seed=27)
+    brushed(t, STEEL, base=3.4, amp=0.6, seed=27)
+    outline(t, 0, 0, 15, 15, STEEL[1])
+    bevel(t, 1, 1, 14, 14, STEEL, hi=STEEL[5], lo=STEEL[1], corner=False)
+    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        bolt(t, x, y, STEEL)
+    # Recess floor, in shadow under the frame's top and left edges.
+    t.rect(3, 3, 12, 12, DARK[2])
+    t.hline(3, 12, 3, DARK[0])
+    t.vline(3, 3, 12, DARK[0])
+    t.hline(4, 12, 4, DARK[1])
+    t.vline(4, 4, 12, DARK[1])
+    return t
+
+
 @block("turbine_output_front")
 def turbine_output_front():
-    t = Tex(seed=27)
-    casing(t, STEEL, seed=27, seam=False)
-    t.disc(8, 8, 6.2, STEEL[3])
-    t.ring(8, 8, 6.2, 5.4, STEEL[5])
-    t.ring(8, 8, 6.5, 6.1, STEEL[0])
-    t.disc(8, 8, 5.0, DARK[1])
-    for a in range(0, 360, 30):
-        r = math.radians(a)
-        t.line(8 + math.cos(r) * 1.6, 8 + math.sin(r) * 1.6,
-               8 + math.cos(r) * 4.8, 8 + math.sin(r) * 4.8, STEEL[4])
-    t.disc(8, 8, 1.8, STEEL[2])
-    glow(t, 8, 8, 6.0, CRYO[6], 0.10)
+    """The shaft end in the turbine's end wall: a brass coupling flange round the bearing."""
+    t = _output_frame()
+    t.ring(8, 8, 4.6, 3.7, BRASS[3])
+    for x, y in ((4, 7), (7, 4)):
+        t.set(x, y, BRASS[5])
+    for x, y in ((11, 8), (8, 11)):
+        t.set(x, y, BRASS[1])
+    t.ring(8, 8, 3.6, 2.4, STEEL[4])
+    t.set(6, 5, STEEL[6])
+    t.set(5, 6, STEEL[6])
+    t.set(10, 10, STEEL[2])
+    t.rect(6, 6, 9, 9, DARK[0])
+    # Exhaust louvres on the bottom bar, as on the casing.
+    for x in (4, 7, 10):
+        t.hline(x, x + 1, 13, DARK[1])
+        t.hline(x, x + 1, 14, STEEL[5])
     return t
 
 
 @block("turbine_output_side")
 def turbine_output_side():
+    """The bearing housing: the shaft line runs front to back between two clamp rings."""
     t = Tex(seed=28)
     casing(t, STEEL, seed=28, seam=False)
     t.rect(0, 5, 15, 10, STEEL[4])
@@ -327,8 +389,26 @@ def turbine_output_side():
     t.hline(0, 15, 5, STEEL[6])
     t.hline(0, 15, 10, STEEL[1])
     for x in (3, 12):
-        t.vline(x, 5, 10, STEEL[1])
-        t.vline(x + 1, 5, 10, STEEL[5])
+        t.vline(x, 4, 11, BRASS[4])
+        t.vline(x + 1, 4, 11, BRASS[1])
+    return t
+
+
+@block("turbine_output_back")
+def turbine_output_back():
+    """Seen from inside the turbine: the brass hub the rotor is keyed to."""
+    t = Tex(seed=29)
+    brushed(t, DARK, base=2.6, amp=0.6, seed=29)
+    bevel(t, 0, 0, 15, 15, DARK, hi=DARK[4], lo=DARK[0])
+    t.disc(8, 8, 5.6, BRASS[3])
+    t.ring(8, 8, 5.6, 4.8, BRASS[5])
+    t.ring(8, 8, 5.9, 5.5, BRASS[0])
+    t.disc(8, 8, 3.0, BRASS[2])
+    for a in range(0, 360, 60):
+        r = math.radians(a)
+        t.line(8 + math.cos(r) * 3.2, 8 + math.sin(r) * 3.2,
+               8 + math.cos(r) * 4.6, 8 + math.sin(r) * 4.6, BRASS[1])
+    t.disc(8, 8, 1.6, DARK[0])
     return t
 
 
@@ -450,6 +530,158 @@ def centrifuge_shaft():
 
 
 # ======================================================================================
+# reinforced turbine glass (connected textures)
+# ======================================================================================
+
+# Textures drawn with transparent pixels; validate.py checks these against their own sizes.
+CUTOUT_BLOCKS = {
+    "reinforced_turbine_glass": (16, 16),
+    "reinforced_turbine_glass_connected": (64, 64),
+}
+
+
+def _glass_tile(t, ox, oy, left, right, top, bottom):
+    """One 16x16 pane at (ox, oy). Borders are drawn only where the pane meets a non-glass
+    neighbour, so tiles join seamlessly; the wire mesh uses tile-local coordinates so it lines
+    up across joined panes."""
+    for y in range(16):
+        for x in range(16):
+            px = None
+            if (x % 8 == 3 and y % 8 != 3) or (y % 8 == 3 and x % 8 != 3):
+                px = STEEL[2]
+            elif x % 8 == 3 and y % 8 == 3:
+                px = STEEL[4]
+            t.set(ox + x, oy + y, px) if px else None
+    # faint glint, drawn opaque so cutout rendering keeps it
+    for i in range(3):
+        t.set(ox + 10 + i, oy + 5 - i, STEEL[6])
+    edges = []
+    if top:
+        edges += [(x, 0, 1) for x in range(16)] + [(x, 1, 0) for x in range(16)]
+    if bottom:
+        edges += [(x, 15, 1) for x in range(16)] + [(x, 14, 0) for x in range(16)]
+    if left:
+        edges += [(0, y, 1) for y in range(16)] + [(1, y, 0) for y in range(16)]
+    if right:
+        edges += [(15, y, 1) for y in range(16)] + [(14, y, 0) for y in range(16)]
+    for x, y, outer in edges:
+        t.set(ox + x, oy + y, DARK[1] if outer else STEEL[5 if (x + y) % 2 else 4])
+    # bolts where two bordered sides meet
+    for cx, cy, on in ((2, 2, top and left), (13, 2, top and right), (2, 13, bottom and left), (13, 13, bottom and right)):
+        if on:
+            t.set(ox + cx, oy + cy, BRASS[5])
+
+
+@block("reinforced_turbine_glass")
+def reinforced_turbine_glass():
+    t = Tex(seed=41)
+    _glass_tile(t, 0, 0, True, True, True, True)
+    return t
+
+
+@block("reinforced_turbine_glass_connected")
+def reinforced_turbine_glass_connected():
+    """Create's RECTANGLE layout: 4x4 tiles, index = col + 4*row.
+    col 0 isolated, 1 joined right, 2 joined both, 3 joined left;
+    row 0 joined down, 1 joined both, 2 joined up, 3 isolated."""
+    t = Tex(64, 64, 42)
+    for row in range(4):
+        for col in range(4):
+            _glass_tile(t, col * 16, row * 16,
+                        left=col in (0, 1), right=col in (0, 3),
+                        top=row in (0, 3), bottom=row in (2, 3))
+    return t
+
+
+# ======================================================================================
+# waste storage
+# ======================================================================================
+
+@block("radioactive_waste_barrel_side")
+def radioactive_waste_barrel_side():
+    t = Tex(seed=39)
+    brushed(t, WARN, base=3.6, amp=0.6, seed=39, axis="v")
+    for x in range(16):
+        f = 0.72 + 0.56 * math.sin(math.pi * (x + 0.5) / 16)
+        for y in range(16):
+            t.set(x, y, shade(t.get(x, y), f))
+    # rolling hoops top and bottom
+    for y in (0, 1, 14, 15):
+        for x in range(16):
+            t.set(x, y, shade(DARK[3], 1.0 if y in (1, 14) else 0.8))
+    # black trefoil on the drum
+    trefoil(t, 8, 8, 5.6, DARK[0])
+    return t
+
+
+@block("radioactive_waste_barrel_top")
+def radioactive_waste_barrel_top():
+    t = Tex(seed=40)
+    brushed(t, WARN, base=3.4, amp=0.5, seed=40)
+    t.ring(8, 8, 8.0, 6.9, DARK[3])
+    t.ring(8, 8, 6.9, 6.2, WARN[5])
+    # bung and vent
+    t.disc(11, 5, 1.6, DARK[2])
+    t.set(10, 4, DARK[5])
+    t.disc(5, 11, 1.1, DARK[2])
+    return t
+
+
+# ======================================================================================
+# electrolyzer (same body as the centrifuge, copper cell and electrode panel)
+# ======================================================================================
+
+@block("electrolyzer_metal")
+def electrolyzer_metal():
+    t = Tex(seed=37)
+    brushed(t, COPPER, base=3.8, amp=0.7, seed=37, axis="v")
+    for x in range(16):
+        f = 0.70 + 0.58 * math.sin(math.pi * (x + 0.5) / 16)
+        for y in range(16):
+            t.set(x, y, shade(t.get(x, y), f))
+    # banded electrolytic cell with insulating rings
+    for y in (0, 5, 10, 15):
+        for x in range(16):
+            t.set(x, y, shade(DARK[2], 0.9 if y in (0, 15) else 1.1))
+    for y in range(1, 15):
+        if y not in (5, 10):
+            t.blend(4, y, WHITE, 0.14)
+    for y in (2, 7, 12):
+        for x in (3, 12):
+            t.set(x, y, BRASS[5])
+            t.set(x, y + 1, BRASS[1])
+    return t
+
+
+@block("electrolyzer_panel")
+def electrolyzer_panel():
+    t = Tex(seed=38)
+    brushed(t, DARK, base=3.4, amp=0.6, seed=38)
+    bevel(t, 0, 0, 15, 15, DARK)
+    outline(t, 0, 0, 15, 15, DARK)
+    # sight glass with two electrodes and rising bubbles
+    t.rect(2, 2, 13, 11, CYAN[1])
+    inset(t, 2, 2, 13, 11, DARK)
+    for y in range(3, 11):
+        for x in range(3, 13):
+            t.set(x, y, CYAN[2] if (x + y) % 5 else CYAN[3])
+    for y in range(3, 11):
+        t.set(5, y, COPPER[5])
+        t.set(6, y, COPPER[2])
+        t.set(10, y, LEAD[5])
+        t.set(11, y, LEAD[2])
+    for x, y in ((7, 9), (8, 7), (7, 5), (9, 4), (4, 8), (12, 6)):
+        t.set(x, y, CYAN[6])
+    glow(t, 8, 7, 6.0, CYAN[6], 0.18)
+    # polarity marks
+    t.rect(3, 13, 4, 13, DANGER[5])
+    t.rect(11, 13, 12, 13, CYAN[5])
+    t.set(4, 12, DANGER[5])
+    t.set(4, 14, DANGER[5])
+    return t
+
+
+# ======================================================================================
 # fusion tier
 # ======================================================================================
 
@@ -534,6 +766,46 @@ def shell_side():
     hazard(t, 0, 6, 15, 8, WARN[5], DARK[1], period=6, seed=63)
     t.hline(0, 15, 6, DARK[0])
     t.hline(0, 15, 8, DARK[0])
+    return t
+
+
+@block("projectile/depleted_uranium_ap_shot_side")
+def du_shot_side():
+    t = Tex(seed=66)
+    brushed(t, LEAD, base=3.0, amp=0.6, seed=66, axis="v")
+    for x in range(16):
+        f = 0.7 + 0.6 * math.sin(math.pi * (x + 0.5) / 16)
+        for y in range(16):
+            t.set(x, y, shade(t.get(x, y), f))
+    # bright hardened penetrator cap on top, steel driving band, olive base
+    for y in range(0, 4):
+        for x in range(16):
+            t.set(x, y, shade(STEEL[5 if y < 2 else 4], 0.7 + 0.6 * math.sin(math.pi * (x + 0.5) / 16)))
+    t.hline(0, 15, 4, STEEL[1])
+    for y in (10, 11):
+        t.hline(0, 15, y, COPPER[3 if y == 10 else 1])
+    t.hline(0, 15, 12, URANIUM[1])
+    return t
+
+
+@block("projectile/depleted_uranium_ap_shot_top")
+def du_shot_top():
+    t = Tex(seed=67)
+    brushed(t, STEEL, base=3.6, amp=0.4, seed=67)
+    t.disc(8, 8, 7.0, STEEL[5])
+    t.ring(8, 8, 7.4, 6.9, STEEL[0])
+    t.disc(8, 8, 3.0, STEEL[6])
+    glow(t, 7, 7, 4.0, WHITE, 0.2)
+    return t
+
+
+@block("projectile/depleted_uranium_ap_shot_bottom")
+def du_shot_bottom():
+    t = Tex(seed=68)
+    brushed(t, LEAD, base=2.4, amp=0.5, seed=68)
+    t.disc(8, 8, 7.0, LEAD[2])
+    t.ring(8, 8, 7.4, 6.9, LEAD[0])
+    t.disc(8, 8, 3.0, URANIUM[1])
     return t
 
 
@@ -629,3 +901,625 @@ def launch_pad_rail():
             t.set(x + 1, y, STEEL[4])
             t.set(x + 2, y, STEEL[1])
     return t
+
+
+@block("turbine_exhaust_port")
+def turbine_exhaust_port():
+    # A turbine port with a louvred grey outlet: spent steam goes out here, to a cooling tower.
+    t = port_face(Tex(seed=99), STEEL, LEAD, seed=99, out=True)
+    for y in (5, 7, 9):
+        t.hline(5, 10, y, STEEL[6])
+    return t
+
+
+# ======================================================================================
+# cooling tower
+# ======================================================================================
+
+def _tower_concrete(t, seed):
+    # Poured concrete in horizontal lifts, weathered with vertical rain streaks.
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, seed, 16, 16, 3, 5.0)
+            t.set(x, y, CONCRETE[int(round(2.0 + n * 3.0))])
+    for y in (0, 8):
+        t.hline(0, 15, y, CONCRETE[1])
+        t.hline(0, 15, y + 1, CONCRETE[5])
+    for x in (3, 9, 13):
+        for y in range(2, 16):
+            if fbm(x, y, seed + 5, 16, 16, 2, 3.0) > 0.45:
+                t.set(x, y, CONCRETE[2])
+    speckle(t, 0, 0, 15, 15, CONCRETE[1], chance=0.05, seed=seed)
+    return t
+
+
+@block("cooling_tower_casing")
+def cooling_tower_casing():
+    return _tower_concrete(Tex(seed=90), 90)
+
+
+@block("cooling_tower_controller")
+def cooling_tower_controller():
+    t = _tower_concrete(Tex(seed=91), 91)
+    # Steel instrument plate with a load dial and a water-level column.
+    t.rect(2, 2, 13, 13, STEEL[3])
+    bevel(t, 2, 2, 13, 13, STEEL)
+    outline(t, 2, 2, 13, 13, STEEL[0])
+    t.disc(6.5, 7.5, 3.4, DARK[2])
+    t.ring(6.5, 7.5, 3.4, 2.8, STEEL[5])
+    for a in range(200, 341, 20):
+        r = math.radians(a)
+        t.set(round(6.5 + math.cos(r) * 2.2 - 0.5), round(7.5 + math.sin(r) * 2.2 - 0.5), CYAN[5])
+    t.line(6, 7, 8, 5, WARN[6])
+    t.rect(11, 4, 12, 11, DARK[0])
+    t.rect(11, 8, 12, 11, CYAN[4])
+    t.set(11, 8, CYAN[6])
+    return t
+
+
+@block("cooling_tower_fluid_port_input")
+def cooling_tower_fluid_port_input():
+    return port_face(Tex(seed=92), CONCRETE, IN_ACCENT, seed=92)
+
+
+@block("cooling_tower_fluid_port_output")
+def cooling_tower_fluid_port_output():
+    return port_face(Tex(seed=93), CONCRETE, OUT_ACCENT, seed=93, out=True)
+
+
+@block("cooling_tower_fan")
+def cooling_tower_fan():
+    t = _tower_concrete(Tex(seed=94), 94)
+    # Louvred intake around a steel hub.
+    t.rect(1, 1, 14, 14, DARK[1])
+    bevel(t, 1, 1, 14, 14, STEEL)
+    for y in range(3, 13, 2):
+        t.hline(2, 13, y, STEEL[4])
+        t.hline(2, 13, y + 1, DARK[0])
+    t.disc(7.5, 7.5, 2.4, STEEL[3])
+    t.ring(7.5, 7.5, 2.4, 1.6, STEEL[6])
+    t.disc(7.5, 7.5, 0.9, DARK[0])
+    return t
+
+
+
+@block("depleted_uranium_block")
+def depleted_uranium_block():
+    # Dense grey metal blocks stacked in a 2x2 bond, faint green oxide in the joints.
+    t = Tex(seed=95)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 95, 16, 16, 3, 4.0)
+            t.set(x, y, LEAD[int(round(2.2 + n * 2.4))])
+    for i in (0, 8):
+        t.hline(0, 15, i, LEAD[0])
+        t.vline(i, 0, 15, LEAD[0])
+        t.hline(0, 15, i + 1, LEAD[5])
+        t.vline(i + 1, 0, 15, LEAD[5])
+    speckle(t, 0, 0, 15, 15, URANIUM[1], chance=0.05, seed=95)
+    for cx, cy in ((4, 4), (12, 4), (4, 12), (12, 12)):
+        t.set(cx, cy, LEAD[6])
+    return t
+
+
+# ======================================================================================
+# RTG
+# ======================================================================================
+
+@block("rtg_side")
+def rtg_side():
+    # Radiator fins over a dark core, with a yellow trefoil plate.
+    t = Tex(seed=96)
+    for y in range(16):
+        for x in range(16):
+            t.set(x, y, STEEL[2] if x % 3 == 0 else STEEL[4] if x % 3 == 1 else STEEL[5])
+    t.hline(0, 15, 0, STEEL[1])
+    t.hline(0, 15, 15, STEEL[0])
+    t.rect(5, 5, 10, 10, WARN[5])
+    outline(t, 5, 5, 10, 10, DARK[0])
+    trefoil(t, 7.5, 7.5, 2.2, DARK[0])
+    return t
+
+
+@block("rtg_front")
+def rtg_front():
+    t = Tex(seed=97)
+    brushed(t, STEEL, base=3.2, amp=0.5, seed=97)
+    bevel(t, 0, 0, 15, 15, STEEL)
+    t.disc(7.5, 7.5, 3.6, DARK[0])
+    t.ring(7.5, 7.5, 4.4, 3.6, BRASS[4])
+    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        bolt(t, x, y, STEEL)
+    return t
+
+
+@block("rtg_back")
+def rtg_back():
+    t = Tex(seed=98)
+    brushed(t, STEEL, base=2.8, amp=0.5, seed=98)
+    bevel(t, 0, 0, 15, 15, STEEL)
+    hazard(t, 2, 6, 13, 9, WARN[5], DARK[1], period=4, seed=98)
+    return t
+
+
+@block("radiation_scrubber_side")
+def radiation_scrubber_side():
+    # Steel housing around a glowing green filter cartridge behind a grille.
+    t = Tex(seed=96)
+    brushed(t, STEEL, base=3.0, amp=0.8, seed=96)
+    bevel(t, 0, 0, 15, 15, STEEL)
+    outline(t, 0, 0, 15, 15, STEEL[0])
+    t.rect(3, 3, 12, 12, DARK[0])
+    t.rect(4, 4, 11, 11, RADIUM[2])
+    for x in range(4, 12, 2):
+        t.vline(x, 4, 11, RADIUM[4])
+    for y in (4, 7, 10):
+        t.hline(4, 11, y, DARK[1])
+    t.set(7, 6, RADIUM[6])
+    t.set(8, 9, RADIUM[6])
+    for x, y in ((1, 1), (14, 1), (1, 14), (14, 14)):
+        rivet(t, x, y, STEEL)
+    return t
+
+
+@block("radiation_scrubber_top")
+def radiation_scrubber_top():
+    # Intake grate with the trefoil warning.
+    t = Tex(seed=97)
+    brushed(t, STEEL, base=3.2, amp=0.7, seed=97)
+    bevel(t, 0, 0, 15, 15, STEEL)
+    outline(t, 0, 0, 15, 15, STEEL[0])
+    t.disc(7.5, 7.5, 6.2, DARK[1])
+    t.disc(7.5, 7.5, 5.4, WARN[4])
+    trefoil(t, 7.5, 7.5, 4.8, DARK[0])
+    return t
+
+
+@block("radiation_scrubber_bottom")
+def radiation_scrubber_bottom():
+    # Plain plate around the drive shaft socket.
+    t = Tex(seed=98)
+    brushed(t, STEEL, base=2.8, amp=0.7, seed=98)
+    bevel(t, 0, 0, 15, 15, STEEL)
+    outline(t, 0, 0, 15, 15, STEEL[0])
+    t.disc(7.5, 7.5, 3.2, DARK[0])
+    t.ring(7.5, 7.5, 3.2, 2.4, STEEL[5])
+    t.rect(6, 6, 9, 9, DARK[2])
+    return t
+
+
+# ======================================================================================
+# fission tier - moderator and reflector
+# ======================================================================================
+
+GRAPHITE = LEAD.tinted(DARK[0], 0.35)
+
+
+
+@block("graphite_moderator")
+def graphite_moderator():
+    # Stacked graphite bricks with a bored channel through the middle, RBMK style.
+    t = Tex(seed=110)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 110, 16, 16, 3, 5.0)
+            t.set(x, y, GRAPHITE[int(round(1.8 + n * 2.0))])
+    for y in (0, 5, 10, 15):
+        t.hline(0, 15, y, GRAPHITE[0])
+    for row, y0 in enumerate((0, 5, 10)):
+        for x in ((5, 11) if row % 2 == 0 else (2, 8, 14)):
+            t.vline(x, y0, min(15, y0 + 5), GRAPHITE[0])
+    for y in (1, 6, 11):
+        t.hline(0, 15, y, GRAPHITE[4])
+    t.disc(7.5, 7.5, 2.6, GRAPHITE[0])
+    t.ring(7.5, 7.5, 3.3, 2.6, GRAPHITE[5])
+    speckle(t, 0, 0, 15, 15, GRAPHITE[6], chance=0.04, seed=110)
+    return t
+
+
+@block("beryllium_reflector")
+def beryllium_reflector():
+    # Pale beryllium plates in a steel frame: bright face that bounces neutrons back.
+    from pixelkit import Ramp
+    ber = Ramp("#354039", "#546257", "#758777", "#98aa92", "#b6c9aa", "#d4e0c5", "#eff2dd")
+    t = Tex(seed=111)
+    brushed(t, ber, base=4.0, amp=0.6, seed=111)
+    outline(t, 0, 0, 15, 15, STEEL[0])
+    bevel(t, 1, 1, 14, 14, STEEL)
+    for x0, y0 in ((2, 2), (8, 2), (2, 8), (8, 8)):
+        t.rect(x0, y0, x0 + 5, y0 + 5, ber[4])
+        bevel(t, x0, y0, x0 + 5, y0 + 5, ber)
+        t.set(x0 + 1, y0 + 1, ber[6])
+    for x, y in ((7, 7), (8, 7), (7, 8), (8, 8)):
+        t.set(x, y, STEEL[1])
+    for x, y in ((1, 1), (14, 1), (1, 14), (14, 14)):
+        rivet(t, x, y, STEEL)
+    return t
+
+
+# ======================================================================================
+# control room
+# ======================================================================================
+
+@block("control_monitor_side")
+def control_monitor_side():
+    # Dark brushed housing with a vent strip, matching the control desk.
+    t = Tex(seed=120)
+    brushed(t, DARK, base=3.2, amp=0.5, seed=120)
+    bevel(t, 0, 0, 15, 15, DARK)
+    outline(t, 0, 0, 15, 15, DARK[0])
+    for y in (5, 7, 9):
+        t.hline(4, 11, y, DARK[0])
+        t.hline(4, 11, y + 1, DARK[4])
+    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        bolt(t, x, y, DARK)
+    return t
+
+
+@block("control_monitor_front")
+def control_monitor_front():
+    # A thin bezel round dark glass; the renderer draws the live screen over it.
+    t = Tex(seed=121)
+    t.rect(0, 0, 15, 15, DARK[2])
+    outline(t, 0, 0, 15, 15, DARK[0])
+    t.rect(1, 1, 14, 14, BLACK)
+    for y in range(1, 15):
+        for x in range(1, 15):
+            t.set(x, y, mix(DARK[0], CYAN[0], 0.18 if (y % 2) else 0.10))
+    for i in range(10):
+        t.blend(2 + i, 13 - i, DARK[4], 0.18)
+    return t
+
+
+def _alarm(seed, lit, top):
+    t = Tex(seed=seed)
+    brushed(t, DARK, base=3.0, amp=0.5, seed=seed)
+    outline(t, 0, 0, 15, 15, DARK[0])
+    lamp = DANGER if lit else DARK
+    if top:
+        t.disc(7.5, 7.5, 5.6, DARK[0])
+        t.disc(7.5, 7.5, 4.8, lamp[4] if lit else lamp[2])
+        t.disc(6.5, 6.5, 1.6, lamp[6] if lit else lamp[4])
+    else:
+        t.rect(3, 2, 12, 13, DARK[0])
+        t.rect(4, 3, 11, 12, lamp[4] if lit else lamp[2])
+        for y in range(4, 12, 2):
+            t.hline(4, 11, y, DARK[1])
+        t.set(5, 4, lamp[6] if lit else lamp[4])
+        hazard(t, 1, 14, 14, 15, WARN[4], DARK[0], period=4, seed=seed)
+    if lit:
+        glow(t, 7.5, 7.5, 8.0, DANGER[6], 0.25)
+    return t
+
+
+@block("nuclear_alarm_side")
+def nuclear_alarm_side():
+    return _alarm(123, False, False)
+
+
+@block("nuclear_alarm_side_lit")
+def nuclear_alarm_side_lit():
+    return _alarm(123, True, False)
+
+
+@block("nuclear_alarm_top")
+def nuclear_alarm_top():
+    return _alarm(124, False, True)
+
+
+@block("nuclear_alarm_top_lit")
+def nuclear_alarm_top_lit():
+    return _alarm(124, True, True)
+
+
+# ======================================================================================
+# dirty bomb
+# ======================================================================================
+
+def _dirty_drum():
+    # A rusty, olive-green waste drum on the bomb's frame, leaking a sickly glow.
+    return STEEL.tinted(RADIUM[1], 0.45)
+
+
+@block("dirty_bomb_body")
+def dirty_bomb_body():
+    t = Tex(seed=130)
+    drum = _dirty_drum()
+    brushed(t, drum, base=3.0, amp=0.8, seed=130)
+    for x in range(16):
+        f = 0.75 + 0.5 * math.sin(math.pi * (x + 0.5) / 16)
+        for y in range(16):
+            t.set(x, y, shade(t.get(x, y), f))
+    for y in (3, 12):
+        t.hline(0, 15, y, drum[0])
+        t.hline(0, 15, y + 1, drum[5])
+    # rust streaks and leaks
+    for y in range(16):
+        for x in range(16):
+            if fbm(x, y, 131, 16, 16, 3, 4.0) > 0.70:
+                t.blend(x, y, COPPER[1], 0.6)
+    t.rect(5, 6, 10, 10, WARN[4])
+    outline(t, 5, 6, 10, 10, DARK[0])
+    trefoil(t, 7.5, 8, 2.0, DARK[0])
+    speckle(t, 0, 0, 15, 15, RADIUM[6], chance=0.03, seed=131)
+    return t
+
+
+@block("dirty_bomb_top")
+def dirty_bomb_top():
+    t = Tex(seed=132)
+    drum = _dirty_drum()
+    brushed(t, drum, base=3.0, amp=0.6, seed=132)
+    bevel(t, 0, 0, 15, 15, drum)
+    outline(t, 0, 0, 15, 15, drum[0])
+    t.disc(8, 8, 5.6, drum[1])
+    t.ring(8, 8, 5.6, 4.8, drum[5])
+    t.disc(10.5, 5.5, 1.2, DARK[0])
+    t.disc(8, 8, 2.2, RADIUM[4])
+    glow(t, 8, 8, 5.0, RADIUM[6], 0.3)
+    return t
+
+
+# ======================================================================================
+# control desk
+# ======================================================================================
+
+from palette import CONSOLE, GLASS_OFF, GLASS_ON, MIMIC_BLUE  # noqa: E402
+
+
+@block("control_desk_surface")
+def control_desk_surface():
+    # The slanted desk top as the operator reads it: row 0 is the back edge (under the
+    # rail), row 14 the front edge, row 15 is never mapped. Module slots cover columns
+    # 1-6 / 9-14 and rows 1-6 / 8-13. Mimic lines run the full width so they continue
+    # into the next desk and mitre round corner pieces.
+    t = Tex(seed=140)
+    brushed(t, CONSOLE, base=3.4, amp=0.35, seed=140, axis="h")
+    t.hline(0, 15, 0, CONSOLE[1])
+    t.hline(0, 15, 14, CONSOLE[2])
+    t.hline(0, 15, 15, CONSOLE[1])
+    for u0, v0 in ((1, 1), (9, 1), (1, 8), (9, 8)):
+        u1, v1 = u0 + 5, v0 + 5
+        for x, y, dx, dy in ((u0, v0, 1, 1), (u1, v0, -1, 1), (u0, v1, 1, -1), (u1, v1, -1, -1)):
+            t.set(x, y, CONSOLE[1])
+            t.set(x + dx, y, CONSOLE[2])
+            t.set(x, y + dy, CONSOLE[2])
+    lines = ((3, MIMIC_BLUE), (7, DANGER), (11, RADIUM))
+    for y, ramp in lines:
+        t.hline(0, 15, y, ramp[4])
+        for x in range(16):
+            t.set(x, y + 1, shade(t.get(x, y + 1), 0.82))
+    t.vline(8, 4, 10, WARN[4])
+    t.set(7, 9, WARN[5])
+    t.set(8, 9, DARK[0])
+    t.set(7, 10, DARK[0])
+    t.set(8, 10, WARN[5])
+    for y, ramp in lines:
+        t.set(8, y, ramp[6])
+    return t
+
+
+@block("control_desk_body")
+def control_desk_body():
+    # Rows 0-6 dress the back of the rail; rows 7-14 the cabinet (front and rear doors).
+    # Door gaps sit on columns 0/15 so a merged console reads as a run of cabinets.
+    t = Tex(seed=141)
+    brushed(t, CONSOLE, base=3.0, amp=0.45, seed=141, axis="v")
+    t.hline(0, 15, 0, CONSOLE[4])
+    for y in (2, 4):
+        t.hline(2, 13, y, CONSOLE[0])
+        t.hline(2, 13, y + 1, CONSOLE[4])
+    t.hline(0, 15, 6, CONSOLE[1])
+    t.hline(0, 15, 7, CONSOLE[5])
+    for x0, x1 in ((1, 6), (9, 14)):
+        bevel(t, x0, 8, x1, 13, CONSOLE, hi=CONSOLE[5], lo=CONSOLE[1])
+    for x in (0, 15):
+        t.vline(x, 8, 13, CONSOLE[0])
+    t.vline(7, 8, 13, CONSOLE[2])
+    t.vline(8, 8, 13, CONSOLE[2])
+    for y in (10, 11):
+        t.set(7, y, STEEL[6])
+        t.set(8, y, STEEL[4])
+    t.hline(0, 15, 14, DARK[1])
+    t.hline(0, 15, 15, DARK[0])
+    return t
+
+
+@block("control_desk_side")
+def control_desk_side():
+    # End cheek: plain enamel; the bottom row lines up with the dark plinth.
+    t = Tex(seed=142)
+    brushed(t, CONSOLE, base=2.7, amp=0.4, seed=142, axis="h")
+    t.hline(0, 15, 15, DARK[1])
+    for x, y in ((2, 9), (12, 9)):
+        bolt(t, x, y, CONSOLE)
+    return t
+
+
+@block("control_desk_trim")
+def control_desk_trim():
+    # Near-black trim for the armrest, rails, plinth and cheek edges; uniform so any UV works.
+    t = Tex(seed=143)
+    brushed(t, DARK, base=2.0, amp=0.5, seed=143, axis="h")
+    return t
+
+
+# ------------------------------------------------------------------ desk modules
+# Partial-model atlases. Unused texels stay opaque. Up faces are drawn as the operator reads
+# them: row 0 = away from the operator.
+
+def _atlas(seed):
+    t = Tex(seed=seed)
+    t.rect(0, 0, 15, 15, DARK[1])
+    return t
+
+
+@block("desk_module_base")
+def desk_module_base():
+    # 6x6 mounting plate at texels 5..10; its dark bottom bevel row (10) dresses the plate sides.
+    t = Tex(seed=150)
+    brushed(t, DARK, base=1.6, amp=0.4, seed=150)
+    t.rect(5, 5, 10, 10, DARK[2])
+    bevel(t, 5, 5, 10, 10, DARK, hi=DARK[4], lo=DARK[0])
+    for x, y in ((6, 6), (9, 6), (6, 9), (9, 9)):
+        t.set(x, y, STEEL[5])
+    return t
+
+
+@block("desk_push_button")
+def desk_push_button():
+    # [0,0,5,5] guard collar top | [0,5,5,6] collar side | [6,0,8,1] stem
+    # [8,0,12,4] mushroom head top | [8,4,12,5] head side | [8,5,12,6] head underside
+    t = _atlas(151)
+    t.rect(0, 0, 4, 4, WARN[4])
+    bevel(t, 0, 0, 4, 4, WARN, hi=WARN[6], lo=WARN[1])
+    t.rect(1, 1, 3, 3, DARK[0])
+    for x in range(5):
+        t.set(x, 5, WARN[4] if x % 2 == 0 else DARK[0])
+    t.hline(6, 7, 0, STEEL[2])
+    t.rect(8, 0, 11, 3, DANGER[4])
+    for x, y in ((8, 0), (11, 0), (8, 3), (11, 3)):
+        t.set(x, y, DANGER[2])
+    t.set(9, 1, DANGER[6])
+    t.set(10, 1, DANGER[5])
+    t.set(9, 2, DANGER[5])
+    t.hline(9, 10, 3, DANGER[3])
+    t.vline(11, 1, 2, DANGER[3])
+    t.hline(8, 11, 4, DANGER[3])
+    t.set(8, 4, DANGER[4])
+    t.hline(8, 11, 5, DANGER[1])
+    return t
+
+
+@block("desk_lever")
+def desk_lever():
+    # [0,0,4,5] gate top with slot | [0,5,5,6] gate side | [6,0,7,4] stem | [6,4,7,5] stem top
+    # [8,0,10,2] knob side | [8,2,10,4] knob top
+    t = _atlas(152)
+    t.rect(0, 0, 3, 4, DARK[2])
+    bevel(t, 0, 0, 3, 4, DARK, hi=DARK[4], lo=DARK[0])
+    t.vline(1, 1, 3, DARK[0])
+    t.vline(2, 1, 3, DARK[0])
+    t.set(3, 0, RADIUM[5])
+    t.set(3, 4, DANGER[4])
+    t.hline(0, 4, 5, DARK[3])
+    for y, c in enumerate((STEEL[6], STEEL[5], STEEL[4], STEEL[3], STEEL[6])):
+        t.set(6, y, c)
+    t.hline(8, 9, 0, DARK[3])
+    t.hline(8, 9, 1, DARK[1])
+    t.rect(8, 2, 9, 3, DARK[2])
+    t.set(8, 2, DARK[5])
+    return t
+
+
+@block("desk_dial")
+def desk_dial():
+    # [0,0,6,6] scale plate | [0,6,6,7] plate edge | [8,0,11,2] knurled knob side
+    # [8,4,11,7] knob top with pointer | [12,0,16,1] skirt side | [12,1,16,5] skirt top | [14,6] tab
+    t = _atlas(153)
+    t.rect(0, 0, 5, 5, DARK[0])
+    outline(t, 0, 0, 5, 5, DARK[2])
+    for x, y in ((0, 4), (0, 1), (2, 0), (3, 0), (5, 1)):
+        t.set(x, y, LEAD[6])
+    t.set(5, 4, DANGER[5])
+    t.hline(0, 5, 6, DARK[2])
+    for x in range(8, 11):
+        t.vline(x, 0, 1, DARK[2] if x % 2 == 0 else DARK[0])
+    t.rect(8, 4, 10, 6, DARK[2])
+    t.set(8, 4, DARK[4])
+    t.vline(9, 4, 5, LEAD[6])
+    t.hline(12, 15, 0, DARK[2])
+    t.rect(12, 1, 15, 4, DARK[3])
+    t.set(14, 6, LEAD[6])
+    return t
+
+
+@block("desk_lamp")
+def desk_lamp():
+    # [0,0,4,4] chrome bezel top | [0,4,4,5] bezel side
+    t = _atlas(154)
+    t.rect(0, 0, 3, 3, STEEL[5])
+    bevel(t, 0, 0, 3, 3, STEEL, hi=STEEL[6], lo=STEEL[2])
+    t.rect(1, 1, 2, 2, DARK[0])
+    t.hline(0, 3, 4, STEEL[4])
+    return t
+
+
+def _lens(seed, glass):
+    # Whole sheet is glass so every lens UV lands on it. Neutral grey: tinted at render time.
+    t = Tex(seed=seed)
+    t.rect(0, 0, 15, 15, glass[3])
+    t.set(0, 0, glass[6])
+    t.set(1, 0, glass[5])
+    t.set(0, 1, glass[5])
+    t.set(2, 2, glass[1])
+    t.hline(0, 15, 3, glass[2])
+    return t
+
+
+@block("desk_lamp_lens_off")
+def desk_lamp_lens_off():
+    return _lens(157, GLASS_OFF)
+
+
+@block("desk_lamp_lens_on")
+def desk_lamp_lens_on():
+    return _lens(158, GLASS_ON)
+
+
+@block("desk_gauge")
+def desk_gauge():
+    # [0,0,10,8] dial face at 2 texels/px, pivot at texel (5,6) | [0,8,4,12] housing side
+    # [4,8,9,12] housing back | [10,0,16,5] hood | [10,6] hub | [12,7..9] needle
+    t = _atlas(155)
+    t.rect(0, 0, 9, 7, CRYO[5])
+    outline(t, 0, 0, 9, 7, DARK[0])
+    for x, y in ((1, 4), (2, 2), (4, 1), (5, 1)):
+        t.set(x, y, DARK[0])
+    for x, y in ((7, 2), (8, 3), (8, 4)):
+        t.set(x, y, DANGER[3])
+    t.hline(1, 8, 6, CRYO[4])
+    t.rect(0, 8, 8, 11, DARK[2])
+    t.hline(0, 8, 8, DARK[4])
+    t.hline(0, 8, 11, DARK[0])
+    t.rect(10, 0, 15, 4, DARK[3])
+    t.hline(10, 15, 0, DARK[5])
+    t.hline(10, 15, 5, DARK[1])
+    t.set(10, 6, DARK[0])
+    t.vline(12, 7, 9, DANGER[4])
+    t.set(12, 7, DANGER[5])
+    return t
+
+
+@block("desk_toggle")
+def desk_toggle():
+    # [0,0,5,5] red plate with ON/OFF marks | [0,5,5,6] plate side | [6,0,8,2] nut top
+    # [6,2,8,3] nut side | [9,0..2] bat | [10..11,0..1] bat tip | [12,0..2] guard posts
+    t = _atlas(156)
+    t.rect(0, 0, 4, 4, DANGER[3])
+    bevel(t, 0, 0, 4, 4, DANGER, hi=DANGER[5], lo=DANGER[1])
+    t.set(2, 0, LEAD[6])
+    t.set(2, 4, DARK[0])
+    t.hline(0, 4, 5, DANGER[2])
+    t.rect(6, 0, 7, 1, STEEL[5])
+    t.set(7, 1, STEEL[1])
+    t.hline(6, 7, 2, STEEL[3])
+    for y, c in enumerate((STEEL[6], STEEL[5], STEEL[4])):
+        t.set(9, y, c)
+    t.rect(10, 0, 11, 1, STEEL[6])
+    t.vline(12, 0, 2, STEEL[4])
+    return t
+
+
+# Each area keeps its textures in its own module; they register into the tables above.
+import tex_pwr  # noqa: E402,F401
+import tex_spentfuel  # noqa: E402,F401
+import tex_waste  # noqa: E402,F401
+import tex_controlroom2  # noqa: E402,F401
+import tex_civildefense  # noqa: E402,F401
+import tex_fusion  # noqa: E402,F401
+import tex_cryo  # noqa: E402,F401
+import tex_heating  # noqa: E402,F401
+import tex_reactorvisuals  # noqa: E402,F401
+import tex_fuelcycle  # noqa: E402,F401
+import tex_accelerator  # noqa: E402,F401

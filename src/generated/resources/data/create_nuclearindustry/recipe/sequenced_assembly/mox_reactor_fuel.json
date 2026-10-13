@@ -1,0 +1,61 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:iron_sheet"
+  },
+  "results": [
+    {
+      "id": "create_nuclearindustry:mox_reactor_fuel"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_mox_reactor_fuel"
+        },
+        {
+          "item": "create_nuclearindustry:mox_fuel_pellet"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_mox_reactor_fuel"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_mox_reactor_fuel"
+        },
+        {
+          "item": "create_nuclearindustry:mox_fuel_pellet"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_mox_reactor_fuel"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_mox_reactor_fuel"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_mox_reactor_fuel"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "create_nuclearindustry:incomplete_mox_reactor_fuel"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "superheated",
+  "ingredients": [
+    {
+      "type": "create_nuclearindustry:min_enrichment",
+      "base": {
+        "item": "create_nuclearindustry:uranium_dioxide"
+      },
+      "max_enrichment": 0.7,
+      "min_enrichment": 0.0
+    },
+    {
+      "item": "minecraft:bone_meal"
+    }
+  ],
+  "results": [
+    {
+      "components": {
+        "create_nuclearindustry:enrichment": 0.3
+      },
+      "id": "create_nuclearindustry:uranium"
+    }
+  ]
+}

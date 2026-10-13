@@ -4,27 +4,61 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 
 /**
- * Tags the mod reads at runtime.
+ * Tags the mod reads at runtime or exports for other mods.
  *
- * <p>{@link #RAW_URANIUM} is the machine-facing tag: it is populated from the common
+ * <p>{@link Items#RAW_URANIUM} is the machine-facing tag: it is populated from the common
  * {@code c:raw_materials/uranium} conventions, so raw uranium from any other mod is
- * accepted by the centrifuge and is refined into this mod's uranium.
+ * processed like this mod's own.
  */
-public class AllNuclearTags {
+public final class AllNuclearTags {
 
-    public static class Items {
+    public static final class Items {
         /** Any raw uranium, from this mod or any other. */
-        public static final TagKey<Item> RAW_URANIUM = tag("raw_uranium");
-        public static final TagKey<Item> URANIUM_INGOTS = tag("uranium_ingots");
+        public static final TagKey<Item> RAW_URANIUM = mod("raw_uranium");
+        /** Any uranium ingot, from this mod or any other. */
+        public static final TagKey<Item> URANIUM_INGOTS = mod("uranium_ingots");
+        /** Weapons-grade cores, uranium or plutonium, for warhead recipes. */
+        public static final TagKey<Item> NUCLEAR_WARHEAD_CORES = mod("nuclear_warhead_cores");
 
-        private static TagKey<Item> tag(String path) {
-            return TagKey.create(Registries.ITEM,
-                    ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path));
+        public static final TagKey<Item> C_RAW_MATERIALS = common("raw_materials");
+        public static final TagKey<Item> C_RAW_URANIUM = common("raw_materials/uranium");
+        public static final TagKey<Item> C_RAW_LITHIUM = common("raw_materials/lithium");
+        public static final TagKey<Item> C_INGOTS_URANIUM = common("ingots/uranium");
+        public static final TagKey<Item> C_GEMS_FLUORITE = common("gems/fluorite");
+        /** Saltpetre from other mods, for nitric acid. */
+        public static final TagKey<Item> SALTPETER_DUSTS = common("dusts/saltpeter");
+
+        private static TagKey<Item> mod(String path) {
+            return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path));
         }
+
+        private static TagKey<Item> common(String path) {
+            return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
+        }
+
+        private Items() {}
     }
 
-    private AllNuclearTags() {
+    public static final class Blocks {
+        public static final TagKey<Block> C_ORES = common("ores");
+        public static final TagKey<Block> C_ORES_URANIUM = common("ores/uranium");
+        public static final TagKey<Block> C_ORES_LITHIUM = common("ores/lithium");
+        public static final TagKey<Block> C_ORES_BORAX = common("ores/borax");
+        /** Radioactive blocks that stop irradiating and leaking below the geological storage depth. */
+        public static final TagKey<Block> GEOLOGICALLY_STORABLE = TagKey.create(Registries.BLOCK,
+                ResourceLocation.fromNamespaceAndPath(org.papiricoh.create_nuclearindustry.Create_NuclearIndustry.MODID, "geologically_storable"));
+        public static final TagKey<Block> WRENCH_PICKUP = TagKey.create(Registries.BLOCK,
+                ResourceLocation.fromNamespaceAndPath("create", "wrench_pickup"));
+
+        private static TagKey<Block> common(String path) {
+            return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("c", path));
+        }
+
+        private Blocks() {}
     }
+
+    private AllNuclearTags() {}
 }

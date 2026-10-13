@@ -1,0 +1,23 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:thorium_dioxide"
+    },
+    {
+      "item": "create_nuclearindustry:thorium_dioxide"
+    },
+    {
+      "item": "create_nuclearindustry:thorium_dioxide"
+    },
+    {
+      "item": "create_nuclearindustry:uranium_233_dioxide"
+    }
+  ],
+  "results": [
+    {
+      "count": 4,
+      "id": "create_nuclearindustry:thorium_fuel_pellet"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "create_nuclearindustry:block/turbine_exhaust_port",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "create_nuclearindustry:block/turbine_exhaust_port",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/turbine_exhaust_port",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/turbine_exhaust_port",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "create_nuclearindustry:block/turbine_exhaust_port"
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/turbine_exhaust_port",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "type": "create:crushing",
+  "ingredients": [
+    {
+      "tag": "c:raw_materials/lithium"
+    }
+  ],
+  "processing_time": 300,
+  "results": [
+    {
+      "id": "create_nuclearindustry:crushed_spodumene"
+    },
+    {
+      "chance": 0.25,
+      "id": "create_nuclearindustry:fluorite"
+    },
+    {
+      "chance": 0.75,
+      "id": "create:experience_nugget"
+    }
+  ]
+}

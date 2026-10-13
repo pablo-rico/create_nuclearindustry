@@ -1,0 +1,17 @@
+{
+  "type": "create_nuclearindustry:acid_leaching",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:depleted_rtg_pellet"
+    }
+  ],
+  "results": [
+    {
+      "count": 3,
+      "id": "minecraft:iron_nugget"
+    },
+    {
+      "id": "create_nuclearindustry:radioactive_sludge"
+    }
+  ]
+}

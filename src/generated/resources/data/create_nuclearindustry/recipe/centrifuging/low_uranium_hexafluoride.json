@@ -1,0 +1,21 @@
+{
+  "type": "create_nuclearindustry:centrifuging",
+  "ingredients": [
+    {
+      "type": "neoforge:single",
+      "amount": 1000,
+      "fluid": "create_nuclearindustry:uranium_hexafluoride"
+    }
+  ],
+  "processing_time": 160,
+  "results": [
+    {
+      "amount": 250,
+      "id": "create_nuclearindustry:low_enriched_uranium_hexafluoride"
+    },
+    {
+      "amount": 750,
+      "id": "create_nuclearindustry:depleted_uranium_hexafluoride"
+    }
+  ]
+}

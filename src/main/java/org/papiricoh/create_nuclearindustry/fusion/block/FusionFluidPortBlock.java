@@ -28,14 +28,18 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellBlock;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFluidPortBlockEntity;
+import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 
 /**
  * Fusion fluid port: INPUT accepts coolant, OUTPUT provides plasma steam. Reuses the generic
  * {@link ReactorFluidPortMode} enum. Wrench toggles mode; shift+wrench rotates facing.
  */
-public class FusionFluidPortBlock extends BaseEntityBlock {
+public class FusionFluidPortBlock extends BaseEntityBlock implements TokamakShellBlock {
+
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final EnumProperty<ReactorFluidPortMode> MODE = EnumProperty.create("mode", ReactorFluidPortMode.class);
     public static final MapCodec<FusionFluidPortBlock> CODEC = simpleCodec(FusionFluidPortBlock::new);
@@ -62,7 +66,7 @@ public class FusionFluidPortBlock extends BaseEntityBlock {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState()
-                .setValue(FACING, context.getClickedFace())
+                .setValue(FACING, PartPlacement.facingPlayer(context))
                 .setValue(MODE, ReactorFluidPortMode.INPUT);
     }
 
@@ -132,5 +136,10 @@ public class FusionFluidPortBlock extends BaseEntityBlock {
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    @Override
+    public TokamakShellRole tokamakRole(BlockState state) {
+        return state.getValue(MODE) == ReactorFluidPortMode.INPUT ? TokamakShellRole.COOLANT_PORT : TokamakShellRole.STEAM_PORT;
     }
 }
