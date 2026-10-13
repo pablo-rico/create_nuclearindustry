@@ -859,7 +859,8 @@ below for what changes in existing worlds.
 - New sounds: the magnets hum, rising in pitch and loudness with the field;
   the burning plasma roars, wavering when unstable; breakdown strikes with a
   crack; and the cryogenic plant has a compressor sound. They play from the
-  part of the ring nearest to you.
+  part of the ring nearest to you, and are filtered so no high whine or hiss
+  wears on you near a running tokamak.
 
 ### Visible and audible fission reactor
 - New Reactor Viewport: a lead glass window that takes the place of any
@@ -875,9 +876,11 @@ below for what changes in existing worlds.
   never make it check its structure again.
 - The fission plant has sound: the core hums louder and higher with power,
   the control rods drop with a thud on a SCRAM and a klaxon sounds until the
-  scrammed core is cold, an alarm beeps above 2000 °C, steam hisses at the
-  output ports (hot primary coolant bubbles instead) and a lifted relief valve
-  pops and blows. Gas centrifuges whine and electrolyzers buzz with their
+  scrammed core is cold, a low two-tone alarm chimes in the warning zone, steam
+  rushes out of the output ports (hot primary coolant bubbles instead) and a
+  lifted relief valve pops and blows. None of them beeps or whines shrilly:
+  they are low-pitched and filtered, even as their pitch rises with power or
+  danger. Gas centrifuges whine and electrolyzers buzz with their
   shaft speed while they work, the vitrification melter roars while it melts
   and radioisotope generators hum while they hold a pellet.
 - The reactor, its fuel and fluid ports, the steam generator, the turbines

@@ -3,8 +3,8 @@
 
     python tools/soundgen/cryoplant_hum.py [--out <ogg>]
 
-A motor hum, the steady thud of the compressor pistons (four strokes a second), the hiss of cold
-gas through the valves and the faint whine of the turbo-expander. See soundkit.py for the
+A motor hum, the steady thud of the compressor pistons (four strokes a second) and the soft rush of
+cold gas through the valves, low-passed so nothing whistles. See soundkit.py for the
 requirements and the looping rules.
 """
 
@@ -32,12 +32,11 @@ def main():
     thud = np.sin(2 * np.pi * 70.0 * local) * np.exp(-local / 0.045) * np.minimum(1.0, local / 0.004)
 
     # Valves hiss with each stroke; the gas never quite stops.
-    hiss = sk.periodic_noise(samples, 1800.0, 7000.0, seed=41)
+    hiss = sk.periodic_noise(samples, 500.0, 3000.0, seed=41, tilt=-0.8)
     valve = 0.35 + 0.65 * np.exp(-((local - 0.06) / 0.05) ** 2)
 
-    whine = sk.tone(t, SECONDS, 1850.0) + 0.4 * sk.tone(t, SECONDS, 3700.0, phase=0.2)
-    mix = 0.6 * motor + 0.8 * thud + 0.12 * hiss * valve + 0.04 * whine
-    sk.write(args.out, mix)
+    mix = 0.6 * motor + 0.8 * thud + 0.14 * hiss * valve
+    sk.write(args.out, sk.soft_lowpass(mix, 1800.0))
 
 
 if __name__ == "__main__":

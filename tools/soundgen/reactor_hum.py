@@ -4,8 +4,8 @@
     python tools/soundgen/reactor_hum.py [--out <ogg>]
 
 A deep electrical hum from the coolant pumps' motors and the core's instrumentation (60 Hz and its
-harmonics, with a slow transformer beat), a low rumble of water forced through the channels, and a
-faint high whine. The game raises pitch and volume with power. See soundkit.py for the requirements
+harmonics, with a slow transformer beat) and a low rumble of water forced through the channels, all
+low-passed so it stays a hum: no high whine, since the game raises pitch and volume with power. See soundkit.py for the requirements
 and the looping rules.
 """
 
@@ -31,9 +31,8 @@ def main():
     hum = pk.normalise(hum)
     # Water rushing through the core: dark, rumbling noise that swells gently.
     rumble = sk.periodic_noise(samples, 25.0, 400.0, seed=101, tilt=-1.2) * pk.lfo(t, SECONDS, 0.5, 0.25)
-    whine = 0.04 * sk.tone(t, SECONDS, 1750.0) + 0.02 * sk.tone(t, SECONDS, 3500.0)
-    mix = 0.75 * hum + 0.45 * rumble + whine
-    sk.write(args.out, mix)
+    mix = 0.75 * hum + 0.45 * rumble
+    sk.write(args.out, sk.soft_lowpass(mix, 900.0))
 
 
 if __name__ == "__main__":

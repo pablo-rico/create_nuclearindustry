@@ -3,9 +3,10 @@
 
     python tools/soundgen/reactor_overtemp_alarm.py [--out <ogg>]
 
-An urgent electronic beeper: two quick square-ish beeps, a high one and a lower one, then a short
-pause, in a 1 s loop. The game raises its pitch as the core nears meltdown. See soundkit.py for the
-requirements and the looping rules.
+An urgent but mellow two-tone chime: two rounded notes a fourth apart (520 and 390 Hz, nearly pure,
+with soft edges) then a pause, in a 1 s loop, low-passed so no shrill partial survives. Urgency comes
+from the rhythm, not from a piercing pitch. The game raises its pitch a little as the core nears
+meltdown. See soundkit.py for the requirements and the looping rules.
 """
 
 import argparse
@@ -18,11 +19,14 @@ import soundkit as sk
 SECONDS = 1.0
 
 
-def beep(t, start, length, frequency):
+def chime(t, start, length, frequency):
     local = t - start
-    # odd harmonics only: a soft square wave
-    wave = sum(np.sin(2 * np.pi * frequency * n * local) / n for n in (1, 3, 5, 7))
-    return wave * pk.envelope(local, 0.004, 0.01, length) * (local >= 0)
+    # A sine with a touch of second and third harmonic: round, not buzzy.
+    wave = (np.sin(2 * np.pi * frequency * local) + 0.25 * np.sin(2 * np.pi * 2 * frequency * local)
+            + 0.08 * np.sin(2 * np.pi * 3 * frequency * local))
+    # A soft onset and a decaying tail instead of a hard click on and off.
+    swell = pk.envelope(local, 0.02, 0.08, length) * np.exp(-np.clip(local, 0.0, None) / 0.35)
+    return wave * swell * (local >= 0)
 
 
 def main():
@@ -31,8 +35,8 @@ def main():
     args = ap.parse_args()
 
     samples, t = sk.timeline(SECONDS)
-    alarm = beep(t, 0.0, 0.18, 1320.0) + beep(t, 0.25, 0.18, 990.0)
-    sk.write(args.out, pk.normalise(alarm), peak=0.7)
+    alarm = chime(t, 0.0, 0.26, 520.0) + chime(t, 0.32, 0.26, 390.0)
+    sk.write(args.out, sk.soft_lowpass(alarm, 1400.0), peak=0.6)
 
 
 if __name__ == "__main__":

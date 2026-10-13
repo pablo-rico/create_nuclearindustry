@@ -4,7 +4,8 @@
     python tools/soundgen/reactor_scram.py [--out <ogg>]
 
 The latches let go with a metallic clank, the rods rattle down their channels and land with a
-heavy thud through the vessel; a hydraulic sigh follows. See soundkit.py for the requirements.
+heavy thud through the vessel; a hydraulic sigh follows. The mix is low-passed so the clank does
+not ring shrilly. See soundkit.py for the requirements.
 """
 
 import argparse
@@ -27,7 +28,7 @@ def main():
 
     # The latches: an inharmonic metal clank.
     clank = np.zeros(samples)
-    for freq, level, decay in ((340.0, 1.0, 0.18), (910.0, 0.6, 0.12), (1530.0, 0.4, 0.08), (2410.0, 0.25, 0.05)):
+    for freq, level, decay in ((340.0, 1.0, 0.18), (910.0, 0.6, 0.12), (1530.0, 0.3, 0.06)):
         clank += level * np.sin(2 * np.pi * freq * t) * np.exp(-t / decay)
     clank *= attack
 
@@ -43,7 +44,7 @@ def main():
         rattle[start:start + n] += knock * (0.4 + 0.6 * rng.random())
         when += gap
         gap = max(0.018, gap * 0.85)
-    rattle = sk.lowpass(rattle, 3500.0)
+    rattle = sk.lowpass(rattle, 2500.0)
 
     # Landing: a heavy thud at 0.58 s, its pitch dropping.
     land = 0.58
@@ -54,9 +55,10 @@ def main():
     ring = np.sin(2 * np.pi * 220.0 * tl) * np.exp(-tl / 0.25) * on
 
     # The hydraulic sigh, after the landing.
-    sigh = sk.lowpass(sk.one_shot_noise(samples, seed=42), 2500.0) * pk.envelope(tl, 0.15, 0.7, 1.2) * on
+    sigh = sk.lowpass(sk.one_shot_noise(samples, seed=42), 1500.0) * pk.envelope(tl, 0.15, 0.7, 1.2) * on
 
     mix = 0.7 * clank + 0.55 * rattle + 1.0 * thud + 0.25 * ring + 0.12 * sigh
+    mix = sk.soft_lowpass(mix, 2200.0, loop=False)
     fade = np.clip((SECONDS - t) / 0.25, 0.0, 1.0)
     sk.write(args.out, mix * fade, peak=0.9)
 

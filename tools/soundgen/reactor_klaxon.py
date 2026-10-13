@@ -3,8 +3,9 @@
 
     python tools/soundgen/reactor_klaxon.py [--out <ogg>]
 
-One blast of an electric horn per loop: a buzzy 210 Hz sawtooth through a horn's nasal formant,
-on for 0.75 s and silent for the rest of the 1.4 s loop. See soundkit.py for the requirements and
+One blast of an electric horn per loop: a 180 Hz sawtooth (harmonics only up to about 2 kHz) through
+a horn's formant around 650 Hz, gently saturated and low-passed so it blares low rather than
+screeches, on for 0.75 s and silent for the rest of the 1.4 s loop. See soundkit.py for the requirements and
 the looping rules.
 """
 
@@ -25,18 +26,18 @@ def main():
     args = ap.parse_args()
 
     samples, t = sk.timeline(SECONDS)
-    # A band-limited sawtooth, its harmonics shaped by a formant around 1.1 kHz.
+    # A band-limited sawtooth, its harmonics shaped by a formant around 650 Hz.
     horn = np.zeros(samples)
-    base = sk.loop_frequency(210.0, SECONDS)
-    for n in range(1, 22):
+    base = sk.loop_frequency(180.0, SECONDS)
+    for n in range(1, 12):
         freq = base * n
-        formant = 1.0 + 2.5 * np.exp(-((freq - 1100.0) / 450.0) ** 2)
+        formant = 1.0 + 2.0 * np.exp(-((freq - 650.0) / 350.0) ** 2)
         horn += formant * np.sin(2 * np.pi * freq * t + 0.2 * n) / n
-    # The diaphragm's rasp.
-    horn += 0.6 * np.sign(sk.tone(t, SECONDS, 210.0)) * 0.3
-    horn = pk.normalise(horn)
-    blast = horn * pk.envelope(t, 0.03, 0.06, ON)
-    sk.write(args.out, blast)
+    # The diaphragm's rasp: soft saturation instead of a raw square, which aliases into a screech.
+    horn = np.tanh(1.6 * pk.normalise(horn))
+    horn = sk.soft_lowpass(horn, 1600.0)
+    blast = horn * pk.envelope(t, 0.04, 0.08, ON)
+    sk.write(args.out, blast, peak=0.75)
 
 
 if __name__ == "__main__":

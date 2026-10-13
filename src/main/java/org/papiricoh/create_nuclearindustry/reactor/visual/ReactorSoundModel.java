@@ -65,9 +65,9 @@ public final class ReactorSoundModel {
         return (float) (0.6 + 0.4 * danger(temperature, warning, meltdown));
     }
 
-    /** The alarm rises in pitch as the core nears meltdown. */
+    /** The alarm rises a little in pitch as the core nears meltdown; only a little, so it never turns shrill. */
     public static float alarmPitch(double temperature, double warning, double meltdown) {
-        return (float) (1.0 + 0.25 * danger(temperature, warning, meltdown));
+        return (float) (1.0 + 0.15 * danger(temperature, warning, meltdown));
     }
 
     // ------------------------------------------------------------------ steam and coolant
@@ -97,9 +97,9 @@ public final class ReactorSoundModel {
         return (float) (0.9 + 0.2 * flowFraction(flowPerPort));
     }
 
-    /** A lifted relief valve blows hard and high. */
+    /** A lifted relief valve blows hard; pitched up, the steam would hiss shrilly. */
     public static final float RELIEF_VOLUME = 1.0f;
-    public static final float RELIEF_PITCH = 1.3f;
+    public static final float RELIEF_PITCH = 1.05f;
 
     // ------------------------------------------------------------------ machines
 

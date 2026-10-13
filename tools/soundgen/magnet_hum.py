@@ -4,8 +4,9 @@
     python tools/soundgen/magnet_hum.py [--out <ogg>]
 
 Big coils on a rectified supply hum at twice the mains frequency with a stack of harmonics; a
-slightly detuned copy of the fundamental gives the slow beat of a large transformer, and a faint
-high whine comes from the power converters. The game raises pitch and volume with the field.
+slightly detuned copy of the fundamental gives the slow beat of a large transformer, and a soft
+buzz of the laminations pulses with the ripple. Everything is low-passed, with no converter whine,
+because the game raises pitch and volume with the field.
 See soundkit.py for the requirements and the looping rules.
 """
 
@@ -31,12 +32,11 @@ def main():
     # A detuned fundamental: a 0.5 Hz beat.
     hum += 0.45 * sk.tone(t, SECONDS, 100.5, phase=1.1)
     hum /= np.max(np.abs(hum))
-    whine = 0.05 * sk.tone(t, SECONDS, 1200.0) + 0.025 * sk.tone(t, SECONDS, 2400.25)
     # A little electrical buzz on top, pulsing with the 100 Hz ripple.
-    buzz = sk.periodic_noise(samples, 1500.0, 5000.0, seed=11)
+    buzz = sk.periodic_noise(samples, 400.0, 1800.0, seed=11, tilt=-0.8)
     ripple = 0.5 + 0.5 * sk.tone(t, SECONDS, 100.0) ** 2
-    mix = 0.9 * hum + whine + 0.035 * buzz * ripple
-    sk.write(args.out, mix)
+    mix = 0.9 * hum + 0.05 * buzz * ripple
+    sk.write(args.out, sk.soft_lowpass(mix, 1200.0))
 
 
 if __name__ == "__main__":

@@ -63,6 +63,20 @@ def lowpass(signal, cutoff):
     return np.fft.irfft(spectrum, len(signal))
 
 
+def soft_lowpass(signal, cutoff, order=4, loop=True):
+    """A gentle low-pass with a Butterworth slope (``order`` x 6 dB per octave past ``cutoff``).
+
+    Unlike ``lowpass`` it does not ring, so it can take the edge off a whole mix. It runs in the
+    frequency domain, which keeps a loop seamless; a one-shot (``loop=False``) is padded first so
+    its attack does not wrap round into its tail."""
+    pad = 0 if loop else RATE // 4
+    padded = np.concatenate([signal, np.zeros(pad)])
+    spectrum = np.fft.rfft(padded)
+    freqs = np.fft.rfftfreq(len(padded), 1.0 / RATE)
+    spectrum *= 1.0 / np.sqrt(1.0 + (freqs / cutoff) ** (2 * order))
+    return np.fft.irfft(spectrum, len(padded))[:len(signal)]
+
+
 def write(path, signal, peak=0.8):
     signal = peak * signal / np.max(np.abs(signal))
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)

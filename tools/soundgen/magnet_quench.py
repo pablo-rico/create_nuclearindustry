@@ -4,7 +4,8 @@
     python tools/soundgen/magnet_quench.py [--out <ogg>]
 
 A sharp electrical bang as the stored field dumps into the resistors, a falling groan of the coil,
-then the long hiss of liquid helium boiling off through the relief valves. See soundkit.py for the
+then the long rush of liquid helium boiling off through the relief valves, low-passed so the bang
+thumps rather than stings. See soundkit.py for the
 requirements.
 """
 
@@ -24,12 +25,13 @@ def main():
     args = ap.parse_args()
 
     samples, t = sk.timeline(SECONDS)
-    bang = sk.one_shot_noise(samples, seed=321) * np.exp(-t / 0.05) * np.minimum(1.0, t / 0.001)
+    bang = pk.normalise(sk.soft_lowpass(sk.one_shot_noise(samples, seed=321), 2000.0, loop=False)) * np.exp(-t / 0.05) * np.minimum(1.0, t / 0.001)
     freq = 90.0 + 160.0 * np.exp(-t / 0.4)
     groan = np.sin(2 * np.pi * np.cumsum(freq) / sk.RATE) * np.exp(-t / 0.9)
-    hiss = sk.lowpass(sk.one_shot_noise(samples, seed=322), 7000.0) * pk.envelope(t - 0.15, 0.3, 1.5, 2.8) * (t >= 0.15)
+    hiss = sk.lowpass(sk.one_shot_noise(samples, seed=322), 3000.0) * pk.envelope(t - 0.15, 0.3, 1.5, 2.8) * (t >= 0.15)
     fade = np.clip((SECONDS - t) / 0.3, 0.0, 1.0)
-    sk.write(args.out, (1.0 * bang + 0.7 * groan + 0.45 * hiss) * fade, peak=0.85)
+    mix = sk.soft_lowpass(1.0 * bang + 0.7 * groan + 0.45 * hiss, 2500.0, loop=False)
+    sk.write(args.out, mix * fade, peak=0.85)
 
 
 if __name__ == "__main__":
