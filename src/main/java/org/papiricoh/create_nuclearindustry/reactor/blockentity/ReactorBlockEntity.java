@@ -1,6 +1,9 @@
 package org.papiricoh.create_nuclearindustry.reactor.blockentity;
 
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PlantReadings;
+import org.papiricoh.create_nuclearindustry.panel.PanelCard;
+import org.papiricoh.create_nuclearindustry.panel.PanelSource;
+import org.papiricoh.create_nuclearindustry.reactor.display.FissionPanel;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PressurizerStack;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PrimaryLoop;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
@@ -15,7 +18,6 @@ import org.papiricoh.create_nuclearindustry.reactor.pwr.block.PressurizerHeaterP
 import org.papiricoh.create_nuclearindustry.reactor.pwr.block.ReliefValveBlock;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelHooks;
 import com.mojang.logging.LogUtils;
-import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.core.BlockPos;
@@ -81,7 +83,6 @@ import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.CoreThermal
 import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
 import org.papiricoh.create_nuclearindustry.AllNuclearSounds;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
-import org.papiricoh.create_nuclearindustry.reactor.display.ReactorText;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorSoundModel;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualHooks;
 import org.papiricoh.create_nuclearindustry.reactor.visual.RodVisualSync;
@@ -91,11 +92,10 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
-public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, Clearable, MultiblockController, RadiationEmitter {
+public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clearable, MultiblockController, RadiationEmitter {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int TANK_CAPACITY = 16_000;
     /**
@@ -1904,98 +1904,15 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return 0.0f;
     }
 
+    /** The reactor's card on the panel: a summary, or its details while sneaking. */
     @Override
-    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        ReactorDisplaySnapshot snapshot = getDisplaySnapshot();
-        tooltip.add(Component.translatable(GOGGLES + "title").withStyle(ChatFormatting.GOLD));
-        tooltip.add(line("structure", snapshot.formed() ? ChatFormatting.GREEN : ChatFormatting.RED, getStructureDisplayName(snapshot)));
-        tooltip.add(line("state", getReactorStateColor(snapshot.state()), ReactorText.state(snapshot.state())));
-        if (!snapshot.dimensions().isEmpty()) {
-            tooltip.add(line("dimensions", ChatFormatting.GRAY, snapshot.dimensions()));
-        }
-
-        if (!snapshot.formed()) {
-            tooltip.add(line("missing", ChatFormatting.RED, MultiblockText.text(snapshot.validationMessage())));
-            return true;
-        }
-
-        tooltip.add(line("uranium_columns", ChatFormatting.GRAY, snapshot.uraniumColumnCount()));
-        tooltip.add(line("exchanger_columns", ChatFormatting.GRAY, snapshot.heatExchangerColumnCount()));
-        tooltip.add(line("control_columns", ChatFormatting.GRAY, snapshot.controlRodColumnCount()));
-        if (snapshot.moderatorColumnCount() > 0) {
-            tooltip.add(line("graphite_columns", ChatFormatting.GRAY, snapshot.moderatorColumnCount(),
-                    Math.round(snapshot.moderation() * 100.0)));
-        }
-        if (snapshot.reflectorColumnCount() > 0) {
-            tooltip.add(line("reflector_columns", ChatFormatting.GRAY, snapshot.reflectorColumnCount(),
-                    Math.round(snapshot.reflection() * 100.0)));
-        }
-        tooltip.add(line("rod_segments", ChatFormatting.GRAY, snapshot.insertedControlRodSegments(), snapshot.expectedControlRodSegments()));
-        tooltip.add(line("coolant_ports", ChatFormatting.GRAY, snapshot.coolantInputPortCount()));
-        tooltip.add(line("steam_ports", ChatFormatting.GRAY, snapshot.steamOutputPortCount()));
-        tooltip.add(line("fuel_ports", ChatFormatting.GRAY, snapshot.fuelPortCount()));
-        tooltip.add(line("rod_insertion", ChatFormatting.GRAY, Math.round(snapshot.controlRodInsertionRatio() * 100.0f)));
-        if (rodTarget >= 0) {
-            tooltip.add(line("rod_target", ChatFormatting.AQUA, Math.round(rodTarget * 100.0f)));
-        }
-        tooltip.add(line("static_rods", ChatFormatting.GRAY, snapshot.staticControlRodSegments()));
-        tooltip.add(line("moving_rods", ChatFormatting.GRAY, snapshot.movingControlRodSegments()));
-
-        tooltip.add(line("coolant", ChatFormatting.GRAY, snapshot.coolantAmount(), snapshot.tankCapacity()));
-        tooltip.add(line("steam", ChatFormatting.GRAY, snapshot.steamAmount(), snapshot.tankCapacity()));
-        addPrimaryLoopLines(tooltip);
-        tooltip.add(line("temperature", getTemperatureColor(snapshot.coreTemperature()), Math.round(snapshot.coreTemperature())));
-        tooltip.add(line("coolant_temperature", ChatFormatting.GRAY, Math.round(snapshot.coolantTemperature())));
-        tooltip.add(line("power_level", snapshot.powerFraction() > 1.05 ? ChatFormatting.GOLD : ChatFormatting.GRAY,
-                String.format(Locale.ROOT, "%.1f", snapshot.powerFraction() * 100), Math.round(snapshot.ratedPower())));
-        tooltip.add(line("reactivity", ChatFormatting.GRAY, String.format(Locale.ROOT, "%+.0f", snapshot.netReactivity()),
-                String.format(Locale.ROOT, "%.2f", snapshot.reactivity())));
-        ReactivityModel.Parts parts = snapshot.reactivityParts();
-        tooltip.add(line("reactivity_parts", ChatFormatting.DARK_GRAY, pcm(parts.fuel()), pcm(parts.rods()), pcm(parts.temperature()),
-                pcm(parts.voids()), pcm(parts.xenon())));
-        if (snapshot.xenonPenalty() >= 0.005) {
-            tooltip.add(line("xenon", snapshot.xenonPenalty() >= 0.15 ? ChatFormatting.GOLD : ChatFormatting.GRAY,
-                    Math.round(snapshot.xenonPenalty() * 100.0)));
-        }
-        if (snapshot.decayHeatPower() >= 0.5) {
-            tooltip.add(line("decay_heat", ChatFormatting.GRAY, Math.round(snapshot.decayHeatPower())));
-        }
-        tooltip.add(line("thermal_stress", getThermalStressColor(snapshot.thermalStress()), Math.round(snapshot.thermalStress())));
-        if (snapshot.coreDamage() > 0) {
-            tooltip.add(line("core_damage", ChatFormatting.RED, Math.max(1, Math.round(snapshot.coreDamage() * 100))));
-        }
-        if (snapshot.thermalExcursionActive()) {
-            tooltip.add(line("excursion", ChatFormatting.RED));
-        }
-        tooltip.add(line("fuel", ChatFormatting.GRAY, String.format(Locale.ROOT, "%.1f", snapshot.fuelRemaining()),
-                String.format(Locale.ROOT, "%.1f", snapshot.fuelCapacity())));
-        if (snapshot.fuelEnrichment() > 0.0f) {
-            tooltip.add(line("enrichment", ChatFormatting.GRAY, String.format(Locale.ROOT, "%.1f", snapshot.fuelEnrichment())));
-        }
-        if (autoScram.isTripped()) {
-            tooltip.add(line("auto_scram_tripped", ChatFormatting.RED, autoScram.getThreshold()));
-        } else if (snapshot.manualScram()) {
-            tooltip.add(line("manual_scram", ChatFormatting.RED));
-        }
-        tooltip.add(line("fuel_input", ChatFormatting.GRAY, snapshot.inputFuelCount()));
-        tooltip.add(line("depleted", ChatFormatting.GRAY, snapshot.outputFuelCount()));
-        if (snapshot.fuelRemaining() > 0.0 && snapshot.neutronLevel() <= 1.0 && snapshot.controlRodInsertionRatio() >= 0.99f) {
-            tooltip.add(line("suppressed", ChatFormatting.YELLOW));
-        }
-        if (snapshot.pendingDepletedFuel() > 0) {
-            tooltip.add(line("output_blocked", ChatFormatting.RED, snapshot.pendingDepletedFuel()));
-        }
-        return true;
+    public PanelCard panelCard(net.minecraft.world.phys.Vec3 hit, boolean detailed) {
+        return FissionPanel.card(this, detailed);
     }
 
     /** One indented goggle line, {@code create_nuclearindustry.reactor.goggles.<id>}. */
     private static Component line(String id, ChatFormatting style, Object... args) {
         return goggleLine(Component.translatable(GOGGLES + id, args), style);
-    }
-
-    /** A reactivity term with its sign, pcm. */
-    private static String pcm(double value) {
-        return String.format(Locale.ROOT, "%+d", Math.round(value));
     }
 
     /** {@link #line} for the reactor's ports, which show some of the same readings. */
@@ -2021,105 +1938,8 @@ public class ReactorBlockEntity extends BlockEntity implements IHaveGoggleInform
         return Component.translatable(PORT + "side." + side.getSerializedName());
     }
 
-    /** Pressure, temperatures, pressurizer and relief valve of the pressurized loop, or why it is not running. */
-    private void addPrimaryLoopLines(List<Component> tooltip) {
-        addAccidentLines(tooltip);
-        String key = "create_nuclearindustry.pwr.goggles.";
-        PlantReadings plant = plantReadings();
-        if (!plant.pwr()) {
-            if (holdsPrimaryCoolant() && !hasPressurizer()) {
-                tooltip.add(goggleLine(Component.translatable(key + "no_pressurizer"), ChatFormatting.RED));
-            }
-            return;
-        }
-        tooltip.add(goggleLine(Component.translatable(key + "header"), ChatFormatting.AQUA));
-        ChatFormatting pressureStyle = plant.pressure() >= org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig.reliefOpenPressure
-                ? ChatFormatting.RED : plant.subcooling() < 5.0f ? ChatFormatting.GOLD : ChatFormatting.GRAY;
-        tooltip.add(goggleLine(Component.translatable(key + "pressure", Math.round(plant.pressure()), Math.round(plant.subcooling())),
-                pressureStyle));
-        tooltip.add(goggleLine(Component.translatable(key + "legs", Math.round(plant.hotLeg()), Math.round(plant.coldLeg())),
-                ChatFormatting.GRAY));
-        Component heaters = Component.translatable(primaryLoop.heatersRunning() ? key + "heaters_on" : key + "heaters_off");
-        tooltip.add(goggleLine(Component.translatable(key + "pressurizer", Math.round(plant.pressurizerLevel() * 100), heaters),
-                ChatFormatting.GRAY));
-        tooltip.add(goggleLine(Component.translatable(key + "flow", Math.round(plant.flow()), Math.round(plant.vesselLevel() * 100)),
-                plant.vesselLevel() < 1.0f ? ChatFormatting.RED : ChatFormatting.GRAY));
-        BlockState valve = currentStructure.filter(ReactorStructureValidator.ReactorStructure::hasPressurizer)
-                .map(structure -> getLevel() == null ? null : getLevel().getBlockState(structure.pressurizer.reliefValve()))
-                .orElse(null);
-        boolean open = valve != null && valve.is(PwrRegistry.RELIEF_VALVE.get()) && valve.getValue(ReliefValveBlock.OPEN);
-        if (open || primaryLoop.reliefStuck()) {
-            tooltip.add(goggleLine(Component.translatable(primaryLoop.reliefStuck() ? key + "relief_stuck" : key + "relief_open"),
-                    ChatFormatting.RED));
-        }
-    }
-
-    /** Containment around the reactor, damaged cladding and a breached vessel. */
-    private void addAccidentLines(List<Component> tooltip) {
-        String key = "create_nuclearindustry.accident.goggles.";
-        float containment = accidents.containmentPressure();
-        if (containment > 0) {
-            tooltip.add(goggleLine(Component.translatable(key + "containment", String.format(java.util.Locale.ROOT, "%.2f", containment),
-                    String.format(java.util.Locale.ROOT, "%.1f", accidents.containmentHydrogen() * 100)),
-                    accidents.containmentHydrogen() >= 0.04f ? ChatFormatting.GOLD : ChatFormatting.GRAY));
-        }
-        int rods = currentStructure.map(structure -> structure.uraniumRodCount).orElse(0);
-        double damage = accidents.cladding().damage(rods, PwrConfig.zirconiumPerRod);
-        if (damage >= 0.005) {
-            tooltip.add(goggleLine(Component.translatable(key + "cladding", Math.round(damage * 100)), ChatFormatting.RED));
-        }
-        if (accidents.vessel().breached()) {
-            tooltip.add(goggleLine(Component.translatable(key + "breached"), ChatFormatting.DARK_RED));
-        }
-    }
-
     private static Component goggleLine(Component text, ChatFormatting style) {
         return Component.literal("  ").append(text).withStyle(style);
-    }
-
-    private Component getStructureDisplayName(ReactorDisplaySnapshot snapshot) {
-        if (snapshot.formed()) {
-            return Component.translatable(STATUS + "formed");
-        }
-        if (!snapshot.statusDisplayName().isEmpty()) {
-            return MultiblockText.text(snapshot.statusDisplayName());
-        }
-        return Component.translatable(STATUS + "incomplete");
-    }
-
-    private ChatFormatting getTemperatureColor(double temperature) {
-        if (temperature >= FissionConfig.dangerTemperature()) {
-            return ChatFormatting.RED;
-        }
-        if (temperature >= FissionConfig.warningTemperature()) {
-            return ChatFormatting.GOLD;
-        }
-        if (temperature >= 500.0) {
-            return ChatFormatting.YELLOW;
-        }
-        return ChatFormatting.GREEN;
-    }
-
-    private ChatFormatting getThermalStressColor(double stress) {
-        if (stress >= 90.0) {
-            return ChatFormatting.RED;
-        }
-        if (stress >= 65.0) {
-            return ChatFormatting.GOLD;
-        }
-        if (stress >= 35.0) {
-            return ChatFormatting.YELLOW;
-        }
-        return ChatFormatting.GREEN;
-    }
-
-    private ChatFormatting getReactorStateColor(ReactorPhysicsSimulator.ReactorState state) {
-        return switch (state) {
-            case RUNNING -> ChatFormatting.GREEN;
-            case FUELING, SUPPRESSED, WARNING -> ChatFormatting.YELLOW;
-            case CRITICAL, MELTING -> ChatFormatting.RED;
-            case IDLE -> ChatFormatting.GRAY;
-        };
     }
 
     @Override

@@ -148,49 +148,95 @@ final class ReactorVisualsDataGen extends AreaDataGen {
                 "Un reactor admite un solo presurizador; se ignora el de %s");
     }
 
+    /** The reactor's readings its ports show on goggles. */
     private static void reactorGoggles() {
         String g = "create_nuclearindustry.reactor.goggles.";
-        LangEntries.add(g + "title", "Nuclear Reactor", "Reactor nuclear");
-        LangEntries.add(g + "structure", "Structure: %s", "Estructura: %s");
-        LangEntries.add(g + "state", "State: %s", "Estado: %s");
-        LangEntries.add(g + "dimensions", "Dimensions: %s", "Dimensiones: %s");
-        LangEntries.add(g + "missing", "Missing: %s", "Falta: %s");
-        LangEntries.add(g + "uranium_columns", "Uranium columns: %s", "Columnas de uranio: %s");
-        LangEntries.add(g + "exchanger_columns", "Heat exchanger columns: %s", "Columnas de intercambiadores: %s");
-        LangEntries.add(g + "control_columns", "Control rod columns: %s", "Columnas de barras de control: %s");
-        LangEntries.add(g + "graphite_columns", "Graphite columns: %s (moderation %s%%)", "Columnas de grafito: %s (moderación %s%%)");
-        LangEntries.add(g + "reflector_columns", "Reflector columns: %s (ring %s%%)", "Columnas de reflector: %s (anillo %s%%)");
-        LangEntries.add(g + "rod_segments", "Control rod segments: %s/%s", "Segmentos de barras de control: %s/%s");
-        LangEntries.add(g + "coolant_ports", "Coolant input ports: %s", "Puertos de entrada de refrigerante: %s");
-        LangEntries.add(g + "steam_ports", "Steam output ports: %s", "Puertos de salida de vapor: %s");
-        LangEntries.add(g + "fuel_ports", "Fuel ports: %s", "Puertos de combustible: %s");
-        LangEntries.add(g + "rod_insertion", "Control rod insertion: %s%%", "Inserción de las barras de control: %s%%");
-        LangEntries.add(g + "rod_target", "Panel rod target: %s%%", "Objetivo de barras del panel: %s%%");
-        LangEntries.add(g + "static_rods", "Static rods: %s", "Barras fijas: %s");
-        LangEntries.add(g + "moving_rods", "Moving rods: %s", "Barras en movimiento: %s");
         LangEntries.add(g + "coolant", "Coolant: %s/%s mB", "Refrigerante: %s/%s mB");
         LangEntries.add(g + "steam", "Steam: %s/%s mB", "Vapor: %s/%s mB");
-        LangEntries.add(g + "temperature", "Fuel temperature: %s °C", "Temperatura del combustible: %s °C");
-        LangEntries.add(g + "coolant_temperature", "Coolant in the core: %s °C", "Refrigerante en el núcleo: %s °C");
-        LangEntries.add(g + "power_level", "Fission power: %s%% of %s MW rated", "Potencia de fisión: %s%% de %s MW nominales");
-        LangEntries.add(g + "reactivity", "Reactivity: %s pcm (fuel x%s)", "Reactividad: %s pcm (combustible x%s)");
-        LangEntries.add(g + "reactivity_parts", "  fuel %s · rods %s · heat %s · steam %s · xenon %s",
-                "  combustible %s · barras %s · calor %s · vapor %s · xenón %s");
-        LangEntries.add(g + "xenon", "Xenon poisoning: -%s%%", "Envenenamiento por xenón: -%s%%");
-        LangEntries.add(g + "decay_heat", "Decay heat: %s MW", "Calor residual: %s MW");
-        LangEntries.add(g + "thermal_stress", "Fuel stress: %s%% of the way to melting", "Tensión del combustible: %s%% hasta fundirse");
-        LangEntries.add(g + "core_damage", "Fuel damage: %s%% (permanent until refuelled)", "Daño del combustible: %s%% (permanente hasta recargar)");
-        LangEntries.add(g + "excursion", "Fuel melting: insert control rods and cool the core",
-                "Combustible fundiéndose: inserta las barras y enfría el núcleo");
         LangEntries.add(g + "fuel", "Fuel: %s / %s units", "Combustible: %s / %s unidades");
-        LangEntries.add(g + "enrichment", "Fuel enrichment: %s%%", "Enriquecimiento del combustible: %s%%");
-        LangEntries.add(g + "auto_scram_tripped", "Automatic SCRAM tripped at %s C", "SCRAM automático disparado a %s C");
-        LangEntries.add(g + "manual_scram", "Manual SCRAM signal on", "Señal de SCRAM manual activada");
         LangEntries.add(g + "fuel_input", "Fuel input: %s assemblies", "Combustible de entrada: %s elementos");
         LangEntries.add(g + "depleted", "Depleted fuel: %s assemblies", "Combustible gastado: %s elementos");
-        LangEntries.add(g + "suppressed", "Status: loaded, control rods suppressing reaction",
-                "Estado: cargado, las barras de control frenan la reacción");
         LangEntries.add(g + "output_blocked", "Depleted output blocked: %s", "Salida de combustible gastado bloqueada: %s");
+        reactorPanel();
+    }
+
+    /** The fission reactor's card on the panel (see reactor.display.FissionPanel). */
+    private static void reactorPanel() {
+        String f = "create_nuclearindustry.panel.fission.";
+        LangEntries.add(f + "kicker", "Fission reactor", "Reactor de fisión");
+        LangEntries.add(f + "kicker_size", "Fission reactor · %s", "Reactor de fisión · %s");
+        LangEntries.add(f + "title", "Fission Reactor", "Reactor de fisión");
+        LangEntries.add(f + "hint.structure", "Fix the structure and click the controller", "Arregla la estructura y haz clic en el controlador");
+        LangEntries.add(f + "tag.pwr", "PWR", "PWR");
+        LangEntries.add(f + "tag.bwr", "BWR", "BWR");
+        LangEntries.add(f + "status.scram", "SCRAM", "SCRAM");
+        LangEntries.add(f + "status.danger", "Danger", "Peligro");
+        LangEntries.add(f + "status.warning", "Warning", "Aviso");
+        LangEntries.add(f + "status.nominal", "Nominal", "Normal");
+        LangEntries.add(f + "status.standby", "Standby", "En espera");
+        LangEntries.add(f + "power", "Fission power", "Potencia de fisión");
+        LangEntries.add(f + "power_value", "%s%% · %s MW", "%s%% · %s MW");
+        LangEntries.add(f + "rods", "Control rods in", "Barras de control dentro");
+        LangEntries.add(f + "rods_to", "%s%% → %s%%", "%s%% → %s%%");
+        LangEntries.add(f + "fuel", "Fuel", "Combustible");
+        LangEntries.add(f + "stress", "Fuel stress", "Tensión del combustible");
+        LangEntries.add(f + "reactivity", "Reactivity", "Reactividad");
+        LangEntries.add(f + "reactivity_short", "React.", "Reactiv.");
+        LangEntries.add(f + "coolant_temperature", "Coolant", "Refrigerante");
+        LangEntries.add(f + "xenon", "Xenon", "Xenón");
+        LangEntries.add(f + "decay_heat", "Decay heat", "Calor residual");
+        LangEntries.add(f + "tanks", "Tanks", "Depósitos");
+        LangEntries.add(f + "coolant", "Coolant", "Refrigerante");
+        LangEntries.add(f + "steam", "Steam", "Vapor");
+        LangEntries.add(f + "no_pressurizer", "Primary coolant, no pressurizer", "Refrigerante primario sin presionador");
+        LangEntries.add(f + "primary", "Pressurized loop", "Circuito a presión");
+        LangEntries.add(f + "pressure", "Pressure", "Presión");
+        LangEntries.add(f + "subcooling", "Subcooling", "Subenfriam.");
+        LangEntries.add(f + "hot_leg", "Hot leg", "Rama caliente");
+        LangEntries.add(f + "cold_leg", "Cold leg", "Rama fría");
+        LangEntries.add(f + "flow", "Flow", "Caudal");
+        LangEntries.add(f + "heaters", "Heaters", "Calentadores");
+        LangEntries.add(f + "pressurizer", "Pressurizer", "Presionador");
+        LangEntries.add(f + "vessel", "Core covered", "Núcleo cubierto");
+        LangEntries.add(f + "relief_open", "Relief valve open", "Válvula de alivio abierta");
+        LangEntries.add(f + "relief_stuck", "Relief valve stuck open", "Válvula de alivio atascada");
+        LangEntries.add(f + "containment", "Containment", "Contención");
+        LangEntries.add(f + "containment_value", "%s bar · H2 %s%%", "%s bar · H2 %s%%");
+        LangEntries.add(f + "cladding", "Cladding oxidised %s%%", "Vainas oxidadas %s%%");
+        LangEntries.add(f + "breached", "Vessel breached", "Vasija rota");
+        LangEntries.add(f + "core_damage", "Fuel damage %s%%", "Daño del combustible %s%%");
+        LangEntries.add(f + "excursion", "Fuel melting", "Combustible fundiéndose");
+        LangEntries.add(f + "auto_scram", "Auto SCRAM at %s °C", "SCRAM automático a %s °C");
+        LangEntries.add(f + "manual_scram", "Manual SCRAM on", "SCRAM manual activado");
+        LangEntries.add(f + "output_blocked", "Depleted output blocked: %s", "Salida de gastado bloqueada: %s");
+        LangEntries.add(f + "suppressed", "Loaded, the rods hold the reaction down", "Cargado, las barras frenan la reacción");
+        LangEntries.add(f + "structure", "Structure", "Estructura");
+        LangEntries.add(f + "fuel_columns", "Fuel cols", "Col. combustible");
+        LangEntries.add(f + "exchanger_columns", "Exchangers", "Intercambiad.");
+        LangEntries.add(f + "control_columns", "Rod cols", "Col. barras");
+        LangEntries.add(f + "rod_segments", "Rod segs", "Segm. barras");
+        LangEntries.add(f + "static_rods", "Static", "Fijas");
+        LangEntries.add(f + "moving_rods", "Moving", "Móviles");
+        LangEntries.add(f + "graphite_columns", "Graphite", "Grafito");
+        LangEntries.add(f + "reflector_columns", "Refl.", "Refl.");
+        LangEntries.add(f + "count_share", "%s · %s%%", "%s · %s%%");
+        LangEntries.add(f + "ports", "Ports", "Puertos");
+        LangEntries.add(f + "coolant_ports", "Coolant in", "Entrada refrig.");
+        LangEntries.add(f + "steam_ports", "Steam out", "Salida vapor");
+        LangEntries.add(f + "fuel_ports", "Fuel", "Combustible");
+        LangEntries.add(f + "rated_power", "Rated", "Nominal");
+        LangEntries.add(f + "net", "Net", "Neta");
+        LangEntries.add(f + "k", "Fuel ×", "Combust. ×");
+        LangEntries.add(f + "term.fuel", "Fuel", "Combust.");
+        LangEntries.add(f + "term.rods", "Rods", "Barras");
+        LangEntries.add(f + "term.temperature", "Heat", "Calor");
+        LangEntries.add(f + "term.voids", "Steam", "Vapor");
+        LangEntries.add(f + "term.xenon", "Xenon", "Xenón");
+        LangEntries.add(f + "neutrons", "Neutrons", "Neutrones");
+        LangEntries.add(f + "fuel_left", "Left", "Queda");
+        LangEntries.add(f + "waiting", "Waiting", "En espera");
+        LangEntries.add(f + "depleted", "Depleted", "Gastado");
+        LangEntries.add(f + "enrichment", "Enrichment", "Enriquec.");
     }
 
     private static void reactorPorts() {

@@ -1,7 +1,6 @@
 package org.papiricoh.create_nuclearindustry.fusion.blockentity;
 
 import com.mojang.logging.LogUtils;
-import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -34,6 +33,9 @@ import org.papiricoh.create_nuclearindustry.fusion.api.TokamakAuxiliary;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakClientHooks;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakControl;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
+import org.papiricoh.create_nuclearindustry.fusion.display.TokamakPanel;
+import org.papiricoh.create_nuclearindustry.panel.PanelCard;
+import org.papiricoh.create_nuclearindustry.panel.PanelSource;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakReadings;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakSupply;
 import org.papiricoh.create_nuclearindustry.fusion.api.TripCause;
@@ -72,7 +74,7 @@ import java.util.Optional;
  * plasma the {@link PlasmaModel} burns what the fuelling and heating give it. Tank amounts are whole
  * millibuckets, so fractional draws and returns are carried over in balances.
  */
-public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggleInformation, MultiblockController, TokamakControl {
+public class FusionReactorBlockEntity extends BlockEntity implements PanelSource, MultiblockController, TokamakControl {
     private static final Logger LOGGER = LogUtils.getLogger();
     public static final int FUEL_TANK_CAPACITY = 8_000;
     public static final int TANK_CAPACITY = 16_000;
@@ -1004,45 +1006,10 @@ public class FusionReactorBlockEntity extends BlockEntity implements IHaveGoggle
 
     // ------------------------------------------------------------------ goggles
 
+    /** The tokamak's card on the panel: a summary, or its details while sneaking. */
     @Override
-    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        tooltip.add(Component.literal("    ").append(Component.translatable("create_nuclearindustry.tokamak.goggles.title"))
-                .withStyle(ChatFormatting.AQUA));
-        if (!isFormed()) {
-            tooltip.add(Component.literal("  ").append(getValidationText()).withStyle(ChatFormatting.RED));
-            return true;
-        }
-        TokamakReadings r = readings();
-        tooltip.add(line("structure", getMajorRadius(), getCoilCount(), Math.round(getCoilCoverage() * 100), getBlanketCount())
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(line("phase", Component.translatable(r.phase().langKey()))
-                .withStyle(r.phase() == TokamakPhase.BURN ? ChatFormatting.GOLD : ChatFormatting.AQUA));
-        if (r.tripCause() != TripCause.NONE) {
-            tooltip.add(line("trip", Component.translatable(r.tripCause().langKey())).withStyle(ChatFormatting.RED));
-        }
-        if (r.suspended()) {
-            tooltip.add(line("suspended").withStyle(ChatFormatting.YELLOW));
-        }
-        tooltip.add(line("plasma", Math.round(r.temperature()), Math.round(r.density() * 100), Math.round(r.ashFraction() * 100))
-                .withStyle(r.temperature() >= PlasmaModel.DANGER_TEMP || r.density() > PlasmaModel.DENSITY_LIMIT
-                        ? ChatFormatting.RED : ChatFormatting.GRAY));
-        tooltip.add(line("power", Math.round(r.fusionPower()), Math.round(r.heatingPower()), gainText(r.gain()))
-                .withStyle(r.fusionPower() > 0 ? ChatFormatting.GOLD : ChatFormatting.GRAY));
-        tooltip.add(line("stability", Math.round(r.confinement() * 100), Math.round(r.instability()))
-                .withStyle(r.instability() > PlasmaModel.INSTABILITY_WARNING ? ChatFormatting.RED : ChatFormatting.GRAY));
-        tooltip.add(line("magnets", Math.round(r.field() * 100), String.format("%.1f", r.magnetTemperature()), vacuumText(r.vacuum()))
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(line("fuel", r.deuterium(), r.tritium(), String.format("%.2f", r.tritiumBreeding())).withStyle(ChatFormatting.GRAY));
-        tooltip.add(line("coolant", r.coolant(), r.plasmaSteam()).withStyle(ChatFormatting.GRAY));
-        tooltip.add(line("helium", r.liquidHelium(), r.warmHelium()).withStyle(ChatFormatting.GRAY));
-        if (r.tritiumOverflow()) {
-            tooltip.add(line("tritium_overflow").withStyle(ChatFormatting.YELLOW));
-        }
-        return true;
-    }
-
-    private static MutableComponent line(String key, Object... args) {
-        return Component.literal("  ").append(Component.translatable("create_nuclearindustry.tokamak.goggles." + key, args));
+    public PanelCard panelCard(net.minecraft.world.phys.Vec3 hit, boolean detailed) {
+        return TokamakPanel.card(this, detailed);
     }
 
     /** Q as text: a number, or the infinity sign once the plasma is ignited. */

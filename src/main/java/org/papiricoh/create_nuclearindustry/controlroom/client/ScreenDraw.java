@@ -12,8 +12,8 @@ import net.minecraft.network.chat.Component;
 import org.joml.Matrix4f;
 
 /** Flat, full-bright drawing on the front face of a control room block. */
-final class ScreenDraw {
-    static final int LIGHT = LightTexture.FULL_BRIGHT;
+public final class ScreenDraw {
+    public static final int LIGHT = LightTexture.FULL_BRIGHT;
 
     private ScreenDraw() {}
 
@@ -28,7 +28,7 @@ final class ScreenDraw {
     }
 
     /** A filled rectangle; drawn with both windings so it shows whatever the pose's handedness. */
-    static void rect(PoseStack ms, MultiBufferSource buffers, float x0, float y0, float x1, float y1, float z, int argb) {
+    public static void rect(PoseStack ms, MultiBufferSource buffers, float x0, float y0, float x1, float y1, float z, int argb) {
         if (x1 <= x0 || y1 <= y0) {
             return;
         }

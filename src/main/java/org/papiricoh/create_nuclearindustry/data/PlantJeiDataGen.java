@@ -20,6 +20,7 @@ final class PlantJeiDataGen extends AreaDataGen {
         spentFuel();
         waste();
         controlRoom();
+        moduleSurfaces();
         civilDefense();
     }
 
@@ -76,6 +77,21 @@ final class PlantJeiDataGen extends AreaDataGen {
         add(INFO + "controller_module",
                 "A Control Desk module that runs the reactor on its own. Fit it in a desk linked to a fission reactor and wrench it to choose Automatic power (setpoint in MW), Automatic temperature (in °C) or, on a reactor with a pressurizer, Automatic pressure (in bar, through the heaters and the spray), and to switch it between automatic and standby. Click it to raise the setpoint and sneak-click to lower it. In power and temperature mode it sets the reactor's rod target like a PID controller; Redstone Ports in Insert rods or Withdraw rods mode still have to drive the rod pistons. It lets go during a SCRAM or while the core is not formed, and picks up smoothly again afterwards. Tune it under controlRoom.pid in the config.",
                 "Un módulo de Pupitre de control que maneja el reactor por sí solo. Colócalo en un pupitre enlazado a un reactor de fisión y usa la llave para elegir Potencia automática (consigna en MW), Temperatura automática (en °C) o, en un reactor con presionador, Presión automática (en bar, con los calentadores y el rociado), y para pasarlo de automático a en espera. Haz clic para subir la consigna y agachado para bajarla. En potencia y temperatura fija el objetivo de barras del reactor como un controlador PID; los Puertos de redstone en modo Insertar barras o Extraer barras siguen teniendo que mover los pistones de las barras. Se suelta durante un SCRAM o si el núcleo no está formado, y después retoma el control sin saltos. Se ajusta en controlRoom.pid en la configuración.");
+    }
+
+    private static void moduleSurfaces() {
+        add(INFO + "advanced_redstone_link",
+                "Works like Create's Redstone Link, but is tuned by a code of four letters or digits instead of two items: click it to type the code. A transmitter sends the strongest redstone signal around it; every receiver with the same code within Create's link range puts it out, into the block it sits on too. Sneak-click it with an empty hand to switch between transmitting and receiving. Control modules can send on a code as well: choose the Advanced Redstone Link output and type the code in their setup screen. Looking at it shows its code and signal on the right of the screen.",
+                "Funciona como el Enlace de redstone de Create, pero se sintoniza con un código de cuatro letras o cifras en lugar de dos objetos: haz clic para escribirlo. Un transmisor manda la señal de redstone más fuerte que tenga alrededor; todos los receptores con el mismo código dentro del alcance de los enlaces de Create la sacan, también al bloque en el que están puestos. Haz clic agachado con la mano vacía para cambiar entre transmitir y recibir. Los módulos de control también pueden mandar por un código: elige la salida por Enlace de redstone avanzado y escribe el código en su pantalla de configuración. Al mirarlo se ven su código y su señal a la derecha de la pantalla.");
+        add(INFO + "control_table",
+                "A flat-topped console for four control modules in two rows, its top level with the rail of a Control Desk. Tables side by side join into one, and tables, desks and wall panels touching side by side share one console and its link. Fit, set up and work modules as on a desk.",
+                "Una consola de tablero plano para cuatro módulos de control en dos filas, con el tablero a la altura del raíl de un Pupitre de control. Las mesas una junto a otra se unen, y las mesas, pupitres y paneles de pared que se tocan de lado comparten consola y enlace. Los módulos se colocan, configuran y accionan como en un pupitre.");
+        add(INFO + "wall_control_panel",
+                "A plate for four control modules, hung on the side of a solid block. Panels side by side join into one, and panels on the same wall, side by side or one above another, make one console with any desk or table beside them. A gauge on a wall panel shows its dial face on. Break the wall and the panel falls off with its modules.",
+                "Una placa para cuatro módulos de control que se cuelga en el lateral de un bloque sólido. Los paneles uno junto a otro se unen, y los paneles de una misma pared, de lado o uno encima de otro, forman una consola con los pupitres o mesas que tengan al lado. Un medidor en un panel de pared muestra la esfera de frente. Si rompes la pared, el panel se cae con sus módulos.");
+        add(INFO + "led_display_module",
+                "Shows a reading of the linked machine in digits, with its unit. LED displays side by side in a row of a desk, table or wall panel join into one wider display, across joined blocks of the same kind too (up to eight modules): the wider it is, the more digits and a label on top. The leftmost module sets the whole display; wrench any of its modules to choose the reading and the label. Too big a value reads OL; a reading the machine does not have reads dashes.",
+                "Muestra una lectura de la máquina enlazada en cifras, con su unidad. Los displays LED uno junto a otro en una fila de un pupitre, mesa o panel de pared se unen en un display más ancho, también entre bloques del mismo tipo unidos (hasta ocho módulos): cuanto más ancho, más cifras y una etiqueta encima. El módulo de más a la izquierda configura todo el display; usa la llave sobre cualquiera de sus módulos para elegir la lectura y la etiqueta. Un valor demasiado grande se lee OL; una lectura que la máquina no tiene se lee con guiones.");
     }
 
     private static void civilDefense() {

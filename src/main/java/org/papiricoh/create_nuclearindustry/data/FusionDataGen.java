@@ -88,21 +88,7 @@ final class FusionDataGen extends AreaDataGen {
     }
 
     private static void goggles() {
-        String g = T + "goggles.";
-        LangEntries.add(g + "title", "Tokamak", "Tokamak");
-        LangEntries.add(g + "structure", "R=%s, %s coils (%s%% coverage), %s blankets", "R=%s, %s bobinas (%s%% de cobertura), %s mantos");
-        LangEntries.add(g + "phase", "Phase: %s", "Fase: %s");
-        LangEntries.add(g + "trip", "Last trip: %s", "Último disparo: %s");
-        LangEntries.add(g + "suspended", "Paused: part of the torus is unloaded", "En pausa: parte del toro no está cargada");
-        LangEntries.add(g + "plasma", "Plasma: %s°, density %s%%, ash %s%%", "Plasma: %s°, densidad %s%%, cenizas %s%%");
-        LangEntries.add(g + "power", "Fusion %s MW, heating %s MW, Q %s", "Fusión %s MW, calentamiento %s MW, Q %s");
-        LangEntries.add(g + "stability", "Confinement %s%%, instability %s%%", "Confinamiento %s%%, inestabilidad %s%%");
-        LangEntries.add(g + "magnets", "Field %s%%, coils %s K, vacuum %s", "Campo %s%%, bobinas %s K, vacío %s");
-        LangEntries.add(g + "fuel", "D: %s mB  T: %s mB  TBR %s", "D: %s mB  T: %s mB  TBR %s");
-        LangEntries.add(g + "coolant", "Water: %s mB  Plasma steam: %s mB", "Agua: %s mB  Vapor de plasma: %s mB");
-        LangEntries.add(g + "helium", "Liquid helium: %s mB  Warm helium: %s mB", "Helio líquido: %s mB  Helio caliente: %s mB");
-        LangEntries.add(g + "tritium_overflow", "Tritium tank full: breeding stopped. Set an injector to OUTPUT",
-                "Tanque de tritio lleno: la regeneración se detiene. Pon un inyector en SALIDA");
+        panel();
 
         LangEntries.add(T + "port.coolant_input", "Coolant input (water only)", "Entrada de refrigerante (solo agua)");
         LangEntries.add(T + "port.steam_output", "Plasma steam output", "Salida de vapor de plasma");
@@ -116,6 +102,56 @@ final class FusionDataGen extends AreaDataGen {
         LangEntries.add(T + "drive.spin_up", "Status: spin up (needs %s RPM)", "Estado: acelera (necesita %s RPM)");
         LangEntries.add(T + "drive.field", "Field: %s%%", "Campo: %s%%");
         LangEntries.add(T + "drive.speed", "Speed: %s RPM", "Velocidad: %s RPM");
+    }
+
+    /** The tokamak's card on the panel (see fusion.display.TokamakPanel). */
+    private static void panel() {
+        String t = "create_nuclearindustry.panel.tokamak.";
+        LangEntries.add(t + "kicker", "Tokamak", "Tokamak");
+        LangEntries.add(t + "kicker_radius", "Tokamak · R %s", "Tokamak · R %s");
+        LangEntries.add(t + "title", "Tokamak", "Tokamak");
+        LangEntries.add(t + "hint.structure", "Fix the torus and click the controller", "Arregla el toro y haz clic en el controlador");
+        LangEntries.add(t + "tag.dt", "D-T", "D-T");
+        LangEntries.add(t + "tag.dd", "D-D", "D-D");
+        LangEntries.add(t + "status.tripped", "Tripped", "Disparado");
+        LangEntries.add(t + "status.suspended", "Paused", "En pausa");
+        LangEntries.add(t + "status.burning", "Burning", "En combustión");
+        LangEntries.add(t + "status.plasma", "Plasma", "Plasma");
+        LangEntries.add(t + "status.standby", "Standby", "En espera");
+        LangEntries.add(t + "gain", "Gain Q", "Ganancia Q");
+        LangEntries.add(t + "heating", "Heating", "Calentam.");
+        LangEntries.add(t + "temperature", "Plasma temperature", "Temperatura del plasma");
+        LangEntries.add(t + "density", "Density", "Densidad");
+        LangEntries.add(t + "confinement", "Confinement", "Confinamiento");
+        LangEntries.add(t + "instability", "Instability", "Inestabilidad");
+        LangEntries.add(t + "magnets", "Magnets and vacuum", "Imanes y vacío");
+        LangEntries.add(t + "field", "Field", "Campo");
+        LangEntries.add(t + "magnet_temperature", "Coils", "Bobinas");
+        LangEntries.add(t + "vacuum", "Vacuum", "Vacío");
+        LangEntries.add(t + "suspended", "Part of the torus is unloaded", "Parte del toro no está cargada");
+        LangEntries.add(t + "tritium_overflow", "Tritium full: set an injector to output", "Tritio lleno: pon un inyector en salida");
+        LangEntries.add(t + "structure", "Torus", "Toro");
+        LangEntries.add(t + "radius", "Radius", "Radio");
+        LangEntries.add(t + "coils", "Coils", "Bobinas");
+        LangEntries.add(t + "coverage", "Coverage", "Cobertura");
+        LangEntries.add(t + "blankets", "Blankets", "Mantos");
+        LangEntries.add(t + "fuel", "Fuel", "Combustible");
+        LangEntries.add(t + "deuterium", "Deuterium", "Deuterio");
+        LangEntries.add(t + "tritium", "Tritium", "Tritio");
+        LangEntries.add(t + "fuel_rate", "Fuelling", "Alimentac.");
+        LangEntries.add(t + "breeding", "TBR", "TBR");
+        LangEntries.add(t + "ash", "Ash", "Cenizas");
+        LangEntries.add(t + "burn_rate", "Burn", "Quemado");
+        LangEntries.add(t + "cooling", "Cooling", "Refrigeración");
+        LangEntries.add(t + "coolant", "Water", "Agua");
+        LangEntries.add(t + "plasma_steam", "Plasma steam", "Vapor plasma");
+        LangEntries.add(t + "liquid_helium", "Liq. helium", "Helio líq.");
+        LangEntries.add(t + "warm_helium", "Warm helium", "Helio cal.");
+        LangEntries.add(t + "heating_switch", "Switch", "Interruptor");
+        LangEntries.add(t + "heating_level", "Level", "Nivel");
+        LangEntries.add(t + "field_target", "Field target", "Campo obj.");
+        LangEntries.add("create_nuclearindustry.panel.unit.degrees", "%s°", "%s°");
+        LangEntries.add("create_nuclearindustry.panel.unit.pa", "%s Pa", "%s Pa");
     }
 
     private static void screen() {

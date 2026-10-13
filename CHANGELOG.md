@@ -579,6 +579,39 @@ below for what changes in existing worlds.
   the stored share out to comparators.
 
 ### Control room instruments
+- Advanced Redstone Link: works like Create's Redstone Link but is tuned by a
+  code of four letters or digits, typed in after clicking it, instead of two
+  items. Transmitters send the strongest signal around them to every receiver
+  with the same code within Create's link range; sneak-click with an empty
+  hand to switch between transmitting and receiving. The code is shown on the
+  link itself and on the control room panel.
+- Control modules have a fourth redstone output, Advanced Redstone Link: type
+  the code in the link column of their setup screen.
+- The panel: looking at a fission reactor controller, a tokamak controller, a
+  control module, a console or an Advanced Redstone Link slides a readout in
+  on the right of the screen, no goggles needed. A reactor shows its state,
+  core temperature, power, rods, fuel, stress, tanks, pressurized loop and
+  anything going wrong; a tokamak its phase, fusion power and gain, the
+  plasma, the magnets and the vacuum; sneak to see their structure, ports,
+  reactivity, fuel and cooling instead. A module shows what it is set to, its
+  value in units (gauges too), where its redstone goes and its signal. It
+  replaces the goggle tooltips of both reactor controllers and the floating
+  label over modules, and can be turned off with `hud.panel` in the client
+  config.
+- Control Table: a flat-topped console for four modules in two rows, its top
+  level with the rail of a Control Desk, with raised end cheeks. Tables side by side join, and a table
+  next to a desk or wall panel shares its console and link.
+- Wall Control Panel: a plate for four modules hung on the side of a solid
+  block. Panels side by side join, panels on the same wall (beside or above
+  each other) make one console, and a panel falls off with its modules when
+  its wall goes. A gauge on a wall panel shows its dial face on, its needle
+  turning in the panel.
+- LED Display Module: shows a reading in seven-segment digits with its unit
+  (°C, MW, bar, %...). LED displays side by side in a row join into one wider
+  display, across joined desks, tables or wall panels too (up to eight
+  modules), with more digits and a label on top; the leftmost module sets it
+  up, and wrenching any of its modules opens that setup. Too big a value reads
+  OL, a reading the machine lacks reads dashes.
 - Chart Recorder: up to three pens (red, blue, green) draw readings of the
   linked machine on a strip of paper that scrolls across its front, at one
   sample every 1, 5 or 20 ticks. Feed it paper by hand or with a hopper; it

@@ -75,6 +75,36 @@ public class ControlRoom2Recipes implements DataProvider {
                 .requires(CreateItems.get("electron_tube"))
                 .unlockedBy("has_control_desk", InventoryChangeTrigger.TriggerInstance.hasItems(AllNuclearItems.REACTOR_CONTROL_PANEL.get()))
                 .save(output, id("crafting/" + ModuleType.CONTROLLER.itemId()));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.REDSTONE, AllNuclearItems.CONTROL_MODULES.get(ModuleType.LED_DISPLAY).get(), 2)
+                .requires(CreateItems.get("iron_sheet"))
+                .requires(Items.REDSTONE)
+                .requires(Items.GLOWSTONE_DUST)
+                .unlockedBy("has_control_desk", InventoryChangeTrigger.TriggerInstance.hasItems(AllNuclearItems.REACTOR_CONTROL_PANEL.get()))
+                .save(output, id("crafting/" + ModuleType.LED_DISPLAY.itemId()));
+        // Create's link with an electron tube to decode the code.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.REDSTONE, ControlRoom2Registry.ADVANCED_REDSTONE_LINK_ITEM.get())
+                .requires(CreateItems.get("redstone_link"))
+                .requires(CreateItems.get("electron_tube"))
+                .unlockedBy("has_redstone_link", InventoryChangeTrigger.TriggerInstance.hasItems(CreateItems.get("redstone_link")))
+                .save(output, id("crafting/advanced_redstone_link"));
+        // A desk's top on a full cabinet, and a desk's top on its own for the wall.
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ControlRoom2Registry.CONTROL_TABLE_ITEM.get(), 2)
+                .pattern("SSS")
+                .pattern("PEP")
+                .pattern("PPP")
+                .define('S', Items.SMOOTH_STONE_SLAB)
+                .define('P', CreateItems.get("iron_sheet"))
+                .define('E', CreateItems.get("electron_tube"))
+                .unlockedBy("has_control_desk", InventoryChangeTrigger.TriggerInstance.hasItems(AllNuclearItems.REACTOR_CONTROL_PANEL.get()))
+                .save(output, id("crafting/control_table"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ControlRoom2Registry.WALL_CONTROL_PANEL_ITEM.get(), 2)
+                .pattern("PEP")
+                .pattern("SSS")
+                .define('S', Items.SMOOTH_STONE_SLAB)
+                .define('P', CreateItems.get("iron_sheet"))
+                .define('E', CreateItems.get("electron_tube"))
+                .unlockedBy("has_control_desk", InventoryChangeTrigger.TriggerInstance.hasItems(AllNuclearItems.REACTOR_CONTROL_PANEL.get()))
+                .save(output, id("crafting/wall_control_panel"));
     }
 
     private static ResourceLocation id(String path) {

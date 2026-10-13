@@ -34,6 +34,8 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleChoices;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleFunction;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.OutputMode;
+import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
+import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,10 +66,13 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
     private static final int OPTIONS_X = 110, OPTIONS_WIDTH = 139;
     private static final int CONTROLS_Y = 128;
     private static final int LABEL_BOX_X = 7, LABEL_BOX_WIDTH = 80;
-    private static final int SETTING_X = 91, SETTING_Y = 129, SETTING_WIDTH = 96, SETTING_HEIGHT = 16;
-    private static final int OUTPUT_X = 193, OUTPUT_STEP = 19;
+    private static final int SETTING_X = 91, SETTING_Y = 129, SETTING_WIDTH = 81, SETTING_HEIGHT = 16;
+    private static final int OUTPUT_X = 177, OUTPUT_STEP = 18;
     private static final int LINK_ICON_X = 14, LINK_ICON_Y = 156;
     private static final int FREQUENCY_X = 14, FREQUENCY_FIRST_Y = 178, FREQUENCY_LAST_Y = 200;
+    /** The code box that covers the frequency wells with the Advanced Redstone Link output. */
+    private static final int CODE_X = 11, CODE_Y = 182, CODE_WIDTH = 24, CODE_HEIGHT = 12;
+    private static final int COLUMN_LEFT = 9, COLUMN_RIGHT = 36, WELLS_TOP = 174, WELLS_BOTTOM = 220;
     /** The signal meter's inner trough: 15 steps of 4 px, filled from the bottom. */
     private static final int METER_LEFT = 231, METER_RIGHT = 239, METER_BOTTOM = 228, METER_STEP = 4;
     private static final int METER_AREA_LEFT = 221, METER_AREA_RIGHT = 249, METER_AREA_TOP = 151, METER_AREA_BOTTOM = 235;
@@ -86,12 +91,14 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
     private ControlModule module;
     private ConsoleSummary summary = ConsoleSummary.NONE;
     private ItemStack linkIcon = ItemStack.EMPTY;
+    private ItemStack advancedLinkIcon = ItemStack.EMPTY;
 
     private OptionList<ModuleFunction> functionList;
     private OptionList<AlarmMetric> metricList;
     private OptionList<GaugeReading> readingList;
     private IconButton modeButton;
     private EditBox labelBox;
+    private EditBox codeBox;
     private SettingInput settingInput;
     private Label settingLabel;
     private final IconButton[] outputButtons = new IconButton[OutputMode.values().length];
@@ -115,6 +122,7 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
         }
         summary = menu.consoleSummary();
         linkIcon = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("create", "redstone_link")));
+        advancedLinkIcon = new ItemStack(ControlRoom2Registry.ADVANCED_REDSTONE_LINK_ITEM.get());
 
         functionList = new OptionList<ModuleFunction>(leftPos + FUNCTIONS_X, topPos + LIST_Y, FUNCTIONS_WIDTH, LIST_HEIGHT)
                 .onSelect(this::pickFunction);
@@ -144,6 +152,24 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
         labelBox.setResponder(text -> {
             if (!text.equals(module.label())) {
                 module.withLabel(text);
+                changed();
+            }
+        });
+
+        codeBox = new EditBox(font, leftPos + CODE_X, topPos + CODE_Y, CODE_WIDTH, CODE_HEIGHT, Component.translatable(KEY + "link_code"));
+        codeBox.setBordered(false);
+        codeBox.setMaxLength(LinkCode.LENGTH);
+        codeBox.setTextColor(0xFFFFB347);
+        codeBox.setFilter(text -> text.chars().allMatch(c -> LinkCode.allowed((char) c)));
+        codeBox.setValue(module.linkCode());
+        codeBox.setResponder(text -> {
+            String code = LinkCode.sanitize(text);
+            if (!code.equals(text)) {
+                codeBox.setValue(code);
+                return;
+            }
+            if (!code.equals(module.linkCode())) {
+                module.withLinkCode(code);
                 changed();
             }
         });
@@ -178,6 +204,7 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
         addRenderableWidgets(functionList, metricList, readingList);
         addRenderableWidget(modeButton);
         addRenderableWidget(labelBox);
+        addRenderableWidget(codeBox);
         addRenderableWidgets(settingInput, settingLabel);
         addRenderableWidgets(outputButtons);
         rebuildOptions(true);
@@ -353,6 +380,10 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
         for (int i = 0; i < modes.length; i++) {
             outputButtons[i].green = module.output() == modes[i];
         }
+        codeBox.visible = module.output() == OutputMode.ADVANCED_LINK;
+        if (!codeBox.visible && codeBox.isFocused()) {
+            codeBox.setFocused(false);
+        }
     }
 
     private String settingText() {
@@ -416,8 +447,15 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
             return;
         }
         boolean link = module.output() == OutputMode.LINK;
-        graphics.renderItem(linkIcon, leftPos + LINK_ICON_X, topPos + LINK_ICON_Y);
-        if (link) {
+        boolean advanced = module.output() == OutputMode.ADVANCED_LINK;
+        graphics.renderItem(advanced ? advancedLinkIcon : linkIcon, leftPos + LINK_ICON_X, topPos + LINK_ICON_Y);
+        if (advanced) {
+            // The code box over the frequency wells: a dark display the code is typed into.
+            graphics.fill(leftPos + COLUMN_LEFT, topPos + WELLS_TOP, leftPos + COLUMN_RIGHT, topPos + WELLS_BOTTOM, 0xFF30383A);
+            graphics.fill(leftPos + CODE_X - 2, topPos + CODE_Y - 3, leftPos + CODE_X + CODE_WIDTH, topPos + CODE_Y + CODE_HEIGHT - 1,
+                    0xFF202629);
+            graphics.renderOutline(leftPos + CODE_X - 2, topPos + CODE_Y - 3, CODE_WIDTH + 2, CODE_HEIGHT + 2, 0xFF55605E);
+        } else if (link) {
             graphics.renderItem(module.frequencyFirst(), leftPos + FREQUENCY_X, topPos + FREQUENCY_FIRST_Y);
             graphics.renderItem(module.frequencyLast(), leftPos + FREQUENCY_X, topPos + FREQUENCY_LAST_Y);
         } else {
@@ -585,6 +623,10 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
         if (inBox(mouseX, mouseY, HEADER_RIGHT - 100, HEADER_LINE_1 - 1, 100, 10) && summary.target() != null) {
             var pos = summary.target().pos();
             lines.add(Component.translatable("item.create_nuclearindustry.control_room_linker.target", pos.getX(), pos.getY(), pos.getZ()));
+        } else if (module.output() == OutputMode.ADVANCED_LINK && (inBox(mouseX, mouseY, LINK_ICON_X, LINK_ICON_Y, 16, 16)
+                || inBox(mouseX, mouseY, CODE_X - 2, CODE_Y - 3, CODE_WIDTH + 2, CODE_HEIGHT + 2))) {
+            lines.add(Component.translatable(KEY + "link_code").withStyle(s -> s.withColor(AbstractSimiWidget.HEADER_RGB.getRGB())));
+            lines.add(Component.translatable(SCREEN + "link_code_hint").withStyle(ChatFormatting.GRAY));
         } else if (inBox(mouseX, mouseY, LINK_ICON_X, LINK_ICON_Y, 16, 16)
                 || inBox(mouseX, mouseY, FREQUENCY_X, FREQUENCY_FIRST_Y, 16, 16)
                 || inBox(mouseX, mouseY, FREQUENCY_X, FREQUENCY_LAST_Y, 16, 16)) {
@@ -636,6 +678,7 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
             case NONE -> AllIcons.I_DISABLE;
             case BELOW -> AllIcons.I_PRIORITY_VERY_LOW;
             case LINK -> AllIcons.I_SEND_ONLY;
+            case ADVANCED_LINK -> AllIcons.I_CONFIG_LOCKED;
         };
     }
 

@@ -16,10 +16,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config;
+import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomPanels;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomDevice;
 import org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.SharedReadings;
+import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedLinkNetwork;
+import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
+import org.papiricoh.create_nuclearindustry.panel.PanelCard;
+import org.papiricoh.create_nuclearindustry.panel.PanelSource;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -30,8 +35,9 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * One block of a control console. Desks touching side by side or round a corner join into a
- * console; its first block (lowest x, then z) holds the console's link and samples the target,
+ * One block of a control console: a desk, table or wall panel (see {@link ModuleSurfaceBlock}).
+ * Module surfaces touching side by side or round a corner, and wall panels stacked on one wall, join
+ * into a console; its first block (lowest x, then z, then y) holds the console's link and samples the target,
  * once per tick at most, for every module on every desk. Each desk keeps up to four modules,
  * works out what they show twice a second and puts their redstone out below or on a link frequency.
  * Controller modules also step their loop every {@link ControlRoom2Config#pidInterval} ticks.
@@ -42,7 +48,7 @@ import java.util.Set;
  * next to one of its desks changes (and by the console's first desk, as a safety net, every
  * {@link #CLUSTER_FALLBACK_INTERVAL} ticks), not by every desk every two seconds.
  */
-public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlRoomDevice {
+public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlRoomDevice, PanelSource {
     public static final int SLOTS = 4;
     public static final int MAX_CONSOLE = 64;
     private static final int EVALUATE_INTERVAL = 10;
@@ -53,6 +59,7 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
 
     private final ControlModule[] modules = new ControlModule[SLOTS];
     private final ModuleLink[] links = new ModuleLink[SLOTS];
+    private final ModuleCodeLink[] codeLinks = new ModuleCodeLink[SLOTS];
     /** This desk's copy of the console link; the origin's copy is the one in force. */
     @Nullable
     private GlobalPos target;
@@ -266,7 +273,8 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         clusterScans++;
         Set<BlockPos> members = connected();
         BlockPos first = members.stream()
-                .min(Comparator.<BlockPos>comparingInt(BlockPos::getX).thenComparingInt(BlockPos::getZ))
+                .min(Comparator.<BlockPos>comparingInt(BlockPos::getX).thenComparingInt(BlockPos::getZ)
+                        .thenComparingInt(BlockPos::getY))
                 .orElse(getBlockPos());
         List<ControlDeskBlockEntity> desks = new ArrayList<>(members.size());
         ControlDeskBlockEntity console = null;
@@ -314,7 +322,10 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         return clusterScans;
     }
 
-    /** Desks reachable side by side on this level, up to {@link #MAX_CONSOLE}. */
+    /**
+     * Module surfaces reachable side by side on this level (and wall panels up and down a wall), up to
+     * {@link #MAX_CONSOLE}: see {@link ModuleSurfaceBlock#sameConsole}.
+     */
     private Set<BlockPos> connected() {
         Set<BlockPos> found = new HashSet<>();
         ArrayDeque<BlockPos> open = new ArrayDeque<>();
@@ -322,10 +333,11 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         open.add(getBlockPos());
         while (!open.isEmpty() && found.size() < MAX_CONSOLE) {
             BlockPos current = open.poll();
-            for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockState currentState = level.getBlockState(current);
+            for (Direction direction : Direction.values()) {
                 BlockPos next = current.relative(direction);
                 if (!found.contains(next) && level.isLoaded(next)
-                        && level.getBlockState(next).getBlock() == getBlockState().getBlock()) {
+                        && ModuleSurfaceBlock.sameConsole(currentState, level.getBlockState(next), direction)) {
                     found.add(next);
                     open.add(next);
                 }
@@ -428,6 +440,10 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
             if (link != null && link.setStrength(module.signal())) {
                 Create.REDSTONE_LINK_NETWORK_HANDLER.updateNetworkOf(level, link);
             }
+            ModuleCodeLink codeLink = codeLinks[slot];
+            if (codeLink != null && codeLink.setStrength(module.signal())) {
+                AdvancedLinkNetwork.update(level, codeLink.code());
+            }
         }
         if (below != belowSignal) {
             belowSignal = below;
@@ -446,7 +462,10 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         return belowSignal;
     }
 
-    /** Keeps one network entry per module set to LINK with a frequency, matching its setup. */
+    /**
+     * Keeps one network entry per module set to LINK with a frequency, or to ADVANCED_LINK with a
+     * complete code, matching its setup.
+     */
     private void refreshLinks() {
         if (level == null || level.isClientSide) {
             return;
@@ -464,6 +483,18 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
                 links[slot] = new ModuleLink(this, module.frequencyFirst(), module.frequencyLast(), module.signal());
                 Create.REDSTONE_LINK_NETWORK_HANDLER.addToNetwork(level, links[slot]);
             }
+            boolean coded = module != null && slotOpen(slot) && module.output() == OutputMode.ADVANCED_LINK
+                    && LinkCode.complete(module.linkCode());
+            ModuleCodeLink codeLink = codeLinks[slot];
+            if (codeLink != null && (!coded || !codeLink.code().equals(module.linkCode()))) {
+                AdvancedLinkNetwork.remove(level, codeLink);
+                codeLinks[slot] = null;
+                codeLink = null;
+            }
+            if (coded && codeLink == null) {
+                codeLinks[slot] = new ModuleCodeLink(this, module.linkCode(), module.signal());
+                AdvancedLinkNetwork.add(level, codeLinks[slot]);
+            }
         }
     }
 
@@ -476,12 +507,21 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
                 Create.REDSTONE_LINK_NETWORK_HANDLER.removeFromNetwork(level, links[slot]);
                 links[slot] = null;
             }
+            if (codeLinks[slot] != null) {
+                AdvancedLinkNetwork.remove(level, codeLinks[slot]);
+                codeLinks[slot] = null;
+            }
         }
     }
 
     @Nullable
     public ModuleLink link(int slot) {
         return slot >= 0 && slot < SLOTS ? links[slot] : null;
+    }
+
+    @Override
+    public PanelCard panelCard(net.minecraft.world.phys.Vec3 hit, boolean detailed) {
+        return ControlRoomPanels.surface(this, hit);
     }
 
     /** Destroyed or unloaded: leave the Redstone Link network. */

@@ -351,9 +351,11 @@ archivo de config:
 - **Umbral, consigna o nivel**: con la rueda del ratón sobre la casilla; 5 por
   paso y 1 con Mayús (el nivel de redstone va de 0 a 15 de 1 en 1).
 - **Etiqueta**: hasta 16 caracteres, sin códigos de formato.
-- **Salida**: tres botones, ninguna, bajo el pupitre o por Redstone Link. Con
-  Redstone Link, las dos casillas de la columna izquierda fijan la frecuencia
-  (clic con un objeto; con la mano vacía se borra). A la derecha del inventario,
+- **Salida**: cuatro botones, ninguna, bajo el pupitre, por Redstone Link o por
+  Enlace de redstone avanzado. Con Redstone Link, las dos casillas de la columna
+  izquierda fijan la frecuencia (clic con un objeto; con la mano vacía se
+  borra). Con el Enlace avanzado, esa columna muestra una casilla para escribir
+  el código de cuatro letras o cifras. A la derecha del inventario,
   la señal que saca el módulo ahora mismo (0-15).
 
 Mientras alguien tiene esta pantalla abierta, el primer pupitre de la consola
@@ -361,6 +363,49 @@ reenvía su muestra cada segundo para que los valores estén al día. El servido
 comprueba cada cambio como antes: el jugador tiene que estar al alcance, el tipo
 de módulo tiene que admitir la función y la etiqueta se recorta; una función de
 otra máquina se guarda (por si se cambia el enlace) pero el módulo sigue apagado.
+
+### Mesa de control, panel de pared y display LED
+
+No tienen claves en el archivo de config. Los módulos se colocan, se configuran
+con la llave y se accionan igual que en un pupitre:
+
+- **Mesa de control**: cuatro módulos en dos filas sobre un tablero plano a la
+  altura del raíl del pupitre (15,5 px). Las mesas una junto a otra se unen.
+- **Panel de control de pared**: una placa que se cuelga en la cara de un bloque
+  sólido, con cuatro módulos en dos filas. Si se rompe el bloque de detrás, el
+  panel cae con sus módulos. Un medidor en la pared dibuja la esfera de frente.
+- **Consola**: pupitres, mesas y paneles de pared que se tocan de lado forman
+  una sola consola con un solo enlace; los paneles de una misma pared también
+  se unen hacia arriba y hacia abajo. Los remates de los extremos solo
+  desaparecen entre bloques del mismo tipo.
+- **Display LED**: muestra la lectura elegida en cifras con su unidad. Los
+  displays LED seguidos en una fila se unen en uno más ancho, también entre
+  bloques del mismo tipo unidos (no en las esquinas del pupitre), hasta 8
+  módulos. Manda el de más a la izquierda visto desde el operador: la llave
+  sobre cualquiera de sus módulos abre su configuración (lectura y etiqueta).
+  Un valor que no cabe se lee `OL` y una lectura que la máquina no tiene, con
+  guiones.
+- **Panel de la sala de control**: al mirar un módulo aparece a la derecha de
+  la pantalla (sin gafas) su función o etiqueta, el valor en unidades (también
+  en los medidores), la consigna o el estado, adónde va su redstone (con el
+  código o los objetos de la frecuencia) y la señal; mirando el resto del
+  bloque, a qué está enlazada la consola, cuántos bloques tiene y cuántos
+  módulos lleva ese bloque. Mirando un Enlace de redstone avanzado, su código,
+  modo y señal. El mismo panel sale al mirar el controlador de un reactor de
+  fisión o de un tokamak (agachado, sus detalles). Se desactiva en la config del
+  cliente con `hud.panel = false`.
+
+### Enlace de redstone avanzado
+
+No tiene claves propias: el alcance es el de los Redstone Link de Create
+(`logistics.linkRange` en la config del servidor de Create). Se coloca en
+cualquier cara sólida. Clic derecho abre una casilla para el código (cuatro
+letras o cifras; se guarda en mayúsculas y el servidor descarta cualquier otro
+carácter); clic derecho agachado con la mano vacía cambia entre transmisor y
+receptor. Un transmisor manda la señal más fuerte que le llega por cualquier
+lado; cada receptor saca la señal más fuerte de los transmisores con su código
+dentro del alcance, también al bloque en el que está puesto. Sin código completo
+no transmite ni recibe.
 
 ## Fusion (tokamak)
 

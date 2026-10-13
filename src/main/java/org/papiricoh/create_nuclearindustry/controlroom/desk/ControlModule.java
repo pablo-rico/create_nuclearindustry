@@ -12,6 +12,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.controlroom.TokamakScales;
+import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakControl;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakReadings;
@@ -61,6 +62,8 @@ public final class ControlModule {
     private GaugeReading reading = GaugeReading.REACTOR_TEMPERATURE;
     private OutputMode output = OutputMode.NONE;
     private ItemStack frequencyFirst = ItemStack.EMPTY;
+    /** The Advanced Redstone Link code it sends on with {@link OutputMode#ADVANCED_LINK}. */
+    private String linkCode = "";
     private ItemStack frequencyLast = ItemStack.EMPTY;
 
     /** State a TOGGLE or pressurizer lever, or a key switch, holds by itself. */
@@ -83,6 +86,8 @@ public final class ControlModule {
     private boolean active;
     private float shown;
     private int signal;
+    /** A reading's value in its units (gauges and LED displays), or NaN when there is none. */
+    private float value = Float.NaN;
 
     public ControlModule(ModuleType type) {
         this.type = type;
@@ -195,6 +200,10 @@ public final class ControlModule {
         return !frequencyFirst.isEmpty() || !frequencyLast.isEmpty();
     }
 
+    public String linkCode() {
+        return linkCode;
+    }
+
     public ControlModule withFunction(ModuleFunction function) {
         if (type.allows(function)) {
             if (this.function != function) {
@@ -251,6 +260,12 @@ public final class ControlModule {
         return this;
     }
 
+    /** Keeps only the letters and digits an Advanced Redstone Link code takes. */
+    public ControlModule withLinkCode(String code) {
+        this.linkCode = LinkCode.sanitize(code);
+        return this;
+    }
+
     public ControlModule withFrequencies(ItemStack first, ItemStack last) {
         this.frequencyFirst = first.isEmpty() ? ItemStack.EMPTY : first.copyWithCount(1);
         this.frequencyLast = last.isEmpty() ? ItemStack.EMPTY : last.copyWithCount(1);
@@ -286,6 +301,11 @@ public final class ControlModule {
         return shown;
     }
 
+    /** A reading's value in its units (see {@link ReadingValue}), or NaN when there is none. */
+    public float value() {
+        return value;
+    }
+
     /** The redstone level the module puts out, 0-15. */
     public int signal() {
         return signal;
@@ -317,11 +337,22 @@ public final class ControlModule {
         boolean nowActive = isActiveFor(kind, target);
         float nowShown = nowActive ? computeShown(target, sample) : 0.0f;
         int nowSignal = nowActive ? computeSignal(nowShown) : 0;
-        boolean changed = nowActive != active || Math.abs(nowShown - shown) > 1.0e-3f || nowSignal != signal;
+        float nowValue = nowActive && function == ModuleFunction.READING ? (float) ReadingValue.value(reading, sample) : Float.NaN;
+        boolean changed = nowActive != active || Math.abs(nowShown - shown) > 1.0e-3f || nowSignal != signal
+                || valueChanged(value, nowValue);
         active = nowActive;
         shown = nowShown;
         signal = nowSignal;
+        value = nowValue;
         return changed;
+    }
+
+    /** Whether an LED display would show the change: one part in ten thousand is past its last digit. */
+    private static boolean valueChanged(float before, float after) {
+        if (Float.isNaN(before) || Float.isNaN(after)) {
+            return Float.isNaN(before) != Float.isNaN(after);
+        }
+        return Math.abs(after - before) > Math.max(1.0e-4f, 1.0e-4f * Math.abs(after));
     }
 
     private boolean isActiveFor(TargetKind kind, LinkedTarget.Resolved target) {
@@ -592,6 +623,7 @@ public final class ControlModule {
         tag.putString("Reading", reading.name());
         tag.putString("Output", output.name());
         tag.putBoolean("Engaged", engaged);
+        tag.putString("LinkCode", linkCode);
         tag.put("FrequencyFirst", frequencyFirst.saveOptional(registries));
         tag.put("FrequencyLast", frequencyLast.saveOptional(registries));
         return tag;
@@ -604,6 +636,9 @@ public final class ControlModule {
         tag.putBoolean("Active", active);
         tag.putFloat("Shown", shown);
         tag.putInt("Signal", signal);
+        if (function == ModuleFunction.READING) {
+            tag.putFloat("Value", value);
+        }
         if (isController()) {
             CompoundTag loop = new CompoundTag();
             loop.putBoolean("Initialized", pid.initialized());
@@ -631,6 +666,7 @@ public final class ControlModule {
         module.active = tag.getBoolean("Active");
         module.shown = Mth.clamp(tag.getFloat("Shown"), 0, 1);
         module.signal = Mth.clamp(tag.getInt("Signal"), 0, 15);
+        module.value = tag.contains("Value") ? tag.getFloat("Value") : Float.NaN;
         if (tag.contains("Pid")) {
             CompoundTag loop = tag.getCompound("Pid");
             module.pid.load(loop.getBoolean("Initialized"), loop.getDouble("Integral"), loop.getDouble("Output"),
@@ -653,6 +689,7 @@ public final class ControlModule {
         }
         withReading(GaugeReading.byName(tag.getString("Reading")));
         withOutput(OutputMode.byName(tag.getString("Output")));
+        withLinkCode(tag.getString("LinkCode"));
         withEngaged(!tag.contains("Engaged") || tag.getBoolean("Engaged"));
         withFrequencies(ItemStack.parseOptional(registries, tag.getCompound("FrequencyFirst")),
                 ItemStack.parseOptional(registries, tag.getCompound("FrequencyLast")));

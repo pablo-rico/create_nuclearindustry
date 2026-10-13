@@ -1,0 +1,18 @@
+{
+  "loader": "neoforge:composite",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/control_desk_body"
+  },
+  "children": {
+    "body": {
+      "parent": "create_nuclearindustry:block/control_table/body"
+    },
+    "cap_left": {
+      "parent": "create_nuclearindustry:block/control_table/cap_left"
+    },
+    "cap_right": {
+      "parent": "create_nuclearindustry:block/control_table/cap_right"
+    }
+  }
+}

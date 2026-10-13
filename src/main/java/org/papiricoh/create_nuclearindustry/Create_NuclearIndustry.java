@@ -111,6 +111,7 @@ public class Create_NuclearIndustry {
             modEventBus.addListener(ClientConfig::onReload);
             modEventBus.addListener(org.papiricoh.create_nuclearindustry.radiation.contamination.client.ContaminationParticles::registerProviders);
             modEventBus.addListener(org.papiricoh.create_nuclearindustry.radiation.contamination.client.DoseHudLayer::register);
+            modEventBus.addListener(org.papiricoh.create_nuclearindustry.client.panel.PanelHud::register);
             NeoForge.EVENT_BUS.addListener(org.papiricoh.create_nuclearindustry.radiation.contamination.client.ContaminationParticles::onClientTick);
             modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
         }

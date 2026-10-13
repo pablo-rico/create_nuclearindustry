@@ -76,20 +76,6 @@ final class PwrDataGen extends AreaDataGen {
                 "Calentadores: manuales, encendidos con señal de redstone");
         LangEntries.add(pwr + "port.cold_leg", "Cold leg: primary coolant in", "Rama fría: entra refrigerante primario");
         LangEntries.add(pwr + "port.hot_leg", "Hot leg: hot primary coolant out", "Rama caliente: sale refrigerante primario caliente");
-        String goggles = pwr + "goggles.";
-        LangEntries.add(goggles + "header", "Pressurized loop:", "Circuito a presión:");
-        LangEntries.add(goggles + "pressure", " Pressure: %s bar, subcooling %s °C", " Presión: %s bar, subenfriamiento %s °C");
-        LangEntries.add(goggles + "legs", " Hot leg %s °C, cold leg %s °C", " Rama caliente %s °C, rama fría %s °C");
-        LangEntries.add(goggles + "pressurizer", " Pressurizer: %s%% full, heaters %s", " Presionador: %s%% lleno, calentadores %s");
-        LangEntries.add(goggles + "heaters_on", "on", "encendidos");
-        LangEntries.add(goggles + "heaters_off", "off", "apagados");
-        LangEntries.add(goggles + "flow", " Core flow: %s mB/t, core covered %s%%", " Caudal en el núcleo: %s mB/t, núcleo cubierto %s%%");
-        LangEntries.add(goggles + "relief_open", " Relief valve OPEN", " Válvula de alivio ABIERTA");
-        LangEntries.add(goggles + "relief_stuck", " Relief valve STUCK OPEN: a redstone signal on it shuts its block valve",
-                " Válvula de alivio ATASCADA ABIERTA: una señal de redstone cierra su válvula de bloqueo");
-        LangEntries.add(goggles + "no_pressurizer", "Primary coolant without a pressurizer on the lid: the loop is not running",
-                "Refrigerante primario sin presionador en la tapa: el circuito no funciona");
-
         containmentLang();
 
         String sg = "create_nuclearindustry.steam_generator.";
@@ -180,11 +166,6 @@ final class PwrDataGen extends AreaDataGen {
         for (String[] direction : directions) {
             LangEntries.add(c + "direction." + direction[0], direction[1], direction[2]);
         }
-
-        String a = "create_nuclearindustry.accident.goggles.";
-        LangEntries.add(a + "containment", " Containment: %s bar, hydrogen %s%%", " Contención: %s bar, hidrógeno %s%%");
-        LangEntries.add(a + "cladding", " Fuel cladding oxidised: %s%%", " Vainas del combustible oxidadas: %s%%");
-        LangEntries.add(a + "breached", " VESSEL BREACHED: rebuild and form it again", " VASIJA ROTA: reconstrúyela y vuelve a formarla");
     }
 
     @Override

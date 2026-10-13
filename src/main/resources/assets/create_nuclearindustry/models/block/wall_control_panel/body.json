@@ -1,0 +1,93 @@
+{
+  "credit": "Create: Nuclear Industry",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/control_desk_trim",
+    "surface": "create_nuclearindustry:block/control_panel_face",
+    "trim": "create_nuclearindustry:block/control_desk_trim"
+  },
+  "elements": [
+    {
+      "name": "plate",
+      "from": [
+        0,
+        0,
+        13
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#surface",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#trim",
+          "cullface": "south"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "top_rail",
+      "from": [
+        0,
+        15.25,
+        12.5
+      ],
+      "to": [
+        16,
+        16,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "bottom_rail",
+      "from": [
+        0,
+        0,
+        12.5
+      ],
+      "to": [
+        16,
+        0.75,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    }
+  ]
+}

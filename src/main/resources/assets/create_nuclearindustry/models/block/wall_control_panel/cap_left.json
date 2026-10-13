@@ -1,0 +1,40 @@
+{
+  "credit": "Create: Nuclear Industry",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/control_desk_trim",
+    "trim": "create_nuclearindustry:block/control_desk_trim"
+  },
+  "elements": [
+    {
+      "name": "edge",
+      "from": [
+        15.25,
+        0,
+        12.5
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "east": {
+          "texture": "#trim"
+        },
+        "west": {
+          "texture": "#trim"
+        },
+        "north": {
+          "texture": "#trim"
+        },
+        "up": {
+          "texture": "#trim"
+        },
+        "down": {
+          "texture": "#trim"
+        }
+      }
+    }
+  ]
+}

@@ -28,6 +28,24 @@ public class TokamakFormationTests {
         });
     }
 
+    /** The panel shows a formed tokamak, in summary and in detail, all in the player's language. */
+    @GameTest(template = NuclearGameTests.TOKAMAK_ARENA)
+    public static void tokamakPanelIsTranslatable(GameTestHelper helper) {
+        TokamakTestBuilder.build(helper, 4, true, 0);
+        FusionReactorBlockEntity tokamak = TokamakTestBuilder.tokamak(helper, 4);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(tokamak.isFormed(), "R=4 tokamak should form: " + tokamak.getValidationMessage());
+            org.papiricoh.create_nuclearindustry.panel.PanelCard summary = tokamak.panelCard(net.minecraft.world.phys.Vec3.ZERO, false);
+            helper.assertTrue(summary.elements.stream().anyMatch(e -> e instanceof org.papiricoh.create_nuclearindustry.panel.PanelCard.BigValue),
+                    "the panel shows the fusion power");
+            ReactorMessageTests.assertCardTranslated(helper, summary, "tokamak panel summary");
+            org.papiricoh.create_nuclearindustry.panel.PanelCard details = tokamak.panelCard(net.minecraft.world.phys.Vec3.ZERO, true);
+            helper.assertTrue(details.elements.stream().filter(e -> e instanceof org.papiricoh.create_nuclearindustry.panel.PanelCard.Section)
+                    .count() == 4, "sneaking shows the torus, fuel, cooling and heating");
+            ReactorMessageTests.assertCardTranslated(helper, details, "tokamak panel details");
+        });
+    }
+
     @GameTest(template = NuclearGameTests.TOKAMAK_ARENA)
     public static void largerTokamakForms(GameTestHelper helper) {
         TokamakTestBuilder.build(helper, 8, true, 0);

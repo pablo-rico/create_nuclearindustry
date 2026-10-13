@@ -98,9 +98,10 @@ def control_module():
     # function list (left, 98x84 at 7,40) and options / description (right, 139x84 at 110,40)
     _recess(t, 6, 39, 105, 124)
     _recess(t, 109, 39, w - 7, 124)
-    # setting input (96x16 at 91,129) between the label box and the three output buttons
-    _recess(t, 90, 128, 187, 145)
-    # link column: Redstone Link icon at (14,156), frequency wells at (14,178) and (14,200)
+    # setting input (81x16 at 91,129) between the label box and the four output buttons (from 177)
+    _recess(t, 90, 128, 172, 145)
+    # link column: Redstone Link icon at (14,156), frequency wells at (14,178) and (14,200); with
+    # the Advanced Redstone Link output the screen covers the wells with the code box
     _recess(t, 8, 150, 36, 235)
     _slot(t, 14, 178)
     _slot(t, 14, 200)

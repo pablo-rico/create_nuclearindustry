@@ -1,5 +1,7 @@
 package org.papiricoh.create_nuclearindustry.controlroom;
 
+import com.simibubi.create.api.behaviour.display.DisplaySource;
+import com.simibubi.create.content.redstone.displayLink.source.SingleLineDisplaySource;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -9,13 +11,17 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearDataComponents;
+import org.papiricoh.create_nuclearindustry.AllNuclearDisplaySources;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
@@ -26,9 +32,16 @@ import org.papiricoh.create_nuclearindustry.controlroom.chart.ChartData;
 import org.papiricoh.create_nuclearindustry.controlroom.chart.ChartRecorderBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.chart.ChartRecorderBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.chart.ChartRollItem;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlTableBlock;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.WallControlPanelBlock;
+import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedLinkNetwork;
+import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLinkBlock;
+import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLinkBlockEntity;
 
 /**
- * Content for the chart recorder, the annunciator panel and automatic rod control. The controller
+ * Content for the Advanced Redstone Link, the control table and wall control panel, the chart
+ * recorder, the annunciator panel and automatic rod control. The controller
  * module item comes with {@link org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType#CONTROLLER},
  * like every other module.
  */
@@ -41,6 +54,22 @@ public final class ControlRoom2Registry implements NuclearFeature {
             () -> new AnnunciatorPanelBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f)
                     .lightLevel(state -> 3)));
 
+    public static final DeferredHolder<Block, ControlTableBlock> CONTROL_TABLE = AllNuclearBlocks.BLOCKS.register("control_table",
+            () -> new ControlTableBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY).strength(2.0f, 6.0f).noOcclusion()));
+    public static final DeferredHolder<Block, WallControlPanelBlock> WALL_CONTROL_PANEL = AllNuclearBlocks.BLOCKS.register("wall_control_panel",
+            () -> new WallControlPanelBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY).strength(2.0f, 6.0f)
+                    .noOcclusion().pushReaction(PushReaction.DESTROY)));
+
+    public static final DeferredHolder<Block, AdvancedRedstoneLinkBlock> ADVANCED_REDSTONE_LINK = AllNuclearBlocks.BLOCKS.register(
+            "advanced_redstone_link", () -> new AdvancedRedstoneLinkBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE)
+                    .strength(0.5f).noOcclusion().forceSolidOn().pushReaction(PushReaction.DESTROY)));
+
+    public static final DeferredHolder<Item, BlockItem> ADVANCED_REDSTONE_LINK_ITEM = AllNuclearItems.ITEMS.register("advanced_redstone_link",
+            () -> new BlockItem(ADVANCED_REDSTONE_LINK.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, BlockItem> CONTROL_TABLE_ITEM = AllNuclearItems.ITEMS.register("control_table",
+            () -> new BlockItem(CONTROL_TABLE.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, BlockItem> WALL_CONTROL_PANEL_ITEM = AllNuclearItems.ITEMS.register("wall_control_panel",
+            () -> new BlockItem(WALL_CONTROL_PANEL.get(), new Item.Properties()));
     public static final DeferredHolder<Item, BlockItem> CHART_RECORDER_ITEM = AllNuclearItems.ITEMS.register("chart_recorder",
             () -> new BlockItem(CHART_RECORDER.get(), new Item.Properties()));
     public static final DeferredHolder<Item, BlockItem> ANNUNCIATOR_PANEL_ITEM = AllNuclearItems.ITEMS.register("annunciator_panel",
@@ -56,6 +85,17 @@ public final class ControlRoom2Registry implements NuclearFeature {
             AllNuclearEntities.ENTITIES.register("annunciator_panel", () -> BlockEntityType.Builder.of(
                     (pos, state) -> new AnnunciatorPanelBlockEntity(ControlRoom2Registry.ANNUNCIATOR_ENTITY.get(), pos, state),
                     ANNUNCIATOR_PANEL.get()).build(null));
+
+    /** Tables and wall panels work like desks; desks keep their own type, from before. */
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ControlDeskBlockEntity>> MODULE_SURFACE_ENTITY =
+            AllNuclearEntities.ENTITIES.register("module_surface", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new ControlDeskBlockEntity(ControlRoom2Registry.MODULE_SURFACE_ENTITY.get(), pos, state),
+                    CONTROL_TABLE.get(), WALL_CONTROL_PANEL.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AdvancedRedstoneLinkBlockEntity>> ADVANCED_LINK_ENTITY =
+            AllNuclearEntities.ENTITIES.register("advanced_redstone_link", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new AdvancedRedstoneLinkBlockEntity(ControlRoom2Registry.ADVANCED_LINK_ENTITY.get(), pos, state),
+                    ADVANCED_REDSTONE_LINK.get()).build(null));
 
     public static final DeferredHolder<MenuType<?>, MenuType<DeviceMenu>> CHART_RECORDER_MENU = AllNuclearGUIs.MENUS.register("chart_recorder",
             () -> IMenuTypeExtension.create((id, inventory, buf) ->
@@ -79,6 +119,17 @@ public final class ControlRoom2Registry implements NuclearFeature {
     @Override
     public void register(IEventBus modEventBus) {
         ConfigureDevicePayload.register(modEventBus);
+        modEventBus.addListener(ControlRoom2Registry::commonSetup);
+        NeoForge.EVENT_BUS.addListener(AdvancedLinkNetwork::onLevelUnload);
+    }
+
+    /** Tables and wall panels linked to a reactor pass its readings on to Display Links, as desks do. */
+    private static void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            for (DeferredHolder<DisplaySource, SingleLineDisplaySource> source : AllNuclearDisplaySources.REACTOR_READOUTS.values()) {
+                DisplaySource.BY_BLOCK_ENTITY.add(MODULE_SURFACE_ENTITY.get(), source.get());
+            }
+        });
     }
 
     @Override
@@ -88,6 +139,9 @@ public final class ControlRoom2Registry implements NuclearFeature {
 
     @Override
     public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+        output.accept(ADVANCED_REDSTONE_LINK_ITEM.get());
+        output.accept(CONTROL_TABLE_ITEM.get());
+        output.accept(WALL_CONTROL_PANEL_ITEM.get());
         output.accept(CHART_RECORDER_ITEM.get());
         output.accept(ANNUNCIATOR_PANEL_ITEM.get());
     }

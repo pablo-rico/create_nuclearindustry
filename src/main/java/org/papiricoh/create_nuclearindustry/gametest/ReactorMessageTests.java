@@ -6,6 +6,9 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.PlainTextContents;
+import net.minecraft.world.phys.Vec3;
+import org.papiricoh.create_nuclearindustry.panel.PanelCard;
+import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -26,7 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * The fission reactor speaks the player's language: its chat messages, validation errors, goggle
+ * The fission reactor speaks the player's language: its chat messages, validation errors, panel
  * lines and Display Link status are translatable, and every key they use has an English and a
  * Spanish text.
  */
@@ -64,6 +67,20 @@ public class ReactorMessageTests {
         }
         for (String literal : literals) {
             helper.assertFalse(literal.chars().anyMatch(Character::isLetter), what + " has untranslated text: '" + literal + "'");
+        }
+    }
+
+    /**
+     * Every text of a panel card is translated; plain numbers (and unit symbols the lang files
+     * leave alone, such as °C) may stand on their own.
+     */
+    static void assertCardTranslated(GameTestHelper helper, PanelCard card, String what) {
+        for (Component text : card.texts()) {
+            if (text.getContents() instanceof PlainTextContents && text.getSiblings().isEmpty()
+                    && text.getString().chars().noneMatch(Character::isLetter)) {
+                continue;
+            }
+            assertTranslated(helper, text, what);
         }
     }
 
@@ -130,18 +147,20 @@ public class ReactorMessageTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
-    public static void gogglesAndReadoutsAreTranslatable(GameTestHelper helper) {
+    public static void panelAndReadoutsAreTranslatable(GameTestHelper helper) {
         FissionTestBuilder.build(helper);
         ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);
         helper.assertTrue(ReactorReadout.STATUS.read(reactor).getContents() instanceof TranslatableContents, "an unformed status is translatable");
         helper.succeedWhen(() -> {
             helper.assertTrue(reactor.isFormed(), "reactor should form");
-            List<Component> tooltip = new ArrayList<>();
-            reactor.addToGoggleTooltip(tooltip, false);
-            helper.assertTrue(tooltip.size() > 10, "the goggles show the reactor");
-            for (Component line : tooltip) {
-                assertTranslated(helper, line, "goggle line");
-            }
+            PanelCard summary = reactor.panelCard(Vec3.ZERO, false);
+            helper.assertTrue(summary.elements.stream().anyMatch(e -> e instanceof PanelCard.BigValue), "the panel shows the core temperature");
+            helper.assertTrue(summary.elements.size() > 6, "the panel shows the reactor, got " + summary.elements.size());
+            assertCardTranslated(helper, summary, "panel summary");
+            PanelCard details = reactor.panelCard(Vec3.ZERO, true);
+            helper.assertTrue(details.elements.stream().filter(e -> e instanceof PanelCard.Section).count() >= 3,
+                    "sneaking shows the structure, ports, reactivity and fuel");
+            assertCardTranslated(helper, details, "panel details");
             assertTranslated(helper, ReactorReadout.STATUS.read(reactor), "the status readout");
             List<Component> port = new ArrayList<>();
             if (helper.getLevel().getBlockEntity(helper.absolutePos(FissionTestBuilder.STEAM_PORT))
@@ -156,19 +175,17 @@ public class ReactorMessageTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
-    public static void unformedGogglesAreTranslatable(GameTestHelper helper) {
+    public static void unformedPanelIsTranslatable(GameTestHelper helper) {
         FissionTestBuilder.build(helper);
         helper.setBlock(FissionTestBuilder.STEAM_PORT, AllNuclearBlocks.REACTOR_CASING.get());
         ReactorBlockEntity reactor = FissionTestBuilder.controller(helper);
         helper.runAfterDelay(5, () -> {
             helper.assertFalse(reactor.isFormed(), "no steam port, no reactor");
-            List<Component> tooltip = new ArrayList<>();
-            reactor.addToGoggleTooltip(tooltip, false);
-            for (Component line : tooltip) {
-                assertTranslated(helper, line, "goggle line");
-            }
-            String missing = tooltip.get(tooltip.size() - 1).getString();
-            helper.assertTrue(missing.contains("steam output port"), "the goggles say what is missing, got " + missing);
+            PanelCard card = reactor.panelCard(Vec3.ZERO, false);
+            assertCardTranslated(helper, card, "unformed panel");
+            String missing = card.elements.stream().filter(e -> e instanceof PanelCard.Alert)
+                    .map(e -> ((PanelCard.Alert) e).text().getString()).findFirst().orElse("");
+            helper.assertTrue(missing.contains("steam output port"), "the panel says what is missing, got " + missing);
             helper.succeed();
         });
     }

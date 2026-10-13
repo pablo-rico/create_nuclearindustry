@@ -4,9 +4,11 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.papiricoh.create_nuclearindustry.client.NuclearFeatureClient;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.client.ControlDeskRenderer;
+import org.papiricoh.create_nuclearindustry.controlroom.link.client.AdvancedLinkRenderer;
 
 /**
- * Client setup for the chart recorder, the annunciator panel and automatic rod control. The
+ * Client setup for tables and wall panels (drawn like desks), the chart recorder, the annunciator panel and automatic rod control. The
  * controller module's partial models live in {@link org.papiricoh.create_nuclearindustry.controlroom.desk.client.DeskPartials}
  * with the other modules.
  */
@@ -19,6 +21,8 @@ public final class ControlRoom2Client implements NuclearFeatureClient {
     public void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ControlRoom2Registry.CHART_RECORDER_ENTITY.get(), ChartRecorderRenderer::new);
         event.registerBlockEntityRenderer(ControlRoom2Registry.ANNUNCIATOR_ENTITY.get(), AnnunciatorPanelRenderer::new);
+        event.registerBlockEntityRenderer(ControlRoom2Registry.MODULE_SURFACE_ENTITY.get(), ControlDeskRenderer::new);
+        event.registerBlockEntityRenderer(ControlRoom2Registry.ADVANCED_LINK_ENTITY.get(), AdvancedLinkRenderer::new);
     }
 
     @Override

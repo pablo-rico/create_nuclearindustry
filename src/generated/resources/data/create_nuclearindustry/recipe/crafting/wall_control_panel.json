@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "S": {
+      "item": "minecraft:smooth_stone_slab"
+    }
+  },
+  "pattern": [
+    "PEP",
+    "SSS"
+  ],
+  "result": {
+    "count": 2,
+    "id": "create_nuclearindustry:wall_control_panel"
+  }
+}

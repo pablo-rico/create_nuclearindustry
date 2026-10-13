@@ -1,13 +1,19 @@
 package org.papiricoh.create_nuclearindustry.data;
 
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleSurfaceBlock;
+import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLinkBlock;
 import org.papiricoh.create_nuclearindustry.data.recipe.ControlRoom2Recipes;
 
 import java.util.concurrent.CompletableFuture;
@@ -16,7 +22,10 @@ import static org.papiricoh.create_nuclearindustry.data.LangEntries.add;
 import static org.papiricoh.create_nuclearindustry.data.LangEntries.block;
 import static org.papiricoh.create_nuclearindustry.data.LangEntries.item;
 
-/** Lang, models, tags, data maps, loot and recipes for the chart recorder, the annunciator panel and automatic rod control. */
+/**
+ * Lang, models, tags, data maps, loot and recipes for the control table and wall control panel, the
+ * chart recorder, the annunciator panel and automatic rod control.
+ */
 final class ControlRoom2DataGen extends AreaDataGen {
     static final ControlRoom2DataGen INSTANCE = new ControlRoom2DataGen();
 
@@ -33,6 +42,44 @@ final class ControlRoom2DataGen extends AreaDataGen {
                 provider.modLoc("block/annunciator_panel_front"), housing);
         provider.horizontalBlock(ControlRoom2Registry.ANNUNCIATOR_PANEL.get(), panel);
         provider.simpleBlockItem(ControlRoom2Registry.ANNUNCIATOR_PANEL.get(), panel);
+        surfaceStates(provider, ControlRoom2Registry.CONTROL_TABLE.get(), "control_table");
+        surfaceStates(provider, ControlRoom2Registry.WALL_CONTROL_PANEL.get(), "wall_control_panel");
+        advancedLinkStates(provider);
+    }
+
+    /** The link's four hand-made models (transmitter or receiver, lit or not), built facing up and turned like an end rod. */
+    private static void advancedLinkStates(NuclearBlockStateProvider provider) {
+        provider.getVariantBuilder(ControlRoom2Registry.ADVANCED_REDSTONE_LINK.get()).forAllStates(state -> {
+            Direction facing = state.getValue(AdvancedRedstoneLinkBlock.FACING);
+            String variant = (state.getValue(AdvancedRedstoneLinkBlock.RECEIVER) ? "receiver" : "transmitter")
+                    + (state.getValue(AdvancedRedstoneLinkBlock.POWERED) ? "_powered" : "");
+            return ConfiguredModel.builder()
+                    .modelFile(provider.models().getExistingFile(provider.modLoc("block/advanced_redstone_link/" + variant)))
+                    .rotationX(facing == Direction.UP ? 0 : facing == Direction.DOWN ? 180 : 90)
+                    .rotationY(facing.getAxis().isVertical() ? 0 : ((int) facing.toYRot() + 180) % 360)
+                    .build();
+        });
+    }
+
+    /**
+     * A table or wall panel: its body, plus the end panel on each side no block of its kind carries
+     * on from. The models are hand-made in models/block/{@code folder}, with the operator to the north;
+     * the item models are hand-made composites.
+     */
+    private static void surfaceStates(NuclearBlockStateProvider provider, Block block, String folder) {
+        ModelFile body = provider.models().getExistingFile(provider.modLoc("block/" + folder + "/body"));
+        ModelFile capLeft = provider.models().getExistingFile(provider.modLoc("block/" + folder + "/cap_left"));
+        ModelFile capRight = provider.models().getExistingFile(provider.modLoc("block/" + folder + "/cap_right"));
+        var builder = provider.getMultipartBuilder(block);
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            int yaw = ((int) facing.toYRot() + 180) % 360;
+            builder.part().modelFile(body).rotationY(yaw).addModel()
+                    .condition(BlockStateProperties.HORIZONTAL_FACING, facing).end();
+            builder.part().modelFile(capLeft).rotationY(yaw).addModel()
+                    .condition(BlockStateProperties.HORIZONTAL_FACING, facing).condition(ModuleSurfaceBlock.LEFT, false).end();
+            builder.part().modelFile(capRight).rotationY(yaw).addModel()
+                    .condition(BlockStateProperties.HORIZONTAL_FACING, facing).condition(ModuleSurfaceBlock.RIGHT, false).end();
+        }
     }
 
     /** The controller module's item model is a hand-written composite, like the other modules'. */
@@ -52,6 +99,9 @@ final class ControlRoom2DataGen extends AreaDataGen {
         chartRecorder();
         annunciator();
         controller();
+        moduleSurfaces();
+        advancedLink();
+        panel();
         plantReadings();
         tokamak();
         monitorSetup();
@@ -208,10 +258,92 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(m + "mode.auto", "Mode: automatic", "Modo: automático");
         add(m + "mode.standby", "Mode: standby", "Modo: en espera");
         add(m + "standby", "standby", "en espera");
-        add(m + "controller_state", "%s, %s", "%s, %s");
         add(m + "controller_demand", "rods to %s%%", "barras al %s%%");
         add(m + "setpoint", "Setpoint %s, %s", "Consigna %s, %s");
         pressurizerControl(m);
+    }
+
+    /** The control table, the wall control panel and the LED display module. */
+    private static void moduleSurfaces() {
+        block("control_table", "Control Table", "Mesa de control");
+        block("wall_control_panel", "Wall Control Panel", "Panel de control de pared");
+        item("led_display_module", "LED Display Module", "Módulo de display LED");
+        String m = "create_nuclearindustry.control_module.";
+        add(m + "type.led_display", "LED Display", "Display LED");
+    }
+
+    /** The Advanced Redstone Link and control modules sending on its codes. */
+    private static void advancedLink() {
+        block("advanced_redstone_link", "Advanced Redstone Link", "Enlace de redstone avanzado");
+        String a = "create_nuclearindustry.advanced_link.";
+        add(a + "code_box", "Code", "Código");
+        add(a + "hint", "Four letters or digits, as on the other links", "Cuatro letras o cifras, como en los otros enlaces");
+        String m = "create_nuclearindustry.control_module.";
+        add(m + "output.advanced_link", "Advanced Redstone Link", "Enlace de redstone avanzado");
+        add(m + "screen.output_hint.advanced_link", "Sends the signal on a code of four letters or digits, to Advanced Redstone Links set to it",
+                "Manda la señal por un código de cuatro letras o cifras, a los Enlaces de redstone avanzados con ese código");
+        add(m + "link_code", "Link code", "Código de enlace");
+        add(m + "screen.link_code_hint", "Four letters or digits; Advanced Redstone Links with this code receive the signal",
+                "Cuatro letras o cifras; los Enlaces de redstone avanzados con este código reciben la señal");
+        add(m + "screen.link_code_off", "Only with the Advanced Redstone Link output", "Solo con la salida por Enlace de redstone avanzado");
+    }
+
+    /** The panel on the right of the screen (see client.panel.PanelHud): control room cards, shared units and hints. */
+    private static void panel() {
+        String p = "create_nuclearindustry.panel.";
+        add(p + "status.online", "Online", "En línea");
+        add(p + "status.unlinked", "No link", "Sin enlace");
+        add(p + "status.linked", "Linked", "Enlazada");
+        add(p + "status.wrong_target", "Not for this target", "No sirve para este objetivo");
+        add(p + "status.no_code", "No code", "Sin código");
+        add(p + "status.transmitting", "Transmitting", "Transmitiendo");
+        add(p + "status.receiving", "Receiving", "Recibiendo");
+        add(p + "status.idle", "Idle", "En reposo");
+        add(p + "slot", "Slot %s", "Hueco %s");
+        add(p + "reading", "Reading", "Lectura");
+        add(p + "scale", "Scale", "Escala");
+        add(p + "mode", "Mode", "Modo");
+        add(p + "demand", "Asks for", "Pide");
+        add(p + "setpoint", "Setpoint", "Consigna");
+        add(p + "rods_in", "Rods in", "Barras dentro");
+        add(p + "threshold", "Threshold", "Umbral");
+        add(p + "level", "Level", "Nivel");
+        add(p + "alarm", "Alarm", "Alarma");
+        add(p + "on", "ON", "ENC.");
+        add(p + "off", "OFF", "APAG.");
+        add(p + "redstone", "Redstone output", "Salida de redstone");
+        add(p + "output", "Output", "Salida");
+        add(p + "signal", "Signal", "Señal");
+        add(p + "console", "Console", "Consola");
+        add(p + "target", "Target", "Objetivo");
+        add(p + "console_blocks", "Console blocks", "Bloques de la consola");
+        add(p + "modules", "Modules here", "Módulos aquí");
+        add(p + "slots_used", "Slots used", "Huecos ocupados");
+        add(p + "hint.link", "Link it with a Control Room Linker", "Enlázala con un Enlazador de sala de control");
+        add(p + "hint.module", "Look at a module for its details", "Mira un módulo para ver sus detalles");
+        add(p + "transmitter", "Transmitter", "Transmisor");
+        add(p + "receiver", "Receiver", "Receptor");
+        add(p + "code", "Code", "Código");
+        add(p + "range", "Range", "Alcance");
+        add(p + "blocks", "%s blocks", "%s bloques");
+        add(p + "hint.code", "Click: type the code", "Clic: escribir el código");
+        add(p + "hint.to_receiver", "Sneak-click: switch to receiver", "Clic agachado: pasar a receptor");
+        add(p + "hint.to_transmitter", "Sneak-click: switch to transmitter", "Clic agachado: pasar a transmisor");
+        add(p + "footer.linked", "Link %s %s %s", "Enlace %s %s %s");
+        add(p + "footer.unlinked", "No link", "Sin enlace");
+        add(p + "footer.console", "console of %s", "consola de %s");
+        add(p + "status.not_formed", "Not formed", "Sin formar");
+        add(p + "hint.sneak", "Sneak for details", "Agáchate para ver los detalles");
+        add(p + "hint.release", "Details · stand up for the summary", "Detalles · levántate para el resumen");
+        add(p + "unit.percent", "%s%%", "%s%%");
+        add(p + "unit.pcm", "%s pcm", "%s pcm");
+        add(p + "unit.celsius", "%s °C", "%s °C");
+        add(p + "unit.kelvin", "%s K", "%s K");
+        add(p + "unit.mw", "%s MW", "%s MW");
+        add(p + "unit.bar", "%s bar", "%s bar");
+        add(p + "unit.mb", "%s mB", "%s mB");
+        add(p + "unit.mbt", "%s mB/t", "%s mB/t");
+        add(p + "unit.of", "%s / %s", "%s / %s");
     }
 
     /** Levers, lamp and controller for a pressurizer: backup heaters, spray, relief valve and automatic pressure. */

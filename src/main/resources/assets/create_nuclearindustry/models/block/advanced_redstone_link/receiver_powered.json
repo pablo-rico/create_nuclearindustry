@@ -1,0 +1,6 @@
+{
+  "parent": "create_nuclearindustry:block/advanced_redstone_link/base",
+  "textures": {
+    "tip": "create_nuclearindustry:block/advanced_link_tip_receiver_powered"
+  }
+}

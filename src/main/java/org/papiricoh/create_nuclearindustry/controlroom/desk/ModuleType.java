@@ -3,7 +3,10 @@ package org.papiricoh.create_nuclearindustry.controlroom.desk;
 import java.util.List;
 import java.util.Locale;
 
-/** The kinds of control module that fit a desk slot, and the functions each can be set to. */
+/**
+ * The kinds of control module that fit a slot of a desk, table or wall panel, and the functions each
+ * can be set to. Saved by name; new types go last, which is the order of the creative tab.
+ */
 public enum ModuleType {
     PUSH_BUTTON("push_button_module", List.of(ModuleFunction.SCRAM, ModuleFunction.PULSE, ModuleFunction.TOKAMAK_START,
             ModuleFunction.TOKAMAK_SHUTDOWN)),
@@ -20,7 +23,12 @@ public enum ModuleType {
      * the pressurizer) or a tokamak's fusion power (with its fuelling and heating).
      */
     CONTROLLER("controller_module", List.of(ModuleFunction.AUTO_POWER, ModuleFunction.AUTO_TEMPERATURE,
-            ModuleFunction.AUTO_PRESSURE, ModuleFunction.AUTO_FUSION_POWER));
+            ModuleFunction.AUTO_PRESSURE, ModuleFunction.AUTO_FUSION_POWER)),
+    /**
+     * A reading in digits with its unit. LED displays side by side in a row join into one wider
+     * display set up by its leftmost module (see {@link LedGroups}).
+     */
+    LED_DISPLAY("led_display_module", List.of(ModuleFunction.READING));
 
     private final String itemId;
     private final List<ModuleFunction> functions;
@@ -47,9 +55,9 @@ public enum ModuleType {
         return functions.contains(function);
     }
 
-    /** Whether a click with an empty hand does something (lamps and gauges only show). */
+    /** Whether a click with an empty hand does something (lamps, gauges and LED displays only show). */
     public boolean interactive() {
-        return this != LAMP && this != GAUGE;
+        return this != LAMP && this != GAUGE && this != LED_DISPLAY;
     }
 
     public String translationKey() {
