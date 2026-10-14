@@ -3,11 +3,19 @@ package org.papiricoh.create_nuclearindustry.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -17,6 +25,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModule;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModuleItem;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.LedGroups;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleSurfaceBlock;
@@ -304,6 +313,41 @@ public class ControlSurfaceTests {
             helper.assertTrue(Math.abs(led.value() - temperature) < 1.0,
                     "the LED reads the core temperature in °C: " + led.value() + " vs " + temperature);
         });
+    }
+
+    /**
+     * A sneaking player's wrench goes straight to Create's wrench, past the block's own click: on a
+     * module it takes out that module alone, off the modules it picks the whole table up.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void aSneakWrenchTakesOutOnlyTheModuleItHits(GameTestHelper helper) {
+        double top = 15.5 / 16;
+        BlockPos pos = new BlockPos(2, 1, 2);
+        place(helper, table(), Direction.NORTH, pos);
+        insert(helper, pos, 0, ModuleType.GUARDED_BUTTON);
+        insert(helper, pos, 3, ModuleType.LEVER);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setShiftKeyDown(true);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("create", "wrench"))));
+
+        sneakWrench(helper, player, pos, 0.75, top, 0.25);
+        helper.assertBlockPresent(table(), pos);
+        ControlDeskBlockEntity entity = helper.getBlockEntity(pos);
+        helper.assertTrue(entity.module(0) == null, "the guarded button is taken out");
+        helper.assertTrue(entity.module(3) != null && entity.module(3).type() == ModuleType.LEVER, "the lever stays");
+        helper.assertTrue(player.getInventory().countItem(ControlModuleItem.stackOf(ModuleType.GUARDED_BUTTON).getItem()) == 1,
+                "the player gets the guarded button back");
+
+        sneakWrench(helper, player, pos, 0.5, 0.5, 0.0);
+        helper.assertBlockNotPresent(table(), pos);
+        helper.succeed();
+    }
+
+    /** Uses the player's wrench on block-local {@code (x, y, z)} of {@code pos}, as a click there would. */
+    private static void sneakWrench(GameTestHelper helper, Player player, BlockPos pos, double x, double y, double z) {
+        BlockPos abs = helper.absolutePos(pos);
+        BlockHitResult hit = new BlockHitResult(Vec3.atLowerCornerOf(abs).add(x, y, z), Direction.UP, abs, false);
+        player.getMainHandItem().useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
     }
 
     // ------------------------------------------------------------------ helpers

@@ -329,8 +329,8 @@ bloque, y solo se aceptan filas y series del tipo de maquina enlazada.
 ### Configurar un módulo de pupitre con la llave
 
 Clic derecho con la llave inglesa sobre un módulo de un Pupitre de control abre
-su configuración (agachado, la llave lo quita). Tampoco tiene claves en el
-archivo de config:
+su configuración (agachado, la llave quita solo ese módulo; fuera de los
+módulos recoge el pupitre entero). Tampoco tiene claves en el archivo de config:
 
 - **Cabecera**: el tipo de módulo, la máquina a la que está enlazada la consola
   (pasa el ratón por encima para ver su posición) y su estado. Debajo, en verde

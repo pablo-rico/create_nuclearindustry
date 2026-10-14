@@ -119,14 +119,19 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
             updateCluster();
         }
         boolean pulseEnded = false;
+        boolean coverShut = false;
         for (ControlModule module : modules) {
             if (module != null && module.tickPulse()) {
                 pulseEnded = true;
             }
             if (module != null && module.tickCover()) {
-                // The cover fell shut: the clients draw it down.
-                pulseEnded = true;
+                coverShut = true;
             }
+        }
+        if (coverShut) {
+            // The cover fell shut: the clients draw it down, though no reading changed.
+            evaluateCounter = 0;
+            evaluate(true);
         }
         if (++controlCounter >= Math.max(1, ControlRoom2Config.pidInterval)) {
             controlCounter = 0;
@@ -231,7 +236,8 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         }
         boolean acted = module.press(consoleTarget(), back);
         if (acted) {
-            evaluate();
+            // Sent even when no reading moved: a cover lifted or let down shows only on the desk.
+            evaluate(true);
         }
         return acted;
     }
@@ -437,6 +443,11 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
     // ------------------------------------------------------------------ shown state and redstone
 
     private void evaluate() {
+        evaluate(false);
+    }
+
+    /** As {@link #evaluate()}; {@code force} sends the modules to the clients even when nothing it reads changed. */
+    private void evaluate(boolean force) {
         if (level == null || level.isClientSide) {
             return;
         }
@@ -472,7 +483,7 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
             level.updateNeighborsAt(getBlockPos().relative(facing().getOpposite()), getBlockState().getBlock());
             changed = true;
         }
-        if (changed) {
+        if (changed || force) {
             notifyUpdate();
         }
     }

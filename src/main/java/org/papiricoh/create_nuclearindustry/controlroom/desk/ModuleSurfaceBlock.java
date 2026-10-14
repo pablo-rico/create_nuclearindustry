@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.controlroom.desk;
 
+import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -14,6 +15,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -32,9 +34,9 @@ import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomBlocks;
  * side join (LEFT and RIGHT drop the end panels), and every module surface touching another side by
  * side, or a wall panel above or below another on the same wall, belongs to one console sharing a
  * link. Fit a module by clicking a slot with it; wrench a module to set it up, sneak-wrench to take
- * it out; click it with an empty hand to work it.
+ * it out (sneak-wrenching off the modules picks the block up); click it with an empty hand to work it.
  */
-public abstract class ModuleSurfaceBlock extends HorizontalDirectionalBlock implements IBE<ControlDeskBlockEntity> {
+public abstract class ModuleSurfaceBlock extends HorizontalDirectionalBlock implements IBE<ControlDeskBlockEntity>, IWrenchable {
     public static final BooleanProperty LEFT = BooleanProperty.create("left");
     public static final BooleanProperty RIGHT = BooleanProperty.create("right");
     private static final net.minecraft.tags.TagKey<net.minecraft.world.item.Item> WRENCHES = net.minecraft.tags.TagKey.create(
@@ -133,11 +135,7 @@ public abstract class ModuleSurfaceBlock extends HorizontalDirectionalBlock impl
         if (stack.is(WRENCHES) && module != null) {
             if (!level.isClientSide) {
                 if (player.isShiftKeyDown()) {
-                    ModuleType removed = desk.remove(slot);
-                    if (removed != null) {
-                        player.getInventory().placeItemBackInInventory(ControlModuleItem.stackOf(removed));
-                        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4f, 1.0f);
-                    }
+                    takeOut(level, pos, desk, slot, player);
                 } else if (player instanceof ServerPlayer serverPlayer) {
                     // Any module of an LED display or a merged screen sets up the whole of it, which shows its head's setup.
                     LedGroups.Cell head = headOf(level, pos, slot);
@@ -147,6 +145,40 @@ public abstract class ModuleSurfaceBlock extends HorizontalDirectionalBlock impl
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    /** Hands a module back to the player who sneak-wrenched it. */
+    private static void takeOut(Level level, BlockPos pos, ControlDeskBlockEntity desk, int slot, Player player) {
+        ModuleType removed = desk.remove(slot);
+        if (removed != null) {
+            player.getInventory().placeItemBackInInventory(ControlModuleItem.stackOf(removed));
+            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4f, 1.0f);
+        }
+    }
+
+    /**
+     * A sneaking player's wrench never reaches {@link #useItemOn}: vanilla skips the block and the wrench
+     * acts on its own. On a module it takes that module out; anywhere else it picks the block up.
+     */
+    @Override
+    public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        Player player = context.getPlayer();
+        int slot = slotAt(state, pos, context.getClickLocation());
+        if (player != null && slot >= 0 && level.getBlockEntity(pos) instanceof ControlDeskBlockEntity desk && desk.module(slot) != null) {
+            if (!level.isClientSide) {
+                takeOut(level, pos, desk, slot, player);
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+        return IWrenchable.super.onSneakWrenched(state, context);
+    }
+
+    /** A plain wrench click sets a module up (see {@link #useItemOn}); it never turns the block. */
+    @Override
+    public InteractionResult onWrenched(BlockState state, UseOnContext context) {
+        return InteractionResult.PASS;
     }
 
     @Override
