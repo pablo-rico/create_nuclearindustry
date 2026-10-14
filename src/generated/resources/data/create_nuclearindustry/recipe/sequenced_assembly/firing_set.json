@@ -1,0 +1,65 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:precision_mechanism"
+  },
+  "loops": 2,
+  "results": [
+    {
+      "id": "create_nuclearindustry:firing_set"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_firing_set"
+        },
+        {
+          "item": "create:electron_tube"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_firing_set"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_firing_set"
+        },
+        {
+          "item": "create:copper_sheet"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_firing_set"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_firing_set"
+        },
+        {
+          "item": "minecraft:redstone"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_firing_set"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "create_nuclearindustry:incomplete_firing_set"
+  }
+}

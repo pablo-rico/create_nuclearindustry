@@ -62,11 +62,22 @@ public record DetonationProfile(float power, double yieldKg, int horizontalRadiu
     public static final double MAX_ZONE_REACH = 1.2;
 
     public static DetonationProfile of(float power, int horizontalRadius, float intensity, double burstHeight, Settings settings) {
+        return of(power, horizontalRadius, intensity, burstHeight, settings, Double.POSITIVE_INFINITY);
+    }
+
+    /**
+     * As {@link #of(float, int, float, double, Settings)}, with the crater bowl no wider than
+     * {@code maxCraterRadius}: a thermonuclear warhead's blast reaches far past the hole it digs, and
+     * digging a bowl that scales with it would cost the server too much. Its rim, ejecta and glass follow
+     * the smaller bowl; the blast zones do not.
+     */
+    public static DetonationProfile of(float power, int horizontalRadius, float intensity, double burstHeight, Settings settings,
+                                       double maxCraterRadius) {
         double yieldKg = BlastWaveModel.yield(power, settings.kgPerPower());
         double fireball = Math.max(MIN_FIREBALL, 0.12 * horizontalRadius);
         boolean airburst = burstHeight > fireball;
         double reach = airburst ? AIRBURST_REACH : 1.0;
-        double crater = airburst ? 0 : 0.3 * horizontalRadius * (burstHeight < 0 ? 1.15 : 1.0);
+        double crater = airburst ? 0 : Math.min(Math.max(0, maxCraterRadius), 0.3 * horizontalRadius * (burstHeight < 0 ? 1.15 : 1.0));
         double depth = 0.32 * crater;
         double cap = MAX_ZONE_REACH * horizontalRadius;
         double severe = Math.min(horizontalRadius, radiusAt(settings.severeKPa(), yieldKg) * reach);
@@ -123,6 +134,25 @@ public record DetonationProfile(float power, double yieldKg, int horizontalRadiu
         }
         return new DetonationProfile((float) v[0], v[1], (int) v[2], (float) v[3], v[4], v[5] != 0, v[6], v[7], v[8], v[9], v[10],
                 v[11], v[12], v[13], v[14], v[15], v[16], v[17], v[18]);
+    }
+
+    /**
+     * This profile with what it does to blocks kept within {@code maxReach} blocks of ground zero, so the
+     * columns a detonation works through stay bounded. The wrecked and scorched zones shrink together by
+     * the same share, so they still fade out instead of stopping at a hard edge, and the severe zone and
+     * the crater's ring are cut at the reach. Unchanged if it already fits.
+     */
+    public DetonationProfile withinReach(double maxReach) {
+        double reach = blockReach();
+        if (reach <= maxReach || reach <= 0) {
+            return this;
+        }
+        double squeeze = maxReach / reach;
+        double severe = Math.min(severeRadius, maxReach);
+        double moderate = Math.min(maxReach, Math.max(severe, moderateRadius * squeeze));
+        return new DetonationProfile(power, yieldKg, horizontalRadius, intensity, burstHeight, airburst, fireballRadius, craterRadius,
+                craterDepth, Math.min(rimRadius, maxReach), rimHeight, Math.min(ejectaRadius, maxReach), glassRadius, severe, moderate,
+                thermalRadius * squeeze, promptRadius, falloutRadius, falloutIntensity);
     }
 
     /** The furthest any effect on blocks reaches: how far out the columns are worked through. */

@@ -27,6 +27,16 @@ public final class ExplosiveConfig {
     public static int maxFallingDebris = 1500;
     public static double airburstHeight = 2.0;
     public static int visualRange = 4096;
+    public static int craterMaxReach = 768;
+    public static boolean thermonuclearEnabled = true;
+    public static int thermonuclearMaxRadius = 750;
+    public static double thermonuclearMaxPower = 4320.0;
+    public static double thermonuclearMaxCraterRadius = 110.0;
+    public static int thermonuclearBlastWaveMaxRadius = 768;
+    public static double thermonuclearThermalReach = 1.4;
+    public static int thermonuclearCountdownSeconds = 15;
+    public static double thermonuclearTamperFalloutReach = 0.5;
+    public static double thermonuclearTamperHotSpot = 150.0;
 
     private static ModConfigSpec.BooleanValue craterValue;
     private static ModConfigSpec.BooleanValue craterLoadsChunksValue;
@@ -43,6 +53,16 @@ public final class ExplosiveConfig {
     private static ModConfigSpec.IntValue maxFallingDebrisValue;
     private static ModConfigSpec.DoubleValue airburstHeightValue;
     private static ModConfigSpec.IntValue visualRangeValue;
+    private static ModConfigSpec.IntValue craterMaxReachValue;
+    private static ModConfigSpec.BooleanValue thermonuclearEnabledValue;
+    private static ModConfigSpec.IntValue thermonuclearMaxRadiusValue;
+    private static ModConfigSpec.DoubleValue thermonuclearMaxPowerValue;
+    private static ModConfigSpec.DoubleValue thermonuclearMaxCraterRadiusValue;
+    private static ModConfigSpec.IntValue thermonuclearBlastWaveMaxRadiusValue;
+    private static ModConfigSpec.DoubleValue thermonuclearThermalReachValue;
+    private static ModConfigSpec.IntValue thermonuclearCountdownSecondsValue;
+    private static ModConfigSpec.DoubleValue thermonuclearTamperFalloutReachValue;
+    private static ModConfigSpec.DoubleValue thermonuclearTamperHotSpotValue;
 
     private ExplosiveConfig() {}
 
@@ -60,6 +80,12 @@ public final class ExplosiveConfig {
                 .comment("Most chunks one detonation waits on to load or generate at once; each is let go once the crater is",
                         "done with it. Lower spares the world generator, higher finishes far-reaching craters sooner.")
                 .defineInRange("explosive.crater.chunksAtOnce", 8, 1, 256);
+        craterMaxReachValue = builder
+                .comment("Furthest, in blocks from ground zero, a detonation changes the ground: wrecking, scorching and fires",
+                        "shrink to fit inside it. The main cost of a big detonation is the columns and chunks it works through,",
+                        "which grow with the square of this. A full atomic bomb reaches about 400, so only thermonuclear",
+                        "warheads are cut.")
+                .defineInRange("explosive.crater.maxReach", 768, 64, 4096);
         blastProofResistanceValue = builder
                 .comment("Blocks with an explosion resistance above this survive a nuclear detonation (bedrock, blast doors).")
                 .defineInRange("explosive.crater.blastProofResistance", 1200.0, 0.0, 1.0e7);
@@ -101,6 +127,38 @@ public final class ExplosiveConfig {
                 .comment("Players within this many blocks of a detonation see its flash, fireball, cloud and shock wave. With",
                         "Distant Horizons the cloud shows over its distant terrain too, as far as this reaches.")
                 .defineInRange("explosive.visualRange", 4096, 0, 100000);
+        thermonuclearEnabledValue = builder
+                .comment("Whether thermonuclear warheads can light their secondary. Off, every one fizzles as its fission primary.")
+                .define("explosive.thermonuclear.enabled", true);
+        thermonuclearMaxRadiusValue = builder
+                .comment("Largest destruction radius of a thermonuclear warhead, blocks. A full one reaches 750, three times a",
+                        "full atomic bomb.")
+                .defineInRange("explosive.thermonuclear.maxRadius", 750, 250, 2000);
+        thermonuclearMaxPowerValue = builder
+                .comment("Largest blast power of a thermonuclear warhead, on the atomic bomb's scale (a full one is 160). The",
+                        "blast wave's strength and the shaking follow it.")
+                .defineInRange("explosive.thermonuclear.maxPower", 4320.0, 160.0, 1.0e6);
+        thermonuclearMaxCraterRadiusValue = builder
+                .comment("Widest crater bowl a thermonuclear warhead digs, blocks: the blast reaches far past it, but a bowl",
+                        "growing with it would cost too much (a full atomic bomb digs 75).")
+                .defineInRange("explosive.thermonuclear.maxCraterRadius", 110.0, 0.0, 400.0);
+        thermonuclearBlastWaveMaxRadiusValue = builder
+                .comment("Furthest a thermonuclear warhead's blast wave travels, blocks. Atomic warheads keep",
+                        "civilDefense.blastWave.maxRadius.")
+                .defineInRange("explosive.thermonuclear.blastWaveMaxRadius", 768, 0, 2048);
+        thermonuclearThermalReachValue = builder
+                .comment("How far a thermonuclear warhead's thermal flash reaches, a multiple of its destruction radius.")
+                .defineInRange("explosive.thermonuclear.thermalReach", 1.4, 0.0, 10.0);
+        thermonuclearCountdownSecondsValue = builder
+                .comment("Seconds a thermonuclear bomb counts down once powered.")
+                .defineInRange("explosive.thermonuclear.countdownSeconds", 15, 1, 600);
+        thermonuclearTamperFalloutReachValue = builder
+                .comment("How much wider a full depleted uranium tamper makes the fallout, a multiple of the destruction radius",
+                        "on top of the usual 1.5.")
+                .defineInRange("explosive.thermonuclear.tamperFalloutReach", 0.5, 0.0, 4.0);
+        thermonuclearTamperHotSpotValue = builder
+                .comment("Strength of the hot spot a full tamper leaves at ground zero, fading over days like a dirty bomb's.")
+                .defineInRange("explosive.thermonuclear.tamperHotSpot", 150.0, 0.0, 1000.0);
     }
 
     public static void bake() {
@@ -119,11 +177,32 @@ public final class ExplosiveConfig {
         maxFallingDebris = maxFallingDebrisValue.get();
         airburstHeight = airburstHeightValue.get();
         visualRange = visualRangeValue.get();
+        craterMaxReach = craterMaxReachValue.get();
+        thermonuclearEnabled = thermonuclearEnabledValue.get();
+        thermonuclearMaxRadius = thermonuclearMaxRadiusValue.get();
+        thermonuclearMaxPower = thermonuclearMaxPowerValue.get();
+        thermonuclearMaxCraterRadius = thermonuclearMaxCraterRadiusValue.get();
+        thermonuclearBlastWaveMaxRadius = thermonuclearBlastWaveMaxRadiusValue.get();
+        thermonuclearThermalReach = thermonuclearThermalReachValue.get();
+        thermonuclearCountdownSeconds = thermonuclearCountdownSecondsValue.get();
+        thermonuclearTamperFalloutReach = thermonuclearTamperFalloutReachValue.get();
+        thermonuclearTamperHotSpot = thermonuclearTamperHotSpotValue.get();
     }
 
     /** The zones' measures, from this config and the blast wave's and contamination's. */
     public static DetonationProfile.Settings settings() {
+        return settings(thermalReach);
+    }
+
+    /** As {@link #settings()}, with the thermal flash reaching {@code reach} destruction radii. */
+    public static DetonationProfile.Settings settings(double reach) {
         return new DetonationProfile.Settings(CivilDefenseConfig.blastWaveYieldPerPower, severeOverpressure, moderateOverpressure,
-                thermalReach, NuclearDetonation.FALLOUT_PER_POWER, Config.contaminationMax);
+                reach, NuclearDetonation.FALLOUT_PER_POWER, Config.contaminationMax);
+    }
+
+    /** What the server lets a thermonuclear warhead reach. */
+    public static ThermonuclearStats.Caps thermonuclearCaps() {
+        return new ThermonuclearStats.Caps(thermonuclearMaxRadius, thermonuclearMaxPower, thermonuclearMaxCraterRadius,
+                thermonuclearTamperFalloutReach, thermonuclearTamperHotSpot);
     }
 }

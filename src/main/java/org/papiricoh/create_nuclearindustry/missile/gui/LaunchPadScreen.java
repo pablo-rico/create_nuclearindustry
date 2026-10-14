@@ -5,9 +5,11 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import org.papiricoh.create_nuclearindustry.explosive.WarheadLoad;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 
 public class LaunchPadScreen extends AbstractContainerScreen<LaunchPadMenu> {
+    private static final String KEY = "gui.create_nuclearindustry.launch_pad.";
     private static final int GUI_WIDTH = 176;
     private static final int GUI_HEIGHT = 210;
 
@@ -27,33 +29,36 @@ public class LaunchPadScreen extends AbstractContainerScreen<LaunchPadMenu> {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         renderBg(guiGraphics, partialTick, mouseX, mouseY);
-        guiGraphics.drawCenteredString(font, "Launch Pad", leftPos + imageWidth / 2, topPos + 10, 0xFFE066);
+        guiGraphics.drawCenteredString(font, title, leftPos + imageWidth / 2, topPos + 10, 0xFFE066);
         LaunchPadBlockEntity pad = menu.getPad();
         if (pad != null) {
-            int valid = pad.getValidUraniumCount();
-            guiGraphics.drawString(font, "Missile: " + (pad.hasMissile() ? "ready" : "missing"), leftPos + 80, topPos + 30,
-                    pad.hasMissile() ? 0x88FF88 : 0xFF7777);
+            int cores = pad.getValidUraniumCount() / WarheadLoad.UNITS_PER_CORE;
+            guiGraphics.drawString(font, Component.translatable(KEY + (pad.hasMissile() ? "missile_ready" : "missile_missing")),
+                    leftPos + 80, topPos + 30, pad.hasMissile() ? 0x88FF88 : 0xFF7777);
             float load = pad.getRadiologicalLoad();
-            guiGraphics.drawString(font, load > 0 && valid <= 0 ? "Dirty: " + Math.round(load) + " rad/s"
-                    : load > 0 ? "Fissile: " + valid + " +salted" : "Fissile: " + valid, leftPos + 80, topPos + 42, 0xDDDDDD);
+            Component warhead = load > 0 && cores <= 0 ? Component.translatable(KEY + "dirty", Math.round(load))
+                    : Component.translatable(KEY + (load > 0 ? "cores_salted" : "cores"), cores);
+            guiGraphics.drawString(font, warhead, leftPos + 80, topPos + 42, 0xDDDDDD);
 
             BlockPos target = pad.getTarget();
             if (target != null) {
-                guiGraphics.drawString(font, "Target: " + target.getX() + " " + target.getY() + " " + target.getZ(),
+                guiGraphics.drawString(font, Component.translatable(KEY + "target", target.getX(), target.getY(), target.getZ()),
                         leftPos + 14, topPos + 88, 0x88CCFF);
                 double distance = Math.sqrt(pad.getBlockPos().distSqr(target));
-                guiGraphics.drawString(font, String.format("Distance: %.0f m", distance), leftPos + 14, topPos + 100, 0xAACCFF);
+                guiGraphics.drawString(font, Component.translatable(KEY + "distance", String.format("%.0f", distance)),
+                        leftPos + 14, topPos + 100, 0xAACCFF);
             } else {
-                guiGraphics.drawString(font, "No target set", leftPos + 14, topPos + 88, 0xFF7777);
+                guiGraphics.drawString(font, Component.translatable(KEY + "no_target"), leftPos + 14, topPos + 88, 0xFF7777);
             }
 
-            guiGraphics.drawString(font, String.format("Power: %.1f", pad.getEstimatedPower()), leftPos + 14, topPos + 100 + 12, 0xFF7777);
-            guiGraphics.drawString(font, "Radius/crater: " + pad.getEstimatedRadius() + "/" + pad.getEstimatedCraterRadius(),
-                    leftPos + 14, topPos + 100 + 24, 0xFFAA77);
+            guiGraphics.drawString(font, Component.translatable("gui.create_nuclearindustry.nuclear_bomb.power",
+                    String.format("%.1f", pad.getEstimatedPower())), leftPos + 14, topPos + 100 + 12, 0xFF7777);
+            guiGraphics.drawString(font, Component.translatable("gui.create_nuclearindustry.nuclear_bomb.radius",
+                    pad.getEstimatedRadius(), pad.getEstimatedCraterRadius()), leftPos + 14, topPos + 100 + 24, 0xFFAA77);
 
             int countdown = pad.getCountdown();
-            String state = countdown >= 0 ? String.format("Launching: %.1fs", countdown / 20.0f)
-                    : (pad.isReadyToLaunch() ? "Waiting for redstone" : "Not ready");
+            Component state = countdown >= 0 ? Component.translatable(KEY + "launching", String.format("%.1f", countdown / 20.0f))
+                    : Component.translatable(pad.isReadyToLaunch() ? "gui.create_nuclearindustry.bomb.waiting" : KEY + "not_ready");
             guiGraphics.drawString(font, state, leftPos + 80, topPos + 30 + 24,
                     countdown >= 0 ? 0xFF4444 : (pad.isReadyToLaunch() ? 0x88FF88 : 0xFFAA55));
         }

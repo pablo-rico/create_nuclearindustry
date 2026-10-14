@@ -22,6 +22,7 @@ import org.joml.Vector3f;
 import org.papiricoh.create_nuclearindustry.ClientConfig;
 import org.papiricoh.create_nuclearindustry.civildefense.blast.BlastWaveModel;
 import org.papiricoh.create_nuclearindustry.explosive.DetonationPayload;
+import org.papiricoh.create_nuclearindustry.explosive.blast.ExplosionPalette;
 import org.papiricoh.create_nuclearindustry.explosive.blast.MushroomCloudModel;
 
 import java.util.ArrayList;
@@ -35,7 +36,8 @@ import java.util.List;
  * the fireball rising into a mushroom cloud ({@link MushroomCloudModel}) seen from far beyond the render
  * distance's fog; a ring of dust racing out along the ground with the shock wave, and a brief dome of
  * condensation round the fireball; the view shaking when the shock wave passes. The flash and the shake
- * follow {@code explosion.*} in the client config.
+ * follow {@code explosion.*} in the client config. Colours and timings come from the detonation's
+ * {@link ExplosionPalette}: a thermonuclear one flashes harder, burns longer and leaves sooty smoke.
  * <p>
  * The cloud and the ring are built once a frame. Without Distant Horizons all of it is drawn after the
  * weather, and what lies past the far plane is cut off. With it, its pass takes what lies beyond the
@@ -43,10 +45,6 @@ import java.util.List;
  * terrain, and the vanilla pass only the rest.
  */
 public final class NuclearExplosionEffects {
-    /** Seconds the flash takes to fade to a third. */
-    private static final double FLASH_FADE = 0.45;
-    /** Seconds the sky's glow takes to fade to a third. */
-    private static final double GLOW_FADE = 25;
     /** Seconds the shaking lasts. */
     private static final double SHAKE_SECONDS = 1.6;
     private static final int PUFF_SIDES = 10;
@@ -68,6 +66,7 @@ public final class NuclearExplosionEffects {
     /** One detonation being shown. */
     private static final class Explosion {
         final DetonationPayload payload;
+        final ExplosionPalette palette;
         final MushroomCloudModel cloud;
         final double groundY;
         final long startTick;
@@ -77,7 +76,9 @@ public final class NuclearExplosionEffects {
 
         Explosion(DetonationPayload payload, long startTick) {
             this.payload = payload;
-            this.cloud = new MushroomCloudModel(payload.seed(), payload.scale(), payload.fireball(), payload.airburst(), payload.burstHeight());
+            this.palette = ExplosionPalette.of(payload.style());
+            this.cloud = new MushroomCloudModel(payload.seed(), payload.scale(), payload.fireball(), payload.airburst(), payload.burstHeight(),
+                    palette);
             this.groundY = payload.centre().y - Math.max(0, payload.burstHeight());
             this.startTick = startTick;
         }
@@ -268,7 +269,8 @@ public final class NuclearExplosionEffects {
         double fade = 1 - radius / max;
         double height = 3 + 0.04 * radius;
         float light = 0.35f + 0.65f * daylight;
-        int bottom = argb((float) (0.55 * fade), 0.78f * light, 0.72f * light, 0.62f * light);
+        ExplosionPalette.Rgb dust = explosion.palette.shock();
+        int bottom = argb((float) (0.55 * fade), dust.red() * light, dust.green() * light, dust.blue() * light);
         int top = bottom & 0x00FFFFFF;
         int segments = 96;
         Vec3 c = explosion.payload.centre();
@@ -291,17 +293,26 @@ public final class NuclearExplosionEffects {
         }
     }
 
-    /** A brief white dome round the fireball as the shock wave leaves it: the condensation cloud. */
+    /**
+     * A brief white dome round the fireball as the shock wave leaves it: the condensation cloud. A
+     * thermonuclear blast raises a second, smaller one inside the first.
+     */
     private static void condensation(Explosion explosion, double seconds, Vec3 eye, List<Quad> quads) {
         if (seconds > 2.5 || explosion.payload.dirty()) {
             return;
         }
-        double radius = Math.min(explosion.waveRadius(seconds), 0.7 * explosion.payload.scale());
-        if (radius < explosion.payload.fireball()) {
-            return;
-        }
-        float alpha = (float) (0.18 * (1 - seconds / 2.5));
+        double outer = Math.min(explosion.waveRadius(seconds), 0.7 * explosion.payload.scale());
+        float alpha = (float) (explosion.palette.condensationAlpha() * (1 - seconds / 2.5));
         int color = argb(alpha, 0.95f, 0.95f, 0.97f);
+        for (int dome = 0; dome < explosion.palette.condensationDomes(); dome++) {
+            double radius = outer * Math.pow(0.6, dome);
+            if (radius >= explosion.payload.fireball()) {
+                condensationDome(explosion, radius, color, eye, quads);
+            }
+        }
+    }
+
+    private static void condensationDome(Explosion explosion, double radius, int color, Vec3 eye, List<Quad> quads) {
         int clear = color & 0x00FFFFFF;
         Vec3 c = explosion.payload.centre();
         int around = 32;
@@ -358,6 +369,8 @@ public final class NuclearExplosionEffects {
         float partial = delta.getGameTimeDeltaPartialTick(false);
         double flash = 0;
         double glow = 0;
+        ExplosionPalette.Rgb flashColour = ExplosionPalette.FISSION.flash();
+        ExplosionPalette.Rgb glowColour = ExplosionPalette.FISSION.glow();
         Vec3 eye = mc.player.getEyePosition(partial);
         Vec3 look = mc.player.getViewVector(partial);
         for (Explosion explosion : ACTIVE) {
@@ -370,20 +383,29 @@ public final class NuclearExplosionEffects {
                     : Math.min(1, 2.5 * Math.max(explosion.payload.thermalRadius(), 32) / distance);
             double facing = 0.35 + 0.65 * Math.max(0, look.dot(toward.scale(1 / distance)));
             boolean seen = sees(mc, eye, fireball);
-            flash = Math.max(flash, Math.exp(-seconds / FLASH_FADE) * near * facing * (seen ? 1 : 0.3)
-                    * (explosion.payload.dirty() ? 0.5 : 1));
+            ExplosionPalette palette = explosion.palette;
+            double flashHere = Math.exp(-seconds / palette.flashFade()) * near * facing * (seen ? 1 : 0.3)
+                    * (explosion.payload.dirty() ? 0.5 : 1);
+            if (flashHere > flash) {
+                flash = flashHere;
+                flashColour = palette.flash();
+            }
             if (!explosion.payload.dirty()) {
-                glow = Math.max(glow, Math.exp(-seconds / GLOW_FADE) * Math.min(1, near * 1.5));
+                double glowHere = Math.exp(-seconds / palette.glowFade()) * Math.min(1, near * 1.5) * palette.glowAlpha();
+                if (glowHere > glow) {
+                    glow = glowHere;
+                    glowColour = palette.glow();
+                }
             }
         }
         flash *= ClientConfig.explosionFlash;
         int width = graphics.guiWidth();
         int height = graphics.guiHeight();
-        if (glow > 0.01) {
-            graphics.fill(0, 0, width, height, argb((float) (0.14 * glow), 1.0f, 0.6f, 0.3f));
+        if (glow > 0.01 * ExplosionPalette.FISSION.glowAlpha()) {
+            graphics.fill(0, 0, width, height, argb((float) glow, glowColour.red(), glowColour.green(), glowColour.blue()));
         }
         if (flash > 0.01) {
-            graphics.fill(0, 0, width, height, argb((float) Math.min(1, flash), 1.0f, 0.98f, 0.92f));
+            graphics.fill(0, 0, width, height, argb((float) Math.min(1, flash), flashColour.red(), flashColour.green(), flashColour.blue()));
         }
     }
 
@@ -402,6 +424,7 @@ public final class NuclearExplosionEffects {
             return;
         }
         double tint = 0;
+        ExplosionPalette palette = ExplosionPalette.FISSION;
         Vec3 eye = event.getCamera().getPosition();
         for (Explosion explosion : ACTIVE) {
             if (explosion.payload.dirty()) {
@@ -409,15 +432,21 @@ public final class NuclearExplosionEffects {
             }
             double seconds = explosion.seconds((float) event.getPartialTick());
             double distance = Math.max(1, eye.distanceTo(explosion.payload.centre()));
-            tint = Math.max(tint, Math.exp(-seconds / GLOW_FADE) * Math.min(1, 3.0 * explosion.payload.thermalRadius() / distance));
+            double here = Math.min(explosion.palette.fogMax(), Math.exp(-seconds / explosion.palette.glowFade())
+                    * Math.min(1, 3.0 * explosion.payload.thermalRadius() / distance));
+            if (here > tint) {
+                tint = here;
+                palette = explosion.palette;
+            }
         }
         if (tint <= 0.01) {
             return;
         }
-        float t = (float) Math.min(0.5, tint);
-        event.setRed(event.getRed() + (1.0f - event.getRed()) * t);
-        event.setGreen(event.getGreen() + (0.55f - event.getGreen()) * t);
-        event.setBlue(event.getBlue() + (0.25f - event.getBlue()) * t);
+        float t = (float) tint;
+        ExplosionPalette.Rgb fog = palette.fog();
+        event.setRed(event.getRed() + (fog.red() - event.getRed()) * t);
+        event.setGreen(event.getGreen() + (fog.green() - event.getGreen()) * t);
+        event.setBlue(event.getBlue() + (fog.blue() - event.getBlue()) * t);
     }
 
     /** The shock wave shakes the view when it reaches the camera, harder the stronger it still is. */

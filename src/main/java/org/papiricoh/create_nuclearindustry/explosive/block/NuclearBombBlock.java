@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.inventory.MenuConstructor;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -20,7 +21,6 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
-import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
 import org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenuProvider;
 
@@ -68,15 +68,17 @@ public class NuclearBombBlock extends BaseEntityBlock {
         if (level.getBlockEntity(pos) instanceof NuclearBombBlockEntity bomb) {
             bomb.setChanged();
             level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
-            MenuProvider provider = new SimpleMenuProvider(
-                    new NuclearBombMenuProvider(pos)::createMenu,
-                    Component.translatable(state.getBlock().getDescriptionId())
-            );
+            MenuProvider provider = new SimpleMenuProvider(menu(pos), Component.translatable(state.getBlock().getDescriptionId()));
             // The position travels with the menu, so each player's screen finds its own block.
             player.openMenu(provider, buf -> buf.writeBlockPos(pos));
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
+    }
+
+    /** The loading screen this bomb opens. */
+    protected MenuConstructor menu(BlockPos pos) {
+        return new NuclearBombMenuProvider(pos)::createMenu;
     }
 
     @Nullable
@@ -88,13 +90,11 @@ public class NuclearBombBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return type == AllNuclearEntities.NUCLEAR_BOMB.get()
-                ? (lvl, pos, blockState, blockEntity) -> {
-                    if (blockEntity instanceof NuclearBombBlockEntity bomb) {
-                        bomb.tick();
-                    }
-                }
-                : null;
+        return level.isClientSide ? null : (lvl, pos, blockState, blockEntity) -> {
+            if (blockEntity instanceof NuclearBombBlockEntity bomb) {
+                bomb.tick();
+            }
+        };
     }
 
     @Override

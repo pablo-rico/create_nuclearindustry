@@ -17,8 +17,8 @@ import org.papiricoh.create_nuclearindustry.explosive.WarheadLoad;
 
 /**
  * A nuclear cannon shell: a Create Big Cannons high explosive shell, a nuclear bomb for its trigger and
- * one to four weapons-grade cores in any slots. The shell goes off with as many cores as went in (see
- * {@link WarheadLoad}): four make a full warhead, as the old fixed recipe did.
+ * one to six weapons-grade cores in any slots. The shell goes off with as many cores as went in (see
+ * {@link WarheadLoad}): six make a full warhead.
  */
 public class NuclearCannonShellRecipe extends CustomRecipe {
     private static final ResourceLocation HE_SHELL = ResourceLocation.fromNamespaceAndPath("createbigcannons", "he_shell");
@@ -27,7 +27,7 @@ public class NuclearCannonShellRecipe extends CustomRecipe {
         super(category);
     }
 
-    /** Cores in the grid if it holds exactly a shell, a bomb and one to four cores, else -1. */
+    /** Cores in the grid if it holds exactly a shell, a bomb and one to six cores, else -1. */
     public static int cores(CraftingInput input) {
         Item shellItem = BuiltInRegistries.ITEM.get(HE_SHELL);
         int shells = 0;

@@ -407,7 +407,7 @@ below for what changes in existing worlds.
   radioactive it is, the wider the fallout (24 to 128 blocks) and the hotter
   the spot left at ground zero, which fades over a few days.
 - The launch pad's warhead slots also take radioactive material. On its own
-  it makes a dirty warhead; packed with fissile material it salts a nuclear
+  it makes a dirty warhead; packed with weapons-grade cores it salts a nuclear
   one, for dirtier and wider fallout.
 - The bomb's screen title is now translated.
 
@@ -772,9 +772,8 @@ below for what changes in existing worlds.
   the missile then goes off above its target, digs no crater and leaves a tenth
   of the fallout, but its blast and flash reach further. A cannon shell set off
   high enough is an airburst too.
-- Nuclear cannon shells (Create Big Cannons) are made with one to four
-  weapons-grade cores and go off with what they carry; four are a full warhead,
-  as before.
+- Nuclear cannon shells (Create Big Cannons) are made with one to six
+  weapons-grade cores and go off with what they carry; six are a full warhead.
 - What you see: a white flash, an orange glow in the sky and fog, the fireball
   rising into a mushroom cloud seen from far beyond the render distance, a
   condensation dome, a ring of dust running out with the shock wave and the
@@ -795,6 +794,51 @@ below for what changes in existing worlds.
   far mountains, and craters show up in its distant terrain once their chunks
   are saved. Detonations are now seen from 4096 blocks by default
   (`explosive.visualRange`).
+
+### Thermonuclear weapons and costlier warheads
+- New Thermonuclear Bomb, a hydrogen bomb loaded as a Teller-Ulam device: one
+  weapons-grade core as its fission primary (plutonium compresses better than
+  uranium), up to sixteen Lithium-6 Deuteride as its fusion secondary and up to
+  four Depleted Uranium Blocks as its tamper. No core, no countdown; no
+  deuteride, and only the primary goes off. Each deuteride multiplies the yield
+  and the tamper adds to it and spreads much wider fallout, with a hot spot that
+  fades over days. A full one wrecks what stands up to 750 blocks away, three
+  times a full atomic bomb, while its crater stays about 110 blocks wide. It
+  counts down for 15 seconds and warns sirens as far as its fallout reaches.
+- Its explosion has a look of its own: a pure white flash, a bigger and whiter
+  fireball that burns for about seven seconds before deepening to a saturated
+  orange-red, a taller mushroom cloud of near-black soot, darker dust, two
+  condensation domes, a redder sky and a lower, further-carrying rumble.
+- New Thermonuclear Cannon Shell for Create Big Cannons: an HE shell, a
+  Thermonuclear Bomb, one core, one to four deuteride and up to two tamper
+  blocks; it reaches about 470 blocks at most. Missiles cannot carry
+  thermonuclear parts.
+- New `explosive.thermonuclear.*` settings (radius, power, crater, blast wave,
+  flash, countdown, tamper, and an off switch that leaves only the primary), and
+  `explosive.crater.maxReach` (768), which keeps what any detonation does to
+  the ground within reach of ground zero, the main performance setting for big
+  detonations. `civilDefense.blastWave.maxRadius` now goes up to 2048.
+- Warheads are now assembled on a Create line. New parts: Explosive Lenses (TNT
+  and gunpowder pressed onto iron sheets), Implosion Assemblies (eight lenses
+  round a Beryllium Reflector), Firing Sets (precision mechanisms, electron
+  tubes, copper and redstone), Neutron Initiators (beryllium, plutonium dioxide
+  and gold, mixed hot), Bomb Casings and Thermonuclear Casings (on a Mechanical
+  Crafter, the latter lined with depleted uranium) and Lithium-6 Deuteride
+  (lithium-6 mixed hot with deuterium).
+- The Nuclear Bomb is a Bomb Casing with an implosion assembly, a neutron
+  initiator and a firing set deployed into it; the Thermonuclear Bomb also takes
+  a Tritium Cell to boost its primary, so it needs a working tokamak. Missiles
+  and launch pads are made on a Mechanical Crafter with a firing set, and the
+  dirty bomb takes one too.
+- Bombs and launch pads take weapons-grade cores only, two to a slot. A core is
+  now worth exactly the metal cast into it (eight uranium or four plutonium), so
+  six make a full warhead; it used to be worth half as much again. A uranium
+  core keeps the enrichment of its metal. Nuclear cannon shells take one to six
+  cores. Cores and the metal for them no longer count as a dirty bomb's load.
+- The bomb's and the launch pad's screens are now translated.
+- New advancements: Teller-Ulam (make lithium deuteride) and Brighter Than a
+  Thousand Suns (witness a thermonuclear detonation). New Ponder scene and JEI
+  pages for the thermonuclear bomb and the warhead parts.
 
 ### Civil defense
 - New Air Raid Siren: it wails while powered by redstone, and on its own (a
@@ -1142,6 +1186,10 @@ below for what changes in existing worlds.
   physics and radiation.
 
 ### Upgrading
+- Nuclear bombs and launch pads loaded with loose uranium or plutonium drop it
+  beside them the first time they load and stop any countdown; cast it into
+  cores and load those. A core now counts as eight warhead units, so a full
+  warhead takes six. Cannon shells made before keep the warhead they had.
 - The settings `fission.thermal.steamEnergy`, `fission.thermal.heavyWaterSteamEnergy`
   and `coolingTower.passivePerBlock` are now `steamEnergyPerMb`,
   `heavySteamEnergyPerMb` and `condensePerBlock`, with the new defaults (4.0,

@@ -41,7 +41,9 @@ public enum NuclearEvent {
     ACCELERATOR_FORMED,
     FIRST_BEAM,
     RING_FORMED,
-    GEV_BEAM;
+    GEV_BEAM,
+    // Thermonuclear weapons
+    THERMONUCLEAR_DETONATION;
 
     public String id() {
         return name().toLowerCase(Locale.ROOT);

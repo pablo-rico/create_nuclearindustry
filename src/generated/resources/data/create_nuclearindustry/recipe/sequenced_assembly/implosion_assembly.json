@@ -1,0 +1,62 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create_nuclearindustry:beryllium_reflector"
+  },
+  "loops": 4,
+  "results": [
+    {
+      "id": "create_nuclearindustry:implosion_assembly"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_implosion_assembly"
+        },
+        {
+          "item": "create_nuclearindustry:explosive_lens"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_implosion_assembly"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_implosion_assembly"
+        },
+        {
+          "item": "create_nuclearindustry:explosive_lens"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_implosion_assembly"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_implosion_assembly"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_implosion_assembly"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "create_nuclearindustry:incomplete_implosion_assembly"
+  }
+}

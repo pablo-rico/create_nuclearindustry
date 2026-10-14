@@ -111,8 +111,13 @@
     "create_nuclearindustry:particle_accelerator_klystron",
     "create_nuclearindustry:particle_accelerator_magnet_power_supply",
     "create_nuclearindustry:particle_accelerator_vacuum_pump",
+    "create_nuclearindustry:thermonuclear_bomb",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
+      "required": false
+    },
+    {
+      "id": "create_nuclearindustry:thermonuclear_cannon_shell",
       "required": false
     },
     {

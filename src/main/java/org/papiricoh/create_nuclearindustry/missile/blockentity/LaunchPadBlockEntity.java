@@ -16,6 +16,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.AllNuclearTags;
+import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
 import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
@@ -46,11 +48,18 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         }
 
         @Override
+        protected int getStackLimit(int slot, ItemStack stack) {
+            return Math.min(super.getStackLimit(slot, stack), LaunchPadBlockEntity.this.stackLimit(slot, stack));
+        }
+
+        @Override
         protected void onContentsChanged(int slot) {
             markDirtyAndSync();
         }
     };
     private int countdown = -1;
+    /** Whether what it holds has been checked against what it takes now, once after loading. */
+    private boolean legacyChecked;
 
     public LaunchPadBlockEntity(BlockPos pos, BlockState state) {
         super(AllNuclearEntities.LAUNCH_PAD.get(), pos, state);
@@ -63,12 +72,28 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         if (slot == DESIGNATOR_SLOT) {
             return stack.is(AllNuclearItems.TARGET_DESIGNATOR.get());
         }
+        if (stack.is(AllNuclearTags.Items.THERMONUCLEAR_COMPONENTS)) {
+            // A missile is too small for a thermonuclear warhead.
+            return false;
+        }
         return isValidFissile(stack) || DirtyWarheadStats.isRadiological(stack);
+    }
+
+    /** How many of {@code stack} {@code slot} holds at most: cores go two to a slot, as in a bomb. */
+    public int stackLimit(int slot, ItemStack stack) {
+        if (slot == MISSILE_SLOT || slot == DESIGNATOR_SLOT) {
+            return 1;
+        }
+        return FissileMaterial.isWarheadCore(stack) ? NuclearBombBlockEntity.CORES_PER_SLOT : stack.getMaxStackSize();
     }
 
     public void tick() {
         if (level == null || level.isClientSide) {
             return;
+        }
+        if (!legacyChecked) {
+            legacyChecked = true;
+            ejectWhatNoLongerFits();
         }
 
         boolean powered = level.hasNeighborSignal(getBlockPos());
@@ -98,6 +123,31 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
             if (countdown % 20 == 0) {
                 markDirtyAndSync();
             }
+        }
+    }
+
+    /**
+     * Pads loaded before warheads took only cores may hold loose metal: it is dropped beside the pad,
+     * with anything past what a slot now holds, and the countdown stops.
+     */
+    private void ejectWhatNoLongerFits() {
+        boolean ejected = false;
+        for (int slot = FIRST_URANIUM_SLOT; slot < SLOT_COUNT; slot++) {
+            ItemStack stack = inventory.getStackInSlot(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            int keep = isItemValid(slot, stack) ? Math.min(stack.getCount(), stackLimit(slot, stack)) : 0;
+            if (keep < stack.getCount()) {
+                ItemStack out = stack.copyWithCount(stack.getCount() - keep);
+                inventory.setStackInSlot(slot, stack.copyWithCount(keep));
+                Block.popResource(level, getBlockPos().above(), out);
+                ejected = true;
+            }
+        }
+        if (ejected && countdown >= 0) {
+            countdown = -1;
+            ThreatRegistry.withdraw(level, getBlockPos());
         }
     }
 
@@ -167,7 +217,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         return COUNTDOWN_TICKS;
     }
 
-    /** Warhead units loaded: one per weapons-grade uranium, two per plutonium. */
+    /** Warhead units loaded: eight per core. */
     public int getValidUraniumCount() {
         return FissileMaterial.units(inventory, FIRST_URANIUM_SLOT, SLOT_COUNT);
     }
@@ -188,7 +238,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         return WarheadStats.craterRadius(getValidUraniumCount(), getAverageEnrichment());
     }
 
-    /** Weapons-grade uranium or plutonium. */
+    /** A weapons-grade core. */
     public boolean isValidFissile(ItemStack stack) {
         return FissileMaterial.isWeaponsFissile(stack);
     }

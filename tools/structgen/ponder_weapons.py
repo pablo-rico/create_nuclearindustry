@@ -9,6 +9,7 @@ lose the block without that mod.
 
 - weapons_bombs, 7x3x5: a Nuclear Bomb (2,1,2) and a Dirty Bomb (4,1,2), each with a lever on
   its north face, towards the camera.
+- weapons_thermonuclear, 5x3x5: a Thermonuclear Bomb (2,1,2) with a lever on its north face (2,1,1).
 - weapons_missile, 5x3x5: a Missile Launch Pad (2,1,2) with a lever on its north face (2,1,1).
 """
 from ponder_plant_parts import NS, floor, put, write
@@ -27,6 +28,15 @@ def bombs():
     write("weapons_bombs", size, blocks)
 
 
+def thermonuclear():
+    size = (5, 3, 5)
+    blocks = {}
+    floor(blocks, size)
+    put(blocks, (2, 1, 2), NS + "thermonuclear_bomb", {"powered": "false"})
+    put(blocks, (2, 1, 1), "minecraft:lever", LEVER)
+    write("weapons_thermonuclear", size, blocks)
+
+
 def missile():
     size = (5, 3, 5)
     blocks = {}
@@ -38,6 +48,7 @@ def missile():
 
 def main():
     bombs()
+    thermonuclear()
     missile()
 
 

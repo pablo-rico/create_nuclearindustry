@@ -71,10 +71,10 @@ public final class GuidePonderText {
     public static final Scene BOMBS = new Scene("weapons_bombs", "weapons_bombs",
             line("Nuclear and Dirty Bombs", "Bombas nucleares y sucias"),
             List.of(
-                    line("The Nuclear Bomb takes weapons-grade material in its three slots: uranium enriched to 90%% or more, or plutonium, which counts double.",
-                            "La Bomba nuclear lleva material de grado militar en sus tres huecos: uranio enriquecido al 90%% o más, o plutonio, que cuenta doble."),
-                    line("The more it holds, and the richer, the further it wrecks: up to 250 blocks out, round a crater a third as wide.",
-                            "Cuanto más lleva, y más rico, más lejos arrasa: hasta 250 bloques, alrededor de un cráter de un tercio de ese ancho."),
+                    line("The Nuclear Bomb takes weapons-grade cores in its three slots, two to a slot: each is eight uranium at 90%% or more, or four plutonium.",
+                            "La Bomba nuclear lleva núcleos de grado militar en sus tres huecos, dos por hueco: cada uno son ocho de uranio al 90%% o más, o cuatro de plutonio."),
+                    line("The more cores it holds, the further it wrecks: six reach 250 blocks out, round a crater a third as wide.",
+                            "Cuantos más núcleos lleva, más lejos arrasa: seis llegan a 250 bloques, alrededor de un cráter de un tercio de ese ancho."),
                     line("Power it with redstone: after a ten second countdown it goes off. Sirens in reach sound the attack warning meanwhile.",
                             "Dale una señal de redstone: tras una cuenta atrás de diez segundos estalla. Mientras, las sirenas cercanas dan el aviso de ataque."),
                     line("Its flash burns whoever sees it, a blast wave rolls outwards throwing whoever stands in the open, and fallout drifts downwind.",
@@ -85,6 +85,21 @@ public final class GuidePonderText {
                             "Su explosión es pequeña y no deja cráter, pero esparce su carga como lluvia radiactiva, más lejos cuanto más radiactiva sea.")),
             List.of("nuclear_bomb", "dirty_bomb"));
 
+    public static final Scene THERMONUCLEAR = new Scene("weapons_thermonuclear", "weapons_thermonuclear",
+            line("Thermonuclear Bombs", "Bombas termonucleares"),
+            List.of(
+                    line("The Thermonuclear Bomb is a fission primary that lights a fusion secondary. Its first slot takes one weapons-grade core, the primary: without it, the bomb cannot go off.",
+                            "La Bomba termonuclear es un primario de fisión que enciende un secundario de fusión. Su primer hueco lleva un núcleo de grado militar, el primario: sin él, la bomba no puede estallar."),
+                    line("Up to sixteen Lithium-6 Deuteride make its secondary, and each one multiplies the yield. With none, only the primary goes off.",
+                            "Hasta dieciséis de Deuteruro de litio-6 forman su secundario, y cada uno multiplica la potencia. Sin ninguno, solo estalla el primario."),
+                    line("Up to four Depleted Uranium Blocks make its tamper: a bigger blast, and far more fallout, with a hot spot that lasts for days.",
+                            "Hasta cuatro Bloques de uranio empobrecido forman su camisa: una explosión mayor y mucha más lluvia radiactiva, con un foco que dura días."),
+                    line("Power it with redstone: after a fifteen second countdown it wrecks what stands up to 750 blocks away, three times an atomic bomb.",
+                            "Dale una señal de redstone: tras una cuenta atrás de quince segundos arrasa lo que se alza hasta 750 bloques, tres veces una bomba atómica."),
+                    line("Its fireball burns bigger, whiter and longer, and the cloud it raises is near-black soot.",
+                            "Su bola de fuego es mayor, más blanca y dura más, y la nube que levanta es de hollín casi negro.")),
+            List.of("thermonuclear_bomb", "lithium_deuteride"));
+
     public static final Scene MISSILE = new Scene("weapons_missile", "weapons_missile",
             line("Missile Launch Pads", "Plataformas de lanzamiento"),
             List.of(
@@ -92,8 +107,8 @@ public final class GuidePonderText {
                             "Una Plataforma de lanzamiento dispara un Misil nuclear contra un objetivo lejano."),
                     line("Right-click a block with a Target Designator to aim, then put the designator and a missile in the pad. Sneak-use it in the air for an airburst.",
                             "Haz clic derecho en un bloque con un Designador de objetivo para apuntar, y pon el designador y un misil en la plataforma. Úsalo agachado al aire para una explosión aérea."),
-                    line("Its three warhead slots take weapons-grade uranium or plutonium for a nuclear warhead, or other radioactive material for a dirty one. Both together salt the fallout.",
-                            "Sus tres huecos de cabeza admiten uranio o plutonio de grado militar para una cabeza nuclear, u otro material radiactivo para una sucia. Ambos a la vez ensucian la lluvia radiactiva."),
+                    line("Its three warhead slots take weapons-grade cores for a nuclear warhead, or other radioactive material for a dirty one. Both together salt the fallout.",
+                            "Sus tres huecos de cabeza admiten núcleos de grado militar para una cabeza nuclear, u otro material radiactivo para una sucia. Ambos a la vez ensucian la lluvia radiactiva."),
                     line("Power the pad with redstone: after a ten second countdown the missile lifts off and flies to its target.",
                             "Dale a la plataforma una señal de redstone: tras una cuenta atrás de diez segundos el misil despega y vuela hasta su objetivo."),
                     line("Air Raid Sirens near the target hear the countdown and sound the attack warning before the missile lands.",
@@ -306,7 +321,7 @@ public final class GuidePonderText {
             List.of("servo_gearbox"));
 
     /** Every guide scene, in the order they are registered. */
-    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, MISSILE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
+    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, MISSILE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
             ACCELERATOR_LINAC, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO);
 
     private GuidePonderText() {}

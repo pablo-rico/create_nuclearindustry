@@ -7,6 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsRegistry;
 
 import java.util.ArrayList;
@@ -24,9 +25,12 @@ import java.util.stream.Stream;
 public final class GuideJeiInfo {
     /** The nuclear cannon shell exists only with Create Big Cannons; looked up by id so its classes never load without it. */
     public static final ResourceLocation NUCLEAR_CANNON_SHELL = ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "nuclear_cannon_shell");
+    public static final ResourceLocation THERMONUCLEAR_CANNON_SHELL =
+            ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "thermonuclear_cannon_shell");
 
     /** Every page id, also those shown only when their item is there; the datagen writes a text for each. */
-    public static final List<String> IDS = List.of("nuclear_bomb", "missile_launch", "nuclear_cannon_shell", "reactor_fuel_port",
+    public static final List<String> IDS = List.of("nuclear_bomb", "thermonuclear_bomb", "warhead_parts", "missile_launch", "nuclear_cannon_shell",
+            "thermonuclear_cannon_shell", "reactor_fuel_port",
             "reactor_fluid_port", "control_rod", "reactor_temperature_sensor", "tokamak_structure", "tokamak_magnet_drive",
             "tokamak_fluid_port", "tokamak_fuel_injector", "fusion_turbine", "reactor_viewport");
 
@@ -36,9 +40,15 @@ public final class GuideJeiInfo {
         List<PlantJeiInfo.Page> pages = new ArrayList<>();
         // Weapons (the dirty bomb keeps the page it already had)
         pages.add(items("nuclear_bomb", AllNuclearItems.NUCLEAR_BOMB));
+        pages.add(items("thermonuclear_bomb", ExplosiveRegistry.THERMONUCLEAR_BOMB_ITEM, ExplosiveRegistry.LITHIUM_DEUTERIDE));
+        pages.add(items("warhead_parts", ExplosiveRegistry.EXPLOSIVE_LENS, ExplosiveRegistry.IMPLOSION_ASSEMBLY,
+                ExplosiveRegistry.FIRING_SET, ExplosiveRegistry.NEUTRON_INITIATOR, ExplosiveRegistry.BOMB_CASING,
+                ExplosiveRegistry.THERMONUCLEAR_CASING));
         pages.add(items("missile_launch", AllNuclearItems.LAUNCH_PAD, AllNuclearItems.MISSILE, AllNuclearItems.TARGET_DESIGNATOR));
         item(NUCLEAR_CANNON_SHELL).ifPresent(shell ->
                 pages.add(new PlantJeiInfo.Page("nuclear_cannon_shell", List.of(new ItemStack(shell)), List.of())));
+        item(THERMONUCLEAR_CANNON_SHELL).ifPresent(shell ->
+                pages.add(new PlantJeiInfo.Page("thermonuclear_cannon_shell", List.of(new ItemStack(shell)), List.of())));
 
         // The fission reactor's shell parts (the redstone port keeps the page it already had)
         pages.add(items("reactor_fuel_port", AllNuclearItems.REACTOR_FUEL_PORT));

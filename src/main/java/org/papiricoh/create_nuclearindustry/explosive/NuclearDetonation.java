@@ -12,8 +12,12 @@ import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig;
 import org.papiricoh.create_nuclearindustry.civildefense.blast.BlastWaveManager;
 import org.papiricoh.create_nuclearindustry.civildefense.blast.BlastWaveModel;
+import org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements;
+import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
 import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationProfile;
+import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationStyle;
 import org.papiricoh.create_nuclearindustry.explosive.blast.Wind;
+import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.slf4j.Logger;
 
@@ -23,7 +27,8 @@ import org.slf4j.Logger;
  * prompt radiation ({@link NuclearFlash}), a small vanilla explosion where it went off, the fallout,
  * carried by the wind, and the packet that shows players the explosion. Over the next ticks: the blast
  * wave ({@link BlastWaveManager}), and the crater and the damage to the ground ({@link NuclearBlastManager}).
- * Dirty bombs keep a plain conventional blast.
+ * Dirty bombs keep a plain conventional blast. A thermonuclear warhead goes the same way, scaled up, with
+ * its crater kept small and a hot spot from its tamper.
  */
 public final class NuclearDetonation {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -38,10 +43,56 @@ public final class NuclearDetonation {
 
     private NuclearDetonation() {}
 
+    /**
+     * How a kind of warhead's detonation differs from a fission one's.
+     *
+     * @param craterCap     widest crater bowl
+     * @param waveCap       furthest the blast wave travels
+     * @param thermalReach  the flash's reach, a multiple of the destruction radius
+     * @param falloutRadius the fallout's reach, or 0 for the usual 1.5 radii
+     * @param hotSpot       the lasting hot spot left at ground zero, rad/s
+     */
+    private record Tuning(double craterCap, int waveCap, double thermalReach, int falloutRadius, float hotSpot) {
+        static Tuning fission() {
+            return new Tuning(Double.POSITIVE_INFINITY, CivilDefenseConfig.blastWaveMaxRadius, ExplosiveConfig.thermalReach, 0, 0);
+        }
+    }
+
     /** A cannon shell's warhead of {@code uraniumUnits} at {@code averageEnrichment}. */
     public static void detonateShell(ServerLevel level, Position position, int uraniumUnits, float averageEnrichment) {
         detonate(level, position, uraniumUnits, averageEnrichment);
-        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, BlockPos.containing(position.x(), position.y(), position.z()), SHELL_WITNESS_RADIUS, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.NUCLEAR_SHELL_FIRED);
+        NuclearAdvancements.awardNearby(level, BlockPos.containing(position.x(), position.y(), position.z()), SHELL_WITNESS_RADIUS,
+                NuclearEvent.NUCLEAR_SHELL_FIRED);
+    }
+
+    /** A thermonuclear cannon shell's warhead. */
+    public static void detonateShellThermonuclear(ServerLevel level, Position position, ThermonuclearStats.Result stats) {
+        if (!stats.live()) {
+            return;
+        }
+        detonateThermonuclear(level, new Vec3(position.x(), position.y(), position.z()), stats);
+        NuclearAdvancements.awardNearby(level, BlockPos.containing(position.x(), position.y(), position.z()), SHELL_WITNESS_RADIUS,
+                NuclearEvent.NUCLEAR_SHELL_FIRED);
+    }
+
+    /**
+     * A thermonuclear warhead of {@code stats}. One whose secondary did not light (none loaded, or the
+     * server turned them off) goes off as its fission primary alone.
+     */
+    public static void detonateThermonuclear(ServerLevel level, Vec3 impact, ThermonuclearStats.Result stats) {
+        if (!stats.live()) {
+            return;
+        }
+        if (stats.fizzle() || !ExplosiveConfig.thermonuclearEnabled) {
+            int units = ThermonuclearStats.PRIMARY_UNITS;
+            float enrichment = WarheadStats.REQUIRED_ENRICHMENT;
+            detonate(level, impact, WarheadStats.power(units, enrichment), WarheadStats.horizontalRadius(units, enrichment),
+                    WarheadStats.intensity(enrichment), 0.0f);
+            return;
+        }
+        explode(level, impact, stats.power(), stats.radius(), stats.intensity(), 0.0f, DetonationStyle.THERMONUCLEAR,
+                new Tuning(stats.maxCrater(), ExplosiveConfig.thermonuclearBlastWaveMaxRadius, ExplosiveConfig.thermonuclearThermalReach,
+                        stats.falloutRadius(), stats.hotSpot()));
     }
 
     public static void detonate(ServerLevel level, Position position, int uraniumUnits, float averageEnrichment) {
@@ -56,34 +107,44 @@ public final class NuclearDetonation {
      * core: same blast, dirtier and wider fallout.
      */
     public static void detonate(ServerLevel level, Vec3 impact, float power, int horizontalRadius, float intensity, float salting) {
+        explode(level, impact, power, horizontalRadius, intensity, salting, DetonationStyle.FISSION, Tuning.fission());
+    }
+
+    private static void explode(ServerLevel level, Vec3 impact, float power, int horizontalRadius, float intensity, float salting,
+                                DetonationStyle style, Tuning tuning) {
         BlockPos center = BlockPos.containing(impact);
         DetonationProfile profile = DetonationProfile.of(power, horizontalRadius, intensity, burstHeight(level, impact),
-                ExplosiveConfig.settings());
-        LOGGER.info("Nuclear detonation at {} with power={}, horizontalRadius={}, burstHeight={}, airburst={}, salting={}",
-                center, power, horizontalRadius, Math.round(profile.burstHeight()), profile.airburst(), salting);
+                ExplosiveConfig.settings(tuning.thermalReach()), tuning.craterCap());
+        LOGGER.info("{} detonation at {} with power={}, horizontalRadius={}, burstHeight={}, airburst={}, salting={}",
+                style == DetonationStyle.THERMONUCLEAR ? "Thermonuclear" : "Nuclear", center, power, horizontalRadius,
+                Math.round(profile.burstHeight()), profile.airburst(), salting);
 
-        NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, horizontalRadius, false));
-        NuclearExplosionSoundManager.playDelayedForWorld(level, impact);
-        double waveRadius = BlastWaveModel.maxRadius(horizontalRadius, CivilDefenseConfig.blastWaveMaxRadius)
-                * (profile.airburst() ? DetonationProfile.AIRBURST_REACH : 1.0);
-        DetonationPayload.of(impact, profile, Math.min(waveRadius, CivilDefenseConfig.blastWaveMaxRadius), level.random.nextLong()).send(level);
+        NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, horizontalRadius, style));
+        NuclearExplosionSoundManager.playDelayedForWorld(level, impact, style);
+        double waveRadius = Math.min(tuning.waveCap(), BlastWaveModel.maxRadius(horizontalRadius, tuning.waveCap())
+                * (profile.airburst() ? DetonationProfile.AIRBURST_REACH : 1.0));
+        DetonationPayload.of(impact, profile, waveRadius, level.random.nextLong(), style).send(level);
         NuclearFlash.strike(level, impact, profile);
         // Only the bang and its hurt: the crater does the digging, without waking the water round ground zero.
         level.explode(null, impact.x, impact.y, impact.z, fireballPower(power), Level.ExplosionInteraction.NONE);
         if (ExplosiveConfig.crater) {
-            NuclearBlastManager.start(level, center, profile);
+            NuclearBlastManager.start(level, center, profile.withinReach(ExplosiveConfig.craterMaxReach));
         }
-        BlastWaveManager.start(level, impact, BlastWaveModel.yield(power, CivilDefenseConfig.blastWaveYieldPerPower),
-                Math.min(waveRadius, CivilDefenseConfig.blastWaveMaxRadius));
-        int radius = falloutRadius(horizontalRadius);
+        BlastWaveManager.start(level, impact, BlastWaveModel.yield(power, CivilDefenseConfig.blastWaveYieldPerPower), waveRadius);
+        int radius = tuning.falloutRadius() > 0 ? tuning.falloutRadius() : falloutRadius(horizontalRadius);
         float fallout = (float) profile.falloutIntensity();
         if (salting > 0) {
             radius = Math.max(radius, DirtyWarheadStats.falloutRadius(salting));
             fallout = (float) Math.min(Config.contaminationMax, fallout + DirtyWarheadStats.falloutIntensity(salting));
         }
         Contamination.fallout(level, center, radius, fallout, wind(level), ExplosiveConfig.windStretch);
-        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, center, Math.max(64, radius * 2),
-                org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.NUCLEAR_DETONATION);
+        if (tuning.hotSpot() > 0) {
+            FalloutData.contaminate(level, center, tuning.hotSpot(), DirtyWarheadStats.HOT_SPOT_TICKS);
+        }
+        NuclearAdvancements.awardNearby(level, center, Math.max(64, radius * 2), NuclearEvent.NUCLEAR_DETONATION);
+        if (style == DetonationStyle.THERMONUCLEAR) {
+            NuclearAdvancements.awardNearby(level, center, Math.max(64, radius * 2), NuclearEvent.THERMONUCLEAR_DETONATION);
+        }
     }
 
     /**
@@ -95,15 +156,13 @@ public final class NuclearDetonation {
         BlockPos center = BlockPos.containing(impact);
         LOGGER.info("Dirty bomb detonation at {} with load={}", center, load);
         float power = DirtyWarheadStats.blastPower(load);
-        NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, DirtyWarheadStats.falloutRadius(load), true));
+        NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, DirtyWarheadStats.falloutRadius(load), DetonationStyle.DIRTY));
         DetonationPayload.dirty(impact, power, level.random.nextLong()).send(level);
         level.explode(null, impact.x, impact.y, impact.z, power, Level.ExplosionInteraction.BLOCK);
         Contamination.fallout(level, center, DirtyWarheadStats.falloutRadius(load), DirtyWarheadStats.falloutIntensity(load),
                 wind(level), ExplosiveConfig.windStretch);
-        org.papiricoh.create_nuclearindustry.radiation.FalloutData.contaminate(level, center, DirtyWarheadStats.hotSpot(load),
-                DirtyWarheadStats.HOT_SPOT_TICKS);
-        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(level, center, Math.max(64, DirtyWarheadStats.falloutRadius(load)),
-                org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.DIRTY_DETONATION);
+        FalloutData.contaminate(level, center, DirtyWarheadStats.hotSpot(load), DirtyWarheadStats.HOT_SPOT_TICKS);
+        NuclearAdvancements.awardNearby(level, center, Math.max(64, DirtyWarheadStats.falloutRadius(load)), NuclearEvent.DIRTY_DETONATION);
     }
 
     /** Which way the wind blows in the level now, radians (see {@link Wind}). */

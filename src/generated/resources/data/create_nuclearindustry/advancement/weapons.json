@@ -10,6 +10,26 @@
       },
       "trigger": "minecraft:inventory_changed"
     },
+    "explosive_lens": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:explosive_lens"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "firing_set": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:firing_set"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
     "launch_pad": {
       "conditions": {
         "items": [
@@ -94,7 +114,9 @@
       "dirty_bomb",
       "missile",
       "launch_pad",
-      "target_designator"
+      "target_designator",
+      "firing_set",
+      "explosive_lens"
     ]
   ],
   "sends_telemetry_event": true

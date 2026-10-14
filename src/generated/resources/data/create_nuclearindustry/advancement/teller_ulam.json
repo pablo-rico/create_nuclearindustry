@@ -1,0 +1,34 @@
+{
+  "parent": "create_nuclearindustry:weapons_core",
+  "criteria": {
+    "has": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:lithium_deuteride"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.teller_ulam.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:lithium_deuteride"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.teller_ulam.title"
+    }
+  },
+  "requirements": [
+    [
+      "has"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

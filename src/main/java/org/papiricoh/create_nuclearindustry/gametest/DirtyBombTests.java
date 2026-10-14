@@ -45,9 +45,11 @@ public class DirtyBombTests {
         NuclearBombBlockEntity dirty = helper.getBlockEntity(DIRTY);
         NuclearBombBlockEntity nuclear = helper.getBlockEntity(NUCLEAR);
         ItemStack waste = new ItemStack(AllNuclearItems.RADIOACTIVE_WASTE.get(), 10);
-        ItemStack core = new ItemStack(AllNuclearItems.PLUTONIUM.get());
+        ItemStack core = new ItemStack(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get());
+        ItemStack plutonium = new ItemStack(AllNuclearItems.PLUTONIUM.get());
         helper.assertTrue(dirty.isDirty() && !nuclear.isDirty(), "the block decides the warhead");
-        helper.assertTrue(dirty.isValidCharge(waste) && !dirty.isValidCharge(core), "a dirty bomb takes waste, not plutonium");
+        helper.assertTrue(dirty.isValidCharge(waste) && !dirty.isValidCharge(core), "a dirty bomb takes waste, not a core");
+        helper.assertFalse(dirty.isValidCharge(plutonium), "nor the plutonium for one");
         helper.assertTrue(!nuclear.isValidCharge(waste) && nuclear.isValidCharge(core), "a nuclear bomb is the other way round");
         helper.assertFalse(dirty.isValidCharge(new ItemStack(AllNuclearItems.GRAPHITE.get())), "nor anything inert");
         dirty.getInventory().setStackInSlot(0, waste);
@@ -64,8 +66,9 @@ public class DirtyBombTests {
         helper.assertTrue(pad.isItemValid(LaunchPadBlockEntity.FIRST_URANIUM_SLOT, waste), "the warhead slots take waste");
         pad.getInventory().setStackInSlot(LaunchPadBlockEntity.FIRST_URANIUM_SLOT, waste);
         helper.assertTrue(pad.isDirtyWarhead(), "waste alone is a dirty warhead");
-        pad.getInventory().setStackInSlot(LaunchPadBlockEntity.FIRST_URANIUM_SLOT + 1, new ItemStack(AllNuclearItems.PLUTONIUM.get(), 4));
-        helper.assertFalse(pad.isDirtyWarhead(), "with plutonium it is a nuclear warhead");
+        pad.getInventory().setStackInSlot(LaunchPadBlockEntity.FIRST_URANIUM_SLOT + 1,
+                new ItemStack(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get(), 2));
+        helper.assertFalse(pad.isDirtyWarhead(), "with a core it is a nuclear warhead");
         helper.assertTrue(pad.getRadiologicalLoad() > 0, "salted with the waste");
         helper.succeed();
     }

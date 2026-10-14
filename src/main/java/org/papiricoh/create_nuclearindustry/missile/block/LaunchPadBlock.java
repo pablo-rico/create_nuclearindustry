@@ -70,7 +70,7 @@ public class LaunchPadBlock extends BaseEntityBlock {
             level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
             MenuProvider provider = new SimpleMenuProvider(
                     new LaunchPadMenuProvider(pos)::createMenu,
-                    Component.literal("Launch Pad")
+                    Component.translatable(state.getBlock().getDescriptionId())
             );
             // The position travels with the menu, so each player's screen finds its own block.
             player.openMenu(provider, buf -> buf.writeBlockPos(pos));

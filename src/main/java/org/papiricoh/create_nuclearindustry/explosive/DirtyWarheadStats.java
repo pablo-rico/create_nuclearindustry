@@ -6,7 +6,8 @@ import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
 
 /**
- * A radiological ("dirty") warhead: anything radioactive that is not weapons-grade fissile. It does
+ * A radiological ("dirty") warhead: anything radioactive that is not weapons material (a core or the
+ * metal for one). It does
  * not split atoms, so the blast is small, but it scatters its load far and wide. The load is the
  * dose rate the charge would give whoever carried it (the radioactivity data map), in rad/s.
  */
@@ -22,9 +23,9 @@ public final class DirtyWarheadStats {
 
     private DirtyWarheadStats() {}
 
-    /** Radioactive and not weapons-grade fissile: a dirty bomb takes it, a nuclear one does not. */
+    /** Radioactive and not weapons material: a dirty bomb takes it, a nuclear one does not. */
     public static boolean isRadiological(ItemStack stack) {
-        return !stack.isEmpty() && !FissileMaterial.isWeaponsFissile(stack) && RadiationHandler.stackRate(stack) > 0;
+        return !stack.isEmpty() && !FissileMaterial.isWeaponsMaterial(stack) && RadiationHandler.stackRate(stack) > 0;
     }
 
     /** Total radioactivity of the radiological items in {@code from..to}, in rad/s. */

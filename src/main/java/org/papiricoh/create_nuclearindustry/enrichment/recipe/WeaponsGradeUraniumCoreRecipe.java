@@ -7,6 +7,7 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+import org.papiricoh.create_nuclearindustry.AllNuclearDataComponents;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.AllNuclearRecipes;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
@@ -36,9 +37,21 @@ public class WeaponsGradeUraniumCoreRecipe extends CustomRecipe {
         return validUranium == REQUIRED_URANIUM;
     }
 
+    /** The core keeps the leanest enrichment of the metal cast into it. */
     @Override
     public ItemStack assemble(CraftingInput input, HolderLookup.Provider provider) {
-        return new ItemStack(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.get());
+        float leanest = Float.MAX_VALUE;
+        for (int slot = 0; slot < input.size(); slot++) {
+            ItemStack stack = input.getItem(slot);
+            if (!stack.isEmpty()) {
+                leanest = Math.min(leanest, UraniumItem.getEnrichment(stack));
+            }
+        }
+        ItemStack core = new ItemStack(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.get());
+        if (leanest != Float.MAX_VALUE) {
+            core.set(AllNuclearDataComponents.ENRICHMENT.get(), leanest);
+        }
+        return core;
     }
 
     @Override

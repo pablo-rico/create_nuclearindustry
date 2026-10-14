@@ -9,14 +9,15 @@ import net.minecraft.network.codec.StreamCodec;
 
 /**
  * The fissile load a warhead carries, in the units of {@link WarheadStats}: what a nuclear cannon shell
- * goes off with. Each weapons-grade core is worth {@link #UNITS_PER_CORE}, so four make a full warhead.
+ * goes off with. Each weapons-grade core is worth {@link #UNITS_PER_CORE}, the metal cast into it, so six
+ * make a full warhead.
  *
  * @param units      warhead units
  * @param enrichment their unit-weighted enrichment, %
  */
 public record WarheadLoad(int units, float enrichment) {
-    public static final int UNITS_PER_CORE = WarheadStats.MAX_URANIUM_UNITS / 4;
-    public static final int MAX_CORES = 4;
+    public static final int UNITS_PER_CORE = 8;
+    public static final int MAX_CORES = WarheadStats.MAX_URANIUM_UNITS / UNITS_PER_CORE;
     /** A shell from before loads were counted: a full warhead, as such shells always went off. */
     public static final WarheadLoad FULL = new WarheadLoad(WarheadStats.MAX_URANIUM_UNITS, WarheadStats.REQUIRED_ENRICHMENT);
 
@@ -33,8 +34,9 @@ public record WarheadLoad(int units, float enrichment) {
         return new WarheadLoad(Math.max(0, Math.min(MAX_CORES, cores)) * UNITS_PER_CORE, WarheadStats.REQUIRED_ENRICHMENT);
     }
 
+    /** Cores it holds, rounded up: shells from when a core was worth 12 units keep their units. */
     public int cores() {
-        return units / UNITS_PER_CORE;
+        return (units + UNITS_PER_CORE - 1) / UNITS_PER_CORE;
     }
 
     public void write(CompoundTag tag) {

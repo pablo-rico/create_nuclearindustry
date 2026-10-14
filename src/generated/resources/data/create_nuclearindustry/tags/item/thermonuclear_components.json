@@ -1,0 +1,10 @@
+{
+  "values": [
+    "create_nuclearindustry:lithium_deuteride",
+    "create_nuclearindustry:thermonuclear_bomb",
+    {
+      "id": "create_nuclearindustry:thermonuclear_cannon_shell",
+      "required": false
+    }
+  ]
+}

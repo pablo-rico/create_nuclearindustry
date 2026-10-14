@@ -1,0 +1,19 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:lithium_6"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:deuterium"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:lithium_deuteride"
+    }
+  ]
+}

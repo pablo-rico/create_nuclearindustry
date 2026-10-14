@@ -7,6 +7,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The zones of a detonation, its crater, flash, prompt dose, fallout plume, wind and cloud. */
@@ -128,5 +129,33 @@ class BlastModelsTest {
         assertTrue(cloud.puffs(60, 2).size() > cloud.puffs(60, 0.5).size(), "detail adds puffs");
         double top = late.stream().mapToDouble(MushroomCloudModel.Puff::y).max().orElse(0);
         assertTrue(top > 200, "the cap stands high: " + top);
+    }
+
+    @Test
+    void aCraterCapLeavesTheBlastZonesAlone() {
+        DetonationProfile open = DetonationProfile.of(4320, 750, 1, 0, S);
+        DetonationProfile capped = DetonationProfile.of(4320, 750, 1, 0, S, 110);
+        assertEquals(110, capped.craterRadius(), 1e-9);
+        assertTrue(open.craterRadius() > 200);
+        assertEquals(1.3 * 110, capped.rimRadius(), 1e-9, "the rim follows the bowl");
+        assertEquals(open.severeRadius(), capped.severeRadius(), 1e-9);
+        assertEquals(open.moderateRadius(), capped.moderateRadius(), 1e-9);
+        assertEquals(open.thermalRadius(), capped.thermalRadius(), 1e-9);
+        assertEquals(19, capped.encode().length);
+        assertEquals(capped, DetonationProfile.decode(capped.encode()));
+    }
+
+    @Test
+    void theReachKeepsTheColumnsBounded() {
+        DetonationProfile big = DetonationProfile.of(4320, 750, 1, 0, S, 110);
+        DetonationProfile kept = big.withinReach(768);
+        assertTrue(big.blockReach() > 768);
+        assertEquals(768, kept.blockReach(), 1e-6);
+        assertTrue(kept.moderateRadius() >= kept.severeRadius() && kept.moderateRadius() < big.moderateRadius());
+        assertEquals(big.craterRadius(), kept.craterRadius());
+        assertEquals(big.thermalRadius() / big.moderateRadius(), kept.thermalRadius() / Math.max(kept.moderateRadius(), 1e-9),
+                big.thermalRadius() / big.moderateRadius() * 0.2, "the zones shrink together");
+        DetonationProfile atomic = full(0);
+        assertSame(atomic, atomic.withinReach(768), "an atomic bomb already fits");
     }
 }

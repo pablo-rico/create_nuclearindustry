@@ -8,7 +8,9 @@ import java.util.List;
  * went off: the fireball glows white, yellow and orange and rises; a stem of dust follows it up and the
  * cap spreads into a rolling ring, cooling from orange to grey-brown; a skirt of dust spreads along the
  * ground. Everything is drawn from a seed, so every player sees the same cloud, and fades out at the
- * end of its life. Positions are blocks from ground zero. No game classes.
+ * end of its life. Its colours and timings come from an {@link ExplosionPalette}: a thermonuclear
+ * fireball burns bigger and longer, and its cloud cools to soot. Positions are blocks from ground zero.
+ * No game classes.
  */
 public final class MushroomCloudModel {
     /** Seconds the cloud lasts, the last {@link #FADE} of them fading. */
@@ -22,6 +24,12 @@ public final class MushroomCloudModel {
     private final double fireball;
     private final boolean airburst;
     private final double burstHeight;
+    private final ExplosionPalette palette;
+
+    /** A fission warhead's cloud. */
+    public MushroomCloudModel(long seed, double scale, double fireball, boolean airburst, double burstHeight) {
+        this(seed, scale, fireball, airburst, burstHeight, ExplosionPalette.FISSION);
+    }
 
     /**
      * @param seed        picks the puffs
@@ -29,23 +37,35 @@ public final class MushroomCloudModel {
      * @param fireball    the fireball's radius
      * @param airburst    whether it went off in the air: a thinner stem, no ground skirt at first
      * @param burstHeight blocks above the ground it went off at
+     * @param palette     its colours and timings
      */
-    public MushroomCloudModel(long seed, double scale, double fireball, boolean airburst, double burstHeight) {
+    public MushroomCloudModel(long seed, double scale, double fireball, boolean airburst, double burstHeight, ExplosionPalette palette) {
         this.seed = seed;
         this.scale = scale;
         this.fireball = fireball;
         this.airburst = airburst;
         this.burstHeight = Math.max(0, burstHeight);
+        this.palette = palette;
     }
 
     /** How high the cap rises in the end. */
     public double topHeight() {
-        return Math.min(360, 60 + 1.2 * scale);
+        return Math.min(palette.topHeightCap(), 60 + 1.2 * scale);
     }
 
     /** The cap's radius in the end. */
     public double capRadius() {
-        return 25 + 0.55 * scale;
+        return Math.min(palette.capRadiusCap(), 25 + 0.55 * scale);
+    }
+
+    /** Whether the fireball still shows {@code seconds} after the detonation. */
+    public boolean hasFireball(double seconds) {
+        return seconds < palette.fireballSeconds();
+    }
+
+    /** How hot this cloud still glows, 1 at the start falling to 0 at its palette's pace. */
+    public double heatAt(double seconds) {
+        return Math.exp(-Math.max(0, seconds) / palette.heatTau());
     }
 
     /** How high the cap's centre is {@code seconds} after the detonation. */
@@ -53,7 +73,7 @@ public final class MushroomCloudModel {
         return burstHeight + (topHeight() - burstHeight) * (1 - Math.exp(-Math.max(0, seconds) / 18));
     }
 
-    /** How hot the cloud still glows, 1 at the start falling to 0. */
+    /** How hot a fission warhead's cloud still glows, 1 at the start falling to 0. */
     public static double heat(double seconds) {
         return Math.exp(-Math.max(0, seconds) / 6);
     }
@@ -70,19 +90,24 @@ public final class MushroomCloudModel {
         if (life <= 0) {
             return puffs;
         }
-        double heat = heat(seconds);
+        double heat = heatAt(seconds);
         double grow = 1 - Math.exp(-Math.max(0, seconds) / 25);
         double cap = Math.max(fireball, capRadius() * grow);
         double height = capHeight(seconds);
         // The fireball: white-hot at first, yellowing and reddening as the cap swallows it.
-        if (seconds < 4) {
-            double r = fireball * (1.0 + 0.5 * Math.min(1, seconds * 2));
-            float fade = (float) Math.min(1, (4 - seconds) / 2);
-            double y = Math.max(burstHeight, Math.min(height, fireball + seconds * fireball * 0.6));
-            puffs.add(new Puff(0, y, 0, r, 1.0f, (float) (1.0 - 0.45 * Math.min(1, seconds / 3)),
-                    (float) (0.95 - 0.8 * Math.min(1, seconds / 2)), fade, true));
+        double burning = palette.fireballSeconds();
+        if (seconds < burning) {
+            double ball = fireball * palette.fireballScale();
+            double r = ball * (1.0 + 0.5 * Math.min(1, seconds * 2));
+            float fade = (float) Math.min(1, (burning - seconds) / 2);
+            double y = Math.max(burstHeight, Math.min(height, ball + seconds * ball * 0.6));
+            double yellowing = Math.min(1, seconds / (0.75 * burning));
+            double reddening = Math.min(1, seconds / (0.5 * burning));
+            puffs.add(new Puff(0, y, 0, r, 1.0f, (float) (1.0 - (1.0 - palette.fireGreenEnd()) * yellowing),
+                    (float) lerp(palette.fireBlueStart(), palette.fireBlueEnd(), reddening), fade, true));
             // Its blinding core.
-            puffs.add(new Puff(0, y, 0, r * 0.55, 1.0f, 1.0f, (float) (0.9 - 0.5 * Math.min(1, seconds / 2)), fade, true));
+            puffs.add(new Puff(0, y, 0, r * 0.55, 1.0f, 1.0f, (float) lerp(palette.coreBlueStart(), palette.coreBlueEnd(), reddening),
+                    fade, true));
         }
         // The cap and the stem form out of the fireball over its first seconds.
         double formed = Math.max(0, Math.min(1, (seconds - 0.8) / 2.5));
@@ -136,18 +161,22 @@ public final class MushroomCloudModel {
         return puffs;
     }
 
-    /** A puff of the cloud, glowing orange while it is hot and grey-brown once it cools. */
+    /** A puff of the cloud, glowing while it is hot and taking the palette's cool smoke once it cools. */
     private Puff smoke(double x, double y, double z, double radius, double heat, double alpha, int index) {
         double h = Math.max(0, Math.min(1, heat));
         float shade = (float) (0.85 + 0.15 * rand(index, 14));
-        float red = (float) lerp(0.52, 1.0, h) * shade;
-        float green = (float) lerp(0.47, 0.5, h) * shade;
-        float blue = (float) lerp(0.43, 0.18, h) * shade;
-        return new Puff(x, y, z, radius, red, green, blue, (float) Math.max(0, Math.min(1, alpha)), h > 0.35);
+        ExplosionPalette.Rgb cool = palette.coolSmoke();
+        ExplosionPalette.Rgb hot = palette.hotSmoke();
+        float red = (float) lerp(cool.red(), hot.red(), h) * shade;
+        float green = (float) lerp(cool.green(), hot.green(), h) * shade;
+        float blue = (float) lerp(cool.blue(), hot.blue(), h) * shade;
+        return new Puff(x, y, z, radius, red, green, blue, (float) Math.max(0, Math.min(1, alpha * palette.smokeAlpha())),
+                h > palette.glowThreshold());
     }
 
-    private static Puff dust(double x, double y, double z, double radius, double alpha) {
-        return new Puff(x, y, z, radius, 0.62f, 0.56f, 0.48f, (float) Math.max(0, Math.min(1, alpha)), false);
+    private Puff dust(double x, double y, double z, double radius, double alpha) {
+        ExplosionPalette.Rgb dust = palette.dust();
+        return new Puff(x, y, z, radius, dust.red(), dust.green(), dust.blue(), (float) Math.max(0, Math.min(1, alpha)), false);
     }
 
     private double rand(int index, int salt) {

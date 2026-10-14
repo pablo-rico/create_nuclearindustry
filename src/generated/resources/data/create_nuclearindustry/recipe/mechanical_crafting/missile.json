@@ -1,0 +1,37 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "create:blaze_cake"
+    },
+    "F": {
+      "item": "create_nuclearindustry:firing_set"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "K": {
+      "item": "create:sturdy_sheet"
+    },
+    "N": {
+      "item": "create:propeller"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "pattern": [
+    " F ",
+    "IPI",
+    "IBI",
+    "IBI",
+    "INI",
+    "K K"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:missile"
+  }
+}

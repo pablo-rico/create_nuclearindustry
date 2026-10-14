@@ -78,14 +78,6 @@ public class WeaponsGradeChainTests {
         helper.assertTrue(metal.is(AllNuclearItems.URANIUM.get()) && UraniumItem.getEnrichment(metal) == 90f,
                 "reduction should give 90% uranium, got " + metal + " at " + UraniumItem.getEnrichment(metal));
 
-        // The bomb arms with it; 20% uranium is not enough.
-        BlockPos bombPos = new BlockPos(2, 1, 2);
-        helper.setBlock(bombPos, AllNuclearBlocks.NUCLEAR_BOMB.get());
-        NuclearBombBlockEntity bomb = helper.getBlockEntity(bombPos);
-        helper.assertTrue(bomb.isValidUranium(metal), "the bomb should accept 90% uranium");
-        helper.assertFalse(bomb.isValidUranium(UraniumItem.withEnrichment(new ItemStack(AllNuclearItems.URANIUM.get()), 20f)),
-                "the bomb must refuse 20% uranium");
-
         // Eight of them craft a warhead core.
         Recipe<?> core = helper.getLevel().getRecipeManager()
                 .byKey(id("crafting/weapons_grade_uranium_core")).orElseThrow().value();
@@ -95,6 +87,14 @@ public class WeaponsGradeChainTests {
         helper.assertTrue(((CraftingRecipe) core).matches(eight, helper.getLevel()),
                 "eight 90% uranium should craft a weapons-grade core");
         helper.assertTrue(WeaponsGradeUraniumCoreRecipe.REQUIRED_URANIUM == 8, "core recipe size changed");
+
+        // The bomb arms with the core, not with the loose metal.
+        BlockPos bombPos = new BlockPos(2, 1, 2);
+        helper.setBlock(bombPos, AllNuclearBlocks.NUCLEAR_BOMB.get());
+        NuclearBombBlockEntity bomb = helper.getBlockEntity(bombPos);
+        ItemStack cast = ((CraftingRecipe) core).assemble(eight, helper.getLevel().registryAccess());
+        helper.assertTrue(bomb.isValidUranium(cast), "the bomb should accept the core cast from it");
+        helper.assertFalse(bomb.isValidUranium(metal), "but not the loose metal");
         helper.succeed();
     }
 

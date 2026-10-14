@@ -1337,7 +1337,8 @@ Onda expansiva:
   sucias conservan su explosión convencional y no tienen onda.
 - La onda avanza `blastWave.speed` bloques por tick desde el centro hasta
   `min(blastWave.maxRadius, 4 × radio del cráter)` bloques (`maxRadius = 0`
-  la desactiva). No se guarda: si el servidor se para, la onda en curso se
+  la desactiva; admite hasta 2048). Las bombas termonucleares usan su propio
+  tope, `explosive.thermonuclear.blastWaveMaxRadius`. No se guarda: si el servidor se para, la onda en curso se
   pierde.
 - Sobrepresión (Kinney-Graham): depende de la distancia escalada
   `Z = r / W^(1/3)`, con `r` en bloques (metros) y `W = potencia ×
@@ -1402,6 +1403,7 @@ enabled = true
 blastProofResistance = 1200.0
 loadChunks = true
 chunksAtOnce = 8
+maxReach = 768
 
 [explosive.zones]
 severeOverpressure = 35.0
@@ -1425,11 +1427,23 @@ maxFalling = 1500
 [explosive]
 airburstHeight = 2.0
 visualRange = 4096
+
+[explosive.thermonuclear]
+enabled = true
+maxRadius = 750
+maxPower = 4320.0
+maxCraterRadius = 110.0
+blastWaveMaxRadius = 768
+thermalReach = 1.4
+countdownSeconds = 15
+tamperFalloutReach = 0.5
+tamperHotSpot = 150.0
 ```
 
 Cada detonación nuclear (bomba, misil, proyectil de cañón) calcula sus zonas a
-partir del radio de destrucción `R` de la cabeza (de 80 a 250 bloques) y de la
-altura a la que estalla sobre el terreno:
+partir del radio de destrucción `R` de la cabeza (de 80 a 250 bloques en una
+atómica, hasta 750 en una termonuclear) y de la altura a la que estalla sobre el
+terreno:
 
 - **Bola de fuego**: radio `max(6, 0,12 × R)`. Si la detonación está más alta
   que su bola de fuego es una **explosión aérea**: no abre cráter, deja una
@@ -1468,6 +1482,19 @@ altura a la que estalla sobre el terreno:
   `crater.blastProofResistance` (la roca madre y las puertas blindadas)
   resisten; la resistencia se mira según el estado del bloque.
 
+**Alcance sobre el terreno** (`crater.maxReach`): lo que una detonación hace a
+los bloques (cráter, zonas de daño, quemaduras y fuegos) nunca pasa de este
+número de bloques desde la zona cero. Si sus zonas llegarían más lejos, la zona
+moderada y la térmica se encogen juntas en la misma proporción para caber, así
+que siguen apagándose poco a poco en lugar de cortarse de golpe; la zona grave y
+el anillo del cráter se cortan en el alcance. Una atómica completa llega a unos
+400 bloques (500 en explosión aérea), así que solo afecta a las termonucleares.
+Es el ajuste principal de rendimiento: el coste de una detonación crece con el
+cuadrado de este alcance. Con 768, una bomba termonuclear completa trabaja unos
+1,85 millones de columnas (unos dos minutos y medio con los presupuestos por
+defecto) y unos 7000 chunks. En servidores, bájalo o desactiva el cráter.
+El daño a entidades (destello, radiación inmediata y onda) no depende de él.
+
 El trabajo se hace columna a columna desde el centro, dentro del presupuesto de
 `explosive.blastColumnsPerTick` y `explosive.blastBlocksPerTick` compartido por
 todas las detonaciones del mundo. Se guarda con el mundo y sigue tras reiniciar.
@@ -1483,10 +1510,47 @@ agua de alrededor: los bloques que caen y los fuegos no avisan a sus vecinos, y
 junto al agua no cae nada, así que un cráter abierto al lado del mar no se
 inunda solo (lo hace si algo actualiza después esa agua).
 
+**Cabezas de fisión**: la Bomba nuclear y la Plataforma de lanzamiento solo
+admiten núcleos de grado militar, dos por hueco. Cada núcleo vale exactamente el
+metal que lleva: ocho de uranio al 90 % o cuatro de plutonio (que cuenta doble),
+es decir, 8 unidades, así que seis núcleos (48 unidades) son una cabeza
+completa. Un núcleo de uranio guarda el enriquecimiento más bajo de lo que se
+fundió en él, de modo que el uranio más rico sigue dando más potencia. Las
+bombas y plataformas de antes con metal suelto lo sueltan al lado la primera vez
+que se cargan, y paran su cuenta atrás; no se pierde nada.
+
 Proyectil de Create Big Cannons: se fabrica con un proyectil explosivo, una Bomba
-nuclear y de uno a cuatro núcleos de grado militar; cada núcleo vale 12 unidades
-de uranio al 90 %, así que cuatro son una cabeza completa (como antes). Los
-proyectiles de antes cuentan como cabeza completa.
+nuclear y de uno a seis núcleos de grado militar; seis son una cabeza completa.
+Los proyectiles de antes conservan sus unidades (uno de cuatro núcleos de antes
+sigue siendo una cabeza completa).
+
+**Bomba termonuclear** (`explosive.thermonuclear.*`): un primario de fisión (un
+núcleo, obligatorio; el de plutonio comprime mejor el secundario que el de
+uranio), un secundario de hasta 16 de Deuteruro de litio-6 y una camisa de hasta
+4 Bloques de uranio empobrecido. Sin núcleo no cuenta atrás; sin deuteruro solo
+estalla el primario, como una cabeza de un núcleo.
+
+- La potencia es `160 × (1 + 16 × eficiencia × D/16) × (1 + 0,6 × T/4)`, con `D`
+  el deuteruro y `T` la camisa, hasta `maxPower`; el radio crece con su raíz
+  cúbica, `250 × ∛(potencia / 160)`, hasta `maxRadius`. Llena (primario de
+  plutonio, 16 y 4) llega a 750 bloques, tres veces una atómica completa.
+- El cuenco del cráter no pasa de `maxCraterRadius`; su borde y su eyecta lo
+  siguen. Las zonas de daño sí crecen con `R`, dentro de `crater.maxReach`.
+- La onda expansiva llega hasta `blastWaveMaxRadius` (las atómicas siguen con
+  `civilDefense.blastWave.maxRadius`) y el destello hasta `thermalReach × R`.
+- La camisa amplía la lluvia radiactiva hasta `(1,5 + tamperFalloutReach × T/4)
+  × R` y deja en la zona cero un foco de `tamperHotSpot × T/4` que se apaga en
+  días, como el de una bomba sucia. La intensidad de la lluvia en la zona cero
+  ya está en `contamination.max` con cualquier cabeza termonuclear, por eso la
+  camisa ensucia más lejos y más tiempo, no más fuerte.
+- Cuenta `countdownSeconds` segundos y las sirenas avisan hasta donde llega su
+  lluvia radiactiva. El sismógrafo se satura con ella.
+- Con `enabled = false` ninguna enciende su secundario: todas estallan como su
+  primario.
+- Proyectil termonuclear de Create Big Cannons: un proyectil explosivo, una Bomba
+  termonuclear, un núcleo, de uno a cuatro de deuteruro y hasta dos bloques de
+  uranio empobrecido; como mucho llega a unos 470 bloques. Un misil no admite
+  piezas termonucleares.
 
 Misil: el Designador de objetivo, usado agachado al aire, cambia entre
 explosión en superficie y explosión aérea; en aérea el misil estalla
@@ -1501,7 +1565,12 @@ renderizado), una cúpula de condensación al principio, un anillo de polvo que
 avanza con la onda y una sacudida de cámara cuando la onda pasa. En la config del
 cliente: `explosion.flash` (0 a 1, brillo del destello; bájalo si molestan los
 destellos), `explosion.cloudDetail` (0,25 a 2, número de bocanadas del hongo) y
-`explosion.shake` (sacudida de cámara).
+`explosion.shake` (sacudida de cámara). Una termonuclear se distingue a simple
+vista: el destello es blanco puro y dura más, la bola de fuego es mayor, más
+blanca y arde unos siete segundos antes de virar a un naranja rojo intenso, el
+hongo sube más alto y su humo es hollín casi negro, con el polvo del suelo y el
+anillo de la onda oscuros, dos cúpulas de condensación y un cielo más rojo. Su
+estruendo se oye el doble de lejos y más grave.
 
 **Distant Horizons** (opcional, probado con la 3.3.2 y la 3.3.3): si está instalado, la parte
 del hongo que queda más allá del terreno normal se dibuja en el pase de Distant

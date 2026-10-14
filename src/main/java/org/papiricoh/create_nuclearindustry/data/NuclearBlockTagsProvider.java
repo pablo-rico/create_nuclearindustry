@@ -20,6 +20,8 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
     /** Provided by the Create Big Cannons integration, only registered when that mod is present. */
     private static final ResourceLocation NUCLEAR_CANNON_SHELL =
             ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "nuclear_cannon_shell");
+    private static final ResourceLocation THERMONUCLEAR_CANNON_SHELL =
+            ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "thermonuclear_cannon_shell");
     private static final ResourceLocation DEPLETED_URANIUM_AP_SHOT =
             ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "depleted_uranium_ap_shot");
 
@@ -47,8 +49,9 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
                 .map(holder -> (Block) holder.get())
                 .filter(block -> !List.of(ores).contains(block) && !terrain.contains(block))
                 .toList();
-        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ores).add(machines.toArray(Block[]::new)).addOptional(NUCLEAR_CANNON_SHELL).addOptional(DEPLETED_URANIUM_AP_SHOT);
-        tag(AllNuclearTags.Blocks.WRENCH_PICKUP).add(machines.toArray(Block[]::new)).addOptional(NUCLEAR_CANNON_SHELL).addOptional(DEPLETED_URANIUM_AP_SHOT);
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ores).add(machines.toArray(Block[]::new)).addOptional(NUCLEAR_CANNON_SHELL).addOptional(THERMONUCLEAR_CANNON_SHELL).addOptional(DEPLETED_URANIUM_AP_SHOT);
+        tag(AllNuclearTags.Blocks.WRENCH_PICKUP).add(machines.toArray(Block[]::new)).addOptional(NUCLEAR_CANNON_SHELL).addOptional(THERMONUCLEAR_CANNON_SHELL)
+                .addOptional(DEPLETED_URANIUM_AP_SHOT);
 
         tag(MultiblockTags.MULTIBLOCK_PARTS).add(
                 AllNuclearBlocks.REACTOR_CASING.get(),

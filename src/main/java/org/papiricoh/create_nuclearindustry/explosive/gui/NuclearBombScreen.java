@@ -26,7 +26,7 @@ public class NuclearBombScreen extends AbstractContainerScreen<NuclearBombMenu> 
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBg(guiGraphics, partialTick, mouseX, mouseY);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(font, title, leftPos + imageWidth / 2, topPos + 10, 0xFFE066);
         NuclearBombBlockEntity bomb = menu.getBomb();
         if (bomb != null && bomb.isDirty()) {
@@ -37,21 +37,30 @@ public class NuclearBombScreen extends AbstractContainerScreen<NuclearBombMenu> 
                     DirtyWarheadStats.falloutRadius(load)), leftPos + 14, topPos + 40, 0xFFAA77);
             guiGraphics.drawString(font, Component.translatable("gui.create_nuclearindustry.dirty_bomb.intensity",
                     String.format("%.1f", DirtyWarheadStats.falloutIntensity(load))), leftPos + 14, topPos + 52, 0xFF7777);
-            int countdown = bomb.getCountdown();
-            String state = countdown >= 0 ? String.format("Armed: %.1fs", countdown / 20.0f) : "Waiting for redstone";
-            guiGraphics.drawString(font, state, leftPos + 14, topPos + 82, countdown >= 0 ? 0xFF4444 : 0x88FF88);
+            drawState(guiGraphics, bomb, leftPos + 14, topPos + 82);
         } else if (bomb != null) {
-            int valid = bomb.getValidUraniumCount();
-            guiGraphics.drawString(font, "Fissile: " + valid + "/" + NuclearBombBlockEntity.MAX_URANIUM_UNITS, leftPos + 14, topPos + 28, 0xDDDDDD);
-            guiGraphics.drawString(font, String.format("Avg enrichment: %.1f%%", bomb.getAverageEnrichment()), leftPos + 14, topPos + 40, 0xDDDDDD);
-            guiGraphics.drawString(font, String.format("Power: %.1f", bomb.getEstimatedPower()), leftPos + 14, topPos + 52, 0xFF7777);
-            guiGraphics.drawString(font, "Radius/crater: " + bomb.getEstimatedRadius() + "/" + bomb.getEstimatedCraterRadius(), leftPos + 14, topPos + 64, 0xFFAA77);
-            int countdown = bomb.getCountdown();
-            String state = countdown >= 0 ? String.format("Armed: %.1fs", countdown / 20.0f) : "Waiting for redstone";
-            guiGraphics.drawString(font, state, leftPos + 14, topPos + 82, countdown >= 0 ? 0xFF4444 : 0x88FF88);
+            guiGraphics.drawString(font, Component.translatable("gui.create_nuclearindustry.nuclear_bomb.cores", bomb.getCoreCount(),
+                    NuclearBombBlockEntity.MAX_CORES), leftPos + 14, topPos + 28, 0xDDDDDD);
+            guiGraphics.drawString(font, Component.translatable("gui.create_nuclearindustry.nuclear_bomb.enrichment",
+                    String.format("%.1f", bomb.getAverageEnrichment())), leftPos + 14, topPos + 40, 0xDDDDDD);
+            guiGraphics.drawString(font, Component.translatable("gui.create_nuclearindustry.nuclear_bomb.power",
+                    String.format("%.1f", bomb.getEstimatedPower())), leftPos + 14, topPos + 52, 0xFF7777);
+            guiGraphics.drawString(font, Component.translatable("gui.create_nuclearindustry.nuclear_bomb.radius",
+                    bomb.getEstimatedRadius(), bomb.getEstimatedCraterRadius()), leftPos + 14, topPos + 64, 0xFFAA77);
+            drawState(guiGraphics, bomb, leftPos + 14, topPos + 82);
+            guiGraphics.drawCenteredString(font, Component.translatable("gui.create_nuclearindustry.nuclear_bomb.hint"),
+                    leftPos + imageWidth / 2, topPos + NuclearBombMenu.SLOT_Y + 20, 0x8A8A8A);
         }
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    /** Armed and its countdown, or waiting for a redstone signal. */
+    static void drawState(GuiGraphics graphics, NuclearBombBlockEntity bomb, int x, int y) {
+        int countdown = bomb.getCountdown();
+        Component state = countdown >= 0
+                ? Component.translatable("gui.create_nuclearindustry.bomb.armed", String.format("%.1f", countdown / 20.0f))
+                : Component.translatable("gui.create_nuclearindustry.bomb.waiting");
+        graphics.drawString(net.minecraft.client.Minecraft.getInstance().font, state, x, y, countdown >= 0 ? 0xFF4444 : 0x88FF88);
     }
 
     @Override
@@ -66,8 +75,8 @@ public class NuclearBombScreen extends AbstractContainerScreen<NuclearBombMenu> 
         guiGraphics.fill(leftPos - 1, topPos + imageHeight - 1, leftPos + imageWidth + 1, topPos + imageHeight + 1, 0xFF777777);
         guiGraphics.fill(leftPos + imageWidth - 1, topPos - 1, leftPos + imageWidth + 1, topPos + imageHeight + 1, 0xFF777777);
         for (int slot = 0; slot < NuclearBombBlockEntity.SLOT_COUNT; slot++) {
-            int x = leftPos + 62 + slot * 22;
-            int y = topPos + 62;
+            int x = leftPos + NuclearBombMenu.SLOT_X + slot * 22;
+            int y = topPos + NuclearBombMenu.SLOT_Y;
             guiGraphics.fill(x - 1, y - 1, x + 17, y + 17, 0xFF555555);
             guiGraphics.fill(x, y, x + 16, y + 16, 0xFF2F2F2F);
             guiGraphics.fill(x, y, x + 16, y + 1, 0xFF6A6A6A);

@@ -16,6 +16,8 @@ import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlo
  * ({@link #fromNetwork}), so two players opening two bombs each get their own.
  */
 public class NuclearBombMenu extends AbstractContainerMenu {
+    /** Where the bomb's slots sit, under the screen's readout. */
+    public static final int SLOT_X = 62, SLOT_Y = 100;
     private final NuclearBombBlockEntity bomb;
     private final BlockPos bombPos;
 
@@ -43,7 +45,7 @@ public class NuclearBombMenu extends AbstractContainerMenu {
 
     private void addBombSlots() {
         for (int slot = 0; slot < NuclearBombBlockEntity.SLOT_COUNT; slot++) {
-            addSlot(new UraniumSlot(bomb, slot, 62 + slot * 22, 62));
+            addSlot(new UraniumSlot(bomb, slot, SLOT_X + slot * 22, SLOT_Y));
         }
     }
 

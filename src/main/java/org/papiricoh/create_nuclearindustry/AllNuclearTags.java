@@ -22,6 +22,10 @@ public final class AllNuclearTags {
         public static final TagKey<Item> URANIUM_INGOTS = mod("uranium_ingots");
         /** Weapons-grade cores, uranium or plutonium, for warhead recipes. */
         public static final TagKey<Item> NUCLEAR_WARHEAD_CORES = mod("nuclear_warhead_cores");
+        /** What a thermonuclear warhead's tamper is made of: depleted uranium blocks. */
+        public static final TagKey<Item> THERMONUCLEAR_TAMPERS = mod("thermonuclear_tampers");
+        /** The parts of a thermonuclear warhead, which a missile cannot carry. */
+        public static final TagKey<Item> THERMONUCLEAR_COMPONENTS = mod("thermonuclear_components");
 
         public static final TagKey<Item> C_RAW_MATERIALS = common("raw_materials");
         public static final TagKey<Item> C_RAW_URANIUM = common("raw_materials/uranium");

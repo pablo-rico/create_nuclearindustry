@@ -13,6 +13,7 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.papiricoh.create_nuclearindustry.AllNuclearSounds;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationStyle;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -35,13 +36,21 @@ public final class NuclearExplosionSoundManager {
     private NuclearExplosionSoundManager() {}
 
     public static void playDelayedForWorld(ServerLevel level, Vec3 origin) {
+        playDelayedForWorld(level, origin, DetonationStyle.FISSION);
+    }
+
+    /** A thermonuclear blast carries twice as far and rumbles lower. */
+    public static void playDelayedForWorld(ServerLevel level, Vec3 origin, DetonationStyle style) {
         long gameTime = level.getGameTime();
         long seed = level.random.nextLong();
+        boolean thermonuclear = style == DetonationStyle.THERMONUCLEAR;
+        double falloff = thermonuclear ? 2 * FALLOFF_DISTANCE : FALLOFF_DISTANCE;
+        float pitch = thermonuclear ? 0.75f : 1.0f;
         for (ServerPlayer player : level.players()) {
             double distance = player.position().distanceTo(origin);
             int delayTicks = (int) Math.round(distance / SOUND_SPEED_BLOCKS_PER_TICK);
-            float volume = volumeForDistance(distance);
-            PENDING_SOUNDS.add(new PendingSound(level, player, origin, gameTime + delayTicks, volume, seed));
+            float volume = volumeForDistance(distance, falloff);
+            PENDING_SOUNDS.add(new PendingSound(level, player, origin, gameTime + delayTicks, volume, pitch, seed));
         }
     }
 
@@ -99,7 +108,7 @@ public final class NuclearExplosionSoundManager {
                 audiblePosition.y,
                 audiblePosition.z,
                 pending.volume,
-                1.0f,
+                pending.pitch,
                 pending.seed
         ));
     }
@@ -113,14 +122,14 @@ public final class NuclearExplosionSoundManager {
         return playerPos.add(direction.normalize().scale(8.0));
     }
 
-    private static float volumeForDistance(double distance) {
+    private static float volumeForDistance(double distance, double falloffDistance) {
         if (distance <= FULL_VOLUME_DISTANCE) {
             return MAX_VOLUME;
         }
-        double falloff = (distance - FULL_VOLUME_DISTANCE) / FALLOFF_DISTANCE;
+        double falloff = (distance - FULL_VOLUME_DISTANCE) / falloffDistance;
         double volume = MAX_VOLUME / (1.0 + falloff * falloff * 4.0);
         return (float) Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, volume));
     }
 
-    private record PendingSound(ServerLevel level, ServerPlayer player, Vec3 origin, long playAtTick, float volume, long seed) {}
+    private record PendingSound(ServerLevel level, ServerPlayer player, Vec3 origin, long playAtTick, float volume, float pitch, long seed) {}
 }

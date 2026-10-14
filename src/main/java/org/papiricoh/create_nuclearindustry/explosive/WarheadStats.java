@@ -9,7 +9,7 @@ package org.papiricoh.create_nuclearindustry.explosive;
 public final class WarheadStats {
     /** Enriquecimiento minimo (%) para que el uranio sea apto como combustible de armamento. */
     public static final float REQUIRED_ENRICHMENT = 90.0f;
-    /** Unidades de uranio de referencia para saturar la potencia/radio (3 slots * 16). */
+    /** Warhead units that saturate power and radius: six cores of eight. */
     public static final int MAX_URANIUM_UNITS = 48;
 
     private static final int MAX_HORIZONTAL_RADIUS = 250;

@@ -1,0 +1,9 @@
+{
+  "parent": "create_nuclearindustry:block/nuclear_bomb",
+  "textures": {
+    "body": "create_nuclearindustry:block/thermonuclear_bomb_body",
+    "panel": "create_nuclearindustry:block/thermonuclear_bomb_panel",
+    "particle": "create_nuclearindustry:block/thermonuclear_bomb_body",
+    "top": "create_nuclearindustry:block/thermonuclear_bomb_top"
+  }
+}

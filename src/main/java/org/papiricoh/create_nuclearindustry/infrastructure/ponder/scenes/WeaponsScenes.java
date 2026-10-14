@@ -11,14 +11,14 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
-import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.GuidePonderText;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.PlantPonderText;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.PlantPonderText.Script;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 
 /**
- * Weapons: the nuclear and dirty bombs and the missile launch pad, on the schematics of
+ * Weapons: the nuclear, dirty and thermonuclear bombs and the missile launch pad, on the schematics of
  * tools/structgen/ponder_weapons.py. Nothing goes off: the scenes show what goes in and what
  * arms them, and the text tells the rest. The nuclear cannon shell has no scene, since it exists
  * only with Create Big Cannons. Every text box takes the next line of {@link GuidePonderText}.
@@ -43,7 +43,7 @@ public class WeaponsScenes {
         scene.world().showSection(util.select().position(bomb), Direction.DOWN);
         scene.idle(20);
         scene.overlay().showControls(util.vector().topOf(bomb), Pointing.DOWN, 80)
-                .withItem(UraniumItem.withEnrichment(new ItemStack(AllNuclearItems.URANIUM.get()), 93.0f));
+                .withItem(new ItemStack(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.get()));
         scene.overlay().showText(100)
                 .text(lines.next())
                 .pointAt(util.vector().blockSurface(bomb, Direction.WEST))
@@ -100,6 +100,66 @@ public class WeaponsScenes {
         scene.idle(10);
     }
 
+    /** The thermonuclear bomb's three parts, one at a time, and its countdown. */
+    public static void thermonuclear(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        PlantPonderText.Scene text = GuidePonderText.THERMONUCLEAR;
+        Script lines = text.script();
+        scene.title(text.id(), text.title().english());
+        scene.configureBasePlate(0, 0, 5);
+        scene.scaleSceneView(0.9f);
+
+        BlockPos bomb = util.grid().at(2, 1, 2);
+        BlockPos lever = util.grid().at(2, 1, 1);
+
+        scene.showBasePlate();
+        scene.idle(10);
+        scene.world().showSection(util.select().position(bomb), Direction.DOWN);
+        scene.idle(20);
+        scene.overlay().showControls(util.vector().topOf(bomb), Pointing.DOWN, 90)
+                .withItem(new ItemStack(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get()));
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(bomb, Direction.WEST))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+        scene.overlay().showControls(util.vector().topOf(bomb), Pointing.DOWN, 80)
+                .withItem(new ItemStack(ExplosiveRegistry.LITHIUM_DEUTERIDE.get(), 16));
+        scene.overlay().showText(90)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(bomb, Direction.WEST))
+                .placeNearTarget();
+        scene.idle(100);
+        scene.overlay().showControls(util.vector().topOf(bomb), Pointing.DOWN, 80)
+                .withItem(new ItemStack(AllNuclearItems.DEPLETED_URANIUM_BLOCK.get(), 4));
+        scene.overlay().showText(90)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(bomb, Direction.WEST))
+                .placeNearTarget();
+        scene.idle(100);
+
+        scene.world().showSection(util.select().position(lever), Direction.SOUTH);
+        scene.idle(15);
+        scene.world().toggleRedstonePower(util.select().fromTo(2, 1, 1, 2, 1, 2));
+        scene.effects().indicateRedstone(lever);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .colored(PonderPalette.RED)
+                .pointAt(util.vector().blockSurface(lever, Direction.NORTH))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(80)
+                .text(lines.next())
+                .colored(PonderPalette.RED)
+                .pointAt(util.vector().topOf(bomb))
+                .placeNearTarget();
+        scene.idle(90);
+        scene.world().toggleRedstonePower(util.select().fromTo(2, 1, 1, 2, 1, 2));
+        scene.idle(10);
+    }
+
     public static void missile(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         PlantPonderText.Scene text = GuidePonderText.MISSILE;
@@ -135,7 +195,7 @@ public class WeaponsScenes {
                 .placeNearTarget();
         scene.idle(110);
         scene.overlay().showControls(util.vector().topOf(pad), Pointing.DOWN, 80)
-                .withItem(new ItemStack(AllNuclearItems.PLUTONIUM.get()));
+                .withItem(new ItemStack(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get()));
         scene.overlay().showText(100)
                 .text(lines.next())
                 .pointAt(util.vector().blockSurface(pad, Direction.WEST))

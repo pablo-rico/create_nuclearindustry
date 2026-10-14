@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
@@ -80,6 +81,12 @@ public class GuidePonderSchematicTests {
         helper.succeed();
     }
 
+    @GameTest(template = "gametest/weapons_thermonuclear_ponder", batch = BATCH)
+    public static void thermonuclearSchematicLoads(GameTestHelper helper) {
+        helper.assertBlockPresent(ExplosiveRegistry.THERMONUCLEAR_BOMB.get(), new BlockPos(2, 2, 2));
+        helper.succeed();
+    }
+
     @GameTest(template = "gametest/weapons_missile_ponder", batch = BATCH)
     public static void missileSchematicLoads(GameTestHelper helper) {
         helper.assertBlockPresent(AllNuclearBlocks.LAUNCH_PAD.get(), new BlockPos(2, 2, 2));
@@ -142,13 +149,18 @@ public class GuidePonderSchematicTests {
         }
         boolean shell = BuiltInRegistries.ITEM.containsKey(GuideJeiInfo.NUCLEAR_CANNON_SHELL);
         helper.assertTrue(ids.contains("nuclear_cannon_shell") == shell, "the cannon shell page shows exactly when the shell exists");
+        helper.assertTrue(ids.contains("thermonuclear_cannon_shell") == BuiltInRegistries.ITEM.containsKey(GuideJeiInfo.THERMONUCLEAR_CANNON_SHELL),
+                "the thermonuclear shell page shows exactly when the shell exists");
         List<Supplier<? extends Item>> parts = List.of(AllNuclearItems.NUCLEAR_BOMB, AllNuclearItems.LAUNCH_PAD, AllNuclearItems.MISSILE,
                 AllNuclearItems.TARGET_DESIGNATOR, AllNuclearItems.REACTOR_FUEL_PORT, AllNuclearItems.REACTOR_FLUID_PORT,
                 AllNuclearItems.CONTROL_ROD, AllNuclearItems.REACTOR_TEMPERATURE_SENSOR, AllNuclearItems.FUSION_ACCELERATOR_SEGMENT,
                 AllNuclearItems.FUSION_ELECTROMAGNET, AllNuclearItems.FUSION_CENTRAL_SOLENOID, AllNuclearItems.FUSION_CRYOSTAT_CASING,
                 AllNuclearItems.FUSION_BREEDING_BLANKET, AllNuclearItems.FUSION_MAGNET_INPUT, AllNuclearItems.FUSION_FLUID_PORT,
                 AllNuclearItems.FUSION_FUEL_INJECTOR, AllNuclearItems.FUSION_TURBINE_CASING, AllNuclearItems.FUSION_TURBINE_ROTOR,
-                AllNuclearItems.FUSION_TURBINE_FLUID_PORT, ReactorVisualsRegistry.REACTOR_VIEWPORT_ITEM);
+                AllNuclearItems.FUSION_TURBINE_FLUID_PORT, ReactorVisualsRegistry.REACTOR_VIEWPORT_ITEM,
+                ExplosiveRegistry.THERMONUCLEAR_BOMB_ITEM, ExplosiveRegistry.LITHIUM_DEUTERIDE, ExplosiveRegistry.EXPLOSIVE_LENS,
+                ExplosiveRegistry.IMPLOSION_ASSEMBLY, ExplosiveRegistry.FIRING_SET, ExplosiveRegistry.NEUTRON_INITIATOR,
+                ExplosiveRegistry.BOMB_CASING, ExplosiveRegistry.THERMONUCLEAR_CASING);
         for (Supplier<? extends Item> part : parts) {
             helper.assertTrue(covered.contains(part.get()), BuiltInRegistries.ITEM.getKey(part.get()) + " has no guide page");
         }

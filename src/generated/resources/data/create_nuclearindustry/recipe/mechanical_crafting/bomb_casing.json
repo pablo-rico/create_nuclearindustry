@@ -1,0 +1,27 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "M": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "pattern": [
+    " SSS ",
+    "SIIIS",
+    "SIMIS",
+    "SIIIS",
+    " SSS "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:bomb_casing"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:nuclear_detonation",
+  "criteria": {
+    "thermonuclear_detonation": {
+      "conditions": {
+        "event": "thermonuclear_detonation"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.thermonuclear_detonation.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:thermonuclear_bomb"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.thermonuclear_detonation.title"
+    }
+  },
+  "requirements": [
+    [
+      "thermonuclear_detonation"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

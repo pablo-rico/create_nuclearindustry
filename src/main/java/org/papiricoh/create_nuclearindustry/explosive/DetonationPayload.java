@@ -14,6 +14,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig;
 import org.papiricoh.create_nuclearindustry.civildefense.blast.BlastWaveModel;
 import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationProfile;
+import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationStyle;
 
 /**
  * Server to client: a nuclear detonation went off, for its flash, fireball, mushroom cloud and shock wave.
@@ -30,10 +31,11 @@ import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationProfile;
  * @param waveRadius    how far it travels
  * @param thermalRadius how far the flash burns
  * @param seed          picks the cloud's puffs
- * @param dirty         a dirty bomb: a small conventional flash and no cloud
+ * @param style         how it looks: a fission or thermonuclear fireball and cloud, or a dirty bomb's small
+ *                      conventional flash and no cloud
  */
 public record DetonationPayload(Vec3 centre, float scale, float fireball, float burstHeight, boolean airburst, float yieldKg,
-                                float waveSpeed, float waveRadius, float thermalRadius, long seed, boolean dirty)
+                                float waveSpeed, float waveRadius, float thermalRadius, long seed, DetonationStyle style)
         implements CustomPacketPayload {
     public static final Type<DetonationPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "detonation"));
@@ -51,11 +53,16 @@ public record DetonationPayload(Vec3 centre, float scale, float fireball, float 
                 buf.writeFloat(p.waveRadius);
                 buf.writeFloat(p.thermalRadius);
                 buf.writeLong(p.seed);
-                buf.writeBoolean(p.dirty);
+                buf.writeByte(p.style.id());
             },
             buf -> new DetonationPayload(new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble()), buf.readFloat(), buf.readFloat(),
                     buf.readFloat(), buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readLong(),
-                    buf.readBoolean()));
+                    DetonationStyle.byId(buf.readByte())));
+
+    /** A dirty bomb: a small conventional flash and no cloud. */
+    public boolean dirty() {
+        return style == DetonationStyle.DIRTY;
+    }
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
@@ -63,23 +70,23 @@ public record DetonationPayload(Vec3 centre, float scale, float fireball, float 
     }
 
     public static void register(IEventBus modEventBus) {
-        modEventBus.addListener(RegisterPayloadHandlersEvent.class, event -> event.registrar("1")
+        modEventBus.addListener(RegisterPayloadHandlersEvent.class, event -> event.registrar("2")
                 .playToClient(TYPE, STREAM_CODEC, (payload, context) -> context.enqueueWork(
                         () -> org.papiricoh.create_nuclearindustry.explosive.client.NuclearExplosionEffects.add(payload))));
     }
 
     /** The payload of a nuclear detonation of {@code profile} at {@code centre}. */
-    public static DetonationPayload of(Vec3 centre, DetonationProfile profile, double waveRadius, long seed) {
+    public static DetonationPayload of(Vec3 centre, DetonationProfile profile, double waveRadius, long seed, DetonationStyle style) {
         return new DetonationPayload(centre, profile.horizontalRadius(), (float) profile.fireballRadius(), (float) profile.burstHeight(),
                 profile.airburst(), (float) profile.yieldKg(), (float) CivilDefenseConfig.blastWaveSpeed, (float) waveRadius,
-                (float) profile.thermalRadius(), seed, false);
+                (float) profile.thermalRadius(), seed, style);
     }
 
     /** A dirty bomb's conventional blast of {@code power} at {@code centre}. */
     public static DetonationPayload dirty(Vec3 centre, float power, long seed) {
         return new DetonationPayload(centre, 0, Math.max(2, power * 0.4f), 0, false,
                 (float) BlastWaveModel.yield(power, CivilDefenseConfig.blastWaveYieldPerPower), (float) CivilDefenseConfig.blastWaveSpeed,
-                0, 0, seed, true);
+                0, 0, seed, DetonationStyle.DIRTY);
     }
 
     /** Sends it to the players of the level close enough to see it. */

@@ -117,7 +117,7 @@ public final class CivilDefenseConfig {
         blastWaveMaxRadiusValue = builder
                 .comment("Farthest a blast wave reaches, in blocks; it never goes beyond four times the crater radius either.",
                         "0 turns the wave off.")
-                .defineInRange("civilDefense.blastWave.maxRadius", 256, 0, 512);
+                .defineInRange("civilDefense.blastWave.maxRadius", 256, 0, 2048);
         blastWaveYieldPerPowerValue = builder
                 .comment("Kilograms of TNT each point of detonation power is worth to the overpressure model (a full",
                         "nuclear warhead has a power of 160). Overpressure at a distance r depends on r / yield^(1/3).")

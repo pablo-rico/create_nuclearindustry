@@ -1,0 +1,23 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:beryllium"
+    },
+    {
+      "item": "create_nuclearindustry:beryllium"
+    },
+    {
+      "item": "create_nuclearindustry:plutonium_dioxide"
+    },
+    {
+      "item": "create:golden_sheet"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:neutron_initiator"
+    }
+  ]
+}

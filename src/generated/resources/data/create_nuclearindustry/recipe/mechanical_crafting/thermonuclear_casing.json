@@ -1,0 +1,30 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "category": "misc",
+  "key": {
+    "D": {
+      "item": "create_nuclearindustry:depleted_uranium_block"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "pattern": [
+    " SSSSS ",
+    "SDDDDDS",
+    "SDPEPDS",
+    "SDDDDDS",
+    " SSSSS "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:thermonuclear_casing"
+  }
+}

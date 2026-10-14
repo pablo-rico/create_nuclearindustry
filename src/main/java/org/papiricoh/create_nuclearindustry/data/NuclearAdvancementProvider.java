@@ -18,6 +18,7 @@ import net.neoforged.neoforge.common.data.AdvancementProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.accelerator.AcceleratorRegistry;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
@@ -347,7 +348,8 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
                     any(task("weapons", null, AllNuclearItems.NUCLEAR_BOMB,
                             hasEach(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE, AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE,
                                     AllNuclearItems.NUCLEAR_BOMB, AllNuclearItems.DIRTY_BOMB, AllNuclearItems.MISSILE,
-                                    AllNuclearItems.LAUNCH_PAD, AllNuclearItems.TARGET_DESIGNATOR),
+                                    AllNuclearItems.LAUNCH_PAD, AllNuclearItems.TARGET_DESIGNATOR, ExplosiveRegistry.FIRING_SET,
+                                    ExplosiveRegistry.EXPLOSIVE_LENS),
                             "Weapons of Mass Destruction", "Armas de destrucción masiva",
                             "Make a bomb, a missile or what goes into one", "Fabrica una bomba, un misil o lo que va dentro")),
                     new Entry("weapons_core", "weapons", AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE, AdvancementType.TASK, false,
@@ -362,6 +364,14 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
                     with(task("nuclear_detonation", "weapons_core", AllNuclearItems.NUCLEAR_BOMB, event(NuclearEvent.NUCLEAR_DETONATION),
                             "Now I Am Become Death", "Ahora me he convertido en la muerte",
                             "Witness a nuclear detonation", "Presencia una detonación nuclear"), AdvancementType.CHALLENGE, false),
+                    task("teller_ulam", "weapons_core", ExplosiveRegistry.LITHIUM_DEUTERIDE, has(ExplosiveRegistry.LITHIUM_DEUTERIDE),
+                            "Teller-Ulam", "Teller-Ulam",
+                            "Make lithium-6 deuteride, the fuel of a thermonuclear secondary",
+                            "Fabrica deuteruro de litio-6, el combustible de un secundario termonuclear"),
+                    with(task("thermonuclear_detonation", "nuclear_detonation", ExplosiveRegistry.THERMONUCLEAR_BOMB_ITEM,
+                            event(NuclearEvent.THERMONUCLEAR_DETONATION),
+                            "Brighter Than a Thousand Suns", "Más brillante que mil soles",
+                            "Witness a thermonuclear detonation", "Presencia una detonación termonuclear"), AdvancementType.CHALLENGE, false),
                     secret(task("nuclear_shell_fired", "weapons_core", () -> Items.FIRE_CHARGE, event(NuclearEvent.NUCLEAR_SHELL_FIRED),
                             "Artillery of Last Resort", "Artillería de último recurso",
                             "See a nuclear cannon shell go off", "Presencia la explosión de un proyectil nuclear de cañón")),

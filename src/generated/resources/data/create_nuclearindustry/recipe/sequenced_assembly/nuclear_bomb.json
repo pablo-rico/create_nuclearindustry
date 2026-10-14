@@ -1,0 +1,77 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create_nuclearindustry:bomb_casing"
+  },
+  "results": [
+    {
+      "id": "create_nuclearindustry:nuclear_bomb"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_nuclear_bomb"
+        },
+        {
+          "item": "create_nuclearindustry:implosion_assembly"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_nuclear_bomb"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_nuclear_bomb"
+        },
+        {
+          "item": "create_nuclearindustry:neutron_initiator"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_nuclear_bomb"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_nuclear_bomb"
+        },
+        {
+          "item": "create_nuclearindustry:firing_set"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_nuclear_bomb"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_nuclear_bomb"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_nuclear_bomb"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "create_nuclearindustry:incomplete_nuclear_bomb"
+  }
+}
