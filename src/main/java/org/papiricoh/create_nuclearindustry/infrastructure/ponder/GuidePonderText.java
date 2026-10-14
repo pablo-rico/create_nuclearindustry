@@ -173,9 +173,120 @@ public final class GuidePonderText {
                     "beam_dump", "particle_accelerator_klystron", "particle_accelerator_magnet_power_supply",
                     "particle_accelerator_vacuum_pump"));
 
+    // ------------------------------------------------------------------ control room
+
+    public static final String CONTROL_ROOM_TAG_ID = "control_room";
+    public static final String CONTROL_ROOM_TAG_KEY = "create_nuclearindustry.ponder.tag." + CONTROL_ROOM_TAG_ID;
+    public static final Line CONTROL_ROOM_TAG_TITLE = line("Control Room", "Sala de control");
+    public static final Line CONTROL_ROOM_TAG_DESCRIPTION = line(
+            "Everything to watch and run a plant from one room: screens, consoles, modules, annunciators, recorders and alarms",
+            "Todo para vigilar y manejar una central desde una sala: pantallas, consolas, módulos, anunciadores, registradores y alarmas");
+
+    public static final Scene CONTROL_ROOM = new Scene("control_room", "control_room",
+            line("The Control Room", "La sala de control"),
+            List.of(
+                    line("A control room runs a whole plant from one place. This one is laid out like a real plant's: tall instrument boards on the back wall, and the operators' desks set back in front of them.",
+                            "Una sala de control maneja toda una central desde un solo sitio. Esta se distribuye como la de una central real: paneles altos de instrumentos en la pared del fondo y los pupitres de los operadores retirados frente a ellos."),
+                    line("Every device starts unlinked. Click any block of a machine with the Control Room Linker, then click the device: reactors, steam generators, containments, turbines, cooling towers and tokamaks.",
+                            "Todo dispositivo empieza sin enlazar. Haz clic con el Enlazador de sala de control en cualquier bloque de una máquina y luego en el dispositivo: reactores, generadores de vapor, contenciones, turbinas, torres y tokamaks."),
+                    line("Linked to any other block, a device watches the radiation there. Devices reach 128 blocks; sneak-click one with the linker to unlink it.",
+                            "Enlazado a cualquier otro bloque, un dispositivo vigila la radiación allí. Los dispositivos llegan a 128 bloques; agachado, el enlazador desenlaza uno."),
+                    line("Desks, tables and wall panels touching side by side, and wall panels above one another, make one console with one link: link any block of it and the whole console follows.",
+                            "Los pupitres, mesas y paneles de pared que se tocan de lado, y los paneles de pared uno encima de otro, forman una consola con un solo enlace: enlaza cualquier bloque y toda la consola lo sigue."),
+                    line("So the whole back board is one console on the reactor. Wall Control Panels hang on the face of a solid block and hold four modules upright.",
+                            "Así, todo el panel del fondo es una consola enlazada al reactor. Los Paneles de control de pared se cuelgan de la cara de un bloque sólido y llevan cuatro módulos en vertical."),
+                    line("Monitors side by side join into one screen of up to 8x8. A big screen lists the machine's readings beside a two-minute graph; a lone monitor shows one big reading per page.",
+                            "Los monitores juntos forman una pantalla de hasta 8x8. Una pantalla grande lista las lecturas de la máquina junto a una gráfica de dos minutos; un monitor solo muestra una lectura grande por página."),
+                    line("Click a screen to change page, and wrench it to choose its title, layout, rows and graph. A comparator reads its main value.",
+                            "Haz clic en una pantalla para cambiar de página, y usa la llave para elegir su título, distribución, filas y gráfica. Un comparador lee su valor principal."),
+                    line("Control Desks join side by side and turn corners like stairs, so a console can wrap round its operators. A corner desk holds one module on each arm.",
+                            "Los Pupitres de control se unen de lado y doblan esquinas como las escaleras, así una consola puede rodear a sus operadores. Un pupitre de esquina lleva un módulo en cada brazo."),
+                    line("Consoles on different walls are separate: this one runs the tokamak. Each monitor screen links on its own, here to the tokamak and to a turbine.",
+                            "Las consolas de paredes distintas van por separado: esta maneja el tokamak. Cada pantalla de monitores se enlaza por su cuenta, aquí al tokamak y a una turbina."),
+                    line("Control Tables have a flat top, level with a desk's rail: here, the shift supervisor's at the back. Tables apart from the desks make a console of their own.",
+                            "Las Mesas de control tienen la tapa plana, a la altura del borde de un pupitre: aquí, la del jefe de turno al fondo. Las mesas apartadas de los pupitres forman su propia consola."),
+                    line("Look at a module or a console to see its card on the right of the screen: what it is set to, what it shows, where its redstone goes and what the console is linked to.",
+                            "Mira un módulo o una consola para ver su ficha a la derecha de la pantalla: cómo está configurado, qué muestra, a dónde va su redstone y a qué está enlazada la consola.")),
+            List.of("control_room_linker", "control_monitor", "reactor_control_panel", "control_table", "wall_control_panel"));
+
+    public static final Scene CONTROL_MODULES = new Scene("control_room_modules", "control_room",
+            line("Control Modules", "Módulos de control"),
+            List.of(
+                    line("Fit a control module by clicking a free slot with it. Straight desks, tables and wall panels hold four; a corner desk holds one on each arm.",
+                            "Coloca un módulo de control haciendo clic con él en un hueco libre. Los pupitres rectos, las mesas y los paneles de pared llevan cuatro; un pupitre de esquina, uno en cada brazo."),
+                    line("Wrench a module to set it up: its function, label, reading or alarm, and its redstone output. Functions the linked machine cannot use are greyed out.",
+                            "Usa la llave inglesa en un módulo para configurarlo: su función, etiqueta, lectura o alarma, y su salida de redstone. Las funciones que la máquina enlazada no admite salen en gris."),
+                    line("Sneak-wrench a module to take just that module out. Sneak-wrench the block anywhere else to pick it up; its modules drop beside it.",
+                            "Agachado, la llave quita solo ese módulo. Agachado en cualquier otra parte del bloque, la llave lo recoge y sus módulos caen al lado."),
+                    line("Click a module with an empty hand to work it. The Push Button SCRAMs the reactor or resets the SCRAM, sends a pulse, or starts and shuts down a tokamak.",
+                            "Haz clic en un módulo con la mano vacía para accionarlo. El Pulsador hace SCRAM al reactor o lo rearma, manda un pulso, o arranca y para un tokamak."),
+                    line("The Guarded Button keeps a SCRAM or a shutdown under a hinged cover: the first click lifts the cover, the second presses the button.",
+                            "El Pulsador con tapa guarda un SCRAM o una parada bajo una tapa con bisagra: el primer clic levanta la tapa y el segundo pulsa el botón."),
+                    line("A sneaking click lets the cover down, and it falls shut by itself five seconds after the last click.",
+                            "Un clic agachado baja la tapa, y se cierra sola cinco segundos después del último clic."),
+                    line("Levers switch the automatic SCRAM, the pressurizer heaters and spray, a tokamak's fuel, heating, start or shutdown, or a plain signal. The Key Switch turns a signal on and off.",
+                            "Las Palancas activan el SCRAM automático, los calentadores y el rociado del presionador, el combustible, el calentamiento, el arranque o la parada de un tokamak, o una señal. El Interruptor de llave enciende y apaga una señal."),
+                    line("Dials set the control rods' target, the automatic SCRAM threshold or a redstone level: click to turn one up, sneak-click to turn it down.",
+                            "Las Ruedas fijan el objetivo de las barras de control, el umbral del SCRAM automático o un nivel de redstone: clic para subir, clic agachado para bajar."),
+                    line("The Controller is an automatic operator: it holds reactor power or temperature through the rod target, primary pressure through the pressurizer, or a tokamak's fusion power.",
+                            "El Controlador es un operador automático: mantiene la potencia o la temperatura del reactor con el objetivo de barras, la presión del primario con el presionador o la potencia de fusión de un tokamak."),
+                    line("Its lamp is green while it drives. Click it to raise the setpoint and sneak-click to lower it; its setup switches it to standby.",
+                            "Su piloto está verde mientras actúa. Haz clic para subir la consigna y clic agachado para bajarla; en su configuración se pasa a reserva."),
+                    line("Indicator Lamps light on SCRAM, running, no signal, an open relief valve or any alarm. Gauges show one reading on a dial.",
+                            "Los Pilotos se encienden con el SCRAM, en marcha, sin señal, con la válvula de alivio abierta o con cualquier alarma. Los Medidores muestran una lectura en una esfera.")),
+            List.of("push_button_module", "guarded_button_module", "lever_module", "key_switch_module", "dial_module", "controller_module",
+                    "lamp_module", "gauge_module", "reactor_control_panel", "control_table", "wall_control_panel"));
+
+    public static final Scene CONTROL_INSTRUMENTS = new Scene("control_room_instruments", "control_room",
+            line("Instruments and Screens", "Instrumentos y pantallas"),
+            List.of(
+                    line("LED Displays show a reading in digits with its unit. In a row they join into one wider display of up to eight modules, set up by the leftmost: the wider, the more digits, with a label on top.",
+                            "Los Displays LED muestran una lectura en cifras con su unidad. En fila se unen en un display más ancho de hasta ocho módulos, que configura el de la izquierda: cuanto más ancho, más cifras, con una etiqueta encima."),
+                    line("Too big a value reads OL; a reading the machine does not have reads dashes.",
+                            "Un valor demasiado grande se lee OL; una lectura que la máquina no tiene se lee con guiones."),
+                    line("Bar Graphs show a reading as a column of twenty lights: green, amber in the 15%% under the alarm level and red from it. The alarm level is set in the module's screen.",
+                            "Las Barras gráficas muestran una lectura como una columna de veinte luces: verde, ámbar en el 15%% bajo el nivel de alarma y roja desde él. El nivel de alarma se fija en la pantalla del módulo."),
+                    line("Trend Recorders draw a reading over their last 48 samples, one every 1, 5 or 20 seconds.",
+                            "Los Registradores de tendencia dibujan una lectura en sus últimas 48 muestras, una cada 1, 5 o 20 segundos."),
+                    line("The Core Map shows a fission core from above, north at the top: fuel green to red as it burns, control channels filling blue as their rods go in. Four in one block make one big map.",
+                            "El Mapa del núcleo muestra un núcleo de fisión desde arriba, con el norte arriba: el combustible de verde a rojo al quemarse y los canales llenándose de azul al entrar sus barras. Cuatro en un bloque hacen un mapa grande."),
+                    line("The Plasma Section is a cut through a tokamak: its plasma glows with the temperature, swells with the density and shakes as it grows unstable. Four in one block make one big screen too.",
+                            "La Sección del plasma es un corte de un tokamak: el plasma brilla con la temperatura, crece con la densidad y tiembla al volverse inestable. Cuatro en un bloque forman también una pantalla grande."),
+                    line("Annunciator Panels line the top of the board, six alarm windows each. Link a window with the linker, or the frame for all six, and wrench it to choose its alarm, threshold and label.",
+                            "Los Paneles anunciadores recorren lo alto del panel, con seis ventanas de alarma cada uno. Enlaza una ventana con el enlazador, o el marco para las seis, y usa la llave para elegir su alarma, umbral y etiqueta."),
+                    line("A window that trips flashes and the horn sounds until ACK; then it stays lit while the alarm lasts, flashes slowly once it clears and goes dark on RESET. The first to trip is marked first out.",
+                            "Una ventana que salta parpadea y suena la bocina hasta ACK; luego queda encendida mientras dura la alarma, parpadea despacio al despejarse y se apaga con RESET. La primera en saltar se marca como primera."),
+                    line("Redstone pulses into its left and right sides press ACK and RESET. Its back and bottom give a signal while an alarm waits, and a comparator reads how many windows are lit.",
+                            "Los pulsos de redstone en sus lados izquierdo y derecho pulsan ACK y RESET. Su parte trasera e inferior dan señal mientras una alarma espera, y un comparador lee cuántas ventanas hay encendidas."),
+                    line("Chart Recorders draw up to three readings on paper. Feed them paper by hand or with a hopper, and wrench them to choose the pens and the speed.",
+                            "Los Registradores gráficos dibujan hasta tres lecturas en papel. Dales papel a mano o con una tolva, y usa la llave para elegir las plumas y la velocidad."),
+                    line("Sneak-click one with an empty hand to tear the chart off as a Chart Roll, to read anywhere. A comparator reads the paper left.",
+                            "Agachado y con la mano vacía, arranca la gráfica como un Rollo de gráfica para leerla donde quieras. Un comparador lee el papel que queda."),
+                    line("Nuclear Alarms ring and power every side once their reading passes the threshold. Pick the reading on the top face and the threshold on the sides.",
+                            "Las Alarmas nucleares suenan y dan señal por todos sus lados cuando su lectura pasa el umbral. Elige la lectura en la cara superior y el umbral en los laterales.")),
+            List.of("led_display_module", "bar_graph_module", "trend_recorder_module", "core_map_module", "plasma_section_module",
+                    "annunciator_panel", "chart_recorder", "chart_roll", "nuclear_alarm", "control_monitor"));
+
+    public static final Scene CONTROL_SIGNALS = new Scene("control_room_signals", "control_room",
+            line("Signals Out of the Room", "Señales fuera de la sala"),
+            List.of(
+                    line("Any module can put its state out as redstone, chosen in its setup: a lever or a lamp on or off, a button's pulse, a dial's level or a reading from 0 to 15.",
+                            "Cualquier módulo puede sacar su estado como redstone, elegido en su configuración: una palanca o un piloto, el pulso de un pulsador, el nivel de una rueda o una lectura de 0 a 15."),
+                    line("Below the desk: out of the bottom and the back of the block it sits in.",
+                            "Bajo el pupitre: sale por debajo y por detrás del bloque en el que está."),
+                    line("On a Create Redstone Link frequency: pick its two items in the setup, and every receiver on that frequency within range puts the signal out.",
+                            "En una frecuencia de Enlace de redstone de Create: elige sus dos objetos en la configuración, y cada receptor en esa frecuencia y a su alcance da la señal."),
+                    line("Or on an Advanced Redstone Link code: four letters or digits instead of two items. Click the link to type its code; sneak-click it to switch between sending and receiving.",
+                            "O en un código de Enlace de redstone avanzado: cuatro letras o cifras en lugar de dos objetos. Haz clic en el enlace para escribir su código; agachado, cambia entre emitir y recibir."),
+                    line("Control rods only move with pistons. Reactor Redstone Ports set to Insert rods or Withdraw rods light up until the rods reach the dialled target: wire them to the clutch and gearshift of the rod pistons.",
+                            "Las barras de control solo se mueven con pistones. Los Puertos de redstone del reactor en Insertar barras o Extraer barras se encienden hasta que llegan al objetivo: conéctalos al embrague y la caja de cambios de los pistones."),
+                    line("A port in SCRAM mode lights when SCRAM is pressed or the automatic SCRAM trips: wire it to drive every rod in, whatever else the room is doing.",
+                            "Un puerto en modo SCRAM se enciende al pulsar SCRAM o al saltar el SCRAM automático: conéctalo para meter todas las barras, haga lo que haga el resto de la sala.")),
+            List.of("advanced_redstone_link", "reactor_redstone_port", "reactor_control_panel", "wall_control_panel"));
+
     /** Every guide scene, in the order they are registered. */
     public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, MISSILE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
-            ACCELERATOR_LINAC);
+            ACCELERATOR_LINAC, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS);
 
     private GuidePonderText() {}
 

@@ -22,6 +22,10 @@ final class GuideDataGen extends AreaDataGen {
 
     /** The scenes' lines come from {@link GuidePonderText}, the lists the scenes read in order. */
     private static void ponder() {
+        LangEntries.add(GuidePonderText.CONTROL_ROOM_TAG_KEY, GuidePonderText.CONTROL_ROOM_TAG_TITLE.english(),
+                GuidePonderText.CONTROL_ROOM_TAG_TITLE.spanish());
+        LangEntries.add(GuidePonderText.CONTROL_ROOM_TAG_KEY + ".description", GuidePonderText.CONTROL_ROOM_TAG_DESCRIPTION.english(),
+                GuidePonderText.CONTROL_ROOM_TAG_DESCRIPTION.spanish());
         for (PlantPonderText.Scene scene : GuidePonderText.SCENES) {
             LangEntries.add(scene.headerKey(), scene.title().english(), scene.title().spanish());
             for (int i = 0; i < scene.lines().size(); i++) {

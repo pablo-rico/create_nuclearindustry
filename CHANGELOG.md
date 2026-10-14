@@ -713,6 +713,13 @@ below for what changes in existing worlds.
   config.
 - Monitor colours for the tokamak follow the plasma model's own thresholds
   instead of copies of them.
+- New Ponder series "Control Room", with its own tag in the Ponder index, set
+  in a full main control room laid out like a real plant's: instrument boards
+  with annunciators, recorders and a big screen on the back wall, the
+  operators' desks set back from it and wrapping round them, the shift
+  supervisor's tables behind. Four scenes cover linking and consoles, every
+  control module, the screens and instruments, and the redstone that leaves
+  the room. It replaces the old single control room scene.
 
 ### Nuclear weapons: the explosion
 - A nuclear detonation is now worked out from its warhead and the height it goes

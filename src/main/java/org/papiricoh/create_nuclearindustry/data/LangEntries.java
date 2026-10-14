@@ -631,25 +631,6 @@ public final class LangEntries {
         add(alarm + "metric.plasma_temperature", "Plasma temperature above", "Temperatura del plasma por encima de");
         add(alarm + "metric.plasma_instability", "Plasma instability above", "Inestabilidad del plasma por encima de");
         add("create_nuclearindustry.display_source.turbine", "Turbine Status", "Estado de la turbina");
-        add("create_nuclearindustry.ponder.control_room.header", "Building a Control Room", "Montar una sala de control");
-        add("create_nuclearindustry.ponder.control_room.text_1",
-                "A control room watches and drives machines from afar. Click a reactor, turbine or cooling tower (any of its blocks) with the Control Room Linker.",
-                "Una sala de control vigila y maneja máquinas a distancia. Haz clic con el Enlazador de sala de control en un reactor, turbina o torre de refrigeración (en cualquiera de sus bloques).");
-        add("create_nuclearindustry.ponder.control_room.text_2",
-                "Monitors side by side join into one screen up to 8x8. Click one with the linker to show the machine: readings and gauges, and on a big screen a two-minute graph.",
-                "Los monitores juntos forman una pantalla de hasta 8x8. Haz clic en uno con el enlazador para mostrar la máquina: lecturas e indicadores y, en una pantalla grande, una gráfica de dos minutos.");
-        add("create_nuclearindustry.ponder.control_room.text_3",
-                "Click a screen to change page. A comparator reads its main value; Display Links read a linked reactor too.",
-                "Haz clic en una pantalla para cambiar de página. Un comparador lee su valor principal; los Display Links también leen un reactor enlazado.");
-        add("create_nuclearindustry.ponder.control_room.text_4",
-                "Control Desks side by side join into one console. Fit control modules into their slots and set each up with a wrench: buttons, levers and dials SCRAM the reactor, switch its automatic SCRAM and set a target for the control rods.",
-                "Los Pupitres de control juntos forman una consola. Coloca módulos de control en sus huecos y configura cada uno con la llave inglesa: pulsadores, palancas y ruedas hacen SCRAM al reactor, activan su SCRAM automático y fijan un objetivo para las barras de control.");
-        add("create_nuclearindustry.ponder.control_room.text_5",
-                "Rods still only move with pistons: Redstone Ports set to Insert rods or Withdraw rods light up until the rods reach the target. Wire them to the clutch and gearshift of the rod pistons.",
-                "Las barras solo se mueven con pistones: los Puertos de redstone en Insertar barras o Extraer barras se encienden hasta que las barras llegan al objetivo. Conéctalos al embrague y la caja de cambios de los pistones de las barras.");
-        add("create_nuclearindustry.ponder.control_room.text_6",
-                "A Nuclear Alarm rings and powers every side once a reading passes its threshold. Pick the reading on its top and the threshold on its sides.",
-                "Una Alarma nuclear suena y da señal por todos sus lados cuando una lectura pasa su umbral. Elige la lectura en su cara superior y el umbral en sus laterales.");
         add("jei.create_nuclearindustry.info.control_room",
                 "Build a control room. Click a reactor, turbine or cooling tower (any of their blocks) with the Control Room Linker, or any other block to watch the radiation there, then click a Monitor, Control Desk or Nuclear Alarm to link it; sneak-click a device to unlink it. Monitors side by side join into one screen up to 8x8 that shows the readings and two minutes of history; click it to change page. Control Desks carry modules that SCRAM the reactor, switch its automatic SCRAM and set a rod target: Redstone Ports in Insert rods or Withdraw rods mode light up until the rods reach it, to drive the clutch and gearshift of the pistons. The alarm rings and powers every side past the threshold set on its sides, for the reading chosen on its top. Devices reach 128 blocks.",
                 "Monta una sala de control. Haz clic con el Enlazador de sala de control en un reactor, turbina o torre de refrigeración (en cualquiera de sus bloques), o en cualquier otro bloque para vigilar la radiación allí, y luego en un Monitor, Pupitre de control o Alarma nuclear para enlazarlo; agachado sobre un dispositivo lo desenlaza. Los monitores juntos forman una pantalla de hasta 8x8 que muestra las lecturas y dos minutos de historial; haz clic para cambiar de página. Los Pupitres de control llevan módulos que hacen SCRAM al reactor, activan su SCRAM automático y fijan un objetivo de barras: los Puertos de redstone en modo Insertar barras o Extraer barras se encienden hasta que las barras llegan a él, para mover el embrague y la caja de cambios de los pistones. La alarma suena y da señal por todos sus lados al pasar el umbral fijado en sus caras, para la lectura elegida en su cara superior. Los dispositivos llegan a 128 bloques.");

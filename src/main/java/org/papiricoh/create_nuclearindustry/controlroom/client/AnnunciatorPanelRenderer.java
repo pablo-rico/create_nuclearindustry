@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.controlroom.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.createmod.catnip.animation.AnimationTickHolder;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -34,7 +35,8 @@ public class AnnunciatorPanelRenderer implements BlockEntityRenderer<Annunciator
     @Override
     public void render(AnnunciatorPanelBlockEntity panel, float partialTick, PoseStack ms, MultiBufferSource buffers,
                        int light, int overlay) {
-        long time = panel.getLevel() == null ? 0 : panel.getLevel().getGameTime();
+        // Create's tick clock rather than the level's game time, which stands still in a Ponder scene.
+        long time = panel.getLevel() == null ? 0 : AnimationTickHolder.getTicks(panel.getLevel());
         AnnunciatorLogic logic = panel.logic();
         ms.pushPose();
         ScreenDraw.onFrontFace(ms, panel.facing());

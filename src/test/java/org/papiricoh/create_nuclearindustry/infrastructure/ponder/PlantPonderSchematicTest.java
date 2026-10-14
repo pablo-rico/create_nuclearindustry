@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 class PlantPonderSchematicTest {
     private static final int MAX_WIDTH = 17, MAX_HEIGHT = 14;
-    /** The overview holds the whole plant and zooms in on its parts, so it may be wider. */
+    /** The overview holds the whole plant and the control room a whole room; both zoom in on their parts, so they may be wider. */
     private static final int OVERVIEW_MAX_WIDTH = 26;
     private static final Set<String> NAMESPACES = Set.of("minecraft", "create", "create_nuclearindustry");
 
@@ -62,7 +62,7 @@ class PlantPonderSchematicTest {
                 assertTrue(Files.exists(gametest), "missing " + gametest);
                 assertArrayEquals(inflate(ponder), inflate(gametest), scene.schematic() + ": GameTest copy differs");
             }
-            check(scene.schematic(), read(ponder), MAX_WIDTH);
+            check(scene.schematic(), read(ponder), scene.schematic().equals("control_room") ? OVERVIEW_MAX_WIDTH : MAX_WIDTH);
         }
     }
 

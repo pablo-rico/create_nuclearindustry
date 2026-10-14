@@ -5,21 +5,30 @@ import net.createmod.ponder.api.registration.PonderTagRegistrationHelper;
 import net.createmod.ponder.api.scene.PonderStoryBoard;
 import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.AcceleratorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CivilDefenseScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ControlRoomScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FanTreatmentScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FuelCycleScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.WeaponsScenes;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * The guide's Ponder scenes: civil defense, weapons, the fuel cycle from ore to fuel and the two
- * fan treatments. Registered by {@link AllNuclearPonderScenes} after its own scenes, each on the
+ * The guide's Ponder scenes: civil defense, weapons, the fuel cycle from ore to fuel, the two fan
+ * treatments, the linac and the control room series (under its own tag). Registered by {@link AllNuclearPonderScenes} after its own scenes, each on the
  * items {@link GuidePonderText} lists for it (the fan treatments also on Create's Encased Fan).
  */
 public final class GuidePonderScenes {
+    private static final ResourceLocation CONTROL_ROOM_TAG = ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID,
+            GuidePonderText.CONTROL_ROOM_TAG_ID);
+    private static final List<PlantPonderText.Scene> CONTROL_ROOM_SCENES = List.of(GuidePonderText.CONTROL_ROOM,
+            GuidePonderText.CONTROL_MODULES, GuidePonderText.CONTROL_INSTRUMENTS, GuidePonderText.CONTROL_SIGNALS);
 
     private GuidePonderScenes() {}
 
@@ -35,18 +44,38 @@ public final class GuidePonderScenes {
         boards.put(GuidePonderText.ACID_LEACHING, FanTreatmentScenes::acidLeaching);
         boards.put(GuidePonderText.IRRADIATION, FanTreatmentScenes::irradiation);
         boards.put(GuidePonderText.ACCELERATOR_LINAC, AcceleratorScenes::linac);
+        boards.put(GuidePonderText.CONTROL_ROOM, ControlRoomScenes::controlRoom);
+        boards.put(GuidePonderText.CONTROL_MODULES, ControlRoomScenes::modules);
+        boards.put(GuidePonderText.CONTROL_INSTRUMENTS, ControlRoomScenes::instruments);
+        boards.put(GuidePonderText.CONTROL_SIGNALS, ControlRoomScenes::signals);
         return boards;
     }
 
     public static void register(PonderSceneRegistrationHelper<ResourceLocation> helper) {
         storyBoards().forEach((scene, board) -> {
             for (String component : scene.components()) {
-                helper.addStoryBoard(item(component), scene.schematic(), board);
+                if (CONTROL_ROOM_SCENES.contains(scene)) {
+                    helper.addStoryBoard(item(component), scene.schematic(), board, CONTROL_ROOM_TAG);
+                } else {
+                    helper.addStoryBoard(item(component), scene.schematic(), board);
+                }
             }
         });
     }
 
-    public static void registerTags(PonderTagRegistrationHelper<ResourceLocation> helper) {}
+    /** The control room series, under its own tag with the monitor as its icon. */
+    public static void registerTags(PonderTagRegistrationHelper<ResourceLocation> helper) {
+        helper.registerTag(CONTROL_ROOM_TAG)
+                .title(GuidePonderText.CONTROL_ROOM_TAG_TITLE.english())
+                .description(GuidePonderText.CONTROL_ROOM_TAG_DESCRIPTION.english())
+                .item(ControlRoom2Registry.WALL_CONTROL_PANEL_ITEM.get(), true, false)
+                .addToIndex()
+                .register();
+        var tag = helper.addToTag(CONTROL_ROOM_TAG);
+        Set<String> components = new LinkedHashSet<>();
+        CONTROL_ROOM_SCENES.forEach(scene -> components.addAll(scene.components()));
+        components.forEach(component -> tag.add(item(component)));
+    }
 
     /** An item of this mod by its path, or another mod's by its full id. */
     static ResourceLocation item(String component) {

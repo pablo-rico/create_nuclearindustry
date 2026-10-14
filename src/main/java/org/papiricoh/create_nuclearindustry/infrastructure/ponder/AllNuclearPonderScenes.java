@@ -8,7 +8,6 @@ import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CentrifugeScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ContainmentDoorScenes;
-import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ControlRoomScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CoolingTowerScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CryoplantScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.PlantScenes;
@@ -66,11 +65,6 @@ public class AllNuclearPonderScenes {
         }
         for (String part : new String[]{"graphite_moderator", "beryllium_reflector", "reactor_controller"}) {
             helper.addStoryBoard(id(part), "reactor_controller", ReactorModerationScenes::moderation);
-        }
-        for (String part : new String[]{"control_monitor", "reactor_control_panel", "nuclear_alarm", "control_room_linker",
-                "reactor_redstone_port", "push_button_module", "lever_module", "dial_module", "lamp_module", "gauge_module",
-                "key_switch_module"}) {
-            helper.addStoryBoard(id(part), "control_room", ControlRoomScenes::controlRoom);
         }
         helper.addStoryBoard(id("electrolyzer"), "centrifuge", CentrifugeScenes::electrolysis);
         // Turbine storyboards are reachable from every block they are built from.

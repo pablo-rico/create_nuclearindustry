@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.controlroom.desk.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.gui.Font;
@@ -44,7 +45,8 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
         if (surface == null) {
             return;
         }
-        float time = desk.getLevel() == null ? 0 : desk.getLevel().getGameTime() + partialTick;
+        // Create's render clock rather than the level's game time, which stands still in a Ponder scene.
+        float time = desk.getLevel() == null ? 0 : AnimationTickHolder.getRenderTime(desk.getLevel());
         for (int slot = 0; slot < ControlDeskBlockEntity.SLOTS; slot++) {
             ControlModule module = desk.module(slot);
             if (module == null || !surface.hasSlot(state, slot)) {
