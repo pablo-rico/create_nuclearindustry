@@ -732,6 +732,9 @@ below for what changes in existing worlds.
   supervisor's tables behind. Four scenes cover linking and consoles, every
   control module, the screens and instruments, and the redstone that leaves
   the room. It replaces the old single control room scene.
+- Fixed: in the Control Room scenes, the progress bar and the buttons at the
+  bottom of the Ponder window vanished behind the room's floor whenever the
+  view closed in on part of it.
 
 ### Nuclear weapons: the explosion
 - A nuclear detonation is now worked out from its warhead and the height it goes

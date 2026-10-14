@@ -3,10 +3,10 @@
   "minVersion": "0.8",
   "package": "org.papiricoh.create_nuclearindustry.mixin",
   "compatibilityLevel": "JAVA_17",
-  "refmap": "create_nuclearindustry.refmap.json",
   "mixins": [
   ],
   "client": [
+    "client.PonderUIMixin"
   ],
   "injectors": {
     "defaultRequire": 1
