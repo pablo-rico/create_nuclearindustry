@@ -10,6 +10,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.world.level.Level;
 import org.papiricoh.create_nuclearindustry.controlroom.AlarmMetric;
+import org.papiricoh.create_nuclearindustry.controlroom.MonitorConfig;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.controlroom.chart.ChartBuffer;
@@ -450,10 +451,10 @@ public final class ControlRoomLayout {
     }
 
     /**
-     * A screen's origin monitor: its size, its reading and two minutes of history climbing to it
-     * (the first series to {@code a}, the second to {@code b}).
+     * A screen's origin monitor: its size, its reading, its setup and two minutes of history climbing
+     * to it (the first series to {@code a}, the second to {@code b}, a third one to its reading).
      */
-    static void screen(CompoundTag nbt, Screen screen, GlobalPos target, MonitorReading reading) {
+    static void screen(CompoundTag nbt, Screen screen, GlobalPos target, MonitorReading reading, MonitorConfig config) {
         target(nbt, target);
         nbt.putLong("Origin", screen.origin().asLong());
         nbt.putInt("Width", screen.width());
@@ -462,15 +463,24 @@ public final class ControlRoomLayout {
         int samples = 120;
         int[] a = new int[samples];
         int[] b = new int[samples];
+        int[] c = new int[samples];
+        float third = config.seriesC() == null ? 0 : config.seriesC().fraction(reading);
         for (int i = 0; i < samples; i++) {
             float t = i / (float) (samples - 1);
             float rise = 1 - (float) Math.exp(-4 * t);
             a[i] = Float.floatToIntBits(reading.seriesA() * (0.55f + 0.45f * rise) + 0.01f * (float) Math.sin(i * 0.4));
             b[i] = Float.floatToIntBits(reading.seriesB() * (0.3f + 0.7f * rise) + 0.015f * (float) Math.sin(i * 0.23));
+            c[i] = Float.floatToIntBits(third * (0.4f + 0.6f * rise) + 0.02f * (float) Math.sin(i * 0.31));
         }
         nbt.putIntArray("HistoryA", a);
         nbt.putIntArray("HistoryB", b);
+        if (config.seriesC() != null) {
+            nbt.putIntArray("HistoryC", c);
+        }
         nbt.putLong("HistorySeq", samples);
+        if (!config.isDefault()) {
+            nbt.put("Config", config.write());
+        }
     }
 
     /** Any other monitor of a screen: only where its origin is. */

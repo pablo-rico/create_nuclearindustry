@@ -19,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
 import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +66,8 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
     private MonitorReading reading = MonitorReading.NONE;
     private final float[] historyA = new float[HISTORY];
     private final float[] historyB = new float[HISTORY];
+    /** The optional third line; NaN where it plotted nothing (none chosen, or chosen after the sample). */
+    private final float[] historyC = new float[HISTORY];
     private int historySize;
     /** Samples recorded since the screen was placed or loaded: a client tells by it which samples it has. */
     private long historySeq;
@@ -345,8 +348,9 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
     }
 
     /**
-     * Sets the screen up (on the origin, whichever monitor it is called on). A new series starts the
-     * graph again and a new layout goes back to the first page; the next update carries the whole state.
+     * Sets the screen up (on the origin, whichever monitor it is called on). A new first or second
+     * series starts the graph again, a new third one only starts its own line again, and a new layout
+     * goes back to the first page; the next update carries the whole state.
      */
     public void setConfig(MonitorConfig newConfig) {
         Optional<ControlMonitorBlockEntity> screen = origin();
@@ -358,6 +362,8 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         config = newConfig == null ? MonitorConfig.DEFAULT : newConfig;
         if (old.seriesA() != config.seriesA() || old.seriesB() != config.seriesB()) {
             historySize = 0;
+        } else if (old.seriesC() != config.seriesC()) {
+            Arrays.fill(historyC, 0, historySize, Float.NaN);
         }
         if (old.layout() != config.layout()) {
             page = 0;
@@ -410,6 +416,12 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         return chosen != null && chosen.kind() == next.kind() ? chosen.fraction(next) : next.seriesB();
     }
 
+    /** What the graph's third line plots for {@code next}: NaN, drawn as nothing, unless one was chosen. */
+    private float seriesC(MonitorReading next) {
+        GaugeReading chosen = config.seriesC();
+        return chosen != null && chosen.kind() == next.kind() ? chosen.fraction(next) : Float.NaN;
+    }
+
     private void sample() {
         MonitorReading next = SharedReadings.sample(level, getBlockPos(), target);
         if (next.kind() != reading.kind()) {
@@ -421,7 +433,7 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         int previousSignal = reading.comparatorSignal();
         reading = next;
         if (next.kind() != TargetKind.NONE && next.kind() != TargetKind.NO_SIGNAL) {
-            record(seriesA(next), seriesB(next));
+            record(seriesA(next), seriesB(next), seriesC(next));
         }
         if (previousSignal != next.comparatorSignal()) {
             for (BlockPos member : members()) {
@@ -448,14 +460,16 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
                 || SyncThrottle.visiblyDifferent(shown.seriesB(), next.seriesB(), VISIBLE_SERIES, 0);
     }
 
-    private void record(float a, float b) {
+    private void record(float a, float b, float c) {
         if (historySize == HISTORY) {
             System.arraycopy(historyA, 1, historyA, 0, HISTORY - 1);
             System.arraycopy(historyB, 1, historyB, 0, HISTORY - 1);
+            System.arraycopy(historyC, 1, historyC, 0, HISTORY - 1);
             historySize--;
         }
         historyA[historySize] = a;
         historyB[historySize] = b;
+        historyC[historySize] = c;
         historySize++;
         historySeq++;
     }
@@ -487,6 +501,11 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         return historyB[index];
     }
 
+    /** The third line at {@code index}: NaN where it plots nothing. */
+    public float historyC(int index) {
+        return historyC[index];
+    }
+
     public int getPage() {
         return page;
     }
@@ -498,13 +517,16 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
 
     /**
      * Big screens laid out {@link MonitorLayout#AUTO} switch between readings and the graph; the
-     * other layouts show one page. A single block steps through its most important readings (the
-     * first rows of its kind of target) or through every row it was set up to show, then shows the
-     * graph when laid out {@link MonitorLayout#BOTH}; laid out {@link MonitorLayout#CHART} it only plots.
+     * other layouts show one page, unless the style's readings need more ({@link MonitorPaging}): a
+     * mimic board's instruments are bigger than a list's rows. A single block steps through its most
+     * important readings (the first rows of its kind of target) or through every row it was set up to
+     * show, then shows the graph when laid out {@link MonitorLayout#BOTH}; laid out
+     * {@link MonitorLayout#CHART} it only plots.
      */
     public int pageCount() {
         if (width > 1 || height > 1) {
-            return config.layout() == MonitorLayout.AUTO ? 2 : 1;
+            int rows = config.theme() == MonitorTheme.STANDARD ? 0 : MonitorRow.visible(reading, config).size();
+            return MonitorPaging.pageCount(config.theme(), config.layout(), width, height, rows);
         }
         if (config.layout() == MonitorLayout.CHART) {
             return 1;
@@ -606,10 +628,17 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
             int fresh = (int) Math.min(historySize, Math.max(0, historySeq - deltaFromSeq));
             tag.putIntArray("AppendA", bits(historyA, historySize - fresh, historySize));
             tag.putIntArray("AppendB", bits(historyB, historySize - fresh, historySize));
+            if (config.seriesC() != null) {
+                tag.putIntArray("AppendC", bits(historyC, historySize - fresh, historySize));
+            }
             return;
         }
         tag.putIntArray("HistoryA", bits(historyA, 0, historySize));
         tag.putIntArray("HistoryB", bits(historyB, 0, historySize));
+        // Most screens have no third line: they send and save nothing for it.
+        if (config.seriesC() != null) {
+            tag.putIntArray("HistoryC", bits(historyC, 0, historySize));
+        }
         // The setup seldom changes: it goes with the whole state, never in a delta.
         if (!config.isDefault()) {
             tag.put("Config", config.write());
@@ -632,10 +661,11 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
             // An update: only the samples recorded after those this copy has.
             int[] a = tag.getIntArray("AppendA");
             int[] b = tag.getIntArray("AppendB");
+            int[] c = tag.getIntArray("AppendC");
             int sent = Math.min(a.length, b.length);
             int fresh = (int) Math.max(0, Math.min(sent, seq - had));
             for (int i = sent - fresh; i < sent; i++) {
-                record(Float.intBitsToFloat(a[i]), Float.intBitsToFloat(b[i]));
+                record(Float.intBitsToFloat(a[i]), Float.intBitsToFloat(b[i]), at(c, i));
             }
             historySeq = seq;
             return;
@@ -644,11 +674,18 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         config = tag.contains("Config", Tag.TAG_COMPOUND) ? MonitorConfig.read(tag.getCompound("Config")) : MonitorConfig.DEFAULT;
         int[] a = tag.getIntArray("HistoryA");
         int[] b = tag.getIntArray("HistoryB");
+        int[] c = tag.getIntArray("HistoryC");
         historySize = Math.min(HISTORY, Math.min(a.length, b.length));
         for (int i = 0; i < historySize; i++) {
             historyA[i] = Float.intBitsToFloat(a[i]);
             historyB[i] = Float.intBitsToFloat(b[i]);
+            historyC[i] = at(c, i);
         }
+    }
+
+    /** The sample at {@code index} of a third line sent as bits, or NaN where none was sent. */
+    private static float at(int[] bits, int index) {
+        return index < bits.length ? Float.intBitsToFloat(bits[index]) : Float.NaN;
     }
 
     private static int[] bits(float[] values, int from, int to) {

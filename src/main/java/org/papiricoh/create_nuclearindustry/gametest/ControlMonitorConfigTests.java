@@ -5,6 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -12,12 +13,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.controlroom.ConfigureDevicePayload;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorConfig;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorLayout;
+import org.papiricoh.create_nuclearindustry.controlroom.MonitorPaging;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorRow;
+import org.papiricoh.create_nuclearindustry.controlroom.MonitorTheme;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
 
@@ -45,7 +49,7 @@ public class ControlMonitorConfigTests {
             helper.assertTrue(monitor != null && monitor.targetKind() == TargetKind.REACTOR, "the screen watches a reactor");
             MonitorConfig sent = new MonitorConfig("§cMain reactor\nloop number one and two", MonitorLayout.BOTH,
                     List.of(MonitorRow.TURBINE_SPEED, MonitorRow.REACTOR_FUEL), Set.of(MonitorRow.TOKAMAK_ASH, MonitorRow.REACTOR_XENON),
-                    GaugeReading.TURBINE_SPEED, GaugeReading.REACTOR_XENON);
+                    GaugeReading.TURBINE_SPEED, GaugeReading.REACTOR_XENON, GaugeReading.TURBINE_LOAD, MonitorTheme.MIMIC_BOARD);
             BlockPos at = helper.absolutePos(MONITOR);
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
             player.setPos(at.getX() + 40, at.getY(), at.getZ());
@@ -64,6 +68,8 @@ public class ControlMonitorConfigTests {
             helper.assertTrue(kept.hidden().equals(Set.of(MonitorRow.REACTOR_XENON)), "only reactor rows hidden: " + kept.hidden());
             helper.assertTrue(kept.seriesA() == null, "a turbine reading is not plotted for a reactor");
             helper.assertTrue(kept.seriesB() == GaugeReading.REACTOR_XENON, "a reactor one is");
+            helper.assertTrue(kept.seriesC() == null, "nor is a turbine third line");
+            helper.assertTrue(kept.theme() == MonitorTheme.MIMIC_BOARD, "the style is taken");
             helper.succeed();
         });
     }
@@ -71,7 +77,8 @@ public class ControlMonitorConfigTests {
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void theSetupMovesToTheOriginWhenScreensJoin(GameTestHelper helper) {
         BlockPos second = new BlockPos(9, 1, 9);
-        MonitorConfig setup = MonitorConfig.DEFAULT.withTitle("Turbine hall").withLayout(MonitorLayout.LIST);
+        MonitorConfig setup = MonitorConfig.DEFAULT.withTitle("Turbine hall").withLayout(MonitorLayout.LIST)
+                .withTheme(MonitorTheme.PROCESS_COMPUTER);
         helper.setBlock(MONITOR, monitor(Direction.NORTH));
         helper.runAfterDelay(3, () -> {
             ControlMonitorBlockEntity monitor = helper.getBlockEntity(MONITOR);
@@ -114,6 +121,142 @@ public class ControlMonitorConfigTests {
             helper.assertTrue(monitor.historyB(last) == fuel, "line B plots the fuel, " + fuel + ", got " + monitor.historyB(last));
             helper.assertTrue(monitor.historyA(last) != monitor.getReading().seriesA(),
                     "not the usual temperature line (" + monitor.getReading().seriesA() + ")");
+        });
+    }
+
+    /**
+     * A third line chosen later plots its own reading from then on: the first two lines and their
+     * history stay, and the third has nothing before it was chosen.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void aThirdLineFillsItsOwnHistory(GameTestHelper helper) {
+        FissionTestBuilder.build(helper);
+        helper.setBlock(MONITOR, monitor(Direction.NORTH));
+        int[] before = new int[1];
+        helper.runAfterDelay(2, () -> {
+            ControlMonitorBlockEntity monitor = helper.getBlockEntity(MONITOR);
+            helper.assertTrue(monitor != null, "the monitor is placed");
+            monitor.setTarget(global(helper, FissionTestBuilder.CONTROLLER));
+        });
+        helper.runAfterDelay(45, () -> {
+            ControlMonitorBlockEntity monitor = helper.getBlockEntity(MONITOR);
+            helper.assertTrue(monitor != null && monitor.historySize() >= 2, "the graph has samples");
+            helper.assertTrue(Float.isNaN(monitor.historyC(monitor.historySize() - 1)), "with no third line, it plots nothing");
+            before[0] = monitor.historySize();
+            monitor.configure(0, MonitorConfig.DEFAULT.withSeriesC(GaugeReading.REACTOR_RODS).write());
+            helper.assertTrue(monitor.historySize() == before[0], "a third line keeps the graph");
+            for (int i = 0; i < monitor.historySize(); i++) {
+                helper.assertTrue(Float.isNaN(monitor.historyC(i)), "and has nothing before it was chosen, sample " + i);
+            }
+        });
+        helper.succeedWhen(() -> {
+            ControlMonitorBlockEntity monitor = helper.getBlockEntity(MONITOR);
+            helper.assertTrue(monitor != null && monitor.historySize() > before[0], "the graph goes on");
+            int last = monitor.historySize() - 1;
+            float rods = GaugeReading.REACTOR_RODS.fraction(monitor.getReading());
+            helper.assertTrue(monitor.historyC(last) == rods, "line C plots the rods, " + rods + ", got " + monitor.historyC(last));
+            helper.assertTrue(monitor.historyA(last) == monitor.getReading().seriesA(), "line A still plots its usual reading");
+            helper.assertTrue(Float.isNaN(monitor.historyC(0)), "the old samples stay empty");
+        });
+    }
+
+    /** Most screens have no third line: their updates and saves carry nothing for it. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void aScreenWithoutAThirdLineSendsNone(GameTestHelper helper) {
+        FissionTestBuilder.build(helper);
+        helper.setBlock(MONITOR, monitor(Direction.NORTH));
+        helper.runAfterDelay(2, () -> {
+            ControlMonitorBlockEntity monitor = helper.getBlockEntity(MONITOR);
+            helper.assertTrue(monitor != null, "the monitor is placed");
+            monitor.setTarget(global(helper, FissionTestBuilder.CONTROLLER));
+        });
+        helper.runAfterDelay(25, () -> {
+            var registries = helper.getLevel().registryAccess();
+            ControlMonitorBlockEntity monitor = helper.getBlockEntity(MONITOR);
+            helper.assertTrue(monitor != null && monitor.historySize() >= 1, "the graph has samples");
+            CompoundTag plain = monitor.getUpdateTag(registries);
+            helper.assertTrue(plain.contains("HistoryA") && !plain.contains("HistoryC"), "no third line, no third history");
+            helper.assertTrue(!monitor.saveWithFullMetadata(registries).contains("HistoryC"), "nor in the save");
+            monitor.setConfig(monitor.getConfig().withSeriesC(GaugeReading.REACTOR_FUEL));
+            CompoundTag withC = monitor.getUpdateTag(registries);
+            helper.assertTrue(withC.getIntArray("HistoryC").length == withC.getIntArray("HistoryA").length,
+                    "with one, the whole third history goes too");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void theStyleAndThirdLineSurviveASave(GameTestHelper helper) {
+        FissionTestBuilder.build(helper);
+        helper.setBlock(MONITOR, monitor(Direction.NORTH));
+        helper.runAfterDelay(2, () -> {
+            ControlMonitorBlockEntity monitor = helper.getBlockEntity(MONITOR);
+            helper.assertTrue(monitor != null, "the monitor is placed");
+            monitor.setTarget(global(helper, FissionTestBuilder.CONTROLLER));
+            monitor.setConfig(monitor.getConfig().withTheme(MonitorTheme.PROCESS_COMPUTER).withSeriesC(GaugeReading.REACTOR_FUEL));
+        });
+        helper.runAfterDelay(65, () -> {
+            var registries = helper.getLevel().registryAccess();
+            ControlMonitorBlockEntity monitor = helper.getBlockEntity(MONITOR);
+            helper.assertTrue(monitor != null && monitor.historySize() >= 3, "the graph has samples");
+            CompoundTag saved = monitor.saveWithFullMetadata(registries);
+            ControlMonitorBlockEntity loaded = new ControlMonitorBlockEntity(AllNuclearEntities.CONTROL_MONITOR.get(),
+                    monitor.getBlockPos(), monitor.getBlockState());
+            loaded.loadWithComponents(saved, registries);
+            helper.assertTrue(loaded.getConfig().equals(monitor.getConfig()), "the setup comes back, got " + loaded.getConfig());
+            helper.assertTrue(loaded.getConfig().theme() == MonitorTheme.PROCESS_COMPUTER, "with its style");
+            helper.assertTrue(loaded.historySize() == monitor.historySize(), "and the whole graph");
+            for (int i = 0; i < monitor.historySize(); i++) {
+                helper.assertTrue(Float.floatToIntBits(loaded.historyC(i)) == Float.floatToIntBits(monitor.historyC(i)),
+                        "third line sample " + i + " matches");
+            }
+            helper.succeed();
+        });
+    }
+
+    /**
+     * A mimic board's instruments take more room than a list's rows: a 3x2 screen with its graph beside
+     * them pages through a reactor's readings, the server counting the pages the way the screen draws them.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void aMimicBoardPagesThroughItsInstruments(GameTestHelper helper) {
+        FissionTestBuilder.build(helper);
+        for (int x = 7; x <= 9; x++) {
+            for (int y = 1; y <= 2; y++) {
+                helper.setBlock(new BlockPos(x, y, 9), monitor(Direction.NORTH));
+            }
+        }
+        BlockPos[] origin = new BlockPos[1];
+        helper.runAfterDelay(4, () -> {
+            for (int x = 7; x <= 9; x++) {
+                ControlMonitorBlockEntity monitor = helper.getBlockEntity(new BlockPos(x, 1, 9));
+                if (monitor != null && monitor.isOrigin()) {
+                    origin[0] = new BlockPos(x, 1, 9);
+                }
+            }
+            helper.assertTrue(origin[0] != null, "the six monitors make one screen");
+            ControlMonitorBlockEntity screen = helper.getBlockEntity(origin[0]);
+            helper.assertTrue(screen.screenWidth() == 3 && screen.screenHeight() == 2, "three by two");
+            screen.setTarget(global(helper, FissionTestBuilder.CONTROLLER));
+        });
+        helper.runAfterDelay(8, () -> {
+            ControlMonitorBlockEntity screen = helper.getBlockEntity(origin[0]);
+            helper.assertTrue(screen != null && screen.getReading().kind() == TargetKind.REACTOR, "the screen reads a reactor");
+            screen.setConfig(MonitorConfig.DEFAULT.withLayout(MonitorLayout.BOTH));
+            helper.assertTrue(screen.pageCount() == 1, "the standard list fits a reactor beside its graph");
+            screen.setConfig(screen.getConfig().withTheme(MonitorTheme.MIMIC_BOARD));
+            int rows = MonitorRow.visible(screen.getReading(), screen.getConfig()).size();
+            int pages = screen.pageCount();
+            helper.assertTrue(pages == MonitorPaging.pageCount(MonitorTheme.MIMIC_BOARD, MonitorLayout.BOTH, 3, 2, rows),
+                    "the server pages as the board draws, got " + pages);
+            helper.assertTrue(rows > 8 && pages > 1, rows + " readings do not fit eight instruments a page, got " + pages + " pages");
+            for (int i = 0; i < pages; i++) {
+                screen.nextPage();
+            }
+            helper.assertTrue(screen.getPage() == 0, "clicking through every page comes back to the first");
+            screen.setConfig(screen.getConfig().withLayout(MonitorLayout.CHART));
+            helper.assertTrue(screen.pageCount() == 1, "a graph-only board has one page");
+            helper.succeed();
         });
     }
 

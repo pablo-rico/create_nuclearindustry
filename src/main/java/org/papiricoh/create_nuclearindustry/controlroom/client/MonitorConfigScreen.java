@@ -22,6 +22,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.MonitorConfig;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorLayout;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorRow;
+import org.papiricoh.create_nuclearindustry.controlroom.MonitorTheme;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.controlroom.client.widget.OptionList;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
@@ -33,8 +34,8 @@ import java.util.Set;
 import java.util.function.IntConsumer;
 
 /**
- * Wrench setup of a control room screen: its title, its layout, what the graph's two lines plot,
- * and which readings it lists in which order. Opened on the clicked monitor; the setup belongs to
+ * Wrench setup of a control room screen: its title, its layout and style, what the graph's lines
+ * plot (two always, a third when one is chosen), and which readings it lists in which order. Opened on the clicked monitor; the setup belongs to
  * the screen's origin, which this reads, and every change goes to the server at once as a
  * {@link ConfigureDevicePayload}, where it is checked again.
  */
@@ -44,18 +45,20 @@ public class MonitorConfigScreen extends AbstractSimiContainerScreen<DeviceMenu>
     private static final String KEY = "create_nuclearindustry.monitor.setup.";
     // Keep in sync with control_monitor in tools/texturegen/tex_controlroom2.py.
     static final int WIDTH = 220;
-    static final int HEIGHT = 200;
+    static final int HEIGHT = 234;
     static final int LABEL_X = 10;
     static final int FIELD_X = 62;
     static final int FIELD_WIDTH = 148;
     static final int FIELD_HEIGHT = 14;
     static final int TITLE_Y = 21;
     static final int LAYOUT_Y = 38;
-    static final int SERIES_A_Y = 55;
-    static final int SERIES_B_Y = 72;
-    static final int READINGS_Y = 92;
+    static final int THEME_Y = 55;
+    static final int SERIES_A_Y = 72;
+    static final int SERIES_B_Y = 89;
+    static final int SERIES_C_Y = 106;
+    static final int READINGS_Y = 126;
     static final int LIST_X = 10;
-    static final int LIST_Y = 104;
+    static final int LIST_Y = 138;
     static final int LIST_WIDTH = 178;
     static final int LIST_HEIGHT = 84;
     static final int BUTTON_X = 192;
@@ -122,6 +125,12 @@ public class MonitorConfigScreen extends AbstractSimiContainerScreen<DeviceMenu>
         }
         selector(LAYOUT_Y, "layout", layouts, config.layout().ordinal(),
                 state -> update(config.withLayout(MonitorLayout.values()[state])));
+        List<Component> themes = new ArrayList<>();
+        for (MonitorTheme theme : MonitorTheme.values()) {
+            themes.add(Component.translatable(theme.translationKey()));
+        }
+        selector(THEME_Y, "theme", themes, config.theme().ordinal(),
+                state -> update(config.withTheme(MonitorTheme.values()[state])));
         List<Component> series = new ArrayList<>();
         series.add(Component.translatable(KEY + "series.default"));
         for (GaugeReading reading : seriesOptions) {
@@ -131,6 +140,11 @@ public class MonitorConfigScreen extends AbstractSimiContainerScreen<DeviceMenu>
                 state -> update(config.withSeries(seriesAt(state), config.seriesB())));
         selector(SERIES_B_Y, "series_b", series, seriesIndex(config.seriesB()),
                 state -> update(config.withSeries(config.seriesA(), seriesAt(state))));
+        // The third line has no usual reading: its first option is none at all.
+        List<Component> third = new ArrayList<>(series);
+        third.set(0, Component.translatable(KEY + "series.none"));
+        selector(SERIES_C_Y, "series_c", third, seriesIndex(config.seriesC()),
+                state -> update(config.withSeriesC(seriesAt(state))));
 
         rowList = new OptionList<MonitorRow>(leftPos + LIST_X, topPos + LIST_Y, LIST_WIDTH, LIST_HEIGHT)
                 .allowUnavailableSelection(true)
@@ -297,8 +311,12 @@ public class MonitorConfigScreen extends AbstractSimiContainerScreen<DeviceMenu>
         graphics.drawString(font, title, 10, 7, TITLE_COLOR, false);
         graphics.drawString(font, Component.translatable(KEY + "title"), LABEL_X, TITLE_Y + 3, LABEL_COLOR, false);
         graphics.drawString(font, Component.translatable(KEY + "layout"), LABEL_X, LAYOUT_Y + 3, LABEL_COLOR, false);
-        graphics.drawString(font, Component.translatable(KEY + "series_a"), LABEL_X, SERIES_A_Y + 3, 0xFFFF7A50, false);
-        graphics.drawString(font, Component.translatable(KEY + "series_b"), LABEL_X, SERIES_B_Y + 3, 0xFF58B8FF, false);
+        graphics.drawString(font, Component.translatable(KEY + "theme"), LABEL_X, THEME_Y + 3, LABEL_COLOR, false);
+        // The lines' names in their colours in the chosen style: a preview of the style as it is cycled.
+        int[] lines = MonitorPalette.of(config == null ? MonitorTheme.STANDARD : config.theme()).guiSeries();
+        graphics.drawString(font, Component.translatable(KEY + "series_a"), LABEL_X, SERIES_A_Y + 3, lines[0], false);
+        graphics.drawString(font, Component.translatable(KEY + "series_b"), LABEL_X, SERIES_B_Y + 3, lines[1], false);
+        graphics.drawString(font, Component.translatable(KEY + "series_c"), LABEL_X, SERIES_C_Y + 3, lines[2], false);
         graphics.drawString(font, Component.translatable(KEY + "rows"), LABEL_X, READINGS_Y, LABEL_COLOR, false);
         Component watching = Component.translatable(kind.translationKey());
         graphics.drawString(font, watching, WIDTH - 10 - font.width(watching), READINGS_Y, 0xFF6C7771, false);

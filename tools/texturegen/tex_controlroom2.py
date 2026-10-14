@@ -197,22 +197,22 @@ def annunciator_panel_gui():
 
 @gui("control_monitor")
 def control_monitor_gui():
-    # 220x200 (MonitorConfigScreen): title strip, four fields at x 62-209 (title, layout, graph A,
-    # graph B at y 21/38/55/72, 14 high), a rule at y 88, the readings list well at x 10-187,
-    # y 104-187, and Create's buttons at x 192 (drawn by the screen).
-    w, h = 220, 200
+    # 220x234 (MonitorConfigScreen): title strip, six fields at x 62-209 (title, layout, style,
+    # graph A, graph B, graph C at y 21/38/55/72/89/106, 14 high), a rule at y 122, the readings list
+    # well at x 10-187, y 138-221, and Create's buttons at x 192 (drawn by the screen).
+    w, h = 220, 234
     t = _plate(w, h, 413)
     _recess(t, 6, 4, w - 7, 16)
     _recess(t, 6, 18, w - 7, h - 6)
-    for y in (21, 38, 55, 72):
+    for y in (21, 38, 55, 72, 89, 106):
         x0, y0, x1, y1 = 62, y, 62 + 148 - 1, y + 14 - 1
         t.rect(x0, y0, x1, y1, DARK[2])
         t.hline(x0, x1, y0, DARK[0])
         t.vline(x0, y0, y1, DARK[0])
         t.hline(x0 + 1, x1, y1, DARK[3])
         t.vline(x1, y0 + 1, y1, DARK[3])
-    t.hline(10, w - 11, 88, DARK[3])
-    outline(t, 9, 103, 188, 188, DARK[0])
+    t.hline(10, w - 11, 122, DARK[3])
+    outline(t, 9, 137, 188, 222, DARK[0])
     return t
 
 

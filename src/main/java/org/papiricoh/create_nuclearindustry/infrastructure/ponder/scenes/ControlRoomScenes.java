@@ -31,13 +31,16 @@ import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
+import org.papiricoh.create_nuclearindustry.controlroom.MonitorConfig;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
+import org.papiricoh.create_nuclearindustry.controlroom.MonitorTheme;
 import org.papiricoh.create_nuclearindustry.controlroom.NuclearAlarmBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorPanelBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.chart.ChartRecorderBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModuleItem;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.CoreMap;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLinkBlock;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.GuidePonderText;
@@ -776,6 +779,11 @@ public class ControlRoomScenes {
         Direction right = east ? Direction.SOUTH : Direction.WEST;
         MonitorReading reading = screen == REACTOR_SCREEN ? reactorReading() : screen == TOKAMAK_SCREEN ? tokamakReading() : turbineReading();
         GlobalPos target = screen == REACTOR_SCREEN ? REACTOR : screen == TOKAMAK_SCREEN ? TOKAMAK : TURBINE;
+        // The room shows every style: the reactor's big screen as standard, the tokamak's as a process
+        // computer page with a third line, the turbine's as a mimic board.
+        MonitorConfig config = screen == REACTOR_SCREEN ? MonitorConfig.DEFAULT
+                : screen == TOKAMAK_SCREEN ? MonitorConfig.DEFAULT.withTheme(MonitorTheme.PROCESS_COMPUTER).withSeriesC(GaugeReading.CONFINEMENT)
+                : MonitorConfig.DEFAULT.withTheme(MonitorTheme.MIMIC_BOARD);
         for (int i = 0; i < screen.width(); i++) {
             for (int j = 0; j < screen.height(); j++) {
                 BlockPos member = screen.origin().relative(right, i).above(j);
@@ -783,7 +791,7 @@ public class ControlRoomScenes {
                 scene.world().modifyBlockEntityNBT(util.select().position(member), ControlMonitorBlockEntity.class,
                         nbt -> {
                             if (origin) {
-                                ControlRoomLayout.screen(nbt, screen, target, reading);
+                                ControlRoomLayout.screen(nbt, screen, target, reading, config);
                             } else {
                                 screenMember(nbt, screen);
                             }

@@ -15,8 +15,9 @@ import java.util.Set;
 
 /**
  * How a control room screen is set up with a wrench: its title, its {@link MonitorLayout}, the order
- * of its rows and which are hidden, and the readings its graph plots. The default (empty title,
- * {@link MonitorLayout#AUTO}, no rows, no series) is what every screen showed before it could be set up.
+ * of its rows and which are hidden, the readings its graph plots and its {@link MonitorTheme}. The
+ * default (empty title, {@link MonitorLayout#AUTO}, no rows, no series, {@link MonitorTheme#STANDARD})
+ * is what every screen showed before it could be set up.
  *
  * @param title  shown on the title line instead of the kind of target; empty for the kind
  * @param rows   the rows in the order the player put them; empty for the usual order. Rows left out
@@ -24,18 +25,28 @@ import java.util.Set;
  * @param hidden rows not drawn
  * @param seriesA what the graph's first line plots, or null for the usual reading of the target
  * @param seriesB the same for the second line
+ * @param seriesC what a third line plots, or null for none: unlike the first two it has no usual reading
+ * @param theme  the screen's style
  */
 public record MonitorConfig(String title, MonitorLayout layout, List<MonitorRow> rows, Set<MonitorRow> hidden,
-                            @Nullable GaugeReading seriesA, @Nullable GaugeReading seriesB) {
+                            @Nullable GaugeReading seriesA, @Nullable GaugeReading seriesB,
+                            @Nullable GaugeReading seriesC, MonitorTheme theme) {
     /** Longest title: what fits the title line of a two-block screen with its status. */
     public static final int TITLE_MAX = 24;
     public static final MonitorConfig DEFAULT = new MonitorConfig("", MonitorLayout.AUTO, List.of(), Set.of(), null, null);
+
+    /** A setup with no third line in the standard style. */
+    public MonitorConfig(String title, MonitorLayout layout, List<MonitorRow> rows, Set<MonitorRow> hidden,
+                         @Nullable GaugeReading seriesA, @Nullable GaugeReading seriesB) {
+        this(title, layout, rows, hidden, seriesA, seriesB, null, MonitorTheme.STANDARD);
+    }
 
     public MonitorConfig {
         title = title == null ? "" : title;
         layout = layout == null ? MonitorLayout.AUTO : layout;
         rows = rows == null ? List.of() : List.copyOf(rows);
         hidden = hidden == null || hidden.isEmpty() ? Set.of() : Set.copyOf(hidden);
+        theme = theme == null ? MonitorTheme.STANDARD : theme;
     }
 
     public boolean isDefault() {
@@ -48,19 +59,28 @@ public record MonitorConfig(String title, MonitorLayout layout, List<MonitorRow>
     }
 
     public MonitorConfig withTitle(String newTitle) {
-        return new MonitorConfig(newTitle, layout, rows, hidden, seriesA, seriesB);
+        return new MonitorConfig(newTitle, layout, rows, hidden, seriesA, seriesB, seriesC, theme);
     }
 
     public MonitorConfig withLayout(MonitorLayout newLayout) {
-        return new MonitorConfig(title, newLayout, rows, hidden, seriesA, seriesB);
+        return new MonitorConfig(title, newLayout, rows, hidden, seriesA, seriesB, seriesC, theme);
     }
 
     public MonitorConfig withRows(List<MonitorRow> newRows, Set<MonitorRow> newHidden) {
-        return new MonitorConfig(title, layout, newRows, newHidden, seriesA, seriesB);
+        return new MonitorConfig(title, layout, newRows, newHidden, seriesA, seriesB, seriesC, theme);
     }
 
+    /** The first two lines changed; the third is kept. */
     public MonitorConfig withSeries(@Nullable GaugeReading newA, @Nullable GaugeReading newB) {
-        return new MonitorConfig(title, layout, rows, hidden, newA, newB);
+        return new MonitorConfig(title, layout, rows, hidden, newA, newB, seriesC, theme);
+    }
+
+    public MonitorConfig withSeriesC(@Nullable GaugeReading newC) {
+        return new MonitorConfig(title, layout, rows, hidden, seriesA, seriesB, newC, theme);
+    }
+
+    public MonitorConfig withTheme(MonitorTheme newTheme) {
+        return new MonitorConfig(title, layout, rows, hidden, seriesA, seriesB, seriesC, newTheme);
     }
 
     /**
@@ -86,7 +106,7 @@ public record MonitorConfig(String title, MonitorLayout layout, List<MonitorRow>
                     keptHidden.add(row);
                 }
             }
-            return new MonitorConfig(cleanTitle, layout, List.copyOf(kept), keptHidden, seriesA, seriesB);
+            return new MonitorConfig(cleanTitle, layout, List.copyOf(kept), keptHidden, seriesA, seriesB, seriesC, theme);
         }
         List<MonitorRow> order = List.of();
         Set<MonitorRow> cleanHidden = Set.of();
@@ -103,7 +123,8 @@ public record MonitorConfig(String title, MonitorLayout layout, List<MonitorRow>
         }
         GaugeReading cleanA = known && seriesA != null && seriesA.kind() == kind ? seriesA : null;
         GaugeReading cleanB = known && seriesB != null && seriesB.kind() == kind ? seriesB : null;
-        return new MonitorConfig(cleanTitle, layout, order, cleanHidden, cleanA, cleanB);
+        GaugeReading cleanC = known && seriesC != null && seriesC.kind() == kind ? seriesC : null;
+        return new MonitorConfig(cleanTitle, layout, order, cleanHidden, cleanA, cleanB, cleanC, theme);
     }
 
     /**
@@ -147,12 +168,15 @@ public record MonitorConfig(String title, MonitorLayout layout, List<MonitorRow>
         tag.put("Hidden", names(sortedHidden));
         tag.putString("SeriesA", seriesA == null ? "" : seriesA.name());
         tag.putString("SeriesB", seriesB == null ? "" : seriesB.name());
+        tag.putString("SeriesC", seriesC == null ? "" : seriesC.name());
+        tag.putString("Theme", theme.name());
         return tag;
     }
 
     /**
      * The setup in {@code tag}, taking only what it understands: unknown rows and readings are
-     * dropped, a missing value is the default. Not sanitised for a kind of target: see {@link #sanitize}.
+     * dropped, a missing value is the default (screens saved before the third line and the styles get
+     * none and {@link MonitorTheme#STANDARD}). Not sanitised for a kind of target: see {@link #sanitize}.
      */
     public static MonitorConfig read(CompoundTag tag) {
         String title = tag.contains("Title", Tag.TAG_STRING) ? tag.getString("Title") : "";
@@ -161,8 +185,10 @@ public record MonitorConfig(String title, MonitorLayout layout, List<MonitorRow>
         List<MonitorRow> hidden = rows(tag.getList("Hidden", Tag.TAG_STRING));
         GaugeReading seriesA = GaugeReading.parse(tag.getString("SeriesA"));
         GaugeReading seriesB = GaugeReading.parse(tag.getString("SeriesB"));
+        GaugeReading seriesC = GaugeReading.parse(tag.getString("SeriesC"));
+        MonitorTheme theme = MonitorTheme.byName(tag.getString("Theme"));
         return new MonitorConfig(sanitizeTitle(title), layout, rows, hidden.isEmpty() ? Set.of() : EnumSet.copyOf(hidden),
-                seriesA, seriesB);
+                seriesA, seriesB, seriesC, theme);
     }
 
     private static ListTag names(List<MonitorRow> rows) {

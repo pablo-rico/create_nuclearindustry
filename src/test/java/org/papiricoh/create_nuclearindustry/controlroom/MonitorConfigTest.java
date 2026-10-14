@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** A screen's wrench setup made safe for what it watches: title, rows and series. */
+/** A screen's wrench setup made safe for what it watches: title, rows, series and style. */
 class MonitorConfigTest {
 
     @Test
@@ -81,5 +81,54 @@ class MonitorConfigTest {
                 GaugeReading.SG_STEAM, null);
         assertEquals(config, MonitorConfig.read(config.write()));
         assertEquals(MonitorConfig.DEFAULT, MonitorConfig.read(new net.minecraft.nbt.CompoundTag()), "an empty tag is the default");
+    }
+
+    @Test
+    void theThirdLineAndStyleSurviveNbt() {
+        MonitorConfig config = MonitorConfig.DEFAULT.withSeries(GaugeReading.REACTOR_FUEL, null)
+                .withSeriesC(GaugeReading.REACTOR_XENON).withTheme(MonitorTheme.MIMIC_BOARD);
+        MonitorConfig read = MonitorConfig.read(config.write());
+        assertEquals(config, read);
+        assertSame(GaugeReading.REACTOR_XENON, read.seriesC());
+        assertSame(MonitorTheme.MIMIC_BOARD, read.theme());
+    }
+
+    /** Screens saved before the third line and the styles have neither key; nonsense reads as nothing. */
+    @Test
+    void oldSetupsLoadWithTheDefaults() {
+        MonitorConfig old = new MonitorConfig("Unit 3", MonitorLayout.LIST, List.of(), Set.of(), GaugeReading.REACTOR_FUEL, null);
+        net.minecraft.nbt.CompoundTag tag = old.write();
+        tag.remove("SeriesC");
+        tag.remove("Theme");
+        MonitorConfig read = MonitorConfig.read(tag);
+        assertEquals(old, read);
+        assertNull(read.seriesC(), "no third line");
+        assertSame(MonitorTheme.STANDARD, read.theme(), "the look they always had");
+        tag.putString("SeriesC", "NOPE");
+        tag.putString("Theme", "BOGUS");
+        assertEquals(old, MonitorConfig.read(tag), "an unknown reading or style is none and standard");
+    }
+
+    @Test
+    void aThirdLineOfAnotherKindIsDropped() {
+        MonitorConfig sent = MonitorConfig.DEFAULT.withSeriesC(GaugeReading.TURBINE_SPEED).withTheme(MonitorTheme.PROCESS_COMPUTER);
+        MonitorConfig clean = sent.sanitize(TargetKind.REACTOR);
+        assertNull(clean.seriesC(), "a turbine reading cannot be plotted for a reactor");
+        assertSame(MonitorTheme.PROCESS_COMPUTER, clean.theme(), "the style suits any target");
+        assertSame(GaugeReading.TURBINE_SPEED, sent.sanitize(TargetKind.TURBINE).seriesC());
+        MonitorConfig unlinked = sent.sanitize(TargetKind.NONE);
+        assertSame(GaugeReading.TURBINE_SPEED, unlinked.seriesC(), "kept as sent while the type is unknown");
+        assertSame(MonitorTheme.PROCESS_COMPUTER, unlinked.theme());
+    }
+
+    @Test
+    void theStyleAloneIsASetupAndTheFirstLinesKeepTheThird() {
+        assertFalse(MonitorConfig.DEFAULT.withTheme(MonitorTheme.MIMIC_BOARD).isDefault(), "a style is saved");
+        assertFalse(MonitorConfig.DEFAULT.withSeriesC(GaugeReading.REACTOR_FUEL).isDefault(), "and so is a third line");
+        MonitorConfig withC = MonitorConfig.DEFAULT.withSeriesC(GaugeReading.REACTOR_FUEL);
+        assertSame(GaugeReading.REACTOR_FUEL, withC.withSeries(GaugeReading.REACTOR_POWER, null).seriesC(),
+                "choosing the first two lines leaves the third");
+        assertSame(MonitorTheme.STANDARD, new MonitorConfig("", null, null, null, null, null, null, null).theme(),
+                "no style is the standard one");
     }
 }

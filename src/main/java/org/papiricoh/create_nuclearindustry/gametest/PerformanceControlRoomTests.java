@@ -25,6 +25,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.chart.ChartBuffer;
 import org.papiricoh.create_nuclearindustry.controlroom.chart.ChartRecorderBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
 
 /**
  * What control room devices cost the server and the network: a screen at rest sends its clients next
@@ -108,6 +109,7 @@ public class PerformanceControlRoomTests {
             helper.assertTrue(packet != null, "an update packet is made");
             CompoundTag update = packet.getTag();
             helper.assertTrue(!update.contains("HistoryA") && update.contains("AppendA"), "a later packet carries new samples only");
+            helper.assertTrue(!update.contains("AppendC"), "and nothing for a third line the screen does not have");
             int fresh = update.getIntArray("AppendA").length;
             helper.assertTrue(fresh >= 3 && fresh < monitor.historySize(),
                     "the samples since the broadcast before the last, not the whole history: " + fresh + " of " + monitor.historySize());
@@ -198,6 +200,45 @@ public class PerformanceControlRoomTests {
                             "sample " + i + " matches");
                 }
             }
+            helper.succeed();
+        });
+    }
+
+    /** A screen with a third line sends its samples alongside the other two, and every client ends with the same. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 300)
+    public static void aThirdLineReachesEveryClient(GameTestHelper helper) {
+        SteamGeneratorTestBuilder.build(helper, GENERATOR, 4);
+        BlockPos pos = new BlockPos(2, 1, 2);
+        helper.setBlock(pos, monitor());
+        ControlMonitorBlockEntity[] client = new ControlMonitorBlockEntity[1];
+        helper.runAfterDelay(5, () -> {
+            ControlMonitorBlockEntity monitor = helper.getBlockEntity(pos);
+            helper.assertTrue(monitor != null, "the monitor is there");
+            monitor.setTarget(generator(helper));
+            monitor.setConfig(monitor.getConfig().withSeriesC(GaugeReading.SG_HEAT));
+        });
+        helper.runAfterDelay(70, () -> {
+            ControlMonitorBlockEntity monitor = helper.getBlockEntity(pos);
+            ClientboundBlockEntityDataPacket packet = monitor.getUpdatePacket();
+            helper.assertTrue(packet != null && packet.getTag().contains("HistoryC"), "the whole state carries the third line");
+            client[0] = new ControlMonitorBlockEntity(AllNuclearEntities.CONTROL_MONITOR.get(), monitor.getBlockPos(), monitor.getBlockState());
+            client[0].handleUpdateTag(packet.getTag(), helper.getLevel().registryAccess());
+        });
+        helper.runAfterDelay(130, () -> {
+            var registries = helper.getLevel().registryAccess();
+            ControlMonitorBlockEntity monitor = helper.getBlockEntity(pos);
+            ClientboundBlockEntityDataPacket packet = monitor.getUpdatePacket();
+            helper.assertTrue(packet != null, "an update packet is made");
+            CompoundTag update = packet.getTag();
+            helper.assertTrue(update.contains("AppendC") && update.getIntArray("AppendC").length == update.getIntArray("AppendA").length,
+                    "a later packet carries the third line's new samples beside the others");
+            client[0].handleUpdateTag(update, registries);
+            helper.assertTrue(client[0].historySize() == monitor.historySize(), "the client has the whole history");
+            for (int i = 0; i < monitor.historySize(); i++) {
+                helper.assertTrue(Float.floatToIntBits(client[0].historyC(i)) == Float.floatToIntBits(monitor.historyC(i)),
+                        "third line sample " + i + " matches");
+            }
+            helper.assertTrue(!Float.isNaN(monitor.historyC(monitor.historySize() - 1)), "and it plots the heat");
             helper.succeed();
         });
     }

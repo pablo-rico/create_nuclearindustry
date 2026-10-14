@@ -732,6 +732,21 @@ below for what changes in existing worlds.
   supervisor's tables behind. Four scenes cover linking and consoles, every
   control module, the screens and instruments, and the redstone that leaves
   the room. It replaces the old single control room scene.
+- Control room screens have styles, chosen with the wrench. Besides the
+  standard screen there are two new ones, each laying the same readings and
+  graph out its own way. *Process computer* looks like a 1980s plant computer
+  page: a header band with the machine's tag and the time, boxed panels, a
+  point-log table with dotted leaders, segmented bar graphs and WRN/ALM flags
+  (ALM blinks), a trend with axes, and a footer with the state, the alarm count
+  and the page. *Mimic board* looks like a 1970s hard-wired board: an engraved
+  nameplate, the state in an annunciator window, a grid of instruments whose
+  nameplates light amber on a warning and flash red on an alarm, digital and
+  edgewise meters, and a strip-chart recorder. When the bigger instruments
+  don't all fit, the screen pages through them on click as usual.
+- Screen graphs can plot a third line, chosen with the wrench ("None" by
+  default), on its own scale. Choosing it only restarts that line; the other
+  two keep their history. The control room Ponder scene shows the styles and
+  the third line.
 - Fixed: in the Control Room scenes, the progress bar and the buttons at the
   bottom of the Ponder window vanished behind the room's floor whenever the
   view closed in on part of it.

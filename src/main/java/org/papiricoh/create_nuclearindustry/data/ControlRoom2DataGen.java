@@ -137,7 +137,13 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(s + "layout.both", "Readings and graph", "Lecturas y gráfica");
         add(s + "series_a", "Graph A", "Gráfica A");
         add(s + "series_b", "Graph B", "Gráfica B");
+        add(s + "series_c", "Graph C", "Gráfica C");
         add(s + "series.default", "Default", "Por defecto");
+        add(s + "series.none", "None", "Ninguna");
+        add(s + "theme", "Style", "Estilo");
+        add(s + "theme.standard", "Standard", "Estándar");
+        add(s + "theme.process_computer", "Process computer", "Ordenador de proceso");
+        add(s + "theme.mimic_board", "Mimic board", "Panel sinóptico");
         add(s + "rows", "Readings", "Lecturas");
         add(s + "rows.unlinked", "Link the screen first", "Enlaza antes la pantalla");
         add(s + "rows.up", "Move up", "Subir");
@@ -148,9 +154,20 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(s + "rows.show", "Show this reading", "Mostrar esta lectura");
         add(s + "rows.hide", "Hide this reading", "Ocultar esta lectura");
         add("create_nuclearindustry.monitor.no_rows", "No readings shown", "Ninguna lectura visible");
+        // The process computer style's page: panel titles, footer and table flags, in capitals as on a CRT.
+        String style = "create_nuclearindustry.monitor.style.";
+        add(style + "plant_data", "PLANT DATA", "DATOS DE PLANTA");
+        add(style + "trend", "TREND", "TENDENCIA");
+        add(style + "trend_caption", "% / 2 MIN", "% / 2 MIN");
+        add(style + "status", "STATUS", "ESTADO");
+        add(style + "page", "PG %s/%s", "PÁG %s/%s");
+        add(style + "alarms", "ALM %s", "ALM %s");
+        add(style + "no_alarms", "NO ALM", "SIN ALM");
+        add(style + "flag.bad", "ALM", "ALM");
+        add(style + "flag.warn", "WRN", "AVS");
         add("jei.create_nuclearindustry.info.control_monitor",
-                "Right-click a Monitor with a wrench to set up its screen, from any of its blocks: a title of your own, the layout (readings, graph, both, or the automatic one that switches on click), what the graph's two lines plot, and which readings it lists in which order. Click a reading in the list to show or hide it or move it up or down. A screen that grows keeps its setup.",
-                "Haz clic derecho en un Monitor con una llave inglesa para configurar su pantalla, desde cualquiera de sus bloques: un título propio, la disposición (lecturas, gráfica, ambas o la automática que cambia al hacer clic), qué dibujan las dos líneas de la gráfica y qué lecturas lista y en qué orden. Haz clic en una lectura de la lista para mostrarla, ocultarla, subirla o bajarla. Una pantalla que crece conserva su configuración.");
+                "Right-click a Monitor with a wrench to set up its screen, from any of its blocks: a title of your own, the layout (readings, graph, both, or the automatic one that switches on click), its style (the standard screen, a process computer's CRT page or a mimic board's panel), what the graph's lines plot (two always, a third when you choose one; each on its own scale), and which readings it lists in which order. Click a reading in the list to show or hide it or move it up or down. A screen that grows keeps its setup.",
+                "Haz clic derecho en un Monitor con una llave inglesa para configurar su pantalla, desde cualquiera de sus bloques: un título propio, la disposición (lecturas, gráfica, ambas o la automática que cambia al hacer clic), su estilo (la pantalla estándar, la página de un ordenador de proceso o el panel de un sinóptico), qué dibujan las líneas de la gráfica (dos siempre y una tercera si la eliges; cada una con su propia escala) y qué lecturas lista y en qué orden. Haz clic en una lectura de la lista para mostrarla, ocultarla, subirla o bajarla. Una pantalla que crece conserva su configuración.");
     }
 
     private static void chartRecorder() {

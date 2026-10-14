@@ -311,10 +311,31 @@ elige en el juego:
   grafica* (juntas en cualquier pantalla de dos bloques o mas: lado a lado si es
   mas ancha que alta, una encima de otra si no; un solo bloque muestra la grafica
   despues de sus lecturas).
+- **Estilo**: como se ve la pantalla. Cada estilo reparte las mismas lecturas y
+  la misma grafica a su manera:
+  - *Estandar*: la de siempre, cristal verde oscuro con lista y grafica.
+  - *Ordenador de proceso*: la pagina de un ordenador de planta de los 80. Banda
+    azul con la sigla de la maquina y la hora, paneles «DATOS DE PLANTA» y
+    «TENDENCIA» con marco, tabla con puntos guia, unidades en columna, barras
+    segmentadas y avisos AVS/ALM (ALM parpadea), grafica con ejes y un pie con
+    el estado, cuantas alarmas hay y la pagina.
+  - *Panel sinoptico*: un panel cableado de los 70. Placa grabada con tornillos,
+    el estado en una ventana anunciadora, una rejilla de instrumentos (la placa
+    se enciende en ambar con un aviso y en rojo intermitente con una alarma,
+    medidor digital y medidor de canto) y un registrador de papel.
+
+  Los instrumentos del panel sinoptico y la tabla del ordenador de proceso
+  ocupan mas que una fila de la lista: si no caben todas las lecturas, la
+  pantalla las reparte en paginas y se pasa de una a otra con clic, como
+  siempre (el numero de pagina sale en pantalla).
 - **Grafica A / Grafica B**: que dibuja cada linea de la grafica de dos minutos.
   Se puede elegir cualquier lectura de medidor de la maquina enlazada, o *Por
   defecto* (la pareja habitual: temperatura y potencia en un reactor, etc.).
   Cambiarlas borra la grafica.
+- **Grafica C**: una tercera linea, *Ninguna* por defecto. Se elige igual que
+  las otras dos, con su propia escala, y sale en la leyenda solo cuando esta
+  elegida. Cambiarla solo vuelve a empezar su propia linea: las otras dos
+  conservan su historia.
 - **Lecturas**: la lista de filas de la maquina con su valor en vivo. Haz clic
   en una para elegirla y usa los botones de la derecha para mostrarla u
   ocultarla y subirla o bajarla; el ultimo boton vuelve al orden habitual con
