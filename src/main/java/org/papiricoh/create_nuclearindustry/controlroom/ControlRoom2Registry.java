@@ -38,10 +38,12 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.WallControlPanelBlo
 import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedLinkNetwork;
 import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLinkBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLinkBlockEntity;
+import org.papiricoh.create_nuclearindustry.controlroom.servo.ServoGearboxBlock;
+import org.papiricoh.create_nuclearindustry.controlroom.servo.ServoGearboxBlockEntity;
 
 /**
  * Content for the Advanced Redstone Link, the control table and wall control panel, the chart
- * recorder, the annunciator panel and automatic rod control. The controller
+ * recorder, the annunciator panel, the Servo Gearbox and automatic rod control. The controller
  * module item comes with {@link org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType#CONTROLLER},
  * like every other module.
  */
@@ -64,6 +66,11 @@ public final class ControlRoom2Registry implements NuclearFeature {
             "advanced_redstone_link", () -> new AdvancedRedstoneLinkBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE)
                     .strength(0.5f).noOcclusion().forceSolidOn().pushReaction(PushReaction.DESTROY)));
 
+    /** Puts a piston or pulley where a redstone signal says (see {@link ServoGearboxBlockEntity}). */
+    public static final DeferredHolder<Block, ServoGearboxBlock> SERVO_GEARBOX = AllNuclearBlocks.BLOCKS.register("servo_gearbox",
+            () -> new ServoGearboxBlock(BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_BROWN).strength(2.0f, 6.0f)
+                    .noOcclusion()));
+
     public static final DeferredHolder<Item, BlockItem> ADVANCED_REDSTONE_LINK_ITEM = AllNuclearItems.ITEMS.register("advanced_redstone_link",
             () -> new BlockItem(ADVANCED_REDSTONE_LINK.get(), new Item.Properties()));
     public static final DeferredHolder<Item, BlockItem> CONTROL_TABLE_ITEM = AllNuclearItems.ITEMS.register("control_table",
@@ -74,6 +81,8 @@ public final class ControlRoom2Registry implements NuclearFeature {
             () -> new BlockItem(CHART_RECORDER.get(), new Item.Properties()));
     public static final DeferredHolder<Item, BlockItem> ANNUNCIATOR_PANEL_ITEM = AllNuclearItems.ITEMS.register("annunciator_panel",
             () -> new BlockItem(ANNUNCIATOR_PANEL.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, BlockItem> SERVO_GEARBOX_ITEM = AllNuclearItems.ITEMS.register("servo_gearbox",
+            () -> new BlockItem(SERVO_GEARBOX.get(), new Item.Properties()));
     public static final DeferredHolder<Item, ChartRollItem> CHART_ROLL = AllNuclearItems.ITEMS.register("chart_roll",
             () -> new ChartRollItem(new Item.Properties().stacksTo(1)));
 
@@ -96,6 +105,11 @@ public final class ControlRoom2Registry implements NuclearFeature {
             AllNuclearEntities.ENTITIES.register("advanced_redstone_link", () -> BlockEntityType.Builder.of(
                     (pos, state) -> new AdvancedRedstoneLinkBlockEntity(ControlRoom2Registry.ADVANCED_LINK_ENTITY.get(), pos, state),
                     ADVANCED_REDSTONE_LINK.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ServoGearboxBlockEntity>> SERVO_GEARBOX_ENTITY =
+            AllNuclearEntities.ENTITIES.register("servo_gearbox", () -> BlockEntityType.Builder.of(
+                    (pos, state) -> new ServoGearboxBlockEntity(ControlRoom2Registry.SERVO_GEARBOX_ENTITY.get(), pos, state),
+                    SERVO_GEARBOX.get()).build(null));
 
     public static final DeferredHolder<MenuType<?>, MenuType<DeviceMenu>> CHART_RECORDER_MENU = AllNuclearGUIs.MENUS.register("chart_recorder",
             () -> IMenuTypeExtension.create((id, inventory, buf) ->
@@ -144,5 +158,6 @@ public final class ControlRoom2Registry implements NuclearFeature {
         output.accept(WALL_CONTROL_PANEL_ITEM.get());
         output.accept(CHART_RECORDER_ITEM.get());
         output.accept(ANNUNCIATOR_PANEL_ITEM.get());
+        output.accept(SERVO_GEARBOX_ITEM.get());
     }
 }

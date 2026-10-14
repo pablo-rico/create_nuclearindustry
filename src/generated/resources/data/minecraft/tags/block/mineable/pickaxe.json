@@ -82,6 +82,7 @@
     "create_nuclearindustry:control_table",
     "create_nuclearindustry:wall_control_panel",
     "create_nuclearindustry:advanced_redstone_link",
+    "create_nuclearindustry:servo_gearbox",
     "create_nuclearindustry:air_raid_siren",
     "create_nuclearindustry:hand_crank_siren",
     "create_nuclearindustry:seismic_detector",

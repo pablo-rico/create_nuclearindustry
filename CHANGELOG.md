@@ -210,6 +210,9 @@ below for what changes in existing worlds.
   reading (reactor temperature, power, xenon, low coolant, SCRAM, turbine or
   cooling tower load, area radiation) passes the threshold set on it with
   Create's value boxes.
+- Fixed: the Nuclear Alarm's reading selector on its top face never showed up
+  and was not saved, so an alarm always watched reactor temperature after a
+  reload. It now shows up next to the threshold and keeps its choice.
 - New Display Link source for turbines; reactor sources also work on linked
   monitors and panels. Ponder scene and JEI page for the whole room.
 
@@ -713,6 +716,15 @@ below for what changes in existing worlds.
   config.
 - Monitor colours for the tokamak follow the plasma model's own thresholds
   instead of copies of them.
+- Servo Gearbox: an encased shaft that puts Mechanical Pistons and Rope Pulleys
+  where a redstone signal says. The signal is a share of the stroke set on its
+  side (1-64 blocks, cut to the piston's poles or the pulley's rope), and the
+  other side chooses whether a stronger signal extends or retracts. It stops the
+  actuator exactly on the block, through any shafts, gearboxes or gearshifts,
+  follows a signal that changes on the way, says so when something blocks it,
+  and a comparator reads where the actuator stands. A desk dial set to the
+  control rod target drives the rod pistons with one wire, no clutch or
+  gearshift.
 - New Ponder series "Control Room", with its own tag in the Ponder index, set
   in a full main control room laid out like a real plant's: instrument boards
   with annunciators, recorders and a big screen on the back wall, the

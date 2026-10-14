@@ -1,0 +1,43 @@
+{
+  "variants": {
+    "axis=x,motion=extending": {
+      "model": "create_nuclearindustry:block/servo_gearbox/extending",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,motion=idle": {
+      "model": "create_nuclearindustry:block/servo_gearbox/block",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,motion=retracting": {
+      "model": "create_nuclearindustry:block/servo_gearbox/retracting",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y,motion=extending": {
+      "model": "create_nuclearindustry:block/servo_gearbox/extending"
+    },
+    "axis=y,motion=idle": {
+      "model": "create_nuclearindustry:block/servo_gearbox/block"
+    },
+    "axis=y,motion=retracting": {
+      "model": "create_nuclearindustry:block/servo_gearbox/retracting"
+    },
+    "axis=z,motion=extending": {
+      "model": "create_nuclearindustry:block/servo_gearbox/extending",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,motion=idle": {
+      "model": "create_nuclearindustry:block/servo_gearbox/block",
+      "x": 90,
+      "y": 180
+    },
+    "axis=z,motion=retracting": {
+      "model": "create_nuclearindustry:block/servo_gearbox/retracting",
+      "x": 90,
+      "y": 180
+    }
+  }
+}

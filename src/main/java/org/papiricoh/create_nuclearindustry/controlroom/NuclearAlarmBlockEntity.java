@@ -2,9 +2,9 @@ package org.papiricoh.create_nuclearindustry.controlroom;
 
 import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.CenteredSideValueBoxTransform;
-import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,7 +34,10 @@ public class NuclearAlarmBlockEntity extends SmartBlockEntity implements Control
 
     @Nullable
     private GlobalPos target;
-    private ScrollOptionBehaviour<AlarmMetric> metric;
+    /** The metric's own behaviour type: it shares the block entity with the threshold's scroll value. */
+    public static final BehaviourType<KeyedScrollOptionBehaviour<AlarmMetric>> METRIC = new BehaviourType<>("alarm_metric");
+
+    private KeyedScrollOptionBehaviour<AlarmMetric> metric;
     private ScrollValueBehaviour threshold;
     private int ringCounter;
 
@@ -44,7 +47,7 @@ public class NuclearAlarmBlockEntity extends SmartBlockEntity implements Control
 
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
-        metric = new ScrollOptionBehaviour<>(AlarmMetric.class, Component.translatable("create_nuclearindustry.alarm.metric"),
+        metric = new KeyedScrollOptionBehaviour<>(METRIC, "AlarmMetric", AlarmMetric.class, Component.translatable("create_nuclearindustry.alarm.metric"),
                 this, new CenteredSideValueBoxTransform((state, direction) -> direction == Direction.UP));
         metric.withCallback(value -> check());
         threshold = new ScrollValueBehaviour(Component.translatable("create_nuclearindustry.alarm.threshold"), this,

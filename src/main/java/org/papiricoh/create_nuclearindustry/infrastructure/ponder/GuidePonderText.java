@@ -284,9 +284,30 @@ public final class GuidePonderText {
                             "Un puerto en modo SCRAM se enciende al pulsar SCRAM o al saltar el SCRAM automático: conéctalo para meter todas las barras, haga lo que haga el resto de la sala.")),
             List.of("advanced_redstone_link", "reactor_redstone_port", "reactor_control_panel", "wall_control_panel"));
 
+    public static final Scene CONTROL_SERVO = new Scene("servo_gearbox", "servo_gearbox",
+            line("The Servo Gearbox", "La caja servo"),
+            List.of(
+                    line("The Servo Gearbox puts a Mechanical Piston or a Rope Pulley where a redstone signal says. Either end of its shaft takes the rotation; the other end drives.",
+                            "La Caja servo pone un Pistón mecánico o una Polea de cuerda donde dice una señal de redstone. Cualquier extremo de su eje toma el giro; el otro mueve."),
+                    line("It finds the actuator through shafts, gearboxes and cogs, and moves it a share of its stroke: no signal keeps it in, a full signal runs it all the way.",
+                            "Encuentra el actuador a través de ejes, cajas de engranajes y ruedas dentadas, y lo mueve una parte de su carrera: sin señal queda recogido, con señal máxima llega hasta el final."),
+                    line("Scroll the top or bottom to set the stroke in blocks. It is cut to how far the actuator reaches: a piston's poles, a pulley's rope.",
+                            "Rueda arriba o abajo para fijar la carrera en bloques. Se limita a lo que llega el actuador: los postes de un pistón, la cuerda de una polea."),
+                    line("A weaker signal, a shorter move: 8 of 15 of a 3-block stroke is 1.6, so 2 blocks. It always stops on a whole block.",
+                            "Menos señal, menos recorrido: 8 de 15 de una carrera de 3 bloques son 1,6, así que 2 bloques. Siempre se para en un bloque entero."),
+                    line("Scroll the other two sides to choose whether a stronger signal extends or retracts.",
+                            "Rueda en los otros dos lados para elegir si más señal extiende o recoge."),
+                    line("It stops the actuator exactly on the block and lets it set its blocks down. Every actuator turned at the same speed moves alike; if something blocks the way, it waits and tries again.",
+                            "Detiene el actuador justo en el bloque y lo deja asentar sus bloques. Todos los actuadores que giran a la misma velocidad se mueven igual; si algo bloquea el paso, espera y lo vuelve a intentar."),
+                    line("A comparator reads where the actuator stands, on the same scale as the signal.",
+                            "Un comparador lee dónde está el actuador, en la misma escala que la señal."),
+                    line("Send it the redstone of a Control Desk dial set to Control rod target, and the rods follow the desk without clutch or gearshift.",
+                            "Mándale la redstone de una rueda de un Pupitre de control en Objetivo de las barras, y las barras siguen al pupitre sin embrague ni cambio de marcha.")),
+            List.of("servo_gearbox"));
+
     /** Every guide scene, in the order they are registered. */
     public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, MISSILE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
-            ACCELERATOR_LINAC, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS);
+            ACCELERATOR_LINAC, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO);
 
     private GuidePonderText() {}
 

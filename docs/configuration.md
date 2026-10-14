@@ -432,6 +432,37 @@ lado; cada receptor saca la señal más fuerte de los transmisores con su códig
 dentro del alcance, también al bloque en el que está puesto. Sin código completo
 no transmite ni recibe.
 
+### Caja servo
+
+No tiene claves propias. Es una caja de eje encapsulado, como el cambio de
+marcha de Create: cualquiera de sus dos extremos toma el giro y el otro mueve
+los Pistones mecánicos (normales o pegajosos) y las Poleas de cuerda que haya
+detrás, a través de ejes, cajas de engranajes, ruedas dentadas o cambios de
+marcha. Lee la señal de redstone más fuerte de cualquier cara y lleva el actuador
+más cercano a esa parte de la carrera:
+
+- **Carrera** (un par de lados, rueda del ratón): de 1 a 64 bloques, 8 por
+  defecto. Se limita a lo que llega el actuador (los postes de un pistón, la
+  cuerda de una polea hasta el suelo o el límite de cuerda de Create).
+- **Con más señal** (el otro par de lados): *Extiende más* (0 recogido, 15 al
+  final de la carrera) o *Recoge más* (al revés).
+- El objetivo es `señal / 15 × carrera`, redondeado a bloques enteros: con 4
+  bloques, señal 8 da 2 y señal 12 da 3.
+
+Mueve el actuador bloque a bloque con el mismo mecanismo que el Engranaje
+secuenciado de Create, así que se para justo en el bloque y lo deja asentar sus
+bloques; luego deja quieta la salida. Si la señal o la velocidad cambian a mitad
+de camino, se para y vuelve a calcular. Si algo bloquea el movimiento, se queda
+en «Bloqueado» y lo reintenta cada pocos segundos. Todos los actuadores que giran
+a la misma velocidad que el más cercano se mueven igual. Un comparador lee dónde
+está el actuador, en la misma escala que la señal, y mirándolo se ven la señal,
+el objetivo, la posición y los ajustes a la derecha de la pantalla.
+
+Para mover barras de control desde la sala: una rueda de un pupitre en
+*Objetivo de las barras* saca ese objetivo como señal de 0 a 15; con la salida
+bajo el pupitre (o por un enlace) hasta la caja servo, el pistón de las barras
+queda en esa parte de su recorrido.
+
 ## Fusion (tokamak)
 
 - `deuteriumTritiumBurnRate`: **cambia de significado respecto a 1.1.0**. Ahora son

@@ -1,10 +1,12 @@
 package org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes;
 
+import com.simibubi.create.content.redstone.analogLever.AnalogLeverBlockEntity;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
 import net.createmod.catnip.math.Pointing;
 import net.createmod.ponder.api.PonderPalette;
 import net.createmod.ponder.api.element.ElementLink;
 import net.createmod.ponder.api.element.EntityElement;
+import net.createmod.ponder.api.element.WorldSectionElement;
 import net.createmod.ponder.api.scene.SceneBuilder;
 import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.createmod.ponder.api.scene.Selection;
@@ -603,6 +605,128 @@ public class ControlRoomScenes {
                 .placeNearTarget();
         scene.idle(130);
         PonderZoom.to(scene, WHOLE, ZOOM_TICKS);
+    }
+
+    // ------------------------------------------------------------------ the servo gearbox
+
+    /**
+     * The Servo Gearbox on its own schematic (tools/structgen/ponder_servo_gearbox.py): a rope pulley
+     * lowering three control rods into a graphite channel, as the cable drives of a real reactor do,
+     * the servo between it and a motor, an analog lever under the servo and a comparator reading it.
+     */
+    public static void servo(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        PlantPonderText.Scene text = GuidePonderText.CONTROL_SERVO;
+        Script lines = text.script();
+        scene.title(text.id(), text.title().english());
+        scene.configureBasePlate(0, 0, 7);
+        scene.scaleSceneView(0.6f);
+        scene.setSceneOffsetY(-2.5f);
+
+        BlockPos servo = util.grid().at(3, 7, 3);
+        BlockPos pulley = util.grid().at(4, 7, 3);
+        BlockPos lever = util.grid().at(3, 6, 3);
+        BlockPos comparator = util.grid().at(3, 7, 2);
+        BlockPos lamp = util.grid().at(3, 7, 1);
+        Selection drive = util.select().fromTo(2, 7, 3, 3, 7, 3);
+
+        scene.showBasePlate();
+        scene.idle(10);
+        scene.world().showSection(util.select().fromTo(3, 1, 2, 5, 3, 4), Direction.DOWN);
+        scene.idle(10);
+        scene.world().showSection(util.select().fromTo(2, 1, 3, 2, 7, 3).add(util.select().position(servo))
+                .add(util.select().position(pulley)), Direction.DOWN);
+        scene.idle(5);
+        ElementLink<WorldSectionElement> rods = scene.world().showIndependentSection(util.select().fromTo(4, 4, 3, 4, 6, 3), Direction.DOWN);
+        scene.idle(10);
+        scene.world().setKineticSpeed(drive, 32);
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(servo))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+
+        // Full signal: the whole three-block stroke.
+        scene.world().showSection(util.select().position(lever), Direction.DOWN);
+        scene.idle(10);
+        leverTo(scene, util, lever, 15);
+        scene.overlay().showText(120)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(lever, Direction.WEST))
+                .placeNearTarget()
+                .attachKeyFrame();
+        movePulley(scene, util, pulley, rods, 3);
+        scene.idle(80);
+
+        // The stroke, on the top and bottom.
+        scene.overlay().showScrollInput(util.vector().blockSurface(servo, Direction.UP), Direction.UP, 70);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(servo, Direction.UP))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+
+        // Half the signal: two blocks of three.
+        leverTo(scene, util, lever, 8);
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(lever, Direction.WEST))
+                .placeNearTarget();
+        movePulley(scene, util, pulley, rods, -1);
+        scene.idle(90);
+
+        // The mode, on the other two sides.
+        scene.overlay().showScrollInput(util.vector().blockSurface(servo, Direction.NORTH), Direction.NORTH, 70);
+        scene.overlay().showText(90)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(servo, Direction.NORTH))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(100);
+        scene.overlay().showText(130)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(util.grid().at(4, 3, 3)))
+                .placeNearTarget();
+        scene.idle(140);
+
+        // A comparator reads it back.
+        scene.world().showSection(util.select().fromTo(3, 6, 1, 3, 7, 2), Direction.DOWN);
+        scene.idle(10);
+        scene.world().modifyBlock(comparator, state -> state.setValue(BlockStateProperties.POWERED, true), false);
+        scene.world().modifyBlock(lamp, state -> state.setValue(RedstoneLampBlock.LIT, true), false);
+        scene.effects().indicateRedstone(comparator);
+        scene.overlay().showText(90)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(comparator))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(100);
+        scene.overlay().showText(120)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(servo))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(130);
+    }
+
+    /** An analog lever's level, as its block entity keeps it. */
+    private static void leverTo(CreateSceneBuilder scene, SceneBuildingUtil util, BlockPos lever, int level) {
+        scene.world().modifyBlockEntityNBT(util.select().position(lever), AnalogLeverBlockEntity.class, nbt -> nbt.putInt("State", level));
+        scene.effects().indicateRedstone(lever);
+        scene.idle(10);
+    }
+
+    /** The pulley lowers ({@code blocks} positive) or raises its rods, turning while it moves. */
+    private static void movePulley(CreateSceneBuilder scene, SceneBuildingUtil util, BlockPos pulley, ElementLink<WorldSectionElement> rods,
+                                   int blocks) {
+        int ticks = Math.abs(blocks) * 15;
+        scene.world().setKineticSpeed(util.select().position(pulley), blocks > 0 ? 32 : -32);
+        scene.world().movePulley(pulley, blocks, ticks);
+        scene.world().moveSection(rods, util.vector().of(0, -blocks, 0), ticks);
+        scene.idle(ticks);
+        scene.world().setKineticSpeed(util.select().position(pulley), 0);
     }
 
     // ------------------------------------------------------------------ setting the room up

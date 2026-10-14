@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-14T01:44:39.483273	Loot Tables
+// 1.21.1	2026-10-14T04:59:17.951903	Loot Tables
 64315f2829f1110e8eef7a6c1c5c4d2310efebd1 data/create_nuclearindustry/loot_table/blocks/advanced_redstone_link.json
 13c05f487af479a2691bf45b4d60b1e69d36ac47 data/create_nuclearindustry/loot_table/blocks/air_raid_siren.json
 6976bb627a0364fe3995e6c3818535869708f1af data/create_nuclearindustry/loot_table/blocks/annunciator_panel.json
@@ -93,6 +93,7 @@ bf01e8fb59d80618e84b93ed386dd072642b0b14 data/create_nuclearindustry/loot_table/
 c4ff881a7bb03cc16483bb122941a078ea5dcc3d data/create_nuclearindustry/loot_table/blocks/repository_inspector.json
 9907a7b116d8e0caae98efcfe81cc6c0efe24b98 data/create_nuclearindustry/loot_table/blocks/rtg.json
 d342baf5ff79c9f489a48bbc5b997b2230295247 data/create_nuclearindustry/loot_table/blocks/seismic_detector.json
+dcf0d22db9f7f93544325ce3e7e47f3cb4ee62df data/create_nuclearindustry/loot_table/blocks/servo_gearbox.json
 caf5fb94de42cafb1019fe775794ec501635289a data/create_nuclearindustry/loot_table/blocks/shelter_filtration_unit.json
 23c6799d6d60bd306aaffdf689be7fee5f53773c data/create_nuclearindustry/loot_table/blocks/solidified_corium.json
 c1c40397e96a65da56862c06c2e903c8f872065a data/create_nuclearindustry/loot_table/blocks/spent_fuel_rack.json

@@ -20,6 +20,8 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.OutputMode;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ReadingValue;
 import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLinkBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
+import org.papiricoh.create_nuclearindustry.controlroom.servo.ServoGearboxBlockEntity;
+import org.papiricoh.create_nuclearindustry.controlroom.servo.ServoPlan;
 import org.papiricoh.create_nuclearindustry.panel.PanelCard;
 
 import java.util.List;
@@ -284,6 +286,43 @@ public final class ControlRoomPanels {
         card.add(new Field(Component.translatable(P + "range"), Component.translatable(P + "blocks", linkRange()), TEXT));
         card.add(new Note(Component.translatable(P + "hint.code")));
         card.add(new Note(Component.translatable(P + (receiver ? "hint.to_transmitter" : "hint.to_receiver"))));
+        return card;
+    }
+
+    /**
+     * A Servo Gearbox: what it is doing, the signal, where its actuator stands against where the
+     * signal puts it, and how it is set.
+     */
+    public static PanelCard servo(ServoGearboxBlockEntity servo) {
+        String s = P + "servo.";
+        ServoGearboxBlockEntity.Status status = servo.status();
+        PanelCard card = new PanelCard(Component.translatable(s + "kicker"), servo.getBlockState().getBlock().getName(),
+                Component.literal("SERVO"), CYAN);
+        int color = switch (status) {
+            case HOLDING -> GREEN;
+            case EXTENDING, RETRACTING -> AMBER;
+            case NO_ROTATION -> DIM;
+            case NO_ACTUATOR, STALLED -> RED;
+        };
+        card.status(Component.translatable(s + "status." + status.name().toLowerCase(Locale.ROOT)), color, status == ServoGearboxBlockEntity.Status.STALLED);
+        card.add(new Signal(Component.translatable(P + "signal"), servo.signal()));
+        if (servo.actuators() > 0) {
+            int usable = ServoPlan.usableStroke(servo.stroke(), servo.range());
+            float fraction = usable <= 0 ? 0 : Math.max(0, Math.min(1, servo.position() / usable));
+            card.add(new Bar(Component.translatable(s + "position"), fraction,
+                    Component.translatable(P + "unit.of", String.format(Locale.ROOT, "%.1f", servo.position()), usable), CYAN));
+            card.add(new Field(Component.translatable(P + "target"), Component.translatable(P + "blocks", servo.target()), TEXT));
+            if (servo.actuators() > 1) {
+                card.add(new Field(Component.translatable(s + "actuators"), Component.literal(Integer.toString(servo.actuators())), TEXT));
+            }
+        }
+        Component stroke = servo.actuators() > 0 && servo.range() < servo.stroke()
+                ? Component.translatable(s + "stroke_reach", servo.stroke(), servo.range())
+                : Component.translatable(P + "blocks", servo.stroke());
+        card.add(new Field(Component.translatable(s + "stroke"), stroke, TEXT));
+        card.add(new Field(Component.translatable(P + "mode"), Component.translatable(servo.mode().getTranslationKey()), TEXT));
+        card.add(new Note(Component.translatable(s + "hint.sides")));
+        card.footer(Component.translatable(s + "footer", servo.comparatorSignal()));
         return card;
     }
 

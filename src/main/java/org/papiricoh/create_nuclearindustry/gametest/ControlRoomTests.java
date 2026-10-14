@@ -1,10 +1,17 @@
 package org.papiricoh.create_nuclearindustry.gametest;
 
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -208,6 +215,36 @@ public class ControlRoomTests {
             helper.assertFalse(helper.getBlockState(ALARM).getValue(NuclearAlarmBlock.LIT), "turbine metrics ignore a reactor");
             helper.succeed();
         });
+    }
+
+    /**
+     * The metric on top and the threshold on the sides are two settings: both are there to click (Create
+     * keeps one behaviour per type, so sharing one would hide the metric), and both survive a save.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void theAlarmsMetricAndThresholdAreBothSetOnTheBlock(GameTestHelper helper) {
+        helper.setBlock(ALARM, AllNuclearBlocks.NUCLEAR_ALARM.get());
+        NuclearAlarmBlockEntity alarm = helper.getBlockEntity(ALARM);
+        ScrollValueBehaviour threshold = alarm.getBehaviour(ScrollValueBehaviour.TYPE);
+        ScrollOptionBehaviour<?> metric = alarm.getBehaviour(NuclearAlarmBlockEntity.METRIC);
+        helper.assertTrue(threshold != null && metric != null && threshold != metric, "the threshold and the metric are two behaviours");
+        long settings = alarm.getAllBehaviours().stream().filter(b -> b instanceof ValueSettingsBehaviour).count();
+        helper.assertTrue(settings == 2, "two settings to click on, got " + settings);
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        metric.setValueSettings(player, new ValueSettingsBehaviour.ValueSettings(0, AlarmMetric.COOLANT_LOW.ordinal()), false);
+        threshold.setValueSettings(player, new ValueSettingsBehaviour.ValueSettings(0, 42), false);
+        helper.assertTrue(alarm.getMetric() == AlarmMetric.COOLANT_LOW && threshold.getValue() == 42,
+                "both set from their faces, got " + alarm.getMetric() + " / " + threshold.getValue());
+
+        HolderLookup.Provider registries = helper.getLevel().registryAccess();
+        CompoundTag saved = alarm.saveWithoutMetadata(registries);
+        alarm.setMetric(AlarmMetric.TEMPERATURE);
+        alarm.setSetting(0);
+        alarm.loadWithComponents(saved, registries);
+        helper.assertTrue(alarm.getMetric() == AlarmMetric.COOLANT_LOW && threshold.getValue() == 42,
+                "both come back from a save, got " + alarm.getMetric() + " / " + threshold.getValue());
+        helper.succeed();
     }
 
     @GameTest(template = NuclearGameTests.TOKAMAK_ARENA)

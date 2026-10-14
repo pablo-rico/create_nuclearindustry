@@ -83,6 +83,7 @@ public final class PlantJeiInfo {
         pages.add(items("annunciator_panel", ControlRoom2Registry.ANNUNCIATOR_PANEL_ITEM));
         pages.add(items("controller_module", AllNuclearItems.CONTROL_MODULES.get(ModuleType.CONTROLLER)));
         pages.add(items("advanced_redstone_link", ControlRoom2Registry.ADVANCED_REDSTONE_LINK_ITEM));
+        pages.add(items("servo_gearbox", ControlRoom2Registry.SERVO_GEARBOX_ITEM));
         pages.add(items("control_table", ControlRoom2Registry.CONTROL_TABLE_ITEM));
         pages.add(items("wall_control_panel", ControlRoom2Registry.WALL_CONTROL_PANEL_ITEM));
         pages.add(items("led_display_module", AllNuclearItems.CONTROL_MODULES.get(ModuleType.LED_DISPLAY)));

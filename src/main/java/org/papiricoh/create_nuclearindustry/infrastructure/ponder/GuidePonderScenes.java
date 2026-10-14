@@ -28,7 +28,8 @@ public final class GuidePonderScenes {
     private static final ResourceLocation CONTROL_ROOM_TAG = ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID,
             GuidePonderText.CONTROL_ROOM_TAG_ID);
     private static final List<PlantPonderText.Scene> CONTROL_ROOM_SCENES = List.of(GuidePonderText.CONTROL_ROOM,
-            GuidePonderText.CONTROL_MODULES, GuidePonderText.CONTROL_INSTRUMENTS, GuidePonderText.CONTROL_SIGNALS);
+            GuidePonderText.CONTROL_MODULES, GuidePonderText.CONTROL_INSTRUMENTS, GuidePonderText.CONTROL_SIGNALS,
+            GuidePonderText.CONTROL_SERVO);
 
     private GuidePonderScenes() {}
 
@@ -48,6 +49,7 @@ public final class GuidePonderScenes {
         boards.put(GuidePonderText.CONTROL_MODULES, ControlRoomScenes::modules);
         boards.put(GuidePonderText.CONTROL_INSTRUMENTS, ControlRoomScenes::instruments);
         boards.put(GuidePonderText.CONTROL_SIGNALS, ControlRoomScenes::signals);
+        boards.put(GuidePonderText.CONTROL_SERVO, ControlRoomScenes::servo);
         return boards;
     }
 

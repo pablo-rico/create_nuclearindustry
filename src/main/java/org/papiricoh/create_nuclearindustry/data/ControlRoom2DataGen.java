@@ -14,6 +14,7 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleSurfaceBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLinkBlock;
+import org.papiricoh.create_nuclearindustry.controlroom.servo.ServoGearboxBlock;
 import org.papiricoh.create_nuclearindustry.data.recipe.ControlRoom2Recipes;
 
 import java.util.concurrent.CompletableFuture;
@@ -45,6 +46,21 @@ final class ControlRoom2DataGen extends AreaDataGen {
         surfaceStates(provider, ControlRoom2Registry.CONTROL_TABLE.get(), "control_table");
         surfaceStates(provider, ControlRoom2Registry.WALL_CONTROL_PANEL.get(), "wall_control_panel");
         advancedLinkStates(provider);
+        servoStates(provider);
+    }
+
+    /** The servo's hand-made model, its sides' arrows lit by MOTION, turned to its shaft like Create's gearshift. */
+    private static void servoStates(NuclearBlockStateProvider provider) {
+        provider.getVariantBuilder(ControlRoom2Registry.SERVO_GEARBOX.get()).forAllStates(state -> {
+            ServoGearboxBlock.Motion motion = state.getValue(ServoGearboxBlock.MOTION);
+            Direction.Axis axis = state.getValue(ServoGearboxBlock.AXIS);
+            String model = motion == ServoGearboxBlock.Motion.IDLE ? "block" : motion.getSerializedName();
+            return ConfiguredModel.builder()
+                    .modelFile(provider.models().getExistingFile(provider.modLoc("block/servo_gearbox/" + model)))
+                    .rotationX(axis == Direction.Axis.Y ? 0 : 90)
+                    .rotationY(axis == Direction.Axis.X ? 90 : axis == Direction.Axis.Z ? 180 : 0)
+                    .build();
+        });
     }
 
     /** The link's four hand-made models (transmitter or receiver, lit or not), built facing up and turned like an end rod. */
@@ -102,6 +118,7 @@ final class ControlRoom2DataGen extends AreaDataGen {
         moduleSurfaces();
         newModules();
         advancedLink();
+        servo();
         panel();
         plantReadings();
         tokamak();
@@ -332,6 +349,30 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(m + "screen.link_code_hint", "Four letters or digits; Advanced Redstone Links with this code receive the signal",
                 "Cuatro letras o cifras; los Enlaces de redstone avanzados con este código reciben la señal");
         add(m + "screen.link_code_off", "Only with the Advanced Redstone Link output", "Solo con la salida por Enlace de redstone avanzado");
+    }
+
+    /** The Servo Gearbox: its name, the settings on its sides and its card. */
+    private static void servo() {
+        block("servo_gearbox", "Servo Gearbox", "Caja servo");
+        String s = "create_nuclearindustry.servo.";
+        add(s + "mode", "Stronger signal", "Con más señal");
+        add(s + "mode.extend_with_signal", "Extends further", "Extiende más");
+        add(s + "mode.retract_with_signal", "Retracts further", "Recoge más");
+        add(s + "stroke", "Stroke length", "Longitud de carrera");
+        String p = "create_nuclearindustry.panel.servo.";
+        add(p + "kicker", "Kinetics", "Cinética");
+        add(p + "status.no_rotation", "No rotation", "Sin giro");
+        add(p + "status.no_actuator", "No piston or pulley", "Sin pistón ni polea");
+        add(p + "status.holding", "Holding", "En posición");
+        add(p + "status.extending", "Extending", "Extendiendo");
+        add(p + "status.retracting", "Retracting", "Recogiendo");
+        add(p + "status.stalled", "Blocked", "Bloqueado");
+        add(p + "position", "Position", "Posición");
+        add(p + "actuators", "Actuators", "Actuadores");
+        add(p + "stroke", "Stroke", "Carrera");
+        add(p + "stroke_reach", "%s blocks (reaches %s)", "%s bloques (llega a %s)");
+        add(p + "hint.sides", "Scroll its sides: mode and stroke", "Rueda en sus lados: modo y carrera");
+        add(p + "footer", "Comparator reads %s", "Un comparador lee %s");
     }
 
     /** The panel on the right of the screen (see client.panel.PanelHud): control room cards, shared units and hints. */

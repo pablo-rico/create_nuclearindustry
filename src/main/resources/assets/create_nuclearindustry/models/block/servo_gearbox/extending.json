@@ -1,0 +1,6 @@
+{
+  "parent": "create_nuclearindustry:block/servo_gearbox/block",
+  "textures": {
+    "side": "create_nuclearindustry:block/servo_gearbox_side_extending"
+  }
+}

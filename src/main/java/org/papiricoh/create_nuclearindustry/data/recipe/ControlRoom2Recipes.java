@@ -93,6 +93,14 @@ public class ControlRoom2Recipes implements DataProvider {
                 .requires(CreateItems.get("electron_tube"))
                 .unlockedBy("has_redstone_link", InventoryChangeTrigger.TriggerInstance.hasItems(CreateItems.get("redstone_link")))
                 .save(output, id("crafting/advanced_redstone_link"));
+        // Create's gearshift in a brass casing, with an electron tube and a comparator to measure the stroke.
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.REDSTONE, ControlRoom2Registry.SERVO_GEARBOX_ITEM.get())
+                .requires(CreateItems.get("gearshift"))
+                .requires(CreateItems.get("brass_casing"))
+                .requires(CreateItems.get("electron_tube"))
+                .requires(Items.COMPARATOR)
+                .unlockedBy("has_gearshift", InventoryChangeTrigger.TriggerInstance.hasItems(CreateItems.get("gearshift")))
+                .save(output, id("crafting/servo_gearbox"));
         // A desk's top on a full cabinet, and a desk's top on its own for the wall.
         ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ControlRoom2Registry.CONTROL_TABLE_ITEM.get(), 2)
                 .pattern("SSS")

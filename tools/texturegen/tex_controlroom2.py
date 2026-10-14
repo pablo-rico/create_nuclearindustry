@@ -460,3 +460,73 @@ def advanced_link_tip_receiver():
 @block("advanced_link_tip_receiver_powered")
 def advanced_link_tip_receiver_powered():
     return _link_tip(198, MIMIC_BLUE, True)
+
+
+# ======================================================================================
+# servo gearbox
+# ======================================================================================
+# A Create-style encased shaft: brass-trimmed casing, and on its four sides a dark window with
+# the stroke scale between two arrow lamps. The arrow towards the shaft's far end lights green
+# while the servo extends its actuator, the other one amber while it retracts.
+
+from common import casing  # noqa: E402
+from palette import CYAN, GLASS_OFF, RADIUM  # noqa: E402
+
+_UP_ARROW = ((7, 3), (8, 3), (6, 4), (7, 4), (8, 4), (9, 4))
+_DOWN_ARROW = ((6, 11), (7, 11), (8, 11), (9, 11), (7, 12), (8, 12))
+
+
+def _servo_side(lit_up, lit_down):
+    t = casing(Tex(seed=181), STEEL, seed=181, rivets=True, seam=False)
+    # Brass trim along the long edges, as on Create's brass machines.
+    t.vline(2, 2, 13, BRASS[3])
+    t.vline(13, 2, 13, BRASS[2])
+    # The window: x 5-10, y 2-13.
+    t.rect(5, 2, 10, 13, BLACK)
+    t.rect(6, 2, 9, 13, DARK[0])
+    _well(t, 5, 2, 10, 13)
+    # The stroke scale between the arrows, ticks every two pixels.
+    for y in range(6, 10):
+        t.set(7, y, DARK[2])
+        t.set(8, y, DARK[3] if y % 2 == 0 else DARK[2])
+    t.set(6, 6, DARK[3])
+    t.set(6, 9, DARK[3])
+    for x, y in _UP_ARROW:
+        t.set(x, y, RADIUM[6] if lit_up else GLASS_OFF[2])
+    for x, y in _DOWN_ARROW:
+        t.set(x, y, WARN[6] if lit_down else GLASS_OFF[2])
+    if lit_up:
+        t.set(7, 2, RADIUM[3])
+        t.set(8, 2, RADIUM[3])
+    if lit_down:
+        t.set(7, 13, WARN[3])
+        t.set(8, 13, WARN[3])
+    # The ready lamp in the middle of the scale: cyan while it holds, dark while it moves.
+    t.set(7, 7, CYAN[5] if not (lit_up or lit_down) else DARK[1])
+    t.set(8, 8, CYAN[3] if not (lit_up or lit_down) else DARK[1])
+    return t
+
+
+@block("servo_gearbox_side")
+def servo_gearbox_side():
+    return _servo_side(False, False)
+
+
+@block("servo_gearbox_side_extending")
+def servo_gearbox_side_extending():
+    return _servo_side(True, False)
+
+
+@block("servo_gearbox_side_retracting")
+def servo_gearbox_side_retracting():
+    return _servo_side(False, True)
+
+
+@block("servo_gearbox_end")
+def servo_gearbox_end():
+    # The model cuts a 4x4 hole for the shaft at x/y 6-9; a brass collar sits around it.
+    t = casing(Tex(seed=182), STEEL, seed=182, rivets=True, seam=False)
+    t.rect(4, 4, 11, 11, BRASS[2])
+    bevel(t, 4, 4, 11, 11, BRASS, hi=BRASS[5], lo=BRASS[0])
+    t.rect(6, 6, 9, 9, DARK[0])
+    return t
