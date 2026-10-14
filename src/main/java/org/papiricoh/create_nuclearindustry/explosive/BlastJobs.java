@@ -51,6 +51,7 @@ public final class BlastJobs extends SavedData {
     }
 
     void clear() {
+        jobs.forEach(NuclearBlastManager.BlastJob::release);
         jobs.clear();
         setDirty();
     }
@@ -62,6 +63,7 @@ public final class BlastJobs extends SavedData {
     }
 
     void removeFinished() {
+        jobs.stream().filter(NuclearBlastManager.BlastJob::finished).forEach(NuclearBlastManager.BlastJob::release);
         if (jobs.removeIf(NuclearBlastManager.BlastJob::finished)) {
             setDirty();
         }

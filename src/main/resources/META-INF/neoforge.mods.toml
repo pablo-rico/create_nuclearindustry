@@ -36,3 +36,10 @@ type="optional"
 versionRange="[5.11.3,6.0.0)"
 ordering="AFTER"
 side="BOTH"
+
+[[dependencies."${mod_id}"]]
+modId="distanthorizons"
+type="optional"
+versionRange="*"
+ordering="NONE"
+side="CLIENT"

@@ -14,8 +14,10 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import org.papiricoh.create_nuclearindustry.ClientConfig;
 import org.papiricoh.create_nuclearindustry.civildefense.blast.BlastWaveModel;
@@ -34,6 +36,11 @@ import java.util.List;
  * distance's fog; a ring of dust racing out along the ground with the shock wave, and a brief dome of
  * condensation round the fireball; the view shaking when the shock wave passes. The flash and the shake
  * follow {@code explosion.*} in the client config.
+ * <p>
+ * The cloud and the ring are built once a frame. Without Distant Horizons all of it is drawn after the
+ * weather, and what lies past the far plane is cut off. With it, its pass takes what lies beyond the
+ * vanilla terrain first ({@link #farMesh}), drawn with its far-reaching projection over its distant
+ * terrain, and the vanilla pass only the rest.
  */
 public final class NuclearExplosionEffects {
     /** Seconds the flash takes to fade to a third. */
@@ -47,6 +54,14 @@ public final class NuclearExplosionEffects {
     private static final double PUFF_CORE = 0.6;
 
     private static final List<Explosion> ACTIVE = new ArrayList<>();
+
+    /** Frames rendered, to know which frame the quads and the far pass belong to. */
+    private static long frame;
+    private static long builtFrame = -1;
+    private static List<Quad> built = List.of();
+    /** The frame Distant Horizons last took the far quads in, and from how far (squared) they were its. */
+    private static long farFrame = -1;
+    private static double farFrom;
 
     private NuclearExplosionEffects() {}
 
@@ -93,6 +108,11 @@ public final class NuclearExplosionEffects {
 
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         ACTIVE.clear();
+        built = List.of();
+    }
+
+    public static void onRenderFrame(RenderFrameEvent.Pre event) {
+        frame++;
     }
 
     /** How many detonations are being shown; for tests and the tour. */
@@ -106,12 +126,40 @@ public final class NuclearExplosionEffects {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_WEATHER || ACTIVE.isEmpty()) {
             return;
         }
+        List<Quad> quads = quads(event.getPartialTick().getGameTimeDeltaPartialTick(false), event.getCamera());
+        // What Distant Horizons drew already this frame is left out.
+        double until = farFrame == frame ? farFrom : Double.POSITIVE_INFINITY;
+        MeshData mesh = mesh(quads, 0, until);
+        if (mesh != null) {
+            RenderType.debugQuads().draw(mesh);
+        }
+    }
+
+    /**
+     * For Distant Horizons' pass, which comes before the vanilla terrain: this frame's quads at least
+     * {@code from} blocks from the camera, far to near and relative to it, or null if there are none. The
+     * vanilla pass then leaves them out.
+     */
+    @Nullable
+    public static MeshData farMesh(float partial, Camera camera, double from) {
+        if (ACTIVE.isEmpty()) {
+            return null;
+        }
+        farFrame = frame;
+        farFrom = from * from;
+        return mesh(quads(partial, camera), farFrom, Double.POSITIVE_INFINITY);
+    }
+
+    /** This frame's quads, far to near; built on the first call of the frame. */
+    private static List<Quad> quads(float partial, Camera camera) {
+        if (builtFrame == frame) {
+            return built;
+        }
+        builtFrame = frame;
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) {
-            return;
+            return built = List.of();
         }
-        float partial = event.getPartialTick().getGameTimeDeltaPartialTick(false);
-        Camera camera = event.getCamera();
         Vec3 eye = camera.getPosition();
         float daylight = mc.level.getSkyDarken(partial);
         List<Quad> quads = new ArrayList<>();
@@ -129,19 +177,24 @@ public final class NuclearExplosionEffects {
             }
             shockRing(explosion, seconds, eye, daylight, quads);
         }
-        if (quads.isEmpty()) {
-            return;
-        }
         // Far to near, so the translucent puffs blend over what is behind them.
         quads.sort(Comparator.comparingDouble(Quad::depth).reversed());
-        BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        return built = quads;
+    }
+
+    /** The quads at a squared distance in [{@code from}, {@code until}), or null if none. */
+    @Nullable
+    private static MeshData mesh(List<Quad> quads, double from, double until) {
+        BufferBuilder builder = null;
         for (Quad quad : quads) {
-            quad.emit(builder);
+            if (quad.depth() >= from && quad.depth() < until) {
+                if (builder == null) {
+                    builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+                }
+                quad.emit(builder);
+            }
         }
-        MeshData mesh = builder.build();
-        if (mesh != null) {
-            RenderType.debugQuads().draw(mesh);
-        }
+        return builder == null ? null : builder.build();
     }
 
     /** A quad already relative to the camera, with its distance for sorting. */

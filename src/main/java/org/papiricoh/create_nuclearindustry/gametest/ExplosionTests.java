@@ -140,7 +140,7 @@ public class ExplosionTests {
         return found;
     }
 
-    /** A column in a chunk that is not loaded is never loaded for it: its chunk waits, and is dug when it loads. */
+    /** Left to wait (config off), a column in a chunk that is not loaded is never loaded for it: its chunk waits, and is dug when it loads. */
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = "explosion_deferred", timeoutTicks = 300)
     public static void anUnloadedChunkWaitsForItsTurn(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
@@ -148,6 +148,7 @@ public class ExplosionTests {
         ChunkPos chunk = new ChunkPos(far);
         helper.assertTrue(level.getChunkSource().getChunkNow(chunk.x, chunk.z) == null, "the far chunk starts unloaded");
         NuclearBlastManager.BlastJob job = NuclearBlastManager.start(level, far.atY(level.getMinBuildHeight() + 200), DetonationProfile.craterOnly(3, 400, 1));
+        job.waitForLoads();
         boolean[] forced = new boolean[1];
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(job.deferredChunks() >= 1, "the crater notes the chunk it could not reach");
@@ -158,6 +159,26 @@ public class ExplosionTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(forced[0] && job.finished(), "the crater finishes once the chunk loads");
             level.setChunkForced(chunk.x, chunk.z, false);
+        });
+    }
+
+    /**
+     * A crater out where nothing is loaded loads (or generates) the chunks it reaches itself, works them
+     * through and lets them go.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = "explosion_loads", timeoutTicks = 600)
+    public static void theCraterLoadsTheChunksItReaches(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos far = helper.absolutePos(BlockPos.ZERO).offset(6144, 0, 6144);
+        ChunkPos chunk = new ChunkPos(far);
+        helper.assertTrue(level.getChunkSource().getChunkNow(chunk.x, chunk.z) == null, "the far chunk starts unloaded");
+        NuclearBlastManager.BlastJob job = NuclearBlastManager.start(level, far.atY(level.getMinBuildHeight() + 200), DetonationProfile.craterOnly(3, 400, 1));
+        boolean[] held = new boolean[1];
+        helper.onEachTick(() -> held[0] |= job.heldChunks() > 0);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(held[0], "the crater holds the chunks it is loading");
+            helper.assertTrue(job.finished(), "and finishes with nobody near");
+            helper.assertTrue(job.heldChunks() == 0, "then lets them go");
         });
     }
 

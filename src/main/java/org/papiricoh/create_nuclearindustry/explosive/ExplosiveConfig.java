@@ -13,6 +13,8 @@ import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationProfile;
  */
 public final class ExplosiveConfig {
     public static boolean crater = true;
+    public static boolean craterLoadsChunks = true;
+    public static int chunksAtOnce = 8;
     public static double severeOverpressure = 35.0;
     public static double moderateOverpressure = 12.0;
     public static double blastProofResistance = 1200.0;
@@ -24,9 +26,11 @@ public final class ExplosiveConfig {
     public static int fallingDebrisPerTick = 40;
     public static int maxFallingDebris = 1500;
     public static double airburstHeight = 2.0;
-    public static int visualRange = 1536;
+    public static int visualRange = 4096;
 
     private static ModConfigSpec.BooleanValue craterValue;
+    private static ModConfigSpec.BooleanValue craterLoadsChunksValue;
+    private static ModConfigSpec.IntValue chunksAtOnceValue;
     private static ModConfigSpec.DoubleValue severeOverpressureValue;
     private static ModConfigSpec.DoubleValue moderateOverpressureValue;
     private static ModConfigSpec.DoubleValue blastProofResistanceValue;
@@ -47,6 +51,15 @@ public final class ExplosiveConfig {
                 .comment("Whether nuclear detonations change the ground: the crater, the blast zones, scorching and fires.",
                         "Off, they still hurt, irradiate and contaminate.")
                 .define("explosive.crater.enabled", true);
+        craterLoadsChunksValue = builder
+                .comment("Whether the crater loads the chunks it reaches that are not loaded, generating them if they never were,",
+                        "so a detonation far from every player still leaves its mark. Off, those chunks wait until something",
+                        "else loads them.")
+                .define("explosive.crater.loadChunks", true);
+        chunksAtOnceValue = builder
+                .comment("Most chunks one detonation waits on to load or generate at once; each is let go once the crater is",
+                        "done with it. Lower spares the world generator, higher finishes far-reaching craters sooner.")
+                .defineInRange("explosive.crater.chunksAtOnce", 8, 1, 256);
         blastProofResistanceValue = builder
                 .comment("Blocks with an explosion resistance above this survive a nuclear detonation (bedrock, blast doors).")
                 .defineInRange("explosive.crater.blastProofResistance", 1200.0, 0.0, 1.0e7);
@@ -85,12 +98,15 @@ public final class ExplosiveConfig {
                 .comment("How high a missile set to airburst goes off above its target, as a multiple of its fireball's radius.")
                 .defineInRange("explosive.airburstHeight", 2.0, 1.1, 20.0);
         visualRangeValue = builder
-                .comment("Players within this many blocks of a detonation see its flash, fireball, cloud and shock wave.")
-                .defineInRange("explosive.visualRange", 1536, 0, 100000);
+                .comment("Players within this many blocks of a detonation see its flash, fireball, cloud and shock wave. With",
+                        "Distant Horizons the cloud shows over its distant terrain too, as far as this reaches.")
+                .defineInRange("explosive.visualRange", 4096, 0, 100000);
     }
 
     public static void bake() {
         crater = craterValue.get();
+        craterLoadsChunks = craterLoadsChunksValue.get();
+        chunksAtOnce = chunksAtOnceValue.get();
         blastProofResistance = blastProofResistanceValue.get();
         severeOverpressure = severeOverpressureValue.get();
         moderateOverpressure = Math.min(moderateOverpressureValue.get(), severeOverpressure);

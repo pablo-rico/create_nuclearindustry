@@ -1,9 +1,12 @@
 package org.papiricoh.create_nuclearindustry.explosive;
 
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.TicketType;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Explosion;
@@ -30,7 +33,7 @@ import org.papiricoh.create_nuclearindustry.explosive.blast.ThermalPulse;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.radiation.cache.RadiationCaches;
 
-import java.util.ArrayDeque;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -44,7 +47,11 @@ import java.util.List;
  * jobs share one budget of columns and blocks per tick ({@code explosive.blastColumnsPerTick} and
  * {@code explosive.blastBlocksPerTick} in {@link PerformanceConfig}), taken in turns. Each column starts at
  * the top of the world there and only goes down as far as it has to. A column in a chunk that is not
- * loaded is never loaded or generated: its chunk is noted and worked through when it loads.
+ * loaded is skipped and its chunk noted; the job then loads those chunks itself, generating any that never
+ * were, a few at a time ({@code explosive.crater.chunksAtOnce}) and nearest first, works them through as
+ * they come in and lets each go once its sweep is past it. With {@code explosive.crater.loadChunks} off they
+ * wait for something else to load them. Distant Horizons picks the crater up in its distant terrain when
+ * those chunks are saved, at no cost here.
  * <p>
  * Blocks change without neighbour updates, so after each tick's work the job tells what it changed
  * itself: the radiation caches of every chunk it touched and the multiblock controllers its box reaches.
@@ -59,6 +66,9 @@ public final class NuclearBlastManager {
     private static final int GROUND_SEARCH = 64;
     /** A charred or burning tree is followed this far down from the top. */
     private static final int CANOPY_DEPTH = 32;
+    /** Holds a chunk the crater is loading at full status, without ticking it, until the crater is done with it. */
+    private static final TicketType<ChunkPos> TICKET = TicketType.create("create_nuclearindustry:nuclear_blast",
+            Comparator.comparingLong(ChunkPos::toLong));
 
     private NuclearBlastManager() {}
 
@@ -90,7 +100,7 @@ public final class NuclearBlastManager {
         return BlastJobs.get(level).jobs().size();
     }
 
-    /** Drops every job of {@code level}, as if they had finished; for tests and commands. */
+    /** Drops every job of {@code level}, as if they had finished, and the chunks they held; for tests and commands. */
     public static void cancelAll(ServerLevel level) {
         BlastJobs.get(level).clear();
     }
@@ -114,6 +124,10 @@ public final class NuclearBlastManager {
             job.work(columns, blocks);
             columns -= job.lastColumns;
             blocks -= job.lastBlocks;
+        }
+        for (BlastJob job : jobs) {
+            job.attach(level);
+            job.fetch();
         }
         data.removeFinished();
         data.setDirty();
@@ -190,8 +204,8 @@ public final class NuclearBlastManager {
         // Square ring cursor (Chebyshev distance) sweeping from the centre outwards.
         int ring;
         int idx;
-        /** Chunks skipped because they were not loaded, worked through when they load. */
-        final LongOpenHashSet deferred = new LongOpenHashSet();
+        /** Chunks skipped because they were not loaded, worked through when they load; nearest first. */
+        final LongLinkedOpenHashSet deferred = new LongLinkedOpenHashSet();
         /** Blocks this job has made fall so far, and fires it has started. */
         int fallen;
         int fires;
@@ -204,8 +218,12 @@ public final class NuclearBlastManager {
         private LevelChunk current;
         @Nullable
         private Explosion explosion;
-        /** Deferred chunks that have loaded, waiting for their turn. */
-        final ArrayDeque<Long> loaded = new ArrayDeque<>();
+        /** Deferred chunks that have loaded, waiting for their turn; each once. */
+        final LongLinkedOpenHashSet loaded = new LongLinkedOpenHashSet();
+        /** Chunks this job holds loaded with its {@link #TICKET}. */
+        private final LongOpenHashSet held = new LongOpenHashSet();
+        /** Never loads chunks itself, whatever the config says; for tests. */
+        private boolean waitsForLoads;
         private int lastColumns;
         private int lastBlocks;
         private int fallenThisTick;
@@ -261,7 +279,7 @@ public final class NuclearBlastManager {
             dugMinX = dugMinY = dugMinZ = Integer.MAX_VALUE;
             dugMaxX = dugMaxY = dugMaxZ = Integer.MIN_VALUE;
             while (!loaded.isEmpty() && columns < columnBudget && changed < blockBudget) {
-                long key = loaded.poll();
+                long key = loaded.removeFirstLong();
                 if (!deferred.contains(key)) {
                     continue;
                 }
@@ -294,6 +312,86 @@ public final class NuclearBlastManager {
             lastColumns = columns;
             lastBlocks = changed;
             announce();
+        }
+
+        /**
+         * Loads the chunks the sweep had to skip, generating those that never were: nearest first, at most
+         * {@code explosive.crater.chunksAtOnce} on their way at once. Each is held with a ticket until it has
+         * been worked through and the sweep has gone right past it, then let go to unload (and be saved) as
+         * usual. Chunks already loaded by then only need their turn.
+         */
+        void fetch() {
+            LongIterator done = held.iterator();
+            while (done.hasNext()) {
+                long key = done.nextLong();
+                if (!deferred.contains(key) && swept(key)) {
+                    unhold(key);
+                    done.remove();
+                }
+            }
+            if (waitsForLoads || !ExplosiveConfig.craterLoadsChunks || deferred.isEmpty()) {
+                return;
+            }
+            int coming = 0;
+            LongIterator next = deferred.iterator();
+            while (next.hasNext()) {
+                long key = next.nextLong();
+                boolean ready = level.getChunkSource().getChunkNow(ChunkPos.getX(key), ChunkPos.getZ(key)) != null;
+                if (held.contains(key)) {
+                    // One that has come in waits for its turn, even if it was not reachable yet when it loaded.
+                    if (ready) {
+                        loaded.add(key);
+                    } else {
+                        coming++;
+                    }
+                    continue;
+                }
+                if (coming >= ExplosiveConfig.chunksAtOnce) {
+                    break;
+                }
+                ChunkPos chunk = new ChunkPos(key);
+                level.getChunkSource().addRegionTicket(TICKET, chunk, 0, chunk);
+                held.add(key);
+                if (ready) {
+                    loaded.add(key);
+                } else {
+                    coming++;
+                }
+            }
+        }
+
+        /** Lets go of every chunk this job holds: it has finished, or been dropped. */
+        void release() {
+            if (level != null) {
+                LongIterator iterator = held.iterator();
+                while (iterator.hasNext()) {
+                    unhold(iterator.nextLong());
+                }
+            }
+            held.clear();
+        }
+
+        private void unhold(long key) {
+            ChunkPos chunk = new ChunkPos(key);
+            level.getChunkSource().removeRegionTicket(TICKET, chunk, 0, chunk);
+        }
+
+        /** Whether the sweep has gone past every column of a chunk. */
+        private boolean swept(long key) {
+            int x0 = (ChunkPos.getX(key) << 4) - centre.getX();
+            int z0 = (ChunkPos.getZ(key) << 4) - centre.getZ();
+            int far = Math.max(Math.max(Math.abs(x0), Math.abs(x0 + 15)), Math.max(Math.abs(z0), Math.abs(z0 + 15)));
+            return ring > Math.min(far, reach);
+        }
+
+        /** Makes this job leave the chunks it skips for something else to load, as with the config off; for tests. */
+        public void waitForLoads() {
+            waitsForLoads = true;
+        }
+
+        /** Chunks this job is holding loaded. */
+        public int heldChunks() {
+            return held.size();
         }
 
         private void advance() {
@@ -567,22 +665,53 @@ public final class NuclearBlastManager {
          * Whether water or lava touches a block. A falling block updates its neighbours, which would set
          * the water round a crater flowing into it: that is left still, as the crater leaves it.
          */
-        /** A block, read from the column's chunk when it is in it rather than looked up through the level. */
-        private BlockState state(BlockPos pos) {
+        /**
+         * The loaded chunk a block is in, or null: the column's own chunk first, else a lookup that never
+         * loads. Reading through the level would load (even generate) a neighbour at the edge of what is
+         * loaded, on the server thread.
+         */
+        @Nullable
+        private LevelChunk chunkAt(BlockPos pos) {
             LevelChunk chunk = current;
             if (chunk != null && chunk.getPos().x == pos.getX() >> 4 && chunk.getPos().z == pos.getZ() >> 4) {
-                return chunk.getBlockState(pos);
+                return chunk;
             }
-            return level.getBlockState(pos);
+            return level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
         }
 
+        /** A block, without loading anything: air in a chunk that is not loaded. */
+        private BlockState state(BlockPos pos) {
+            LevelChunk chunk = chunkAt(pos);
+            return chunk == null ? Blocks.AIR.defaultBlockState() : chunk.getBlockState(pos);
+        }
+
+        /** A neighbour in a chunk that is not loaded counts as fluid: nothing falls there. */
         private boolean nearFluid(BlockPos pos) {
+            BlockPos.MutableBlockPos next = new BlockPos.MutableBlockPos();
             for (Direction direction : Direction.values()) {
-                if (!level.getFluidState(pos.relative(direction)).isEmpty()) {
+                next.setWithOffset(pos, direction);
+                LevelChunk chunk = chunkAt(next);
+                if (chunk == null || !chunk.getFluidState(next).isEmpty()) {
                     return true;
                 }
             }
             return false;
+        }
+
+        /**
+         * Changes a block in a loaded chunk; false where the chunk is not loaded. A block entity still
+         * waiting in its chunk's data is taken out first, or the chunk would try to save it for the new block.
+         */
+        private boolean set(BlockPos pos, BlockState from, BlockState to) {
+            LevelChunk chunk = chunkAt(pos);
+            if (chunk == null) {
+                return false;
+            }
+            if (from.hasBlockEntity()) {
+                chunk.getBlockEntity(pos);
+            }
+            level.setBlock(pos, to, QUIET);
+            return true;
         }
 
         private boolean blastProof(BlockPos pos, BlockState state) {
@@ -593,10 +722,9 @@ public final class NuclearBlastManager {
         /** Turns a block to air unless it is air already or blast-proof; true if it changed. */
         private boolean remove(BlockPos pos) {
             BlockState state = state(pos);
-            if (state.isAir() || blastProof(pos, state)) {
+            if (state.isAir() || blastProof(pos, state) || !set(pos, state, Blocks.AIR.defaultBlockState())) {
                 return false;
             }
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), QUIET);
             dug(pos);
             return true;
         }
@@ -604,10 +732,9 @@ public final class NuclearBlastManager {
         /** Puts a block where there is none or the blast may replace one; true if it changed. */
         private boolean place(BlockPos pos, BlockState state) {
             BlockState there = state(pos);
-            if (there == state || !there.isAir() && blastProof(pos, there)) {
+            if (there == state || !there.isAir() && blastProof(pos, there) || !set(pos, there, state)) {
                 return false;
             }
-            level.setBlock(pos, state, QUIET);
             dug(pos);
             return true;
         }

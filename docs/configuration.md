@@ -1348,6 +1348,8 @@ Refugios:
 [explosive.crater]
 enabled = true
 blastProofResistance = 1200.0
+loadChunks = true
+chunksAtOnce = 8
 
 [explosive.zones]
 severeOverpressure = 35.0
@@ -1370,7 +1372,7 @@ maxFalling = 1500
 
 [explosive]
 airburstHeight = 2.0
-visualRange = 1536
+visualRange = 4096
 ```
 
 Cada detonación nuclear (bomba, misil, proyectil de cañón) calcula sus zonas a
@@ -1417,8 +1419,13 @@ altura a la que estalla sobre el terreno:
 El trabajo se hace columna a columna desde el centro, dentro del presupuesto de
 `explosive.blastColumnsPerTick` y `explosive.blastBlocksPerTick` compartido por
 todas las detonaciones del mundo. Se guarda con el mundo y sigue tras reiniciar.
-Las columnas de chunks sin cargar no cargan ni generan nada: esperan a que su
-chunk cargue. Con `crater.enabled = false` las detonaciones no tocan el terreno,
+Las columnas de chunks sin cargar se saltan y su chunk se apunta; con
+`crater.loadChunks` la detonación carga ella misma esos chunks (y los genera si
+nunca se generaron), de cerca a lejos y como mucho `crater.chunksAtOnce` a la vez,
+los trabaja en cuanto llegan y los suelta cuando el barrido ha pasado, así que
+una bomba lejos de todos los jugadores deja igualmente su cráter. La generación
+va en los hilos del generador del mundo, no en el tick del servidor. Sin
+`crater.loadChunks`, esos chunks esperan a que otra cosa los cargue. Con `crater.enabled = false` las detonaciones no tocan el terreno,
 pero siguen haciendo daño, irradiando y contaminando. El cráter no despierta el
 agua de alrededor: los bloques que caen y los fuegos no avisan a sus vecinos, y
 junto al agua no cae nada, así que un cráter abierto al lado del mar no se
@@ -1443,6 +1450,20 @@ avanza con la onda y una sacudida de cámara cuando la onda pasa. En la config d
 cliente: `explosion.flash` (0 a 1, brillo del destello; bájalo si molestan los
 destellos), `explosion.cloudDetail` (0,25 a 2, número de bocanadas del hongo) y
 `explosion.shake` (sacudida de cámara).
+
+**Distant Horizons** (opcional, probado con la 3.3.2 y la 3.3.3): si está instalado, la parte
+del hongo que queda más allá del terreno normal se dibuja en el pase de Distant
+Horizons, con su proyección, así que no se corta en el plano lejano de vanilla y
+el terreno lejano de sus LOD lo tapa cuando queda detrás de una montaña. No hay
+nada que configurar; solo conviene que `visualRange` llegue tan lejos como se
+quiera ver el hongo (por defecto 4096 bloques; un mundo con la config ya creada
+conserva su valor). El cráter aparece en los LOD cuando sus chunks se guardan
+(al descargarse o al autoguardar), sin coste extra. En multijugador el hongo se ve
+igual; para que el cráter llegue a los LOD de los jugadores, Distant Horizons tiene
+que estar también en el servidor (si solo está en el cliente, sus LOD solo conocen
+los chunks que ese jugador ha visitado). Con packs de shaders que
+cambian cómo dibuja Distant Horizons, el hongo vuelve a quedarse dentro de la
+vista de vanilla.
 
 ## Reactor de fisión visible
 

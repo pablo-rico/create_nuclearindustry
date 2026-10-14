@@ -742,14 +742,21 @@ below for what changes in existing worlds.
   condensation dome, a ring of dust running out with the shock wave and the
   view shaking when it passes. Client options: `explosion.flash`,
   `explosion.cloudDetail`, `explosion.shake`.
-- Craters are saved with the world and carry on after a restart, never load or
-  generate chunks (a column in an unloaded chunk waits for it to load), and all
+- Craters are saved with the world and carry on after a restart. A detonation
+  far from every player loads, or generates, the chunks its crater reaches a few
+  at a time and lets them go when it is done, so it leaves its mark anyway
+  (`explosive.crater.loadChunks`, `explosive.crater.chunksAtOnce`); all
   the detonations of a world share one budget per tick. They no longer set the
   sea round them pouring in, which used to drag the server down for a minute,
   and the blast wave traces at most 256 sheltered glass or leaf blocks a tick
   (a forest's canopy used to cost over a second a tick).
 - A containment monitor finds its building open as soon as the breach reaches
   open sky, even with unloaded chunks nearby.
+- Distant Horizons (optional): the mushroom cloud stays in sight over its
+  distant terrain instead of being cut off at the vanilla view, hidden behind
+  far mountains, and craters show up in its distant terrain once their chunks
+  are saved. Detonations are now seen from 4096 blocks by default
+  (`explosive.visualRange`).
 
 ### Civil defense
 - New Air Raid Siren: it wails while powered by redstone, and on its own (a
