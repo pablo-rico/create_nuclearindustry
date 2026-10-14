@@ -28,7 +28,17 @@ public enum ModuleType {
      * A reading in digits with its unit. LED displays side by side in a row join into one wider
      * display set up by its leftmost module (see {@link LedGroups}).
      */
-    LED_DISPLAY("led_display_module", List.of(ModuleFunction.READING));
+    LED_DISPLAY("led_display_module", List.of(ModuleFunction.READING)),
+    /** A button under a hinged cover: the first click lifts the cover, the second presses. */
+    GUARDED_BUTTON("guarded_button_module", List.of(ModuleFunction.SCRAM, ModuleFunction.TOKAMAK_SHUTDOWN, ModuleFunction.PULSE)),
+    /** A reading as a column of LED segments, green to amber to red up to an alarm level (see {@link BarGraph}). */
+    BAR_GRAPH("bar_graph_module", List.of(ModuleFunction.READING)),
+    /** A reading drawn as a line over the last minutes (see {@link TrendRing}). */
+    TREND_RECORDER("trend_recorder_module", List.of(ModuleFunction.READING)),
+    /** A fission reactor's columns, rods and fuel as a map; four in one block make one big map (see {@link CoreMap}). */
+    CORE_MAP("core_map_module", List.of(ModuleFunction.CORE_VIEW)),
+    /** A cut through a tokamak's torus with its plasma; four in one block make one big screen (see {@link PlasmaSection}). */
+    PLASMA_SECTION("plasma_section_module", List.of(ModuleFunction.PLASMA_VIEW));
 
     private final String itemId;
     private final List<ModuleFunction> functions;
@@ -55,9 +65,22 @@ public enum ModuleType {
         return functions.contains(function);
     }
 
-    /** Whether a click with an empty hand does something (lamps, gauges and LED displays only show). */
+    /** Whether a click with an empty hand does something (lamps, gauges and screens only show). */
     public boolean interactive() {
-        return this != LAMP && this != GAUGE && this != LED_DISPLAY;
+        return switch (this) {
+            case LAMP, GAUGE, LED_DISPLAY, BAR_GRAPH, TREND_RECORDER, CORE_MAP, PLASMA_SECTION -> false;
+            default -> true;
+        };
+    }
+
+    /** Whether four of it filling one block show as one screen (see {@link BlockScreen}). */
+    public boolean mergesBlock() {
+        return this == CORE_MAP || this == PLASMA_SECTION;
+    }
+
+    /** Whether it is pressed rather than thrown: a push button, guarded or not. */
+    public boolean isButton() {
+        return this == PUSH_BUTTON || this == GUARDED_BUTTON;
     }
 
     public String translationKey() {

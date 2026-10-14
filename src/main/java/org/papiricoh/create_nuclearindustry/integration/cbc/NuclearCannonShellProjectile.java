@@ -2,6 +2,8 @@ package org.papiricoh.create_nuclearindustry.integration.cbc;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
+import net.minecraft.nbt.CompoundTag;
+import org.papiricoh.create_nuclearindustry.explosive.WarheadLoad;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
@@ -18,18 +20,43 @@ import rbasamoyai.createbigcannons.munitions.config.components.EntityDamagePrope
 
 import javax.annotation.Nonnull;
 
+/**
+ * A fired nuclear cannon shell: goes off with the warhead load it was made with, as a ground burst where it
+ * hits or an airburst when its fuze sets it off high enough above the ground.
+ */
 public class NuclearCannonShellProjectile extends FuzedBigCannonProjectile {
+    private WarheadLoad load = WarheadLoad.FULL;
+
     public NuclearCannonShellProjectile(EntityType<? extends NuclearCannonShellProjectile> type, Level level) {
         super(type, level);
     }
 
+    public WarheadLoad load() {
+        return load;
+    }
+
+    public void setLoad(WarheadLoad load) {
+        this.load = load;
+    }
+
     @Override
     protected void detonate(Position position) {
-        if (!(level() instanceof ServerLevel serverLevel)) {
+        if (!(level() instanceof ServerLevel serverLevel) || load.units() <= 0) {
             return;
         }
+        NuclearDetonation.detonateShell(serverLevel, position, load.units(), load.enrichment());
+    }
 
-        NuclearDetonation.detonateMaxWarhead(serverLevel, position);
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        load.write(tag);
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        load = WarheadLoad.read(tag);
     }
 
     @Override

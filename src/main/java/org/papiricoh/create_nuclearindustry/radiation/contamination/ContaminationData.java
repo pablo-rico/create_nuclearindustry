@@ -6,6 +6,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import org.papiricoh.create_nuclearindustry.explosive.blast.FalloutPlume;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,13 +27,23 @@ public class ContaminationData extends SavedData {
 
     /**
      * Fallout centred on a block column: {@code intensity} rad/s at the centre falling linearly
-     * to nothing at {@code radius} blocks, as it was at {@code gameTime}.
+     * to nothing at {@code radius} blocks, as it was at {@code gameTime}. A wind blowing towards
+     * {@code wind} radians stretches it into a plume by {@code stretch} (0 keeps a circle; see
+     * {@link FalloutPlume}).
      */
-    public record FalloutEvent(int id, int x, int z, int radius, float intensity, long gameTime) {
+    public record FalloutEvent(int id, int x, int z, int radius, float intensity, long gameTime, float wind, float stretch) {
+        public FalloutEvent(int id, int x, int z, int radius, float intensity, long gameTime) {
+            this(id, x, z, radius, intensity, gameTime, 0, 0);
+        }
+
         /** Contamination this event leaves on the chunk whose centre is at ({@code cx}, {@code cz}). */
         public float at(double cx, double cz) {
-            double distance = Math.sqrt((cx - x) * (cx - x) + (cz - z) * (cz - z));
-            return distance >= radius ? 0 : (float) (intensity * (1.0 - distance / radius));
+            return (float) (intensity * FalloutPlume.share(cx - x, cz - z, radius, wind, stretch));
+        }
+
+        /** The furthest from its centre it reaches. */
+        public double reach() {
+            return FalloutPlume.reach(radius, stretch);
         }
     }
 
@@ -48,8 +59,8 @@ public class ContaminationData extends SavedData {
         return clearEpoch;
     }
 
-    FalloutEvent addEvent(int x, int z, int radius, float intensity, long gameTime) {
-        FalloutEvent event = new FalloutEvent(nextEventId++, x, z, radius, intensity, gameTime);
+    FalloutEvent addEvent(int x, int z, int radius, float intensity, long gameTime, float wind, float stretch) {
+        FalloutEvent event = new FalloutEvent(nextEventId++, x, z, radius, intensity, gameTime, wind, stretch);
         events.add(event);
         while (events.size() > MAX_EVENTS) {
             events.removeFirst();
@@ -77,6 +88,10 @@ public class ContaminationData extends SavedData {
             entry.putInt("radius", event.radius());
             entry.putFloat("intensity", event.intensity());
             entry.putLong("time", event.gameTime());
+            if (event.stretch() > 0) {
+                entry.putFloat("wind", event.wind());
+                entry.putFloat("stretch", event.stretch());
+            }
             list.add(entry);
         }
         tag.put("events", list);
@@ -90,7 +105,8 @@ public class ContaminationData extends SavedData {
         for (Tag element : tag.getList("events", Tag.TAG_COMPOUND)) {
             CompoundTag entry = (CompoundTag) element;
             data.events.add(new FalloutEvent(entry.getInt("id"), entry.getInt("x"), entry.getInt("z"),
-                    entry.getInt("radius"), entry.getFloat("intensity"), entry.getLong("time")));
+                    entry.getInt("radius"), entry.getFloat("intensity"), entry.getLong("time"), entry.getFloat("wind"),
+                    entry.getFloat("stretch")));
         }
         data.nextEventId = Math.max(1, tag.getInt("nextEvent"));
         data.clearEpoch = tag.getInt("clearEpoch");

@@ -25,6 +25,16 @@ public class ClientConfig {
             .comment("Show the panel on the right of the screen while looking at a reactor, a tokamak, a control module, a console or an Advanced Redstone Link.")
             .define("hud.panel", true);
 
+    private static final ModConfigSpec.DoubleValue EXPLOSION_FLASH = BUILDER
+            .comment("How bright a nuclear detonation's flash is on screen, 0 (none) to 1 (full). Lower it if bright flashes bother you.")
+            .defineInRange("explosion.flash", 1.0, 0.0, 1.0);
+    private static final ModConfigSpec.DoubleValue EXPLOSION_CLOUD_DETAIL = BUILDER
+            .comment("How many puffs a mushroom cloud is drawn with: 0.25 is light on slow machines, 2 is denser.")
+            .defineInRange("explosion.cloudDetail", 1.0, 0.25, 2.0);
+    private static final ModConfigSpec.BooleanValue EXPLOSION_SHAKE = BUILDER
+            .comment("Shake the view when a nuclear detonation's shock wave passes.")
+            .define("explosion.shake", true);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     public static boolean contaminationParticles = true;
@@ -32,6 +42,9 @@ public class ClientConfig {
     public static boolean doseHud = true;
     public static HudCorner hudCorner = HudCorner.TOP_LEFT;
     public static boolean panelHud = true;
+    public static double explosionFlash = 1.0;
+    public static double explosionCloudDetail = 1.0;
+    public static boolean explosionShake = true;
 
     public enum HudCorner {
         TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT;
@@ -62,5 +75,8 @@ public class ClientConfig {
         doseHud = DOSE_HUD.get();
         hudCorner = HUD_CORNER.get();
         panelHud = PANEL_HUD.get();
+        explosionFlash = EXPLOSION_FLASH.get();
+        explosionCloudDetail = EXPLOSION_CLOUD_DETAIL.get();
+        explosionShake = EXPLOSION_SHAKE.get();
     }
 }

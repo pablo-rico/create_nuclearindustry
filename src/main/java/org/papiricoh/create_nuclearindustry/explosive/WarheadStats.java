@@ -38,8 +38,9 @@ public final class WarheadStats {
                         + (MAX_HORIZONTAL_RADIUS - MIN_HORIZONTAL_RADIUS) * fuelRatio * enrichmentFactor(averageEnrichment)));
     }
 
-    public static int verticalRadius(int units, float averageEnrichment) {
-        return Math.max(28, Math.round(horizontalRadius(units, averageEnrichment) * 0.34f));
+    /** The crater a ground burst digs, as {@code DetonationProfile} works it out: three tenths of the destruction radius. */
+    public static int craterRadius(int units, float averageEnrichment) {
+        return Math.round(horizontalRadius(units, averageEnrichment) * 0.3f);
     }
 
     public static float intensity(float averageEnrichment) {

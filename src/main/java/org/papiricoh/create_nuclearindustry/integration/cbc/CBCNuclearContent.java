@@ -32,6 +32,13 @@ public final class CBCNuclearContent {
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, Create_NuclearIndustry.MODID);
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
             DeferredRegister.create(Registries.ENTITY_TYPE, Create_NuclearIndustry.MODID);
+    public static final DeferredRegister<net.minecraft.world.item.crafting.RecipeSerializer<?>> RECIPE_SERIALIZERS =
+            DeferredRegister.create(Registries.RECIPE_SERIALIZER, Create_NuclearIndustry.MODID);
+
+    public static final DeferredHolder<net.minecraft.world.item.crafting.RecipeSerializer<?>,
+            net.minecraft.world.item.crafting.RecipeSerializer<NuclearCannonShellRecipe>> NUCLEAR_CANNON_SHELL_RECIPE =
+            RECIPE_SERIALIZERS.register("nuclear_cannon_shell",
+                    () -> new net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer<>(NuclearCannonShellRecipe::new));
 
     public static final DeferredHolder<EntityType<?>, EntityType<NuclearCannonShellProjectile>> NUCLEAR_CANNON_SHELL_PROJECTILE =
             ENTITY_TYPES.register("nuclear_cannon_shell", () -> EntityType.Builder.<NuclearCannonShellProjectile>of(NuclearCannonShellProjectile::new, MobCategory.MISC)
@@ -47,8 +54,10 @@ public final class CBCNuclearContent {
                     .strength(4.0f, 12.0f)
                     .noOcclusion()));
 
-    public static final DeferredHolder<Item, ProjectileBlockItem> NUCLEAR_CANNON_SHELL =
-            ITEMS.register("nuclear_cannon_shell", () -> new ProjectileBlockItem(NUCLEAR_CANNON_SHELL_BLOCK.get(), new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, NuclearCannonShellItem> NUCLEAR_CANNON_SHELL =
+            ITEMS.register("nuclear_cannon_shell", () -> new NuclearCannonShellItem(NUCLEAR_CANNON_SHELL_BLOCK.get(), new Item.Properties().stacksTo(16)
+                    .component(org.papiricoh.create_nuclearindustry.AllNuclearDataComponents.WARHEAD_LOAD.get(),
+                            org.papiricoh.create_nuclearindustry.explosive.WarheadLoad.FULL)));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NuclearCannonShellBlockEntity>> NUCLEAR_CANNON_SHELL_BLOCK_ENTITY =
             BLOCK_ENTITY_TYPES.register("nuclear_cannon_shell", () -> BlockEntityType.Builder.of(
@@ -88,6 +97,7 @@ public final class CBCNuclearContent {
         ITEMS.register(modEventBus);
         BLOCK_ENTITY_TYPES.register(modEventBus);
         ENTITY_TYPES.register(modEventBus);
+        RECIPE_SERIALIZERS.register(modEventBus);
         modEventBus.addListener(CBCNuclearContent::commonSetup);
         if (FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.addListener(CBCNuclearContent::registerRenderers);

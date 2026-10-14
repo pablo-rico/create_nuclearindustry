@@ -1523,3 +1523,4 @@ import tex_heating  # noqa: E402,F401
 import tex_reactorvisuals  # noqa: E402,F401
 import tex_fuelcycle  # noqa: E402,F401
 import tex_accelerator  # noqa: E402,F401
+import tex_explosive  # noqa: E402,F401

@@ -1,0 +1,71 @@
+{
+  "credit": "Create: Nuclear Industry",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_bar_graph",
+    "part": "create_nuclearindustry:block/desk_bar_graph"
+  },
+  "elements": [
+    {
+      "name": "housing",
+      "from": [
+        5,
+        0,
+        4.5
+      ],
+      "to": [
+        11,
+        1.2,
+        11.5
+      ],
+      "faces": {
+        "up": {
+          "texture": "#part",
+          "uv": [
+            0,
+            0,
+            12,
+            14
+          ],
+          "rotation": 180
+        },
+        "north": {
+          "texture": "#part",
+          "uv": [
+            0,
+            14,
+            12,
+            15
+          ]
+        },
+        "south": {
+          "texture": "#part",
+          "uv": [
+            0,
+            14,
+            12,
+            15
+          ]
+        },
+        "east": {
+          "texture": "#part",
+          "uv": [
+            0,
+            15,
+            14,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#part",
+          "uv": [
+            0,
+            15,
+            14,
+            16
+          ]
+        }
+      }
+    }
+  ]
+}

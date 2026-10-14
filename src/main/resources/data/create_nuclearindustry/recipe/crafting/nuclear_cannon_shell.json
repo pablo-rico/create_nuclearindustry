@@ -5,25 +5,6 @@
       "modid": "createbigcannons"
     }
   ],
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "CNC",
-    "CSC",
-    "CNC"
-  ],
-  "key": {
-    "C": {
-      "tag": "create_nuclearindustry:nuclear_warhead_cores"
-    },
-    "N": {
-      "item": "create_nuclearindustry:nuclear_bomb"
-    },
-    "S": {
-      "item": "createbigcannons:he_shell"
-    }
-  },
-  "result": {
-    "count": 1,
-    "id": "create_nuclearindustry:nuclear_cannon_shell"
-  }
+  "type": "create_nuclearindustry:nuclear_cannon_shell",
+  "category": "misc"
 }

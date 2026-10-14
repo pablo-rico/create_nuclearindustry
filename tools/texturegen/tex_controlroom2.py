@@ -319,6 +319,88 @@ def desk_led_display():
     return t
 
 
+@block("desk_guarded_button")
+def desk_guarded_button():
+    # [0,0,12,12] cover lid, black and yellow stripes round a red mark | [0,12,12,13] cover skirt
+    # | [12,0,16,2] hinge, steel.
+    t = Tex(seed=195)
+    t.rect(0, 0, 15, 15, DARK[1])
+    for x in range(12):
+        for y in range(12):
+            t.set(x, y, WARN[4] if (x + y) // 2 % 2 == 0 else DARK[0])
+    t.rect(3, 3, 8, 8, DARK[1])
+    t.rect(4, 4, 7, 7, DANGER[3])
+    t.set(4, 4, DANGER[5])
+    outline(t, 0, 0, 11, 11, DARK[0])
+    t.hline(0, 11, 12, WARN[3])
+    t.rect(12, 0, 15, 1, STEEL[3])
+    t.hline(12, 15, 0, STEEL[5])
+    return t
+
+
+def _screen(seed, glass, width=16):
+    # A screen housing like the LED display's: [0,0,w,14] glass with a frame | [0,14,16,15] side | [0,15,16,16] end.
+    t = Tex(seed=seed)
+    t.rect(0, 0, 15, 15, DARK[1])
+    t.rect(0, 0, width - 1, 13, DARK[2])
+    t.rect(1, 1, width - 2, 12, glass[1])
+    outline(t, 1, 1, width - 2, 12, DARK[0])
+    t.hline(0, width - 1, 0, DARK[4])
+    t.hline(0, 15, 14, DARK[2])
+    t.hline(0, 15, 15, DARK[1])
+    return t
+
+
+@block("desk_bar_graph")
+def desk_bar_graph():
+    # 6 px wide: the window runs texels 0-11; ghost segments up the middle, scale ticks on the left.
+    glass = Ramp("#060908", "#0b100c", "#121a14", "#1a261d")
+    t = _screen(196, glass, width=12)
+    for y in range(2, 12, 2):
+        t.hline(5, 7, y, mix(glass[1], RADIUM[1], 0.5))
+    for y in (2, 5, 8, 11):
+        t.set(3, y, DARK[3])
+    t.hline(5, 7, 2, mix(glass[1], DANGER[2], 0.6))
+    return t
+
+
+@block("desk_trend_recorder")
+def desk_trend_recorder():
+    # Green phosphor glass with a faint grid and an old trace.
+    glass = Ramp("#050a06", "#091209", "#0f1d10", "#162a18")
+    t = _screen(197, glass)
+    for x in (5, 10):
+        t.vline(x, 2, 11, glass[2])
+    for y in (4, 8):
+        t.hline(2, 13, y, glass[2])
+    for x, y in ((2, 9), (3, 9), (4, 8), (5, 8), (6, 7), (7, 6), (8, 7), (9, 6), (10, 5), (11, 5), (12, 4), (13, 4)):
+        t.set(x, y, mix(glass[1], RADIUM[2], 0.45))
+    return t
+
+
+@block("desk_core_map")
+def desk_core_map():
+    # Blue-black glass with the faint squares of a core.
+    glass = Ramp("#05070b", "#0a0e16", "#101826", "#172234")
+    t = _screen(198, glass)
+    for cx in range(3, 13, 3):
+        for cy in range(2, 12, 3):
+            t.rect(cx, cy, cx + 1, cy + 1, glass[3] if (cx + cy) % 2 else mix(glass[2], MIMIC_BLUE[1], 0.3))
+    return t
+
+
+@block("desk_plasma_section")
+def desk_plasma_section():
+    # Violet-black glass with the faint ring of a torus cut.
+    glass = Ramp("#07050b", "#0d0914", "#150f20", "#21182f")
+    t = _screen(199, glass)
+    for x, y in ((6, 3), (7, 3), (8, 3), (9, 3), (5, 4), (10, 4), (4, 5), (11, 5), (4, 6), (11, 6), (4, 7), (11, 7),
+                 (4, 8), (11, 8), (5, 9), (10, 9), (6, 10), (7, 10), (8, 10), (9, 10)):
+        t.set(x, y, glass[3])
+    t.rect(7, 6, 8, 7, mix(glass[2], DANGER[3], 0.25))
+    return t
+
+
 # ======================================================================================
 # advanced redstone link
 # ======================================================================================

@@ -34,6 +34,14 @@ public final class DeskPartials {
     public static final PartialModel CONTROLLER_LAMP_LIT = of("controller_lamp_lit");
     /** The housing of an LED display; the renderer draws its digits. */
     public static final PartialModel LED_DISPLAY_BASE = of("led_display_base");
+    /** A guarded button keeps the push button's cap under a cover that swings up about its far edge. */
+    public static final PartialModel GUARDED_BUTTON_BASE = of("guarded_button_base");
+    public static final PartialModel GUARDED_BUTTON_COVER = of("guarded_button_cover");
+    /** Screen housings; the renderer draws their pictures. */
+    public static final PartialModel BAR_GRAPH_BASE = of("bar_graph_base");
+    public static final PartialModel TREND_RECORDER_BASE = of("trend_recorder_base");
+    public static final PartialModel CORE_MAP_BASE = of("core_map_base");
+    public static final PartialModel PLASMA_SECTION_BASE = of("plasma_section_base");
 
     private DeskPartials() {}
 
@@ -48,6 +56,11 @@ public final class DeskPartials {
             case KEY_SWITCH -> KEY_SWITCH_BASE;
             case CONTROLLER -> CONTROLLER_BASE;
             case LED_DISPLAY -> LED_DISPLAY_BASE;
+            case GUARDED_BUTTON -> GUARDED_BUTTON_BASE;
+            case BAR_GRAPH -> BAR_GRAPH_BASE;
+            case TREND_RECORDER -> TREND_RECORDER_BASE;
+            case CORE_MAP -> CORE_MAP_BASE;
+            case PLASMA_SECTION -> PLASMA_SECTION_BASE;
         };
     }
 

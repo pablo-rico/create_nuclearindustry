@@ -113,6 +113,9 @@
     "create_nuclearindustry:thorium_spent_fragments": {
       "per_second": 3.0
     },
+    "create_nuclearindustry:trinitite": {
+      "per_second": 0.03
+    },
     "create_nuclearindustry:tritium_cell": {
       "per_second": 0.05
     },

@@ -31,6 +31,9 @@ public final class SurfaceGeometry {
             {4, 12, WALL_FACE},
     };
     private static final double EPSILON = 1.0e-3;
+    /** From one row of slots to the next along the surface, px: 7 up a desk's slope, 8 on a table or wall. */
+    public static final float DESK_ROW_PITCH = (float) Math.hypot(DESK_SLOTS[2][1] - DESK_SLOTS[0][1], DESK_SLOTS[2][2] - DESK_SLOTS[0][2]);
+    public static final float FLAT_ROW_PITCH = 8;
 
     private SurfaceGeometry() {}
 

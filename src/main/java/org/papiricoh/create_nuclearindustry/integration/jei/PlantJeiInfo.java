@@ -86,6 +86,10 @@ public final class PlantJeiInfo {
         pages.add(items("control_table", ControlRoom2Registry.CONTROL_TABLE_ITEM));
         pages.add(items("wall_control_panel", ControlRoom2Registry.WALL_CONTROL_PANEL_ITEM));
         pages.add(items("led_display_module", AllNuclearItems.CONTROL_MODULES.get(ModuleType.LED_DISPLAY)));
+        pages.add(items("guarded_button_module", AllNuclearItems.CONTROL_MODULES.get(ModuleType.GUARDED_BUTTON)));
+        pages.add(items("screen_modules", AllNuclearItems.CONTROL_MODULES.get(ModuleType.BAR_GRAPH),
+                AllNuclearItems.CONTROL_MODULES.get(ModuleType.TREND_RECORDER), AllNuclearItems.CONTROL_MODULES.get(ModuleType.CORE_MAP),
+                AllNuclearItems.CONTROL_MODULES.get(ModuleType.PLASMA_SECTION)));
 
         // Civil defense
         pages.add(items("sirens", CivilDefenseRegistry.AIR_RAID_SIREN_ITEM, CivilDefenseRegistry.HAND_CRANK_SIREN_ITEM));
@@ -93,6 +97,10 @@ public final class PlantJeiInfo {
         pages.add(items("blast_door", CivilDefenseRegistry.BLAST_DOOR_CONTROLLER_ITEM, CivilDefenseRegistry.BLAST_DOOR_FRAME_ITEM,
                 CivilDefenseRegistry.STEEL_BLAST_DOOR_ITEM, CivilDefenseRegistry.LEAD_BLAST_DOOR_ITEM));
         pages.add(items("shelter", CivilDefenseRegistry.SHELTER_FILTRATION_UNIT_ITEM));
+
+        // What a nuclear detonation leaves (text in ExplosiveDataGen)
+        pages.add(items("nuclear_aftermath", org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.TRINITITE_ITEM,
+                org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.CHARRED_LOG_ITEM));
 
         // Cryogenic plant and the tokamak's vacuum
         pages.add(new Page("helium_well", stacks(CryoRegistry.HELIUM_WELL_ITEM, AllNuclearItems.LIQUID_HELIUM_CELL),

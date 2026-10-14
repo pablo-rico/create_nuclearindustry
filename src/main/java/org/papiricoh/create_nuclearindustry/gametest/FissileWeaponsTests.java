@@ -12,6 +12,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.explosive.WarheadLoad;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
@@ -87,12 +88,28 @@ public class FissileWeaponsTests {
                         && new ItemStack(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get()).is(AllNuclearTags.Items.NUCLEAR_WARHEAD_CORES),
                 "both cores are warhead cores");
         if (CBCNuclearIntegration.isLoaded()) {
-            var shell = helper.getLevel().getRecipeManager()
-                    .byKey(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "crafting/nuclear_cannon_shell")).orElseThrow();
-            boolean takesPlutonium = shell.value().getIngredients().stream()
-                    .anyMatch(i -> i.test(new ItemStack(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get())));
-            helper.assertTrue(takesPlutonium, "the nuclear cannon shell takes a plutonium core too");
+            ItemStack plutonium = new ItemStack(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get());
+            helper.assertTrue(CannonShellRecipes.load(helper, plutonium) != null, "the nuclear cannon shell takes a plutonium core too");
         }
+        helper.succeed();
+    }
+
+    /** A cannon shell goes off with the cores it was made with: one core is a smaller warhead than four. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void aCannonShellCarriesItsCores(GameTestHelper helper) {
+        if (!CBCNuclearIntegration.isLoaded()) {
+            helper.succeed();
+            return;
+        }
+        ItemStack core = new ItemStack(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.get());
+        WarheadLoad one = CannonShellRecipes.load(helper, core);
+        WarheadLoad four = CannonShellRecipes.load(helper, core, core, core, core);
+        helper.assertTrue(one != null && four != null, "one to four cores make a shell");
+        helper.assertTrue(one.cores() == 1 && four.cores() == 4, "and the shell counts them: " + one + ", " + four);
+        helper.assertTrue(WarheadStats.horizontalRadius(one.units(), one.enrichment()) < WarheadStats.horizontalRadius(four.units(), four.enrichment()),
+                "one core reaches less far than four");
+        helper.assertTrue(four.units() == WarheadStats.MAX_URANIUM_UNITS, "four cores are a full warhead, as the shell used to be");
+        helper.assertTrue(CannonShellRecipes.load(helper, core, core, core, core, core) == null, "five cores do not fit a shell");
         helper.succeed();
     }
 }

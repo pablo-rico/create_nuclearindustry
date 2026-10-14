@@ -123,6 +123,10 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
             if (module != null && module.tickPulse()) {
                 pulseEnded = true;
             }
+            if (module != null && module.tickCover()) {
+                // The cover fell shut: the clients draw it down.
+                pulseEnded = true;
+            }
         }
         if (++controlCounter >= Math.max(1, ControlRoom2Config.pidInterval)) {
             controlCounter = 0;
@@ -237,6 +241,20 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
     public net.minecraft.network.chat.Component takeFeedback(int slot) {
         ControlModule module = module(slot);
         return module == null ? null : module.takeFeedback();
+    }
+
+    /**
+     * Whether this block's four modules make one screen, set up and drawn by slot {@link BlockScreen#HEAD}
+     * (see {@link BlockScreen}).
+     */
+    public boolean mergedScreen() {
+        ModuleSurface surface = ModuleSurface.of(getBlockState());
+        ModuleType[] types = new ModuleType[SLOTS];
+        for (int slot = 0; slot < SLOTS; slot++) {
+            ControlModule module = modules[slot];
+            types[slot] = module != null && surface != null && surface.hasSlot(getBlockState(), slot) ? module.type() : null;
+        }
+        return BlockScreen.merged(types);
     }
 
     private void afterChange() {
@@ -426,13 +444,15 @@ public class ControlDeskBlockEntity extends SmartBlockEntity implements ControlR
         MonitorReading reading = consoleSample();
         boolean changed = false;
         int below = 0;
+        boolean merged = mergedScreen();
+        long now = level.getGameTime();
         for (int slot = 0; slot < SLOTS; slot++) {
             ControlModule module = modules[slot];
             if (module == null || !slotOpen(slot)) {
                 continue;
             }
             module.holdOrders(resolved);
-            changed |= module.evaluate(resolved, reading);
+            changed |= module.evaluate(resolved, reading, now, !merged || slot == BlockScreen.HEAD);
             if (module.output() == OutputMode.BELOW) {
                 below = Math.max(below, module.signal());
             }

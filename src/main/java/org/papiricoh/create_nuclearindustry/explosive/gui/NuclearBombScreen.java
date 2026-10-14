@@ -45,7 +45,7 @@ public class NuclearBombScreen extends AbstractContainerScreen<NuclearBombMenu> 
             guiGraphics.drawString(font, "Fissile: " + valid + "/" + NuclearBombBlockEntity.MAX_URANIUM_UNITS, leftPos + 14, topPos + 28, 0xDDDDDD);
             guiGraphics.drawString(font, String.format("Avg enrichment: %.1f%%", bomb.getAverageEnrichment()), leftPos + 14, topPos + 40, 0xDDDDDD);
             guiGraphics.drawString(font, String.format("Power: %.1f", bomb.getEstimatedPower()), leftPos + 14, topPos + 52, 0xFF7777);
-            guiGraphics.drawString(font, "Radius H/V: " + bomb.getEstimatedRadius() + "/" + bomb.getEstimatedVerticalRadius(), leftPos + 14, topPos + 64, 0xFFAA77);
+            guiGraphics.drawString(font, "Radius/crater: " + bomb.getEstimatedRadius() + "/" + bomb.getEstimatedCraterRadius(), leftPos + 14, topPos + 64, 0xFFAA77);
             int countdown = bomb.getCountdown();
             String state = countdown >= 0 ? String.format("Armed: %.1fs", countdown / 20.0f) : "Waiting for redstone";
             guiGraphics.drawString(font, state, leftPos + 14, topPos + 82, countdown >= 0 ? 0xFF4444 : 0x88FF88);

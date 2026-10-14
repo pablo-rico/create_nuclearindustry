@@ -121,6 +121,7 @@
       "id": "create_nuclearindustry:depleted_uranium_ap_shot",
       "required": false
     },
-    "create_nuclearindustry:irradiation_source"
+    "create_nuclearindustry:irradiation_source",
+    "create_nuclearindustry:trinitite"
   ]
 }

@@ -90,6 +90,18 @@ public abstract class ModuleSurfaceBlock extends HorizontalDirectionalBlock impl
 
     // ------------------------------------------------------------------ slots and interaction
 
+    /**
+     * The module whose setup a module shows: the head of its LED display, slot {@link BlockScreen#HEAD} of
+     * a merged screen, or itself.
+     */
+    public static LedGroups.Cell headOf(BlockGetter level, BlockPos pos, int slot) {
+        if (level.getBlockEntity(pos) instanceof ControlDeskBlockEntity desk && desk.module(slot) != null
+                && desk.module(slot).type().mergesBlock() && desk.mergedScreen()) {
+            return new LedGroups.Cell(pos.immutable(), BlockScreen.HEAD);
+        }
+        return LedGroups.headOf(level, pos, slot);
+    }
+
     /** The slot a click lands on, 0-3, or -1 off the module surface. */
     public static int slotAt(BlockState state, BlockPos pos, Vec3 hit) {
         ModuleSurface surface = ModuleSurface.of(state);
@@ -127,8 +139,8 @@ public abstract class ModuleSurfaceBlock extends HorizontalDirectionalBlock impl
                         level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.4f, 1.0f);
                     }
                 } else if (player instanceof ServerPlayer serverPlayer) {
-                    // Any module of an LED display sets up the whole display, which shows its head's setup.
-                    LedGroups.Cell head = LedGroups.headOf(level, pos, slot);
+                    // Any module of an LED display or a merged screen sets up the whole of it, which shows its head's setup.
+                    LedGroups.Cell head = headOf(level, pos, slot);
                     ControlModuleMenu.open(serverPlayer, head.pos(), head.slot());
                 }
             }
@@ -148,8 +160,15 @@ public abstract class ModuleSurfaceBlock extends HorizontalDirectionalBlock impl
             return InteractionResult.PASS;
         }
         if (!level.isClientSide) {
+            boolean covered = !module.coverOpen();
             if (desk.press(slot, player.isShiftKeyDown())) {
-                level.playSound(null, pos, SoundEvents.STONE_BUTTON_CLICK_ON, SoundSource.BLOCKS, 0.4f, 1.2f);
+                if (module.type() == ModuleType.GUARDED_BUTTON && (covered || !module.coverOpen())) {
+                    // The cover went up or down rather than the button being pressed.
+                    level.playSound(null, pos, module.coverOpen() ? SoundEvents.IRON_TRAPDOOR_OPEN : SoundEvents.IRON_TRAPDOOR_CLOSE,
+                            SoundSource.BLOCKS, 0.4f, 1.6f);
+                } else {
+                    level.playSound(null, pos, SoundEvents.STONE_BUTTON_CLICK_ON, SoundSource.BLOCKS, 0.4f, 1.2f);
+                }
                 Component feedback = desk.takeFeedback(slot);
                 if (feedback != null) {
                     player.displayClientMessage(feedback, true);

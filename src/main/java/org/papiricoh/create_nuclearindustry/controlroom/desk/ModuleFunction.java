@@ -58,7 +58,11 @@ public enum ModuleFunction {
     /** Lever: the tokamak's auxiliary heating on or off, at the level it was set to. */
     TOKAMAK_HEATING(TargetKind.TOKAMAK),
     /** Controller: sets the tokamak's fuelling, then its heating, to hold the fusion power at the setpoint. */
-    AUTO_FUSION_POWER(TargetKind.TOKAMAK);
+    AUTO_FUSION_POWER(TargetKind.TOKAMAK),
+    /** Core map: the reactor's columns, how far each channel's rods are in and how burnt each fuel column is. */
+    CORE_VIEW(TargetKind.REACTOR),
+    /** Plasma section: a cut through the tokamak's torus with its plasma. */
+    PLASMA_VIEW(TargetKind.TOKAMAK);
 
     @Nullable
     private final TargetKind needs;

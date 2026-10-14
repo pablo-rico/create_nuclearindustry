@@ -17,6 +17,16 @@ public class AllNuclearDataComponents {
                     .persistent(Codec.FLOAT)
                     .networkSynchronized(ByteBufCodecs.FLOAT));
 
+    /** A target designator set to airburst: the missile goes off above its target. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> AIRBURST =
+            DATA_COMPONENTS.registerComponentType("airburst", builder -> builder
+                    .persistent(Codec.BOOL)
+                    .networkSynchronized(ByteBufCodecs.BOOL));
+    /** The fissile load of a nuclear cannon shell: what its warhead is worth when it goes off. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<org.papiricoh.create_nuclearindustry.explosive.WarheadLoad>> WARHEAD_LOAD =
+            DATA_COMPONENTS.registerComponentType("warhead_load", builder -> builder
+                    .persistent(org.papiricoh.create_nuclearindustry.explosive.WarheadLoad.CODEC)
+                    .networkSynchronized(org.papiricoh.create_nuclearindustry.explosive.WarheadLoad.STREAM_CODEC));
     // Coordenadas de destino guardadas por el item designador del misil.
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> TARGET_POS =
             DATA_COMPONENTS.registerComponentType("target_pos", builder -> builder

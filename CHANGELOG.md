@@ -612,6 +612,24 @@ below for what changes in existing worlds.
   modules), with more digits and a label on top; the leftmost module sets it
   up, and wrenching any of its modules opens that setup. Too big a value reads
   OL, a reading the machine lacks reads dashes.
+- Guarded Button Module: a SCRAM, tokamak shutdown or pulse button under a
+  hinged cover. The first click lifts the cover, the second presses; a
+  sneaking click closes it, and it falls shut on its own after five seconds.
+- Bar Graph Module: a reading as a column of twenty LEDs, green, amber in the
+  15% under the alarm level and red from it. The alarm level (90% by default)
+  is set in the module's screen.
+- Trend Recorder Module: a reading drawn as a glowing line over its last 48
+  samples, one every 1, 5 or 20 seconds (about a minute, four or sixteen
+  minutes on screen). Samples taken without a reading leave a gap.
+- Core Map Module: a fission reactor's interior from above, north at the top:
+  fuel columns green to red as their assemblies burn, control channels filling
+  blue as their rods go in, moderator, reflector and heat exchanger columns.
+- Plasma Section Module: a cut through a tokamak with its plasma, coloured by
+  the startup phase, brighter the hotter it burns, bigger the denser it is,
+  shaking as it grows unstable, with field lines for the magnetic field and
+  the coils lit while they carry current. The frame turns red after a trip.
+- Four Core Maps or four Plasma Sections filling one desk, table or wall panel
+  make one big screen, set up from any of them.
 - Chart Recorder: up to three pens (red, blue, green) draw readings of the
   linked machine on a strip of paper that scrolls across its front, at one
   sample every 1, 5 or 20 ticks. Feed it paper by hand or with a hopper; it
@@ -694,6 +712,44 @@ below for what changes in existing worlds.
   config.
 - Monitor colours for the tokamak follow the plasma model's own thresholds
   instead of copies of them.
+
+### Nuclear weapons: the explosion
+- A nuclear detonation is now worked out from its warhead and the height it goes
+  off at. A ground burst digs a real crater, about a third as wide as the
+  destruction radius (75 blocks for a full warhead): a bowl with a raised rim,
+  ejecta scattered round it and a floor of glassy Trinitite, basalt and
+  obsidian with magma at the centre. Around it, everything standing above the
+  natural ground is blown away out to 35 kPa of blast, and part of it is wrecked
+  out to 12 kPa, where roofs cave in and what is left hanging falls. Natural
+  ground, bedrock and blast doors stay (`explosive.*`).
+- Thermal flash: further out than the blast, whatever sees the fireball catches
+  fire and, closer in, burns; grass burns bare, leaves burn away, exposed trees
+  turn to Charred Logs and fires start. Walls, hills and shelters keep it off.
+- Prompt radiation: whoever is near takes a dose at once, cut by walls and
+  armour like other radiation.
+- Fallout drifts with the wind into a plume twice as long downwind, for nuclear
+  and dirty bombs alike. The wind follows the world seed and turns from day to
+  day.
+- Airbursts: sneak-use a Target Designator in the air to switch it to airburst;
+  the missile then goes off above its target, digs no crater and leaves a tenth
+  of the fallout, but its blast and flash reach further. A cannon shell set off
+  high enough is an airburst too.
+- Nuclear cannon shells (Create Big Cannons) are made with one to four
+  weapons-grade cores and go off with what they carry; four are a full warhead,
+  as before.
+- What you see: a white flash, an orange glow in the sky and fog, the fireball
+  rising into a mushroom cloud seen from far beyond the render distance, a
+  condensation dome, a ring of dust running out with the shock wave and the
+  view shaking when it passes. Client options: `explosion.flash`,
+  `explosion.cloudDetail`, `explosion.shake`.
+- Craters are saved with the world and carry on after a restart, never load or
+  generate chunks (a column in an unloaded chunk waits for it to load), and all
+  the detonations of a world share one budget per tick. They no longer set the
+  sea round them pouring in, which used to drag the server down for a minute,
+  and the blast wave traces at most 256 sheltered glass or leaf blocks a tick
+  (a forest's canopy used to cost over a second a tick).
+- A containment monitor finds its building open as soon as the breach reaches
+  open sky, even with unloaded chunks nearby.
 
 ### Civil defense
 - New Air Raid Siren: it wails while powered by redstone, and on its own (a

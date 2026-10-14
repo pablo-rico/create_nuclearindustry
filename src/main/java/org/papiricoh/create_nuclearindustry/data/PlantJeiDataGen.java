@@ -21,6 +21,7 @@ final class PlantJeiDataGen extends AreaDataGen {
         waste();
         controlRoom();
         moduleSurfaces();
+        screenModules();
         civilDefense();
     }
 
@@ -92,6 +93,15 @@ final class PlantJeiDataGen extends AreaDataGen {
         add(INFO + "led_display_module",
                 "Shows a reading of the linked machine in digits, with its unit. LED displays side by side in a row of a desk, table or wall panel join into one wider display, across joined blocks of the same kind too (up to eight modules): the wider it is, the more digits and a label on top. The leftmost module sets the whole display; wrench any of its modules to choose the reading and the label. Too big a value reads OL; a reading the machine does not have reads dashes.",
                 "Muestra una lectura de la máquina enlazada en cifras, con su unidad. Los displays LED uno junto a otro en una fila de un pupitre, mesa o panel de pared se unen en un display más ancho, también entre bloques del mismo tipo unidos (hasta ocho módulos): cuanto más ancho, más cifras y una etiqueta encima. El módulo de más a la izquierda configura todo el display; usa la llave sobre cualquiera de sus módulos para elegir la lectura y la etiqueta. Un valor demasiado grande se lee OL; una lectura que la máquina no tiene se lee con guiones.");
+    }
+
+    private static void screenModules() {
+        add(INFO + "guarded_button_module",
+                "A push button under a hinged cover, so a SCRAM or a tokamak shutdown is never pressed by mistake. The first click lifts the cover, the next presses the button; a sneaking click closes it, and it falls shut by itself after five seconds.",
+                "Un pulsador bajo una tapa abatible, para que un SCRAM o una parada del tokamak nunca se pulse sin querer. El primer clic levanta la tapa y el siguiente pulsa el botón; un clic agachado la cierra, y se cierra sola a los cinco segundos.");
+        add(INFO + "screen_modules",
+                "Screens for a desk, table or wall panel. The Bar Graph shows a reading as a column of LEDs, green, then amber, then red from the level set in its screen. The Trend Recorder draws a reading over its last 48 samples, taken every 1, 5 or 20 seconds. The Core Map shows a fission reactor from above, north at the top: fuel green to red as it burns, control channels filling blue as their rods go in. The Plasma Section shows a cut through a tokamak with its plasma, glowing with its temperature and shaking as it grows unstable. Four Core Maps or four Plasma Sections filling one block make one big screen; wrench any of them to set it up.",
+                "Pantallas para un pupitre, mesa o panel de pared. La Barra gráfica muestra una lectura como una columna de LED, verde, luego ámbar y roja a partir del nivel fijado en su pantalla. El Registrador de tendencia dibuja una lectura en sus últimas 48 muestras, tomadas cada 1, 5 o 20 segundos. El Mapa del núcleo muestra un reactor de fisión desde arriba, con el norte arriba: el combustible de verde a rojo según se quema y los canales de control llenándose de azul según entran las barras. La Sección del plasma muestra un corte de un tokamak con su plasma, que brilla según su temperatura y tiembla al volverse inestable. Cuatro Mapas del núcleo o cuatro Secciones del plasma que llenan un bloque forman una pantalla grande; usa la llave sobre cualquiera para configurarla.");
     }
 
     private static void civilDefense() {

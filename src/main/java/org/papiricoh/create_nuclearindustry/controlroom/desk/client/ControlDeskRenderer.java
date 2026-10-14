@@ -12,7 +12,9 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.BlockScreen;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.SurfaceGeometry;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModule;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.DeskGeometry;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleSurface;
@@ -20,12 +22,12 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.LedGroups;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleFunction;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Draws the modules on a desk, table or wall panel, each as a base and a moving part animated from
- * its shown state, and the digits of the LED displays headed there. What a module is set to is
- * shown by Create's goggles (see {@link DeskGoggles}).
+ * its shown state, the digits of the LED displays headed there and the pictures of its screen modules.
  */
 public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlockEntity> {
     private static final float PX = 1 / 16f;
@@ -42,6 +44,7 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
         if (surface == null) {
             return;
         }
+        float time = desk.getLevel() == null ? 0 : desk.getLevel().getGameTime() + partialTick;
         for (int slot = 0; slot < ControlDeskBlockEntity.SLOTS; slot++) {
             ControlModule module = desk.module(slot);
             if (module == null || !surface.hasSlot(state, slot)) {
@@ -50,7 +53,7 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
             ms.pushPose();
             DeskGeometry.toSurfaceSlot(ms, state, slot);
             ms.translate(-0.5, 0, -0.5);
-            renderModule(module, state, surface.vertical(), ms, buffers, light);
+            renderModule(desk, slot, module, state, surface.vertical(), time, ms, buffers, light);
             ms.popPose();
         }
         List<LedGroups.Group> displays = desk.getLevel() == null ? List.of() : LedGroups.headedAt(desk.getLevel(), desk.getBlockPos());
@@ -60,6 +63,13 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
             LedDisplayDraw.segments(desk.module(display.head().slot()), display.length(), ms, buffers);
             ms.popPose();
         }
+        List<Screen> screens = screens(desk, state, surface);
+        for (Screen screen : screens) {
+            ms.pushPose();
+            DeskGeometry.toSurfaceSlot(ms, state, screen.slot());
+            ModuleScreenDraw.picture(screen.module(), screen.window(), screen.merged(), time, ms, buffers);
+            ms.popPose();
+        }
         // Text goes last: the font takes its own buffer, which closes the shared one the modules draw into.
         for (LedGroups.Group display : displays) {
             ms.pushPose();
@@ -67,6 +77,36 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
             LedDisplayDraw.text(desk.module(display.head().slot()), display.length(), font, ms, buffers);
             ms.popPose();
         }
+        for (Screen screen : screens) {
+            ms.pushPose();
+            DeskGeometry.toSurfaceSlot(ms, state, screen.slot());
+            ModuleScreenDraw.text(screen.module(), screen.window(), font, ms, buffers);
+            ms.popPose();
+        }
+    }
+
+    /** A screen module to draw, from its slot, or a merged screen from slot 0 over the whole block. */
+    private record Screen(int slot, ControlModule module, ModuleScreenDraw.Window window, boolean merged) {}
+
+    private static List<Screen> screens(ControlDeskBlockEntity desk, BlockState state, ModuleSurface surface) {
+        List<Screen> screens = new ArrayList<>();
+        if (desk.mergedScreen()) {
+            float pitch = surface == ModuleSurface.DESK ? SurfaceGeometry.DESK_ROW_PITCH : SurfaceGeometry.FLAT_ROW_PITCH;
+            screens.add(new Screen(BlockScreen.HEAD, desk.module(BlockScreen.HEAD), ModuleScreenDraw.Window.merged(pitch), true));
+            return screens;
+        }
+        for (int slot = 0; slot < ControlDeskBlockEntity.SLOTS; slot++) {
+            ControlModule module = desk.module(slot);
+            if (module != null && surface.hasSlot(state, slot) && isScreen(module.type())) {
+                screens.add(new Screen(slot, module, ModuleScreenDraw.Window.single(module.type()), false));
+            }
+        }
+        return screens;
+    }
+
+    private static boolean isScreen(ModuleType type) {
+        return type == ModuleType.BAR_GRAPH || type == ModuleType.TREND_RECORDER || type == ModuleType.CORE_MAP
+                || type == ModuleType.PLASMA_SECTION;
     }
 
     /** Taller than the block for what stands on a table, and as wide as the LED displays headed here. */
@@ -90,12 +130,22 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
      * Draws a module's base and moving part, asking for the buffer right before each draw. {@code wall}
      * for a module standing on a wall panel, where a gauge's dial lies flat to be read straight on.
      */
-    private static void renderModule(ControlModule module, BlockState state, boolean wall, PoseStack ms, MultiBufferSource buffers,
-                                     int light) {
+    private static void renderModule(ControlDeskBlockEntity desk, int slot, ControlModule module, BlockState state, boolean wall,
+                                     float time, PoseStack ms, MultiBufferSource buffers, int light) {
         CachedBuffers.partial(DeskPartials.base(module.type(), wall), state).light(light)
                 .renderInto(ms, buffers.getBuffer(RenderType.solid()));
-        if (module.type() == ModuleType.LED_DISPLAY) {
-            // Its digits are drawn per display, from the head's slot.
+        if (module.type() == ModuleType.LED_DISPLAY || isScreen(module.type())) {
+            // Digits and pictures are drawn per display or screen, from its head's slot.
+            return;
+        }
+        if (module.type() == ModuleType.GUARDED_BUTTON) {
+            boolean pressed = module.shown() > 0.5f;
+            CachedBuffers.partial(DeskPartials.BUTTON_CAP, state).translate(0, -0.75f * PX * (pressed ? 1 : 0), 0).light(light)
+                    .renderInto(ms, buffers.getBuffer(RenderType.solid()));
+            float angle = CoverSwing.angle(desk, slot, module.coverOpen(), time);
+            pivot(CachedBuffers.partial(DeskPartials.GUARDED_BUTTON_COVER, state), 8, 4.75f, 11.25f)
+                    .rotateXDegrees(angle).translate(-8 * PX, -4.75f * PX, -11.25f * PX).light(light)
+                    .renderInto(ms, buffers.getBuffer(RenderType.solid()));
             return;
         }
         float value = module.shown();
@@ -120,7 +170,8 @@ public class ControlDeskRenderer implements BlockEntityRenderer<ControlDeskBlock
             // The setpoint knob turns like a dial's.
             case CONTROLLER -> pivot(CachedBuffers.partial(DeskPartials.CONTROLLER_KNOB, state), 8, 0, 6.75f)
                     .rotateYDegrees(-(value - 0.5f) * 270).translate(-8 * PX, 0, -6.75f * PX);
-            case LED_DISPLAY -> throw new IllegalStateException("LED displays have no moving part");
+            case LED_DISPLAY, GUARDED_BUTTON, BAR_GRAPH, TREND_RECORDER, CORE_MAP, PLASMA_SECTION ->
+                    throw new IllegalStateException("drawn above");
         };
         part.light(module.type() == ModuleType.LAMP && on ? LightTexture.FULL_BRIGHT : light)
                 .renderInto(ms, buffers.getBuffer(RenderType.solid()));

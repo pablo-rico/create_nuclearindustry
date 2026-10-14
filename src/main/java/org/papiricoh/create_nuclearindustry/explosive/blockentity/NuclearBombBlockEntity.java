@@ -130,8 +130,8 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         return WarheadStats.horizontalRadius(getValidUraniumCount(), getAverageEnrichment());
     }
 
-    public int getEstimatedVerticalRadius() {
-        return WarheadStats.verticalRadius(getValidUraniumCount(), getAverageEnrichment());
+    public int getEstimatedCraterRadius() {
+        return WarheadStats.craterRadius(getValidUraniumCount(), getAverageEnrichment());
     }
 
     /** Weapons-grade uranium or plutonium. */
@@ -180,12 +180,10 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         }
         float power = getEstimatedPower();
         int horizontalRadius = getEstimatedRadius();
-        int verticalRadius = getEstimatedVerticalRadius();
         float intensity = WarheadStats.intensity(getAverageEnrichment());
         clearContent();
         level.removeBlock(center, false);
-        NuclearDetonation.detonate(serverLevel, center.getCenter(),
-                power, horizontalRadius, verticalRadius, intensity);
+        NuclearDetonation.detonate(serverLevel, center.getCenter(), power, horizontalRadius, intensity, 0.0f);
     }
 
     private void markDirtyAndSync() {

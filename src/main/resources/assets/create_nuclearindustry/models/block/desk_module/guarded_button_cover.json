@@ -1,0 +1,260 @@
+{
+  "credit": "Create: Nuclear Industry",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_guarded_button",
+    "guard": "create_nuclearindustry:block/desk_guarded_button"
+  },
+  "elements": [
+    {
+      "name": "lid",
+      "from": [
+        5,
+        4.5,
+        5
+      ],
+      "to": [
+        11,
+        5,
+        11
+      ],
+      "faces": {
+        "up": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            0,
+            12,
+            12
+          ],
+          "rotation": 180
+        },
+        "down": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            0,
+            12,
+            12
+          ]
+        },
+        "north": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "skirt_near",
+      "from": [
+        5,
+        0.5,
+        5
+      ],
+      "to": [
+        11,
+        4.5,
+        5.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "skirt_left",
+      "from": [
+        10.5,
+        0.5,
+        5.5
+      ],
+      "to": [
+        11,
+        4.5,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "skirt_right",
+      "from": [
+        5,
+        0.5,
+        5.5
+      ],
+      "to": [
+        5.5,
+        4.5,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#guard",
+          "uv": [
+            0,
+            12,
+            12,
+            13
+          ]
+        }
+      }
+    }
+  ]
+}

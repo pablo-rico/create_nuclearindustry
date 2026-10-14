@@ -33,7 +33,9 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModuleMenu;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleChoices;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleFunction;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.OutputMode;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.TrendRing;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
 
@@ -178,7 +180,7 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
         settingLabel.text = CommonComponents.EMPTY;
         settingInput = new SettingInput(leftPos + SETTING_X, topPos + SETTING_Y, SETTING_WIDTH, SETTING_HEIGHT);
         settingInput.withShiftStep(1)
-                .withStepFunction(context -> ModuleChoices.coarseSetting(module.function()) && !context.shift ? 5 : 1)
+                .withStepFunction(context -> ModuleChoices.coarseSetting(module.type(), module.function()) && !context.shift ? 5 : 1)
                 .calling(value -> {
                     module.withSetting(value);
                     changed();
@@ -367,7 +369,7 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
         metricList.setSelected(module.metric());
         readingList.setSelected(module.reading());
 
-        boolean setting = ModuleChoices.hasSetting(function);
+        boolean setting = ModuleChoices.hasSetting(module.type(), function);
         settingInput.visible = setting;
         settingInput.active = setting && !(alarm && module.metric().isFlag());
         settingLabel.visible = setting;
@@ -394,13 +396,21 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
         if (function == ModuleFunction.SIGNAL_LEVEL) {
             return Integer.toString(module.setting());
         }
+        if (module.type() == ModuleType.BAR_GRAPH) {
+            return module.setting() + "%";
+        }
+        if (module.type() == ModuleType.TREND_RECORDER) {
+            return TrendRing.secondsFor(module.setting()) + " s";
+        }
         return module.isController() ? module.formatSetpoint() : "";
     }
 
     private Component settingCaption() {
         ModuleFunction function = module.function();
         return Component.translatable(SCREEN + (function == ModuleFunction.LAMP_ALARM ? "threshold"
-                : function == ModuleFunction.SIGNAL_LEVEL ? "level" : "setpoint"));
+                : function == ModuleFunction.SIGNAL_LEVEL ? "level"
+                : module.type() == ModuleType.BAR_GRAPH ? "alarm_level"
+                : module.type() == ModuleType.TREND_RECORDER ? "trend_speed" : "setpoint"));
     }
 
     @Override
@@ -670,6 +680,8 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
             case PZR_HEATERS, TOKAMAK_HEATING -> AllIcons.I_FX_SURFACE_ON;
             case PZR_SPRAY -> AllIcons.I_FX_BLEND;
             case LAMP_RELIEF_OPEN -> AllIcons.I_SEND_AND_RECEIVE;
+            case CORE_VIEW -> AllIcons.I_VIEW_SCHEDULE;
+            case PLASMA_VIEW -> AllIcons.I_FX_FIELD_ON;
         };
     }
 
@@ -699,7 +711,7 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
             }
             toolTip.add(settingCaption().copy().withStyle(s -> s.withColor(HEADER_RGB.getRGB())));
             toolTip.add(Component.translatable(SCREEN + "scroll").withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
-            if (ModuleChoices.coarseSetting(module.function())) {
+            if (ModuleChoices.coarseSetting(module.type(), module.function())) {
                 toolTip.add(Component.translatable(SCREEN + "scroll_fine").withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
             }
         }

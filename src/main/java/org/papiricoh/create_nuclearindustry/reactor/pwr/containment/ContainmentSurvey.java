@@ -7,6 +7,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.multiblock.SealedVolume;
 
@@ -14,7 +15,9 @@ import org.papiricoh.create_nuclearindustry.multiblock.SealedVolume;
  * One measurement of a containment building: a {@link SealedVolume} flood fill from the monitor,
  * run a budget of blocks per tick. Gas passes every block without a full collision box, so open
  * doors, slabs, pipes and air leak; the monitor's own block counts as air, since it stands inside.
- * Remembers whether the fill ran into unloaded chunks, which says nothing about the building.
+ * Remembers whether the fill ran into unloaded chunks, which says nothing about the building. Air
+ * with nothing above it up to the sky leaks for certain: a building open to the sky is no building,
+ * however far it would take the fill to reach an unloaded chunk.
  */
 public final class ContainmentSurvey implements SealedVolume.World {
     private final Level level;
@@ -102,11 +105,13 @@ public final class ContainmentSurvey implements SealedVolume.World {
         if (level.isOutsideBuildHeight(y)) {
             return false;
         }
-        if (reader.chunk(x, z) == null) {
+        ChunkAccess chunk = reader.chunk(x, z);
+        if (chunk == null) {
             reachedUnloaded = true;
             return false;
         }
-        return true;
+        // Above the highest block that stops movement there is nothing but sky.
+        return y <= chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
     }
 
     @Override

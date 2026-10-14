@@ -31,7 +31,8 @@ public final class NuclearFeaturesClient {
             PlasmaHeatingClient.INSTANCE,
             ReactorVisualsClient.INSTANCE,
             FuelCycleClient.INSTANCE,
-            AcceleratorClient.INSTANCE);
+            AcceleratorClient.INSTANCE,
+            org.papiricoh.create_nuclearindustry.explosive.client.ExplosiveClient.INSTANCE);
 
     private NuclearFeaturesClient() {}
 

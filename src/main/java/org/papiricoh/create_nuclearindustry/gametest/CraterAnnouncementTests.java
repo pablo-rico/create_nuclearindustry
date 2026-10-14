@@ -35,7 +35,7 @@ public class CraterAnnouncementTests {
     private static final int MAX_STEPS = 200;
 
     private static boolean dig(GameTestHelper helper, BlockPos relativeCenter) {
-        NuclearBlastManager.BlastJob job = NuclearBlastManager.create(helper.getLevel(), helper.absolutePos(relativeCenter), 2, 4, 0f);
+        NuclearBlastManager.BlastJob job = NuclearBlastManager.create(helper.getLevel(), helper.absolutePos(relativeCenter), 2, 8, 0f);
         if (job == null) {
             return false;
         }

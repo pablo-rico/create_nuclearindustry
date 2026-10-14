@@ -48,7 +48,7 @@ public class LaunchPadScreen extends AbstractContainerScreen<LaunchPadMenu> {
             }
 
             guiGraphics.drawString(font, String.format("Power: %.1f", pad.getEstimatedPower()), leftPos + 14, topPos + 100 + 12, 0xFF7777);
-            guiGraphics.drawString(font, "Radius H/V: " + pad.getEstimatedRadius() + "/" + pad.getEstimatedVerticalRadius(),
+            guiGraphics.drawString(font, "Radius/crater: " + pad.getEstimatedRadius() + "/" + pad.getEstimatedCraterRadius(),
                     leftPos + 14, topPos + 100 + 24, 0xFFAA77);
 
             int countdown = pad.getCountdown();

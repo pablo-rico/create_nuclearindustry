@@ -40,9 +40,12 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
         tag(AllNuclearTags.Blocks.C_ORES).addTags(AllNuclearTags.Blocks.C_ORES_URANIUM,
                 AllNuclearTags.Blocks.C_ORES_LITHIUM, AllNuclearTags.Blocks.C_ORES_BORAX);
 
+        // What a nuclear crater leaves is ground and wood, not a machine: its own area tags it.
+        List<Block> terrain = List.of(org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.TRINITITE.get(),
+                org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.CHARRED_LOG.get());
         List<Block> machines = AllNuclearBlocks.BLOCKS.getEntries().stream()
                 .map(holder -> (Block) holder.get())
-                .filter(block -> !List.of(ores).contains(block))
+                .filter(block -> !List.of(ores).contains(block) && !terrain.contains(block))
                 .toList();
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ores).add(machines.toArray(Block[]::new)).addOptional(NUCLEAR_CANNON_SHELL).addOptional(DEPLETED_URANIUM_AP_SHOT);
         tag(AllNuclearTags.Blocks.WRENCH_PICKUP).add(machines.toArray(Block[]::new)).addOptional(NUCLEAR_CANNON_SHELL).addOptional(DEPLETED_URANIUM_AP_SHOT);

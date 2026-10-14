@@ -100,6 +100,7 @@ final class ControlRoom2DataGen extends AreaDataGen {
         annunciator();
         controller();
         moduleSurfaces();
+        newModules();
         advancedLink();
         panel();
         plantReadings();
@@ -270,6 +271,51 @@ final class ControlRoom2DataGen extends AreaDataGen {
         item("led_display_module", "LED Display Module", "Módulo de display LED");
         String m = "create_nuclearindustry.control_module.";
         add(m + "type.led_display", "LED Display", "Display LED");
+    }
+
+    /** The guarded button and the screen modules: bar graph, trend recorder, core map and plasma section. */
+    private static void newModules() {
+        String m = "create_nuclearindustry.control_module.";
+        item("guarded_button_module", "Guarded Button Module", "Módulo de pulsador con tapa");
+        item("bar_graph_module", "Bar Graph Module", "Módulo de barra gráfica");
+        item("trend_recorder_module", "Trend Recorder Module", "Módulo de registrador de tendencia");
+        item("core_map_module", "Core Map Module", "Módulo de mapa del núcleo");
+        item("plasma_section_module", "Plasma Section Module", "Módulo de sección del plasma");
+        add(m + "type.guarded_button", "Guarded Button", "Pulsador con tapa");
+        add(m + "type.bar_graph", "Bar Graph", "Barra gráfica");
+        add(m + "type.trend_recorder", "Trend Recorder", "Registrador de tendencia");
+        add(m + "type.core_map", "Core Map", "Mapa del núcleo");
+        add(m + "type.plasma_section", "Plasma Section", "Sección del plasma");
+        add(m + "function.core_view", "Core map", "Mapa del núcleo");
+        add(m + "function.plasma_view", "Plasma section", "Sección del plasma");
+        add(m + "function.core_view.desc",
+                "Shows the reactor's columns from above, north at the top: fuel green to red as it burns, control channels blue as their rods go in, moderator, reflector and heat exchangers. Four in one block make one big map.",
+                "Muestra las columnas del reactor desde arriba, con el norte arriba: el combustible de verde a rojo según se quema, los canales de control en azul según entran las barras, moderador, reflector e intercambiadores. Cuatro en un bloque forman un mapa grande.");
+        add(m + "function.plasma_view.desc",
+                "A cut through the tokamak with its plasma: brighter the hotter it is, bigger the denser, shaking as it grows unstable, with a field line for each step of the magnetic field. Four in one block make one big screen.",
+                "Un corte del tokamak con su plasma: más brillante cuanto más caliente, más grande cuanto más denso, temblando al volverse inestable, con una línea de campo por cada escalón del campo magnético. Cuatro en un bloque forman una pantalla grande.");
+        add(m + "cover.open", "Cover lifted: click again to press, sneak-click to close it",
+                "Tapa levantada: haz clic otra vez para pulsar, agachado para cerrarla");
+        add(m + "cover.closed", "Cover closed", "Tapa cerrada");
+        String s = m + "screen.";
+        add(s + "alarm_level", "Red from", "Rojo desde");
+        add(s + "trend_speed", "Each sample", "Cada muestra");
+        String p = "create_nuclearindustry.panel.";
+        add(p + "alarm_level", "Red from", "Rojo desde");
+        add(p + "trend_span", "Shows", "Muestra");
+        add(p + "trend_span_value", "last %s s", "últimos %s s");
+        add(p + "cover", "Cover", "Tapa");
+        add(p + "cover.open", "lifted", "levantada");
+        add(p + "cover.closed", "closed", "cerrada");
+        add(p + "core.fuel", "Fuel", "Combustible");
+        add(p + "core.channels", "Channels", "Canales");
+        add(p + "core.moderator", "Moderator", "Moderador");
+        add(p + "core.reflector", "Reflector", "Reflector");
+        add(p + "core.burnup", "Burnup", "Quemado");
+        add(p + "plasma.phase", "Phase", "Fase");
+        add(p + "plasma.temperature", "Temperature", "Temperatura");
+        add(p + "plasma.instability", "Instability", "Inestabilidad");
+        add(p + "plasma.field_lines", "Field lines", "Líneas de campo");
     }
 
     /** The Advanced Redstone Link and control modules sending on its codes. */

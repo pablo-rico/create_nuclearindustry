@@ -1,0 +1,193 @@
+{
+  "credit": "Create: Nuclear Industry",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/desk_module_base",
+    "plate": "create_nuclearindustry:block/desk_module_base",
+    "button": "create_nuclearindustry:block/desk_push_button",
+    "guard": "create_nuclearindustry:block/desk_guarded_button"
+  },
+  "elements": [
+    {
+      "name": "plate",
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        0.5,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#plate",
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ]
+        },
+        "east": {
+          "texture": "#plate",
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ]
+        },
+        "south": {
+          "texture": "#plate",
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#plate",
+          "uv": [
+            5,
+            10,
+            11,
+            10.5
+          ]
+        },
+        "up": {
+          "texture": "#plate",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "rotation": 180
+        }
+      }
+    },
+    {
+      "name": "guard_collar",
+      "from": [
+        5.5,
+        0.5,
+        5.5
+      ],
+      "to": [
+        10.5,
+        1.5,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#button",
+          "uv": [
+            0,
+            5,
+            5,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#button",
+          "uv": [
+            0,
+            5,
+            5,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#button",
+          "uv": [
+            0,
+            5,
+            5,
+            6
+          ]
+        },
+        "west": {
+          "texture": "#button",
+          "uv": [
+            0,
+            5,
+            5,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#button",
+          "uv": [
+            0,
+            0,
+            5,
+            5
+          ]
+        }
+      }
+    },
+    {
+      "name": "hinge",
+      "from": [
+        5,
+        0.5,
+        11
+      ],
+      "to": [
+        11,
+        5.25,
+        11.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#guard",
+          "uv": [
+            12,
+            0,
+            16,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#guard",
+          "uv": [
+            12,
+            0,
+            16,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#guard",
+          "uv": [
+            12,
+            0,
+            16,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#guard",
+          "uv": [
+            12,
+            0,
+            16,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#guard",
+          "uv": [
+            12,
+            0,
+            16,
+            1
+          ]
+        }
+      }
+    }
+  ]
+}

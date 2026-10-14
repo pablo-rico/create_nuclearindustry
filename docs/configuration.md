@@ -395,6 +395,31 @@ con la llave y se accionan igual que en un pupitre:
   fisión o de un tokamak (agachado, sus detalles). Se desactiva en la config del
   cliente con `hud.panel = false`.
 
+### Pulsador con tapa y módulos de pantalla
+
+Tampoco tienen claves de config:
+
+- **Pulsador con tapa**: SCRAM, parada del tokamak o pulso de redstone bajo una
+  tapa abatible. El primer clic levanta la tapa y el siguiente pulsa; un clic
+  agachado la cierra, y se cierra sola a los 5 segundos.
+- **Barra gráfica**: la lectura elegida en una columna de 20 LED, verde, ámbar
+  en el 15 % por debajo del nivel de alarma y roja desde él. El nivel de alarma
+  (90 % por defecto) se fija con la rueda en su pantalla de configuración.
+- **Registrador de tendencia**: la lectura como una línea en sus últimas 48
+  muestras, una cada 1, 5 o 20 segundos (elegido en su pantalla). Las muestras
+  sin lectura dejan un hueco.
+- **Mapa del núcleo**: el interior de un reactor de fisión visto desde arriba,
+  con el norte arriba: combustible de verde a rojo según se quema, canales de
+  control que se llenan de azul según entran las barras, moderador, reflector e
+  intercambiadores.
+- **Sección del plasma**: un corte del tokamak con su plasma: color según la
+  fase, brillo según la temperatura, tamaño según la densidad, temblor según la
+  inestabilidad, líneas de campo según el campo magnético y bobinas encendidas
+  con corriente. El marco se pone rojo tras un disparo.
+- Cuatro mapas del núcleo o cuatro secciones del plasma que llenan un pupitre,
+  mesa o panel de pared forman una pantalla grande que manda el del hueco 0; la
+  llave sobre cualquiera abre su configuración.
+
 ### Enlace de redstone avanzado
 
 No tiene claves propias: el alcance es el de los Redstone Link de Create
@@ -815,7 +840,9 @@ como antes, y sus puertos rechazan el refrigerante primario.
   un **Monitor de contención** dentro. El monitor rellena el aire que lo rodea
   (hasta `containment.maxVolume` bloques, `containment.cellsPerTick` por tick)
   y, si no llega al exterior, el edificio queda estanco. Una puerta, una losa,
-  una tubería o un hueco en la pared lo abren. Se vuelve a medir al cambiar una
+  una tubería o un hueco en la pared lo abren. Si el relleno llega a aire sin
+  nada encima hasta el cielo, el edificio está abierto sin más, aunque cerca
+  haya chunks sin cargar. Se vuelve a medir al cambiar una
   pared o lo de dentro, cada 30 segundos y al hacer clic derecho en el monitor.
 - **Resistencia de las paredes** (data map `containment_rating`, presión
   absoluta en bar): Hormigón de contención 6, Revestimiento de acero 8, puerta
@@ -1251,9 +1278,11 @@ Puertas blindadas:
 Onda expansiva:
 
 - Una detonación nuclear hace una explosión vanilla pequeña en el punto cero
-  (la bola de fuego, potencia `min(12, 0,35 × potencia)`), el cráter de
-  siempre, la lluvia radiactiva y una onda expansiva. Las bombas sucias
-  conservan su explosión convencional y no tienen onda.
+  (la bola de fuego, potencia `min(12, 0,35 × potencia)`, que hiere y empuja
+  pero no rompe bloques: eso lo hace el cráter), el cráter y las
+  zonas de daño (ver «Armas nucleares: la explosión»), la lluvia radiactiva y
+  una onda expansiva. Una explosión aérea llega un 25 % más lejos. Las bombas
+  sucias conservan su explosión convencional y no tienen onda.
 - La onda avanza `blastWave.speed` bloques por tick desde el centro hasta
   `min(blastWave.maxRadius, 4 × radio del cráter)` bloques (`maxRadius = 0`
   la desactiva). No se guarda: si el servidor se para, la onda en curso se
@@ -1282,7 +1311,9 @@ Onda expansiva:
   la sobrepresión llega a `blastWave.fragileOverpressure`. Los que tienen algo
   sólido encima solo se rompen si la onda les llega a través de lo que haya en
   medio (una ventana que mira a la explosión sí, una tras un muro grueso no).
-  Como mucho `blastWave.fragileBlocksPerTick` por tick; no carga chunks.
+  Como mucho `blastWave.fragileBlocksPerTick` por tick, y como mucho 256
+  rayos por tick hacia los que están a cubierto (el resto de esos se quedan
+  enteros); no carga chunks.
 
 Refugios:
 
@@ -1310,6 +1341,108 @@ Refugios:
   (la de los bloques radiactivos, los emisores y el inventario, no). Los
   refugios se guardan solo en memoria: tras recargar, la unidad los vuelve a
   certificar en su primera inspección.
+
+## Armas nucleares: la explosión
+
+```toml
+[explosive.crater]
+enabled = true
+blastProofResistance = 1200.0
+
+[explosive.zones]
+severeOverpressure = 35.0
+moderateOverpressure = 12.0
+
+[explosive.thermal]
+reach = 1.6
+fires = true
+firesPerTick = 24
+
+[explosive.prompt]
+edgeDose = 3000.0
+
+[explosive.fallout]
+windStretch = 1.0
+
+[explosive.debris]
+fallingPerTick = 40
+maxFalling = 1500
+
+[explosive]
+airburstHeight = 2.0
+visualRange = 1536
+```
+
+Cada detonación nuclear (bomba, misil, proyectil de cañón) calcula sus zonas a
+partir del radio de destrucción `R` de la cabeza (de 80 a 250 bloques) y de la
+altura a la que estalla sobre el terreno:
+
+- **Bola de fuego**: radio `max(6, 0,12 × R)`. Si la detonación está más alta
+  que su bola de fuego es una **explosión aérea**: no abre cráter, deja una
+  décima parte de la lluvia radiactiva, y su onda, sus zonas de daño y su
+  destello llegan un 25 % más lejos.
+- **Cráter**: un cuenco de radio `0,3 × R` (un 15 % más si estalla bajo
+  tierra) y `0,32 ×` ese radio de hondo, con el borde levantado
+  (`0,07 ×` el radio de alto) que baja hasta `1,3 ×` el radio, eyecta suelta
+  hasta `2 ×` el radio y el fondo de trinitita, basalto y obsidiana, con magma en
+  el centro. Una cabeza completa abre un cráter de unos 75 bloques.
+- **Zona grave**: donde la onda conserva `zones.severeOverpressure` kPa (sin
+  pasar de `R`), desaparece todo lo que se alza sobre el terreno natural.
+- **Zona moderada**: hasta `zones.moderateOverpressure` kPa (sin pasar de
+  `1,2 × R`), se quita parte de lo construido (más cuanto más cerca), los
+  árboles pierden las hojas y lo que queda colgando cae como bloques que caen
+  (`debris.fallingPerTick` por tick, como mucho `debris.maxFalling` por
+  detonación).
+- **Destello térmico**: hasta `thermal.reach × R`. Su fuerza cae con el
+  cuadrado de la distancia. Quien ve la bola de fuego arde y, más cerca, recibe
+  daño de fuego (Protección contra el fuego lo reduce); un muro, una colina o un
+  refugio certificado lo tapan. En el terreno quema la hierba, las hojas y las
+  plantas y carboniza los troncos expuestos, y con `thermal.fires` prende lo
+  inflamable al aire libre (como mucho `thermal.firesPerTick` fuegos por tick).
+  Los bloques invisibles (barreras, luz) no lo tapan.
+- **Radiación inmediata**: hasta `0,7 × R`, una dosis de golpe de
+  `prompt.edgeDose` en el borde de la bola de fuego (al menos a 10 bloques),
+  que cae con el cuadrado de la distancia y con el aire. Los bloques la cortan
+  como cortan el resto de la radiación, y el blindaje y el yoduro también
+  cuentan. A los animales los pone enfermos. 0 la desactiva.
+- **Lluvia radiactiva**: la del radio `1,5 × R` de siempre, pero el viento la
+  estira en una pluma que llega `1 + windStretch` veces más lejos a sotavento,
+  la mitad a barlovento y a los lados se queda en un 60 %. El viento sale de la
+  semilla del mundo y gira poco a poco de un día a otro. También vale para la
+  bomba sucia.
+- Los bloques con resistencia a explosiones mayor que
+  `crater.blastProofResistance` (la roca madre y las puertas blindadas)
+  resisten; la resistencia se mira según el estado del bloque.
+
+El trabajo se hace columna a columna desde el centro, dentro del presupuesto de
+`explosive.blastColumnsPerTick` y `explosive.blastBlocksPerTick` compartido por
+todas las detonaciones del mundo. Se guarda con el mundo y sigue tras reiniciar.
+Las columnas de chunks sin cargar no cargan ni generan nada: esperan a que su
+chunk cargue. Con `crater.enabled = false` las detonaciones no tocan el terreno,
+pero siguen haciendo daño, irradiando y contaminando. El cráter no despierta el
+agua de alrededor: los bloques que caen y los fuegos no avisan a sus vecinos, y
+junto al agua no cae nada, así que un cráter abierto al lado del mar no se
+inunda solo (lo hace si algo actualiza después esa agua).
+
+Proyectil de Create Big Cannons: se fabrica con un proyectil explosivo, una Bomba
+nuclear y de uno a cuatro núcleos de grado militar; cada núcleo vale 12 unidades
+de uranio al 90 %, así que cuatro son una cabeza completa (como antes). Los
+proyectiles de antes cuentan como cabeza completa.
+
+Misil: el Designador de objetivo, usado agachado al aire, cambia entre
+explosión en superficie y explosión aérea; en aérea el misil estalla
+`airburstHeight ×` su radio de bola de fuego por encima del objetivo.
+
+Lo que se ve (solo en el cliente): los jugadores a menos de `visualRange`
+bloques reciben la detonación y ven un destello blanco (más fuerte mirando
+hacia ella y si nada la tapa), un brillo naranja en la pantalla y en la niebla
+que se apaga en un minuto, la bola de fuego que sube y se convierte en un hongo
+(unos cuatro minutos, visible más allá de la niebla de la distancia de
+renderizado), una cúpula de condensación al principio, un anillo de polvo que
+avanza con la onda y una sacudida de cámara cuando la onda pasa. En la config del
+cliente: `explosion.flash` (0 a 1, brillo del destello; bájalo si molestan los
+destellos), `explosion.cloudDetail` (0,25 a 2, número de bocanadas del hongo) y
+`explosion.shake` (sacudida de cámara).
 
 ## Reactor de fisión visible
 
@@ -1389,10 +1522,11 @@ Opciones para servidores, bajo `performance.*` y `explosive.*`:
   juntas las muestras dibujadas entre medias, así que a velocidad máxima de
   papel hay un paquete por segundo en vez de veinte; el historial completo solo
   viaja al cargar el chunk.
-- `explosive.blastColumnsPerTick` (600): columnas del cráter que una detonación
-  nuclear excava por tick. Con menos, el trabajo se reparte en más ticks.
-- `explosive.blastBlocksPerTick` (3500): bloques que una detonación nuclear quita o
-  cambia como mucho por tick.
+- `explosive.blastColumnsPerTick` (600): columnas que trabajan por tick, entre
+  todas, las detonaciones nucleares de un mundo (cráter, zonas de daño y
+  destello). Con menos, el trabajo se reparte en más ticks.
+- `explosive.blastBlocksPerTick` (3500): bloques que las detonaciones nucleares
+  de un mundo quitan o cambian como mucho por tick, entre todas.
 
 Sin opción propia:
 

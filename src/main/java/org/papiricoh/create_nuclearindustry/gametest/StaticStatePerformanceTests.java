@@ -24,7 +24,9 @@ import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
 import org.papiricoh.create_nuclearindustry.civildefense.seismic.SeismicNetwork;
+import org.papiricoh.create_nuclearindustry.explosive.BlastJobs;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
+import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationProfile;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
 import org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenu;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
@@ -105,27 +107,29 @@ public class StaticStatePerformanceTests {
         });
     }
 
-    /** Craters still to dig, sounds still on their way and probed repository sites go when the server stops. */
+    /**
+     * Sounds still on their way and probed repository sites go when the server stops. Craters still to
+     * dig are saved with their level instead, to carry on after a restart: nothing static holds them.
+     */
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = "perf_static_stop")
     public static void queuesAndCachesAreClearedWhenTheServerStops(GameTestHelper helper) {
         helper.runAfterDelay(1, () -> {
             ServerLevel level = helper.getLevel();
+            int before = NuclearBlastManager.pending(level);
             // Queued and dropped in the same tick: the crater never digs a block.
-            NuclearBlastManager.start(level, helper.absolutePos(new BlockPos(6, 2, 6)), 2, 2, 1.0f);
-            helper.assertTrue(NuclearBlastManager.pending(level) >= 1, "the crater is queued");
+            NuclearBlastManager.start(level, helper.absolutePos(new BlockPos(6, 2, 6)), DetonationProfile.craterOnly(2, 2, 1.0f));
+            helper.assertTrue(NuclearBlastManager.pending(level) == before + 1, "the crater is queued");
+            BlastJobs saved = BlastJobs.getIfPresent(level);
+            helper.assertTrue(saved != null && saved.isDirty(), "in the level's own saved data, to be written with it");
             RepositoryProbe.site(level, helper.absolutePos(new BlockPos(6, 2, 6)));
             helper.assertTrue(RepositoryProbe.cachedSites() >= 1, "the probed site is cached");
             ServerStoppingEvent stopping = new ServerStoppingEvent(level.getServer());
-            NuclearBlastManager.onServerStopping(stopping);
             NuclearExplosionSoundManager.onServerStopping(stopping);
             RepositoryProbe.onServerStopping(stopping);
-            helper.assertTrue(NuclearBlastManager.pending(level) == 0, "no crater outlives the server");
-            helper.assertTrue(NuclearExplosionSoundManager.pending(level) == 0, "no sound either");
+            helper.assertTrue(NuclearBlastManager.pending(level) == before + 1, "the crater stays with its level for the next start");
+            NuclearBlastManager.cancelAll(level);
+            helper.assertTrue(NuclearExplosionSoundManager.pending(level) == 0, "no sound outlives the server");
             helper.assertTrue(RepositoryProbe.cachedSites() == 0, "nor a cached site");
-
-            NuclearBlastManager.start(level, helper.absolutePos(new BlockPos(6, 2, 6)), 2, 2, 1.0f);
-            NuclearBlastManager.onLevelUnload(new LevelEvent.Unload(level));
-            helper.assertTrue(NuclearBlastManager.pending(level) == 0, "nor its level");
             helper.succeed();
         });
     }
@@ -205,7 +209,7 @@ public class StaticStatePerformanceTests {
             try {
                 MissileEntity legacy = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
                 Vec3 inFar = new Vec3(far.getMiddleBlockX() + 0.5, 100, far.getMiddleBlockZ() + 0.5);
-                legacy.configure(inFar, inFar.add(200, 0, 0), 1.0f, 4, 4, 1.0f);
+                legacy.configure(inFar, inFar.add(200, 0, 0), 1.0f, 4, 1.0f);
 
                 // Saved by the older version before its first tick: it had forced nothing yet.
                 MissileEntity unflown = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
@@ -236,7 +240,7 @@ public class StaticStatePerformanceTests {
                 helper.assertTrue(far.equals(reloaded.getForcedChunk()), "and comes back with it, got " + reloaded.getForcedChunk());
 
                 MissileEntity none = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
-                none.configure(inFar, inFar.add(200, 0, 0), 1.0f, 4, 4, 1.0f);
+                none.configure(inFar, inFar.add(200, 0, 0), 1.0f, 4, 1.0f);
                 MissileEntity noneLoaded = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
                 noneLoaded.load(none.saveWithoutId(new CompoundTag()));
                 helper.assertTrue(noneLoaded.getForcedChunk() == null, "a missile that forced nothing loads with nothing");

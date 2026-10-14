@@ -62,6 +62,19 @@ public final class ModuleChoices {
         return function != ModuleFunction.SIGNAL_LEVEL;
     }
 
+    /** Whether the screen shows a setting input for a module of {@code type} set to the function. */
+    public static boolean hasSetting(ModuleType type, ModuleFunction function) {
+        if (function == ModuleFunction.READING) {
+            return type == ModuleType.BAR_GRAPH || type == ModuleType.TREND_RECORDER;
+        }
+        return hasSetting(function);
+    }
+
+    /** As {@link #coarseSetting(ModuleFunction)}, for a module of {@code type}: a trend's speed steps one at a time. */
+    public static boolean coarseSetting(ModuleType type, ModuleFunction function) {
+        return type != ModuleType.TREND_RECORDER && coarseSetting(function);
+    }
+
     /** Whether the screen shows a setting input for the function. */
     public static boolean hasSetting(ModuleFunction function) {
         return switch (function) {

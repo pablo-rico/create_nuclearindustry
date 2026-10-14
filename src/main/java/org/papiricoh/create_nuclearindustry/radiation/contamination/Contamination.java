@@ -137,13 +137,22 @@ public final class Contamination {
      * nothing at {@code radius} blocks. Loaded chunks get it now; the rest when they load.
      */
     public static void fallout(ServerLevel level, BlockPos center, int radius, float intensity) {
+        fallout(level, center, radius, intensity, 0, 0);
+    }
+
+    /**
+     * As {@link #fallout(ServerLevel, BlockPos, int, float)}, carried by a wind blowing towards
+     * {@code wind} radians that stretches it by {@code stretch} into a plume (see {@code FalloutPlume}).
+     */
+    public static void fallout(ServerLevel level, BlockPos center, int radius, float intensity, double wind, double stretch) {
         if (!Config.contaminationEnabled || radius <= 0 || intensity <= 0) {
             return;
         }
         ContaminationData data = ContaminationData.get(level);
-        ContaminationData.FalloutEvent event = data.addEvent(center.getX(), center.getZ(), radius, intensity, level.getGameTime());
+        ContaminationData.FalloutEvent event = data.addEvent(center.getX(), center.getZ(), radius, intensity, level.getGameTime(),
+                (float) wind, (float) stretch);
         ChunkPos origin = new ChunkPos(center);
-        int chunkRadius = (radius >> 4) + 1;
+        int chunkRadius = ((int) Math.ceil(event.reach()) >> 4) + 1;
         for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
             for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
                 LevelChunk chunk = loaded(level, origin.x + dx, origin.z + dz);

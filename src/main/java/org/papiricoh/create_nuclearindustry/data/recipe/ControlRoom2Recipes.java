@@ -12,6 +12,7 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
@@ -81,6 +82,11 @@ public class ControlRoom2Recipes implements DataProvider {
                 .requires(Items.GLOWSTONE_DUST)
                 .unlockedBy("has_control_desk", InventoryChangeTrigger.TriggerInstance.hasItems(AllNuclearItems.REACTOR_CONTROL_PANEL.get()))
                 .save(output, id("crafting/" + ModuleType.LED_DISPLAY.itemId()));
+        module(output, ModuleType.GUARDED_BUTTON, Items.STONE_BUTTON, Items.IRON_TRAPDOOR, Items.YELLOW_DYE);
+        module(output, ModuleType.BAR_GRAPH, Items.REDSTONE, Items.GLOWSTONE_DUST, Items.LIME_DYE);
+        module(output, ModuleType.TREND_RECORDER, Items.GLASS_PANE, CreateItems.get("electron_tube"), Items.PAPER);
+        module(output, ModuleType.CORE_MAP, Items.GLASS_PANE, CreateItems.get("electron_tube"), Items.MAP);
+        module(output, ModuleType.PLASMA_SECTION, Items.GLASS_PANE, CreateItems.get("electron_tube"), Items.AMETHYST_SHARD);
         // Create's link with an electron tube to decode the code.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.REDSTONE, ControlRoom2Registry.ADVANCED_REDSTONE_LINK_ITEM.get())
                 .requires(CreateItems.get("redstone_link"))
@@ -109,5 +115,16 @@ public class ControlRoom2Recipes implements DataProvider {
 
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path);
+    }
+
+    /** Like every module: a plate with the control on it, two at a time. */
+    private static void module(RecipeOutput output, ModuleType type, ItemLike... parts) {
+        ShapelessRecipeBuilder builder = ShapelessRecipeBuilder.shapeless(RecipeCategory.REDSTONE, AllNuclearItems.CONTROL_MODULES.get(type).get(), 2)
+                .requires(CreateItems.get("iron_sheet"));
+        for (ItemLike part : parts) {
+            builder.requires(part);
+        }
+        builder.unlockedBy("has_control_desk", InventoryChangeTrigger.TriggerInstance.hasItems(AllNuclearItems.REACTOR_CONTROL_PANEL.get()))
+                .save(output, id("crafting/" + type.itemId()));
     }
 }

@@ -45,6 +45,11 @@ public final class BlastWaveManager {
     private static final int FRAGILE_DEPTH = 16;
     /** Shattering effects (particles and sound) per tick; the rest just vanish. */
     private static final int EFFECTS_PER_TICK = 24;
+    /**
+     * Fragile blocks under cover traced back to the centre per tick: each trace walks every block on the way,
+     * so a forest's canopy could ask for thousands a tick. Past it, covered blocks are left whole.
+     */
+    private static final int COVERED_TRACES_PER_TICK = 256;
     /** Speed below which a push is not worth sending. */
     private static final double MIN_PUSH = 0.01;
 
@@ -120,6 +125,7 @@ public final class BlastWaveManager {
         private final double maxRadius;
         private final Set<UUID> struck = new HashSet<>();
         private double radius;
+        private int tracesLeft;
 
         private Wave(ServerLevel level, Vec3 centre, double yieldKg, double maxRadius) {
             this.level = level;
@@ -203,6 +209,7 @@ public final class BlastWaveManager {
             int area = (int) Math.ceil(Math.PI * (outer2 - inner2)) + 1;
             int stride = Math.max(1, (area + FRAGILE_COLUMNS_PER_TICK - 1) / FRAGILE_COLUMNS_PER_TICK);
             int budget = CivilDefenseConfig.blastWaveFragileBlocksPerTick;
+            tracesLeft = COVERED_TRACES_PER_TICK;
             int[] broken = {0};
             int[] index = {0};
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
@@ -240,6 +247,10 @@ public final class BlastWaveManager {
                     continue;
                 }
                 if (covered) {
+                    if (tracesLeft <= 0) {
+                        continue;
+                    }
+                    tracesLeft--;
                     kPa *= RadiationRay.walk(level, centre, at, null, BlastWaveManager::blockTransmission);
                     if (kPa < CivilDefenseConfig.blastWaveFragileOverpressure) {
                         continue;
@@ -248,7 +259,8 @@ public final class BlastWaveManager {
                 if (alreadyBroken + broken < EFFECTS_PER_TICK) {
                     level.levelEvent(2001, pos, Block.getId(state));
                 }
-                level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+                // Quietly: neighbours are not updated, so leaves round it do not start to decay at once.
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
                 broken++;
             }
             return broken;

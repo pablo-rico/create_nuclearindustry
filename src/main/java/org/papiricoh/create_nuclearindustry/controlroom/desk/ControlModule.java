@@ -30,6 +30,8 @@ import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 public final class ControlModule {
     public static final int LABEL_MAX = 16;
     public static final int PULSE_TICKS = 10;
+    /** A guarded button's cover falls shut by itself this long after it was lifted or the button pressed. */
+    public static final int COVER_TICKS = 100;
     public static final float ROD_STEP = 0.05f;
     public static final int THRESHOLD_STEP = 100;
     public static final int MIN_THRESHOLD = 500;
@@ -88,13 +90,25 @@ public final class ControlModule {
     private int signal;
     /** A reading's value in its units (gauges and LED displays), or NaN when there is none. */
     private float value = Float.NaN;
+    /** Ticks a guarded button's cover stays up; 0 while it is shut. */
+    private int coverTicks;
+    /** A trend recorder's trace, and the game time of its next sample. */
+    @Nullable
+    private final TrendRing trend;
+    private long nextTrendSample;
+    /** The picture a screen module syncs: a trend's samples, a core map or a plasma section; empty for none. */
+    private byte[] display = NO_DISPLAY;
+    private static final byte[] NO_DISPLAY = new byte[0];
 
     public ControlModule(ModuleType type) {
         this.type = type;
         this.function = type.defaultFunction();
         if (type == ModuleType.CONTROLLER) {
             this.setting = 50;
+        } else if (type == ModuleType.BAR_GRAPH) {
+            this.setting = BarGraph.DEFAULT_ALARM;
         }
+        this.trend = type == ModuleType.TREND_RECORDER ? new TrendRing() : null;
     }
 
     // ------------------------------------------------------------------ setup
@@ -272,11 +286,15 @@ public final class ControlModule {
         return this;
     }
 
-    /** The largest {@link #setting()} the function takes. */
+    /**
+     * The largest {@link #setting()} the function takes: a bar graph's alarm level is 0-100 %, a trend
+     * recorder's speed one of {@link TrendRing#SECONDS}.
+     */
     public int maxSetting() {
         return switch (function) {
             case SIGNAL_LEVEL -> 15;
             case LAMP_ALARM, AUTO_POWER, AUTO_TEMPERATURE, AUTO_PRESSURE, AUTO_FUSION_POWER -> 100;
+            case READING -> type == ModuleType.BAR_GRAPH ? 100 : type == ModuleType.TREND_RECORDER ? TrendRing.SECONDS.length - 1 : 0;
             default -> 0;
         };
     }
@@ -315,6 +333,19 @@ public final class ControlModule {
         return pulse > 0;
     }
 
+    /** Whether a guarded button's cover is up, so the next click presses the button. */
+    public boolean coverOpen() {
+        return coverTicks > 0;
+    }
+
+    /**
+     * What a screen module draws: a trend recorder's samples oldest first (see {@link TrendRing}), a core
+     * map ({@link CoreMap}) or a plasma section ({@link PlasmaSection}); empty while there is none.
+     */
+    public byte[] display() {
+        return display;
+    }
+
     /** What the last click did, for the player who clicked, once; null when it has nothing to say. */
     @Nullable
     public Component takeFeedback() {
@@ -328,23 +359,57 @@ public final class ControlModule {
         return pulse > 0 && --pulse == 0;
     }
 
+    /** Counts a guarded button's cover down; true when it just fell shut. */
+    boolean tickCover() {
+        return coverTicks > 0 && --coverTicks == 0;
+    }
+
     /**
      * Works out what the module shows for a console linked to {@code target}, sampled as
      * {@code sample}. Returns true when anything a client or a redstone listener sees changed.
      */
     public boolean evaluate(LinkedTarget.Resolved target, MonitorReading sample) {
+        return evaluate(target, sample, Long.MIN_VALUE, true);
+    }
+
+    /**
+     * As {@link #evaluate(LinkedTarget.Resolved, MonitorReading)}, at game time {@code gameTime} (when a
+     * trend recorder takes its samples; {@link Long#MIN_VALUE} takes none). {@code picture} is false for
+     * a module whose picture another draws (a merged screen's other three), which then keeps none.
+     */
+    public boolean evaluate(LinkedTarget.Resolved target, MonitorReading sample, long gameTime, boolean picture) {
         TargetKind kind = target.kind();
         boolean nowActive = isActiveFor(kind, target);
         float nowShown = nowActive ? computeShown(target, sample) : 0.0f;
         int nowSignal = nowActive ? computeSignal(nowShown) : 0;
         float nowValue = nowActive && function == ModuleFunction.READING ? (float) ReadingValue.value(reading, sample) : Float.NaN;
+        if (trend != null && gameTime != Long.MIN_VALUE && gameTime >= nextTrendSample) {
+            trend.push(nowActive ? nowShown : Float.NaN);
+            nextTrendSample = gameTime + TrendRing.secondsFor(setting) * 20L;
+        }
+        byte[] nowDisplay = picture ? computeDisplay(target, sample, nowActive) : NO_DISPLAY;
         boolean changed = nowActive != active || Math.abs(nowShown - shown) > 1.0e-3f || nowSignal != signal
-                || valueChanged(value, nowValue);
+                || valueChanged(value, nowValue) || !java.util.Arrays.equals(display, nowDisplay);
         active = nowActive;
         shown = nowShown;
         signal = nowSignal;
         value = nowValue;
+        display = nowDisplay;
         return changed;
+    }
+
+    private byte[] computeDisplay(LinkedTarget.Resolved target, MonitorReading sample, boolean nowActive) {
+        if (trend != null) {
+            return trend.ordered();
+        }
+        if (!nowActive) {
+            return NO_DISPLAY;
+        }
+        return switch (function) {
+            case CORE_VIEW -> target instanceof LinkedTarget.Reactor linked ? ModuleDisplays.coreMap(linked.reactor()) : NO_DISPLAY;
+            case PLASMA_VIEW -> ModuleDisplays.plasma(sample);
+            default -> NO_DISPLAY;
+        };
     }
 
     /** Whether an LED display would show the change: one part in ten thousand is past its last digit. */
@@ -381,7 +446,7 @@ public final class ControlModule {
             case AUTO_SCRAM -> reactor != null && reactor.getAutoScram().isEnabled() ? 1 : 0;
             case TOKAMAK_FUEL -> tokamak != null && tokamak.isFuelEnabled() ? 1 : 0;
             // A button shows its press; a lever stays where it was put.
-            case TOKAMAK_START, TOKAMAK_SHUTDOWN -> (type == ModuleType.PUSH_BUTTON ? pulse > 0 : on) ? 1 : 0;
+            case TOKAMAK_START, TOKAMAK_SHUTDOWN -> (type.isButton() ? pulse > 0 : on) ? 1 : 0;
             // Read live, as the fuel lever is: the console's sample may predate the click.
             case TOKAMAK_HEATING -> tokamak != null && tokamak.readings().heatingEnabled() ? 1 : 0;
             case TOGGLE -> on ? 1 : 0;
@@ -397,6 +462,8 @@ public final class ControlModule {
             case AUTO_POWER, AUTO_TEMPERATURE, AUTO_PRESSURE, AUTO_FUSION_POWER -> setting / 100.0f;
             case PZR_HEATERS, PZR_SPRAY -> on ? 1 : 0;
             case LAMP_RELIEF_OPEN -> reactor != null && reactor.getPrimaryLoop().reliefOpen() ? 1 : 0;
+            case CORE_VIEW -> reactor != null && reactor.isFormed() ? 1 : 0;
+            case PLASMA_VIEW -> sample.kind() == TargetKind.TOKAMAK && sample.flag(MonitorReading.K_FORMED) ? 1 : 0;
         };
     }
 
@@ -427,6 +494,15 @@ public final class ControlModule {
     public boolean press(LinkedTarget.Resolved target, boolean back) {
         if (!isActiveFor(target.kind(), target)) {
             return false;
+        }
+        if (type == ModuleType.GUARDED_BUTTON) {
+            // The cover first: lifted by a click, let down by a sneaking one; only under it is the button.
+            if (back || coverTicks == 0) {
+                coverTicks = back ? 0 : COVER_TICKS;
+                feedback = Component.translatable(KEY + (back ? "cover.closed" : "cover.open"));
+                return true;
+            }
+            coverTicks = COVER_TICKS;
         }
         ReactorBlockEntity reactor = target instanceof LinkedTarget.Reactor linked ? linked.reactor() : null;
         FusionReactorBlockEntity tokamak = target instanceof LinkedTarget.Tokamak linked ? linked.tokamak() : null;
@@ -464,7 +540,7 @@ public final class ControlModule {
      * answered. A lever thrown down does nothing; a lever whose start is refused springs back down.
      */
     private void pressStartStop(TokamakControl tokamak) {
-        if (type == ModuleType.PUSH_BUTTON) {
+        if (type.isButton()) {
             pulse = PULSE_TICKS;
         } else {
             on = !on;
@@ -639,6 +715,16 @@ public final class ControlModule {
         if (function == ModuleFunction.READING) {
             tag.putFloat("Value", value);
         }
+        if (coverTicks > 0) {
+            tag.putInt("Cover", coverTicks);
+        }
+        if (trend != null) {
+            tag.putByteArray("Trend", trend.ordered());
+            tag.putLong("TrendNext", nextTrendSample);
+        }
+        if (display.length > 0 && trend == null) {
+            tag.putByteArray("Display", display);
+        }
         if (isController()) {
             CompoundTag loop = new CompoundTag();
             loop.putBoolean("Initialized", pid.initialized());
@@ -667,6 +753,14 @@ public final class ControlModule {
         module.shown = Mth.clamp(tag.getFloat("Shown"), 0, 1);
         module.signal = Mth.clamp(tag.getInt("Signal"), 0, 15);
         module.value = tag.contains("Value") ? tag.getFloat("Value") : Float.NaN;
+        module.coverTicks = Mth.clamp(tag.getInt("Cover"), 0, COVER_TICKS);
+        if (module.trend != null) {
+            module.trend.load(tag.getByteArray("Trend"));
+            module.nextTrendSample = tag.getLong("TrendNext");
+            module.display = module.trend.ordered();
+        } else {
+            module.display = tag.getByteArray("Display");
+        }
         if (tag.contains("Pid")) {
             CompoundTag loop = tag.getCompound("Pid");
             module.pid.load(loop.getBoolean("Initialized"), loop.getDouble("Integral"), loop.getDouble("Output"),

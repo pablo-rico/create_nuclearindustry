@@ -64,4 +64,13 @@ class ModuleChoicesTest {
         assertFalse(ModuleChoices.coarseSetting(ModuleFunction.SIGNAL_LEVEL));
         assertTrue(ModuleChoices.coarseSetting(ModuleFunction.AUTO_POWER));
     }
+
+    @Test
+    void readingScreensHaveTheirOwnSetting() {
+        assertTrue(ModuleChoices.hasSetting(ModuleType.BAR_GRAPH, ModuleFunction.READING), "the alarm level");
+        assertTrue(ModuleChoices.hasSetting(ModuleType.TREND_RECORDER, ModuleFunction.READING), "the speed");
+        assertFalse(ModuleChoices.hasSetting(ModuleType.GAUGE, ModuleFunction.READING));
+        assertTrue(ModuleChoices.coarseSetting(ModuleType.BAR_GRAPH, ModuleFunction.READING));
+        assertFalse(ModuleChoices.coarseSetting(ModuleType.TREND_RECORDER, ModuleFunction.READING), "three speeds, one at a time");
+    }
 }

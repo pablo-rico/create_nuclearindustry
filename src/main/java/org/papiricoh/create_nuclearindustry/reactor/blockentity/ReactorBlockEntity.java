@@ -1654,6 +1654,14 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         return lastControlRodScan;
     }
 
+    /**
+     * The loaded fuel assemblies in burn order, each with how burnt it is, as the fuel channels show them
+     * (server side; a new list on each call).
+     */
+    public List<ReactorPhysicsSimulator.AssemblyView> fuelAssemblies() {
+        return physicsSimulator.assemblyViews();
+    }
+
     public int getStaticControlRodSegments() {
         return lastControlRodScan.staticSegments();
     }

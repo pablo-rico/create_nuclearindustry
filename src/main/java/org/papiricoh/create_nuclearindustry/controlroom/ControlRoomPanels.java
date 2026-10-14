@@ -6,6 +6,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.CoreMap;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.PlasmaSection;
+import org.papiricoh.create_nuclearindustry.controlroom.desk.TrendRing;
+import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.LedGroups;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleSurfaceBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModule;
@@ -38,7 +42,7 @@ public final class ControlRoomPanels {
 
     /**
      * The card for a crosshair at {@code hit} on a desk, table or wall panel: the module there (for an
-     * LED display, the head whose setup the whole display shows), or the console.
+     * LED display or a merged screen, the head whose setup the whole of it shows), or the console.
      */
     public static PanelCard surface(ControlDeskBlockEntity desk, Vec3 hit) {
         var state = desk.getBlockState();
@@ -48,8 +52,8 @@ public final class ControlRoomPanels {
         if (module == null) {
             return console(desk).key(-1);
         }
-        if (module.type() == ModuleType.LED_DISPLAY && desk.getLevel() != null) {
-            LedGroups.Cell head = LedGroups.headOf(desk.getLevel(), desk.getBlockPos(), slot);
+        if (desk.getLevel() != null) {
+            LedGroups.Cell head = ModuleSurfaceBlock.headOf(desk.getLevel(), desk.getBlockPos(), slot);
             if (desk.getLevel().getBlockEntity(head.pos()) instanceof ControlDeskBlockEntity headDesk && headDesk.module(head.slot()) != null) {
                 module = headDesk.module(head.slot());
             }
@@ -115,6 +119,17 @@ public final class ControlRoomPanels {
             }
             card.add(new BigValue(Component.literal(number(module)), ReadingValue.unit(module.reading()), accent));
             card.add(new Bar(Component.translatable(P + "scale"), module.shown(), percent(module.shown()), accent));
+            if (module.type() == ModuleType.BAR_GRAPH) {
+                card.add(new Field(Component.translatable(P + "alarm_level"), Component.literal(module.setting() + "%"),
+                        module.active() && module.shown() * 100 >= module.setting() ? RED : TEXT));
+            } else if (module.type() == ModuleType.TREND_RECORDER) {
+                card.add(new Field(Component.translatable(P + "trend_span"),
+                        Component.translatable(P + "trend_span_value", TrendRing.CAPACITY * TrendRing.secondsFor(module.setting())), TEXT));
+            }
+        } else if (function == ModuleFunction.CORE_VIEW) {
+            coreMap(card, module.display(), accent);
+        } else if (function == ModuleFunction.PLASMA_VIEW) {
+            plasma(card, module.display(), accent);
         } else if (module.isController()) {
             card.add(new Field(Component.translatable(P + "mode"),
                     Component.translatable(M + (module.engaged() ? "mode.auto" : "mode.standby")), module.engaged() ? GREEN : AMBER));
@@ -139,7 +154,67 @@ public final class ControlRoomPanels {
             card.add(new BigValue(onOff(on), "", on ? RED : DIM));
         } else {
             card.add(new BigValue(onOff(on), "", on ? accent : DIM));
+            if (module.type() == ModuleType.GUARDED_BUTTON) {
+                card.add(new Field(Component.translatable(P + "cover"),
+                        Component.translatable(P + (module.coverOpen() ? "cover.open" : "cover.closed")), module.coverOpen() ? AMBER : TEXT));
+            }
         }
+    }
+
+    /** A core map's columns counted by kind, with how far the rods are in and how burnt the fuel is on average. */
+    private static void coreMap(PanelCard card, byte[] map, int accent) {
+        int side = CoreMap.side(map);
+        if (side == 0) {
+            card.add(new BigValue(Component.literal("-"), "", DIM));
+            return;
+        }
+        float rods = average(map, CoreMap.Kind.CONTROL);
+        float burn = average(map, CoreMap.Kind.FUEL);
+        card.add(new Grid(List.of(
+                new Field(Component.translatable(P + "core.fuel"), Component.literal(Integer.toString(CoreMap.count(map, CoreMap.Kind.FUEL))), TEXT),
+                new Field(Component.translatable(P + "core.channels"), Component.literal(Integer.toString(CoreMap.count(map, CoreMap.Kind.CONTROL))), TEXT),
+                new Field(Component.translatable(P + "core.moderator"), Component.literal(Integer.toString(CoreMap.count(map, CoreMap.Kind.MODERATOR))), TEXT),
+                new Field(Component.translatable(P + "core.reflector"), Component.literal(Integer.toString(CoreMap.count(map, CoreMap.Kind.REFLECTOR))), TEXT))));
+        if (!Float.isNaN(rods)) {
+            card.add(new Bar(Component.translatable(P + "rods_in"), rods, percent(rods), accent));
+        }
+        if (!Float.isNaN(burn)) {
+            card.add(new Bar(Component.translatable(P + "core.burnup"), burn, percent(burn), burn > 0.75f ? AMBER : accent));
+        }
+    }
+
+    private static float average(byte[] map, CoreMap.Kind kind) {
+        int side = CoreMap.side(map);
+        float sum = 0;
+        int count = 0;
+        for (int row = 0; row < side; row++) {
+            for (int column = 0; column < side; column++) {
+                float value = CoreMap.value(map, column, row);
+                if (CoreMap.kind(map, column, row) == kind && !Float.isNaN(value)) {
+                    sum += value;
+                    count++;
+                }
+            }
+        }
+        return count == 0 ? Float.NaN : sum / count;
+    }
+
+    /** A plasma section's phase, how hot and how unstable the plasma is. */
+    private static void plasma(PanelCard card, byte[] data, int accent) {
+        PlasmaSection.Look look = PlasmaSection.decode(data);
+        if (look == null) {
+            card.add(new BigValue(Component.literal("-"), "", DIM));
+            return;
+        }
+        TokamakPhase phase = TokamakPhase.values()[Math.min(TokamakPhase.values().length - 1, data[0] & 0xFF)];
+        card.add(new Field(Component.translatable(P + "plasma.phase"), Component.translatable(phase.langKey()),
+                look.tripped() ? RED : look.plasma() ? GREEN : TEXT));
+        float temperature = (data[1] & 0xFF) / 255f;
+        float instability = (data[3] & 0xFF) / 255f;
+        card.add(new Bar(Component.translatable(P + "plasma.temperature"), temperature, percent(temperature), accent));
+        card.add(new Bar(Component.translatable(P + "plasma.instability"), instability, percent(instability),
+                instability > 0.6f ? RED : instability > 0.3f ? AMBER : GREEN));
+        card.add(new Field(Component.translatable(P + "plasma.field_lines"), Component.literal(Integer.toString(look.fieldLines())), TEXT));
     }
 
     private static void output(PanelCard card, ControlModule module) {

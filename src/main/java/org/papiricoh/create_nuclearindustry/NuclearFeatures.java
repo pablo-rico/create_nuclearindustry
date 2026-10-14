@@ -30,7 +30,8 @@ public final class NuclearFeatures {
             PlasmaHeatingRegistry.INSTANCE,
             ReactorVisualsRegistry.INSTANCE,
             FuelCycleRegistry.INSTANCE,
-            AcceleratorRegistry.INSTANCE);
+            AcceleratorRegistry.INSTANCE,
+            org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.INSTANCE);
 
     private NuclearFeatures() {}
 

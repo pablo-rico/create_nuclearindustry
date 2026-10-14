@@ -184,8 +184,8 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         return WarheadStats.horizontalRadius(getValidUraniumCount(), getAverageEnrichment());
     }
 
-    public int getEstimatedVerticalRadius() {
-        return WarheadStats.verticalRadius(getValidUraniumCount(), getAverageEnrichment());
+    public int getEstimatedCraterRadius() {
+        return WarheadStats.craterRadius(getValidUraniumCount(), getAverageEnrichment());
     }
 
     /** Weapons-grade uranium or plutonium. */
@@ -214,7 +214,6 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         float avgEnrichment = getAverageEnrichment();
         float power = WarheadStats.power(units, avgEnrichment);
         int horizontalRadius = WarheadStats.horizontalRadius(units, avgEnrichment);
-        int verticalRadius = WarheadStats.verticalRadius(units, avgEnrichment);
         float intensity = WarheadStats.intensity(avgEnrichment);
 
         consumeFuel();
@@ -222,13 +221,17 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
 
         Vec3 start = launchPoint();
         Vec3 targetVec = new Vec3(target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
+        if (!dirty && TargetDesignatorItem.isAirburst(inventory.getStackInSlot(DESIGNATOR_SLOT))) {
+            // Set to airburst: it goes off above the target, clear of its own fireball.
+            targetVec = targetVec.add(0, TargetDesignatorItem.airburstHeight(horizontalRadius), 0);
+        }
 
         MissileEntity missile = new MissileEntity(AllNuclearEntities.MISSILE.get(), serverLevel);
         missile.setPos(start.x, start.y, start.z);
         if (dirty) {
             missile.configureDirty(start, targetVec, load);
         } else {
-            missile.configure(start, targetVec, power, horizontalRadius, verticalRadius, intensity);
+            missile.configure(start, targetVec, power, horizontalRadius, intensity);
             missile.setSalting(load);
         }
         serverLevel.addFreshEntity(missile);

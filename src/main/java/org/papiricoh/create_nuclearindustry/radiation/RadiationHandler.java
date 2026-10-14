@@ -99,6 +99,23 @@ public final class RadiationHandler {
     }
 
     /**
+     * A dose taken all at once, such as a nuclear detonation's prompt radiation: less what the player's
+     * armour shields and iodide keeps out, added to the dose and the lifetime total. Nothing in creative,
+     * spectator or with radiation off.
+     */
+    public static void addPromptDose(Player player, float dose) {
+        if (!Config.radiationEnabled || player.isCreative() || player.isSpectator() || dose <= 0) {
+            return;
+        }
+        float taken = (float) (dose * (1.0 - shielding(player)) * absorption(player) * Config.radiationDoseMultiplier);
+        float current = player.getData(AllNuclearRadiation.DOSE) + taken;
+        float total = player.getData(AllNuclearRadiation.TOTAL_DOSE) + taken;
+        player.setData(AllNuclearRadiation.DOSE, current);
+        player.setData(AllNuclearRadiation.TOTAL_DOSE, total);
+        publish(player, player.getData(AllNuclearRadiation.RATE), current, total);
+    }
+
+    /**
      * Updates the HUD reading only when its rounded values change; a synced attachment then
      * sends those few bytes to this player alone. Nothing is sent while there is nothing to show.
      */
