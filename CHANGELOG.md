@@ -11,6 +11,12 @@ below for what changes in existing worlds.
   even cold; rods are no longer capped at one bank, so cores with more than two
   rods per three fuel blocks get stronger rods (cores with fewer behave as
   before). The desk's automatic controller scales its gains to match.
+- Rods come out like at a real plant: while the core is deep below critical
+  they withdraw as fast as they are pulled, so starting up no longer takes
+  minutes of creeping reactivity; only the last 1000 pcm before critical are
+  freed at the rod drives' 100 pcm/s, so pulling every rod at once still never
+  takes the core prompt critical (`fission.kinetics.freeWithdrawalMargin`, 0
+  for the old behaviour).
 - New **Boric Acid** (Create mixing: 1000 mB water, a borax salt and 100 mB
   sulfuric acid). Pumped into a reactor, its boron holds the core down from the
   water (5 pcm per ppm). It stays when the water boils; only bleeding takes it

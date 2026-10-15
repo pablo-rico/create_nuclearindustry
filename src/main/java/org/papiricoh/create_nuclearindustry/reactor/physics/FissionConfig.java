@@ -20,6 +20,7 @@ public final class FissionConfig {
     private static ModConfigSpec.DoubleValue GENERATION_TIME;
     private static ModConfigSpec.DoubleValue SOURCE;
     private static ModConfigSpec.DoubleValue MAX_WITHDRAWAL_RATE;
+    private static ModConfigSpec.DoubleValue FREE_WITHDRAWAL_MARGIN;
     private static ModConfigSpec.DoubleValue MAX_POWER;
     private static ModConfigSpec.DoubleValue FUEL_EXCESS;
     private static ModConfigSpec.DoubleValue BURNUP_DEFECT;
@@ -88,6 +89,7 @@ public final class FissionConfig {
     public static double promptGenerationTime = 1.0e-3;
     public static double sourceStrength = 1.0e-3;
     public static double maxWithdrawalRate = 100;
+    public static double freeWithdrawalMargin = FissionCore.Params.DEFAULT_FREE_WITHDRAWAL_MARGIN;
     public static double maxRelativePower = 10;
     public static double fuelExcess = 12000;
     public static double burnupDefect = 0.6;
@@ -141,6 +143,10 @@ public final class FissionConfig {
         MAX_WITHDRAWAL_RATE = b.comment("Reactivity a control rod withdrawal frees per second at most, in pcm: the speed of the rod",
                         "drives. Pistons jerking rods out never take the core prompt critical at once. Inserting is immediate.")
                 .defineInRange("fission.kinetics.maxWithdrawalRate", 100.0, 1.0, 100000.0);
+        FREE_WITHDRAWAL_MARGIN = b.comment("How far below critical, in pcm, a withdrawal is free of maxWithdrawalRate: a deeply",
+                        "shut-down core lets its rods out as fast as they are pulled, and only the approach to criticality creeps.",
+                        "0 rate-limits every withdrawal.")
+                .defineInRange("fission.kinetics.freeWithdrawalMargin", FissionCore.Params.DEFAULT_FREE_WITHDRAWAL_MARGIN, 0.0, 100000.0);
         MAX_POWER = b.comment("Highest power the chain reaction can reach, as a multiple of the rated power.")
                 .defineInRange("fission.kinetics.maxRelativePower", 10.0, 1.0, 100.0);
 
@@ -262,6 +268,7 @@ public final class FissionConfig {
         promptGenerationTime = GENERATION_TIME.get();
         sourceStrength = SOURCE.get();
         maxWithdrawalRate = MAX_WITHDRAWAL_RATE.get();
+        freeWithdrawalMargin = FREE_WITHDRAWAL_MARGIN.get();
         maxRelativePower = MAX_POWER.get();
         fuelExcess = FUEL_EXCESS.get();
         burnupDefect = BURNUP_DEFECT.get();
@@ -321,7 +328,7 @@ public final class FissionConfig {
                 new CoreDamageModel.Params(claddingFailureTemperature, fuelMeltingTemperature, claddingDamageRate, meltingDamageRate,
                         meltingDamageRateMax, meltdownDamage),
                 sixGroups, delayedTimeScale, maxWithdrawalRate, xenonWorthPcm, Config.xenonPoisoning, Config.iodineHalfLifeTicks,
-                Config.xenonHalfLifeTicks, Config.decayHeatFraction, Config.decayHeatTimeTicks);
+                Config.xenonHalfLifeTicks, Config.decayHeatFraction, Config.decayHeatTimeTicks, freeWithdrawalMargin);
     }
 
     public static CoreThermalModel.Params thermal() {

@@ -13,9 +13,11 @@ import org.papiricoh.create_nuclearindustry.reactor.physics.XenonModel;
  * <p>Two things keep a reactor in hand. Below prompt criticality the power climbs only as fast as
  * the delayed neutrons allow, and the negative temperature and void coefficients pull the
  * reactivity back as it heats, so a withdrawn rod gives a new, higher power instead of a runaway.
- * And withdrawing rods only frees their reactivity at {@code maxWithdrawalRate}, the speed of the
- * rod drives: a piston jerking a rod out never takes the core prompt critical at once. Inserting is
- * immediate. Pure arithmetic.
+ * And close to critical, withdrawing rods only frees their reactivity at {@code maxWithdrawalRate},
+ * the speed of the rod drives: a piston jerking a rod out never takes the core prompt critical at
+ * once. Deep below critical (more than {@code freeWithdrawalMargin} short of it) the rods come out
+ * as fast as they are pulled, as an operator pulls the shutdown banks of a real plant quickly and
+ * only creeps up on criticality. Inserting is immediate. Pure arithmetic.
  */
 public final class FissionCore {
     /** Seconds in a game tick. */
@@ -28,21 +30,32 @@ public final class FissionCore {
      * @param damage            core damage thresholds and rates
      * @param sixGroups         six delayed groups, or one
      * @param delayedTimeScale  speeds the delayed neutrons' decay up (gameplay), 1 = real
-     * @param maxWithdrawalRate reactivity a withdrawal frees per second at most, pcm
+     * @param maxWithdrawalRate reactivity a withdrawal frees per second at most near critical, pcm
      * @param xenonWorth        reactivity a fully poisoned core loses, pcm
      * @param xenonPoisoning    whether xenon builds up at all
      * @param iodineHalfLife    ticks
      * @param xenonHalfLife     ticks
      * @param decayFraction     share of the fission heat that comes later as decay heat
      * @param decayTime         time scale of the decay heat groups, ticks (see {@link DecayHeatModel})
+     * @param freeWithdrawalMargin how far below critical a withdrawal is free of the rate limit, pcm
      */
     public record Params(PointKinetics.Params kinetics, ReactivityModel.Params reactivity, CoreThermalModel.Params thermal,
                          CoreDamageModel.Params damage, boolean sixGroups, double delayedTimeScale, double maxWithdrawalRate,
                          double xenonWorth, boolean xenonPoisoning, double iodineHalfLife, double xenonHalfLife,
-                         double decayFraction, double decayTime) {
+                         double decayFraction, double decayTime, double freeWithdrawalMargin) {
+        public static final double DEFAULT_FREE_WITHDRAWAL_MARGIN = 1000.0;
         public static final Params DEFAULT = new Params(PointKinetics.Params.DEFAULT, ReactivityModel.Params.DEFAULT,
                 CoreThermalModel.Params.DEFAULT, CoreDamageModel.Params.DEFAULT, true, 1.0, 100.0, 2800.0, true,
-                3600.0, 5400.0, 0.07, 20000.0);
+                3600.0, 5400.0, 0.07, 20000.0, DEFAULT_FREE_WITHDRAWAL_MARGIN);
+
+        /** Parameters with the default free withdrawal margin. */
+        public Params(PointKinetics.Params kinetics, ReactivityModel.Params reactivity, CoreThermalModel.Params thermal,
+                      CoreDamageModel.Params damage, boolean sixGroups, double delayedTimeScale, double maxWithdrawalRate,
+                      double xenonWorth, boolean xenonPoisoning, double iodineHalfLife, double xenonHalfLife,
+                      double decayFraction, double decayTime) {
+            this(kinetics, reactivity, thermal, damage, sixGroups, delayedTimeScale, maxWithdrawalRate, xenonWorth, xenonPoisoning,
+                    iodineHalfLife, xenonHalfLife, decayFraction, decayTime, DEFAULT_FREE_WITHDRAWAL_MARGIN);
+        }
     }
 
     /**
@@ -108,11 +121,7 @@ public final class FissionCore {
         double target = RodWorth.bank(in.channelInsertion(), rodBank, p.reactivity().rodWorthShape());
         rodTarget = target;
         floodedBoron = ReactivityModel.boron(p.reactivity(), in.boronPpm(), 1.0);
-        if (Double.isNaN(rodsApplied) || target >= rodsApplied) {
-            rodsApplied = target;
-        } else {
-            rodsApplied = Math.max(target, rodsApplied - Math.max(0, p.maxWithdrawalRate()) * TICK);
-        }
+        rodsApplied = withdraw(rodsApplied, target, breakdown.withoutRods(), p.maxWithdrawalRate(), p.freeWithdrawalMargin(), TICK);
         double xenonPcm = p.xenonPoisoning() ? xenon.penalty(p.xenonWorth()) : 0;
         breakdown = ReactivityModel.compute(p.reactivity(), new ReactivityModel.Inputs(in.fuelReactivity(), in.burnt(),
                 in.noDefectShare(), in.emptyFraction(), in.moderation(), in.reflection(), in.coolant(), xenonPcm, rodsApplied,
@@ -138,6 +147,21 @@ public final class FissionCore {
         } else {
             xenon.clear();
         }
+    }
+
+    /**
+     * Where the rods' held-back reactivity stands after {@code seconds}, pcm. Inserting is immediate.
+     * Withdrawing is free down to where the core would still be {@code freeMargin} short of critical
+     * (with the rest of the core worth {@code withoutRods}), and from there frees {@code rate} per second.
+     * A margin of 0 or less rate-limits every withdrawal.
+     */
+    public static double withdraw(double applied, double target, double withoutRods, double rate, double freeMargin, double seconds) {
+        if (Double.isNaN(applied) || target >= applied) {
+            return target;
+        }
+        double limited = applied - Math.max(0, rate) * seconds;
+        double free = freeMargin > 0 ? withoutRods + freeMargin : Double.POSITIVE_INFINITY;
+        return Math.max(target, Math.min(limited, free));
     }
 
     private static double coverage(CoreThermalModel.Boundary boundary) {

@@ -23,6 +23,7 @@ fuelBurnPerRod = 0.00075
 [fission.kinetics]
 sixGroups = true
 maxWithdrawalRate = 100.0
+freeWithdrawalMargin = 1000.0
 
 [fission.reactivity]
 fuelExcess = 12000.0
@@ -188,10 +189,14 @@ sustituyen a parte de las barras. Un reactor sin barras que marca −8000 de
   *Aviso* desde el fallo de vainas (también la alarma de temperatura y el sonido),
   *Crítico* a medio camino de la fusión (2150 °C) y *Fusión* desde la temperatura
   de fusión.
-- **Velocidad de las barras**: al sacar barras, la reactividad que liberan entra
-  como mucho a `fission.kinetics.maxWithdrawalRate` pcm por segundo, la velocidad
-  de los accionamientos. Así un pistón que saca una barra de golpe no lleva el
-  núcleo a criticidad inmediata. Meterlas es instantáneo.
+- **Velocidad de las barras**: como en una central real, mientras el núcleo está
+  muy por debajo de la criticidad (le faltan más de
+  `fission.kinetics.freeWithdrawalMargin`, 1000 pcm) las barras salen tan rápido
+  como se saquen. En los últimos 1000 pcm, la reactividad que liberan entra como
+  mucho a `fission.kinetics.maxWithdrawalRate` pcm por segundo, la velocidad de
+  los accionamientos. Así arrancar es rápido, pero un pistón que saca todas las
+  barras de golpe no lleva el núcleo a criticidad inmediata. Meterlas es
+  instantáneo. Con el margen a 0 todas las retiradas van a la velocidad limitada.
 - **Tamaño**: el juego completo de barras vale `rodBankWorth` (22000 pcm) repartido
   entre todos sus bloques, más en el centro del núcleo que en los extremos. En
   un reactor con pocos bloques de barra cada uno vale miles de pcm y es un salto
@@ -229,7 +234,8 @@ sustituyen a parte de las barras. Un reactor sin barras que marca −8000 de
 | `fission.kinetics.delayedTimeScale` | 1 | Acelera los neutrones retardados; más alto hace el reactor más rápido de manejar |
 | `fission.kinetics.promptGenerationTime` | 0,001 | Tiempo de generación de los neutrones inmediatos (s); solo cuenta cerca de la criticidad inmediata |
 | `fission.kinetics.sourceStrength` | 0,001 | Fuente de neutrones que mantiene vivo un núcleo parado |
-| `fission.kinetics.maxWithdrawalRate` | 100 | pcm por segundo que libera como mucho una retirada de barras |
+| `fission.kinetics.maxWithdrawalRate` | 100 | pcm por segundo que libera como mucho una retirada de barras cerca de la criticidad |
+| `fission.kinetics.freeWithdrawalMargin` | 1000 | pcm por debajo de la criticidad a partir de los que las barras salen sin límite de velocidad (0 = siempre limitadas) |
 | `fission.kinetics.maxRelativePower` | 10 | Potencia máxima, en veces la nominal |
 | `fission.reactivity.fuelExcess` | 12000 | Exceso de reactividad del uranio nuevo al 5 % (pcm) |
 | `fission.reactivity.burnupDefect` | 0,6 | Parte de ese exceso que se pierde al final de la vida del combustible (el torio no la pierde) |
