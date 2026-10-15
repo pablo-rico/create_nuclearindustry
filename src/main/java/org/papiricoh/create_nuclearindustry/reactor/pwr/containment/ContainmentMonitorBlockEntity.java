@@ -359,7 +359,8 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
         float damage = (float) Math.min(MAX_BURN_DAMAGE, 4.0 + 6.0 * rise);
         AABB area = new AABB(box.minX(), box.minY(), box.minZ(), box.maxX() + 1, box.maxY() + 1, box.maxZ() + 1);
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, area)) {
-            if (shape.contains(entity.blockPosition())) {
+            // Inside a containment aboard a ship means inside it in the ship's plot.
+            if (shape.contains(BlockPos.containing(org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.localView(level, worldPosition, entity.position())))) {
                 entity.hurt(level.damageSources().explosion(null, null), damage);
                 entity.igniteForSeconds(3.0f);
             }

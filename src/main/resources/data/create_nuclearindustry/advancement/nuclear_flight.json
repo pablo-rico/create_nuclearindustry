@@ -1,0 +1,37 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "sable"
+    }
+  ],
+  "parent": "create_nuclearindustry:reactor_running",
+  "criteria": {
+    "nuclear_flight": {
+      "conditions": {
+        "event": "nuclear_flight"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.nuclear_flight.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:nuclear_thermal_engine"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.nuclear_flight.title"
+    }
+  },
+  "requirements": [
+    [
+      "nuclear_flight"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

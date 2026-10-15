@@ -120,6 +120,7 @@ public final class PlantJeiInfo {
         pages.addAll(org.papiricoh.create_nuclearindustry.accelerator.AcceleratorInfo.pages());
         pages.addAll(AntimatterInfo.pages());
         pages.addAll(IsotopeInfo.pages());
+        pages.addAll(org.papiricoh.create_nuclearindustry.propulsion.PropulsionInfo.pages());
         return pages;
     }
 

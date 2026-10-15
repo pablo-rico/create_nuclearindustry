@@ -139,6 +139,7 @@ public final class BlastWaveManager {
             double previous = radius;
             radius = Math.min(maxRadius, radius + CivilDefenseConfig.blastWaveSpeed);
             strike(previous);
+            throwShips(previous);
             if (CivilDefenseConfig.blastWaveBreakFragileBlocks && CivilDefenseConfig.blastWaveFragileBlocksPerTick > 0) {
                 shatter(previous);
             }
@@ -175,6 +176,49 @@ public final class BlastWaveManager {
                 }
                 if (damage <= 0 && kPa > 0 && entity instanceof Player player && ShelterRegistry.isSheltered(level, body)) org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.award(player, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.SHELTERED_FROM_BLAST);
                 push(entity, body, kPa);
+            }
+        }
+
+        /**
+         * Throws the ships the shell reaches: the overpressure where the wave first meets each, on the
+         * face it shows the blast, applied at that point so a ship struck off centre spins. Each ship
+         * once per wave, and its fragile blocks shatter.
+         */
+        private void throwShips(double previous) {
+            if (!org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.enabled()) {
+                return;
+            }
+            for (org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.Ship ship : org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.shipsIn(level, new AABB(centre, centre).inflate(radius))) {
+                if (struck.contains(ship.id())) {
+                    continue;
+                }
+                AABB bounds = ship.worldBounds();
+                Vec3 nearest = new Vec3(Math.clamp(centre.x, bounds.minX, bounds.maxX), Math.clamp(centre.y, bounds.minY, bounds.maxY),
+                        Math.clamp(centre.z, bounds.minZ, bounds.maxZ));
+                double distance = nearest.distanceTo(centre);
+                if (distance > radius || distance <= previous && previous != 0) {
+                    continue;
+                }
+                struck.add(ship.id());
+                double kPa = BlastWaveModel.overpressure(distance, yieldKg);
+                if (kPa <= 0) {
+                    continue;
+                }
+                org.papiricoh.create_nuclearindustry.explosive.ShipBlastManager.shatter(level, ship, centre, yieldKg);
+                if (!org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig.blastPushOn()) {
+                    continue;
+                }
+                Vec3 away = nearest.subtract(centre);
+                Vec3 direction = away.lengthSqr() < 1.0e-6 ? new Vec3(0, 1, 0) : away.normalize();
+                Vec3 local = ship.toLocalDirection(direction);
+                net.minecraft.world.level.levelgen.structure.BoundingBox box = ship.localBounds();
+                double area = org.papiricoh.create_nuclearindustry.explosive.blast.ShipImpulseModel.exposedArea(
+                        box.getXSpan(), box.getYSpan(), box.getZSpan(), local.x, local.y, local.z);
+                double impulse = org.papiricoh.create_nuclearindustry.explosive.blast.ShipImpulseModel.impulse(kPa, area, ship.mass(),
+                        org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig.blastImpulseScale);
+                if (impulse > 0) {
+                    ship.impulse(nearest, direction.scale(impulse));
+                }
             }
         }
 

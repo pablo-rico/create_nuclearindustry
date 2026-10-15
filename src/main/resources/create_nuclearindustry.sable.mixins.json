@@ -1,0 +1,13 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "org.papiricoh.create_nuclearindustry.integration.sable.mixin",
+  "plugin": "org.papiricoh.create_nuclearindustry.integration.sable.SableMixinPlugin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "SubLevelAssemblyHelperMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

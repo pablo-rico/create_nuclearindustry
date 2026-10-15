@@ -98,6 +98,19 @@ repositories {
     exclusiveContent {
         forRepository {
             maven {
+                name = "RyanHCode" // Sable, Simulated, Create Aeronautics
+                url = "https://maven.ryanhcode.dev/releases"
+            }
+        }
+        filter {
+            includeGroupByRegex "dev\\.ryanhcode.*"
+            includeGroup "dev.simulated_team.simulated"
+            includeGroup "dev.eriksonn.aeronautics"
+        }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
                 name = "Modrinth"
                 url = "https://api.modrinth.com/maven"
             }
@@ -154,6 +167,19 @@ dependencies {
     }
     compileOnly("com.rbasamoyai:ritchiesprojectilelib:${ritchies_projectile_lib_version}+mc.${minecraft_version}-neoforge")
     runtimeOnly("com.rbasamoyai:ritchiesprojectilelib:${ritchies_projectile_lib_version}+mc.${minecraft_version}-neoforge")
+
+    // Sable / Create Aeronautics: optional. We compile against Sable's API only; the dev runtime carries the full
+    // Aeronautics stack unless -Pno_aeronautics=true, which checks that the mod still runs without it.
+    compileOnly("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:${sable_version}") { transitive = false }
+    compileOnly("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sable_companion_version}") { transitive = false }
+    // Sable's force groups are Veil registry objects (Veil comes inside Sable's jar at runtime).
+    compileOnly("foundry.veil:veil-neoforge-${minecraft_version}:${veil_version}") { transitive = false }
+    if (project.findProperty('no_aeronautics') != 'true') {
+        runtimeOnly("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:${sable_version}") { transitive = false }
+        runtimeOnly("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${aeronautics_version}") { transitive = false }
+        runtimeOnly("dev.eriksonn.aeronautics:aeronautics-neoforge-${minecraft_version}:${aeronautics_version}") { transitive = false }
+        runtimeOnly("dev.ryanhcode.offroad:offroad-neoforge-${minecraft_version}:${aeronautics_version}") { transitive = false }
+    }
 
     // Distant Horizons: optional, client rendering only. On the dev runtime only with dev_distant_horizons=true
     // (gradle.properties, or -Pdev_distant_horizons=true), so the dev client, server and game tests stay light.

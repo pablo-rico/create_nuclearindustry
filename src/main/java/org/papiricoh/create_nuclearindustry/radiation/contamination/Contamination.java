@@ -3,6 +3,8 @@ package org.papiricoh.create_nuclearindustry.radiation.contamination;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.core.BlockPos;
+import org.papiricoh.create_nuclearindustry.integration.sable.ShipContamination;
+import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
@@ -28,7 +30,7 @@ import java.util.function.ToDoubleBiFunction;
  */
 public final class Contamination {
     /** Below this a chunk counts as clean. */
-    static final float MIN_LEVEL = 0.01f;
+    public static final float MIN_LEVEL = 0.01f;
     public static final int MAX_SEVERITY = ChunkContamination.MAX_SEVERITY;
     /** Loaded chunks with a contamination record, so a global clear does not walk every chunk. */
     private static final Map<Level, LongSet> TRACKED = new WeakHashMap<>();
@@ -52,6 +54,11 @@ public final class Contamination {
 
     /** Current contamination of a loaded chunk, refreshing the synced severity if decay moved it. */
     public static float read(LevelChunk chunk) {
+        ShipSpace.Ship ship = ShipContamination.shipOf(chunk.getLevel(), chunk.getPos());
+        if (ship != null) {
+            // A ship's chunks share its own contamination.
+            return ShipContamination.get(ship);
+        }
         ChunkContamination record = chunk.getExistingDataOrNull(AllNuclearRadiation.CHUNK_CONTAMINATION.get());
         if (record == null || record.level() <= 0) {
             return 0;
@@ -64,6 +71,11 @@ public final class Contamination {
     }
 
     public static void set(LevelChunk chunk, float value) {
+        ShipSpace.Ship ship = ShipContamination.shipOf(chunk.getLevel(), chunk.getPos());
+        if (ship != null) {
+            ShipContamination.set(ship, value);
+            return;
+        }
         ChunkContamination record = chunk.getExistingDataOrNull(AllNuclearRadiation.CHUNK_CONTAMINATION.get());
         store(chunk, record == null ? fresh(chunk) : record, value);
     }
@@ -148,6 +160,8 @@ public final class Contamination {
         if (!Config.contaminationEnabled || radius <= 0 || intensity <= 0) {
             return;
         }
+        // Released aboard a ship: it comes down where the ship really is, on the ship too.
+        center = ShipSpace.worldBlock(level, center);
         ContaminationData data = ContaminationData.get(level);
         ContaminationData.FalloutEvent event = data.addEvent(center.getX(), center.getZ(), radius, intensity, level.getGameTime(),
                 (float) wind, (float) stretch);
@@ -166,6 +180,7 @@ public final class Contamination {
                 }
             }
         }
+        ShipContamination.fallout(level, event);
     }
 
     /** Heavy fallout also reaches the chunk's open water, a few columns per tick. */

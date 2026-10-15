@@ -289,6 +289,11 @@ public class TargetStationBlockEntity extends BeamDumpBlockEntity implements Ant
 
     @Override
     public void destroy() {
+        if (org.papiricoh.create_nuclearindustry.integration.sable.ShipAssembly.isMoving()) {
+            // Carried to or from a ship: the copy at the new place keeps everything.
+            super.destroy();
+            return;
+        }
         super.destroy();
         if (level != null && !level.isClientSide) {
             Containers.dropItemStack(level, worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5,

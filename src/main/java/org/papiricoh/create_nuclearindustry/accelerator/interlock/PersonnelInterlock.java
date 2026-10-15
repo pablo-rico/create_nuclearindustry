@@ -84,8 +84,14 @@ public final class PersonnelInterlock {
     /** Whether any player who is not a spectator stands within {@code bounds}. */
     public static boolean occupied(Level level, BoundingBox bounds) {
         AABB box = AABB.of(bounds);
+        BlockPos anchor = new BlockPos(bounds.minX(), bounds.minY(), bounds.minZ());
         for (Player player : level.players()) {
-            if (!player.isSpectator() && player.isAlive() && player.getBoundingBox().intersects(box)) {
+            if (player.isSpectator() || !player.isAlive()) {
+                continue;
+            }
+            // Aboard a ship the machine is laid out in its plot: look at the player from there.
+            AABB body = player.getBoundingBox().move(org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.localView(level, anchor, player.position()).subtract(player.position()));
+            if (body.intersects(box)) {
                 return true;
             }
         }

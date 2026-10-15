@@ -1,0 +1,36 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "sable"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "create_nuclearindustry:antimatter_conduit"
+    },
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "T": {
+      "item": "create_nuclearindustry:small_penning_trap"
+    },
+    "U": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    }
+  },
+  "pattern": [
+    "UTU",
+    "PAP",
+    "UCU"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:antimatter_engine"
+  }
+}

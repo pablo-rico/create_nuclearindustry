@@ -17,7 +17,9 @@ public enum IncidentType {
     MELTDOWN(5),
     EARTHQUAKE(InesScale.NONE),
     DETONATION(InesScale.NONE),
-    DRILL(InesScale.NONE);
+    DRILL(InesScale.NONE),
+    /** A nuclear thermal or antimatter engine blew up. */
+    ENGINE_FAILURE(3);
 
     private final int ines;
 

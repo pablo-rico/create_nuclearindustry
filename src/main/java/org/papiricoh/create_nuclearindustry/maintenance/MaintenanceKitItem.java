@@ -74,6 +74,12 @@ public class MaintenanceKitItem extends Item {
 
     /** Services the machine at {@code pos}: the reactor, steam generator or turbine it is part of. */
     public static Outcome service(Level level, BlockPos pos, double amount) {
+        if (level.getBlockEntity(pos) instanceof org.papiricoh.create_nuclearindustry.propulsion.blockentity.RocketEngineBlockEntity engine) {
+            // A nuclear engine is mended at its controller, cold and idle.
+            boolean idle = engine.idleForRepair();
+            boolean mendedEngine = idle && engine.repair(amount);
+            return !idle ? Outcome.NOT_STOPPED : mendedEngine ? Outcome.MENDED : Outcome.NOTHING_TO_DO;
+        }
         MultiblockController machine = machineAt(level, pos);
         if (machine == null) {
             return Outcome.NO_MACHINE;

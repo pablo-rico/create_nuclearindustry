@@ -164,9 +164,10 @@ public class ExplosionTests {
 
     /**
      * A crater out where nothing is loaded loads (or generates) the chunks it reaches itself, works them
-     * through and lets them go.
+     * through and lets them go. The chunk is generated off the server thread in real time while the
+     * test server may run its ticks back to back, so the timeout, in ticks, is generous.
      */
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = "explosion_loads", timeoutTicks = 600)
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = "explosion_loads", timeoutTicks = 12000)
     public static void theCraterLoadsTheChunksItReaches(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos far = helper.absolutePos(BlockPos.ZERO).offset(6144, 0, 6144);

@@ -73,7 +73,7 @@ public class SeismicDetectorBlockEntity extends SmartBlockEntity implements IHav
         if (level == null) {
             return;
         }
-        Vec3 here = Vec3.atCenterOf(worldPosition);
+        Vec3 here = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.toWorld(level, worldPosition);
         double bearing = SeismicModel.bearing(source.x - here.x, source.z - here.z);
         events.add(0, new SeismicEvent(here.distanceTo(source), power, (float) bearing,
                 level.getGameTime(), dirty));

@@ -235,7 +235,22 @@ public final class RadiationHandler {
         }
         long bodyBlock = BlockPos.containing(body).asLong();
         return Contamination.exposure(level, body, player.getY(),
-                (from, to) -> rays.transmission(new GroundRay(bodyBlock, from.y), from, to, null));
+                (from, to) -> rays.transmission(new GroundRay(bodyBlock, from.y), from, to, null))
+                + shipRate(player);
+    }
+
+    /** Dose rate from the contamination of the ship a player stands on or rides. */
+    public static double shipRate(Player player) {
+        if (!org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig.contaminationOn()) {
+            return 0;
+        }
+        org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.Ship ship =
+                org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.riding(player);
+        if (ship == null) {
+            return 0;
+        }
+        return org.papiricoh.create_nuclearindustry.integration.sable.ShipContamination.get(ship)
+                * org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig.shipDoseFactor * Config.contaminationDoseScale;
     }
 
     private static Vec3 bodyOf(Player player) {

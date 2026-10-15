@@ -259,7 +259,7 @@ public class AnnunciatorPanelRenderer implements BlockEntityRenderer<Annunciator
         Direction right = board.right();
         Vec3 centre = Vec3.atCenterOf(board.getBlockPos()).add(right.getStepX() * (board.boardWidth() - 1) / 2.0,
                 (board.boardHeight() - 1) / 2.0, right.getStepZ() * (board.boardWidth() - 1) / 2.0);
-        return camera.distanceToSqr(centre) < DETAIL_DISTANCE * DETAIL_DISTANCE;
+        return org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.localView(board.getLevel(), board.getBlockPos(), camera).distanceToSqr(centre) < DETAIL_DISTANCE * DETAIL_DISTANCE;
     }
 
     @Override

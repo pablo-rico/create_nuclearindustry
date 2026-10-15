@@ -45,7 +45,7 @@ public final class SirenSounds {
 
     static boolean inEarshot(LocalPlayer player, BlockPos pos) {
         double range = CivilDefenseConfig.sirenAudibleRange;
-        return player != null && player.distanceToSqr(pos.getCenter()) < range * range;
+        return player != null && player.distanceToSqr(org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.toWorld(player.level(), pos)) < range * range;
     }
 
     /** The looping tone of one siren; stops itself when the siren falls silent, goes away or is out of earshot. */

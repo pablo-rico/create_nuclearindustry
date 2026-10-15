@@ -77,6 +77,12 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     public static final int G_STORED = 0, G_CHAMBER_FILL = 1, G_THROTTLE = 2, G_OUTPUT = 3, G_MODE = 4, G_FE = 5,
             G_STRESS = 6, G_BURN = 7, G_LIT = 8, G_BUFFER = 9, G_STATE = 10, G_RATED_FE = 11;
     public static final int GENERATOR_VALUES = 12;
+    // Nuclear thermal and antimatter engines: thrust, throttle 0-1, nozzle or coil temperature °C and its limit,
+    // wear 0-1, propellant or chamber fill 0-1, flow (mB/t of propellant, ng/min of antimatter), failed flag,
+    // antimatter held ng and energy buffer 0-1 (antimatter only)
+    public static final int E_THRUST = 0, E_THROTTLE = 1, E_TEMPERATURE = 2, E_LIMIT = 3, E_WEAR = 4, E_FUEL = 5, E_FLOW = 6,
+            E_FAILED = 7, E_STORED = 8, E_ENERGY = 9;
+    public static final int ENGINE_VALUES = 10;
 
     /** Graph ceiling for area exposure, in rad/s. */
     public static final float AREA_GRAPH_MAX = 10.0f;

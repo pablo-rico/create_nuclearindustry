@@ -38,7 +38,7 @@ public final class MachineSounds {
         if (level == null || level != minecraft.level || minecraft.player == null) {
             return;
         }
-        if (machine.getBlockPos().getCenter().distanceToSqr(minecraft.player.position()) > EFFECT_RANGE * EFFECT_RANGE) {
+        if (org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.toWorld(level, machine.getBlockPos()).distanceToSqr(minecraft.player.position()) > EFFECT_RANGE * EFFECT_RANGE) {
             return;
         }
         SoundEvent event = soundOf(machine);

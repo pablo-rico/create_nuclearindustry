@@ -50,7 +50,7 @@ public final class ReactorClientEffects {
         if (level == null || level != minecraft.level || minecraft.player == null) {
             return;
         }
-        if (reactor.getBlockPos().getCenter().distanceToSqr(minecraft.player.position()) > EFFECT_RANGE * EFFECT_RANGE) {
+        if (org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.toWorld(level, reactor.getBlockPos()).distanceToSqr(minecraft.player.position()) > EFFECT_RANGE * EFFECT_RANGE) {
             return;
         }
         State state = STATES.computeIfAbsent(reactor, r -> new State());

@@ -76,12 +76,19 @@ public final class AdvancedLinkNetwork {
             int strength = 0;
             for (CodeLinkable transmitter : network) {
                 if (!transmitter.isListening() && transmitter != listener
-                        && transmitter.location().closerThan(listener.location(), range)) {
+                        && inRange(level, transmitter.location(), listener.location(), range)) {
                     strength = Math.max(strength, transmitter.transmittedStrength());
                 }
             }
             listener.setReceivedStrength(strength);
         }
+    }
+
+    /** Links on a ship reach as far as their real distance allows. */
+    private static boolean inRange(LevelAccessor level, net.minecraft.core.BlockPos a, net.minecraft.core.BlockPos b, int range) {
+        return level instanceof net.minecraft.world.level.Level real
+                ? org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.closerThan(real, a, b, range)
+                : a.closerThan(b, range);
     }
 
     /** How many links are on {@code code} in {@code level}, for tests. */

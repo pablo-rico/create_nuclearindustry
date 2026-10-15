@@ -1,7 +1,7 @@
 --launchTarget
 forgejunitdev
 --version
-21.1.221
+21.1.228
 --assetIndex
 asset-index
 --assetsDir
@@ -13,6 +13,6 @@ asset-index
 --fml.mcVersion
 1.21.1
 --fml.neoForgeVersion
-21.1.221
+21.1.228
 --fml.neoFormVersion
 20240808.144430

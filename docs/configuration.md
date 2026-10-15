@@ -1976,12 +1976,49 @@ operadores lo usan con `/nuclear incident list [n]`, `/nuclear incident drill
 [pos]` (hace sonar la alarma de la central sin daño) y `/nuclear incident trigger
 <stuck_rod|sg_tube_rupture|turbine_trip|earthquake> <pos> [magnitud]`.
 
+## Create Aeronautics
+
+Solo hace algo con Sable instalado (Create Aeronautics, Simulated). Que una
+explosión, un aviso o un enlace de la sala de control usen dónde está de verdad
+una máquina a bordo de una nave no se configura: siempre es así. Estas claves, en
+el archivo común (`create_nuclearindustry-common.toml`), controlan lo demás.
+La guía para el jugador está en `docs/aeronautics.md`.
+
+| Clave | Por defecto | Qué hace |
+|---|---|---|
+| `aeronautics.enabled` | `true` | Interruptor general: daños y empuje de las explosiones a las naves, su contaminación y los motores. |
+| `aeronautics.blast.damageShips` | `true` | Una detonación nuclear arranca, destroza y quema los bloques de las naves a su alcance, como el terreno. |
+| `aeronautics.blast.pushShips` | `true` | La onda expansiva lanza las naves que alcanza y las hace girar si las golpea fuera de su centro. |
+| `aeronautics.blast.impulseScale` | `1.0` | Multiplica el impulso que la onda da a una nave. |
+| `aeronautics.contamination.enabled` | `true` | Las naves guardan su propia contaminación, que se mueve y se guarda con ellas. |
+| `aeronautics.contamination.uptake` | `0.05` | Parte de la diferencia con la contaminación de alrededor que absorbe una nave en cada revisión (cada 5 s). |
+| `aeronautics.contamination.doseFactor` | `1.0` | Dosis a bordo por unidad de contaminación de la nave, comparada con la misma contaminación en el suelo. |
+| `aeronautics.engines.thrustScale` | `1.0` | Multiplica el empuje de todos los motores nucleares. |
+| `aeronautics.engines.thermal.flowPerSegment` | `5` | Propelente que pasa cada segmento de intercambiador con el acelerador a fondo, mB/tick. |
+| `aeronautics.engines.thermal.thrustPerMb` | `150.0` | Empuje por mB/tick de hidrógeno; el agua da un tercio. |
+| `aeronautics.engines.thermal.nozzleLimit` | `1400.0` | Temperatura de la tobera (°C) por encima de la cual se desgasta; gastada del todo, revienta. |
+| `aeronautics.engines.thermal.leakPerMb` | `1.0E-5` | Contaminación que lleva el escape por mB de propelente con la tobera nueva (cinco veces más gastada). |
+| `aeronautics.engines.thermal.failurePower` | `5.0` | Potencia de la explosión de una tobera rota. |
+| `aeronautics.engines.antimatter.maxFeed` | `0.01` | Antimateria que aniquila el motor con el acelerador a fondo, ng/tick (12 ng por minuto). |
+| `aeronautics.engines.antimatter.thrustPerNg` | `2.5E6` | Empuje por ng/tick, antes de la eficiencia de las bobinas. |
+| `aeronautics.engines.antimatter.coilFe` | `64` | FE por tick que necesita cada bobina para mantener el campo. |
+| `aeronautics.engines.antimatter.fePerNg` | `200000.0` | FE por cada nanogramo que se quema, además del de las bobinas. |
+| `aeronautics.engines.antimatter.coilLimit` | `900.0` | Temperatura de las bobinas (°C) por encima de la cual se desgastan; gastadas, el campo cae. |
+| `aeronautics.engines.antimatter.gammaPerNg` | `4000.0` | Dosis gamma detrás de la tobera, a un bloque, por ng/tick que no atrapan las bobinas. |
+| `aeronautics.engines.antimatter.activationPerNg` | `0.04` | Contaminación que deja el chorro donde cae, por ng aniquilado. |
+| `aeronautics.engines.antimatter.quenchTicks` | `60` | Ticks entre la caída del campo y la aniquilación de la cámara. |
+| `aeronautics.engines.antimatter.chamberCapacity` | `16.0` | Antimateria que guarda la cámara, ng. |
+
+Las recetas de los motores y sus dos logros solo se cargan con Sable instalado.
+Los bloques existen siempre, para que los mundos abran igual con y sin Aeronautics.
+
 ## Pestaña creativa
 
 La pestaña del mod está dividida en secciones temáticas: minería y materiales,
 ciclo del combustible, fisión, PWR y contención, generación eléctrica, sala de
 control, gastado y residuos, isótopos y medicina, mantenimiento y EPI, fusión,
-criogenia, aceleradores, antimateria, defensa civil y armamento. Cada sección
+criogenia, aceleradores, antimateria, defensa civil, armamento y, con Create
+Aeronautics instalado, propulsión. Cada sección
 empieza con un banner que se anima al pasar el ratón por encima, y el tooltip de
 cada ítem dice a qué sección pertenece. Lo que otros mods añadan a la pestaña
 aparece al final, en "Otros".

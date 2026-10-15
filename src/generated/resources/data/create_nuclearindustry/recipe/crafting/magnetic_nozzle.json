@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "sable"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "S": {
+      "item": "create:sturdy_sheet"
+    },
+    "U": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    }
+  },
+  "pattern": [
+    "USU",
+    "S S",
+    "S S"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:magnetic_nozzle"
+  }
+}

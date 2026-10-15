@@ -1389,6 +1389,50 @@ below for what changes in existing worlds.
   tooltip names its section. Items other mods add to the tab go in a last "Other" section.
 - `creativeTab.sections` in the client config turns the banners off for a single list in the same order.
 
+### Create Aeronautics
+Optional: everything here needs Sable (Create Aeronautics, Simulated); without it the mod plays as before.
+- Explosions reach ships. A nuclear or thermonuclear detonation tears away the blocks of ships in its
+  severe zone, wrecks part of those in its moderate zone and chars or sets fire to what faces the
+  fireball, like the terrain. The blast wave throws ships it meets, spinning them when it strikes off
+  centre, and shatters their glass. Sable already lets ordinary explosions reach ships.
+- A bomb, missile pad, Penning trap or reactor aboard a ship goes off where the ship really is: the
+  crater, the blast wave, the flash and the fallout are in the world under the ship, and the blast
+  takes the ship with it.
+- Machines work aboard as on the ground. Assembling, splitting or setting down a ship no longer sets off
+  Penning traps, antiproton injectors or annihilation generators, spills their inventories or scrams a
+  running reactor; a reactor re-forms aboard as it was.
+- Control rooms reach ships: a desk, monitor, annunciator, chart recorder or alarm linked to a machine
+  still finds it after the machine is taken aboard (or set down again), and the link range is the real
+  distance, ground to ship or ship to ship. Advanced redstone links measure it the same way.
+- Alerts, incident log notices, sirens, advancements, the seismic detector and machine sounds and
+  effects now use where a ship's machine really is. Earthquakes never shake a plant aboard a ship.
+- Meltdown aboard: corium runs towards the real ground however the ship is tilted, burns through the
+  hull and falls out of the ship on to whatever lies below. Fallout from an accident aboard comes down
+  under the ship.
+- Ships carry their own contamination: they take it up flying through contaminated air (less the
+  higher they fly) and from fallout coming down on them, keep it when saved, travel with it and pass it
+  to both halves when they break. It decays like the ground's, doses those aboard and shows as dust over
+  the deck; a Radiation Scrubber aboard cleans it. Releases and leaks aboard go to the ship, not to its
+  invisible storage.
+- New Nuclear Thermal Engine: a controller, one to eight heat exchanger segments and a Thermal Rocket
+  Nozzle in a line. Hot primary coolant from a pressurized reactor heats water, deuterium or hydrogen
+  (hydrogen pushes three times as hard as water) and hands the primary back cold. Redstone sets the
+  throttle. The nozzle heats with the flow, water most: run too hot it wears and bursts, spilling the
+  primary's activity, and its exhaust leaves a trace of activity where the jet lands. Mend it with a
+  Maintenance Kit.
+- New Antimatter Engine: an annihilation chamber, one to six Magnetic Coils and a Magnetic Nozzle. Fed by
+  an Antimatter Conduit or a vial (16 ng chamber) and Forge Energy for its coils, it pushes several
+  times harder than the thermal engine for 12 ng a minute at full throttle. More coils turn more of the
+  annihilation into thrust; what they miss heats them and leaves behind the nozzle as gamma rays.
+  Without energy, or with its coils worn through, the field fails and the chamber annihilates after a
+  quench alarm.
+- Both engines push the ship they are on, opposite to their nozzle, show on goggles, Display Links and
+  control room monitors, desk gauges and chart recorders, and have JEI pages, Ponder scenes, recipes (only
+  with Sable) and two advancements. A new Propulsion section in the creative tab lists them.
+- Our heaviest blocks weigh more on a ship (Sable's `heavy` and `super_heavy` tags): reactor, turbine and
+  tokamak casings, waste barrels, the nuclear bomb, the engines, and the depleted uranium block.
+- Config under `aeronautics.*`: what blasts do to ships, ship contamination and the engines.
+
 ### Operation and maintenance
 - Plant parts now wear with use:
   - a fission reactor's control rod drives, with its power and at every SCRAM;

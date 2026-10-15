@@ -1,0 +1,46 @@
+{
+  "parent": "block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "#side"
+  },
+  "elements": [
+    {
+      "name": "mounting plate",
+      "from": [0, 0, 12],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#plate"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#plate", "cullface": "south"},
+        "east": {"uv": [0, 0, 4, 16], "texture": "#plate", "cullface": "east"},
+        "west": {"uv": [12, 0, 16, 16], "texture": "#plate", "cullface": "west"},
+        "up": {"uv": [0, 12, 16, 16], "texture": "#plate", "cullface": "up"},
+        "down": {"uv": [0, 0, 16, 4], "texture": "#plate", "cullface": "down"}
+      }
+    },
+    {
+      "name": "throat",
+      "from": [4, 4, 8],
+      "to": [12, 12, 12],
+      "faces": {
+        "east": {"uv": [0, 0, 4, 8], "texture": "#side"},
+        "west": {"uv": [12, 0, 16, 8], "texture": "#side"},
+        "up": {"uv": [4, 0, 12, 4], "texture": "#side"},
+        "down": {"uv": [4, 0, 12, 4], "texture": "#side"}
+      }
+    },
+    {
+      "name": "bell",
+      "from": [1, 1, 0],
+      "to": [15, 15, 8],
+      "faces": {
+        "north": {"uv": [1, 1, 15, 15], "texture": "#mouth", "cullface": "north"},
+        "south": {"uv": [1, 1, 15, 15], "texture": "#side"},
+        "east": {"uv": [0, 0, 16, 16], "texture": "#side"},
+        "west": {"uv": [0, 0, 16, 16], "texture": "#side"},
+        "up": {"uv": [0, 0, 16, 16], "texture": "#side"},
+        "down": {"uv": [0, 0, 16, 16], "texture": "#side"}
+      }
+    }
+  ]
+}

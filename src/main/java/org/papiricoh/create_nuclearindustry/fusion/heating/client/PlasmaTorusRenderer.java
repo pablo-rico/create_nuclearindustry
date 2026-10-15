@@ -146,7 +146,8 @@ public class PlasmaTorusRenderer implements BlockEntityRenderer<FusionReactorBlo
             return false;
         }
         double reach = VIEW_DISTANCE + radius;
-        return Vec3.atCenterOf(controller.getCenter()).closerThan(camera, reach);
+        Vec3 view = controller.getLevel() == null ? camera : org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.localView(controller.getLevel(), controller.getCenter(), camera);
+        return Vec3.atCenterOf(controller.getCenter()).closerThan(view, reach);
     }
 
     /** The whole torus, so the plasma is not culled when the controller itself is off screen. */

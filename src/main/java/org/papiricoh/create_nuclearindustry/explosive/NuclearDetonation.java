@@ -2,6 +2,7 @@ package org.papiricoh.create_nuclearindustry.explosive;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import net.minecraft.core.Position;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -112,6 +113,9 @@ public final class NuclearDetonation {
 
     private static void explode(ServerLevel level, Vec3 impact, float power, int horizontalRadius, float intensity, float salting,
                                 DetonationStyle style, Tuning tuning) {
+        // A warhead aboard a ship goes off where the ship really is, and takes its ship with it.
+        ShipSpace.Ship carrier = ShipSpace.shipAt(level, impact);
+        impact = ShipSpace.toWorld(level, impact);
         BlockPos center = BlockPos.containing(impact);
         DetonationProfile profile = DetonationProfile.of(power, horizontalRadius, intensity, burstHeight(level, impact),
                 ExplosiveConfig.settings(tuning.thermalReach()), tuning.craterCap());
@@ -130,6 +134,7 @@ public final class NuclearDetonation {
         if (ExplosiveConfig.crater) {
             NuclearBlastManager.start(level, center, profile.withinReach(ExplosiveConfig.craterMaxReach));
         }
+        ShipBlastManager.start(level, impact, profile, carrier);
         BlastWaveManager.start(level, impact, BlastWaveModel.yield(power, CivilDefenseConfig.blastWaveYieldPerPower), waveRadius);
         int radius = tuning.falloutRadius() > 0 ? tuning.falloutRadius() : falloutRadius(horizontalRadius);
         float fallout = (float) profile.falloutIntensity();
@@ -153,6 +158,7 @@ public final class NuclearDetonation {
      * fades over days.
      */
     public static void detonateDirty(ServerLevel level, Vec3 impact, float load) {
+        impact = ShipSpace.toWorld(level, impact);
         BlockPos center = BlockPos.containing(impact);
         LOGGER.info("Dirty bomb detonation at {} with load={}", center, load);
         float power = DirtyWarheadStats.blastPower(load);

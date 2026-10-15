@@ -125,6 +125,8 @@ public final class ExplosiveRegistry implements NuclearFeature {
     @Override
     public void register(IEventBus modEventBus) {
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onLevelTick);
+        NeoForge.EVENT_BUS.addListener(ShipBlastManager::onLevelTick);
+        NeoForge.EVENT_BUS.addListener(ShipBlastManager::onServerStopping);
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onChunkLoad);
         DetonationPayload.register(modEventBus);
     }

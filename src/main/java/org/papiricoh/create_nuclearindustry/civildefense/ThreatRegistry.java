@@ -29,6 +29,8 @@ public final class ThreatRegistry {
         if (level.isClientSide) {
             return;
         }
+        // Threats and sirens meet in world space: either may ride a ship.
+        target = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.worldBlock(level, target);
         long now = level.getGameTime();
         int ticks = Math.max(0, ticksToImpact);
         board(level).put(source, new ThreatBoard.Threat(target.getX(), target.getY(), target.getZ(), radius,
@@ -51,6 +53,7 @@ public final class ThreatRegistry {
         if (level.isClientSide) {
             return;
         }
+        pos = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.worldBlock(level, pos);
         long now = level.getGameTime();
         board(level).put(new Object(), new ThreatBoard.Threat(pos.getX(), pos.getY(), pos.getZ(), radius,
                 now, now + Math.max(0, ticks)));
@@ -73,6 +76,7 @@ public final class ThreatRegistry {
         if (board == null) {
             return null;
         }
+        listener = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.worldBlock(level, listener);
         return board.soonestReaching(listener.getX(), listener.getZ(), listenRadius, level.getGameTime());
     }
 

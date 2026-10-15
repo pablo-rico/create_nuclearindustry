@@ -170,6 +170,8 @@ final class MonitorDraw {
             case CONTAINMENT -> new String[]{"pressure", "hydrogen"};
             case ANTIMATTER_TRAP -> new String[]{"antimatter", "trap_buffer"};
             case ANNIHILATION_GENERATOR -> new String[]{"gen_output", "antimatter"};
+            case THERMAL_ENGINE -> new String[]{"eng_thrust", "eng_nozzle"};
+            case ANTIMATTER_ENGINE -> new String[]{"eng_thrust", "antimatter"};
             default -> new String[]{"exposure", "ground"};
         };
         return new Component[]{label(keys[0]), label(keys[1])};
@@ -207,6 +209,8 @@ final class MonitorDraw {
             case COOLING_TOWER -> "CT";
             case ANTIMATTER_TRAP -> "PT";
             case ANNIHILATION_GENERATOR -> "AG";
+            case THERMAL_ENGINE -> "NTR";
+            case ANTIMATTER_ENGINE -> "AMR";
             default -> "RAD";
         };
     }

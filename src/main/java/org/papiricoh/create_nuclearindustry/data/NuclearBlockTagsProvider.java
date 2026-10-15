@@ -89,8 +89,18 @@ public class NuclearBlockTagsProvider extends BlockTagsProvider {
                 AllNuclearBlocks.FUSION_PLASMA_TURBINE.get(),
                 AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get());
         tag(BlockTags.IMPERMEABLE).add(AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get());
+        // Mass on a Create Aeronautics ship; Sable reads its own tags, which need no Sable to be written.
+        tag(SABLE_SUPER_HEAVY).add(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get());
+        tag(SABLE_HEAVY).add(AllNuclearBlocks.REACTOR_CASING.get(), AllNuclearBlocks.TURBINE_CASING.get(),
+                AllNuclearBlocks.FUSION_CRYOSTAT_CASING.get(), AllNuclearBlocks.FUSION_TURBINE_CASING.get(),
+                AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get(), AllNuclearBlocks.NUCLEAR_BOMB.get());
         AreaDataGen.ALL.forEach(area -> area.blockTags(this, provider));
     }
+
+    public static final net.minecraft.tags.TagKey<Block> SABLE_HEAVY = net.minecraft.tags.TagKey.create(
+            net.minecraft.core.registries.Registries.BLOCK, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("sable", "heavy"));
+    public static final net.minecraft.tags.TagKey<Block> SABLE_SUPER_HEAVY = net.minecraft.tags.TagKey.create(
+            net.minecraft.core.registries.Registries.BLOCK, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("sable", "super_heavy"));
 
     /** {@link #tag} for the areas' datagen, which lives in other classes. */
     public IntrinsicTagAppender<Block> tagFor(net.minecraft.tags.TagKey<Block> tag) {

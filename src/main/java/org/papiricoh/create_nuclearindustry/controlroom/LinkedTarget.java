@@ -2,6 +2,8 @@ package org.papiricoh.create_nuclearindustry.controlroom;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import org.papiricoh.create_nuclearindustry.integration.sable.BlockMoves;
+import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -141,10 +143,12 @@ public final class LinkedTarget {
         if (!level.dimension().equals(target.dimension())) {
             return OTHER_DIMENSION;
         }
-        if (!from.closerThan(target.pos(), Config.controlRoomLinkRange)) {
+        BlockPos at = BlockMoves.follow(level, target.pos());
+        // Either end may ride a ship: the range is the real distance between them.
+        if (!ShipSpace.closerThan(level, from, at, Config.controlRoomLinkRange)) {
             return OUT_OF_RANGE;
         }
-        if (!level.isLoaded(target.pos())) {
+        if (!level.isLoaded(at)) {
             return UNLOADED;
         }
         return null;
@@ -156,7 +160,8 @@ public final class LinkedTarget {
         if (problem != null) {
             return new NoSignal(problem);
         }
-        BlockEntity entity = level.getBlockEntity(target.pos());
+        BlockPos at = BlockMoves.follow(level, target.pos());
+        BlockEntity entity = level.getBlockEntity(at);
         if (entity instanceof ReactorBlockEntity reactor) {
             return new Reactor(reactor);
         }
@@ -173,7 +178,7 @@ public final class LinkedTarget {
             return new Plant(plant);
         }
         if (level instanceof ServerLevel serverLevel) {
-            return new Area(serverLevel, target.pos());
+            return new Area(serverLevel, at);
         }
         return new NoSignal(UNLOADED);
     }
@@ -186,6 +191,11 @@ public final class LinkedTarget {
         return resolve(device.getLevel(), device.getBlockPos(), target) instanceof Reactor reactor
                 ? Optional.of(reactor.reactor())
                 : Optional.empty();
+    }
+
+    /** A machine a control room can be linked to, as opposed to a plain area. */
+    public static boolean isLinkTarget(@Nullable BlockEntity entity) {
+        return isMachineController(entity);
     }
 
     private static boolean isMachineController(@Nullable BlockEntity entity) {

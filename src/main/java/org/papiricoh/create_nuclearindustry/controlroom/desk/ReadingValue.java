@@ -78,6 +78,10 @@ public final class ReadingValue {
             case GENERATOR_THROTTLE -> percent(G_THROTTLE, 0);
             case GENERATOR_CHAMBER -> of(G_STORED, "ng", 2);
             case GENERATOR_ENERGY -> of(G_FE, "FE/t", 0);
+            case THERMAL_THROTTLE, ANTIMATTER_THROTTLE -> percent(E_THROTTLE, 0);
+            case THERMAL_NOZZLE, ANTIMATTER_COIL -> of(E_TEMPERATURE, "°C", 0);
+            case THERMAL_PROPELLANT -> percent(E_FUEL, 0);
+            case ANTIMATTER_CHAMBER -> of(E_STORED, "ng", 2);
         };
     }
 

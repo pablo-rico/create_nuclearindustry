@@ -445,10 +445,43 @@ public final class GuidePonderText {
                             "Mándale la redstone de una rueda de un Pupitre de control en Objetivo de las barras, y las barras siguen al pupitre sin embrague ni cambio de marcha.")),
             List.of("servo_gearbox"));
 
+    // ------------------------------------------------------------------ nuclear engines
+
+    public static final Scene THERMAL_ENGINE = new Scene("nuclear_thermal_engine", "nuclear_thermal_engine",
+            line("Nuclear Thermal Engine", "Motor térmico nuclear"),
+            List.of(
+                    line("A rocket for Create Aeronautics ships, heated by a reactor. Build it in a line: the controller, heat exchanger segments along the engine, and a nozzle facing the way the exhaust leaves.",
+                            "Un cohete para naves de Create Aeronautics calentado por un reactor. Constrúyelo en línea: el controlador, segmentos de intercambiador a lo largo del motor y una tobera mirando hacia donde sale el escape."),
+                    line("Pipe hot primary coolant from a pressurized reactor and a propellant into the controller, and take the cooled primary back from it.",
+                            "Mete por tubería en el controlador refrigerante primario caliente de un reactor de agua a presión y un propelente, y saca de él el primario ya frío."),
+                    line("Water, deuterium or hydrogen: the lighter the gas, the harder it pushes. Each segment passes more propellant.",
+                            "Agua, deuterio o hidrógeno: cuanto más ligero el gas, más empuja. Cada segmento deja pasar más propelente."),
+                    line("A redstone signal sets the throttle. Aboard a ship it pushes the ship opposite to its nozzle.",
+                            "Una señal de redstone fija el acelerador. En una nave la empuja en sentido contrario a su tobera."),
+                    line("The nozzle heats with the flow, water most of all. Run too hot it wears and bursts, spilling the primary's activity; its exhaust leaves a trace of it where the jet lands.",
+                            "La tobera se calienta con el caudal, sobre todo con agua. Demasiado caliente se desgasta y revienta, esparciendo la actividad del primario; su escape deja un rastro allí donde cae el chorro.")),
+            List.of("nuclear_thermal_engine", "thermal_engine_exchanger", "thermal_rocket_nozzle"));
+
+    public static final Scene ANTIMATTER_ENGINE = new Scene("antimatter_engine", "antimatter_engine",
+            line("Antimatter Engine", "Motor de antimateria"),
+            List.of(
+                    line("The strongest engine there is. The controller is an annihilation chamber; behind it, magnetic coils and a magnetic nozzle.",
+                            "El motor más potente que existe. El controlador es una cámara de aniquilación; detrás, bobinas magnéticas y una tobera magnética."),
+                    line("Feed it antimatter with a conduit or a vial in its port, and Forge Energy for the coils' field.",
+                            "Aliméntalo con antimateria por un conducto o con un vial en su puerto, y con Forge Energy para el campo de las bobinas."),
+                    line("More coils turn more of the annihilation into thrust. What they miss heats them, and too few at full throttle wear through.",
+                            "Cuantas más bobinas, más aniquilación se convierte en empuje. Lo que se escapa las calienta, y pocas a fondo se desgastan."),
+                    line("The gamma rays they miss stream out behind the nozzle: keep out of the jet.",
+                            "Los rayos gamma que se escapan salen detrás de la tobera: no te pongas en el chorro."),
+                    line("Without energy the field fails: a quench alarm sounds, and the chamber's antimatter annihilates where the engine is.",
+                            "Sin energía el campo cae: suena una alarma de quench y la antimateria de la cámara se aniquila donde está el motor.")),
+            List.of("antimatter_engine", "magnetic_coil", "magnetic_nozzle"));
+
     /** Every guide scene, in the order they are registered. */
     public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, MISSILE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
             ACCELERATOR_LINAC, ACCELERATOR_SYNCHROTRON, ANTIMATTER_CONTAINMENT, ANTIMATTER_GENERATOR, ANTIPROTON_INJECTOR,
-            ISOTOPES, MAINTENANCE, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO);
+            ISOTOPES, MAINTENANCE, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO,
+            THERMAL_ENGINE, ANTIMATTER_ENGINE);
 
     private GuidePonderText() {}
 

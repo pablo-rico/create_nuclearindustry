@@ -2,6 +2,8 @@ package org.papiricoh.create_nuclearindustry.reactor.pwr.accident;
 
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.item.FallingBlockEntity;
+import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -70,8 +72,14 @@ public class CoriumBlock extends Block implements IWrenchable {
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         int energy = CoriumModel.energy(state.getValue(HEAT), state.getValue(STEP));
-        BlockPos belowPos = pos.below();
+        // Aboard a ship it runs towards the real ground, whichever way the ship is tilted.
+        Direction down = ShipSpace.localDown(level, pos);
+        BlockPos belowPos = pos.relative(down);
         CoriumModel.Below below = classify(level, belowPos);
+        if (below == CoriumModel.Below.OPEN && leavesTheShip(level, pos, down)) {
+            dropOutOfTheShip(level, pos, state);
+            return;
+        }
         BlockPos spread = below == CoriumModel.Below.CATCHER ? spreadTarget(level, pos, random) : null;
         CoriumModel.Decision decision = CoriumModel.decide(energy, below, touchesWater(level, pos), spread != null,
                 PwrConfig.blockDestruction);
@@ -105,6 +113,41 @@ public class CoriumBlock extends Block implements IWrenchable {
         if (next.is(this)) {
             level.scheduleTick(destination, this, TICK_INTERVAL);
         }
+    }
+
+    /**
+     * Through the hull: the corium leaves the ship where the ship really is and falls on to whatever
+     * lies under it, or straight on to the ground if the ship rests on it.
+     */
+    private static void dropOutOfTheShip(ServerLevel level, BlockPos pos, BlockState state) {
+        BlockPos target = BlockPos.containing(ShipSpace.toWorld(level, pos));
+        level.setBlock(pos, Blocks.AIR.defaultBlockState(), UPDATE_ALL);
+        if (!level.getBlockState(target).isAir()) {
+            target = target.above();
+            if (!level.getBlockState(target).isAir()) {
+                return;
+            }
+        }
+        level.setBlock(target, state, UPDATE_ALL);
+        if (level.getBlockState(target.below()).isAir()) {
+            FallingBlockEntity falling = FallingBlockEntity.fall(level, target, state);
+            falling.dropItem = false;
+        }
+    }
+
+    /** Whether the corium is aboard a ship with nothing of it left between it and the open air below. */
+    private static boolean leavesTheShip(Level level, BlockPos pos, Direction down) {
+        ShipSpace.Ship ship = ShipSpace.shipAt(level, pos);
+        if (ship == null) {
+            return false;
+        }
+        net.minecraft.world.level.levelgen.structure.BoundingBox hull = ship.localBounds();
+        for (BlockPos at = pos.relative(down); hull.isInside(at); at = at.relative(down)) {
+            if (!level.getBlockState(at).isAir()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** What the corium would meet going down into {@code pos}. */
@@ -150,7 +193,7 @@ public class CoriumBlock extends Block implements IWrenchable {
             BlockPos side = pos.relative(direction);
             BlockState state = level.getBlockState(side);
             if ((state.isAir() || PwrConfig.blockDestruction && state.canBeReplaced()) && state.getFluidState().isEmpty()
-                    && classify(level, side.below()) != CoriumModel.Below.OPEN) {
+                    && classify(level, side.relative(ShipSpace.localDown(level, pos))) != CoriumModel.Below.OPEN) {
                 options.add(side);
             }
         }

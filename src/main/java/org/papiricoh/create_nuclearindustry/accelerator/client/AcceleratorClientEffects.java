@@ -124,7 +124,8 @@ public final class AcceleratorClientEffects {
         @Override
         protected Vec3 position() {
             Minecraft minecraft = Minecraft.getInstance();
-            return minecraft.player == null ? machine.getBlockPos().getCenter() : nearestBeamPoint(machine, minecraft.player.position());
+            return minecraft.player == null ? machine.getBlockPos().getCenter() : nearestBeamPoint(machine,
+                    org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.localView(machine.getLevel(), machine.getBlockPos(), minecraft.player.position()));
         }
     }
 }

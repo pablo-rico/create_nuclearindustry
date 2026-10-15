@@ -25,6 +25,8 @@ public enum NuclearTabSection {
     ANTIMATTER(0xAA221438, 0xFFD6BFFF, 0xFF2E1F45, 3),
     CIVIL_DEFENSE(0xAA262A18, 0xFFE0E6B0, 0xFF353A20, 3),
     WEAPONS(0xAA3A1A0C, 0xFFFFC080, 0xFF4C2410, 3),
+    /** Nuclear engines for Create Aeronautics ships; only shown with Sable installed. */
+    PROPULSION(0xAA1A2638, 0xFFFFD9A8, 0xFF2A3348, 2),
     OTHER(0xAA2A2A2A, 0xFFE0E0E0, 0xFF303030, 4);
 
     /** Frames in every banner sheet; tools/texturegen/tex_creative_tab.py draws the same number. */

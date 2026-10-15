@@ -9,6 +9,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements;
+import org.papiricoh.create_nuclearindustry.integration.sable.SableCompat;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearEventTrigger;
 import org.papiricoh.create_nuclearindustry.data.NuclearAdvancementProvider;
@@ -40,8 +41,20 @@ public class AdvancementTriggerTests {
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void everyEventHasAnAdvancementListeningForIt(GameTestHelper helper) {
         Set<NuclearEvent> heard = EnumSet.noneOf(NuclearEvent.class);
+        // The generated tree, and the engines' two, written by hand to load only with Sable.
+        java.util.List<AdvancementHolder> advancements = new java.util.ArrayList<>();
         for (NuclearAdvancementProvider.Entry entry : NuclearAdvancementProvider.ENTRIES) {
-            for (Criterion<?> criterion : advancement(helper, entry.id()).value().criteria().values()) {
+            advancements.add(advancement(helper, entry.id()));
+        }
+        for (String id : java.util.List.of("nuclear_flight", "antimatter_thrust")) {
+            AdvancementHolder holder = advancement(helper, id);
+            helper.assertTrue((holder != null) == SableCompat.isLoaded(), id + " should load exactly when Sable is installed");
+            if (holder != null) {
+                advancements.add(holder);
+            }
+        }
+        for (AdvancementHolder holder : advancements) {
+            for (Criterion<?> criterion : holder.value().criteria().values()) {
                 if (criterion.triggerInstance() instanceof NuclearEventTrigger.TriggerInstance instance) {
                     helper.assertTrue(criterion.trigger() == NuclearAdvancements.TRIGGER.get(), "criteria use the registered trigger");
                     for (NuclearEvent event : NuclearEvent.values()) {
@@ -54,6 +67,10 @@ public class AdvancementTriggerTests {
         }
         Set<NuclearEvent> missing = EnumSet.allOf(NuclearEvent.class);
         missing.removeAll(heard);
+        if (!SableCompat.isLoaded()) {
+            // Without ships there is nothing for the engines to push.
+            missing.removeAll(EnumSet.of(NuclearEvent.NUCLEAR_FLIGHT, NuclearEvent.ANTIMATTER_THRUST));
+        }
         helper.assertTrue(missing.isEmpty(), "every event earns something; missing " + missing);
         helper.succeed();
     }

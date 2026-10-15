@@ -93,8 +93,10 @@ public final class TokamakClientEffects {
         int radius = readings.majorRadius();
         BlockPos center = controller.getCenter();
         boolean formed = readings.formed() && radius >= TokamakGeometry.MIN_RADIUS;
-        Vec3 nearest = formed ? nearestRingPoint(center, radius, minecraft.player.position()) : controller.getBlockPos().getCenter();
-        boolean near = nearest.distanceToSqr(minecraft.player.position()) < EFFECT_RANGE * EFFECT_RANGE;
+        // On a ship the ring is laid out in its plot: see the player from there.
+        Vec3 player = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.localView(level, center, minecraft.player.position());
+        Vec3 nearest = formed ? nearestRingPoint(center, radius, player) : controller.getBlockPos().getCenter();
+        boolean near = nearest.distanceToSqr(player) < EFFECT_RANGE * EFFECT_RANGE;
 
         if (near) {
             sounds(controller, state, readings, nearest);

@@ -72,7 +72,11 @@ public final class Earthquakes {
         }
         double trip = MaintenanceConfig.seismicTrip;
         int scrammed = 0;
+        // Plants aboard ships are off the ground: an earthquake never reaches them.
         for (ReactorBlockEntity reactor : MultiblockRegistry.all(level, ReactorBlockEntity.class)) {
+            if (org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.onShip(level, reactor.getBlockPos())) {
+                continue;
+            }
             double motion = EarthquakeModel.groundMotion(magnitude, Vec3.atCenterOf(reactor.getBlockPos()).distanceTo(centre));
             boolean trips = reactor.isFormed() && EarthquakeModel.trips(motion, trip);
             if (motion > 0.05 * trip) {
@@ -84,10 +88,16 @@ public final class Earthquakes {
             }
         }
         for (SteamGeneratorControllerBlockEntity generator : MultiblockRegistry.all(level, SteamGeneratorControllerBlockEntity.class)) {
+            if (org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.onShip(level, generator.getBlockPos())) {
+                continue;
+            }
             double motion = EarthquakeModel.groundMotion(magnitude, Vec3.atCenterOf(generator.getBlockPos()).distanceTo(centre));
             generator.tubeWear().shock(EarthquakeModel.severity(motion, trip));
         }
         for (AbstractTurbineControllerBlockEntity turbine : MultiblockRegistry.all(level, AbstractTurbineControllerBlockEntity.class)) {
+            if (org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.onShip(level, turbine.getBlockPos())) {
+                continue;
+            }
             double motion = EarthquakeModel.groundMotion(magnitude, Vec3.atCenterOf(turbine.getBlockPos()).distanceTo(centre));
             turbine.bladeWear().shock(EarthquakeModel.severity(motion, trip));
         }

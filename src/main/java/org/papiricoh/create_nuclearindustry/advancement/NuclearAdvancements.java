@@ -40,8 +40,9 @@ public final class NuclearAdvancements {
             return;
         }
         double radiusSqr = radius * radius;
+        net.minecraft.world.phys.Vec3 where = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.toWorld(serverLevel, pos);
         for (ServerPlayer player : serverLevel.players()) {
-            if (player.distanceToSqr(pos.getCenter()) <= radiusSqr) {
+            if (player.distanceToSqr(where) <= radiusSqr) {
                 TRIGGER.get().trigger(player, event);
             }
         }

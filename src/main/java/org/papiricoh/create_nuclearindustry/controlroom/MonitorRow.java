@@ -249,7 +249,46 @@ public enum MonitorRow {
     GENERATOR_ENERGY(TargetKind.ANNIHILATION_GENERATOR, "gen_energy", r -> line(fmt("%.0f FE/t", r.value(G_FE)),
             r.value(G_RATED_FE) > 0 ? r.value(G_FE) / r.value(G_RATED_FE) : -1, Tone.TEXT)),
     GENERATOR_STRESS(TargetKind.ANNIHILATION_GENERATOR, "gen_stress", r -> line(fmt("%.0f SU", r.value(G_STRESS)), -1, Tone.TEXT)),
-    GENERATOR_BURN(TargetKind.ANNIHILATION_GENERATOR, "gen_burn", r -> line(fmt("%.2f ng/min", r.value(G_BURN)), -1, Tone.TEXT));
+    GENERATOR_BURN(TargetKind.ANNIHILATION_GENERATOR, "gen_burn", r -> line(fmt("%.2f ng/min", r.value(G_BURN)), -1, Tone.TEXT)),
+
+    // ------------------------------------------------------------------ nuclear engines
+    THERMAL_THRUST(TargetKind.THERMAL_ENGINE, "eng_thrust", MonitorRow::engineThrust),
+    THERMAL_THROTTLE(TargetKind.THERMAL_ENGINE, "eng_throttle", MonitorRow::engineThrottle),
+    THERMAL_NOZZLE(TargetKind.THERMAL_ENGINE, "eng_nozzle", MonitorRow::engineTemperature),
+    THERMAL_WEAR(TargetKind.THERMAL_ENGINE, "eng_wear", MonitorRow::engineWear),
+    THERMAL_PROPELLANT(TargetKind.THERMAL_ENGINE, "eng_propellant", r -> line(fmt("%.0f%%", r.value(E_FUEL) * 100), r.value(E_FUEL),
+            r.value(E_FUEL) < 0.1f ? Tone.WARN : Tone.TEXT)),
+    THERMAL_FLOW(TargetKind.THERMAL_ENGINE, "eng_flow", r -> line(fmt("%.0f mB/t", r.value(E_FLOW)), -1, Tone.TEXT)),
+    ANTIMATTER_THRUST(TargetKind.ANTIMATTER_ENGINE, "eng_thrust", MonitorRow::engineThrust),
+    ANTIMATTER_THROTTLE(TargetKind.ANTIMATTER_ENGINE, "eng_throttle", MonitorRow::engineThrottle),
+    ANTIMATTER_COIL(TargetKind.ANTIMATTER_ENGINE, "eng_coil", MonitorRow::engineTemperature),
+    ANTIMATTER_WEAR(TargetKind.ANTIMATTER_ENGINE, "eng_wear", MonitorRow::engineWear),
+    ANTIMATTER_CHAMBER(TargetKind.ANTIMATTER_ENGINE, "antimatter", r -> line(fmt("%.3f ng", r.value(E_STORED)), r.value(E_FUEL),
+            r.value(E_STORED) <= 0 ? Tone.WARN : Tone.TEXT)),
+    ANTIMATTER_BURN(TargetKind.ANTIMATTER_ENGINE, "eng_burn", r -> line(fmt("%.2f ng/min", r.value(E_FLOW)), -1, Tone.TEXT)),
+    ANTIMATTER_FIELD(TargetKind.ANTIMATTER_ENGINE, "eng_field", r -> line(fmt("%.0f%%", r.value(E_ENERGY) * 100), r.value(E_ENERGY),
+            r.value(E_ENERGY) < 0.1f ? Tone.BAD : r.value(E_ENERGY) < 0.3f ? Tone.WARN : Tone.TEXT));
+
+    private static Line engineThrust(MonitorReading r) {
+        if (r.flag(E_FAILED)) {
+            return translated("eng_failed", Tone.BAD);
+        }
+        return line(fmt("%.0f", r.value(E_THRUST)), -1, r.value(E_THRUST) > 0 ? Tone.GOOD : Tone.DIM);
+    }
+
+    private static Line engineThrottle(MonitorReading r) {
+        return line(fmt("%.0f%%", r.value(E_THROTTLE) * 100), r.value(E_THROTTLE), Tone.TEXT);
+    }
+
+    private static Line engineTemperature(MonitorReading r) {
+        float limit = Math.max(1, r.value(E_LIMIT));
+        float share = r.value(E_TEMPERATURE) / limit;
+        return line(fmt("%.0f °C", r.value(E_TEMPERATURE)), Math.min(1, share), share > 1 ? Tone.BAD : share > 0.85f ? Tone.WARN : Tone.TEXT);
+    }
+
+    private static Line engineWear(MonitorReading r) {
+        return line(fmt("%.0f%%", r.value(E_WEAR) * 100), r.value(E_WEAR), r.value(E_WEAR) > 0.5f ? Tone.BAD : r.value(E_WEAR) > 0 ? Tone.WARN : Tone.GOOD);
+    }
 
     /** Prefix of the row labels and of the translated values (yes, no, open, closed, off). */
     public static final String KEY = "create_nuclearindustry.monitor.";

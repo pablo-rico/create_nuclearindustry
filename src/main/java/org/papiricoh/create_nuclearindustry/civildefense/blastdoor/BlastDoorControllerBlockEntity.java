@@ -185,6 +185,11 @@ public class BlastDoorControllerBlockEntity extends KineticBlockEntity {
     /** Broken: whatever was open shuts, so no invisible leaves are left behind. */
     @Override
     public void destroy() {
+        if (org.papiricoh.create_nuclearindustry.integration.sable.ShipAssembly.isMoving()) {
+            // Carried to or from a ship: the copy at the new place keeps everything.
+            super.destroy();
+            return;
+        }
         if (level != null && !level.isClientSide && layout != null) {
             shut(layout);
         }

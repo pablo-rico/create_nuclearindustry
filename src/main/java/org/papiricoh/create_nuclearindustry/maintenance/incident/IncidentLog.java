@@ -41,6 +41,8 @@ public final class IncidentLog extends SavedData {
             return;
         }
         int rated = Math.max(type.ines(), ines);
+        // Logged where it happened in the world, also aboard a ship.
+        pos = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.worldBlock(level, pos);
         Incident incident = new Incident(server.getServer().overworld().getGameTime(), server.dimension().location().toString(),
                 pos.immutable(), type, rated, detail == null ? "" : detail);
         get(server.getServer()).add(incident);

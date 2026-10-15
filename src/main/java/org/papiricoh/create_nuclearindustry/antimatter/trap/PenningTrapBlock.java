@@ -108,7 +108,9 @@ public abstract class PenningTrapBlock extends Block implements IBE<PenningTrapB
      */
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && !removingParts) {
+        // A ship carries every part along at once: none takes the others with it.
+        if (!state.is(newState.getBlock()) && !removingParts && !movedByPiston
+                && !org.papiricoh.create_nuclearindustry.integration.sable.ShipAssembly.isMoving()) {
             removingParts = true;
             try {
                 for (BlockPos part : parts(state, pos)) {

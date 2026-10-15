@@ -19,7 +19,11 @@ public enum TargetKind {
     /** A {@link PlantReadable} Penning trap holding antimatter. */
     ANTIMATTER_TRAP,
     /** A {@link PlantReadable} annihilation generator. */
-    ANNIHILATION_GENERATOR;
+    ANNIHILATION_GENERATOR,
+    /** A {@link PlantReadable} nuclear thermal engine. */
+    THERMAL_ENGINE,
+    /** A {@link PlantReadable} antimatter engine. */
+    ANTIMATTER_ENGINE;
 
     public String translationKey() {
         return "create_nuclearindustry.control_room.kind." + name().toLowerCase(java.util.Locale.ROOT);

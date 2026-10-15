@@ -520,6 +520,35 @@ def _weapons(row, phase):
         row.blend(x, 15, FIRE[3], 0.5 * max(0.0, 1 - abs(x - cx) / 26))
 
 
+PROPULSION = Ramp("#0c121c", "#141c2a", "#1a2638", "#25344c", "#324666", "#4a6488", "#a8c0e0")
+EXHAUST = Ramp("#5b2a10", "#8a3d12", "#c25a12", "#e8842a", "#ffb04a", "#ffd88a", "#fff6d8")
+
+
+@banner("propulsion", PROPULSION, 1117)
+def _propulsion(row, phase):
+    # A nozzle on the right firing its plume back to the left, shock diamonds marching down it.
+    nozzle = 150
+    for y in range(4, 14):
+        for x in range(nozzle, nozzle + 6):
+            flare = (x - nozzle) * 0.55
+            if abs(y + 0.5 - 9) <= 2.2 + flare:
+                row.set(x, y, STEEL[3] if (x + y) % 3 else STEEL[5])
+    for x in range(108, nozzle):
+        reach = (nozzle - x) / (nozzle - 108)
+        width = 1.8 + reach * 3.2
+        for y in range(1, H - 1):
+            d = abs(y + 0.5 - 9)
+            if d <= width:
+                n = fbm((x * 2 + int(phase * 96)) % 64, y * 2 % 32, 1117, 64, 32, octaves=2, scale=4.0)
+                core = 1 - d / width
+                heat = core * (1 - reach * 0.7) + n * 0.35
+                row.blend(x, y, EXHAUST[max(0, min(6, int(heat * 6.4)))], 0.55 + core * 0.45)
+    # Shock diamonds: bright knots travelling down the plume and back again each loop.
+    for k in range(3):
+        cx = nozzle - 8 - ((k * 12 + phase * 36) % 36)
+        row.disc(cx, 9, 1.4, EXHAUST[6])
+
+
 OTHER = Ramp("#1a1a1a", "#2a2a2a", "#3a3a3a", "#4e4e4e", "#666666", "#808080", "#c0c0c0")
 
 

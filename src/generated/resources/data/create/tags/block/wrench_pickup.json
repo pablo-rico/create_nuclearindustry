@@ -130,6 +130,12 @@
     "create_nuclearindustry:smoke_detector",
     "create_nuclearindustry:reactor_irradiation_channel",
     "create_nuclearindustry:thermonuclear_bomb",
+    "create_nuclearindustry:nuclear_thermal_engine",
+    "create_nuclearindustry:thermal_engine_exchanger",
+    "create_nuclearindustry:thermal_rocket_nozzle",
+    "create_nuclearindustry:antimatter_engine",
+    "create_nuclearindustry:magnetic_coil",
+    "create_nuclearindustry:magnetic_nozzle",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

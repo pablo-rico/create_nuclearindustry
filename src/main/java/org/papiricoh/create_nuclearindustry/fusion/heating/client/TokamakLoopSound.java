@@ -66,7 +66,8 @@ final class TokamakLoopSound extends MachineLoopSound<FusionReactorBlockEntity> 
         int radius = machine.getMajorRadius();
         return minecraft.player == null || radius <= 0
                 ? machine.getBlockPos().getCenter()
-                : TokamakClientEffects.nearestRingPoint(machine.getCenter(), radius, minecraft.player.position());
+                : TokamakClientEffects.nearestRingPoint(machine.getCenter(), radius,
+                        org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.localView(machine.getLevel(), machine.getCenter(), minecraft.player.position()));
     }
 
     private static double field(TokamakReadings readings) {

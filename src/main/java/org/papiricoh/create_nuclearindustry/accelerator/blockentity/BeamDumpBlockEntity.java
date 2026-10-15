@@ -150,6 +150,11 @@ public class BeamDumpBlockEntity extends SmartBlockEntity implements BeamTermina
 
     @Override
     public void destroy() {
+        if (org.papiricoh.create_nuclearindustry.integration.sable.ShipAssembly.isMoving()) {
+            // Carried to or from a ship: the copy at the new place keeps everything.
+            super.destroy();
+            return;
+        }
         super.destroy();
         if (level != null && !level.isClientSide) {
             dismantle(level, getBlockPos(), activity);

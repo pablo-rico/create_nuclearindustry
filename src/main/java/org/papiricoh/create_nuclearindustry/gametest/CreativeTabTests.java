@@ -69,8 +69,10 @@ public class CreativeTabTests {
         }
         helper.assertTrue(banners.containsKey(0), "the tab opens on a banner");
         for (NuclearTabSection section : NuclearTabSection.values()) {
-            helper.assertTrue(section == NuclearTabSection.OTHER ? !shown.contains(section) : shown.contains(section),
-                    "section " + section.id() + (section == NuclearTabSection.OTHER ? " shows with nothing from other mods" : " is missing"));
+            // Other mods' items and, without Create Aeronautics, the engines are the only sections that may be empty.
+            boolean expected = section == NuclearTabSection.OTHER ? false
+                    : section != NuclearTabSection.PROPULSION || org.papiricoh.create_nuclearindustry.integration.sable.SableCompat.isLoaded();
+            helper.assertTrue(shown.contains(section) == expected, "section " + section.id() + (expected ? " is missing" : " shows with nothing in it"));
             helper.assertTrue(Language.getInstance().has(section.langKey()), "no title for " + section.id());
         }
         helper.assertTrue(tab.getSearchTabDisplayItems().stream().noneMatch(ItemStack::isEmpty), "the search tab has gaps");

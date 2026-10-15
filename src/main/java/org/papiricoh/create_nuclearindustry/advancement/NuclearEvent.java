@@ -55,7 +55,10 @@ public enum NuclearEvent {
     TECHNETIUM_ELUTED,
     // Operation and maintenance
     MAINTENANCE_DONE,
-    SEISMIC_SCRAM;
+    SEISMIC_SCRAM,
+    // Nuclear engines on Create Aeronautics ships
+    NUCLEAR_FLIGHT,
+    ANTIMATTER_THRUST;
 
     public String id() {
         return name().toLowerCase(Locale.ROOT);

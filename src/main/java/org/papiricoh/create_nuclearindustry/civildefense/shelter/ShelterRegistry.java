@@ -67,12 +67,28 @@ public final class ShelterRegistry {
     }
 
     public static boolean isSheltered(Level level, Vec3 point) {
-        return at(level, BlockPos.containing(point)) != null;
+        return around(level, point) != null;
+    }
+
+    /** The shelter around a world point: on the ground, or in the plot of a ship the point is in. */
+    @Nullable
+    private static Shelter around(Level level, Vec3 point) {
+        Shelter shelter = at(level, BlockPos.containing(point));
+        if (shelter != null || !org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.enabled()) {
+            return shelter;
+        }
+        for (org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.Ship ship : org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.shipsIn(level, new net.minecraft.world.phys.AABB(point, point).inflate(0.5))) {
+            shelter = at(level, BlockPos.containing(ship.toLocal(point)));
+            if (shelter != null) {
+                return shelter;
+            }
+        }
+        return null;
     }
 
     /** Fraction of fallout and ground dose that reaches {@code body}: the filter's inside a running shelter, else all. */
     public static double doseFactor(Level level, Vec3 body) {
-        Shelter shelter = at(level, BlockPos.containing(body));
+        Shelter shelter = around(level, body);
         return shelter != null && shelter.filtering() ? CivilDefenseConfig.shelterFilterFactor : 1.0;
     }
 

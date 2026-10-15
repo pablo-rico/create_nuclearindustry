@@ -1,0 +1,30 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "sable"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "H": {
+      "item": "create_nuclearindustry:heat_exchanger"
+    },
+    "S": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "CSC",
+    "SHS",
+    "CSC"
+  ],
+  "result": {
+    "count": 2,
+    "id": "create_nuclearindustry:thermal_engine_exchanger"
+  }
+}

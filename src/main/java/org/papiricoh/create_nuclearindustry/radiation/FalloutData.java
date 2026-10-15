@@ -179,7 +179,9 @@ public class FalloutData extends SavedData {
     /** Adds a contamination source next to {@code pos} that fades out over {@code durationTicks}. */
     public static void contaminate(Level level, BlockPos pos, double strength, int durationTicks) {
         if (level instanceof ServerLevel serverLevel) {
-            get(serverLevel).add(pos, strength, durationTicks, level.getGameTime());
+            // A hot spot left aboard a ship falls where the ship really is.
+            BlockPos at = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.worldBlock(level, pos);
+            get(serverLevel).add(at, strength, durationTicks, level.getGameTime());
         }
     }
 

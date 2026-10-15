@@ -67,7 +67,13 @@ public enum GaugeReading {
     GENERATOR_OUTPUT(TargetKind.ANNIHILATION_GENERATOR, r -> r.value(G_OUTPUT)),
     GENERATOR_THROTTLE(TargetKind.ANNIHILATION_GENERATOR, r -> r.value(G_THROTTLE)),
     GENERATOR_CHAMBER(TargetKind.ANNIHILATION_GENERATOR, r -> r.value(G_CHAMBER_FILL)),
-    GENERATOR_ENERGY(TargetKind.ANNIHILATION_GENERATOR, r -> r.value(G_RATED_FE) > 0 ? r.value(G_FE) / r.value(G_RATED_FE) : 0);
+    GENERATOR_ENERGY(TargetKind.ANNIHILATION_GENERATOR, r -> r.value(G_RATED_FE) > 0 ? r.value(G_FE) / r.value(G_RATED_FE) : 0),
+    THERMAL_THROTTLE(TargetKind.THERMAL_ENGINE, r -> r.value(E_THROTTLE)),
+    THERMAL_NOZZLE(TargetKind.THERMAL_ENGINE, r -> r.value(E_LIMIT) > 0 ? r.value(E_TEMPERATURE) / r.value(E_LIMIT) : 0),
+    THERMAL_PROPELLANT(TargetKind.THERMAL_ENGINE, r -> r.value(E_FUEL)),
+    ANTIMATTER_THROTTLE(TargetKind.ANTIMATTER_ENGINE, r -> r.value(E_THROTTLE)),
+    ANTIMATTER_COIL(TargetKind.ANTIMATTER_ENGINE, r -> r.value(E_LIMIT) > 0 ? r.value(E_TEMPERATURE) / r.value(E_LIMIT) : 0),
+    ANTIMATTER_CHAMBER(TargetKind.ANTIMATTER_ENGINE, r -> r.value(E_FUEL));
 
     private final TargetKind kind;
     private final ToDoubleFunction<MonitorReading> fraction;
@@ -103,6 +109,8 @@ public enum GaugeReading {
             case TOKAMAK -> java.util.List.of(FUSION_POWER, PLASMA_TEMPERATURE, PLASMA_DENSITY);
             case ANTIMATTER_TRAP -> java.util.List.of(TRAP_ANTIMATTER, TRAP_FIELD, TRAP_BUFFER);
             case ANNIHILATION_GENERATOR -> java.util.List.of(GENERATOR_OUTPUT, GENERATOR_THROTTLE, GENERATOR_CHAMBER);
+            case THERMAL_ENGINE -> java.util.List.of(THERMAL_THROTTLE, THERMAL_NOZZLE, THERMAL_PROPELLANT);
+            case ANTIMATTER_ENGINE -> java.util.List.of(ANTIMATTER_THROTTLE, ANTIMATTER_COIL, ANTIMATTER_CHAMBER);
             default -> forKind(kind).stream().limit(2).toList();
         };
     }

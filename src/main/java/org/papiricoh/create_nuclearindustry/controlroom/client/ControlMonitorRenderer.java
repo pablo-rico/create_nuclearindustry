@@ -97,7 +97,7 @@ public class ControlMonitorRenderer implements BlockEntityRenderer<ControlMonito
         Direction right = monitor.right();
         Vec3 centre = Vec3.atCenterOf(pos).add(right.getStepX() * (monitor.screenWidth() - 1) / 2.0,
                 (monitor.screenHeight() - 1) / 2.0, right.getStepZ() * (monitor.screenWidth() - 1) / 2.0);
-        return camera.distanceToSqr(centre) < DETAIL_DISTANCE * DETAIL_DISTANCE;
+        return org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.localView(monitor.getLevel(), pos, camera).distanceToSqr(centre) < DETAIL_DISTANCE * DETAIL_DISTANCE;
     }
 
     @Override

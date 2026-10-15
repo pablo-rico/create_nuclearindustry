@@ -269,7 +269,8 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         consumeFuel();
         markDirtyAndSync();
 
-        Vec3 start = launchPoint();
+        // A pad aboard a ship launches from where the ship really is.
+        Vec3 start = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.toWorld(serverLevel, launchPoint());
         Vec3 targetVec = new Vec3(target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
         if (!dirty && TargetDesignatorItem.isAirburst(inventory.getStackInSlot(DESIGNATOR_SLOT))) {
             // Set to airburst: it goes off above the target, clear of its own fireball.

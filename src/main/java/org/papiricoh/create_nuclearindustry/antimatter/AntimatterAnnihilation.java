@@ -115,6 +115,8 @@ public final class AntimatterAnnihilation {
 
     /** Annihilates {@code ng} at {@code centre} now. */
     public static void explode(ServerLevel level, Vec3 centre, double ng) {
+        // Aboard a ship it goes off where the ship really is; vanilla's explosion is moved there by Sable.
+        centre = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.toWorld(level, centre);
         AnnihilationBlastModel.Params p = AntimatterConfig.blast();
         if (!AnnihilationBlastModel.explodes(p, ng)) {
             fizzle(level, centre);

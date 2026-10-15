@@ -93,8 +93,9 @@ public final class MultiblockMessenger {
             recipients.add(owner);
         }
         double range = ALERT_RANGE * ALERT_RANGE;
+        net.minecraft.world.phys.Vec3 where = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.toWorld(level, origin);
         for (Player player : level.players()) {
-            if (!recipients.contains(player) && player.distanceToSqr(origin.getCenter()) <= range) {
+            if (!recipients.contains(player) && player.distanceToSqr(where) <= range) {
                 recipients.add(player);
             }
         }

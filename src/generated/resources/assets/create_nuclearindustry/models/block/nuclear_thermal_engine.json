@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "create_nuclearindustry:block/nuclear_thermal_engine_side",
+    "east": "create_nuclearindustry:block/nuclear_thermal_engine_side",
+    "north": "create_nuclearindustry:block/nuclear_thermal_engine_back",
+    "particle": "create_nuclearindustry:block/nuclear_thermal_engine_side",
+    "south": "create_nuclearindustry:block/nuclear_thermal_engine_front",
+    "up": "create_nuclearindustry:block/nuclear_thermal_engine_side",
+    "west": "create_nuclearindustry:block/nuclear_thermal_engine_side"
+  }
+}

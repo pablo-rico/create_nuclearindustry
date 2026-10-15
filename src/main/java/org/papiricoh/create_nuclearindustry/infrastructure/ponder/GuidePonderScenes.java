@@ -14,6 +14,7 @@ import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FanTrea
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FuelCycleScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.IsotopeScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.MaintenanceScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.PropulsionScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.WeaponsScenes;
 
 import java.util.LinkedHashMap;
@@ -60,6 +61,8 @@ public final class GuidePonderScenes {
         boards.put(GuidePonderText.CONTROL_INSTRUMENTS, ControlRoomScenes::instruments);
         boards.put(GuidePonderText.CONTROL_SIGNALS, ControlRoomScenes::signals);
         boards.put(GuidePonderText.CONTROL_SERVO, ControlRoomScenes::servo);
+        boards.put(GuidePonderText.THERMAL_ENGINE, PropulsionScenes::thermal);
+        boards.put(GuidePonderText.ANTIMATTER_ENGINE, PropulsionScenes::antimatter);
         return boards;
     }
 

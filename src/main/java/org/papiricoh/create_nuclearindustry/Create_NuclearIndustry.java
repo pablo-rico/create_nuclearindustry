@@ -79,6 +79,7 @@ public class Create_NuclearIndustry {
         AllNuclearSounds.SOUNDS.register(modEventBus);
 
         CBCNuclearIntegration.init(modEventBus);
+        org.papiricoh.create_nuclearindustry.integration.sable.SableCompat.init(modEventBus);
         NuclearFeatures.register(modEventBus);
 
         AllNuclearFluids.FLUID_TYPES.register(modEventBus);
