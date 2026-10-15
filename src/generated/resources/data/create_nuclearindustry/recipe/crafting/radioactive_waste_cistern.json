@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:containment_concrete"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "T": {
+      "item": "create:fluid_tank"
+    }
+  },
+  "pattern": [
+    "CPC",
+    "PTP",
+    "CPC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:radioactive_waste_cistern"
+  }
+}

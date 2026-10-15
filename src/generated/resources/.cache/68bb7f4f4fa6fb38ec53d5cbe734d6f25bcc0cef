@@ -1,0 +1,4 @@
+// 1.21.1	2026-10-15T19:55:42.832545	Ruins biome tags
+ee2638b0997bab31e8d61cc9c1fb35251a63212f data/create_nuclearindustry/tags/worldgen/biome/has_structure/abandoned_power_plant.json
+a71b8482998100025685bbba2ed2fdce6da1e389 data/create_nuclearindustry/tags/worldgen/biome/has_structure/civil_shelter.json
+3378bc94e2cd84fa2c66e474eae5ec019eff0636 data/create_nuclearindustry/tags/worldgen/biome/has_structure/military_bunker.json

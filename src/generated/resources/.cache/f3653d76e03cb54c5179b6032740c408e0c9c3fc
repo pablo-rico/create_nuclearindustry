@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-14T16:28:49.503723	Tags for minecraft:item mod id create_nuclearindustry
+// 1.21.1	2026-10-15T19:56:39.253912	Tags for minecraft:item mod id create_nuclearindustry
 4427f74dad46a59f67cdc96dadfbe35d12093ae8 data/c/tags/item/gems/fluorite.json
 cf92bb0e0810d0a26ff3410c0f599ec9789139f4 data/c/tags/item/ores.json
 1cd91ac9d4465a0614f08bd99b4f951061d8de86 data/c/tags/item/ores/borax.json
@@ -14,3 +14,4 @@ ea663e24e2a201829582cea44e7e51d4a5ac6e5f data/create_nuclearindustry/tags/item/t
 7dda3dfa9aa7f354fe72f7771f32d57f84e18319 data/create_nuclearindustry/tags/item/thermonuclear_tampers.json
 2b444a72c8c482aceec86074d1f8498e7a3a7b0e data/create_nuclearindustry/tags/item/uranium.json
 4acacf0a2adcc8a10b19d1336b93f44f6fe2914e data/create_nuclearindustry/tags/item/uranium_ingots.json
+7a99ffbe945b3d851a12983b8b49335643190735 data/create_nuclearindustry/tags/item/waste_cask_cargo.json

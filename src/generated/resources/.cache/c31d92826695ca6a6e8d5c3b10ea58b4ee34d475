@@ -1,3 +1,4 @@
-// 1.21.1	2026-10-11T06:20:02.9382444	Tags for minecraft:fluid mod id create_nuclearindustry
-592016f1ab0a56559b848585e6b4be2835add264 data/create_nuclearindustry/tags/fluid/fan_processing_catalysts/acid_leaching.json
+// 1.21.1	2026-10-15T19:56:39.249476	Tags for minecraft:fluid mod id create_nuclearindustry
 670a2145cfc108cfa593f9fa508ed1860803ffe8 data/c/tags/fluid/hydrogen.json
+592016f1ab0a56559b848585e6b4be2835add264 data/create_nuclearindustry/tags/fluid/fan_processing_catalysts/acid_leaching.json
+176c3e8549455d681f87b71ed247d64e37284298 data/create_nuclearindustry/tags/fluid/radioactive_waste_fluids.json

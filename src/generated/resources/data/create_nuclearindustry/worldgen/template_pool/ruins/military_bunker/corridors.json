@@ -1,0 +1,50 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/corridor_blast_door",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/corridor_corner",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/corridor_cross",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 1
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/corridor_straight",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 5
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/corridor_tee",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 2
+    }
+  ],
+  "fallback": "create_nuclearindustry:ruins/military_bunker/collapsed_end"
+}

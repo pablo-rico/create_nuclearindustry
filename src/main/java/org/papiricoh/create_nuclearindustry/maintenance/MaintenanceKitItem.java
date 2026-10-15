@@ -72,8 +72,11 @@ public class MaintenanceKitItem extends Item {
         return InteractionResult.CONSUME;
     }
 
-    /** Services the machine at {@code pos}: the reactor, steam generator or turbine it is part of. */
+    /** Services the machine at {@code pos}: the reactor, steam generator or turbine it is part of, or a breached waste container. */
     public static Outcome service(Level level, BlockPos pos, double amount) {
+        if (level.getBlockEntity(pos) instanceof org.papiricoh.create_nuclearindustry.wastetransport.breach.WasteContainer container) {
+            return container.repair(amount);
+        }
         if (level.getBlockEntity(pos) instanceof org.papiricoh.create_nuclearindustry.propulsion.blockentity.RocketEngineBlockEntity engine) {
             // A nuclear engine is mended at its controller, cold and idle.
             boolean idle = engine.idleForRepair();

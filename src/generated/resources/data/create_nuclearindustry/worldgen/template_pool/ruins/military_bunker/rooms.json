@@ -1,0 +1,59 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/armory",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/command",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/dormitory",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 3
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/filtration",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/lab",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 2
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "create_nuclearindustry:ruins/military_bunker/waste_store",
+        "processors": "create_nuclearindustry:bunker_decay",
+        "projection": "rigid"
+      },
+      "weight": 2
+    }
+  ],
+  "fallback": "create_nuclearindustry:ruins/military_bunker/collapsed_end"
+}

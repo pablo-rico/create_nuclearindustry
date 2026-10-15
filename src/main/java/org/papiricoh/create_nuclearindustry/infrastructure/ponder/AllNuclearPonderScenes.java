@@ -19,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.Tokamak
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TurbineScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.WasteStorageScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.WasteTransportScenes;
 
 public class AllNuclearPonderScenes {
     /** The ponder tag of the "Nuclear power plant" series. */
@@ -32,6 +33,9 @@ public class AllNuclearPonderScenes {
         helper.addStoryBoard(id("reactor_redstone_port"), "reactor_controller", ReactorRedstoneScenes::redstonePort);
         helper.addStoryBoard(id("reactor_controller"), "reactor_controller", ReactorRedstoneScenes::redstonePort);
         helper.addStoryBoard(id("radioactive_waste_barrel"), "waste_storage", WasteStorageScenes::storage);
+        for (String container : new String[]{"radioactive_waste_cistern", "shielded_waste_cask"}) {
+            helper.addStoryBoard(id(container), "waste_transport", WasteTransportScenes::transport);
+        }
         helper.addStoryBoard(id("radiation_scrubber"), "centrifuge", ScrubberScenes::scrubber);
         for (String part : new String[]{"rtg", "plutonium_rtg_pellet", "waste_rtg_pellet"}) {
             helper.addStoryBoard(id(part), "centrifuge", RtgScenes::rtg);

@@ -25,6 +25,7 @@ public final class NuclearFeaturesClient {
             PwrClient.INSTANCE,
             SpentFuelClient.INSTANCE,
             WasteClient.INSTANCE,
+            org.papiricoh.create_nuclearindustry.wastetransport.client.WasteTransportClient.INSTANCE,
             ControlRoom2Client.INSTANCE,
             CivilDefenseClient.INSTANCE,
             FusionClient.INSTANCE,

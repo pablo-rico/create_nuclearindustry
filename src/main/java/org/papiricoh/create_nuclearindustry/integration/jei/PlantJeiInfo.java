@@ -80,6 +80,12 @@ public final class PlantJeiInfo {
                 WasteRegistry.CEMENTED_WASTE_DRUM_ITEM, WasteRegistry.VITRIFIED_WASTE_CANISTER_ITEM, WasteRegistry.BENTONITE_ITEM,
                 WasteRegistry.REPOSITORY_INSPECTOR_ITEM));
 
+        // Waste transport (text in WasteTransportDataGen)
+        pages.add(items("radioactive_waste_cistern",
+                org.papiricoh.create_nuclearindustry.wastetransport.WasteTransportRegistry.RADIOACTIVE_WASTE_CISTERN_ITEM));
+        pages.add(items("shielded_waste_cask",
+                org.papiricoh.create_nuclearindustry.wastetransport.WasteTransportRegistry.SHIELDED_WASTE_CASK_ITEM));
+
         // Control room instruments
         pages.add(items("chart_recorder", ControlRoom2Registry.CHART_RECORDER_ITEM, ControlRoom2Registry.CHART_ROLL));
         pages.add(items("annunciator_panel", ControlRoom2Registry.ANNUNCIATOR_PANEL_ITEM));

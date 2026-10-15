@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "create_nuclearindustry:block/shielded_waste_cask",
+      "y": 90
+    },
+    "axis=z": {
+      "model": "create_nuclearindustry:block/shielded_waste_cask"
+    }
+  }
+}

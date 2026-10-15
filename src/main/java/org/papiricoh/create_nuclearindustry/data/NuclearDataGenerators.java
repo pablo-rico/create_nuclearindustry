@@ -38,7 +38,8 @@ public final class NuclearDataGenerators {
         generator.addProvider(event.includeServer(), new NuclearDataMapProvider(output, lookup));
         generator.addProvider(event.includeServer(), new NuclearAdvancementProvider(output, lookup, existingFiles));
         generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
-                List.of(new LootTableProvider.SubProviderEntry(NuclearBlockLoot::new, LootContextParamSets.BLOCK)), lookup));
+                List.of(new LootTableProvider.SubProviderEntry(NuclearBlockLoot::new, LootContextParamSets.BLOCK),
+                        new LootTableProvider.SubProviderEntry(RuinsChestLoot::new, LootContextParamSets.CHEST)), lookup));
 
         generator.addProvider(event.includeServer(), new NuclearCraftingRecipes(output, lookup));
         generator.addProvider(event.includeServer(), new NuclearCrushingRecipes(output, lookup));

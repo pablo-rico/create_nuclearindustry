@@ -34,7 +34,10 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** Datapack registry entries: ore generation and the radiation, plutonium burn and blast wave damage types. */
+/**
+ * Datapack registry entries: ore generation, the abandoned nuclear sites ({@link RuinsWorldgen}) and the
+ * radiation, plutonium burn and blast wave damage types.
+ */
 public final class NuclearWorldgen {
 
     private static final List<Ore> ORES = List.of(
@@ -52,6 +55,10 @@ public final class NuclearWorldgen {
                 .add(Registries.CONFIGURED_FEATURE, NuclearWorldgen::configuredFeatures)
                 .add(Registries.PLACED_FEATURE, NuclearWorldgen::placedFeatures)
                 .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, NuclearWorldgen::biomeModifiers)
+                .add(Registries.PROCESSOR_LIST, RuinsWorldgen::processors)
+                .add(Registries.TEMPLATE_POOL, RuinsWorldgen::pools)
+                .add(Registries.STRUCTURE, RuinsWorldgen::structures)
+                .add(Registries.STRUCTURE_SET, RuinsWorldgen::structureSets)
                 .add(Registries.DAMAGE_TYPE, context -> {
                     context.register(org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation.RADIATION_DAMAGE,
                             new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".radiation", 0.0f));

@@ -1,0 +1,18 @@
+{
+  "values": [
+    "create_nuclearindustry:reactor_controller",
+    "create_nuclearindustry:cooling_tower_controller",
+    "create_nuclearindustry:turbine_output",
+    "create_nuclearindustry:fusion_controller",
+    "create_nuclearindustry:fusion_plasma_turbine",
+    "create_nuclearindustry:cryoplant_controller",
+    "create_nuclearindustry:steam_generator_controller",
+    "create_nuclearindustry:containment_monitor",
+    "create_nuclearindustry:particle_accelerator_controller",
+    "create_nuclearindustry:shelter_filtration_unit",
+    "create_nuclearindustry:blast_door_controller",
+    "create_nuclearindustry:nuclear_bomb",
+    "create_nuclearindustry:dirty_bomb",
+    "create_nuclearindustry:thermonuclear_bomb"
+  ]
+}

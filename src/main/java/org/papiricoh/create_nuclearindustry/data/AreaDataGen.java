@@ -19,6 +19,7 @@ abstract class AreaDataGen {
             PwrDataGen.INSTANCE,
             SpentFuelDataGen.INSTANCE,
             WasteDataGen.INSTANCE,
+            WasteTransportDataGen.INSTANCE,
             ControlRoom2DataGen.INSTANCE,
             CivilDefenseDataGen.INSTANCE,
             PlantPonderDataGen.INSTANCE,
@@ -34,6 +35,7 @@ abstract class AreaDataGen {
             EnergyDataGen.INSTANCE,
             IsotopeDataGen.INSTANCE,
             MaintenanceDataGen.INSTANCE,
+            RuinsDataGen.INSTANCE,
             ExplosiveDataGen.INSTANCE,
             PropulsionDataGen.INSTANCE);
 

@@ -539,6 +539,10 @@ CUTOUT_BLOCKS = {
     "reinforced_turbine_glass_connected": (64, 64),
 }
 
+# Opaque textures larger than 16x16 (connected-texture sheets); validate.py checks their size and
+# that every pixel is opaque.
+SHEET_BLOCKS = {}
+
 
 def _glass_tile(t, ox, oy, left, right, top, bottom):
     """One 16x16 pane at (ox, oy). Borders are drawn only where the pane meets a non-glass
@@ -1515,6 +1519,7 @@ def desk_toggle():
 import tex_pwr  # noqa: E402,F401
 import tex_spentfuel  # noqa: E402,F401
 import tex_waste  # noqa: E402,F401
+import tex_wastetransport  # noqa: E402,F401
 import tex_controlroom2  # noqa: E402,F401
 import tex_civildefense  # noqa: E402,F401
 import tex_fusion  # noqa: E402,F401

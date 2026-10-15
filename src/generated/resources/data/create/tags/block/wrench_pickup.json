@@ -74,6 +74,8 @@
     "create_nuclearindustry:bentonite",
     "create_nuclearindustry:repository_inspector",
     "create_nuclearindustry:vitrification_melter",
+    "create_nuclearindustry:radioactive_waste_cistern",
+    "create_nuclearindustry:shielded_waste_cask",
     "create_nuclearindustry:chart_recorder",
     "create_nuclearindustry:annunciator_panel",
     "create_nuclearindustry:control_table",

@@ -140,6 +140,7 @@ public class Config
         org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.waste.WasteConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.wastetransport.WasteTransportConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config.define(BUILDER);
         org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.fusion.FusionConfig.define(BUILDER);
@@ -154,6 +155,7 @@ public class Config
         org.papiricoh.create_nuclearindustry.maintenance.MaintenanceConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.propulsion.PropulsionConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.ruins.RuinsConfig.define(BUILDER);
     }
 
     static final ModConfigSpec SPEC = BUILDER.build();
@@ -254,6 +256,7 @@ public class Config
         org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig.bake();
         org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelConfig.bake();
         org.papiricoh.create_nuclearindustry.waste.WasteConfig.bake();
+        org.papiricoh.create_nuclearindustry.wastetransport.WasteTransportConfig.bake();
         org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config.bake();
         org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.bake();
         org.papiricoh.create_nuclearindustry.fusion.FusionConfig.bake();
@@ -268,5 +271,6 @@ public class Config
         org.papiricoh.create_nuclearindustry.maintenance.MaintenanceConfig.bake();
         org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig.bake();
         org.papiricoh.create_nuclearindustry.propulsion.PropulsionConfig.bake();
+        org.papiricoh.create_nuclearindustry.ruins.RuinsConfig.bake();
     }
 }

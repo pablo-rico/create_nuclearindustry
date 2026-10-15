@@ -1134,6 +1134,59 @@ saca por comparador la fraccion almacenada (0-15).
 cuenta como almacenado, sin mirar lo que lo rodea, y lo demas fuga
 `barrelLeak * leak_factor`.
 
+## Transporte de residuos radiactivos
+
+```toml
+[wasteTransport]
+shieldedTransmission = 0.002
+breachedTransmission = 0.35
+maxEmission = 2000.0
+caskSlotsPerBlock = 9
+spillFluidFraction = 0.5
+spillIntensityPerActivity = 0.01
+spillRadiusMax = 16
+breachLeakFactor = 2.0
+breachOnDerail = true
+breachOnExplosion = true
+```
+
+Dos contenedores multibloque al estilo de Create para mover residuos en trenes y
+otros artefactos:
+
+- **Cisterna de residuos radiactivos**: un tanque de fluidos de Create (hasta 3x3,
+  8 cubos por bloque, sin ventana) que solo acepta los fluidos de la etiqueta
+  `create_nuclearindustry:radioactive_waste_fluids` (solución de combustible
+  gastado, nitrato de plutonio y de uranio-233, solución de combustible de torio,
+  agua contaminada y hexafluoruro de uranio empobrecido).
+- **Contenedor blindado de residuos**: un almacén como el de Create, unido a lo
+  largo de su eje (hasta 3x3 de sección y tres veces de largo), con
+  `caskSlotsPerBlock` huecos por bloque. Solo acepta la etiqueta de ítems
+  `create_nuclearindustry:waste_cask_cargo` y nunca combustible gastado *Hot*.
+
+La actividad de la carga es la suma de la radiactividad de sus ítems (data map
+`radioactivity`) o, para la cisterna, de su fluido: cubos x `per_bucket` del data
+map de fluidos `create_nuclearindustry:fluid_radioactivity` (si un fluido no lo
+tiene, se usa la radiactividad de su cubo). Sellado, el contenedor emite
+`actividad x shieldedTransmission`; roto, `actividad x breachedTransmission`;
+nunca más de `maxEmission` (rad/s en la fuente). Colocados emiten desde el centro
+del multibloque; montados en un artefacto, un solo emisor por artefacto suma todos
+sus contenedores desde su centro.
+
+Se rompen al descarrilar o chocar un tren (`breachOnDerail`), con explosiones que
+los alcanzan sin destruirlos (`breachOnExplosion`, también las detonaciones
+nucleares) y al romper el bloque. Al romperse derraman una vez: contaminación del
+terreno de `actividad x spillIntensityPerActivity` rad/s en el centro, en un radio
+de `2 + raíz(actividad)` bloques hasta `spillRadiusMax`; una cisterna pierde además
+`spillFluidFraction` de su fluido. Mientras sigan rotos fugan cada segundo
+`breachLeakFactor` veces su intensidad de derrame repartida en un minuto al
+terreno de debajo, y la cisterna pierde `breachLeakFactor` milésimas de su fluido.
+Un kit de mantenimiento (a mano o con un desplegador) repara `maintenance.kitRepair`
+de la brecha en cada uso: dos usos con los valores por defecto.
+
+En un tren, las interfaces de almacenamiento y de fluidos portátiles y las
+condiciones de carga del horario ven el contenido, pero solo pueden meter lo que
+el contenedor acepta.
+
 ## Instrumentos de la sala de control
 
 - `chartSamplesPerPaper` (240): muestras que dibuja un Registrador gráfico con
@@ -2011,6 +2064,58 @@ La guía para el jugador está en `docs/aeronautics.md`.
 
 Las recetas de los motores y sus dos logros solo se cargan con Sable instalado.
 Los bloques existen siempre, para que los mundos abran igual con y sin Aeronautics.
+
+## Ruinas nucleares
+
+El mundo genera tres clases de instalaciones abandonadas, montadas por piezas
+(jigsaw) que se combinan de forma distinta cada vez:
+
+- **Central nuclear abandonada** (`create_nuclearindustry:abandoned_power_plant`):
+  muy rara (una por cada 64×64 chunks de media, a 8 chunks como mínimo de
+  cualquier aldea) y solo en terreno llano de llanuras, desiertos, sabanas,
+  praderas, bosques y taigas. El edificio del reactor, con la cúpula de
+  contención hundida, una vasija rota, dos generadores de vapor y la grúa polar
+  caída; alrededor, la sala de turbinas, el edificio de control con sus pupitres
+  y paneles, un parque de residuos o el muñón de una torre de refrigeración, y
+  la carretera de acceso con su garita.
+- **Refugio civil** (`create_nuclearindustry:civil_shelter`): una caseta de
+  hormigón con sirena en el tejado y una escalera que baja a los dormitorios, el
+  almacén de víveres y la sala de ventilación.
+- **Búnker militar** (`create_nuclearindustry:military_bunker`): un puesto de
+  guardia con sacos terreros y sirena manual sobre un pozo de escalas que baja
+  varios niveles hasta pasillos, una puerta blindada atascada, el puesto de
+  mando, dormitorios, armería, la planta de filtrado, el almacén de residuos y
+  el laboratorio. También aparece en badlands y colinas.
+
+Son ruinas, no máquinas: no hay ningún controlador de multibloque, así que nada
+se forma ni funciona (los procesadores convierten en carcasa de reactor
+cualquier bloque de la etiqueta `create_nuclearindustry:ruin_forbidden` que se
+colase). El peligro son los barriles de residuos con fugas (como mucho seis por
+pieza), que contaminan su chunk con el tiempo como cualquier barril; no hay
+contaminación de partida ni generadores de monstruos. Los cofres traen botín de
+progreso: concentrado de uranio y torta amarilla, grafito, boro, litio, berilio,
+cobalto, piezas de reactor, módulos de pupitre, contadores Geiger, equipo hazmat
+y armadura de uranio empobrecido gastados, yoduro potásico, azul de Prusia,
+raciones esterilizadas, kits de mantenimiento y piezas de Create. Nunca uranio
+enriquecido, plutonio ni piezas de arma.
+
+Se buscan con `/locate structure create_nuclearindustry:<id>` y se colocan con
+`/place structure create_nuclearindustry:<id>`. Las claves están en el archivo
+común (`create_nuclearindustry-common.toml`) y solo afectan a los chunks que se
+generen después del cambio.
+
+| Clave | Por defecto | Qué hace |
+|---|---|---|
+| `ruins.powerPlants.enabled` | `true` | Genera centrales nucleares abandonadas. |
+| `ruins.powerPlants.chance` | `1.0` | Probabilidad de que un sitio elegido para una central la tenga de verdad (la separación del conjunto ya la hace rara). |
+| `ruins.powerPlants.maxSlope` | `4` | Diferencia máxima de altura, en bloques, entre las cinco muestras de terreno bajo la central; con más desnivel, o con agua, no se genera. |
+| `ruins.civilShelters.enabled` | `true` | Genera refugios civiles. |
+| `ruins.civilShelters.chance` | `1.0` | Probabilidad de que un sitio elegido para un refugio lo tenga. |
+| `ruins.militaryBunkers.enabled` | `true` | Genera búnkeres militares. |
+| `ruins.militaryBunkers.chance` | `1.0` | Probabilidad de que un sitio elegido para un búnker lo tenga. |
+
+Las piezas salen de los scripts `tools/structgen/worldgen_*.py`
+(`python3 tools/structgen/worldgen_all.py` las reescribe todas, siempre igual).
 
 ## Pestaña creativa
 

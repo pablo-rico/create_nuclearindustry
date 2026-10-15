@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 552013901,
+    "separation": 22,
+    "spacing": 56
+  },
+  "structures": [
+    {
+      "structure": "create_nuclearindustry:military_bunker",
+      "weight": 1
+    }
+  ]
+}

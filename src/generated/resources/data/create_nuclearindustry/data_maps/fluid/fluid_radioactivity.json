@@ -1,0 +1,40 @@
+{
+  "values": {
+    "create_nuclearindustry:contaminated_water": {
+      "per_bucket": 0.3
+    },
+    "create_nuclearindustry:depleted_uranium_hexafluoride": {
+      "per_bucket": 0.2
+    },
+    "create_nuclearindustry:flowing_contaminated_water": {
+      "per_bucket": 0.3
+    },
+    "create_nuclearindustry:flowing_depleted_uranium_hexafluoride": {
+      "per_bucket": 0.2
+    },
+    "create_nuclearindustry:flowing_plutonium_nitrate": {
+      "per_bucket": 2.0
+    },
+    "create_nuclearindustry:flowing_spent_fuel_solution": {
+      "per_bucket": 4.0
+    },
+    "create_nuclearindustry:flowing_thorium_fuel_solution": {
+      "per_bucket": 3.5
+    },
+    "create_nuclearindustry:flowing_uranium_233_nitrate": {
+      "per_bucket": 1.5
+    },
+    "create_nuclearindustry:plutonium_nitrate": {
+      "per_bucket": 2.0
+    },
+    "create_nuclearindustry:spent_fuel_solution": {
+      "per_bucket": 4.0
+    },
+    "create_nuclearindustry:thorium_fuel_solution": {
+      "per_bucket": 3.5
+    },
+    "create_nuclearindustry:uranium_233_nitrate": {
+      "per_bucket": 1.5
+    }
+  }
+}

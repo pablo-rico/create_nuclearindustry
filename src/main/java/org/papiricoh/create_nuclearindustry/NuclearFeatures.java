@@ -26,6 +26,7 @@ public final class NuclearFeatures {
             PwrRegistry.INSTANCE,
             SpentFuelRegistry.INSTANCE,
             WasteRegistry.INSTANCE,
+            org.papiricoh.create_nuclearindustry.wastetransport.WasteTransportRegistry.INSTANCE,
             ControlRoom2Registry.INSTANCE,
             CivilDefenseRegistry.INSTANCE,
             FusionRegistry.INSTANCE,
@@ -38,6 +39,7 @@ public final class NuclearFeatures {
             EnergyRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.isotope.IsotopeRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.maintenance.MaintenanceRegistry.INSTANCE,
+            org.papiricoh.create_nuclearindustry.ruins.RuinsRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.propulsion.PropulsionRegistry.INSTANCE);
 

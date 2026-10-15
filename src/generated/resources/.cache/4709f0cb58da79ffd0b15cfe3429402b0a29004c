@@ -1,0 +1,5 @@
+// 1.21.1	2026-10-15T19:56:39.251451	Waste transport recipes
+24bf6af81eebb119e788aab14876c7fb7d76eee6 data/create_nuclearindustry/advancement/recipes/misc/crafting/radioactive_waste_cistern.json
+7090d60e4db68cdac736a6006ed0c21e6b32ab99 data/create_nuclearindustry/advancement/recipes/misc/crafting/shielded_waste_cask.json
+aa6376b91ad33daa151282f8d09b818c6c3183d1 data/create_nuclearindustry/recipe/crafting/radioactive_waste_cistern.json
+9a818425a41a482e612896aa1ddda7210898212d data/create_nuclearindustry/recipe/crafting/shielded_waste_cask.json

@@ -1,0 +1,21 @@
+{
+  "values": [
+    "minecraft:light_gray_concrete",
+    "minecraft:gray_concrete",
+    "minecraft:white_concrete",
+    "minecraft:smooth_stone",
+    "minecraft:smooth_stone_slab",
+    "minecraft:stone_bricks",
+    "minecraft:cracked_stone_bricks",
+    "minecraft:polished_andesite",
+    "minecraft:andesite",
+    "minecraft:bricks",
+    "minecraft:iron_bars",
+    "minecraft:glass_pane",
+    "minecraft:oak_planks",
+    "minecraft:spruce_planks",
+    "minecraft:spruce_slab",
+    "minecraft:stone_brick_slab",
+    "minecraft:chain"
+  ]
+}

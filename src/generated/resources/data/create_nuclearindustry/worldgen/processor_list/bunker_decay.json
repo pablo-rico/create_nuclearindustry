@@ -1,0 +1,91 @@
+{
+  "processors": [
+    {
+      "processor_type": "minecraft:rule",
+      "rules": [
+        {
+          "input_predicate": {
+            "predicate_type": "minecraft:tag_match",
+            "tag": "create_nuclearindustry:ruin_forbidden"
+          },
+          "location_predicate": {
+            "predicate_type": "minecraft:always_true"
+          },
+          "output_state": {
+            "Name": "create_nuclearindustry:reactor_casing"
+          }
+        },
+        {
+          "input_predicate": {
+            "block": "minecraft:polished_deepslate",
+            "predicate_type": "minecraft:random_block_match",
+            "probability": 0.05
+          },
+          "location_predicate": {
+            "predicate_type": "minecraft:always_true"
+          },
+          "output_state": {
+            "Name": "minecraft:cobbled_deepslate"
+          }
+        },
+        {
+          "input_predicate": {
+            "block": "minecraft:deepslate_tiles",
+            "predicate_type": "minecraft:random_block_match",
+            "probability": 0.12
+          },
+          "location_predicate": {
+            "predicate_type": "minecraft:always_true"
+          },
+          "output_state": {
+            "Name": "minecraft:cracked_deepslate_tiles"
+          }
+        },
+        {
+          "input_predicate": {
+            "block": "minecraft:gray_concrete",
+            "predicate_type": "minecraft:random_block_match",
+            "probability": 0.04
+          },
+          "location_predicate": {
+            "predicate_type": "minecraft:always_true"
+          },
+          "output_state": {
+            "Name": "minecraft:gravel"
+          }
+        },
+        {
+          "input_predicate": {
+            "block": "minecraft:light_gray_concrete",
+            "predicate_type": "minecraft:random_block_match",
+            "probability": 0.04
+          },
+          "location_predicate": {
+            "predicate_type": "minecraft:always_true"
+          },
+          "output_state": {
+            "Name": "minecraft:gravel"
+          }
+        },
+        {
+          "input_predicate": {
+            "block": "minecraft:air",
+            "predicate_type": "minecraft:random_block_match",
+            "probability": 0.012
+          },
+          "location_predicate": {
+            "predicate_type": "minecraft:tag_match",
+            "tag": "minecraft:base_stone_overworld"
+          },
+          "output_state": {
+            "Name": "minecraft:cobweb"
+          }
+        }
+      ]
+    },
+    {
+      "mossiness": 0.35,
+      "processor_type": "minecraft:block_age"
+    }
+  ]
+}

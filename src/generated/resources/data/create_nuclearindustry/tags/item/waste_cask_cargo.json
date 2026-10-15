@@ -1,0 +1,21 @@
+{
+  "values": [
+    "#create_nuclearindustry:barrel_waste",
+    "create_nuclearindustry:low_level_waste",
+    "create_nuclearindustry:radioactive_waste",
+    "create_nuclearindustry:high_level_waste",
+    "create_nuclearindustry:radioactive_sludge",
+    "create_nuclearindustry:spent_fuel_fragments",
+    "create_nuclearindustry:thorium_spent_fragments",
+    "create_nuclearindustry:radioactive_waste_barrel",
+    "create_nuclearindustry:compacted_waste_drum",
+    "create_nuclearindustry:cemented_waste_drum",
+    "create_nuclearindustry:vitrified_waste_canister",
+    "create_nuclearindustry:depleted_uranium_reactor_fuel",
+    "create_nuclearindustry:depleted_mox_reactor_fuel",
+    "create_nuclearindustry:depleted_thorium_reactor_fuel",
+    "create_nuclearindustry:depleted_rtg_pellet",
+    "create_nuclearindustry:spent_dt_pellet",
+    "create_nuclearindustry:trinitite"
+  ]
+}

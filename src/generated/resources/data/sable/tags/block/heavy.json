@@ -6,6 +6,8 @@
     "create_nuclearindustry:fusion_turbine_casing",
     "create_nuclearindustry:radioactive_waste_barrel",
     "create_nuclearindustry:nuclear_bomb",
+    "create_nuclearindustry:radioactive_waste_cistern",
+    "create_nuclearindustry:shielded_waste_cask",
     "create_nuclearindustry:nuclear_thermal_engine",
     "create_nuclearindustry:thermal_engine_exchanger",
     "create_nuclearindustry:antimatter_engine",

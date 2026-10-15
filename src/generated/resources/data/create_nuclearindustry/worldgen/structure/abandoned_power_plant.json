@@ -1,0 +1,16 @@
+{
+  "type": "create_nuclearindustry:nuclear_ruin",
+  "biomes": "#create_nuclearindustry:has_structure/abandoned_power_plant",
+  "kind": "power_plant",
+  "max_distance_from_center": 80,
+  "max_slope": 4,
+  "project_start_to_heightmap": "WORLD_SURFACE_WG",
+  "size": 4,
+  "spawn_overrides": {},
+  "start_height": {
+    "absolute": 0
+  },
+  "start_pool": "create_nuclearindustry:ruins/abandoned_power_plant/start",
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin"
+}

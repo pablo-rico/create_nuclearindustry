@@ -1,0 +1,16 @@
+{
+  "values": [
+    "create_nuclearindustry:spent_fuel_solution",
+    "create_nuclearindustry:flowing_spent_fuel_solution",
+    "create_nuclearindustry:plutonium_nitrate",
+    "create_nuclearindustry:flowing_plutonium_nitrate",
+    "create_nuclearindustry:thorium_fuel_solution",
+    "create_nuclearindustry:flowing_thorium_fuel_solution",
+    "create_nuclearindustry:uranium_233_nitrate",
+    "create_nuclearindustry:flowing_uranium_233_nitrate",
+    "create_nuclearindustry:contaminated_water",
+    "create_nuclearindustry:flowing_contaminated_water",
+    "create_nuclearindustry:depleted_uranium_hexafluoride",
+    "create_nuclearindustry:flowing_depleted_uranium_hexafluoride"
+  ]
+}

@@ -42,6 +42,8 @@ preserved, including the two-pixel tube shading period.
 `blocks.CUTOUT_BLOCKS` lists textures with transparent pixels: the reinforced turbine
 glass and its 64x64 connected-texture sheet (Create's RECTANGLE layout, 4x4 tiles,
 index = column + 4 * row). `validate.py` checks those at their own sizes.
+`blocks.SHEET_BLOCKS` lists opaque textures larger than 16x16, such as the waste cistern's and
+cask's connected sheets (`tex_wastetransport.py`); `validate.py` checks their size and that they are opaque.
 
 Structure templates (GameTest arenas and the tokamak and turbine Ponder schematics) are written by
 `tools/structgen/`; GameTests check that each Ponder schematic forms.

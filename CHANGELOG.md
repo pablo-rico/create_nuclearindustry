@@ -586,6 +586,29 @@ below for what changes in existing worlds.
   tube, bentonite and iron sheets) can now be crafted, so the "sealed
   repository" advancement is reachable in survival.
 
+### Radioactive waste transport
+- New Radioactive Waste Cistern: a Create fluid tank in a lead and concrete
+  shell that connects the same way (up to 3x3, 8 buckets a block, no window)
+  and only takes radioactive fluids: spent fuel solution, plutonium and
+  uranium-233 nitrate, thorium fuel solution, contaminated water and depleted
+  hexafluoride. Water or anything else is refused, even by pumps.
+- New Shielded Waste Cask: a vault for solid waste that joins along its axis
+  like Create's Item Vault, 9 slots a block. It takes waste of every class,
+  sludge, waste packages, spent fragments, depleted fuel and RTG pellets and
+  trinitite, but never Hot spent fuel.
+- Sealed, both let only 0.2% of their cargo's radiation out. Goggles show the
+  cargo's activity, what gets out and whether the shell is intact.
+- Both ride Create trains and other contraptions with their cargo, and keep
+  irradiating while moving. Portable Storage and Fluid Interfaces and train
+  schedule cargo conditions see what they carry, but can only load waste.
+- A derailment or crash, an explosion that reaches them (nuclear ones too) or
+  breaking the block breaches them: the waste contaminates the ground in
+  proportion to its activity, a cistern loses half its fluid, and a breached
+  container irradiates far more and keeps leaking, even on a moving train,
+  until two uses of a Maintenance Kit (by hand or from a Deployer) patch it.
+- Crafted from Create's fluid tank or item vault with containment concrete and
+  iron sheets. Ponder scene and JEI pages for both.
+
 ### Control room instruments
 - Advanced Redstone Link: works like Create's Redstone Link but is tuned by a
   code of four letters or digits, typed in after clicking it, instead of two
@@ -1380,6 +1403,28 @@ below for what changes in existing worlds.
 - Penning traps, the Annihilation Generator and the Antiproton Injector can no
   longer be moved by contraptions, which carried their antimatter off
   unpowered.
+
+### Abandoned nuclear sites
+- Three kinds of ruin now generate in new chunks, each assembled from modular pieces so no two
+  look alike. `/locate structure` and `/place structure` know them.
+- Abandoned nuclear power plants, very rare and only on flat ground in plains, deserts, savannas,
+  meadows, forests and taigas: a reactor building whose containment dome has fallen in, with a
+  broken reactor shell, steam generators and the polar crane inside; around it a turbine hall, a
+  control building with its desks, monitors and annunciators, a waste yard or the stump of a
+  cooling tower, and the access road with its checkpoint.
+- Civil fallout shelters: a concrete blockhouse with an air raid siren on its roof over a
+  stairwell down to dormitories, a supply store and the ventilation room.
+- Military bunkers: a sandbagged guard post with a hand-cranked siren over a ladder shaft that
+  drops several levels to corridors, a jammed blast door, a command post, dormitories, an armory,
+  the air filtration plant, a waste store and a laboratory.
+- The ruins are dead: no multiblock in them forms or runs. The danger is their leaking waste
+  barrels (at most six per piece), which contaminate the ground around them over time.
+- Their chests hold progress loot: uranium concentrate and yellowcake, graphite, boron, lithium,
+  beryllium, cobalt, reactor parts, desk modules, Geiger counters, worn hazmat suits and depleted
+  uranium armour, potassium iodide, Prussian blue, sterilised rations, maintenance kits and Create
+  parts. Never enriched uranium, plutonium or weapon parts.
+- `ruins.*` in the common config switches each kind off or lowers its chance, and sets how flat
+  the ground under a power plant must be.
 
 ### Creative tab
 - The creative tab is split into themed sections: Mining & Materials, Fuel Cycle, Fission, PWR &
