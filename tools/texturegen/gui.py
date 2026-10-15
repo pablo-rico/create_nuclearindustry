@@ -155,3 +155,6 @@ def tokamak_control():
         t.rect(gx + 15, 199, gx + 61, 212, DARK[1])
         t.hline(gx + 15, gx + 61, 199, DARK[0])
     return t
+
+
+import tex_creative_tab  # noqa: E402,F401

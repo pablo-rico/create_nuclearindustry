@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:reactor_running",
+  "criteria": {
+    "maintenance_done": {
+      "conditions": {
+        "event": "maintenance_done"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.maintenance_done.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:maintenance_kit"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.maintenance_done.title"
+    }
+  },
+  "requirements": [
+    [
+      "maintenance_done"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

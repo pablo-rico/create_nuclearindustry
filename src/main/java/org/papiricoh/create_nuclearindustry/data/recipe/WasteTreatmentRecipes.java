@@ -10,6 +10,11 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
@@ -35,7 +40,8 @@ public final class WasteTreatmentRecipes implements DataProvider {
     private final List<DataProvider> generators;
 
     public WasteTreatmentRecipes(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-        generators = List.of(new Compacting(output, registries), new Mixing(output, registries), new Vitrification(output, registries));
+        generators = List.of(new Compacting(output, registries), new Mixing(output, registries), new Vitrification(output, registries),
+                new Crafting(output, registries));
     }
 
     @Override
@@ -46,6 +52,44 @@ public final class WasteTreatmentRecipes implements DataProvider {
     @Override
     public String getName() {
         return "Waste treatment recipes";
+    }
+
+    /** The treatment and repository machines themselves. */
+    static class Crafting extends RecipeProvider {
+        Crafting(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+            super(output, registries);
+        }
+
+        @Override
+        protected void buildRecipes(RecipeOutput output) {
+            // A refractory-lined furnace with copper electrodes, as in a joule-heated ceramic melter.
+            ShapedRecipeBuilder.shaped(RecipeCategory.MISC, WasteRegistry.VITRIFICATION_MELTER_ITEM.get())
+                    .pattern("PCP")
+                    .pattern("BFB")
+                    .pattern("PBP")
+                    .define('P', CreateItems.get("iron_sheet"))
+                    .define('C', CreateItems.get("copper_sheet"))
+                    .define('B', Items.BRICKS)
+                    .define('F', Items.BLAST_FURNACE)
+                    .unlockedBy("has_high_level_waste", has(WasteRegistry.HIGH_LEVEL_WASTE.get()))
+                    .save(output, id("crafting/vitrification_melter"));
+            // A Geiger counter and a precision mechanism behind a steel case: it reads the vault around it.
+            ShapedRecipeBuilder.shaped(RecipeCategory.MISC, WasteRegistry.REPOSITORY_INSPECTOR_ITEM.get())
+                    .pattern("PEP")
+                    .pattern("BMB")
+                    .pattern("PGP")
+                    .define('P', CreateItems.get("iron_sheet"))
+                    .define('E', CreateItems.get("electron_tube"))
+                    .define('G', AllNuclearItems.GEIGER_COUNTER.get())
+                    .define('M', CreateItems.get("precision_mechanism"))
+                    .define('B', WasteRegistry.BENTONITE_ITEM.get())
+                    .unlockedBy("has_waste_package", has(WasteRegistry.VITRIFIED_WASTE_CANISTER_ITEM.get()))
+                    .save(output, id("crafting/repository_inspector"));
+        }
+
+        private static ResourceLocation id(String path) {
+            return ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path);
+        }
     }
 
     /** Low-level waste (rags, filters, scrubber residue) crushed into a drum. */

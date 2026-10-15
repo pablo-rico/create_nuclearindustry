@@ -7,16 +7,20 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
+import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorPanelBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleSurfaceBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLinkBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.servo.ServoGearboxBlock;
 import org.papiricoh.create_nuclearindustry.data.recipe.ControlRoom2Recipes;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.papiricoh.create_nuclearindustry.data.LangEntries.add;
@@ -39,10 +43,7 @@ final class ControlRoom2DataGen extends AreaDataGen {
                 provider.modLoc("block/chart_recorder_front"), provider.modLoc("block/chart_recorder_top"));
         provider.horizontalBlock(ControlRoom2Registry.CHART_RECORDER.get(), recorder);
         provider.simpleBlockItem(ControlRoom2Registry.CHART_RECORDER.get(), recorder);
-        ModelFile panel = provider.models().orientable("annunciator_panel", housing,
-                provider.modLoc("block/annunciator_panel_front"), housing);
-        provider.horizontalBlock(ControlRoom2Registry.ANNUNCIATOR_PANEL.get(), panel);
-        provider.simpleBlockItem(ControlRoom2Registry.ANNUNCIATOR_PANEL.get(), panel);
+        annunciatorStates(provider);
         surfaceStates(provider, ControlRoom2Registry.CONTROL_TABLE.get(), "control_table");
         surfaceStates(provider, ControlRoom2Registry.WALL_CONTROL_PANEL.get(), "wall_control_panel");
         advancedLinkStates(provider);
@@ -95,6 +96,30 @@ final class ControlRoom2DataGen extends AreaDataGen {
                     .condition(BlockStateProperties.HORIZONTAL_FACING, facing).condition(ModuleSurfaceBlock.LEFT, false).end();
             builder.part().modelFile(capRight).rotationY(yaw).addModel()
                     .condition(BlockStateProperties.HORIZONTAL_FACING, facing).condition(ModuleSurfaceBlock.RIGHT, false).end();
+        }
+    }
+
+    /**
+     * An annunciator panel: its plate, plus the frame on each side no panel of its board carries on
+     * from. The models are hand-made in models/block/annunciator_panel, facing north; the item model
+     * is a hand-made composite.
+     */
+    private static void annunciatorStates(NuclearBlockStateProvider provider) {
+        String folder = "block/annunciator_panel/";
+        ModelFile body = provider.models().getExistingFile(provider.modLoc(folder + "body"));
+        var builder = provider.getMultipartBuilder(ControlRoom2Registry.ANNUNCIATOR_PANEL.get());
+        Map<BooleanProperty, String> trims = Map.of(AnnunciatorPanelBlock.LEFT, "trim_left", AnnunciatorPanelBlock.RIGHT, "trim_right",
+                AnnunciatorPanelBlock.UP, "trim_top", AnnunciatorPanelBlock.DOWN, "trim_bottom");
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            int yaw = ((int) facing.toYRot() + 180) % 360;
+            builder.part().modelFile(body).rotationY(yaw).addModel()
+                    .condition(BlockStateProperties.HORIZONTAL_FACING, facing).end();
+            for (BooleanProperty side : List.of(AnnunciatorPanelBlock.LEFT, AnnunciatorPanelBlock.RIGHT, AnnunciatorPanelBlock.UP,
+                    AnnunciatorPanelBlock.DOWN)) {
+                ModelFile trim = provider.models().getExistingFile(provider.modLoc(folder + trims.get(side)));
+                builder.part().modelFile(trim).rotationY(yaw).addModel()
+                        .condition(BlockStateProperties.HORIZONTAL_FACING, facing).condition(side, false).end();
+            }
         }
     }
 
@@ -205,11 +230,35 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(a + "state.alert", "ALERT, acknowledge it", "ALERTA, reconócela");
         add(a + "state.acknowledged", "acknowledged", "reconocida");
         add(a + "state.ringback", "cleared, reset it", "despejada, rearma");
+        add(a + "test", "TEST", "PRUEBA");
+        add(a + "silence", "SIL", "SIL.");
         add(a + "ack", "ACK", "RECON.");
         add(a + "reset", "RESET", "REARME");
         add(a + "label", "Label", "Etiqueta");
         add(a + "label.hint", "Label (optional)", "Etiqueta (opcional)");
+        add(a + "metric", "Alarm", "Alarma");
+        add(a + "setting", "Threshold", "Umbral");
+        add(a + "severity", "Severity", "Severidad");
+        add(a + "severity.alarm", "Alarm (red)", "Alarma (rojo)");
+        add(a + "severity.warning", "Warning (amber)", "Aviso (ámbar)");
+        add(a + "severity.status", "Status (white, no horn)", "Estado (blanco, sin bocina)");
+        add(a + "nameplate", "Nameplate", "Placa");
+        add(a + "nameplate.hint", "Group name (optional)", "Nombre del grupo (opcional)");
+        add(a + "theme", "Style", "Estilo");
+        add(a + "preset", "Preset", "Plantilla");
         add(a + "unlink", "Unlink", "Desenlazar");
+        String sub = "subtitle.create_nuclearindustry.";
+        add(sub + "annunciator_alarm", "Annunciator horn sounds", "Suena la bocina del anunciador");
+        add(sub + "annunciator_warning", "Annunciator warns", "Avisa el anunciador");
+        add(sub + "annunciator_ringback", "Annunciator chimes", "Repica el anunciador");
+        String d = "create_nuclearindustry.display_source.annunciator";
+        add(d, "Annunciator Board", "Tablero anunciador");
+        add(d + ".none", "No annunciator", "Sin anunciador");
+        add(d + ".normal", "All normal", "Todo normal");
+        add(d + ".summary", "%s lit, %s to acknowledge", "%s encendidas, %s por reconocer");
+        add(d + ".summary.silenced", "%s lit, %s to acknowledge (silenced)", "%s encendidas, %s por reconocer (silenciada)");
+        add(d + ".first_out", "First out: %s", "Primera alarma: %s");
+        add(d + ".window", "%s %s: %s", "%s %s: %s");
         add(a + "screen.unlinked", "Not linked: click this window with a linker", "Sin enlazar: haz clic en esta ventana con un enlazador");
         add(a + "screen.linked", "%s at %s %s %s", "%s en %s %s %s");
         add(a + "screen.state", "State: %s", "Estado: %s");
@@ -260,9 +309,8 @@ final class ControlRoom2DataGen extends AreaDataGen {
     /** Annunciator presets: their names and the labels they give the six windows. */
     private static void presets(String a) {
         String p = a + "preset.";
-        add(p + "apply", "OK", "OK");
-        add(p + "hint", "Preset for all six windows: %s. Click to choose another (sneak to go back), OK to apply it to every window. Links stay as they are.",
-                "Plantilla para las seis ventanas: %s. Haz clic para elegir otra (agachado para volver) y OK para aplicarla a todas. Los enlaces no cambian.");
+        add(p + "hint", "Apply %s to all six windows of this panel: alarms, thresholds, severities and labels. Links stay as they are.",
+                "Aplica %s a las seis ventanas de este panel: alarmas, umbrales, severidades y etiquetas. Los enlaces no cambian.");
         preset(p + "reactor_core", "Reactor core", "Núcleo",
                 new String[]{"CORE TEMP HI", "CORE TEMP HI-HI", "POWER HI", "XENON HI", "COOLANT LO", "SCRAM"},
                 new String[]{"TEMP NÚCLEO ALTA", "T NÚCLEO M. ALTA", "POTENCIA ALTA", "XENÓN ALTO", "REFRIG. BAJO", "SCRAM"});

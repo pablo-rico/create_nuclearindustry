@@ -157,11 +157,14 @@ def chart_roll_gui():
 # annunciator panel
 # ======================================================================================
 
-@block("annunciator_panel_front")
-def annunciator_panel_front():
-    # Six windows in two columns (x 1-6, 9-14) and three rows (y 1-3, 5-7, 9-11), dark until the
-    # renderer lights them, over an ACK (x 2-6) and a RESET (x 9-13) button at y 13-14.
-    t = _housing(170)
+@block("annunciator_panel_face")
+def annunciator_panel_face():
+    # The plate of a panel hung on the wall, seen when the renderer draws nothing (far off). No rim:
+    # panels side by side make one board, so the plate runs on into the next one. Six dark windows
+    # in two columns (x 1-6, 9-14) and three rows (y 1-3, 5-7, 9-11) over a strip at y 13-14 that
+    # holds the group nameplate or the board's buttons.
+    t = Tex(seed=171)
+    brushed(t, DARK, base=3.0, amp=0.45, seed=171, axis="h")
     for row in range(3):
         y0 = 1 + row * 4
         for x0 in (1, 9):
@@ -169,29 +172,32 @@ def annunciator_panel_front():
             t.hline(x0, x0 + 5, y0, GLASS_OFF[3])
             t.set(x0, y0 + 1, GLASS_OFF[2])
             _well(t, x0, y0, x0 + 5, y0 + 2)
-    t.rect(2, 13, 6, 14, DARK[0])
-    t.hline(2, 6, 13, DARK[3])
-    _well(t, 2, 13, 6, 14)
-    t.rect(9, 13, 13, 14, DANGER[1])
-    t.hline(9, 13, 13, DANGER[3])
-    _well(t, 9, 13, 13, 14)
-    t.set(7, 15, DARK[1])
-    t.set(8, 15, DARK[1])
+    t.rect(1, 13, 14, 14, DARK[1])
+    t.hline(1, 14, 13, DARK[0])
     return t
 
 
 @gui("annunciator_panel")
 def annunciator_panel_gui():
-    # 200x142: title strip, window tabs at y 20, label box at y 44, metric row at y 62, the
-    # link and state lines at y 88-108 and the unlink button at y 114.
-    w, h = 200, 142
+    # 220x246 (AnnunciatorScreen): title strip; the panel's six windows drawn by the screen in a well
+    # at x 10-209, y 20-85; the window's fields at x 62-209 (label, metric, threshold, severity at
+    # y 90/107/124/141, 14 high); its link and state lines at y 159-180 with Create's unlink button
+    # at x 192; a rule at y 186; the panel's nameplate and the board's style at y 191/208 and the
+    # preset at y 225, narrower to leave x 192 for its apply button.
+    w, h = 220, 246
     t = _plate(w, h, 412)
     _recess(t, 6, 4, w - 7, 16)
     _recess(t, 6, 18, w - 7, h - 6)
-    t.hline(10, w - 11, 40, DARK[3])
-    t.hline(10, w - 11, 85, DARK[3])
-    for x in range(10, w - 10, 6):
-        t.set(x, h - 4, WARN[3] if (x // 6) % 2 else DARK[0])
+    outline(t, 10, 20, 209, 85, DARK[0])
+    t.rect(11, 21, 208, 84, DARK[0])
+    for y, width in ((90, 148), (107, 148), (124, 148), (141, 148), (191, 148), (208, 148), (225, 126)):
+        x0, y0, x1, y1 = 62, y, 62 + width - 1, y + 14 - 1
+        t.rect(x0, y0, x1, y1, DARK[2])
+        t.hline(x0, x1, y0, DARK[0])
+        t.vline(x0, y0, y1, DARK[0])
+        t.hline(x0 + 1, x1, y1, DARK[3])
+        t.vline(x1, y0 + 1, y1, DARK[3])
+    t.hline(10, w - 11, 186, DARK[3])
     return t
 
 

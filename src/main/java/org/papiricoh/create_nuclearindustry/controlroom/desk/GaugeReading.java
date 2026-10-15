@@ -59,7 +59,15 @@ public enum GaugeReading {
     /** The fuelling setpoint as a share of the most the tokamak takes. */
     FUEL_RATE(TargetKind.TOKAMAK, r -> r.value(K_FUEL_RATE_MAX) > 0 ? r.value(K_FUEL_RATE) / r.value(K_FUEL_RATE_MAX) : 0),
     LIQUID_HELIUM(TargetKind.TOKAMAK, r -> r.value(K_LIQUID_HELIUM)),
-    TRITIUM(TargetKind.TOKAMAK, r -> r.value(K_TRITIUM));
+    TRITIUM(TargetKind.TOKAMAK, r -> r.value(K_TRITIUM)),
+    // Penning traps and the annihilation generator. Saved by name; new readings go last anyway.
+    TRAP_ANTIMATTER(TargetKind.ANTIMATTER_TRAP, r -> r.value(P_FILL)),
+    TRAP_FIELD(TargetKind.ANTIMATTER_TRAP, r -> r.value(P_FIELD)),
+    TRAP_BUFFER(TargetKind.ANTIMATTER_TRAP, r -> r.value(P_BUFFER)),
+    GENERATOR_OUTPUT(TargetKind.ANNIHILATION_GENERATOR, r -> r.value(G_OUTPUT)),
+    GENERATOR_THROTTLE(TargetKind.ANNIHILATION_GENERATOR, r -> r.value(G_THROTTLE)),
+    GENERATOR_CHAMBER(TargetKind.ANNIHILATION_GENERATOR, r -> r.value(G_CHAMBER_FILL)),
+    GENERATOR_ENERGY(TargetKind.ANNIHILATION_GENERATOR, r -> r.value(G_RATED_FE) > 0 ? r.value(G_FE) / r.value(G_RATED_FE) : 0);
 
     private final TargetKind kind;
     private final ToDoubleFunction<MonitorReading> fraction;
@@ -93,6 +101,8 @@ public enum GaugeReading {
             case STEAM_GENERATOR -> java.util.List.of(SG_LEVEL, SG_STEAM, SG_PRIMARY_DT);
             case CONTAINMENT -> java.util.List.of(CONTAINMENT_PRESSURE, CONTAINMENT_HYDROGEN, CONTAINMENT_ACTIVITY);
             case TOKAMAK -> java.util.List.of(FUSION_POWER, PLASMA_TEMPERATURE, PLASMA_DENSITY);
+            case ANTIMATTER_TRAP -> java.util.List.of(TRAP_ANTIMATTER, TRAP_FIELD, TRAP_BUFFER);
+            case ANNIHILATION_GENERATOR -> java.util.List.of(GENERATOR_OUTPUT, GENERATOR_THROTTLE, GENERATOR_CHAMBER);
             default -> forKind(kind).stream().limit(2).toList();
         };
     }

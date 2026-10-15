@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_small_penning_trap": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:small_penning_trap"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "create_nuclearindustry:crafting/antiproton_injector"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_small_penning_trap"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "create_nuclearindustry:crafting/antiproton_injector"
+    ]
+  }
+}

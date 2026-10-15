@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create:iron_sheet"
+    },
+    "W": {
+      "item": "create:wrench"
+    }
+  },
+  "pattern": [
+    "IWI",
+    "SPS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:maintenance_kit"
+  }
+}

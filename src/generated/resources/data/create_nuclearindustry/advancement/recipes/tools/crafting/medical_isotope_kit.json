@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_technetium_99m": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:technetium_99m"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "create_nuclearindustry:crafting/medical_isotope_kit"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_technetium_99m"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "create_nuclearindustry:crafting/medical_isotope_kit"
+    ]
+  }
+}

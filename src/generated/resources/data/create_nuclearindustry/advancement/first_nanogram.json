@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:gev_beam",
+  "criteria": {
+    "first_nanogram": {
+      "conditions": {
+        "event": "first_nanogram"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.first_nanogram.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:small_penning_trap"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.first_nanogram.title"
+    }
+  },
+  "requirements": [
+    [
+      "first_nanogram"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

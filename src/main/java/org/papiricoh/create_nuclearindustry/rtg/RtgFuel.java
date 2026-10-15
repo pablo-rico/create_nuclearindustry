@@ -2,11 +2,13 @@ package org.papiricoh.create_nuclearindustry.rtg;
 
 /**
  * What an RTG pellet is made of. Plutonium-238 runs strong and long; vitrified waste is a
- * weaker, shorter source. A pellet is spent once a quarter of its charge is left.
+ * weaker, shorter source; strontium-90 (from PUREX) is weaker than plutonium but lasts twice as
+ * long, and its beta rays make it harder to shield. A pellet is spent once a quarter of its charge is left.
  */
 public enum RtgFuel {
     PLUTONIUM("plutonium", 256.0f, 240_000L, 1.5),
-    WASTE("waste", 64.0f, 48_000L, 1.0);
+    WASTE("waste", 64.0f, 48_000L, 1.0),
+    STRONTIUM("strontium", 96.0f, 480_000L, 2.0);
 
     public static final double SPENT_BELOW = 0.25;
 

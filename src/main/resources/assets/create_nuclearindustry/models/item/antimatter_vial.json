@@ -1,0 +1,47 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "create_nuclearindustry:item/antimatter_vial"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "create_nuclearindustry:fill": 0.33
+      },
+      "model": "create_nuclearindustry:item/antimatter_vial_1"
+    },
+    {
+      "predicate": {
+        "create_nuclearindustry:fill": 0.66
+      },
+      "model": "create_nuclearindustry:item/antimatter_vial_2"
+    },
+    {
+      "predicate": {
+        "create_nuclearindustry:fill": 1.0
+      },
+      "model": "create_nuclearindustry:item/antimatter_vial_3"
+    },
+    {
+      "predicate": {
+        "create_nuclearindustry:fill": 0.33,
+        "create_nuclearindustry:low_battery": 1
+      },
+      "model": "create_nuclearindustry:item/antimatter_vial_1_low"
+    },
+    {
+      "predicate": {
+        "create_nuclearindustry:fill": 0.66,
+        "create_nuclearindustry:low_battery": 1
+      },
+      "model": "create_nuclearindustry:item/antimatter_vial_2_low"
+    },
+    {
+      "predicate": {
+        "create_nuclearindustry:fill": 1.0,
+        "create_nuclearindustry:low_battery": 1
+      },
+      "model": "create_nuclearindustry:item/antimatter_vial_3_low"
+    }
+  ]
+}

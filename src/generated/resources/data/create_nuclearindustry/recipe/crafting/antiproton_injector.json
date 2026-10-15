@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "N": {
+      "item": "create_nuclearindustry:fusion_neutral_beam_injector"
+    },
+    "T": {
+      "item": "create_nuclearindustry:small_penning_trap"
+    },
+    "U": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    }
+  },
+  "pattern": [
+    " T ",
+    "UNU",
+    " E "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:antiproton_injector"
+  }
+}

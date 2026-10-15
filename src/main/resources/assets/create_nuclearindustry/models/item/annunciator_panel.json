@@ -1,0 +1,60 @@
+{
+  "loader": "neoforge:composite",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/control_desk_trim"
+  },
+  "children": {
+    "body": {
+      "parent": "create_nuclearindustry:block/annunciator_panel/body"
+    },
+    "trim_left": {
+      "parent": "create_nuclearindustry:block/annunciator_panel/trim_left"
+    },
+    "trim_right": {
+      "parent": "create_nuclearindustry:block/annunciator_panel/trim_right"
+    },
+    "trim_top": {
+      "parent": "create_nuclearindustry:block/annunciator_panel/trim_top"
+    },
+    "trim_bottom": {
+      "parent": "create_nuclearindustry:block/annunciator_panel/trim_bottom"
+    }
+  },
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.625,
+        0.625,
+        0.625
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        -6
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    }
+  }
+}

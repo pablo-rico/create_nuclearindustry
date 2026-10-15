@@ -1,0 +1,38 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/annihilation_generator_core",
+    "core": "create_nuclearindustry:block/annihilation_generator_core"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        5,
+        13.55
+      ],
+      "to": [
+        12,
+        12,
+        13.55
+      ],
+      "shade": false,
+      "neoforge_data": {
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#core"
+        }
+      }
+    }
+  ]
+}

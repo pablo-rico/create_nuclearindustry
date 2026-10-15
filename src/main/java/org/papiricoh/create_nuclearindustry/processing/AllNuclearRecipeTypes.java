@@ -19,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.processing.recipe.CentrifugingRecipe
 import org.papiricoh.create_nuclearindustry.processing.recipe.ElectrolysisRecipe;
 import org.papiricoh.create_nuclearindustry.processing.recipe.IrradiationRecipe;
 import org.papiricoh.create_nuclearindustry.processing.recipe.NuclearProcessingRecipe;
+import org.papiricoh.create_nuclearindustry.processing.recipe.TargetIrradiationRecipe;
 
 import java.util.List;
 import java.util.Locale;
@@ -30,7 +31,9 @@ public enum AllNuclearRecipeTypes implements IRecipeTypeInfo {
     /** Fan processing through sulfuric acid; see {@code fuelcycle/fan/NuclearFanTypes}. */
     ACID_LEACHING(AcidLeachingRecipe::new),
     /** Fan processing past a radioactive block; see {@code fuelcycle/fan/NuclearFanTypes}. */
-    IRRADIATION(IrradiationRecipe::new);
+    IRRADIATION(IrradiationRecipe::new),
+    /** A target in an accelerator's Target Station, below the antiproton threshold; see {@code TargetStationBlockEntity}. */
+    TARGET_IRRADIATION(TargetIrradiationRecipe::new);
 
     private final ResourceLocation id;
     private final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> serializer;

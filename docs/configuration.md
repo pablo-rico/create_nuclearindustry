@@ -1201,9 +1201,18 @@ los imanes hasta 300 K (para ver el enfriamiento entero), calentamiento hasta
 atmósfera. Los colores del monitor salen de los umbrales del propio modelo del
 plasma.
 
+Los Paneles anunciadores se cuelgan en la pared y los que quedan juntos, uno
+al lado del otro o uno encima de otro (hasta 16 de ancho y 8 de alto), forman
+un tablero con una sola botonera (PRUEBA, SIL., RECON., REARME) y una sola
+bocina. Cada ventana tiene una severidad: *Alarma* (roja, bocina urgente),
+*Aviso* (ámbar, tono suave) o *Estado* (blanca, sin bocina ni reconocimiento:
+solo se enciende mientras se cumple su condición). `annunciatorInterval` fija
+cada cuánto comprueba cada panel sus ventanas; la bocina suena cada segundo
+para una alarma y cada dos para un aviso, y la prueba de lámparas dura 3 s.
+
 El Panel anunciador tiene plantillas para sus seis ventanas (*Núcleo*,
-*Primario PWR*, *Gen. vapor* y *Contención*) con métricas, umbrales y
-etiquetas; los enlaces no cambian. Los umbrales salen de la configuración
+*Primario PWR*, *Gen. vapor* y *Contención*) con métricas, umbrales,
+severidades y etiquetas; los enlaces no cambian. Los umbrales salen de la configuración
 del servidor: presión alta a medio camino entre `pwr.pressureSetpoint` y
 `pwr.reliefOpenPressure`, presión baja 10 bar por debajo de la consigna,
 pérdida de caudal al doble de `pwr.naturalCirculation`, ΔT bajo a la mitad de
@@ -1768,12 +1777,19 @@ añade cada etapa; la corriente que llega depende del vacío y del enfoque.
 - `accelerator.interlock.locksDoors` (true): las puertas junto a un Enclavamiento
   del haz no se abren a mano mientras hay haz; si se abren igualmente (redstone),
   el haz salta.
-- `accelerator.interlock.requirePlayersOutside` (false): el acelerador no arranca
-  con un jugador a menos de 2 bloques de su línea de haz.
+- `accelerator.interlock.requirePlayersOutside` (false): el haz no arranca, y si
+  está en marcha salta, con un jugador dentro de la caja que ocupa la máquina (un
+  bloque alrededor de su línea de haz; en un anillo cuenta todo su interior). Sin
+  esta opción basta con que todos los Enclavamientos del haz junto a la línea estén
+  asegurados: un acelerador sin ninguno no comprueba nada.
 - `accelerator.antimatter.thresholdGev` (25): energía por debajo de la cual un
   blanco no produce antiprotones, en GeV.
 - `accelerator.antimatter.collectorEfficiency` (0,8): fracción de los antiprotones
   que recoge el colector de la estación de blanco.
+- `accelerator.antimatter.kjPerNanogram` (60000): energía del haz, en kJ, que la
+  Estación de blancos necesita para recoger un nanogramo de antiprotones con el
+  rendimiento nominal. Un haz de 100 GeV y 6,8 MW recoge unos 11 ng por minuto. El
+  rendimiento crece con la energía por encima del umbral (hasta el doble).
 - `antimatter.generator.burnPerMinute` (6): nanogramos de antiprotones que quema
   un Generador de aniquilación a pleno rendimiento por minuto.
 - `antimatter.generator.capacity` (256): capacidad de estrés del generador a pleno
@@ -1782,6 +1798,198 @@ añade cada etapa; la corriente que llega depende del vacío y del enfoque.
   FE por tick que da el generador en modo eléctrico, y si puede darla.
 - `antimatter.ignitionDose` (2): nanogramos que gasta un Inyector de antiprotones
   para encender el plasma de un tokamak.
+
+El Generador de aniquilación tiene una cámara de 1 ng que llena desde las trampas,
+estaciones de blancos y conductos de al lado o desde un vial. La redstone fija el
+acelerador (0 deja solo la combustión de espera del 2 %, que sostiene el campo de la
+cámara). Una cámara fría necesita Forge Energy en su reserva (12 FE/t) para guardar
+antimateria (sin ella no la toma de conductos ni de estaciones de blancos, y un vial
+cargado en su puerto acaba aniquilándose cuando se le agota la batería); una vez
+encendida, la combustión sostiene el campo y, en los modos
+Eléctrico y Mixto, el propio generador mantiene llena esa reserva y empuja el resto
+de su energía a los bloques de al lado. El tamaño de la cámara no se configura.
+
+- `antimatter.injector.cooldownTicks` (200): ticks que espera un Inyector de
+  antiprotones tras un disparo antes de poder disparar otra vez.
+- `antimatter.injector.shotFe` (20000): FE que gasta cada disparo del inyector (el
+  pulso de la tobera). El inyector guarda en su reserva un disparo más lo que
+  necesita su cámara (8 ng, o dos dosis si `antimatter.ignitionDose` es mayor). Solo
+  dispara en la fase de calentamiento, con un confinamiento del 55 % o más y una
+  densidad de al menos el 5 %.
+
+## Contención de antimateria
+
+Las trampas de Penning y los viales guardan antiprotones solo con Forge Energy.
+Una trampa cargada que se queda sin energía gasta su reserva, entra en quench con
+una alarma y aniquila todo lo que guarda; meter antimateria en una trampa sin
+energía la aniquila al instante, igual que romper una trampa cargada. La explosión
+no deja lluvia radiactiva ni contaminación, pero da una dosis gamma.
+
+- `antimatter.trap.small.capacity` (32), `.idleFe` (8) y `.loadFe` (12): nanogramos
+  que guarda la Trampa de Penning pequeña, FE por tick que cuesta su campo esté
+  cargada o no, y FE por tick extra a plena carga (en proporción al llenado). A
+  plena carga consume 20 FE/t.
+- `antimatter.trap.medium.*` (256, 32, 48): lo mismo para la Trampa de Penning
+  (80 FE/t a plena carga).
+- `antimatter.trap.large.*` (2048, 100, 150): lo mismo para la Trampa de Penning
+  grande (250 FE/t a plena carga).
+- `antimatter.trap.bufferTicks` (200): ticks de consumo a plena carga que guarda la
+  reserva de energía de cada trampa cuando se corta el suministro.
+- `antimatter.trap.quenchTicks` (60): ticks entre que una trampa cargada pierde el
+  campo y la aniquilación (la alarma de quench). Si vuelve la energía durante el
+  quench, la cuenta atrás se recupera un tick por tick.
+- `antimatter.trap.lowPowerShare` (0,25): fracción de la reserva por debajo de la
+  cual una trampa avisa de poca energía.
+- `antimatter.vial.capacity` (4): nanogramos que guarda un Vial de antimateria.
+- `antimatter.vial.batteryTicks` (600): ticks que la batería de un vial cargado
+  mantiene el campo fuera de una trampa con energía (en el inventario o en el
+  suelo); después se aniquila donde esté. Un vial en un contenedor que no hace
+  tick conserva su carga.
+- `antimatter.vial.rechargePerTick` (10): ticks de batería que repone por tick el
+  puerto de una trampa con energía.
+- `antimatter.vial.transferPerTick` (0,1): nanogramos por tick que el puerto mete
+  en un vial o saca de él.
+- `antimatter.conduit.fePerBlock` (4): FE por tick que necesita cada bloque de
+  Conducto de antimateria. La energía entra por cualquier bloque de la red; si
+  falta, la red no mueve nada (y no explota: no guarda nada).
+- `antimatter.conduit.ratePerTick` (0,5): nanogramos por tick que mueve una red de
+  conductos, de las estaciones de blancos a las trampas y entre trampas hasta
+  igualar su llenado.
+- `antimatter.conduit.maxSegments` (256): bloques que puede tener una red de
+  conductos; una más larga no funciona.
+- `antimatter.blast.maxRadius` (8): radio máximo de la explosión de aniquilación.
+  El radio es 2 + 1,2 × raíz cúbica de los nanogramos, al menos 3; un vial lleno da
+  unos 3,9 y una trampa pequeña llena 5,8.
+- `antimatter.blast.dosePerNanogram` (25) y `antimatter.blast.maxCentreDose`
+  (1000): dosis gamma en el centro por nanogramo y su máximo. El pulso llega al
+  doble del radio de la explosión y se atenúa con la distancia y los bloques.
+- `antimatter.blast.breaksBlocks` (true): si la aniquilación rompe bloques o solo
+  daña e irradia lo que hay cerca.
+
+El Generador de RF creativo (solo en creativo, sin receta) no tiene configuración:
+su ritmo, de 0 a 1.000.000 FE/t por cara, se ajusta en su panel de valor.
+
+## Isótopos y medicina nuclear
+
+Cada isótopo lleva su propio reloj en el objeto: la actividad se calcula a partir de
+la fecha en que se fabricó cuando alguien lo mira (en el inventario, cada segundo,
+o en una máquina que lo usa), así que nada se procesa mientras está en un cofre.
+La barra bajo el objeto muestra la actividad que queda; el contador Geiger y la
+dosis que da al llevarlo encima la siguen (la entrada del data map `radioactivity`
+es la de una fuente nueva).
+
+- `isotopes.timeScale` (1.0): acelera (2 = el doble de rápido) o frena todos los
+  relojes de los isótopos a la vez.
+- `isotopes.<isótopo>.halfLifeDays`: periodo de semidesintegración en días de juego
+  (24000 ticks) con escala 1. Por defecto el tecnecio-99m (0,25) y el molibdeno-99
+  (2,75) van en tiempo real (un día de juego por un día real); los de vida larga
+  usan los días reales divididos entre 32, que conserva sus proporciones:
+  cobalto-60 60, estroncio-90 330 y americio-241 5000 (prácticamente estable).
+- `isotopes.channel.fluenceScale` (unos 3,7 millones) y
+  `isotopes.channel.targetActivity` (0.8): el canal de irradiación del reactor suma
+  en cada tick el nivel de neutrones del núcleo (1000 a potencia nominal) a la
+  fluencia del lote, y activa el cobalto según `1 − e^(−fluencia/fluenceScale)`;
+  cuando llega a `targetActivity` todo el lote sale como fuentes de cobalto-60. Con
+  los valores por defecto son 6 millones de fluencia: unos cinco minutos a potencia
+  nominal.
+- `isotopes.irradiator.sterilisingKGy` (10) y `isotopes.irradiator.kGyPerTick`
+  (0.1): la dosis que esteriliza la comida bajo el irradiador gamma y la que da
+  cada tick una fuente de cobalto-60 nueva. Con una fuente nueva tarda cinco
+  segundos; con cuatro, la cuarta parte; por debajo de una doceava parte de una
+  fuente nueva deja pasar la comida.
+- `isotopes.smokeDetector.radius` (5): bloques en los que el detector de humo busca
+  fuego, fogatas y hornos encendidos, lava y criaturas ardiendo.
+- `isotopes.americium.ingrowthHalfLifeDays` (14.3), `isotopes.americium.maxYield`
+  (0.5) e `isotopes.americium.minYield` (0.15): el plutonio genera americio-241
+  según se desintegra su plutonio-241 (con su propio reloj, un día de juego por un
+  año real). El plutonio empieza a envejecer cuando un jugador lo lleva encima por
+  primera vez; la separación con ácido nítrico solo acepta plutonio con al menos
+  `minYield` de americio, unos siete días de juego con los valores por defecto.
+- `isotopes.medicalKit.maxBoost` (0.5) e `isotopes.medicalKit.boostTicks` (2400):
+  el trazador de tecnecio-99m del kit de isótopos médicos hace el yoduro potásico
+  y el azul de Prusia hasta un 50 % más eficaces durante dos minutos, en
+  proporción a la actividad de la dosis.
+- `isotopes.radiography.operatorDose` (2.0): dosis que recibe quien usa la cámara
+  de radiografía en cada disparo con una fuente nueva.
+- `isotopes.target.minEnergyGev` (1.0): energía mínima del haz con la que una
+  estación de blancos irradia su blanco. Por encima de
+  `accelerator.antimatter.thresholdGev` fabrica antiprotones y el blanco espera.
+- `isotopes.technetiumGenerator.doseActivity` (0.15) e
+  `isotopes.technetiumGenerator.maxDoses` (4): cada dosis de tecnecio-99m que da un
+  ordeño se lleva esa actividad del generador, hasta ese máximo por ordeño.
+
+El Generador de aniquilación mantiene su campo 60 ticks después de su última
+combustión, aunque se haya quedado vacío: un corte breve del suministro no lo
+apaga, y el conducto puede seguir entregándole antimateria sin cable. Las trampas,
+el generador y el inyector están en la etiqueta `create:non_movable`: una
+contraption no puede llevárselos.
+
+## Operación y mantenimiento
+
+Todo el mantenimiento se puede apagar. `maintenance.enabled` es el interruptor
+general: apagado, las centrales no se desgastan, recargan en marcha como antes de
+2.0 y no hay terremotos ni registro de incidentes. Cada función tiene además su
+propio interruptor, que solo cuenta con el general encendido.
+
+- `maintenance.enabled` (true): interruptor general.
+- `maintenance.wear` (true): las piezas se desgastan con el uso. Los mecanismos de
+  las barras de control, con la potencia del reactor y en cada SCRAM; la válvula
+  de alivio, en cada apertura; los tubos de un generador de vapor, mientras
+  transfieren calor (cuatro veces más rápido en seco); los álabes de una turbina,
+  con el vapor que expanden.
+- `maintenance.failures` (true): las piezas gastadas fallan. Un mecanismo de barras
+  se atasca en un SCRAM y deja su canal donde estaba; un tubo revienta, fuga
+  25 mB/t de refrigerante primario al secundario y el generador de vapor irradia
+  (1,5 rad/s); los álabes disparan la turbina por vibración y la dejan parada hasta
+  repararlos. Apagado, las piezas solo se desgastan (la válvula de alivio gastada
+  se sigue atascando más a menudo, hasta diez veces).
+- `maintenance.requireRefuellingOutage` (true): un reactor de fisión solo admite
+  combustible nuevo en una **parada de recarga**: formado, parado en frío (núcleo
+  por debajo de 100 °C) y con todas las barras dentro. Es el cambio que rompe
+  compatibilidad de 2.0 (ver `docs/server-update.md`).
+- `maintenance.earthquakes.enabled` (true): terremotos naturales.
+- `maintenance.incidentLog.enabled` (true): registro de incidentes con la escala
+  INES.
+- `maintenance.wearScale` (1.0): multiplica el desgaste de todas las piezas (0 lo
+  quita). Con 1, los mecanismos de las barras duran 20 días de juego a plena
+  potencia, los tubos 30 días de trabajo y los álabes 25.
+- `maintenance.kitRepair` (0.5): salud (0-1) que devuelve cada uso del kit de
+  mantenimiento. Solo funciona en un reactor en parada de recarga, o en un
+  generador de vapor o una turbina parados.
+- `maintenance.earthquakes.perDay` (0.05), `minMagnitude` (3.0) y
+  `maxMagnitude` (6.5): frecuencia y magnitudes de los terremotos naturales en
+  cada dimensión natural con jugadores (Gutenberg-Richter: cada magnitud es diez
+  veces más rara). Un terremoto de magnitud 3 se nota a 16 bloques, y cada magnitud
+  duplica el alcance.
+- `maintenance.earthquakes.seismicTrip` (4.0): movimiento del suelo con el que el
+  disparo sísmico de un reactor lo pone en SCRAM (una magnitud 3 da 1 en su
+  epicentro, y cada magnitud diez veces más).
+- `maintenance.earthquakes.range` (256): bloques alrededor de un jugador donde
+  puede empezar un terremoto.
+- `maintenance.incidentLog.size` (100): incidentes que guarda el registro.
+
+El registro clasifica cada suceso en la escala INES: SCRAM automático o sísmico y
+disparo de turbina 0; barra o válvula de alivio atascadas 1; rotura de tubo 2;
+daño del combustible 4; rotura de la vasija 4; fusión del núcleo 5 (7 sin
+contención). Terremotos, detonaciones y simulacros quedan fuera de la escala. Los
+operadores lo usan con `/nuclear incident list [n]`, `/nuclear incident drill
+[pos]` (hace sonar la alarma de la central sin daño) y `/nuclear incident trigger
+<stuck_rod|sg_tube_rupture|turbine_trip|earthquake> <pos> [magnitud]`.
+
+## Pestaña creativa
+
+La pestaña del mod está dividida en secciones temáticas: minería y materiales,
+ciclo del combustible, fisión, PWR y contención, generación eléctrica, sala de
+control, gastado y residuos, isótopos y medicina, mantenimiento y EPI, fusión,
+criogenia, aceleradores, antimateria, defensa civil y armamento. Cada sección
+empieza con un banner que se anima al pasar el ratón por encima, y el tooltip de
+cada ítem dice a qué sección pertenece. Lo que otros mods añadan a la pestaña
+aparece al final, en "Otros".
+
+En la configuración del cliente (`create_nuclearindustry-client.toml`),
+`creativeTab.sections = false` quita los banners y deja una sola lista, en el
+mismo orden. El cambio se aplica la próxima vez que se reconstruye la pestaña
+(al volver a entrar al mundo).
 
 ## Uranio y litio de otros mods
 

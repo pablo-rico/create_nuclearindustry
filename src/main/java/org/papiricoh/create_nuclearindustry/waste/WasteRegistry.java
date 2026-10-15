@@ -20,6 +20,8 @@ import org.papiricoh.create_nuclearindustry.AllNuclearDisplaySources;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.NuclearFeature;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import org.papiricoh.create_nuclearindustry.waste.repository.RepositoryInspectorBlock;
 import org.papiricoh.create_nuclearindustry.waste.repository.RepositoryInspectorBlockEntity;
 import org.papiricoh.create_nuclearindustry.waste.repository.RepositoryInspectorDisplaySource;
@@ -112,7 +114,8 @@ public final class WasteRegistry implements NuclearFeature {
     }
 
     @Override
-    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        output.section(NuclearTabSection.SPENT_FUEL);
         output.accept(LOW_LEVEL_WASTE.get());
         output.accept(HIGH_LEVEL_WASTE.get());
         output.accept(COMPACTED_WASTE_DRUM_ITEM.get());

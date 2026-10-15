@@ -79,6 +79,22 @@ public class AllNuclearSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> CONFINEMENT_HUM = variableRange("confinement_hum");
     /** The annihilation generator running, looped. */
     public static final DeferredHolder<SoundEvent, SoundEvent> ANNIHILATION_DRONE = variableRange("annihilation_drone");
+    /** A Penning trap's field, looped; its pitch and volume follow the charge. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> TRAP_HUM = variableRange("trap_hum");
+    /** A loaded trap losing its field: the three-second quench alarm before it annihilates. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> TRAP_QUENCH = variableRange("trap_quench");
+    /** Antimatter annihilating all at once. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ANNIHILATION_BLAST = variableRange("annihilation_blast");
+    /** An antiproton injector firing its dose into a tokamak's plasma. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ANTIPROTON_SHOT = variableRange("antiproton_shot");
+
+    // ---------------------------------------------------------------- control room (sounds made by tools/soundgen)
+    /** An annunciator board's urgent horn, for an alarm window waiting for acknowledgement. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ANNUNCIATOR_ALARM = variableRange("annunciator_alarm");
+    /** Its softer two-tone for a warning window. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ANNUNCIATOR_WARNING = variableRange("annunciator_warning");
+    /** The ringback chime: an acknowledged condition has cleared and waits for a reset. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ANNUNCIATOR_RINGBACK = variableRange("annunciator_ringback");
 
     private static DeferredHolder<SoundEvent, SoundEvent> variableRange(String name) {
         return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(

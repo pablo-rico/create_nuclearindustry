@@ -40,6 +40,8 @@ import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLin
 import org.papiricoh.create_nuclearindustry.controlroom.link.AdvancedRedstoneLinkBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.servo.ServoGearboxBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.servo.ServoGearboxBlockEntity;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 
 /**
  * Content for the Advanced Redstone Link, the control table and wall control panel, the chart
@@ -54,7 +56,7 @@ public final class ControlRoom2Registry implements NuclearFeature {
             () -> new ChartRecorderBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f)));
     public static final DeferredHolder<Block, AnnunciatorPanelBlock> ANNUNCIATOR_PANEL = AllNuclearBlocks.BLOCKS.register("annunciator_panel",
             () -> new AnnunciatorPanelBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f, 6.0f)
-                    .lightLevel(state -> 3)));
+                    .lightLevel(state -> 3).noOcclusion().pushReaction(PushReaction.DESTROY)));
 
     public static final DeferredHolder<Block, ControlTableBlock> CONTROL_TABLE = AllNuclearBlocks.BLOCKS.register("control_table",
             () -> new ControlTableBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY).strength(2.0f, 6.0f).noOcclusion()));
@@ -152,7 +154,8 @@ public final class ControlRoom2Registry implements NuclearFeature {
     }
 
     @Override
-    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        output.section(NuclearTabSection.CONTROL_ROOM);
         output.accept(ADVANCED_REDSTONE_LINK_ITEM.get());
         output.accept(CONTROL_TABLE_ITEM.get());
         output.accept(WALL_CONTROL_PANEL_ITEM.get());

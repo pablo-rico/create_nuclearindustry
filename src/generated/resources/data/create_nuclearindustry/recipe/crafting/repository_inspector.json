@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "create_nuclearindustry:bentonite"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "G": {
+      "item": "create_nuclearindustry:geiger_counter"
+    },
+    "M": {
+      "item": "create:precision_mechanism"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "PEP",
+    "BMB",
+    "PGP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:repository_inspector"
+  }
+}

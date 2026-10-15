@@ -18,9 +18,7 @@ import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.GaugeReading;
 import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -175,26 +173,13 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
      */
     private void updateCluster() {
         clusterScans++;
-        Direction facing = facing();
-        Direction right = facing.getCounterClockWise();
-        Set<BlockPos> members = connected(facing, right);
-        int minR = Integer.MAX_VALUE, maxR = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
-        for (BlockPos member : members) {
-            int r = along(member, right);
-            minR = Math.min(minR, r);
-            maxR = Math.max(maxR, r);
-            minY = Math.min(minY, member.getY());
-            maxY = Math.max(maxY, member.getY());
-        }
-        int newWidth = maxR - minR + 1;
-        int newHeight = maxY - minY + 1;
-        boolean rectangle = newWidth <= MAX_SIZE && newHeight <= MAX_SIZE && members.size() == newWidth * newHeight;
-        BlockPos newOrigin = getBlockPos();
-        for (BlockPos member : members) {
-            if (along(member, right) == minR && member.getY() == minY) {
-                newOrigin = member;
-            }
-        }
+        PanelCluster cluster = PanelCluster.find(level, getBlockPos(), facing(), state -> state.getBlock() == getBlockState().getBlock(),
+                MAX_SIZE, MAX_SIZE);
+        Set<BlockPos> members = cluster.members();
+        boolean rectangle = cluster.rectangle();
+        BlockPos newOrigin = cluster.origin();
+        int newWidth = cluster.width();
+        int newHeight = cluster.height();
         ControlMonitorBlockEntity screen = null;
         for (BlockPos member : members) {
             ControlMonitorBlockEntity monitor = member.equals(getBlockPos()) ? this
@@ -285,33 +270,6 @@ public class ControlMonitorBlockEntity extends SmartBlockEntity implements Contr
         fullSyncPending = true;
         setChanged();
         notifyUpdate();
-    }
-
-    /** Same-facing monitors reachable sideways or up and down in the screen's plane. */
-    private Set<BlockPos> connected(Direction facing, Direction right) {
-        Set<BlockPos> found = new HashSet<>();
-        ArrayDeque<BlockPos> open = new ArrayDeque<>();
-        found.add(getBlockPos());
-        open.add(getBlockPos());
-        int limit = MAX_SIZE * MAX_SIZE + 1;
-        while (!open.isEmpty() && found.size() <= limit) {
-            BlockPos current = open.poll();
-            for (BlockPos next : new BlockPos[]{current.relative(right), current.relative(right.getOpposite()), current.above(), current.below()}) {
-                if (found.contains(next) || !level.isLoaded(next)) {
-                    continue;
-                }
-                BlockState state = level.getBlockState(next);
-                if (state.getBlock() == getBlockState().getBlock() && state.getValue(BlockStateProperties.HORIZONTAL_FACING) == facing) {
-                    found.add(next);
-                    open.add(next);
-                }
-            }
-        }
-        return found;
-    }
-
-    private static int along(BlockPos pos, Direction axis) {
-        return pos.getX() * axis.getStepX() + pos.getZ() * axis.getStepZ();
     }
 
     // ------------------------------------------------------------------ link and sampling

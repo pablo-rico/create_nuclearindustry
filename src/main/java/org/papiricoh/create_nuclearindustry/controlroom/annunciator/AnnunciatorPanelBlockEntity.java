@@ -1,6 +1,5 @@
 package org.papiricoh.create_nuclearindustry.controlroom.annunciator;
 
-import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.core.BlockPos;
@@ -10,38 +9,59 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.AllNuclearSounds;
 import org.papiricoh.create_nuclearindustry.controlroom.AlarmMetric;
 import org.papiricoh.create_nuclearindustry.controlroom.ConfigurableDevice;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config;
-import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomBlocks;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomDevice;
 import org.papiricoh.create_nuclearindustry.controlroom.LinkedTarget;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
+import org.papiricoh.create_nuclearindustry.controlroom.MonitorTheme;
+import org.papiricoh.create_nuclearindustry.controlroom.PanelCluster;
 import org.papiricoh.create_nuclearindustry.controlroom.SharedReadings;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
+import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorBoardLayout.Button;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModule;
+import org.papiricoh.create_nuclearindustry.reactor.control.AutoScram;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * An annunciator panel: six alarm windows, each watching its own machine for one {@link AlarmMetric}
- * past a threshold, run through the {@link AnnunciatorLogic} sequence. While any window waits for an
- * acknowledgement the horn sounds and the panel powers its back and bottom.
+ * past a threshold, run through the {@link AnnunciatorLogic} sequence, with a group nameplate.
+ * <p>
+ * Panels hung together on one wall in a rectangle make a board (found like a screen's monitors, with
+ * {@link PanelCluster}); a lone panel is a board of one. Each panel keeps its windows and checks them
+ * itself. The board's bottom-left panel, its origin, holds what the board shares: its style, its
+ * first-out window, the horn, SILENCE and the lamp test. ACK, RESET, SILENCE and TEST, from a button
+ * or from redstone at any panel, work the whole board. While an alarm waits for an acknowledgement
+ * every panel powers the wall it hangs on.
  */
 public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements ControlRoomDevice, ConfigurableDevice {
     public static final int WINDOWS = 6;
+    /** Panels a board may span. */
+    public static final int MAX_WIDTH = 16;
+    public static final int MAX_HEIGHT = 8;
+    /** Ticks between horn blasts for an alarm; a warning sounds every other one. */
     private static final int HORN_INTERVAL = 20;
+    /** How long a press of TEST lights the board. */
+    public static final int LAMP_TEST_TICKS = 60;
+    /** The origin looks at its board's shape again this often, in case a change went unnoticed. */
+    private static final int CLUSTER_FALLBACK_INTERVAL = 100;
 
     /** One window's setup. */
     public static final class Window {
@@ -52,6 +72,7 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         /** 35 of 100 is 1400 °C for the default temperature metric, the automatic SCRAM's default (40 °C a step). */
         private int setting = AutoScram.DEFAULT_THRESHOLD / 40;
         private String label = "";
+        private AnnunciatorSeverity severity = AlarmMetric.TEMPERATURE.defaultSeverity();
 
         @Nullable
         public GlobalPos target() {
@@ -75,6 +96,10 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
             return label;
         }
 
+        public AnnunciatorSeverity severity() {
+            return severity;
+        }
+
         CompoundTag write() {
             CompoundTag tag = new CompoundTag();
             ControlRoomDevice.writeTarget(tag, target);
@@ -82,6 +107,7 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
             tag.putString("Metric", metric.name());
             tag.putInt("Setting", setting);
             tag.putString("Label", label);
+            tag.putString("Severity", severity.name());
             return tag;
         }
 
@@ -91,15 +117,37 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
             metric = metricByName(tag.getString("Metric"), AlarmMetric.TEMPERATURE);
             setting = Mth.clamp(tag.getInt("Setting"), 0, 100);
             label = ControlModule.sanitizeLabel(tag.getString("Label"));
+            // Windows from before severities take their metric's.
+            severity = AnnunciatorSeverity.byName(tag.getString("Severity"), metric.defaultSeverity());
         }
     }
 
     private final Window[] windows = new Window[WINDOWS];
     private final AnnunciatorLogic logic = new AnnunciatorLogic(WINDOWS);
-    private int hornCounter;
-    private boolean ackPowered;
-    private boolean resetPowered;
+    private String nameplate = "";
+    private MonitorTheme theme = MonitorTheme.STANDARD;
+    /** What powers this panel's sides: ACK, RESET, SILENCE, TEST. */
+    private final boolean[] inputs = new boolean[4];
     private boolean outputOn;
+    private int comparator;
+
+    // The board: every panel knows its origin and the board's size.
+    @Nullable
+    private BlockPos origin;
+    private int width = 1;
+    private int height = 1;
+    private boolean clusterDirty = true;
+    private int clusterCheckCounter;
+
+    // Held by the origin for the whole board.
+    @Nullable
+    private BlockPos firstOutPanel;
+    private int firstOutWindow = -1;
+    private boolean silenced;
+    private int lampTest;
+    private int hornCounter;
+    /** The board's inputs as last seen, for rising edges. */
+    private final boolean[] boardInputs = new boolean[4];
 
     public AnnunciatorPanelBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -118,13 +166,31 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         if (level == null || level.isClientSide) {
             return;
         }
+        if (clusterDirty || isOrigin() && ++clusterCheckCounter >= CLUSTER_FALLBACK_INTERVAL) {
+            updateCluster();
+        }
         // On the same ticks as the other devices on its (first) machine, so they share its sample.
         if (SharedReadings.due(level, getBlockPos(), firstTarget(), ControlRoom2Config.annunciatorInterval)) {
             check(true);
         }
-        if (logic.unacknowledged() && ++hornCounter >= HORN_INTERVAL) {
+        if (isOrigin()) {
+            boardTick();
+        }
+    }
+
+    /** The origin sounds the horn while the board waits for an acknowledgement, and runs the lamp test. */
+    private void boardTick() {
+        if (lampTest > 0 && --lampTest == 0) {
+            sync();
+        }
+        if (++hornCounter >= HORN_INTERVAL) {
             hornCounter = 0;
-            horn();
+            AnnunciatorSeverity waiting = unacknowledgedSeverity();
+            if (waiting == null) {
+                silenced = false;
+            } else if (!silenced && (waiting == AnnunciatorSeverity.ALARM || level.getGameTime() / HORN_INTERVAL % 2 == 0)) {
+                horn(waiting);
+            }
         }
     }
 
@@ -154,8 +220,10 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         }
         Map<GlobalPos, MonitorReading> samples = new HashMap<>();
         boolean[] tripped = new boolean[WINDOWS];
+        boolean[] latching = new boolean[WINDOWS];
         for (int i = 0; i < WINDOWS; i++) {
             Window window = windows[i];
+            latching[i] = window.severity.latching();
             if (window.target == null) {
                 continue;
             }
@@ -164,10 +232,17 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
                             : MonitorReading.sample(LinkedTarget.resolve(level, getBlockPos(), target)));
             tripped[i] = window.metric.tripped(sample, window.setting);
         }
-        int flags = logic.update(tripped);
+        int flags = logic.update(tripped, latching);
         if ((flags & AnnunciatorLogic.NEW_ALERT) != 0) {
-            hornCounter = 0;
-            horn();
+            int first = logic.lastNewAlert();
+            AnnunciatorSeverity worst = null;
+            for (int i = 0; i < WINDOWS; i++) {
+                if (logic.state(i) == AnnunciatorLogic.State.ALERT && tripped[i]) {
+                    worst = AnnunciatorSeverity.worst(worst, windows[i].severity);
+                }
+            }
+            AnnunciatorSeverity sound = worst;
+            board().ifPresent(board -> board.boardAlert(getBlockPos(), first, sound));
         }
         if ((flags & AnnunciatorLogic.RINGBACK) != 0) {
             ringback();
@@ -177,90 +252,380 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         }
     }
 
-    /** The operator acknowledges the flashing windows. */
+    /** A panel of this board raised a new alert: the origin marks the first-out, lifts SILENCE and sounds at once. */
+    private void boardAlert(BlockPos panel, int window, @Nullable AnnunciatorSeverity severity) {
+        if (firstOutPanel == null && window >= 0) {
+            firstOutPanel = panel.immutable();
+            firstOutWindow = window;
+        }
+        silenced = false;
+        hornCounter = 0;
+        horn(severity == null ? AnnunciatorSeverity.WARNING : severity);
+        sync();
+    }
+
+    // ------------------------------------------------------------------ the operator
+
+    /** A button pressed at any panel of the board. Returns whether it did anything. */
+    public boolean press(Button button) {
+        AnnunciatorPanelBlockEntity board = board().orElse(this);
+        return switch (button) {
+            case ACK -> board.acknowledgeBoard();
+            case RESET -> board.resetBoard();
+            case SILENCE -> board.silenceBoard();
+            case TEST -> board.lampTestBoard();
+        };
+    }
+
+    /** The operator acknowledges the flashing windows of the whole board. */
     public boolean acknowledge() {
-        if (!logic.acknowledge()) {
+        return press(Button.ACK);
+    }
+
+    /** The operator resets the windows in ringback on the whole board. */
+    public boolean reset() {
+        return press(Button.RESET);
+    }
+
+    private boolean acknowledgeBoard() {
+        boolean[] acted = {false, false};
+        forEachPanel(panel -> {
+            if (panel.logic.acknowledge()) {
+                acted[0] = true;
+                for (int i = 0; i < WINDOWS; i++) {
+                    // Windows that cleared before the acknowledgement go straight to ringback.
+                    if (panel.logic.state(i) == AnnunciatorLogic.State.RINGBACK) {
+                        acted[1] = true;
+                    }
+                }
+                panel.changed();
+            }
+        });
+        if (acted[1]) {
+            ringback();
+        }
+        if (acted[0]) {
+            silenced = false;
+            sync();
+        }
+        return acted[0];
+    }
+
+    private boolean resetBoard() {
+        boolean[] acted = {false};
+        forEachPanel(panel -> {
+            if (panel.logic.reset()) {
+                acted[0] = true;
+                panel.changed();
+            }
+        });
+        if (acted[0] && firstOutPanel != null && !(level.getBlockEntity(firstOutPanel) instanceof AnnunciatorPanelBlockEntity panel
+                && panel.logic.state(Mth.clamp(firstOutWindow, 0, WINDOWS - 1)) != AnnunciatorLogic.State.NORMAL)) {
+            clearFirstOut();
+        }
+        return acted[0];
+    }
+
+    private boolean silenceBoard() {
+        if (silenced || unacknowledgedSeverity() == null) {
             return false;
         }
-        if (logic.active() > 0 && level != null) {
-            // Windows that cleared before the acknowledgement go straight to ringback.
+        silenced = true;
+        sync();
+        return true;
+    }
+
+    private boolean lampTestBoard() {
+        lampTest = LAMP_TEST_TICKS;
+        sync();
+        return true;
+    }
+
+    private void clearFirstOut() {
+        firstOutPanel = null;
+        firstOutWindow = -1;
+        sync();
+    }
+
+    /** The most urgent severity among windows of the board waiting for an acknowledgement, or null. */
+    @Nullable
+    private AnnunciatorSeverity unacknowledgedSeverity() {
+        AnnunciatorSeverity[] worst = {null};
+        forEachPanel(panel -> {
             for (int i = 0; i < WINDOWS; i++) {
-                if (logic.state(i) == AnnunciatorLogic.State.RINGBACK) {
-                    ringback();
-                    break;
+                if (panel.logic.state(i) == AnnunciatorLogic.State.ALERT) {
+                    worst[0] = AnnunciatorSeverity.worst(worst[0], panel.windows[i].severity);
                 }
             }
-        }
-        changed();
-        return true;
+        });
+        return worst[0];
     }
 
-    /** The operator resets the windows in ringback. */
-    public boolean reset() {
-        if (!logic.reset()) {
-            return false;
-        }
-        changed();
-        return true;
-    }
-
-    private void horn() {
-        level.playSound(null, getBlockPos(), SoundEvents.NOTE_BLOCK_BIT.value(), SoundSource.BLOCKS, 1.2f, 1.6f);
+    private void horn(AnnunciatorSeverity severity) {
+        SoundEvent sound = severity == AnnunciatorSeverity.ALARM ? AllNuclearSounds.ANNUNCIATOR_ALARM.get()
+                : AllNuclearSounds.ANNUNCIATOR_WARNING.get();
+        level.playSound(null, getBlockPos(), sound, SoundSource.BLOCKS, 1.2f, 1.0f);
     }
 
     private void ringback() {
         if (level != null) {
-            level.playSound(null, getBlockPos(), SoundEvents.NOTE_BLOCK_CHIME.value(), SoundSource.BLOCKS, 0.8f, 0.8f);
+            level.playSound(null, getBlockPos(), AllNuclearSounds.ANNUNCIATOR_RINGBACK.get(), SoundSource.BLOCKS, 0.8f, 1.0f);
         }
     }
 
+    /** This panel's windows changed: sync it and refresh what the board puts out. */
     private void changed() {
         setChanged();
         notifyUpdate();
-        boolean on = logic.unacknowledged();
-        if (on != outputOn && level != null) {
+        AnnunciatorPanelBlockEntity board = board().orElse(this);
+        board.refreshOutputs();
+    }
+
+    /** The origin works out the board's common alarm and comparator reading and hands them to every panel. */
+    private void refreshOutputs() {
+        int[] active = {0};
+        boolean[] waiting = {false};
+        forEachPanel(panel -> {
+            active[0] += panel.logic.active();
+            waiting[0] |= panel.logic.unacknowledged();
+        });
+        int signal = Math.min(15, active[0] * 2 + (waiting[0] ? 1 : 0));
+        forEachPanel(panel -> panel.setOutputs(waiting[0], signal));
+    }
+
+    private void setOutputs(boolean on, int signal) {
+        if (level == null) {
+            return;
+        }
+        if (on != outputOn) {
             outputOn = on;
+            setChanged();
             level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
-            level.updateNeighborsAt(getBlockPos().below(), getBlockState().getBlock());
             level.updateNeighborsAt(getBlockPos().relative(facing().getOpposite()), getBlockState().getBlock());
         }
-        if (level != null) {
+        if (signal != comparator) {
+            comparator = signal;
+            setChanged();
             level.updateNeighbourForOutputSignal(getBlockPos(), getBlockState().getBlock());
         }
     }
 
     // ------------------------------------------------------------------ redstone
 
-    /** Full power out of the back and bottom while any window waits for an acknowledgement. */
+    /** Full power into the wall while any window of the board waits for an acknowledgement. */
     public boolean outputOn() {
         return outputOn;
     }
 
-    /** 0-15: two per window that is not dark. */
+    /** 0-15: two per lit window of the board, one more while one waits for an acknowledgement. */
     public int comparatorSignal() {
-        return Math.min(15, logic.active() * 2 + (logic.unacknowledged() ? 1 : 0));
+        return comparator;
     }
 
-    /** The viewer's left side acknowledges and the right side resets, on a rising redstone edge. */
+    /**
+     * Reads this panel's sides (the viewer's left acknowledges, the right resets, above silences,
+     * below holds the lamp test) and lets the origin act on the board's rising edges.
+     */
     public void redstoneChanged() {
         if (level == null || level.isClientSide) {
             return;
         }
         Direction left = facing().getClockWise();
         Direction right = facing().getCounterClockWise();
-        boolean ack = level.getSignal(getBlockPos().relative(left), left) > 0;
-        boolean reset = level.getSignal(getBlockPos().relative(right), right) > 0;
-        if (ack && !ackPowered) {
-            acknowledge();
-        }
-        if (reset && !resetPowered) {
-            reset();
-        }
-        ackPowered = ack;
-        resetPowered = reset;
+        inputs[Button.ACK.ordinal()] = powered(left);
+        inputs[Button.RESET.ordinal()] = powered(right);
+        inputs[Button.SILENCE.ordinal()] = powered(Direction.UP);
+        inputs[Button.TEST.ordinal()] = powered(Direction.DOWN);
+        board().orElse(this).boardInputsChanged();
     }
 
-    // ------------------------------------------------------------------ windows
+    /** Power from {@code side}, not counting a panel of the board there. */
+    private boolean powered(Direction side) {
+        BlockPos from = getBlockPos().relative(side);
+        return !(level.getBlockState(from).getBlock() instanceof AnnunciatorPanelBlock) && level.getSignal(from, side) > 0;
+    }
+
+    private void boardInputsChanged() {
+        boolean[] now = new boolean[4];
+        forEachPanel(panel -> {
+            for (int i = 0; i < now.length; i++) {
+                now[i] |= panel.inputs[i];
+            }
+        });
+        for (Button button : Button.values()) {
+            int i = button.ordinal();
+            boolean rising = now[i] && !boardInputs[i];
+            boardInputs[i] = now[i];
+            if (button == Button.TEST) {
+                if (now[i] != (lampTest > 0) || rising) {
+                    // Held from below: lit while the power stays, then the usual few seconds.
+                    lampTest = now[i] ? Integer.MAX_VALUE : Math.min(lampTest, LAMP_TEST_TICKS);
+                    sync();
+                }
+            } else if (rising) {
+                press(button);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ the board
+
+    public boolean isOrigin() {
+        return origin == null || origin.equals(getBlockPos());
+    }
+
+    /** The board's origin, or empty while it is not loaded. */
+    public java.util.Optional<AnnunciatorPanelBlockEntity> board() {
+        if (isOrigin()) {
+            return java.util.Optional.of(this);
+        }
+        return level != null && level.getBlockEntity(origin) instanceof AnnunciatorPanelBlockEntity panel
+                ? java.util.Optional.of(panel) : java.util.Optional.empty();
+    }
+
+    public int boardWidth() {
+        return width;
+    }
+
+    public int boardHeight() {
+        return height;
+    }
+
+    /** To the viewer's right along the board. */
+    public Direction right() {
+        return facing().getCounterClockWise();
+    }
+
+    public void requestClusterUpdate() {
+        clusterDirty = true;
+    }
+
+    /** Every panel of this board, from the origin: left to right, then bottom to top. */
+    public List<BlockPos> boardPanels() {
+        BlockPos start = origin == null ? getBlockPos() : origin;
+        List<BlockPos> panels = new ArrayList<>(width * height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                panels.add(start.relative(right(), x).above(y));
+            }
+        }
+        return panels;
+    }
+
+    /** Runs {@code action} on every loaded panel of the board, this one's origin included. */
+    private void forEachPanel(Consumer<AnnunciatorPanelBlockEntity> action) {
+        if (level == null) {
+            action.accept(this);
+            return;
+        }
+        for (BlockPos pos : boardPanels()) {
+            if (pos.equals(getBlockPos())) {
+                action.accept(this);
+            } else if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof AnnunciatorPanelBlockEntity panel) {
+                action.accept(panel);
+            }
+        }
+    }
+
+    /** Every loaded panel of this panel's board, read from its origin: left to right, then bottom to top. */
+    public List<AnnunciatorPanelBlockEntity> boardMembers() {
+        List<AnnunciatorPanelBlockEntity> members = new ArrayList<>();
+        board().orElse(this).forEachPanel(members::add);
+        return members;
+    }
+
+    /** The panel of the board at {@code blockX} from the left and {@code blockY} from the top, or null. */
+    @Nullable
+    public AnnunciatorPanelBlockEntity panelAt(int blockX, int blockY) {
+        if (level == null || blockX < 0 || blockY < 0 || blockX >= width || blockY >= height) {
+            return null;
+        }
+        BlockPos start = origin == null ? getBlockPos() : origin;
+        BlockPos pos = start.relative(right(), blockX).above(height - 1 - blockY);
+        return pos.equals(getBlockPos()) ? this : level.getBlockEntity(pos) instanceof AnnunciatorPanelBlockEntity panel ? panel : null;
+    }
+
+    /** Where this panel sits on its board: from the left, and from the top. */
+    public int[] boardPosition() {
+        BlockPos start = origin == null ? getBlockPos() : origin;
+        int x = PanelCluster.along(getBlockPos(), right()) - PanelCluster.along(start, right());
+        int y = height - 1 - (getBlockPos().getY() - start.getY());
+        return new int[]{x, y};
+    }
+
+    /** What a click at {@code pixel} on this panel's face (from {@link AnnunciatorPanelBlock#pixel}) lands on. */
+    public AnnunciatorBoardLayout.Hit hitAt(@Nullable float[] pixel) {
+        if (pixel == null) {
+            return AnnunciatorBoardLayout.Hit.NONE;
+        }
+        int[] at = boardPosition();
+        return new AnnunciatorBoardLayout(width, height)
+                .hit(at[0] * AnnunciatorBoardLayout.BLOCK + pixel[0], at[1] * AnnunciatorBoardLayout.BLOCK + 16 - pixel[1]);
+    }
+
+    /** Works out the board this panel is part of and hands the answer to every panel of it. */
+    private void updateCluster() {
+        PanelCluster cluster = PanelCluster.find(level, getBlockPos(), facing(), state -> state.getBlock() == getBlockState().getBlock(),
+                MAX_WIDTH, MAX_HEIGHT);
+        AnnunciatorPanelBlockEntity newOrigin = null;
+        for (BlockPos member : cluster.members()) {
+            AnnunciatorPanelBlockEntity panel = member.equals(getBlockPos()) ? this
+                    : level.getBlockEntity(member) instanceof AnnunciatorPanelBlockEntity other ? other : null;
+            if (panel == null) {
+                continue;
+            }
+            if (cluster.rectangle()) {
+                panel.applyCluster(cluster.origin(), cluster.width(), cluster.height());
+                if (member.equals(cluster.origin())) {
+                    newOrigin = panel;
+                }
+            } else {
+                // Not a rectangle: every panel is a board of its own.
+                panel.applyCluster(member, 1, 1);
+                panel.adoptBoard();
+            }
+        }
+        if (newOrigin != null) {
+            newOrigin.adoptBoard();
+        }
+    }
+
+    private void applyCluster(BlockPos newOrigin, int newWidth, int newHeight) {
+        clusterDirty = false;
+        clusterCheckCounter = 0;
+        boolean changed = width != newWidth || height != newHeight || !newOrigin.equals(origin == null ? getBlockPos() : origin);
+        width = newWidth;
+        height = newHeight;
+        origin = newOrigin.equals(getBlockPos()) ? null : newOrigin.immutable();
+        if (changed) {
+            setChanged();
+            notifyUpdate();
+        }
+    }
+
+    /**
+     * A new or changed board, on its origin: it keeps a style one of its panels was set to, forgets a
+     * first-out on a panel no longer on it, and works out its outputs again.
+     */
+    private void adoptBoard() {
+        if (theme == MonitorTheme.STANDARD) {
+            forEachPanel(panel -> {
+                if (theme == MonitorTheme.STANDARD && panel.theme != MonitorTheme.STANDARD) {
+                    theme = panel.theme;
+                }
+            });
+            if (theme != MonitorTheme.STANDARD) {
+                MonitorTheme chosen = theme;
+                forEachPanel(panel -> panel.setTheme(chosen));
+            }
+        }
+        if (firstOutPanel != null && !boardPanels().contains(firstOutPanel)) {
+            clearFirstOut();
+        }
+        refreshOutputs();
+    }
+
+    // ------------------------------------------------------------------ what the renderer and screen read
 
     public AnnunciatorLogic logic() {
         return logic;
@@ -270,12 +635,54 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         return windows[Mth.clamp(index, 0, WINDOWS - 1)];
     }
 
+    public String nameplate() {
+        return nameplate;
+    }
+
+    /** The board's style, from the origin. */
+    public MonitorTheme theme() {
+        return board().map(board -> board.theme).orElse(theme);
+    }
+
+    /** Whether window {@code index} of this panel is the board's first-out. */
+    public boolean isFirstOut(int index) {
+        AnnunciatorPanelBlockEntity board = board().orElse(null);
+        return board != null && getBlockPos().equals(board.firstOutPanel) && board.firstOutWindow == index
+                && logic.state(index) != AnnunciatorLogic.State.NORMAL;
+    }
+
+    /** Whether the board's lamps are all lit for the test. */
+    public boolean lampTest() {
+        return board().map(board -> board.lampTest > 0).orElse(false);
+    }
+
+    /** Whether the board's horn has been silenced while alarms still wait. */
+    public boolean silenced() {
+        return board().map(board -> board.silenced).orElse(false);
+    }
+
     public Direction facing() {
         BlockState state = getBlockState();
         return state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)
                 ? state.getValue(BlockStateProperties.HORIZONTAL_FACING)
                 : Direction.NORTH;
     }
+
+    private void setTheme(MonitorTheme next) {
+        if (theme != next) {
+            theme = next;
+            setChanged();
+            notifyUpdate();
+        }
+    }
+
+    /** Syncs this panel (the origin's board state goes with it). */
+    private void sync() {
+        setChanged();
+        notifyUpdate();
+    }
+
+    // ------------------------------------------------------------------ setup
 
     /** Links one window, or every window when {@code index} is negative. */
     public void linkWindow(int index, @Nullable GlobalPos target) {
@@ -288,6 +695,7 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
                 window.kind = kind;
                 if (target != null && !window.metric.watches(kind)) {
                     window.metric = firstMetricFor(kind, window.metric);
+                    window.severity = window.metric.defaultSeverity();
                 }
             }
         }
@@ -306,9 +714,10 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
     }
 
     /**
-     * "Metric", "Setting", "Label" and "Unlink" for window {@code part}; values are sanitised. A
-     * "Preset" sets up every window instead, from {@link AnnunciatorPreset} with the thresholds of the
-     * plant config; its "Labels" list holds the client's translations of the window labels.
+     * "Metric", "Setting", "Label", "Severity" and "Unlink" for window {@code part}, "Nameplate" for this
+     * panel and "Theme" for the whole board; values are sanitised. A "Preset" sets up every window
+     * instead, from {@link AnnunciatorPreset} with the thresholds of the plant config; its "Labels" list
+     * holds the client's translations of the window labels.
      */
     @Override
     public boolean configure(int part, CompoundTag config) {
@@ -323,6 +732,15 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
             applyPreset(preset, config.getList("Labels", Tag.TAG_STRING));
             return true;
         }
+        if (config.contains("Theme", Tag.TAG_STRING)) {
+            MonitorTheme chosen = MonitorTheme.byName(config.getString("Theme"));
+            AnnunciatorPanelBlockEntity board = board().orElse(this);
+            board.theme = chosen;
+            board.forEachPanel(panel -> panel.setTheme(chosen));
+        }
+        if (config.contains("Nameplate", Tag.TAG_STRING)) {
+            nameplate = ControlModule.sanitizeLabel(config.getString("Nameplate"));
+        }
         Window window = windows[part];
         if (config.contains("Metric", Tag.TAG_STRING)) {
             window.metric = metricByName(config.getString("Metric"), window.metric);
@@ -333,18 +751,21 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         if (config.contains("Label", Tag.TAG_STRING)) {
             window.label = ControlModule.sanitizeLabel(config.getString("Label"));
         }
+        if (config.contains("Severity", Tag.TAG_STRING)) {
+            window.severity = AnnunciatorSeverity.byName(config.getString("Severity"), window.severity);
+        }
         if (config.getBoolean("Unlink")) {
             window.target = null;
             window.kind = TargetKind.NONE;
         }
         check();
-        notifyUpdate();
+        sync();
         return true;
     }
 
     /**
-     * Sets every window's metric, threshold and label from {@code preset}; links stay as they are.
-     * {@code labels} may hold up to one translated label per window: blank or missing ones take the
+     * Sets every window's metric, threshold, severity and label from {@code preset}; links stay as they
+     * are. {@code labels} may hold up to one translated label per window: blank or missing ones take the
      * preset's own.
      */
     public void applyPreset(AnnunciatorPreset preset, ListTag labels) {
@@ -354,11 +775,12 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
             Window window = windows[i];
             window.metric = metricByName(entry.metric(), window.metric);
             window.setting = Mth.clamp(entry.setting(), 0, 100);
+            window.severity = entry.severity();
             String label = i < labels.size() ? ControlModule.sanitizeLabel(labels.getString(i)) : "";
             window.label = label.isEmpty() ? ControlModule.sanitizeLabel(entry.label()) : label;
         }
         check();
-        notifyUpdate();
+        sync();
     }
 
     /** The plant settings preset thresholds follow, from the config in force. */
@@ -374,24 +796,6 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
             }
         }
         return fallback;
-    }
-
-    /** The window a front-face click landed on, -1 elsewhere. */
-    public static int windowAt(float[] pixel) {
-        if (pixel == null) {
-            return -1;
-        }
-        int column = pixel[0] >= 1 && pixel[0] < 7 ? 0 : pixel[0] >= 9 && pixel[0] < 15 ? 1 : -1;
-        int row = pixel[1] >= 12 && pixel[1] < 15 ? 0 : pixel[1] >= 8 && pixel[1] < 11 ? 1 : pixel[1] >= 4 && pixel[1] < 7 ? 2 : -1;
-        return column < 0 || row < 0 ? -1 : row * 2 + column;
-    }
-
-    /** 1 for the acknowledge button, 2 for reset, 0 elsewhere. */
-    public static int buttonAt(float[] pixel) {
-        if (pixel == null || pixel[1] < 1 || pixel[1] >= 3) {
-            return 0;
-        }
-        return pixel[0] >= 2 && pixel[0] < 7 ? 1 : pixel[0] >= 9 && pixel[0] < 14 ? 2 : 0;
     }
 
     // ------------------------------------------------------------------ links
@@ -413,10 +817,11 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         linkWindow(-1, target);
     }
 
-    /** A click on a window links (or unlinks) that window; a click anywhere else, all of them. */
+    /** A click on a window links (or unlinks) that window; a click anywhere else on the panel, all six. */
     @Override
     public void setTarget(@Nullable GlobalPos target, Vec3 hit) {
-        linkWindow(windowAt(ControlRoomBlocks.frontFacePixel(facing(), getBlockPos(), hit)), target);
+        AnnunciatorBoardLayout.Hit at = hitAt(AnnunciatorPanelBlock.pixel(getBlockState(), getBlockPos(), hit));
+        linkWindow(at.kind() == AnnunciatorBoardLayout.HitKind.WINDOW ? at.index() : -1, target);
     }
 
     // ------------------------------------------------------------------ persistence
@@ -431,9 +836,26 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
         tag.put("Windows", list);
         tag.putIntArray("States", logic.saveStates());
         tag.putInt("FirstOut", logic.firstOut());
-        tag.putBoolean("AckPowered", ackPowered);
-        tag.putBoolean("ResetPowered", resetPowered);
+        tag.putString("Nameplate", nameplate);
+        tag.putString("Theme", theme.name());
+        byte[] powered = new byte[inputs.length];
+        for (int i = 0; i < inputs.length; i++) {
+            powered[i] = (byte) ((inputs[i] ? 1 : 0) | (boardInputs[i] ? 2 : 0));
+        }
+        tag.putByteArray("Inputs", powered);
         tag.putBoolean("Output", outputOn);
+        tag.putInt("Comparator", comparator);
+        if (origin != null) {
+            tag.putLong("Origin", origin.asLong());
+        }
+        tag.putInt("Width", width);
+        tag.putInt("Height", height);
+        if (firstOutPanel != null) {
+            tag.putLong("BoardFirstOut", firstOutPanel.asLong());
+            tag.putInt("BoardFirstOutWindow", firstOutWindow);
+        }
+        tag.putBoolean("Silenced", silenced);
+        tag.putInt("LampTest", lampTest);
     }
 
     @Override
@@ -447,8 +869,46 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
             }
         }
         logic.load(tag.getIntArray("States"), tag.contains("FirstOut") ? tag.getInt("FirstOut") : -1);
-        ackPowered = tag.getBoolean("AckPowered");
-        resetPowered = tag.getBoolean("ResetPowered");
+        nameplate = ControlModule.sanitizeLabel(tag.getString("Nameplate"));
+        theme = MonitorTheme.byName(tag.getString("Theme"));
+        byte[] powered = tag.getByteArray("Inputs");
+        for (int i = 0; i < inputs.length; i++) {
+            byte value = i < powered.length ? powered[i] : 0;
+            inputs[i] = (value & 1) != 0;
+            boardInputs[i] = (value & 2) != 0;
+        }
+        if (!tag.contains("Inputs")) {
+            // Panels from before boards kept only ACK and RESET.
+            inputs[Button.ACK.ordinal()] = boardInputs[Button.ACK.ordinal()] = tag.getBoolean("AckPowered");
+            inputs[Button.RESET.ordinal()] = boardInputs[Button.RESET.ordinal()] = tag.getBoolean("ResetPowered");
+        }
         outputOn = tag.getBoolean("Output");
+        comparator = tag.contains("Comparator") ? Mth.clamp(tag.getInt("Comparator"), 0, 15)
+                : Math.min(15, logic.active() * 2 + (logic.unacknowledged() ? 1 : 0));
+        origin = tag.contains("Origin") ? BlockPos.of(tag.getLong("Origin")) : null;
+        width = Mth.clamp(tag.contains("Width") ? tag.getInt("Width") : 1, 1, MAX_WIDTH);
+        height = Mth.clamp(tag.contains("Height") ? tag.getInt("Height") : 1, 1, MAX_HEIGHT);
+        if (tag.contains("BoardFirstOut")) {
+            firstOutPanel = BlockPos.of(tag.getLong("BoardFirstOut"));
+            firstOutWindow = Mth.clamp(tag.getInt("BoardFirstOutWindow"), 0, WINDOWS - 1);
+        } else if (tag.contains("FirstOut") && logic.firstOut() >= 0 && !clientPacket) {
+            // A panel from before boards: its own first-out is its board's.
+            firstOutPanel = getBlockPos();
+            firstOutWindow = logic.firstOut();
+        } else {
+            firstOutPanel = null;
+            firstOutWindow = -1;
+        }
+        silenced = tag.getBoolean("Silenced");
+        lampTest = Math.max(0, tag.getInt("LampTest"));
+        if (!clientPacket) {
+            clusterDirty = true;
+        }
+    }
+
+    @Override
+    public void setLevel(Level level) {
+        super.setLevel(level);
+        clusterDirty = true;
     }
 }

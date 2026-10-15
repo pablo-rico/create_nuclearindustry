@@ -7,10 +7,13 @@ import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.AcceleratorScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.AntimatterScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CivilDefenseScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ControlRoomScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FanTreatmentScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FuelCycleScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.IsotopeScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.MaintenanceScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.WeaponsScenes;
 
 import java.util.LinkedHashMap;
@@ -21,7 +24,7 @@ import java.util.Set;
 
 /**
  * The guide's Ponder scenes: civil defense, weapons, the fuel cycle from ore to fuel, the two fan
- * treatments, the linac and the control room series (under its own tag). Registered by {@link AllNuclearPonderScenes} after its own scenes, each on the
+ * treatments, the linac, the synchrotron, antimatter containment, the annihilation generator, the antiproton injector and the control room series (under its own tag). Registered by {@link AllNuclearPonderScenes} after its own scenes, each on the
  * items {@link GuidePonderText} lists for it (the fan treatments also on Create's Encased Fan).
  */
 public final class GuidePonderScenes {
@@ -46,6 +49,12 @@ public final class GuidePonderScenes {
         boards.put(GuidePonderText.ACID_LEACHING, FanTreatmentScenes::acidLeaching);
         boards.put(GuidePonderText.IRRADIATION, FanTreatmentScenes::irradiation);
         boards.put(GuidePonderText.ACCELERATOR_LINAC, AcceleratorScenes::linac);
+        boards.put(GuidePonderText.ACCELERATOR_SYNCHROTRON, AcceleratorScenes::synchrotron);
+        boards.put(GuidePonderText.ANTIMATTER_CONTAINMENT, AntimatterScenes::containment);
+        boards.put(GuidePonderText.ANTIMATTER_GENERATOR, AntimatterScenes::generator);
+        boards.put(GuidePonderText.ANTIPROTON_INJECTOR, AntimatterScenes::injector);
+        boards.put(GuidePonderText.ISOTOPES, IsotopeScenes::isotopes);
+        boards.put(GuidePonderText.MAINTENANCE, MaintenanceScenes::maintenance);
         boards.put(GuidePonderText.CONTROL_ROOM, ControlRoomScenes::controlRoom);
         boards.put(GuidePonderText.CONTROL_MODULES, ControlRoomScenes::modules);
         boards.put(GuidePonderText.CONTROL_INSTRUMENTS, ControlRoomScenes::instruments);

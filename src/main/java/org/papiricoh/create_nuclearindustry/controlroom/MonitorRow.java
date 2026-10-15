@@ -199,7 +199,57 @@ public enum MonitorRow {
             r.flag(N_VENT) ? Tone.WARN : Tone.TEXT)),
     CONTAINMENT_ACTIVITY(TargetKind.CONTAINMENT, "activity", r -> line(fmt("%.2f", r.value(N_ACTIVITY)),
             activityFraction(r.value(N_ACTIVITY)), r.value(N_ACTIVITY) > 0 ? Tone.WARN : Tone.TEXT)),
-    CONTAINMENT_VOLUME(TargetKind.CONTAINMENT, "volume", r -> line(fmt("%.0f m³", r.value(N_VOLUME)), -1, Tone.TEXT));
+    CONTAINMENT_VOLUME(TargetKind.CONTAINMENT, "volume", r -> line(fmt("%.0f m³", r.value(N_VOLUME)), -1, Tone.TEXT)),
+
+    // ------------------------------------------------------------------ Penning trap
+    TRAP_STORED(TargetKind.ANTIMATTER_TRAP, "antimatter", r -> line(fmt("%.2f ng", r.value(P_STORED)), r.value(P_FILL),
+            r.value(P_FILL) >= 0.95f ? Tone.WARN : Tone.TEXT)),
+    TRAP_STATE(TargetKind.ANTIMATTER_TRAP, "trap_state", r -> {
+        int state = Math.round(r.value(P_STATE));
+        // TrapState by ordinal: OFFLINE, STABLE, LOW_POWER, QUENCHING
+        return switch (state) {
+            case 1 -> translated("trap_stable", Tone.GOOD);
+            case 2 -> translated("trap_low_power", Tone.WARN);
+            case 3 -> translated("trap_quenching", Tone.BAD);
+            default -> translated("trap_offline", Tone.DIM);
+        };
+    }),
+    TRAP_FIELD(TargetKind.ANTIMATTER_TRAP, "field", r -> line(fmt("%.0f%%", r.value(P_FIELD) * 100), r.value(P_FIELD),
+            r.value(P_FIELD) < 0.999f && r.value(P_STORED) > 0 ? Tone.BAD : Tone.TEXT)),
+    TRAP_BUFFER(TargetKind.ANTIMATTER_TRAP, "trap_buffer", r -> line(fmt("%.0f%%", r.value(P_BUFFER) * 100), r.value(P_BUFFER),
+            r.value(P_BUFFER) < 0.25f ? Tone.WARN : Tone.TEXT)),
+    TRAP_DEMAND(TargetKind.ANTIMATTER_TRAP, "trap_demand", r -> line(fmt("%.0f FE/t", r.value(P_DEMAND)), -1, Tone.TEXT)),
+
+    // ------------------------------------------------------------------ annihilation generator
+    GENERATOR_OUTPUT(TargetKind.ANNIHILATION_GENERATOR, "gen_output", r -> line(fmt("%.0f%%", r.value(G_OUTPUT) * 100), r.value(G_OUTPUT),
+            r.value(G_OUTPUT) + 0.01f < r.value(G_THROTTLE) ? Tone.WARN : r.value(G_OUTPUT) > 0 ? Tone.GOOD : Tone.DIM)),
+    GENERATOR_STATUS(TargetKind.ANNIHILATION_GENERATOR, "gen_status", r -> {
+        // TrapState by ordinal: OFFLINE, STABLE, LOW_POWER, QUENCHING
+        if (Math.round(r.value(G_STATE)) == 3) {
+            return translated("gen_quenching", Tone.BAD);
+        }
+        boolean lit = r.flag(G_LIT);
+        if (!lit && r.value(G_STORED) > 0) {
+            return translated("gen_no_field", Tone.BAD);
+        }
+        if (!lit) {
+            return translated("gen_cold", Tone.DIM);
+        }
+        return r.value(G_OUTPUT) > 0 ? translated("gen_running", Tone.GOOD) : translated("gen_standby", Tone.WARN);
+    }),
+    GENERATOR_MODE(TargetKind.ANNIHILATION_GENERATOR, "gen_mode", r -> switch (Math.round(r.value(G_MODE))) {
+        case 1 -> translated("gen_mode_electric", Tone.TEXT);
+        case 2 -> translated("gen_mode_split", Tone.TEXT);
+        default -> translated("gen_mode_rotation", Tone.TEXT);
+    }),
+    GENERATOR_THROTTLE(TargetKind.ANNIHILATION_GENERATOR, "gen_throttle", r -> line(fmt("%.0f%%", r.value(G_THROTTLE) * 100),
+            r.value(G_THROTTLE), Tone.TEXT)),
+    GENERATOR_CHAMBER(TargetKind.ANNIHILATION_GENERATOR, "antimatter", r -> line(fmt("%.3f ng", r.value(G_STORED)),
+            r.value(G_CHAMBER_FILL), r.value(G_STORED) <= 0 ? Tone.WARN : Tone.TEXT)),
+    GENERATOR_ENERGY(TargetKind.ANNIHILATION_GENERATOR, "gen_energy", r -> line(fmt("%.0f FE/t", r.value(G_FE)),
+            r.value(G_RATED_FE) > 0 ? r.value(G_FE) / r.value(G_RATED_FE) : -1, Tone.TEXT)),
+    GENERATOR_STRESS(TargetKind.ANNIHILATION_GENERATOR, "gen_stress", r -> line(fmt("%.0f SU", r.value(G_STRESS)), -1, Tone.TEXT)),
+    GENERATOR_BURN(TargetKind.ANNIHILATION_GENERATOR, "gen_burn", r -> line(fmt("%.2f ng/min", r.value(G_BURN)), -1, Tone.TEXT));
 
     /** Prefix of the row labels and of the translated values (yes, no, open, closed, off). */
     public static final String KEY = "create_nuclearindustry.monitor.";

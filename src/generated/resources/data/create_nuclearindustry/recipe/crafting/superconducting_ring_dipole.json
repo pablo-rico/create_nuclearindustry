@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": {
+      "item": "create_nuclearindustry:ring_dipole_magnet"
+    },
+    "U": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    }
+  },
+  "pattern": [
+    " U ",
+    "UDU",
+    " U "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:superconducting_ring_dipole"
+  }
+}

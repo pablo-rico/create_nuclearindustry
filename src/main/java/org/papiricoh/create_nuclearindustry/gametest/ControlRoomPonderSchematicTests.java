@@ -8,6 +8,8 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlockEntity;
+import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorPanelBlock;
+import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorPanelBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleSurfaceBlock;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ControlRoomLayout;
@@ -90,5 +92,39 @@ public class ControlRoomPonderSchematicTests {
             }
         }
         helper.succeed();
+    }
+
+    @GameTest(template = "gametest/control_room_ponder", timeoutTicks = 100)
+    public static void theAnnunciatorsHangAsTheBoardsTheScenesDraw(GameTestHelper helper) {
+        List<String> wrong = new ArrayList<>();
+        for (int x = 0; x < SIZE; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                for (int z = 0; z < SIZE; z++) {
+                    BlockPos pos = new BlockPos(x, y + 1, z);
+                    BlockState state = helper.getBlockState(pos);
+                    if (!(state.getBlock() instanceof AnnunciatorPanelBlock)) {
+                        continue;
+                    }
+                    BlockState joined = AnnunciatorPanelBlock.connect(state, helper.getLevel(), helper.absolutePos(pos));
+                    if (!joined.equals(state) || !state.getValue(AnnunciatorPanelBlock.MOUNTED)
+                            || !state.canSurvive(helper.getLevel(), helper.absolutePos(pos))) {
+                        wrong.add("(" + x + ", " + y + ", " + z + ") " + state + " should be hung as " + joined);
+                    }
+                }
+            }
+        }
+        helper.assertTrue(wrong.isEmpty(), wrong.size() + " annunciators differ: " + String.join("; ", wrong));
+        helper.succeedWhen(() -> {
+            board(helper, ControlRoomLayout.ANNUNCIATOR_BOARD, ControlRoomLayout.ANNUNCIATOR_BOARD_WIDTH);
+            board(helper, ControlRoomLayout.TOKAMAK_BOARD, ControlRoomLayout.TOKAMAK_BOARD_WIDTH);
+        });
+    }
+
+    private static void board(GameTestHelper helper, BlockPos origin, int width) {
+        AnnunciatorPanelBlockEntity panel = helper.getLevel().getBlockEntity(helper.absolutePos(origin.above()))
+                instanceof AnnunciatorPanelBlockEntity found ? found : null;
+        helper.assertTrue(panel != null, "an annunciator at " + origin);
+        helper.assertTrue(panel.isOrigin() && panel.boardWidth() == width && panel.boardHeight() == 1,
+                origin + " heads a board " + width + " wide, got " + panel.boardWidth() + "x" + panel.boardHeight());
     }
 }

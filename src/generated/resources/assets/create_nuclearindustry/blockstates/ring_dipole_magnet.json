@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "create_nuclearindustry:block/ring_dipole_magnet",
+      "y": 90
+    },
+    "axis=y": {
+      "model": "create_nuclearindustry:block/ring_dipole_magnet",
+      "x": 90
+    },
+    "axis=z": {
+      "model": "create_nuclearindustry:block/ring_dipole_magnet"
+    }
+  }
+}

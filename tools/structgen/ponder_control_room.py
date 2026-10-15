@@ -6,18 +6,19 @@
 A main control room laid out like a real plant's, 19x7x19 on a polished floor at y 0 with a darker band along the back wall. Ponder looks
 from the north-west, so the room is open to the north and west and every front faces north or west:
 - back wall z 18 (and the corner column x 17, z 17), east wall x 18, concrete, y 1..6;
-- the back wall's instruments at z 17, facing north: a row of annunciator panels x 1..16 at y 5;
+- the back wall's instruments at z 17, facing north: a row of annunciator panels x 1..16 at y 5, hung
+  on the wall as one board;
   under it, west section x 1..5 of wall control panels y 1..4 with chart recorders at (1..2, 1);
   centre x 6..11 a 6x3 monitor screen at y 2..4 over a row of wall panels at y 1; east section
   x 12..16 of wall panels y 1..4 with chart recorders at (15..16, 1); nuclear alarms at (6, 6) and
   (11, 6) on the ledge;
-- the east wall's instruments at x 17, facing west: annunciators z 7..16 at y 4; two 3x2 monitor
+- the east wall's instruments at x 17, facing west: an annunciator board z 7..16 at y 4; two 3x2 monitor
   screens at z 8..10 and z 13..15, y 2..3, with wall panels around them and along y 1;
 - the operators' console, set back three blocks from the back wall: control desks along z 13
   (x 5..13) facing north, turning inner corners at x 4 and x 14 into arms along x 4 (facing east)
   and x 14 (facing west) at z 11..12, so it wraps round the operators; seats at z 12 and z 10;
 - the shift supervisor's control tables x 7..11 at z 6 facing north, with seats at z 5.
-Desk shapes and the LEFT/RIGHT joins are what the game works out for this layout; a GameTest
+Desk shapes, the LEFT/RIGHT joins and the annunciators' frames are what the game works out for this layout; a GameTest
 (ControlRoomPonderSchematicTests) checks them against the game's own rules.
 """
 from ponder_plant_parts import put, write, NS
@@ -41,6 +42,12 @@ def desk(blocks, pos, facing, shape="straight"):
     put(blocks, pos, NS + "reactor_control_panel", {"facing": facing, "shape": shape, "left": "false", "right": "false"})
 
 
+def annunciator(blocks, pos, facing):
+    # Hung on the wall behind it; its frame's joins are worked out by joins().
+    put(blocks, pos, NS + "annunciator_panel", {"facing": facing, "mounted": "true", "left": "false", "right": "false",
+                                                 "up": "false", "down": "false"})
+
+
 def facing_block(blocks, pos, name, facing):
     put(blocks, pos, NS + name, {"facing": facing})
 
@@ -61,7 +68,7 @@ def build():
 
     # Back wall, facing north.
     for x in range(1, 17):
-        facing_block(blocks, (x, 5, 17), "annunciator_panel", "north")
+        annunciator(blocks, (x, 5, 17), "north")
     for x in range(1, 17):
         for y in range(1, 5):
             if 6 <= x <= 11 and y >= 2:
@@ -75,7 +82,7 @@ def build():
 
     # East wall, facing west.
     for z in range(7, 17):
-        facing_block(blocks, (17, 4, z), "annunciator_panel", "west")
+        annunciator(blocks, (17, 4, z), "west")
         panel(blocks, (17, 1, z), "west")
         for y in (2, 3):
             if 8 <= z <= 10 or 13 <= z <= 15:
@@ -108,12 +115,20 @@ def build():
 CW = {"north": "east", "east": "south", "south": "west", "west": "north"}
 STEP = {"north": (0, -1), "south": (0, 1), "east": (1, 0), "west": (-1, 0)}
 FLAT = (NS + "wall_control_panel", NS + "control_table")
+ANNUNCIATOR = NS + "annunciator_panel"
 
 
 def joins(blocks):
     """LEFT and RIGHT of tables and wall panels: the same block on that side, facing the same way.
     The operator's left is clockwise of the side they stand on. Desks are left to the overrides."""
     for (x, y, z), (name, props) in list(blocks.items()):
+        if name == ANNUNCIATOR:
+            facing = props["facing"]
+            for (dx, dy, dz), key in ((STEP[CW[facing]][0], 0, STEP[CW[facing]][1]), "left"), \
+                    ((STEP[CW[CW[CW[facing]]]][0], 0, STEP[CW[CW[CW[facing]]]][1]), "right"), ((0, 1, 0), "up"), ((0, -1, 0), "down"):
+                other = blocks.get((x + dx, y + dy, z + dz))
+                props[key] = "true" if other and other[0] == name and other[1]["facing"] == facing else "false"
+            continue
         if name not in FLAT:
             continue
         facing = props["facing"]

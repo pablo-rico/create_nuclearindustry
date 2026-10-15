@@ -8,7 +8,7 @@ import org.papiricoh.create_nuclearindustry.accelerator.AcceleratorRegistry;
 import org.papiricoh.create_nuclearindustry.accelerator.gui.AcceleratorScreen;
 import org.papiricoh.create_nuclearindustry.client.NuclearFeatureClient;
 
-/** Client setup for the particle accelerator: the beam renderer, screens and sounds. */
+/** Client setup for the particle accelerator: the beam and target station renderers, screens and sounds. */
 public final class AcceleratorClient implements NuclearFeatureClient {
     public static final AcceleratorClient INSTANCE = new AcceleratorClient();
 
@@ -27,6 +27,7 @@ public final class AcceleratorClient implements NuclearFeatureClient {
         event.registerBlockEntityRenderer(AcceleratorRegistry.KLYSTRON_ENTITY.get(), AcceleratorMachineRenderer::new);
         event.registerBlockEntityRenderer(AcceleratorRegistry.MAGNET_POWER_SUPPLY_ENTITY.get(), AcceleratorMachineRenderer::new);
         event.registerBlockEntityRenderer(AcceleratorRegistry.VACUUM_PUMP_ENTITY.get(), AcceleratorMachineRenderer::new);
+        event.registerBlockEntityRenderer(AcceleratorRegistry.TARGET_STATION_ENTITY.get(), TargetStationRenderer::new);
     }
 
     @Override

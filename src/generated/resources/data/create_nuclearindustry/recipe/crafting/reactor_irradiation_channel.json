@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:reactor_casing"
+    },
+    "P": {
+      "item": "create:fluid_pipe"
+    },
+    "S": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    " S ",
+    "PCP",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:reactor_irradiation_channel"
+  }
+}

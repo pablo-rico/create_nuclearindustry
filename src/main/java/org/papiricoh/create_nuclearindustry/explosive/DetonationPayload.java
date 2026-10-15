@@ -59,9 +59,9 @@ public record DetonationPayload(Vec3 centre, float scale, float fireball, float 
                     buf.readFloat(), buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readLong(),
                     DetonationStyle.byId(buf.readByte())));
 
-    /** A dirty bomb: a small conventional flash and no cloud. */
+    /** A dirty bomb or an antimatter annihilation: a small flash and no cloud. */
     public boolean dirty() {
-        return style == DetonationStyle.DIRTY;
+        return style == DetonationStyle.DIRTY || style == DetonationStyle.ANTIMATTER;
     }
 
     @Override
@@ -87,6 +87,13 @@ public record DetonationPayload(Vec3 centre, float scale, float fireball, float 
         return new DetonationPayload(centre, 0, Math.max(2, power * 0.4f), 0, false,
                 (float) BlastWaveModel.yield(power, CivilDefenseConfig.blastWaveYieldPerPower), (float) CivilDefenseConfig.blastWaveSpeed,
                 0, 0, seed, DetonationStyle.DIRTY);
+    }
+
+    /** An antimatter annihilation of blast radius {@code radius} at {@code centre}: a small flash, no cloud. */
+    public static DetonationPayload antimatter(Vec3 centre, float radius, long seed) {
+        return new DetonationPayload(centre, 0, Math.max(1.5f, radius * 0.5f), 0, false,
+                (float) BlastWaveModel.yield(radius, CivilDefenseConfig.blastWaveYieldPerPower), (float) CivilDefenseConfig.blastWaveSpeed,
+                0, 0, seed, DetonationStyle.ANTIMATTER);
     }
 
     /** Sends it to the players of the level close enough to see it. */

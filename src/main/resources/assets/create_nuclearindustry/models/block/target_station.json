@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "create_nuclearindustry:block/target_station_side",
+    "north": "create_nuclearindustry:block/target_station_front",
+    "south": "create_nuclearindustry:block/target_station_back",
+    "east": "create_nuclearindustry:block/target_station_side",
+    "west": "create_nuclearindustry:block/target_station_side",
+    "up": "create_nuclearindustry:block/target_station_top",
+    "down": "create_nuclearindustry:block/target_station_side"
+  }
+}

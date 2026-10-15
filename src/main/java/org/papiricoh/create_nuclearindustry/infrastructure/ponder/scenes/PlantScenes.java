@@ -655,7 +655,7 @@ public class PlantScenes {
         scene.idle(70);
 
         // Annunciator and chart recorder.
-        scene.world().showSection(util.select().fromTo(1, 1, 3, 2, 1, 3), Direction.DOWN);
+        scene.world().showSection(util.select().fromTo(1, 1, 3, 2, 1, 4), Direction.DOWN);
         scene.idle(15);
         scene.overlay().showControls(util.vector().blockSurface(annunciator, Direction.NORTH), Pointing.DOWN, 50)
                 .rightClick().withItem(linker);
@@ -1005,6 +1005,9 @@ public class PlantScenes {
         // Ordinals of AnnunciatorLogic.State, 0x100 marks a window that tripped.
         nbt.put("States", new IntArrayTag(new int[]{1 | 0x100, 2 | 0x100, 0, 3, 0, 0}));
         nbt.putInt("FirstOut", 0);
+        // A panel on its own is its board: it holds its own first-out.
+        nbt.putLong("BoardFirstOut", new BlockPos(1, 1, 3).asLong());
+        nbt.putInt("BoardFirstOutWindow", 0);
     }
 
     /** Three pens of a reactor ramping up to power, with paper in the tray. */

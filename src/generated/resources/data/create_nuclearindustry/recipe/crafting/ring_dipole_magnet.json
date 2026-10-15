@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "P": {
+      "item": "create_nuclearindustry:beam_pipe"
+    },
+    "S": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "SSS",
+    "CPC",
+    "SSS"
+  ],
+  "result": {
+    "count": 2,
+    "id": "create_nuclearindustry:ring_dipole_magnet"
+  }
+}

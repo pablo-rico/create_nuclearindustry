@@ -33,5 +33,7 @@ public enum TokamakShellRole {
     /** Radio-frequency antenna: auxiliary heating. */
     RF_ANTENNA,
     /** Window into the plasma chamber; glows while the plasma is lit. */
-    VIEWPORT
+    VIEWPORT,
+    /** Antiproton injector: fires a dose of antimatter that lifts a heating plasma past ignition. */
+    ANTIPROTON_INJECTOR
 }

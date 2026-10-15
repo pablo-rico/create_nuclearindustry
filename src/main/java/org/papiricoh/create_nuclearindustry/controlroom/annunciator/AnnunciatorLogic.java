@@ -14,7 +14,11 @@ import java.util.Arrays;
  * </ul>
  * A RINGBACK window that trips again goes back to ALERT; RESET only clears windows in RINGBACK.
  * The first window to trip while no first-out is marked becomes the first-out, the likely cause of a
- * burst of alarms, until it is back to NORMAL. No game classes, so it can be tested on its own.
+ * burst of alarms, until it is back to NORMAL.
+ * <p>
+ * A window that does not latch (a status window, see {@link AnnunciatorSeverity}) skips the sequence:
+ * it is ACKNOWLEDGED (steady) while its condition holds and NORMAL once it clears, never sounds and is
+ * never the first-out. No game classes, so it can be tested on its own.
  */
 public final class AnnunciatorLogic {
     /** {@link #update} flags. */
@@ -34,6 +38,7 @@ public final class AnnunciatorLogic {
     private final State[] states;
     private final boolean[] tripped;
     private int firstOut = -1;
+    private int lastNewAlert = -1;
 
     public AnnunciatorLogic(int windows) {
         states = new State[windows];
@@ -57,6 +62,11 @@ public final class AnnunciatorLogic {
     /** The first-out window, or -1. */
     public int firstOut() {
         return firstOut;
+    }
+
+    /** The first window that went into ALERT at the last update, or -1. */
+    public int lastNewAlert() {
+        return lastNewAlert;
     }
 
     /** Whether any window waits for an acknowledgement: the horn sounds and the panel's output is on. */
@@ -85,6 +95,14 @@ public final class AnnunciatorLogic {
      * {@link #CHANGED}, {@link #NEW_ALERT} and {@link #RINGBACK} flags for what happened.
      */
     public int update(boolean[] now) {
+        return update(now, null);
+    }
+
+    /**
+     * As {@link #update(boolean[])}, with {@code latching[i]} false for a window that only shows its
+     * condition; null means every window latches.
+     */
+    public int update(boolean[] now, boolean[] latching) {
         int result = 0;
         int firstNew = -1;
         for (int i = 0; i < states.length; i++) {
@@ -92,7 +110,14 @@ public final class AnnunciatorLogic {
             tripped[i] = trip;
             State before = states[i];
             State after = before;
-            if (trip && (before == State.NORMAL || before == State.RINGBACK)) {
+            if (latching != null && i < latching.length && !latching[i]) {
+                after = trip ? State.ACKNOWLEDGED : State.NORMAL;
+                if (firstOut == i) {
+                    // A window that was the first-out before it stopped latching.
+                    firstOut = -1;
+                    result |= CHANGED;
+                }
+            } else if (trip && (before == State.NORMAL || before == State.RINGBACK)) {
                 after = State.ALERT;
                 if (firstNew < 0) {
                     firstNew = i;
@@ -107,6 +132,7 @@ public final class AnnunciatorLogic {
                 result |= CHANGED;
             }
         }
+        lastNewAlert = firstNew;
         if (firstOut < 0 && firstNew >= 0) {
             firstOut = firstNew;
             result |= CHANGED;

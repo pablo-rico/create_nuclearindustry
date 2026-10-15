@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "create_nuclearindustry:block/injection_septum",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/injection_septum"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/injection_septum",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/injection_septum",
+      "y": 270
+    }
+  }
+}

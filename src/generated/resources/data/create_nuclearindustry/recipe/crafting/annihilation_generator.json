@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "create:brass_casing"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create:shaft"
+    },
+    "T": {
+      "item": "create_nuclearindustry:small_penning_trap"
+    },
+    "U": {
+      "item": "create_nuclearindustry:superconductor_ingot"
+    }
+  },
+  "pattern": [
+    "UTU",
+    "EBE",
+    "PSP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:annihilation_generator"
+  }
+}

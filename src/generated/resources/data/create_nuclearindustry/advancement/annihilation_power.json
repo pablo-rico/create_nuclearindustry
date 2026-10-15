@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:first_nanogram",
+  "criteria": {
+    "annihilation_power": {
+      "conditions": {
+        "event": "annihilation_power"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.annihilation_power.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:annihilation_generator"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.annihilation_power.title"
+    }
+  },
+  "requirements": [
+    [
+      "annihilation_power"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

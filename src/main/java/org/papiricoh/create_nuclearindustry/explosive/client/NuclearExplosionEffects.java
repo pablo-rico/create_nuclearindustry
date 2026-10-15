@@ -10,6 +10,9 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -22,6 +25,7 @@ import org.joml.Vector3f;
 import org.papiricoh.create_nuclearindustry.ClientConfig;
 import org.papiricoh.create_nuclearindustry.civildefense.blast.BlastWaveModel;
 import org.papiricoh.create_nuclearindustry.explosive.DetonationPayload;
+import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationStyle;
 import org.papiricoh.create_nuclearindustry.explosive.blast.ExplosionPalette;
 import org.papiricoh.create_nuclearindustry.explosive.blast.MushroomCloudModel;
 
@@ -38,6 +42,8 @@ import java.util.List;
  * condensation round the fireball; the view shaking when the shock wave passes. The flash and the shake
  * follow {@code explosion.*} in the client config. Colours and timings come from the detonation's
  * {@link ExplosionPalette}: a thermonuclear one flashes harder, burns longer and leaves sooty smoke.
+ * Annihilating antimatter raises no cloud and no smoke: a white-green flash at its heart, a shell of
+ * green and cyan sparks thrown out to the edge of the blast and a green afterglow, over in two seconds.
  * <p>
  * The cloud and the ring are built once a frame. Without Distant Horizons all of it is drawn after the
  * weather, and what lies past the far plane is cut off. With it, its pass takes what lies beyond the
@@ -50,6 +56,12 @@ public final class NuclearExplosionEffects {
     private static final int PUFF_SIDES = 10;
     /** The share of a puff's radius that is solid before it fades out. */
     private static final double PUFF_CORE = 0.6;
+    /** Seconds an antimatter annihilation is shown. */
+    private static final double ANNIHILATION_SECONDS = 2.0;
+    /** Sparks in an annihilation's shell. */
+    private static final int SHELL_SPARKS = 96;
+    /** The shell's colours: the vial's green, the small trap's cyan and a near white. */
+    private static final int[] SHELL_COLOURS = {0x6BFF8A, 0x3FD8E8, 0xD8FFE0};
 
     private static final List<Explosion> ACTIVE = new ArrayList<>();
 
@@ -90,7 +102,17 @@ public final class NuclearExplosionEffects {
         }
 
         boolean over(double seconds) {
-            return seconds > (payload.dirty() ? 10 : MushroomCloudModel.LIFETIME) && waveRadius(seconds) >= payload.waveRadius();
+            double lifetime = antimatter() ? ANNIHILATION_SECONDS : payload.dirty() ? 10 : MushroomCloudModel.LIFETIME;
+            return seconds > lifetime && waveRadius(seconds) >= payload.waveRadius();
+        }
+
+        boolean antimatter() {
+            return payload.style() == DetonationStyle.ANTIMATTER;
+        }
+
+        /** The blast's radius, for the shell of sparks: the payload's fireball is half of it. */
+        double blastRadius() {
+            return Math.max(3, payload.fireball() * 2.0);
         }
 
         double waveRadius(double seconds) {
@@ -104,7 +126,11 @@ public final class NuclearExplosionEffects {
         if (mc.level == null) {
             return;
         }
-        ACTIVE.add(new Explosion(payload, mc.level.getGameTime()));
+        Explosion explosion = new Explosion(payload, mc.level.getGameTime());
+        ACTIVE.add(explosion);
+        if (explosion.antimatter()) {
+            annihilationParticles(explosion);
+        }
     }
 
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
@@ -172,7 +198,9 @@ public final class NuclearExplosionEffects {
                 iterator.remove();
                 continue;
             }
-            if (!explosion.payload.dirty()) {
+            if (explosion.antimatter()) {
+                annihilation(explosion, seconds, camera, eye, quads);
+            } else if (!explosion.payload.dirty()) {
                 puffs(explosion, seconds, camera, eye, daylight, quads);
                 condensation(explosion, seconds, eye, quads);
             }
@@ -358,6 +386,116 @@ public final class NuclearExplosionEffects {
         return Math.max(0, Math.min(1, value));
     }
 
+    // ------------------------------------------------------------------ antimatter: light and sparks, no smoke
+
+    /**
+     * An annihilation: a blinding white-green heart that swells and is gone in half a second, a green
+     * halo, and a shell of twinkling green, cyan and white sparks racing out to the blast's edge and
+     * fading there. Everything is light, drawn at full brightness whatever the daylight.
+     */
+    private static void annihilation(Explosion explosion, double seconds, Camera camera, Vec3 eye, List<Quad> quads) {
+        Vec3 c = explosion.payload.centre();
+        double cx = c.x - eye.x, cy = c.y - eye.y, cz = c.z - eye.z;
+        Vector3f left = camera.getLeftVector();
+        Vector3f up = camera.getUpVector();
+        double radius = explosion.blastRadius();
+        ExplosionPalette palette = explosion.palette;
+        if (seconds < palette.fireballSeconds()) {
+            double t = seconds / palette.fireballSeconds();
+            double size = explosion.payload.fireball() * palette.fireballScale() * (0.6 + 1.2 * Math.min(1, seconds / 0.12));
+            float alpha = (float) Math.pow(1 - t, 1.5);
+            ExplosionPalette.Rgb heart = palette.flash();
+            int centre = argb(alpha, heart.red(), heart.green(), heart.blue());
+            disc(quads, cx, cy, cz, size, left, up, centre, centre & 0x00FFFFFF);
+        }
+        double haloEnd = 1.2;
+        if (seconds < haloEnd) {
+            double t = seconds / haloEnd;
+            double size = radius * (0.5 + 0.6 * (1 - Math.exp(-seconds / 0.2)));
+            ExplosionPalette.Rgb glow = palette.glow();
+            int centre = argb((float) (0.4 * (1 - t) * (1 - t)), glow.red(), glow.green(), glow.blue());
+            // A little behind the sparks, so they draw over it.
+            disc(quads, cx, cy, cz, size, left, up, centre, centre & 0x00FFFFFF, 0.5);
+        }
+        RandomSource random = RandomSource.create(explosion.payload.seed());
+        double spin = random.nextDouble() * Math.PI * 2;
+        double fade = Math.max(0, 1 - seconds / (ANNIHILATION_SECONDS * 0.85));
+        if (fade <= 0) {
+            return;
+        }
+        double reach = radius * (1 - Math.exp(-seconds / 0.22));
+        double golden = Math.PI * (3 - Math.sqrt(5));
+        for (int i = 0; i < SHELL_SPARKS; i++) {
+            // A Fibonacci sphere, turned by the seed, each spark a little nearer or farther.
+            double y = 1 - 2 * (i + 0.5) / SHELL_SPARKS;
+            double ring = Math.sqrt(1 - y * y);
+            double a = i * golden + spin;
+            double out = reach * (0.8 + 0.35 * random.nextDouble());
+            double twinkle = 0.55 + 0.45 * Math.sin(seconds * (18 + 10 * random.nextDouble()) + i * 1.7);
+            int colour = SHELL_COLOURS[i % SHELL_COLOURS.length];
+            float alpha = (float) (fade * twinkle);
+            int centre = argb(alpha, ((colour >> 16) & 0xFF) / 255f, ((colour >> 8) & 0xFF) / 255f, (colour & 0xFF) / 255f);
+            double size = (0.12 + 0.025 * radius) * (0.7 + 0.6 * twinkle);
+            disc(quads, cx + out * ring * Math.cos(a), cy + out * y, cz + out * ring * Math.sin(a), size, left, up, centre,
+                    centre & 0x00FFFFFF);
+        }
+    }
+
+    /** {@link #disc} sorted as if {@code back} blocks farther from the camera than it is. */
+    private static void disc(List<Quad> quads, double cx, double cy, double cz, double radius, Vector3f left, Vector3f up, int centre,
+                             int rim, double back) {
+        int from = quads.size();
+        disc(quads, cx, cy, cz, radius, left, up, centre, rim);
+        double distance = Math.sqrt(cx * cx + cy * cy + cz * cz) + back;
+        for (int i = from; i < quads.size(); i++) {
+            Quad quad = quads.get(i);
+            quads.set(i, new Quad(quad.xyz(), quad.argb(), distance * distance));
+        }
+    }
+
+    /**
+     * The particles of an annihilation, spawned once on the client: green and cyan motes and white
+     * sparks thrown out in every direction to about the blast's edge, and a few flashes inside it.
+     */
+    private static void annihilationParticles(Explosion explosion) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) {
+            return;
+        }
+        RandomSource random = mc.level.random;
+        Vec3 c = explosion.payload.centre();
+        double radius = explosion.blastRadius();
+        DustParticleOptions green = new DustParticleOptions(new Vector3f(0x6B / 255f, 1.0f, 0x8A / 255f), 1.6f);
+        DustParticleOptions cyan = new DustParticleOptions(new Vector3f(0x3F / 255f, 0xD8 / 255f, 0xE8 / 255f), 1.4f);
+        for (int i = 0; i < 90; i++) {
+            Vec3 dir = randomDirection(random);
+            // Dust slows by 4 % a tick: it travels about 25 times its first speed.
+            double speed = radius / 25 * (0.6 + 0.5 * random.nextDouble());
+            mc.level.addParticle(i % 2 == 0 ? green : cyan, c.x, c.y, c.z, dir.x * speed, dir.y * speed, dir.z * speed);
+        }
+        for (int i = 0; i < 40; i++) {
+            Vec3 dir = randomDirection(random);
+            double speed = radius / 30 * (0.5 + 0.6 * random.nextDouble());
+            mc.level.addParticle(ParticleTypes.END_ROD, c.x, c.y, c.z, dir.x * speed, dir.y * speed, dir.z * speed);
+        }
+        for (int i = 0; i < 24; i++) {
+            Vec3 dir = randomDirection(random);
+            double speed = radius / 12 * (0.5 + 0.5 * random.nextDouble());
+            mc.level.addParticle(ParticleTypes.ELECTRIC_SPARK, c.x, c.y, c.z, dir.x * speed, dir.y * speed, dir.z * speed);
+        }
+        for (int i = 0; i < 5; i++) {
+            Vec3 at = c.add(randomDirection(random).scale(radius * 0.4 * random.nextDouble()));
+            mc.level.addParticle(ParticleTypes.FLASH, at.x, at.y, at.z, 0, 0, 0);
+        }
+    }
+
+    private static Vec3 randomDirection(RandomSource random) {
+        double y = random.nextDouble() * 2 - 1;
+        double a = random.nextDouble() * Math.PI * 2;
+        double ring = Math.sqrt(1 - y * y);
+        return new Vec3(ring * Math.cos(a), y, ring * Math.sin(a));
+    }
+
     // ------------------------------------------------------------------ the screen: flash and glow
 
     /** The flash, white and brief, and the orange glow after it, over the whole screen. */
@@ -378,19 +516,19 @@ public final class NuclearExplosionEffects {
             Vec3 fireball = explosion.payload.centre().add(0, explosion.payload.fireball() * 0.5, 0);
             Vec3 toward = fireball.subtract(eye);
             double distance = Math.max(1, toward.length());
-            double near = explosion.payload.dirty()
-                    ? Math.min(1, 24 / distance)
+            double near = explosion.antimatter() ? Math.min(1, 6 * explosion.blastRadius() / distance)
+                    : explosion.payload.dirty() ? Math.min(1, 24 / distance)
                     : Math.min(1, 2.5 * Math.max(explosion.payload.thermalRadius(), 32) / distance);
             double facing = 0.35 + 0.65 * Math.max(0, look.dot(toward.scale(1 / distance)));
             boolean seen = sees(mc, eye, fireball);
             ExplosionPalette palette = explosion.palette;
             double flashHere = Math.exp(-seconds / palette.flashFade()) * near * facing * (seen ? 1 : 0.3)
-                    * (explosion.payload.dirty() ? 0.5 : 1);
+                    * (explosion.payload.dirty() && !explosion.antimatter() ? 0.5 : 1);
             if (flashHere > flash) {
                 flash = flashHere;
                 flashColour = palette.flash();
             }
-            if (!explosion.payload.dirty()) {
+            if (!explosion.payload.dirty() || explosion.antimatter()) {
                 double glowHere = Math.exp(-seconds / palette.glowFade()) * Math.min(1, near * 1.5) * palette.glowAlpha();
                 if (glowHere > glow) {
                     glow = glowHere;
@@ -427,13 +565,14 @@ public final class NuclearExplosionEffects {
         ExplosionPalette palette = ExplosionPalette.FISSION;
         Vec3 eye = event.getCamera().getPosition();
         for (Explosion explosion : ACTIVE) {
-            if (explosion.payload.dirty()) {
+            if (explosion.payload.dirty() && !explosion.antimatter()) {
                 continue;
             }
             double seconds = explosion.seconds((float) event.getPartialTick());
             double distance = Math.max(1, eye.distanceTo(explosion.payload.centre()));
+            double reach = explosion.antimatter() ? 4 * explosion.blastRadius() : explosion.payload.thermalRadius();
             double here = Math.min(explosion.palette.fogMax(), Math.exp(-seconds / explosion.palette.glowFade())
-                    * Math.min(1, 3.0 * explosion.payload.thermalRadius() / distance));
+                    * Math.min(1, 3.0 * reach / distance));
             if (here > tint) {
                 tint = here;
                 palette = explosion.palette;

@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "corner=ne,level=bottom": {
+      "model": "create_nuclearindustry:block/large_penning_trap/bottom_ne"
+    },
+    "corner=ne,level=middle": {
+      "model": "create_nuclearindustry:block/large_penning_trap/middle_ne"
+    },
+    "corner=ne,level=top": {
+      "model": "create_nuclearindustry:block/large_penning_trap/top_ne"
+    },
+    "corner=nw,level=bottom": {
+      "model": "create_nuclearindustry:block/large_penning_trap/bottom_nw"
+    },
+    "corner=nw,level=middle": {
+      "model": "create_nuclearindustry:block/large_penning_trap/middle_nw"
+    },
+    "corner=nw,level=top": {
+      "model": "create_nuclearindustry:block/large_penning_trap/top_nw"
+    },
+    "corner=se,level=bottom": {
+      "model": "create_nuclearindustry:block/large_penning_trap/bottom_se"
+    },
+    "corner=se,level=middle": {
+      "model": "create_nuclearindustry:block/large_penning_trap/middle_se"
+    },
+    "corner=se,level=top": {
+      "model": "create_nuclearindustry:block/large_penning_trap/top_se"
+    },
+    "corner=sw,level=bottom": {
+      "model": "create_nuclearindustry:block/large_penning_trap/bottom_sw"
+    },
+    "corner=sw,level=middle": {
+      "model": "create_nuclearindustry:block/large_penning_trap/middle_sw"
+    },
+    "corner=sw,level=top": {
+      "model": "create_nuclearindustry:block/large_penning_trap/top_sw"
+    }
+  }
+}

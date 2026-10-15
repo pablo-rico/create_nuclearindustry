@@ -149,6 +149,94 @@ public class AcceleratorRecipes extends RecipeProvider {
                 .define('B', Items.COPPER_BLOCK)
                 .unlockedBy("has_graphite", has(AllNuclearItems.GRAPHITE.get()))
                 .save(output, id("crafting/beam_dump"));
+        ring(output);
+    }
+
+    /** The synchrotron ring, its septa, the target station, the cryogenic feed and the interlock. */
+    private static void ring(RecipeOutput output) {
+        // Ring dipole: a long iron yoke with two copper coils round the pipe.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AcceleratorRegistry.RING_DIPOLE_ITEM.get(), 2)
+                .pattern("SSS")
+                .pattern("CPC")
+                .pattern("SSS")
+                .define('S', CreateItems.get("iron_sheet"))
+                .define('C', Items.COPPER_INGOT)
+                .define('P', AcceleratorRegistry.BEAM_PIPE_ITEM.get())
+                .unlockedBy("has_beam_pipe", has(AcceleratorRegistry.BEAM_PIPE_ITEM.get()))
+                .save(output, id("crafting/ring_dipole_magnet"));
+        // Superconducting ring dipole: superconductor windings round a ring dipole.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AcceleratorRegistry.SC_RING_DIPOLE_ITEM.get())
+                .pattern(" U ")
+                .pattern("UDU")
+                .pattern(" U ")
+                .define('U', AllNuclearItems.SUPERCONDUCTOR_INGOT.get())
+                .define('D', AcceleratorRegistry.RING_DIPOLE_ITEM.get())
+                .unlockedBy("has_superconductor", has(AllNuclearItems.SUPERCONDUCTOR_INGOT.get()))
+                .save(output, id("crafting/superconducting_ring_dipole"));
+        // Superconducting RF cavity: a copper cavity lined with superconductor.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AcceleratorRegistry.SC_RF_CAVITY_ITEM.get())
+                .pattern(" U ")
+                .pattern("UCU")
+                .pattern(" U ")
+                .define('U', AllNuclearItems.SUPERCONDUCTOR_INGOT.get())
+                .define('C', AcceleratorRegistry.RF_CAVITY_ITEM.get())
+                .unlockedBy("has_superconductor", has(AllNuclearItems.SUPERCONDUCTOR_INGOT.get()))
+                .save(output, id("crafting/superconducting_rf_cavity"));
+        // Septa: a bending magnet with a fast kicker driven through electron tubes.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AcceleratorRegistry.INJECTION_SEPTUM_ITEM.get())
+                .pattern("SES")
+                .pattern("SBS")
+                .pattern("SRS")
+                .define('S', CreateItems.get("iron_sheet"))
+                .define('E', CreateItems.get("electron_tube"))
+                .define('B', AcceleratorRegistry.BENDING_MAGNET_ITEM.get())
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_bending_magnet", has(AcceleratorRegistry.BENDING_MAGNET_ITEM.get()))
+                .save(output, id("crafting/injection_septum"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AcceleratorRegistry.EXTRACTION_SEPTUM_ITEM.get())
+                .pattern("SRS")
+                .pattern("SBS")
+                .pattern("SES")
+                .define('S', CreateItems.get("iron_sheet"))
+                .define('E', CreateItems.get("electron_tube"))
+                .define('B', AcceleratorRegistry.BENDING_MAGNET_ITEM.get())
+                .define('R', Items.REDSTONE)
+                .unlockedBy("has_bending_magnet", has(AcceleratorRegistry.BENDING_MAGNET_ITEM.get()))
+                .save(output, id("crafting/extraction_septum"));
+        // Target station: a beam dump with a graphite target and a precision-wound magnetic horn.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AcceleratorRegistry.TARGET_STATION_ITEM.get())
+                .pattern("IGI")
+                .pattern("CDC")
+                .pattern("IPI")
+                .define('I', Items.IRON_INGOT)
+                .define('G', AllNuclearItems.GRAPHITE.get())
+                .define('C', Items.COPPER_INGOT)
+                .define('D', AcceleratorRegistry.BEAM_DUMP_ITEM.get())
+                .define('P', CreateItems.get("precision_mechanism"))
+                .unlockedBy("has_beam_dump", has(AcceleratorRegistry.BEAM_DUMP_ITEM.get()))
+                .save(output, id("crafting/target_station"));
+        // Cryogenic feed: a fluid tank in insulating iron with pipe couplings.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AcceleratorRegistry.CRYO_FEED_ITEM.get())
+                .pattern("SFS")
+                .pattern("FTF")
+                .pattern("SCS")
+                .define('S', CreateItems.get("iron_sheet"))
+                .define('F', CreateItems.get("fluid_pipe"))
+                .define('T', CreateItems.get("fluid_tank"))
+                .define('C', CreateItems.get("copper_casing"))
+                .unlockedBy("has_fluid_tank", has(CreateItems.get("fluid_tank")))
+                .save(output, id("crafting/accelerator_cryo_feed"));
+        // Beam interlock: a key panel with a lamp and an electron tube relay.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AcceleratorRegistry.BEAM_INTERLOCK_ITEM.get())
+                .pattern("SLS")
+                .pattern("SVS")
+                .pattern("SES")
+                .define('S', CreateItems.get("iron_sheet"))
+                .define('L', Items.REDSTONE_LAMP)
+                .define('V', Items.LEVER)
+                .define('E', CreateItems.get("electron_tube"))
+                .unlockedBy("has_electron_tube", has(CreateItems.get("electron_tube")))
+                .save(output, id("crafting/beam_interlock"));
     }
 
     private static ResourceLocation id(String path) {

@@ -15,7 +15,11 @@ public enum TargetKind {
     /** A {@link PlantReadable} steam generator. */
     STEAM_GENERATOR,
     /** A {@link PlantReadable} containment building. */
-    CONTAINMENT;
+    CONTAINMENT,
+    /** A {@link PlantReadable} Penning trap holding antimatter. */
+    ANTIMATTER_TRAP,
+    /** A {@link PlantReadable} annihilation generator. */
+    ANNIHILATION_GENERATOR;
 
     public String translationKey() {
         return "create_nuclearindustry.control_room.kind." + name().toLowerCase(java.util.Locale.ROOT);

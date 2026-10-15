@@ -22,8 +22,10 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.accelerator.AcceleratorRegistry;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.fuelcycle.jei.FuelCycleJei;
+import org.papiricoh.create_nuclearindustry.isotope.IsotopeRegistry;
 import org.papiricoh.create_nuclearindustry.processing.AllNuclearRecipeTypes;
 import org.papiricoh.create_nuclearindustry.processing.recipe.CentrifugingRecipe;
 import org.papiricoh.create_nuclearindustry.processing.recipe.ElectrolysisRecipe;
@@ -88,7 +90,14 @@ public class NuclearJeiPlugin implements IModPlugin {
                         Component.translatable("jei.create_nuclearindustry.category.centrifuging"), AllNuclearBlocks.CENTRIFUGE.get(), 32),
                 new ProcessingJeiCategory<>(gui, ELECTROLYSIS,
                         Component.translatable("jei.create_nuclearindustry.category.electrolysis"), AllNuclearBlocks.ELECTROLYZER.get(), 32),
-                new VitrificationJeiCategory(gui, VITRIFICATION));
+                new VitrificationJeiCategory(gui, VITRIFICATION),
+                new TargetStationJeiCategory(gui),
+                new IsotopeJeiCategory(gui, IsotopeJeiCategory.TARGET, "jei.create_nuclearindustry.category.target_irradiation",
+                        AcceleratorRegistry.TARGET_STATION_ITEM.get()),
+                new IsotopeJeiCategory(gui, IsotopeJeiCategory.REACTOR, "jei.create_nuclearindustry.category.reactor_irradiation",
+                        IsotopeRegistry.IRRADIATION_CHANNEL_ITEM.get()),
+                new IsotopeJeiCategory(gui, IsotopeJeiCategory.STERILISATION, "jei.create_nuclearindustry.category.gamma_sterilisation",
+                        IsotopeRegistry.GAMMA_IRRADIATOR_ITEM.get()));
         FuelCycleJei.registerCategories(registration);
     }
 
@@ -102,6 +111,10 @@ public class NuclearJeiPlugin implements IModPlugin {
         registration.addRecipes(VITRIFICATION, recipes.getAllRecipesFor(WasteRecipeTypes.VITRIFICATION.<VitrificationInput, VitrificationRecipe>getType())
                 .stream().map(RecipeHolder::value).toList());
         FuelCycleJei.registerRecipes(registration);
+        registration.addRecipes(TargetStationJeiCategory.TYPE, List.of(TargetStationJeiCategory.Yield.current()));
+        registration.addRecipes(IsotopeJeiCategory.TARGET, IsotopeJeiCategory.targets(recipes));
+        registration.addRecipes(IsotopeJeiCategory.REACTOR, IsotopeJeiCategory.reactor());
+        registration.addRecipes(IsotopeJeiCategory.STERILISATION, IsotopeJeiCategory.sterilisation());
         addInfo(registration);
         addPlantInfo(registration);
     }
@@ -113,6 +126,10 @@ public class NuclearJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(WasteRegistry.VITRIFICATION_MELTER.get(), VITRIFICATION);
         registration.addRecipeCatalyst(VitrificationJeiCategory.createStack("blaze_burner"), VITRIFICATION);
         FuelCycleJei.registerRecipeCatalysts(registration);
+        registration.addRecipeCatalyst(AcceleratorRegistry.TARGET_STATION_ITEM.get(), TargetStationJeiCategory.TYPE);
+        registration.addRecipeCatalyst(AcceleratorRegistry.TARGET_STATION_ITEM.get(), IsotopeJeiCategory.TARGET);
+        registration.addRecipeCatalyst(IsotopeRegistry.IRRADIATION_CHANNEL_ITEM.get(), IsotopeJeiCategory.REACTOR);
+        registration.addRecipeCatalyst(IsotopeRegistry.GAMMA_IRRADIATOR_ITEM.get(), IsotopeJeiCategory.STERILISATION);
     }
 
     /** The pages of the power plant areas, listed in {@link PlantJeiInfo}. */

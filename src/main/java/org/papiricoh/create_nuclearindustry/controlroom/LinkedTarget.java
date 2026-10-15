@@ -5,10 +5,12 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.coolingtower.blockentity.CoolingTowerControllerBlockEntity;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
+import org.papiricoh.create_nuclearindustry.multiblock.MasterProxy;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
@@ -86,6 +88,11 @@ public final class LinkedTarget {
 
     /** The position a linker stores for a click on {@code clicked}. */
     public static BlockPos linkPosFor(Level level, BlockPos clicked) {
+        // A part of a machine placed as a unit (a large Penning trap) links its master.
+        BlockState clickedState = level.getBlockState(clicked);
+        if (clickedState.getBlock() instanceof MasterProxy proxy) {
+            clicked = proxy.masterPos(clickedState, clicked);
+        }
         BlockEntity clickedEntity = level.getBlockEntity(clicked);
         if (isMachineController(clickedEntity)) {
             return clicked;

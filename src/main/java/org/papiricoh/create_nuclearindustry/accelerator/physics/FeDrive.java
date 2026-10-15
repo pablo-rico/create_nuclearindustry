@@ -32,4 +32,41 @@ public final class FeDrive {
     public static int buffer(double demand, int ticks) {
         return (int) Math.max(1, Math.min(Integer.MAX_VALUE, Math.ceil(demand * Math.max(1, ticks))));
     }
+
+    /**
+     * Splits {@code available} FE fairly between receivers that would take {@code accepts[i]} each
+     * (what a simulated {@code receiveEnergy} said): everyone gets an equal share, and what a full
+     * receiver leaves over goes to the others. Whole FE; the sum never exceeds {@code available} nor
+     * anyone's acceptance. A generator pushing to its six neighbours uses it so the first side does
+     * not starve the rest.
+     */
+    public static int[] fairShare(int available, int[] accepts) {
+        int n = accepts.length;
+        int[] given = new int[n];
+        long left = Math.max(0, available);
+        int open = 0;
+        for (int a : accepts) {
+            if (a > 0) {
+                open++;
+            }
+        }
+        while (left > 0 && open > 0) {
+            long share = Math.max(1, left / open);
+            int stillOpen = 0;
+            for (int i = 0; i < n && left > 0; i++) {
+                int room = Math.max(0, accepts[i]) - given[i];
+                if (room <= 0) {
+                    continue;
+                }
+                int give = (int) Math.min(Math.min(share, room), left);
+                given[i] += give;
+                left -= give;
+                if (room > give) {
+                    stillOpen++;
+                }
+            }
+            open = stillOpen;
+        }
+        return given;
+    }
 }

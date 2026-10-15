@@ -27,6 +27,22 @@ Instala la misma version del mod en el servidor y en todos los clientes.
 6. Inicia el servidor y revisa que el mod aparece como 1.1.0, el mundo carga y un
    cliente actualizado puede conectarse. Comprueba un reactor y sus turbinas.
 
+Las trampas de Penning, el generador de aniquilacion y el inyector de antiprotones
+funcionan con Forge Energy. En supervivencia, la primera energia (la de las trampas y
+el primer arranque de un generador) tiene que venir de otro mod; despues, un generador
+en modo electrico o mixto se mantiene solo y alimenta sus trampas. Si el servidor no
+tiene ningun mod de energia, avisa a los jugadores. Con `antimatter.generator.feEnabled = false`
+el generador solo da rotacion.
+
+Desde 2.0 un reactor de fision solo admite combustible nuevo en una **parada de
+recarga**: formado, parado en frio (nucleo por debajo de 100 °C) y con todas las barras
+dentro. Las automatizaciones que recargaban en marcha dejaran de meter combustible hasta
+la siguiente parada. Ademas las piezas de las centrales se desgastan y fallan, hay
+terremotos naturales y un registro de incidentes. Todo se puede apagar en
+`config/create_nuclearindustry-common.toml`: `maintenance.enabled = false` lo quita todo
+de golpe, y `maintenance.requireRefuellingOutage = false` devuelve solo la recarga en
+marcha (ver `docs/configuration.md`, seccion "Operacion y mantenimiento").
+
 Cambiar la version del JAR no sobrescribe los valores existentes del config. En
 particular, una instalacion con `plasmaCapacityPerPort = 4096.0` conservara ese
 valor hasta editarlo.

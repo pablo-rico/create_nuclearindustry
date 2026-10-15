@@ -1,0 +1,9 @@
+{
+  "parent": "create_nuclearindustry:block/accelerator_ring_element",
+  "textures": {
+    "side": "create_nuclearindustry:block/superconducting_rf_cavity_side",
+    "end": "create_nuclearindustry:block/superconducting_rf_cavity_end",
+    "top": "create_nuclearindustry:block/superconducting_rf_cavity_top",
+    "flange": "create_nuclearindustry:block/penning_trap_steel"
+  }
+}

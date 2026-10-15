@@ -27,6 +27,8 @@ import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.NuclearFeature;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import org.papiricoh.create_nuclearindustry.explosive.block.ThermonuclearBombBlock;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.ThermonuclearBombBlockEntity;
 import org.papiricoh.create_nuclearindustry.explosive.gui.ThermonuclearBombMenu;
@@ -128,7 +130,8 @@ public final class ExplosiveRegistry implements NuclearFeature {
     }
 
     @Override
-    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        output.section(NuclearTabSection.WEAPONS);
         items().forEach(item -> output.accept(item.get()));
     }
 }

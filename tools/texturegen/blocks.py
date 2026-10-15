@@ -1524,3 +1524,7 @@ import tex_reactorvisuals  # noqa: E402,F401
 import tex_fuelcycle  # noqa: E402,F401
 import tex_accelerator  # noqa: E402,F401
 import tex_explosive  # noqa: E402,F401
+import tex_antimatter  # noqa: E402,F401
+import tex_energy  # noqa: E402,F401
+import tex_isotopes  # noqa: E402,F401
+import tex_maintenance  # noqa: E402,F401

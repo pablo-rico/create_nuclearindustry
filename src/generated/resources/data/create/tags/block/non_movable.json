@@ -3,6 +3,11 @@
     "create_nuclearindustry:blast_door_frame",
     "create_nuclearindustry:steel_blast_door",
     "create_nuclearindustry:lead_blast_door",
-    "create_nuclearindustry:blast_door_controller"
+    "create_nuclearindustry:blast_door_controller",
+    "create_nuclearindustry:small_penning_trap",
+    "create_nuclearindustry:penning_trap",
+    "create_nuclearindustry:large_penning_trap",
+    "create_nuclearindustry:annihilation_generator",
+    "create_nuclearindustry:antiproton_injector"
   ]
 }

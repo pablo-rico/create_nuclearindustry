@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:glass_bottle"
+    },
+    "N": {
+      "item": "create:copper_nugget"
+    }
+  },
+  "pattern": [
+    "N",
+    "B",
+    "N"
+  ],
+  "result": {
+    "count": 2,
+    "id": "create_nuclearindustry:antimatter_vial"
+  }
+}

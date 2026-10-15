@@ -43,7 +43,19 @@ public enum NuclearEvent {
     RING_FORMED,
     GEV_BEAM,
     // Thermonuclear weapons
-    THERMONUCLEAR_DETONATION;
+    THERMONUCLEAR_DETONATION,
+    // Antimatter
+    FIRST_NANOGRAM,
+    ANNIHILATION_IGNITION,
+    QUENCH,
+    ANNIHILATION_POWER,
+    // Isotopes and nuclear medicine
+    FIRST_ISOTOPE,
+    FOOD_STERILISED,
+    TECHNETIUM_ELUTED,
+    // Operation and maintenance
+    MAINTENANCE_DONE,
+    SEISMIC_SCRAM;
 
     public String id() {
         return name().toLowerCase(Locale.ROOT);

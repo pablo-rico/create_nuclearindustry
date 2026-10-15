@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:first_isotope",
+  "criteria": {
+    "food_sterilised": {
+      "conditions": {
+        "event": "food_sterilised"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.food_sterilised.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:gamma_irradiator"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.food_sterilised.title"
+    }
+  },
+  "requirements": [
+    [
+      "food_sterilised"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

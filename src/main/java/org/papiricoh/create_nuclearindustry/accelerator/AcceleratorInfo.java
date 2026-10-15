@@ -16,7 +16,8 @@ import java.util.stream.Stream;
  * these pages with its own; the datagen writes a text for every id in {@link #IDS}.
  */
 public final class AcceleratorInfo {
-    public static final List<String> IDS = List.of("particle_accelerator", "beamline", "accelerator_machines", "beam_dump");
+    public static final List<String> IDS = List.of("particle_accelerator", "beamline", "accelerator_machines", "beam_dump", "synchrotron",
+            "target_station", "accelerator_cryo_feed", "beam_interlock");
 
     private AcceleratorInfo() {}
 
@@ -29,6 +30,12 @@ public final class AcceleratorInfo {
         pages.add(page("accelerator_machines", AcceleratorRegistry.KLYSTRON_ITEM, AcceleratorRegistry.MAGNET_POWER_SUPPLY_ITEM,
                 AcceleratorRegistry.VACUUM_PUMP_ITEM));
         pages.add(page("beam_dump", AcceleratorRegistry.BEAM_DUMP_ITEM));
+        pages.add(page("synchrotron", AcceleratorRegistry.RING_DIPOLE_ITEM, AcceleratorRegistry.SC_RING_DIPOLE_ITEM,
+                AcceleratorRegistry.SC_RF_CAVITY_ITEM, AcceleratorRegistry.INJECTION_SEPTUM_ITEM, AcceleratorRegistry.EXTRACTION_SEPTUM_ITEM));
+        pages.add(page("target_station", AcceleratorRegistry.TARGET_STATION_ITEM));
+        pages.add(new PlantJeiInfo.Page("accelerator_cryo_feed", stacks(AcceleratorRegistry.CRYO_FEED_ITEM),
+                List.of(new FluidStack(AllNuclearFluids.LIQUID_HELIUM.get(), 1000))));
+        pages.add(page("beam_interlock", AcceleratorRegistry.BEAM_INTERLOCK_ITEM));
         return pages;
     }
 

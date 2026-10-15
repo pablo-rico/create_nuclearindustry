@@ -1,5 +1,9 @@
-// 1.21.1	2026-10-10T17:54:31.733881	Waste treatment recipes
+// 1.21.1	2026-10-14T20:20:53.23801	Waste treatment recipes
+767095401f77d0a4a25f84b0e93de8b52df75513 data/create_nuclearindustry/advancement/recipes/misc/crafting/repository_inspector.json
+ba7a27b6e5ad8e76097d0d35fe1395c65c07b38a data/create_nuclearindustry/advancement/recipes/misc/crafting/vitrification_melter.json
 6af6f726469c0fc7998a185972bb827e285e5cea data/create_nuclearindustry/recipe/compacting/compacted_waste_drum.json
+137c89a3a2ff2bbdb2b1c72ca392f8027afb3758 data/create_nuclearindustry/recipe/crafting/repository_inspector.json
+686c527cb203c72bf69e742fec6f9bf58b042e79 data/create_nuclearindustry/recipe/crafting/vitrification_melter.json
 87ad19c899fcd8fd037290114076620bdb104bd3 data/create_nuclearindustry/recipe/mixing/bentonite.json
 5df6eaff076661427dbe921c46a4bd3489fb6927 data/create_nuclearindustry/recipe/mixing/cemented_waste_drum.json
 58eb1a639b53dae63506966b6594f24b3be1a8de data/create_nuclearindustry/recipe/vitrification/vitrified_waste_canister.json

@@ -323,7 +323,7 @@ public class MonitorConfigScreen extends AbstractSimiContainerScreen<DeviceMenu>
     }
 
     /** Create's scroll input, which also steps through its options when clicked: forward, or back with shift. */
-    private static final class CyclingInput extends SelectionScrollInput {
+    static final class CyclingInput extends SelectionScrollInput {
         CyclingInput(int x, int y, int width, int height) {
             super(x, y, width, height);
         }

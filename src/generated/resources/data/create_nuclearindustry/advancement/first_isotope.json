@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:reactor_running",
+  "criteria": {
+    "first_isotope": {
+      "conditions": {
+        "event": "first_isotope"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.first_isotope.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:cobalt_60"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.first_isotope.title"
+    }
+  },
+  "requirements": [
+    [
+      "first_isotope"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

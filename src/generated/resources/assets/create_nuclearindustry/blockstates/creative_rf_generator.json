@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_nuclearindustry:block/creative_rf_generator"
+    }
+  }
+}

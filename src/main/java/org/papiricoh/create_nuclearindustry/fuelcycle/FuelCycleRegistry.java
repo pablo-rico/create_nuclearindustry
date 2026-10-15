@@ -14,6 +14,8 @@ import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.NuclearFeature;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import org.papiricoh.create_nuclearindustry.fuelcycle.fan.NuclearFanTypes;
 
 import java.util.List;
@@ -60,7 +62,7 @@ public final class FuelCycleRegistry implements NuclearFeature {
     public static final DeferredHolder<Item, BlockItem> IRRADIATION_SOURCE_ITEM = AllNuclearItems.ITEMS.register(
             "irradiation_source", () -> new BlockItem(IRRADIATION_SOURCE.get(), new Item.Properties()));
 
-    /** Every item of this area, in creative tab order (the irradiation source first: it is a block). */
+    /** Every item of this area; the creative tab splits them between mining and the fuel cycle. */
     public static final List<Supplier<? extends Item>> ITEMS = List.of(IRRADIATION_SOURCE_ITEM, GRANITE_FINES, TUFF_FINES, DEEPSLATE_FINES,
             HEAVY_MINERAL_SAND, AMIDOXIME_ADSORBENT, LOADED_ADSORBENT, RADIOACTIVE_SLUDGE, THORIUM_DIOXIDE, IRRADIATED_THORIUM,
             IRRADIATED_DEPLETED_URANIUM, URANIUM_233_DIOXIDE, THORIUM_FUEL_PELLET, THORIUM_REACTOR_FUEL,
@@ -78,8 +80,18 @@ public final class FuelCycleRegistry implements NuclearFeature {
     }
 
     @Override
-    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
-        ITEMS.forEach(item -> output.accept(item.get()));
+    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        output.section(NuclearTabSection.MATERIALS);
+        for (Supplier<? extends Item> item : List.of(GRANITE_FINES, TUFF_FINES, DEEPSLATE_FINES, HEAVY_MINERAL_SAND,
+                AMIDOXIME_ADSORBENT, LOADED_ADSORBENT, THORIUM_DIOXIDE)) {
+            output.accept(item.get());
+        }
         output.accept(AllNuclearFluids.SULFURIC_ACID_BUCKET.get());
+        output.section(NuclearTabSection.FUEL_CYCLE);
+        for (Supplier<? extends Item> item : List.of(IRRADIATION_SOURCE_ITEM, IRRADIATED_THORIUM, IRRADIATED_DEPLETED_URANIUM,
+                URANIUM_233_DIOXIDE, THORIUM_FUEL_PELLET, THORIUM_REACTOR_FUEL, DEPLETED_THORIUM_REACTOR_FUEL,
+                THORIUM_SPENT_FRAGMENTS, RADIOACTIVE_SLUDGE)) {
+            output.accept(item.get());
+        }
     }
 }

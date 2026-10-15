@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.civildefense.seismic;
 
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -70,6 +71,19 @@ public final class SeismicNetwork {
         for (SeismicDetectorBlockEntity detector : new ArrayList<>(detectors)) {
             if (!detector.isRemoved()) {
                 detector.record(event);
+            }
+        }
+    }
+
+    /** An earthquake: every detector in its dimension records it, as a blast of {@code power}. */
+    public static void onEarthquake(Level level, Vec3 epicentre, float power) {
+        Set<SeismicDetectorBlockEntity> detectors = DETECTORS.get(level);
+        if (detectors == null) {
+            return;
+        }
+        for (SeismicDetectorBlockEntity detector : new ArrayList<>(detectors)) {
+            if (!detector.isRemoved()) {
+                detector.record(epicentre, power, false);
             }
         }
     }

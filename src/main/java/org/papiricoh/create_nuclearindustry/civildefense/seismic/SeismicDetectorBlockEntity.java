@@ -65,14 +65,18 @@ public class SeismicDetectorBlockEntity extends SmartBlockEntity implements IHav
 
     /** Notes a detonation in this dimension. */
     public void record(NuclearDetonationEvent event) {
+        record(event.getCenter(), event.getPower(), event.isDirty());
+    }
+
+    /** Records ground motion from {@code source}: a detonation, or an earthquake read as a blast of {@code power}. */
+    public void record(Vec3 source, float power, boolean dirty) {
         if (level == null) {
             return;
         }
         Vec3 here = Vec3.atCenterOf(worldPosition);
-        Vec3 blast = event.getCenter();
-        double bearing = SeismicModel.bearing(blast.x - here.x, blast.z - here.z);
-        events.add(0, new SeismicEvent(here.distanceTo(blast), event.getPower(), (float) bearing,
-                level.getGameTime(), event.isDirty()));
+        double bearing = SeismicModel.bearing(source.x - here.x, source.z - here.z);
+        events.add(0, new SeismicEvent(here.distanceTo(source), power, (float) bearing,
+                level.getGameTime(), dirty));
         while (events.size() > CAPACITY) {
             events.remove(events.size() - 1);
         }

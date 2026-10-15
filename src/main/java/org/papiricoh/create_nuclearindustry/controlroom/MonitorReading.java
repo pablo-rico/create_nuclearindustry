@@ -40,13 +40,17 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
             R_SHUTDOWN_MARGIN = 30;
     /** The net reactivity split into its parts, pcm: fuel (with graphite, reflector, heavy water), rods, temperature, voids. */
     public static final int R_REACTIVITY_FUEL = 31, R_REACTIVITY_RODS = 32, R_REACTIVITY_TEMPERATURE = 33, R_REACTIVITY_VOIDS = 34;
-    private static final int REACTOR_VALUES = 35;
+    /** Maintenance, appended: the worse of the rod drives' and relief valve's health 0-1 (0 failed), refuelling outage flag. */
+    public static final int R_WEAR = 35, R_OUTAGE = 36;
+    private static final int REACTOR_VALUES = 37;
     // Steam generator: water level 0-1, steam made mB/t, primary temperature drop °C, formed flag, heat moved MW
     public static final int S_LEVEL = 0, S_STEAM = 1, S_PRIMARY_DT = 2, S_FORMED = 3, S_HEAT = 4;
     // Containment: pressure bar, hydrogen fraction 0-1, sealed flag, vent open flag, airborne activity, free volume m³
     public static final int N_PRESSURE = 0, N_H2 = 1, N_SEALED = 2, N_VENT = 3, N_ACTIVITY = 4, N_VOLUME = 5;
     // Turbine
     public static final int T_SPEED = 0, T_USE = 1, T_LIMIT = 2, T_STEAM = 3, T_EXHAUST = 4, T_FORMED = 5, T_CAPACITY = 6;
+    /** Turbine blades' health 0-1, 0 when they failed and tripped the turbine. */
+    public static final int T_BLADES = 7;
     // Cooling tower
     public static final int C_USE = 0, C_CAPACITY = 1, C_WATER = 2, C_STEAM = 3, C_FANS = 4, C_FORMED = 5;
     // Area
@@ -62,6 +66,17 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
             K_MAGNET_TEMPERATURE = 14, K_VACUUM = 15, K_HEATING = 16, K_FUEL_RATE = 17, K_FUEL_RATE_MAX = 18,
             K_LIQUID_HELIUM = 19, K_HEATING_ON = 20, K_HEATING_LEVEL = 21, K_TRIPPED = 22;
     private static final int TOKAMAK_VALUES = 23;
+    // Penning trap: antimatter ng, capacity ng, fill 0-1, field 0-1, energy buffer 0-1, state by ordinal (TrapState),
+    // demand FE/t, quench countdown ticks
+    public static final int P_STORED = 0, P_CAPACITY = 1, P_FILL = 2, P_FIELD = 3, P_BUFFER = 4, P_STATE = 5, P_DEMAND = 6,
+            P_QUENCH = 7;
+    public static final int TRAP_VALUES = 8;
+    // Annihilation generator: chamber ng, chamber fill 0-1, throttle 0-1, output delivered 0-1, mode by ordinal
+    // (AnnihilationModel.Mode, as it runs), FE/t made, stress capacity SU, burn ng/min, lit flag, field buffer 0-1,
+    // chamber field state by ordinal (TrapState), rated FE/t
+    public static final int G_STORED = 0, G_CHAMBER_FILL = 1, G_THROTTLE = 2, G_OUTPUT = 3, G_MODE = 4, G_FE = 5,
+            G_STRESS = 6, G_BURN = 7, G_LIT = 8, G_BUFFER = 9, G_STATE = 10, G_RATED_FE = 11;
+    public static final int GENERATOR_VALUES = 12;
 
     /** Graph ceiling for area exposure, in rad/s. */
     public static final float AREA_GRAPH_MAX = 10.0f;
@@ -163,6 +178,8 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
         v[R_REACTIVITY_RODS] = (float) parts.rods();
         v[R_REACTIVITY_TEMPERATURE] = (float) parts.temperature();
         v[R_REACTIVITY_VOIDS] = (float) parts.voids();
+        v[R_WEAR] = (float) reactor.getMaintenance().worstHealth();
+        v[R_OUTAGE] = reactor.inOutage() ? 1 : 0;
         String status = ReactorReadout.STATUS.read(reactor).getString();
         float rated = Math.max(1.0f, v[R_RATED_POWER]);
         return new MonitorReading(TargetKind.REACTOR, status, v,
@@ -171,7 +188,7 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
 
     private static MonitorReading turbine(AbstractTurbineControllerBlockEntity turbine) {
         TurbineDisplay display = turbine.getDisplay();
-        float[] v = new float[7];
+        float[] v = new float[8];
         float speed = Math.abs(turbine.getSpeed());
         v[T_SPEED] = speed;
         v[T_USE] = turbine.getCurrentUse();
@@ -180,6 +197,7 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
         v[T_EXHAUST] = display.exhausting() ? 1 : 0;
         v[T_FORMED] = display.formed() ? 1 : 0;
         v[T_CAPACITY] = turbine.calculateAddedStressCapacity() * speed;
+        v[T_BLADES] = turbine.bladeWear().failed() ? 0 : (float) turbine.bladeWear().health();
         String status = !display.formed() ? STATUS + "unformed"
                 : turbine.isSuspended() ? STATUS + "suspended"
                 : turbine.getCurrentUse() > 0 ? STATUS + "running" : STATUS + "idle";

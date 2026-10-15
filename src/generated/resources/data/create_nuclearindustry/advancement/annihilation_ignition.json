@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:first_nanogram",
+  "criteria": {
+    "annihilation_ignition": {
+      "conditions": {
+        "event": "annihilation_ignition"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.annihilation_ignition.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:antiproton_injector"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.annihilation_ignition.title"
+    }
+  },
+  "requirements": [
+    [
+      "annihilation_ignition"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

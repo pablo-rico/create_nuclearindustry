@@ -45,5 +45,17 @@ public class AllNuclearDataComponents {
                     .persistent(Codec.FLOAT)
                     .networkSynchronized(ByteBufCodecs.FLOAT));
 
+    /** Antimatter in a vial, in nanograms; absent on an empty one, so empty vials stack. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Double>> ANTIMATTER =
+            DATA_COMPONENTS.registerComponentType("antimatter", builder -> builder
+                    .persistent(Codec.DOUBLE)
+                    .networkSynchronized(ByteBufCodecs.DOUBLE));
+
+    /** Ticks of field a vial's battery has left; absent on an empty vial. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> VIAL_CHARGE =
+            DATA_COMPONENTS.registerComponentType("vial_charge", builder -> builder
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
     public static void init() {}
 }

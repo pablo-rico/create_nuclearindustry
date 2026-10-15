@@ -5,7 +5,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.locale.Language;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -18,6 +17,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.NuclearFeatures;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import org.papiricoh.create_nuclearindustry.integration.jei.PlantJeiInfo;
 import org.papiricoh.create_nuclearindustry.spentfuel.CoolingGrade;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuel;
@@ -62,8 +62,9 @@ public class PlantJeiTests {
         PlantJeiInfo.pages().forEach(page -> page.items().forEach(stack -> covered.add(stack.getItem())));
 
         List<ItemStack> shown = new ArrayList<>();
-        CreativeModeTab.Output output = (stack, visibility) -> shown.add(stack);
-        NuclearFeatures.ALL.forEach(feature -> feature.fillCreativeTab(null, output));
+        SectionedOutput output = new SectionedOutput((stack, visibility) -> shown.add(stack));
+        NuclearFeatures.fillCreativeTab(null, output);
+        output.finish();
         // Not in the creative tab: torn off a recorder, and the module comes with the other desk modules.
         shown.add(new ItemStack(ControlRoom2Registry.CHART_ROLL.get()));
         shown.add(new ItemStack(AllNuclearItems.CONTROL_MODULES.get(ModuleType.CONTROLLER).get()));

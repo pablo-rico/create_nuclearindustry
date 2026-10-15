@@ -18,6 +18,8 @@ import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
+import org.papiricoh.create_nuclearindustry.isotope.IsotopeRegistry;
+import org.papiricoh.create_nuclearindustry.isotope.physics.MedicalKitModel;
 import org.papiricoh.create_nuclearindustry.radiation.cache.BlockRadioactivity;
 import org.papiricoh.create_nuclearindustry.radiation.cache.ChunkChangeLog;
 import org.papiricoh.create_nuclearindustry.radiation.cache.RadiationCaches;
@@ -419,16 +421,25 @@ public final class RadiationHandler {
         return strength / (1.0 + (distance / 4.0) * (distance / 4.0)) * transmission;
     }
 
-    /** Fraction of the dose rate that is taken up: potassium iodide halves it, each level again. */
+    /**
+     * Fraction of the dose rate that is taken up: potassium iodide halves it, each level again, and
+     * more under a technetium tracer from the medical kit.
+     */
     public static double absorption(Player player) {
         var effect = player.getEffect(AllNuclearRadiation.RADIOPROTECTION);
-        return effect == null ? 1.0 : Math.pow(Config.iodideAbsorption, effect.getAmplifier() + 1);
+        return effect == null ? 1.0 : MedicalKitModel.boostedUptake(Config.iodideAbsorption, effect.getAmplifier(), tracerBoost(player));
     }
 
-    /** Dose Prussian blue flushes this second; it never touches the lifetime total. */
+    /** Dose Prussian blue flushes this second, more under a tracer; it never touches the lifetime total. */
     public static float purge(Player player) {
         var effect = player.getEffect(AllNuclearRadiation.RADIATION_PURGE);
-        return effect == null ? 0.0f : (float) (Config.purgePerSecond * (effect.getAmplifier() + 1));
+        return effect == null ? 0.0f : (float) MedicalKitModel.boostedPurge(Config.purgePerSecond, effect.getAmplifier(), tracerBoost(player));
+    }
+
+    /** How much the medical kit's tracer strengthens the medicines, 1 without one. */
+    private static double tracerBoost(Player player) {
+        var tracer = player.getEffect(IsotopeRegistry.TRACER);
+        return tracer == null ? 1.0 : MedicalKitModel.boostFromAmplifier(tracer.getAmplifier());
     }
 
     /** Fraction of radiation stopped by worn armour, from the radiation_shielding data map. */

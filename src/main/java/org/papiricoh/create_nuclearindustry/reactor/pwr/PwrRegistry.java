@@ -20,6 +20,8 @@ import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.NuclearFeature;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.CoriumBlock;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.SolidifiedCoriumBlock;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.block.PressurizerHeaterPortBlock;
@@ -169,7 +171,8 @@ public final class PwrRegistry implements NuclearFeature {
     }
 
     @Override
-    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        output.section(NuclearTabSection.PRIMARY_LOOP);
         output.accept(AllNuclearFluids.PRIMARY_COOLANT_BUCKET.get());
         output.accept(PRESSURIZER_ITEM.get());
         output.accept(PRESSURIZER_HEATER_PORT_ITEM.get());

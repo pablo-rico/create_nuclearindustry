@@ -6,134 +6,167 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTab;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.integration.cbc.CBCNuclearIntegration;
 
+/**
+ * The mod's creative tab, split into {@link NuclearTabSection}s. The items registered here go in
+ * first; each {@link NuclearFeature} then adds its own, and a few core items that belong after an
+ * area's blocks go in last.
+ */
 public class AllCreativeTabs {
-    // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Create_NuclearIndustry.MODID);
-
 
     public static final DeferredHolder<CreativeModeTab, ? extends CreativeModeTab> NUCLEAR_TAB = CREATIVE_MODE_TABS.register("nuclear_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.create_nuclearindustry.nuclear_tab"))
             .icon(() -> AllNuclearItems.RAW_URANIUM.value().getDefaultInstance())
-            .displayItems((parameters, output) -> {
-                output.accept(AllNuclearItems.RAW_URANIUM.value());
-                output.accept(AllNuclearItems.URANIUM.value());
-                ItemStack weaponsGradeUranium = new ItemStack(AllNuclearItems.URANIUM.value());
-                UraniumItem.setEnrichment(weaponsGradeUranium, 90.0f);
-                output.accept(weaponsGradeUranium);
-                output.accept(AllNuclearItems.URANIUM_ORE.value());
-                output.accept(AllNuclearItems.CRUSHED_RAW_URANIUM.value());
-                output.accept(AllNuclearItems.URANIUM_CONCENTRATE.value());
-                output.accept(AllNuclearItems.YELLOWCAKE.value());
-                output.accept(AllNuclearItems.FLUORITE.value());
-                output.accept(AllNuclearItems.URANIUM_DIOXIDE.value());
-                output.accept(AllNuclearItems.SPENT_FUEL_FRAGMENTS.value());
-                output.accept(AllNuclearItems.URANYL_NITRATE.value());
-                output.accept(AllNuclearItems.PLUTONIUM_DIOXIDE.value());
-                output.accept(AllNuclearItems.PLUTONIUM.value());
-                output.accept(AllNuclearItems.URANIUM_FUEL_PELLET.value());
-                output.accept(AllNuclearItems.RADIOACTIVE_WASTE.value());
-                output.accept(AllNuclearItems.RADIOACTIVE_WASTE_BARREL.value());
-                output.accept(AllNuclearFluids.CONTAMINATED_WATER_BUCKET.get());
-                output.accept(AllNuclearItems.GEIGER_COUNTER.value());
-                output.accept(AllNuclearItems.POTASSIUM_IODIDE.value());
-                output.accept(AllNuclearItems.PRUSSIAN_BLUE.value());
-                output.accept(AllNuclearItems.HAZMAT_HELMET.value());
-                output.accept(AllNuclearItems.HAZMAT_CHESTPLATE.value());
-                output.accept(AllNuclearItems.HAZMAT_LEGGINGS.value());
-                output.accept(AllNuclearItems.HAZMAT_BOOTS.value());
-                output.accept(AllNuclearItems.DEPLETED_URANIUM_BLOCK.value());
-                output.accept(AllNuclearItems.DEPLETED_URANIUM_HELMET.value());
-                output.accept(AllNuclearItems.DEPLETED_URANIUM_CHESTPLATE.value());
-                output.accept(AllNuclearItems.DEPLETED_URANIUM_LEGGINGS.value());
-                output.accept(AllNuclearItems.DEPLETED_URANIUM_BOOTS.value());
-                output.accept(AllNuclearItems.URANIUM_REACTOR_FUEL.value());
-                output.accept(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.value());
-                output.accept(AllNuclearItems.MOX_FUEL_PELLET.value());
-                output.accept(AllNuclearItems.MOX_REACTOR_FUEL.value());
-                output.accept(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.value());
-                output.accept(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.value());
-                output.accept(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.value());
-                output.accept(AllNuclearItems.URANIUM_ROD.value());
-                output.accept(AllNuclearItems.BORAX_ORE.value());
-                output.accept(AllNuclearItems.BORAX_SALT.value());
-                output.accept(AllNuclearItems.BORON.value());
-                output.accept(AllNuclearItems.SPODUMENE_ORE.value());
-                output.accept(AllNuclearItems.RAW_SPODUMENE.value());
-                output.accept(AllNuclearItems.CRUSHED_SPODUMENE.value());
-                output.accept(AllNuclearItems.SPODUMENE_CONCENTRATE.value());
-                output.accept(AllNuclearItems.LITHIUM_CARBONATE.value());
-                output.accept(AllNuclearItems.EMPTY_GAS_CELL.value());
-                output.accept(AllNuclearItems.CONTROL_ROD.value());
-                output.accept(AllNuclearItems.HEAT_EXCHANGER.value());
-                output.accept(AllNuclearItems.GRAPHITE.value());
-                output.accept(AllNuclearItems.GRAPHITE_MODERATOR.value());
-                output.accept(AllNuclearItems.BERYLLIUM_REFLECTOR.value());
-                output.accept(AllNuclearItems.REACTOR_CASING.value());
-                output.accept(AllNuclearItems.REACTOR_CONTROLLER.value());
-                output.accept(AllNuclearItems.REACTOR_FLUID_PORT.value());
-                output.accept(AllNuclearItems.REACTOR_FUEL_PORT.value());
-                output.accept(AllNuclearItems.REACTOR_TEMPERATURE_SENSOR.value());
-                output.accept(AllNuclearItems.REACTOR_REDSTONE_PORT.value());
-                output.accept(AllNuclearItems.CONTROL_ROOM_LINKER.value());
-                output.accept(AllNuclearItems.CONTROL_MONITOR.value());
-                output.accept(AllNuclearItems.REACTOR_CONTROL_PANEL.value());
-                AllNuclearItems.CONTROL_MODULES.values().forEach(module -> output.accept(module.value()));
-                output.accept(AllNuclearItems.NUCLEAR_ALARM.value());
-                output.accept(AllNuclearItems.RADIATION_SCRUBBER.value());
-                output.accept(AllNuclearItems.RTG.value());
-                output.accept(AllNuclearItems.PLUTONIUM_RTG_PELLET.value());
-                output.accept(AllNuclearItems.WASTE_RTG_PELLET.value());
-                output.accept(AllNuclearItems.DEPLETED_RTG_PELLET.value());
-                output.accept(AllNuclearItems.COOLING_TOWER_CASING.value());
-                output.accept(AllNuclearItems.COOLING_TOWER_CONTROLLER.value());
-                output.accept(AllNuclearItems.COOLING_TOWER_FLUID_PORT.value());
-                output.accept(AllNuclearItems.COOLING_TOWER_FAN.value());
-                output.accept(AllNuclearItems.DUAL_FLUID_PIPE.value());
-                output.accept(AllNuclearItems.CENTRIFUGE.value());
-                output.accept(AllNuclearItems.ELECTROLYZER.value());
-                output.accept(AllNuclearItems.TURBINE_CASING.value());
-                output.accept(AllNuclearItems.REINFORCED_TURBINE_GLASS.value());
-                output.accept(AllNuclearItems.TURBINE_ROTOR.value());
-                output.accept(AllNuclearItems.TURBINE_OUTPUT.value());
-                output.accept(AllNuclearItems.TURBINE_FLUID_PORT.value());
-                output.accept(AllNuclearItems.TURBINE_EXHAUST_PORT.value());
-                output.accept(AllNuclearItems.NUCLEAR_BOMB.value());
-                output.accept(AllNuclearItems.DIRTY_BOMB.value());
-                output.accept(AllNuclearItems.LAUNCH_PAD.value());
-                output.accept(AllNuclearItems.MISSILE.value());
-                output.accept(AllNuclearItems.TARGET_DESIGNATOR.value());
-                // Fusion reactor
-                output.accept(AllNuclearItems.FUSION_CONTROLLER.value());
-                output.accept(AllNuclearItems.FUSION_ACCELERATOR_SEGMENT.value());
-                output.accept(AllNuclearItems.FUSION_ELECTROMAGNET.value());
-                output.accept(AllNuclearItems.FUSION_CRYOSTAT_CASING.value());
-                output.accept(AllNuclearItems.FUSION_CENTRAL_SOLENOID.value());
-                output.accept(AllNuclearItems.FUSION_BREEDING_BLANKET.value());
-                output.accept(AllNuclearItems.FUSION_MAGNET_INPUT.value());
-                output.accept(AllNuclearItems.FUSION_FLUID_PORT.value());
-                output.accept(AllNuclearItems.FUSION_FUEL_INJECTOR.value());
-                output.accept(AllNuclearItems.FUSION_TURBINE_CASING.value());
-                output.accept(AllNuclearItems.FUSION_TURBINE_ROTOR.value());
-                output.accept(AllNuclearItems.FUSION_TURBINE_FLUID_PORT.value());
-                output.accept(AllNuclearItems.FUSION_PLASMA_TURBINE.value());
-                output.accept(AllNuclearItems.LITHIUM.value());
-                output.accept(AllNuclearItems.LITHIUM_6.value());
-                output.accept(AllNuclearItems.BERYLLIUM.value());
-                output.accept(AllNuclearItems.SUPERCONDUCTOR_INGOT.value());
-                output.accept(AllNuclearItems.LITHIUM_6_BREEDER_ASSEMBLY.value());
-                output.accept(AllNuclearItems.DEUTERIUM_CELL.value());
-                output.accept(AllNuclearItems.TRITIUM_CELL.value());
-                output.accept(AllNuclearItems.LIQUID_HELIUM_CELL.value());
-                output.accept(AllNuclearItems.SPENT_DT_PELLET.value());
+            .displayItems((parameters, tab) -> {
+                SectionedOutput output = new SectionedOutput(tab);
+                coreItems(output);
                 NuclearFeatures.fillCreativeTab(parameters, output);
+                lateCoreItems(output);
                 CBCNuclearIntegration.addCreativeItems(output);
+                NuclearTab.setSections(output.finish());
             }).build());
 
+    private static void coreItems(SectionedOutput output) {
+        output.section(NuclearTabSection.MATERIALS);
+        output.accept(AllNuclearItems.URANIUM_ORE.value());
+        output.accept(AllNuclearItems.RAW_URANIUM.value());
+        output.accept(AllNuclearItems.CRUSHED_RAW_URANIUM.value());
+        output.accept(AllNuclearItems.URANIUM_CONCENTRATE.value());
+        output.accept(AllNuclearItems.FLUORITE.value());
+        output.accept(AllNuclearItems.BORAX_ORE.value());
+        output.accept(AllNuclearItems.BORAX_SALT.value());
+        output.accept(AllNuclearItems.BORON.value());
+        output.accept(AllNuclearItems.SPODUMENE_ORE.value());
+        output.accept(AllNuclearItems.RAW_SPODUMENE.value());
+        output.accept(AllNuclearItems.CRUSHED_SPODUMENE.value());
+        output.accept(AllNuclearItems.SPODUMENE_CONCENTRATE.value());
+        output.accept(AllNuclearItems.LITHIUM_CARBONATE.value());
+        output.accept(AllNuclearItems.LITHIUM.value());
+        output.accept(AllNuclearItems.LITHIUM_6.value());
+        output.accept(AllNuclearItems.BERYLLIUM.value());
+        output.accept(AllNuclearItems.GRAPHITE.value());
+        output.accept(AllNuclearItems.SUPERCONDUCTOR_INGOT.value());
+        output.accept(AllNuclearItems.DEPLETED_URANIUM_BLOCK.value());
 
+        output.section(NuclearTabSection.FUEL_CYCLE);
+        output.accept(AllNuclearItems.YELLOWCAKE.value());
+        output.accept(AllNuclearItems.URANIUM.value());
+        ItemStack weaponsGradeUranium = new ItemStack(AllNuclearItems.URANIUM.value());
+        UraniumItem.setEnrichment(weaponsGradeUranium, 90.0f);
+        output.accept(weaponsGradeUranium);
+        output.accept(AllNuclearItems.URANIUM_DIOXIDE.value());
+        output.accept(AllNuclearItems.EMPTY_GAS_CELL.value());
+        output.accept(AllNuclearItems.CENTRIFUGE.value());
+        output.accept(AllNuclearItems.ELECTROLYZER.value());
+        output.accept(AllNuclearItems.URANIUM_FUEL_PELLET.value());
+        output.accept(AllNuclearItems.URANIUM_REACTOR_FUEL.value());
+        output.accept(AllNuclearItems.DEPLETED_URANIUM_REACTOR_FUEL.value());
+        output.accept(AllNuclearItems.MOX_FUEL_PELLET.value());
+        output.accept(AllNuclearItems.MOX_REACTOR_FUEL.value());
+        output.accept(AllNuclearItems.DEPLETED_MOX_REACTOR_FUEL.value());
+        output.accept(AllNuclearItems.SPENT_FUEL_FRAGMENTS.value());
+        output.accept(AllNuclearItems.URANYL_NITRATE.value());
+        output.accept(AllNuclearItems.PLUTONIUM_DIOXIDE.value());
+        output.accept(AllNuclearItems.PLUTONIUM.value());
 
+        output.section(NuclearTabSection.FISSION);
+        output.accept(AllNuclearItems.REACTOR_CASING.value());
+        output.accept(AllNuclearItems.REACTOR_CONTROLLER.value());
+        output.accept(AllNuclearItems.REACTOR_FLUID_PORT.value());
+        output.accept(AllNuclearItems.REACTOR_FUEL_PORT.value());
+        output.accept(AllNuclearItems.REACTOR_TEMPERATURE_SENSOR.value());
+        output.accept(AllNuclearItems.REACTOR_REDSTONE_PORT.value());
+        output.accept(AllNuclearItems.CONTROL_ROD.value());
+        output.accept(AllNuclearItems.URANIUM_ROD.value());
+        output.accept(AllNuclearItems.HEAT_EXCHANGER.value());
+        output.accept(AllNuclearItems.GRAPHITE_MODERATOR.value());
+        output.accept(AllNuclearItems.BERYLLIUM_REFLECTOR.value());
+        output.accept(AllNuclearItems.DUAL_FLUID_PIPE.value());
+
+        output.section(NuclearTabSection.POWER);
+        output.accept(AllNuclearItems.TURBINE_CASING.value());
+        output.accept(AllNuclearItems.REINFORCED_TURBINE_GLASS.value());
+        output.accept(AllNuclearItems.TURBINE_ROTOR.value());
+        output.accept(AllNuclearItems.TURBINE_OUTPUT.value());
+        output.accept(AllNuclearItems.TURBINE_FLUID_PORT.value());
+        output.accept(AllNuclearItems.TURBINE_EXHAUST_PORT.value());
+        output.accept(AllNuclearItems.COOLING_TOWER_CASING.value());
+        output.accept(AllNuclearItems.COOLING_TOWER_CONTROLLER.value());
+        output.accept(AllNuclearItems.COOLING_TOWER_FLUID_PORT.value());
+        output.accept(AllNuclearItems.COOLING_TOWER_FAN.value());
+        output.accept(AllNuclearItems.RTG.value());
+        output.accept(AllNuclearItems.PLUTONIUM_RTG_PELLET.value());
+        output.accept(AllNuclearItems.WASTE_RTG_PELLET.value());
+        output.accept(AllNuclearItems.DEPLETED_RTG_PELLET.value());
+
+        output.section(NuclearTabSection.CONTROL_ROOM);
+        output.accept(AllNuclearItems.CONTROL_ROOM_LINKER.value());
+        output.accept(AllNuclearItems.CONTROL_MONITOR.value());
+        output.accept(AllNuclearItems.REACTOR_CONTROL_PANEL.value());
+        AllNuclearItems.CONTROL_MODULES.values().forEach(module -> output.accept(module.value()));
+        output.accept(AllNuclearItems.NUCLEAR_ALARM.value());
+
+        output.section(NuclearTabSection.SAFETY);
+        output.accept(AllNuclearItems.GEIGER_COUNTER.value());
+        output.accept(AllNuclearItems.POTASSIUM_IODIDE.value());
+        output.accept(AllNuclearItems.PRUSSIAN_BLUE.value());
+        output.accept(AllNuclearItems.HAZMAT_HELMET.value());
+        output.accept(AllNuclearItems.HAZMAT_CHESTPLATE.value());
+        output.accept(AllNuclearItems.HAZMAT_LEGGINGS.value());
+        output.accept(AllNuclearItems.HAZMAT_BOOTS.value());
+        output.accept(AllNuclearItems.DEPLETED_URANIUM_HELMET.value());
+        output.accept(AllNuclearItems.DEPLETED_URANIUM_CHESTPLATE.value());
+        output.accept(AllNuclearItems.DEPLETED_URANIUM_LEGGINGS.value());
+        output.accept(AllNuclearItems.DEPLETED_URANIUM_BOOTS.value());
+        output.accept(AllNuclearItems.RADIATION_SCRUBBER.value());
+
+        output.section(NuclearTabSection.FUSION);
+        output.accept(AllNuclearItems.FUSION_CONTROLLER.value());
+        output.accept(AllNuclearItems.FUSION_ACCELERATOR_SEGMENT.value());
+        output.accept(AllNuclearItems.FUSION_ELECTROMAGNET.value());
+        output.accept(AllNuclearItems.FUSION_CRYOSTAT_CASING.value());
+        output.accept(AllNuclearItems.FUSION_CENTRAL_SOLENOID.value());
+        output.accept(AllNuclearItems.FUSION_BREEDING_BLANKET.value());
+        output.accept(AllNuclearItems.FUSION_MAGNET_INPUT.value());
+        output.accept(AllNuclearItems.FUSION_FLUID_PORT.value());
+        output.accept(AllNuclearItems.FUSION_FUEL_INJECTOR.value());
+        output.accept(AllNuclearItems.FUSION_TURBINE_CASING.value());
+        output.accept(AllNuclearItems.FUSION_TURBINE_ROTOR.value());
+        output.accept(AllNuclearItems.FUSION_TURBINE_FLUID_PORT.value());
+        output.accept(AllNuclearItems.FUSION_PLASMA_TURBINE.value());
+        output.accept(AllNuclearItems.LITHIUM_6_BREEDER_ASSEMBLY.value());
+        output.accept(AllNuclearItems.DEUTERIUM_CELL.value());
+        output.accept(AllNuclearItems.TRITIUM_CELL.value());
+        output.accept(AllNuclearItems.SPENT_DT_PELLET.value());
+
+        output.section(NuclearTabSection.WEAPONS);
+        output.accept(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.value());
+        output.accept(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.value());
+        output.accept(AllNuclearItems.NUCLEAR_BOMB.value());
+        output.accept(AllNuclearItems.DIRTY_BOMB.value());
+        output.accept(AllNuclearItems.LAUNCH_PAD.value());
+        output.accept(AllNuclearItems.MISSILE.value());
+        output.accept(AllNuclearItems.TARGET_DESIGNATOR.value());
+        output.clearSection();
+    }
+
+    /** Core items shown after the blocks an area adds to the same section. */
+    private static void lateCoreItems(SectionedOutput output) {
+        output.section(NuclearTabSection.SPENT_FUEL);
+        output.accept(AllNuclearItems.RADIOACTIVE_WASTE.value());
+        output.accept(AllNuclearItems.RADIOACTIVE_WASTE_BARREL.value());
+        output.accept(AllNuclearFluids.CONTAMINATED_WATER_BUCKET.get());
+
+        output.section(NuclearTabSection.CRYOGENICS);
+        output.accept(AllNuclearItems.LIQUID_HELIUM_CELL.value());
+        output.clearSection();
+    }
 
     public static void init() {}
 }

@@ -79,7 +79,7 @@ public abstract class ModuleSurfaceBlock extends HorizontalDirectionalBlock impl
     }
 
     /** Turns a shape a number of quarter turns clockwise seen from above, like a blockstate y rotation. */
-    protected static VoxelShape rotateClockwise(VoxelShape shape, int quarterTurns) {
+    public static VoxelShape rotateClockwise(VoxelShape shape, int quarterTurns) {
         VoxelShape turned = shape;
         for (int i = 0; i < quarterTurns; i++) {
             VoxelShape[] built = {Shapes.empty()};

@@ -1,0 +1,23 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:high_level_waste"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:nitric_acid"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:strontium_90"
+    },
+    {
+      "chance": 0.25,
+      "id": "create_nuclearindustry:low_level_waste"
+    }
+  ]
+}

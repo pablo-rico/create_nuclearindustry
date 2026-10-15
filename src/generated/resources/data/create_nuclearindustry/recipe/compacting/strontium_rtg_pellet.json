@@ -1,0 +1,19 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:strontium_90"
+    },
+    {
+      "item": "create_nuclearindustry:strontium_90"
+    },
+    {
+      "item": "create:iron_sheet"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:strontium_rtg_pellet"
+    }
+  ]
+}

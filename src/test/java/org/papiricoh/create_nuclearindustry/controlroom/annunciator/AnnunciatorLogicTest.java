@@ -116,4 +116,53 @@ class AnnunciatorLogicTest {
         assertEquals(State.NORMAL, shortSave.state(5));
         assertEquals(-1, shortSave.firstOut(), "a first-out on a normal window is dropped");
     }
+
+    @Test
+    void aStatusWindowFollowsItsConditionWithoutTheSequence() {
+        AnnunciatorLogic logic = new AnnunciatorLogic(6);
+        boolean[] latching = {true, true, true, false, true, true};
+        int flags = logic.update(trips(6, 3), latching);
+        assertEquals(0, flags & AnnunciatorLogic.NEW_ALERT, "a status window never sounds");
+        assertEquals(State.ACKNOWLEDGED, logic.state(3), "lit steady while its condition holds");
+        assertFalse(logic.unacknowledged(), "nothing to acknowledge");
+        assertEquals(-1, logic.firstOut(), "never the first-out");
+        assertEquals(-1, logic.lastNewAlert());
+
+        logic.update(trips(6), latching);
+        assertEquals(State.NORMAL, logic.state(3), "dark as soon as it clears, no ringback or reset");
+    }
+
+    @Test
+    void aStatusWindowAmongAlarmsLeavesTheFirstOutToThem() {
+        AnnunciatorLogic logic = new AnnunciatorLogic(6);
+        boolean[] latching = {false, true, true, true, true, true};
+        logic.update(trips(6, 0, 4), latching);
+        assertEquals(4, logic.firstOut());
+        assertEquals(4, logic.lastNewAlert());
+        logic.update(trips(6, 0, 4), latching);
+        assertEquals(-1, logic.lastNewAlert(), "only the update that raised it reports a new alert");
+    }
+
+    @Test
+    void aFirstOutThatStopsLatchingIsNoLongerTheFirstOut() {
+        AnnunciatorLogic logic = new AnnunciatorLogic(6);
+        logic.update(trips(6, 1));
+        assertEquals(1, logic.firstOut());
+        logic.update(trips(6, 1), new boolean[]{true, false, true, true, true, true});
+        assertEquals(-1, logic.firstOut());
+        assertEquals(State.ACKNOWLEDGED, logic.state(1));
+    }
+
+    @Test
+    void theOldUpdateLatchesEveryWindow() {
+        AnnunciatorLogic a = new AnnunciatorLogic(6);
+        AnnunciatorLogic b = new AnnunciatorLogic(6);
+        boolean[][] steps = {trips(6, 0, 5), trips(6, 5), trips(6), trips(6, 2)};
+        for (boolean[] step : steps) {
+            assertEquals(a.update(step), b.update(step, new boolean[]{true, true, true, true, true, true}));
+            for (int i = 0; i < 6; i++) {
+                assertEquals(a.state(i), b.state(i));
+            }
+        }
+    }
 }

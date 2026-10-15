@@ -23,9 +23,12 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.accelerator.AcceleratorRegistry;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearEventTrigger;
+import org.papiricoh.create_nuclearindustry.antimatter.AntimatterRegistry;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
 import org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleRegistry;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
+import org.papiricoh.create_nuclearindustry.isotope.IsotopeRegistry;
+import org.papiricoh.create_nuclearindustry.maintenance.MaintenanceRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsRegistry;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelRegistry;
@@ -249,6 +252,22 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
                             "It Held", "Ha aguantado",
                             "Keep a loss of coolant inside a sealed containment past half its rated pressure",
                             "Retén una pérdida de refrigerante en una contención estanca por encima de la mitad de su presión nominal")),
+                    task("first_isotope", "reactor_running", IsotopeRegistry.COBALT_60, event(NuclearEvent.FIRST_ISOTOPE),
+                            "Hot Metal", "Metal caliente",
+                            "Make cobalt-60 in a reactor's irradiation channel", "Fabrica cobalto-60 en el canal de irradiación de un reactor"),
+                    task("food_sterilised", "first_isotope", IsotopeRegistry.GAMMA_IRRADIATOR_ITEM, event(NuclearEvent.FOOD_STERILISED),
+                            "Five-Second Rule", "La regla de los cinco segundos",
+                            "Sterilise food under a Gamma Irradiator", "Esteriliza comida bajo un irradiador gamma"),
+                    task("technetium_eluted", "first_isotope", IsotopeRegistry.TECHNETIUM_GENERATOR, event(NuclearEvent.TECHNETIUM_ELUTED),
+                            "Milking the Cow", "Ordeñando la vaca",
+                            "Milk technetium-99m from a Technetium-99m Generator",
+                            "Ordeña tecnecio-99m de un generador de tecnecio-99m"),
+                    task("maintenance_done", "reactor_running", MaintenanceRegistry.MAINTENANCE_KIT, event(NuclearEvent.MAINTENANCE_DONE),
+                            "Planned Outage", "Parada programada",
+                            "Service a plant part with a Maintenance Kit", "Revisa una pieza de la central con un kit de mantenimiento"),
+                    secret(task("seismic_scram", "scram", CivilDefenseRegistry.SEISMIC_DETECTOR_ITEM, event(NuclearEvent.SEISMIC_SCRAM),
+                            "Shake, Rattle and Scram", "Temblor y SCRAM",
+                            "Have an earthquake scram your reactor", "Haz que un terremoto ponga tu reactor en SCRAM")),
                     with(task("meltdown", "reactor_running", AllNuclearItems.REACTOR_CASING, event(NuclearEvent.MELTDOWN),
                             "Not Great, Not Terrible", "Ni bien ni terrible",
                             "Witness a reactor meltdown", "Presencia la fusión de un reactor"), AdvancementType.CHALLENGE, true),
@@ -397,7 +416,24 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
                             "Feed a synchrotron ring from your linac", "Alimenta un anillo sincrotrón con tu linac"),
                     with(task("gev_beam", "synchrotron", AcceleratorRegistry.QUADRUPOLE_ITEM, event(NuclearEvent.GEV_BEAM),
                             "Giga Electron Volts", "Gigaelectronvoltios",
-                            "Accelerate a beam to 1 GeV or more", "Acelera un haz a 1 GeV o más"), AdvancementType.GOAL, false))
+                            "Accelerate a beam to 1 GeV or more", "Acelera un haz a 1 GeV o más"), AdvancementType.GOAL, false),
+                    task("first_nanogram", "gev_beam", AntimatterRegistry.SMALL_PENNING_TRAP_ITEM, event(NuclearEvent.FIRST_NANOGRAM),
+                            "First Nanogram", "Primer nanogramo",
+                            "Fill a Penning trap with a whole nanogram of antimatter",
+                            "Llena una trampa de Penning con un nanogramo entero de antimateria"),
+                    secret(task("quench", "first_nanogram", AntimatterRegistry.ANTIMATTER_VIAL, event(NuclearEvent.QUENCH),
+                            "Quench", "Quench",
+                            "Be near a Penning trap when it loses its antimatter",
+                            "Estate cerca de una trampa de Penning cuando pierde su antimateria")),
+                    task("annihilation_power", "first_nanogram", AntimatterRegistry.ANNIHILATION_GENERATOR_ITEM,
+                            event(NuclearEvent.ANNIHILATION_POWER),
+                            "E = mc²", "E = mc²",
+                            "Run an Annihilation Generator", "Pon en marcha un generador de aniquilación"),
+                    with(task("annihilation_ignition", "first_nanogram", AntimatterRegistry.ANTIPROTON_INJECTOR_ITEM,
+                            event(NuclearEvent.ANNIHILATION_IGNITION),
+                            "Ignition by Annihilation", "Ignición por aniquilación",
+                            "Ignite a tokamak's plasma with an Antiproton Injector",
+                            "Enciende el plasma de un tokamak con un inyector de antiprotones"), AdvancementType.CHALLENGE, false))
     );
 
     /** The tab roots, in the order the tabs appear. */

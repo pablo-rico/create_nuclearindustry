@@ -9,8 +9,11 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
@@ -20,6 +23,11 @@ import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.PlantReadable;
 import org.papiricoh.create_nuclearindustry.controlroom.TargetKind;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
+import org.papiricoh.create_nuclearindustry.maintenance.MaintenanceConfig;
+import org.papiricoh.create_nuclearindustry.maintenance.PartWear;
+import org.papiricoh.create_nuclearindustry.maintenance.incident.IncidentLog;
+import org.papiricoh.create_nuclearindustry.maintenance.incident.IncidentType;
+import org.papiricoh.create_nuclearindustry.maintenance.physics.WearPart;
 import org.papiricoh.create_nuclearindustry.multiblock.BlockChange;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
@@ -30,6 +38,8 @@ import org.papiricoh.create_nuclearindustry.multiblock.SyncThrottle;
 import org.papiricoh.create_nuclearindustry.PerformanceConfig;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
+import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitter;
+import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitters;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.physics.SteamGeneratorModel;
 
 import java.util.List;
@@ -47,7 +57,7 @@ import java.util.function.Consumer;
  * {@link PerformanceConfig#forcedSyncTicks} ticks; a steam generator at rest sends next to nothing.
  */
 public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
-        implements MultiblockController, IHaveGoggleInformation, PlantReadable {
+        implements MultiblockController, IHaveGoggleInformation, PlantReadable, RadiationEmitter {
     private static final int PRIMARY_TANK = 8_000;
     private static final int SECONDARY_TANK = 16_000;
     private static final int SYNC_INTERVAL = 10;
@@ -70,6 +80,12 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
     private final FluidTank feedTank = tank(SECONDARY_TANK, NuclearFluidHelper::isCoolant);
     private final FluidTank steamTank = tank(SECONDARY_TANK, NuclearFluidHelper::isTurbineSteam);
     private final SteamGeneratorModel model = new SteamGeneratorModel();
+    /** The tube bundles' wear; burst, they leak primary coolant into the secondary side. */
+    private final PartWear tubeWear = new PartWear(WearPart.SG_TUBES);
+    /** Primary coolant a burst tube leaks into the secondary side, mB/t. */
+    public static final int RUPTURE_LEAK = 25;
+    /** Dose per second next to a steam generator whose secondary side carries primary activity. */
+    public static final double RUPTURE_DOSE = 1.5;
     /** Lang key prefix of the steam generator's texts. */
     private static final String KEY = "create_nuclearindustry.steam_generator.";
     private final MultiblockMessenger messenger = new MultiblockMessenger("Steam Generator");
@@ -129,6 +145,9 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
             }
         }
         SteamGeneratorModel.Result result = structure.map(this::exchange).orElse(SteamGeneratorModel.Result.IDLE);
+        if (structure.isPresent()) {
+            tickTubes(result);
+        }
         steamRate += (result.steamMade() - steamRate) * AVERAGE;
         cooledRate += (result.primaryCooled() - cooledRate) * AVERAGE;
         receivedRate += (receivedThisTick - receivedRate) * AVERAGE;
@@ -142,6 +161,61 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
                 sendData();
             }
         }
+    }
+
+    /**
+     * The tubes wear while they move heat, four times faster boiling dry; burst, they leak the primary
+     * into the secondary side, and the plant hears of a tube rupture.
+     */
+    private void tickTubes(SteamGeneratorModel.Result result) {
+        double stress = result.heat() > 0 ? (isDry() ? 4.0 : 1.0) : 0.0;
+        if (tubeWear.tick(level, stress)) {
+            rupture();
+        }
+        if (tubeWear.failed() && hotTank.getFluidAmount() > 0) {
+            hotTank.drain(RUPTURE_LEAK, IFluidHandler.FluidAction.EXECUTE);
+        }
+    }
+
+    /** A tube bursts (wear, an earthquake, a command). */
+    public void rupture() {
+        tubeWear.fail();
+        IncidentLog.record(level, worldPosition, IncidentType.SG_TUBE_RUPTURE);
+        if (level != null) {
+            level.playSound(null, worldPosition, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.BLOCKS, 1.5f, 0.6f);
+        }
+        setChanged();
+        sendData();
+    }
+
+    public PartWear tubeWear() {
+        return tubeWear;
+    }
+
+    /** Whether it is shut down enough to open for repairs: no heat crossing the tubes. */
+    public boolean idleForRepair() {
+        return heatRate < 0.5;
+    }
+
+    /** Mends the tubes by {@code amount}, if idle. Returns whether anything was mended. */
+    public boolean repair(double amount) {
+        if (!idleForRepair()) {
+            return false;
+        }
+        boolean mended = tubeWear.repair(amount);
+        setChanged();
+        sendData();
+        return mended;
+    }
+
+    @Override
+    public Vec3 radiationOrigin() {
+        return Vec3.atCenterOf(worldPosition);
+    }
+
+    @Override
+    public double radiationStrength() {
+        return tubeWear.failed() && structure.isPresent() ? RUPTURE_DOSE : 0.0;
     }
 
     /** What clients show, as numbers for the {@link SyncThrottle}: tanks and their fluids, rates, pressure. */
@@ -251,6 +325,7 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
         super.initialize();
         if (level != null && !level.isClientSide) {
             MultiblockRegistry.register(this);
+            RadiationEmitters.register(this);
         }
     }
 
@@ -258,6 +333,7 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
     public void invalidate() {
         if (level != null && !level.isClientSide) {
             MultiblockRegistry.unregister(this);
+            RadiationEmitters.unregister(this);
         }
         super.invalidate();
     }
@@ -464,6 +540,12 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
         if (wetFraction < 1.0 && hotTank.getFluidAmount() > 0) {
             tooltip.add(line(Component.translatable(k + "drying", Math.round(wetFraction * 100)), ChatFormatting.RED));
         }
+        if (MaintenanceConfig.wearOn()) {
+            tooltip.add(line(tubeWear.line(), ChatFormatting.GRAY));
+        }
+        if (tubeWear.failed()) {
+            tooltip.add(line(Component.translatable(k + "rupture"), ChatFormatting.DARK_RED));
+        }
         return true;
     }
 
@@ -488,6 +570,7 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
         tag.putDouble("Wet", wetFraction);
         tag.putDouble("PrimaryCarry", model.primaryCarry());
         tag.putDouble("SteamCarry", model.steamCarry());
+        tubeWear.save(tag, "TubeWear");
         if (clientPacket) {
             tag.putBoolean("Formed", structure.isPresent());
             tag.putInt("Tubes", structure.map(s -> s.tubes).orElse(0));
@@ -502,6 +585,7 @@ public class SteamGeneratorControllerBlockEntity extends SmartBlockEntity
         hotTank.readFromNBT(registries, tag.getCompound("Hot"));
         coldTank.readFromNBT(registries, tag.getCompound("Cold"));
         feedTank.readFromNBT(registries, tag.getCompound("Feed"));
+        tubeWear.load(tag, "TubeWear");
         steamTank.readFromNBT(registries, tag.getCompound("Steam"));
         steamRate = tag.getDouble("SteamRate");
         heatRate = tag.getDouble("HeatRate");

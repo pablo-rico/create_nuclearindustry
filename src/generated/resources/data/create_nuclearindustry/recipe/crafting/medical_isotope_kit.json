@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "minecraft:glass_bottle"
+    },
+    "G": {
+      "item": "create_nuclearindustry:geiger_counter"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    }
+  },
+  "pattern": [
+    "LPL",
+    "BGB",
+    "LLL"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:medical_isotope_kit"
+  }
+}

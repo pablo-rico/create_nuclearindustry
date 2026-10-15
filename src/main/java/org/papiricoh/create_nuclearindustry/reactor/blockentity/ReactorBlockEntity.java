@@ -8,6 +8,12 @@ import org.papiricoh.create_nuclearindustry.reactor.pwr.PressurizerStack;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PrimaryLoop;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
+import org.papiricoh.create_nuclearindustry.isotope.RadiographyTarget;
+import org.papiricoh.create_nuclearindustry.maintenance.ReactorMaintenance;
+import org.papiricoh.create_nuclearindustry.maintenance.incident.IncidentLog;
+import org.papiricoh.create_nuclearindustry.maintenance.incident.IncidentType;
+import org.papiricoh.create_nuclearindustry.maintenance.physics.InesScale;
+import org.papiricoh.create_nuclearindustry.isotope.ReactorRadiograph;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.CladdingOxidationModel;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.PlantAlarm;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReactorAccidents;
@@ -95,7 +101,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clearable, MultiblockController, RadiationEmitter {
+public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clearable, MultiblockController, RadiationEmitter,
+        RadiographyTarget {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int TANK_CAPACITY = 16_000;
     /**
@@ -185,6 +192,8 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
     private final PrimaryLoop primaryLoop = new PrimaryLoop();
     /** Cladding, vessel and containment: the accident chain of this reactor. */
     private final ReactorAccidents accidents = new ReactorAccidents();
+    /** Wearing parts and the refuelling outage; see {@link ReactorMaintenance}. */
+    private final ReactorMaintenance maintenance = new ReactorMaintenance();
     /** What the fuel channels show: fuel, glow and coolant. */
     private final RodVisualSync rodVisuals = new RodVisualSync();
     /** Validations run so far, so tests can tell that the channels' own updates never cause one. */
@@ -306,6 +315,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         if (entity.status == ReactorStatus.FORMED) {
             entity.checkAutoScram();
             entity.updateControlRodInsertion(false);
+            entity.tickMaintenance();
             entity.tryStorePendingDepletedFuel();
             entity.tryLoadFuelAssembly();
             boolean stillRunning = entity.physicsSimulator.tick();
@@ -686,7 +696,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         if (legacyScramHold) {
             physicsSimulator.setControlRodInsertion(1.0f);
         } else {
-            physicsSimulator.setChannelInsertions(lastControlRodScan.channelInsertions());
+            physicsSimulator.setChannelInsertions(maintenance.applyStuck(lastControlRodScan.channelInsertions()));
         }
     }
 
@@ -983,6 +993,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         int hotCapacity = hotTank ? steamTank.getCapacity() : 0;
         // The core gave the loop its heat this tick; the loop's water sets what the core sees next tick.
         double coreHeat = physicsSimulator.getRemovedHeat() * FissionCore.TICK * HEAT_UNITS_PER_MJ;
+        primaryLoop.setReliefStickScale(maintenance.reliefStickScale());
         PrimaryLoop.Result result = primaryLoop.tick(new PrimaryLoop.Context(coreHeat, cold, hot, hotCapacity, stack, autoHeaters,
                 manualHeaters, ReliefValveBlock.isolated(level, stack.reliefValve()), level.random.nextDouble()));
         double maxHeatMw = structure.heatExchangerCount * HEAT_EXCHANGER_MW;
@@ -1024,6 +1035,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
             if (open && !level.isClientSide) {
                 level.playSound(null, valve, AllNuclearSounds.RELIEF_VALVE_LIFT.get(), SoundSource.BLOCKS, 1.2f, 1.0f);
                 awardMachine(NuclearEvent.RELIEF_VALVE_LIFTED);
+                maintenance.onReliefLift();
             }
         }
     }
@@ -1438,6 +1450,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         status = ReactorStatus.MELTDOWN;
         awardMachine(NuclearEvent.MELTDOWN);
         NuclearAdvancements.awardNearby(level, reactorPos, MELTDOWN_FALLOUT_RADIUS, NuclearEvent.MELTDOWN);
+        IncidentLog.record(level, reactorPos, IncidentType.MELTDOWN, InesScale.core(1.0, true, 1.0), "");
         FalloutData.contaminate(level, reactorPos, MELTDOWN_RADIATION, MELTDOWN_CONTAMINATION_TICKS);
         if (level instanceof ServerLevel serverLevel) {
             org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination.fallout(serverLevel, reactorPos,
@@ -1462,6 +1475,8 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         ContainmentMonitorBlockEntity containment = accidents.findContainment(level, box);
         BlockPos center = BlockPos.containing(radiationOrigin());
         int rods = structure.uraniumRodCount;
+        // A melt the containment holds is a 5; one with nothing round it lets most of the core out.
+        IncidentLog.record(level, reactorPos, IncidentType.MELTDOWN, InesScale.core(1.0, true, containment == null ? 1.0 : 0.0), "");
 
         // The vessel's water flashes off the molten core; what cladding is left reacts in the melt.
         int water = coolantTank.getFluidAmount() + steamTank.getFluidAmount();
@@ -1594,6 +1609,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         primaryLoop.idle();
         physicsSimulator.setCoolantFeedback(1.0);
         alertMessage(message(ChatFormatting.DARK_RED, "vessel_breached", getBlockPos().toShortString()));
+        IncidentLog.record(level, getBlockPos(), IncidentType.VESSEL_BREACH);
         PlantAlarm.raise(level, getBlockPos());
         markDirtyAndSync();
         BlockPos head = getBlockPos().above();
@@ -1706,6 +1722,74 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
     /** The net reactivity split into fuel, rods, temperature, voids, xenon and damage, pcm. */
     public ReactivityModel.Parts getReactivityParts() {
         return isFormed() ? physicsSimulator.getReactivityParts() : ReactivityModel.Parts.NONE;
+    }
+
+    // ------------------------------------------------------------------ maintenance (see ReactorMaintenance)
+
+    /** One tick of the wearing parts while the reactor is formed. */
+    private void tickMaintenance() {
+        Level level = getLevel();
+        if (level == null) {
+            return;
+        }
+        double rated = getRatedPower();
+        maintenance.tick(level, getBlockPos(), new ReactorMaintenance.Readings(rated > 0 ? getPowerOutput() / rated : 0,
+                isScramRequested(), autoScram.isTripped(), getCoreDamage(), primaryLoop.reliefStuck(),
+                lastControlRodScan.channelInsertions()), this::alertMessage);
+    }
+
+    public ReactorMaintenance getMaintenance() {
+        return maintenance;
+    }
+
+    /** Formed, shut down cold with every rod in: a refuelling outage, when fuel goes in and parts are mended. */
+    public boolean inOutage() {
+        return ReactorMaintenance.inOutage(isFormed(), physicsSimulator.isRunning(), physicsSimulator.getCoreTemperature(),
+                getControlRodInsertionRatio());
+    }
+
+    /** Whether the fuel ports take fresh fuel now. */
+    public boolean refuelAllowed() {
+        return ReactorMaintenance.refuelAllowed(inOutage());
+    }
+
+    /** An earthquake's ground motion reached the core: its parts are shaken, and past the seismic trip it scrams. */
+    public void shake(double severity, boolean trips) {
+        boolean scram = trips && isFormed() && !isScramRequested();
+        maintenance.shake(severity, scram);
+        if (scram) {
+            setManualScram(true);
+            alertMessage(message(ChatFormatting.RED, "seismic_scram"));
+            awardMachine(NuclearEvent.SEISMIC_SCRAM);
+        }
+        setChanged();
+    }
+
+    /** Forces a stuck control rod in {@code channel} (commands, tests). */
+    public void forceStuckRod(int channel) {
+        Level level = getLevel();
+        if (level != null) {
+            maintenance.forceStuckRod(level, getBlockPos(), lastControlRodScan.channelInsertions(), channel, this::alertMessage);
+            updateControlRodInsertion(true);
+            markDirtyAndSync();
+        }
+    }
+
+    /** Mends the reactor's parts by {@code amount}; only in an outage. Returns whether anything was mended. */
+    public boolean repair(double amount) {
+        if (!inOutage()) {
+            return false;
+        }
+        boolean mended = maintenance.repair(amount);
+        updateControlRodInsertion(true);
+        markDirtyAndSync();
+        return mended;
+    }
+
+    /** A Radiography Camera's view of the core; see {@link ReactorRadiograph}. */
+    @Override
+    public List<Component> radiograph() {
+        return ReactorRadiograph.of(this);
     }
 
     public double getCoreDamage() {
@@ -1966,6 +2050,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         autoScram.save(tag);
         tag.put("Pwr", primaryLoop.save());
         tag.put("Accident", accidents.save());
+        tag.put("Maintenance", maintenance.save());
         tag.putBoolean("CoolingAfterScram", coolingAfterScram);
         tag.putBoolean("AtFullPower", atFullPower);
     }
@@ -2029,6 +2114,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
             primaryLoop.load(tag.getCompound("Pwr"));
         }
         accidents.load(tag.getCompound("Accident"));
+        maintenance.load(tag.getCompound("Maintenance"));
         coolingAfterScram = tag.getBoolean("CoolingAfterScram");
         atFullPower = tag.getBoolean("AtFullPower");
         // A SCRAM saved with the world was already heard: no thud on load.
@@ -2075,6 +2161,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         autoScram.save(tag);
         tag.put("Pwr", primaryLoop.save());
         tag.put("Accident", accidents.save());
+        tag.put("Maintenance", maintenance.save());
         currentStructure.ifPresent(structure -> {
             if (withStructure) {
                 tag.put("structure", writeStructureTag(structure));
@@ -2119,6 +2206,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         autoScram.load(tag);
         primaryLoop.load(tag.getCompound("Pwr"));
         accidents.load(tag.getCompound("Accident"));
+        maintenance.load(tag.getCompound("Maintenance"));
         if (!tag.getBoolean("structureUnchanged")) {
             currentStructure = tag.contains("structure")
                     ? readStructureTag(tag.getCompound("structure"))
@@ -2817,7 +2905,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
             int actual = actualSlot(slot);
-            if (actual < 0 || !input || !isFreshFuel(stack)) {
+            if (actual < 0 || !input || !isFreshFuel(stack) || !refuelAllowed()) {
                 return stack;
             }
             return fuelInventory.insertItem(actual, stack, simulate);

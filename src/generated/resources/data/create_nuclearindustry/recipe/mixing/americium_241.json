@@ -1,0 +1,26 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "type": "create_nuclearindustry:aged_plutonium",
+      "base": {
+        "item": "create_nuclearindustry:plutonium"
+      }
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:nitric_acid"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:plutonium"
+    },
+    {
+      "count": 2,
+      "id": "create_nuclearindustry:americium_241"
+    }
+  ]
+}

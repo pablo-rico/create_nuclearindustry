@@ -234,5 +234,68 @@
         "stream": false
       }
     ]
+  },
+  "annunciator_alarm": {
+    "subtitle": "subtitle.create_nuclearindustry.annunciator_alarm",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:annunciator_alarm",
+        "stream": false
+      }
+    ]
+  },
+  "annunciator_warning": {
+    "subtitle": "subtitle.create_nuclearindustry.annunciator_warning",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:annunciator_warning",
+        "stream": false
+      }
+    ]
+  },
+  "annunciator_ringback": {
+    "subtitle": "subtitle.create_nuclearindustry.annunciator_ringback",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:annunciator_ringback",
+        "stream": false
+      }
+    ]
+  },
+  "trap_hum": {
+    "subtitle": "subtitle.create_nuclearindustry.trap_hum",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:trap_hum",
+        "stream": false
+      }
+    ]
+  },
+  "trap_quench": {
+    "subtitle": "subtitle.create_nuclearindustry.trap_quench",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:trap_quench",
+        "stream": false
+      }
+    ]
+  },
+  "annihilation_blast": {
+    "subtitle": "subtitle.create_nuclearindustry.annihilation_blast",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:annihilation_blast",
+        "stream": false
+      }
+    ]
+  },
+  "antiproton_shot": {
+    "subtitle": "subtitle.create_nuclearindustry.antiproton_shot",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:antiproton_shot",
+        "stream": false
+      }
+    ]
   }
 }

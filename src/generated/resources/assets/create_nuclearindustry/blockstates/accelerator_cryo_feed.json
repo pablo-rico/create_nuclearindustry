@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "create_nuclearindustry:block/accelerator_cryo_feed",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "create_nuclearindustry:block/accelerator_cryo_feed",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/accelerator_cryo_feed"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/accelerator_cryo_feed",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "create_nuclearindustry:block/accelerator_cryo_feed",
+      "x": 270
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/accelerator_cryo_feed",
+      "y": 270
+    }
+  }
+}

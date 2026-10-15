@@ -30,6 +30,10 @@ abstract class AreaDataGen {
             FuelCycleDataGen.INSTANCE,
             GuideDataGen.INSTANCE,
             AcceleratorDataGen.INSTANCE,
+            AntimatterDataGen.INSTANCE,
+            EnergyDataGen.INSTANCE,
+            IsotopeDataGen.INSTANCE,
+            MaintenanceDataGen.INSTANCE,
             ExplosiveDataGen.INSTANCE);
 
     void lang() {}

@@ -278,7 +278,7 @@ public class TokamakScenes {
         scene.idle(25);
     }
 
-    private static void showPlasma(CreateSceneBuilder scene, BlockPos controller, BlockPos axis, TokamakReadings readings) {
+    static void showPlasma(CreateSceneBuilder scene, BlockPos controller, BlockPos axis, TokamakReadings readings) {
         scene.world().modifyBlockEntity(controller, FusionReactorBlockEntity.class, tokamak -> tokamak.previewPlasma(axis, readings));
         // A ring of sparks traces the plasma as well, as in the assembly scene.
         var particle = readings.phase() == TokamakPhase.BREAKDOWN ? ParticleTypes.WITCH
@@ -292,7 +292,7 @@ public class TokamakScenes {
     }
 
     /** What an R=4 tokamak reads in a phase, for the scene's plasma. */
-    private static TokamakReadings plasma(TokamakPhase phase, double temperature, double density, double instability) {
+    static TokamakReadings plasma(TokamakPhase phase, double temperature, double density, double instability) {
         boolean burning = phase == TokamakPhase.BURN;
         return new TokamakReadings(true, false, RADIUS, phase, TripCause.NONE, temperature, instability, 1.0, density, 0.02,
                 burning ? 220 : 0, burning ? 0 : 40, burning ? Double.POSITIVE_INFINITY : 0, burning ? 0.22 : 0, 1.0, burning,

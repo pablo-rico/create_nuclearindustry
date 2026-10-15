@@ -46,6 +46,13 @@ index = column + 4 * row). `validate.py` checks those at their own sizes.
 Structure templates (GameTest arenas and the tokamak and turbine Ponder schematics) are written by
 `tools/structgen/`; GameTests check that each Ponder schematic forms.
 
+The block models of the Penning traps, the antimatter conduit, the annihilation generator, the
+antiproton injector, the synchrotron ring blocks, the gamma irradiator, the smoke detector,
+the reactor irradiation channel and their partials (with the item models of those
+blocks and their display transforms) are written by `tools/modelgen/generate.py` (standard library
+only, deterministic);
+change the model there and run it, rather than editing those JSON files.
+
 ## Conventions
 
 * **16x16** everywhere, matching Create and vanilla.

@@ -19,6 +19,8 @@ import org.papiricoh.create_nuclearindustry.reactor.pwr.physics.SaturationTable;
  * its own; the orders are not saved, since a desk repeats them as soon as it ticks again.
  */
 public final class PrimaryLoop {
+    /** Multiplier on the relief valve's sticking chance, from its wear (see ReactorMaintenance). */
+    private double reliefStickScale = 1.0;
     /** Coolant that just covers the core, mB. Less uncovers it. */
     public static final int CORE_VOLUME = 12_000;
     /** Water one pressurizer block holds, mB. */
@@ -124,7 +126,7 @@ public final class PrimaryLoop {
                 Math.max(sprayHold > 0 ? 1.0 : 0.0, controllerHold > 0 ? controllerSpray : 0.0));
         boolean venting = pressurizer.tick(new PressurizerModel.Inputs(levelDemand(inventory, capacity),
                 autoHeaters, manualHeaters, flowIn >= SPRAY_MIN_FLOW, coolant.hotLeg(), coolant.coldLeg(),
-                c.reliefIsolated(), c.stickRoll(), PwrConfig.reliefStickChance, demand), pressurizerParams());
+                c.reliefIsolated(), c.stickRoll(), Math.min(1.0, PwrConfig.reliefStickChance * reliefStickScale), demand), pressurizerParams());
         countDownDeskOrders();
         int vented = 0;
         if (venting) {
@@ -237,6 +239,11 @@ public final class PrimaryLoop {
 
     public PlantReadings readings() {
         return readings;
+    }
+
+    /** A worn relief valve sticks open more often: the chance is multiplied by this (1 for a new valve). */
+    public void setReliefStickScale(double scale) {
+        reliefStickScale = Math.max(0.0, scale);
     }
 
     public boolean reliefOpen() {

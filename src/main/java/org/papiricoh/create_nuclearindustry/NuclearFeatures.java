@@ -4,8 +4,11 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.papiricoh.create_nuclearindustry.accelerator.AcceleratorRegistry;
+import org.papiricoh.create_nuclearindustry.antimatter.AntimatterRegistry;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
+import org.papiricoh.create_nuclearindustry.energy.EnergyRegistry;
 import org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleRegistry;
 import org.papiricoh.create_nuclearindustry.fusion.FusionRegistry;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
@@ -17,7 +20,7 @@ import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 
 import java.util.List;
 
-/** Every {@link NuclearFeature}, in creative tab order. */
+/** Every {@link NuclearFeature}, in creative tab order within each section. */
 public final class NuclearFeatures {
     public static final List<NuclearFeature> ALL = List.of(
             PwrRegistry.INSTANCE,
@@ -31,6 +34,10 @@ public final class NuclearFeatures {
             ReactorVisualsRegistry.INSTANCE,
             FuelCycleRegistry.INSTANCE,
             AcceleratorRegistry.INSTANCE,
+            AntimatterRegistry.INSTANCE,
+            EnergyRegistry.INSTANCE,
+            org.papiricoh.create_nuclearindustry.isotope.IsotopeRegistry.INSTANCE,
+            org.papiricoh.create_nuclearindustry.maintenance.MaintenanceRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.INSTANCE);
 
     private NuclearFeatures() {}
@@ -43,7 +50,11 @@ public final class NuclearFeatures {
         ALL.forEach(feature -> feature.registerCapabilities(event));
     }
 
-    static void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
-        ALL.forEach(feature -> feature.fillCreativeTab(parameters, output));
+    public static void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        ALL.forEach(feature -> {
+            output.clearSection();
+            feature.fillCreativeTab(parameters, output);
+        });
+        output.clearSection();
     }
 }

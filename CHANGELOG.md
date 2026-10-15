@@ -581,6 +581,10 @@ below for what changes in existing worlds.
 - New Repository Inspector: shows the stored packages within 8 blocks and the
   score breakdown of the weakest one on goggles, feeds a Display Link and puts
   the stored share out to comparators.
+- The Vitrification Melter (bricks, a blast furnace, iron and copper sheets)
+  and the Repository Inspector (Geiger counter, precision mechanism, electron
+  tube, bentonite and iron sheets) can now be crafted, so the "sealed
+  repository" advancement is reachable in survival.
 
 ### Control room instruments
 - Advanced Redstone Link: works like Create's Redstone Link but is tuned by a
@@ -839,6 +843,32 @@ below for what changes in existing worlds.
 - New advancements: Teller-Ulam (make lithium deuteride) and Brighter Than a
   Thousand Suns (witness a thermonuclear detonation). New Ponder scene and JEI
   pages for the thermonuclear bomb and the warhead parts.
+
+### Annunciator boards
+- Annunciator Panels now hang on a wall like the Wall Control Panel: a 3-pixel
+  plate on a solid block, which falls off if the wall goes. Panels hung side
+  by side or one above the other (up to 16 wide and 8 high) join into one
+  board with a continuous frame and a single horn.
+- One set of buttons per board, at the right end of its bottom strip: TEST
+  lights every lamp for a few seconds, SIL silences the horn until the next
+  new alarm, ACK acknowledges and RESET clears, all for the whole board. The
+  first window to trip anywhere on the board is ringed as the first out.
+  Every other panel's strip shows an engraved group nameplate.
+- Windows have a severity: alarms light red with an urgent horn, warnings
+  amber with a softer tone, and status windows only light white while their
+  condition holds, with no horn and nothing to acknowledge. Presets set it
+  (a SCRAM or a tokamak trip is an alarm, an open containment is a status).
+- Boards come in the monitor styles: standard, plant computer and mimic board.
+- New wrench screen in the style of the monitor's: the panel's six windows as
+  they show, clickable, then the chosen window's label, alarm, threshold and
+  severity, the panel's nameplate, the board's style and the presets.
+- New sounds for the horn, the warning tone and the ringback chime, with
+  subtitles.
+- A Display Link reads a board: how many windows are lit and waiting, the
+  first out and every lit window, the most urgent first.
+- Redstone works the whole board: a pulse into the left side acknowledges,
+  into the right resets, from above silences, and power from below holds the
+  lamp test. While an alarm waits, every panel powers the wall it hangs on.
 
 ### Civil defense
 - New Air Raid Siren: it wails while powered by redstone, and on its own (a
@@ -1145,6 +1175,256 @@ below for what changes in existing worlds.
   shell blocks, magnet drive, fluid port and fuel injector, the fusion turbine
   blocks, the reactor viewport, and the two fan treatments.
 
+### Synchrotron rings and target stations
+- The particle accelerator can now be built as a synchrotron. End the linac in
+  an Injection Septum facing the middle of a ring of radius 6 or more, fill
+  every block of the ring with beamline parts (Ring Dipole Magnets,
+  Superconducting Ring Dipoles, Superconducting RF Cavities, quadrupoles, RF
+  cavities, beam pipe) and leave it through one Extraction Septum facing out.
+  The beam fills the ring, ramps up to the ring's top energy and is then sent
+  down the extraction line. Bigger rings and more (and superconducting) dipoles
+  reach higher energies; the linac must reach at least a hundredth of the
+  ring's top energy to inject.
+- Superconducting dipoles and cavities need liquid helium: pipe it into an
+  Accelerator Cryogenic Feed beside the ring or line. It goes straight into the
+  controller's helium loop, and the warm helium comes back out of the same
+  feed. Without helium the start is refused, and a cool-down that runs dry
+  trips.
+- New Target Station at the end of a beamline. It takes the beam like a beam
+  dump (and gets activated like one). With a beam above
+  `accelerator.antimatter.thresholdGev` (25 GeV) its magnetic horn collects
+  antiprotons and hands them to the Penning traps or Antimatter Conduits
+  beside its back; goggles show the production in ng per minute. Its glowing
+  beam window and pulsing collector ring show when it works.
+- New Beam Interlock panel for personnel protection. Place it beside the
+  beamline, by the door into the beam area, and right-click it to search and
+  secure the area; sneak-click opens it. The beam will not start while any
+  panel is open, and opening one (or opening a door beside it) trips a running
+  beam with a buzzer. Doors, trapdoors and gates beside a panel refuse to open
+  by hand while the beam is on (`accelerator.interlock.locksDoors`). With
+  `accelerator.interlock.requirePlayersOutside` the beam also refuses to start,
+  and trips, while a player stands inside the machine. A secured panel gives a
+  redstone signal out of its back, for a warning light.
+- New Ponder scene "The synchrotron".
+
+### Antimatter containment
+- Antiprotons can now be stored. Three Penning traps hold them, each a glass
+  cylinder between two magnet heads with a glowing band in its colour: the
+  Small Penning Trap (one block, cyan, 32 ng), the Penning Trap (two blocks
+  tall, violet, 256 ng) and the Large Penning Trap (2x2 and three tall, amber,
+  2048 ng). The medium and large traps are placed and broken as one block.
+  The antimatter shows as a floating, pulsing cloud that grows with the charge.
+- Traps run only on Forge Energy (about 20, 80 and 250 FE/t when full) and
+  keep a buffer of about ten seconds. Their status light is green when stable,
+  amber on low power and red when quenching.
+- Treat them with care. Antimatter put into a trap without energy annihilates
+  at once. A loaded trap that runs out of energy quenches: three seconds of
+  alarm, red light and sparks, then it annihilates. Breaking a loaded trap
+  annihilates it too (an empty one drops as usual), and the blast can break
+  and set off the loaded traps around it. Unloading the chunk is safe.
+- An annihilation is a small explosion that grows with the charge (radius 3
+  to 8 blocks), with a flash, green sparks and a burst of gamma radiation
+  that reaches twice as far. It leaves no fallout or contamination, and
+  seismic detectors record it.
+- New Antimatter Vial (4 ng, green). Put it into a trap's port by right-
+  clicking the trap; the wrench switches the port between filling the vial
+  and emptying it into the trap, and an empty hand takes it back. A loaded
+  vial has a 30-second battery that only recharges in the port of a powered
+  trap: when it runs flat with antimatter inside, the vial annihilates where it
+  is, in your inventory or on the ground. Empty vials are safe and stack to
+  16; loaded ones do not stack.
+- New Antimatter Conduit, a glass tube with magnetic rings that joins traps
+  and target stations. It needs a little Forge Energy for every block, holds
+  nothing itself and moves antimatter only while all of it is powered: from
+  target stations into traps, and between traps towards an even fill. A green
+  pulse runs along it while antimatter flows.
+- Traps show their charge, field, energy, state and time to quench on the
+  goggles, give a comparator signal by fill, and can be read by Display Links
+  and the control room (new monitor rows, the ANTIMATTER annunciator preset and
+  the Antimatter Stored and Trap Power alarm metrics). They hum with their
+  field and sound their own alarm when they quench.
+- New Ponder scene "Antimatter containment" and JEI pages for the traps, the
+  vial, the conduit and the target station. New config keys under
+  `antimatter.trap`, `antimatter.vial`, `antimatter.conduit` and
+  `antimatter.blast` (see docs/configuration.md).
+
+### Creative RF Generator
+- New Creative RF Generator, for testing machines without an energy mod. It
+  pushes up to 1,000,000 FE/t (100,000 by default; set it on its value panel)
+  into every block around it and gives cables as much as they pull. Creative
+  tab only, with no recipe, and it cannot be broken or wrenched in survival.
+
+### Annihilation Generator
+- New Annihilation Generator: a heavy chamber that burns antiprotons. It turns
+  a shaft at 256 RPM with up to 65,536 SU, makes up to 16,384 FE/t, or half of
+  each. Pick Rotation, Electric or Split on the value panel on top, or click
+  the top face with a wrench (the wrench on any other face turns it, like any
+  kinetic block). With Forge Energy disabled
+  (`antimatter.generator.feEnabled`) it only turns.
+- It burns 6 ng a minute at full output. Redstone sets the throttle. With no
+  signal it keeps a tiny standby burn that only holds its field and gives
+  nothing. When the supply cannot keep up, its output drops to match.
+- It draws antimatter from Penning traps and target stations beside it, from
+  an Antimatter Conduit, or from a vial in its port (right-click with the vial;
+  an empty hand takes the vial back). Its chamber holds 1 ng.
+- The chamber is a small Penning trap. Before it lights, it needs Forge Energy
+  once to raise its field. A cold chamber with no energy takes no antimatter
+  in, and a loaded vial left in its port annihilates when its battery runs
+  flat. Once lit, the burn holds the field by itself until the fuel runs out;
+  when the supply runs dry it goes out and needs energy again (a cable, or
+  Electric or Split mode, which keeps its own buffer full). In Electric or Split it refills its own field
+  buffer first, then pushes its energy evenly into every block around it. One
+  generator can power the very traps that feed it.
+- Breaking a loaded generator annihilates its chamber and any loaded vial in
+  its port; unloading the chunk is safe.
+- Goggles show the mode, throttle, output, chamber, field and burn rate.
+  Comparators read the output, a Display Link source shows its status, and the
+  control room can link it (new monitor rows, gauges and chart recorder pens).
+  It hums with a drone that rises with the output. Its core glows from dim
+  green on standby to white-green at full output, and the lamp of the active
+  mode lights on its panel.
+- Crafted from superconductor ingots, a Small Penning Trap, electron tubes, a
+  brass casing, precision mechanisms and a shaft.
+
+### Antiproton Injector
+- New Antiproton Injector, a tokamak shell block with a small trap chamber and
+  a beam nozzle. While the plasma is heating, held well enough and dense
+  enough, it fires one dose of antiprotons (`antimatter.ignitionDose`, 2 ng).
+  The dose lifts the plasma straight past ignition, with no neutral beams or
+  antennas needed.
+- It needs Forge Energy (20,000 FE per shot, `antimatter.injector.shotFe`) and
+  antimatter from a trap or conduit beside it, or from a vial in its port.
+  After a shot it cools down for 10 seconds
+  (`antimatter.injector.cooldownTicks`). Its chamber holds a few doses. Like
+  any trap, it annihilates them if its energy runs out.
+- The wrench switches it between automatic, armed by redstone, and safe.
+  Goggles show whether it is armed and ready, its doses, and what it is
+  waiting for (cooldown, a dose, power, the heating phase, confinement or
+  density). An amber lamp shows it is armed and a green one that it is ready.
+  On a shot the nozzle flashes and a streak of light runs into the plasma.
+  Comparators read whole doses.
+- Crafted from a Small Penning Trap, superconductor ingots, a Neutral Beam
+  Injector and an electron tube.
+
+### Antimatter: guide and looks
+- New advancements: First Nanogram (fill a trap with 1 ng), E = mc² (run an
+  Annihilation Generator), Ignition by Annihilation (ignite a tokamak with
+  antiprotons), and a secret one.
+- New Ponder scenes for the Annihilation Generator and the Antiproton
+  Injector, and JEI pages for both. The target station has a JEI category
+  that plots antiprotons per minute, per MW of beam, against the beam energy,
+  from the threshold to where the yield stops rising.
+- The control room's trap gauges and chart recorder pens, and monitor labels
+  for traps ("PT") and generators ("AG").
+- Antimatter annihilations have their own look: a white-green flash, a halo
+  and a shell of green and cyan sparks that races out to the blast edge and is
+  gone in about two seconds, with no grey smoke.
+- The Small Penning Trap no longer shows a dark ring in the middle of its
+  glass.
+- Penning traps and the Antimatter Conduit are now held at a normal size in
+  first and third person. The Large Penning Trap used to fill the screen.
+- In survival, the first Forge Energy for traps and a generator's first start
+  has to come from another mod. After that, a generator in Electric or Split
+  keeps itself and its traps running.
+
+### Isotopes and nuclear medicine
+- Radioisotopes that decay on their own clock, in your inventory, in a chest
+  or in a machine. Technetium-99m halves in six hours of game time,
+  molybdenum-99 in under three days, cobalt-60 in 60 days, strontium-90 in 330
+  and americium-241 practically never (`isotopes.*`). The bar under the item
+  shows the activity left. The Geiger counter and the dose you take from
+  carrying one follow it.
+- Cobalt: heated mixing of crushed raw iron with crushed raw copper frees
+  cobalt nuggets. Nine make a Cobalt Ingot.
+- New Reactor Irradiation Channel, a sample tube through a fission reactor's
+  wall that takes any casing block's place. Up to sixteen cobalt ingots soak
+  up the core's neutrons and come out as Cobalt-60 Sources. At rated power
+  that takes about five minutes. Pipes and funnels load it and empty it, and
+  comparators read the progress.
+- Strontium-90 is extracted from PUREX high-level waste with nitric acid. Two
+  make a Strontium-90 RTG Pellet: less power than plutonium, but it lasts
+  twice as long.
+- Americium-241 grows in stored plutonium. Plutonium starts ageing when a
+  player first carries it. After about a week the americium can be separated
+  with nitric acid, and the plutonium comes back.
+- Technetium-99m Generator: a Target Station hit by a beam of 1 GeV or more,
+  but below the antiproton threshold, turns depleted uranium into molybdenum-99
+  columns. Milk one for up to four doses of technetium-99m. It is best a day
+  after the last milking and worn out in a little over a week.
+- New Gamma Irradiator: up to four cobalt-60 sources in a lead head, two
+  blocks above a belt or depot like a press. Food with a harmful effect (raw
+  chicken, rotten flesh, spider eyes, pufferfish, poisonous potatoes) stops
+  while the shutter opens and comes out sterilised: the same nourishment, no
+  harmful effects. It slows down as the cobalt decays and lets food pass once
+  the sources are spent. Open, it irradiates whoever stands by the belt. A
+  blue glow and a cone of light show it working.
+- New Smoke Detector with a speck of americium-241. Fixed to a floor, wall or
+  ceiling, it gives a redstone signal and beeps when fire, a lit campfire or
+  furnace, lava or a burning creature is close.
+- New Medical Isotope Kit. With a technetium-99m dose in your inventory, use it
+  on yourself or another player for a full scan: dose held, what is adding to
+  it from carried items and from the ground, the lifetime total and the
+  medicines at work. The tracer makes potassium iodide and Prussian blue up to
+  50% stronger for two minutes.
+- New Radiography Camera. With a cobalt-60 source in your inventory, use it on
+  a fission reactor to see its core damage, oxidised cladding, vessel, thermal
+  stress, fuel and control rods. A weaker source sees fewer details. Each shot
+  gives you a small dose.
+- JEI categories for target irradiation, reactor irradiation and gamma
+  sterilisation, and info pages for everything new.
+- New advancements: Hot Metal (make cobalt-60), Five-Second Rule (sterilise
+  food) and Milking the Cow (milk a technetium generator).
+- A lit Annihilation Generator keeps its field for three seconds after its
+  last burn. A short gap in its supply no longer leaves it cold, and conduits
+  can keep feeding it without a cable.
+- Penning traps, the Annihilation Generator and the Antiproton Injector can no
+  longer be moved by contraptions, which carried their antimatter off
+  unpowered.
+
+### Creative tab
+- The creative tab is split into themed sections: Mining & Materials, Fuel Cycle, Fission, PWR &
+  Containment, Power Generation, Control Room, Spent Fuel & Waste, Isotopes & Medicine, Safety &
+  Maintenance, Fusion, Cryogenics, Accelerators, Antimatter, Civil Defense and Weapons.
+- Each section opens with its own banner, animated while the mouse is over it, and an item's
+  tooltip names its section. Items other mods add to the tab go in a last "Other" section.
+- `creativeTab.sections` in the client config turns the banners off for a single list in the same order.
+
+### Operation and maintenance
+- Plant parts now wear with use:
+  - a fission reactor's control rod drives, with its power and at every SCRAM;
+  - its relief valve, at every lift;
+  - a steam generator's tubes, while they move heat, four times faster boiling dry;
+  - a turbine's blades, with the steam they expand.
+- Worn parts fail:
+  - a jammed rod drive leaves its channel where it was at a SCRAM;
+  - a worn relief valve sticks open up to ten times more often;
+  - a burst tube leaks primary coolant into the secondary side, and the steam generator then gives off radiation;
+  - failed blades trip the turbine on vibration until they are repaired.
+- Goggles, the Radiography Camera and the control room show each part's state:
+  - new alarm metrics for part wear, turbine blades and the refuelling outage;
+  - a Maintenance preset for annunciators.
+- **Breaking:** a fission reactor now takes fresh fuel only in a refuelling outage: formed, shut down cold with every control rod in.
+- New Maintenance Kit, which a Deployer can also use. It services:
+  - a reactor in its outage, including freeing a stuck rod;
+  - a steam generator or turbine that is stopped.
+- Natural earthquakes now and then shake the ground:
+  - seismic detectors record them;
+  - a reactor shaken past its seismic trip scrams;
+  - the shaking wears plant parts.
+- New server incident log rated on the INES scale:
+  - automatic and seismic SCRAMs and turbine trips are 0;
+  - stuck rods and relief valves are 1;
+  - tube ruptures are 2;
+  - fuel damage and vessel breaches are 4;
+  - meltdowns are 5, or 7 with no containment;
+  - earthquakes, detonations and drills are also logged.
+  
+  Players nearby hear of anything from INES 1 up. A new Incident Log Display Link source works on reactor controllers and seismic detectors.
+- New `/nuclear incident list`, `/nuclear incident drill` and `/nuclear incident trigger` commands.
+- Every feature can be turned off in the config under `maintenance.*`. `maintenance.enabled = false` turns them all off.
+- New Ponder scene for plant maintenance.
+- New advancements: Planned Outage and a secret one.
+
 ### Performance and multiplayer
 - A fission reactor being filled, emptied or run no longer sends everyone
   near it its whole state every tick: contents and readings go out at most
@@ -1186,6 +1466,10 @@ below for what changes in existing worlds.
   physics and radiation.
 
 ### Upgrading
+- Annunciator Panels placed before stay where they are, even with no wall
+  behind them, and now look like hung plates. They no longer power the block
+  below them (below is now the lamp test input): wire their alarm output from
+  the block behind them instead.
 - Nuclear bombs and launch pads loaded with loose uranium or plutonium drop it
   beside them the first time they load and stop any countdown; cast it into
   cores and load those. A core now counts as eight warhead units, so a full

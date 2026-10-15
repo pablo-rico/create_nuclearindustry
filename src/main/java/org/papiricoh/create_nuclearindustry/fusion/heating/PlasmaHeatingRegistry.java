@@ -16,6 +16,8 @@ import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.NuclearFeature;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 
 import java.util.List;
 import java.util.function.Function;
@@ -81,7 +83,8 @@ public final class PlasmaHeatingRegistry implements NuclearFeature {
     }
 
     @Override
-    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        output.section(NuclearTabSection.FUSION);
         output.accept(NEUTRAL_BEAM_INJECTOR_ITEM.get());
         output.accept(RF_ANTENNA_ITEM.get());
         output.accept(VIEWPORT_ITEM.get());

@@ -35,6 +35,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.MonitorConfig;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorReading;
 import org.papiricoh.create_nuclearindustry.controlroom.MonitorTheme;
 import org.papiricoh.create_nuclearindustry.controlroom.NuclearAlarmBlock;
+import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorPanelBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorPanelBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.chart.ChartRecorderBlockEntity;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlockEntity;
@@ -447,13 +448,18 @@ public class ControlRoomScenes {
         scene.idle(10);
         annunciatorState(scene, util, ANNUNCIATOR, 0, -1);
         scene.idle(20);
-        scene.effects().indicateRedstone(ANNUNCIATOR.east());
-        scene.effects().indicateRedstone(ANNUNCIATOR.west());
+        // The board's buttons sit at the right end of its strip: TEST lights every lamp.
+        Vec3 buttons = util.vector().of(1.3, 5.12, 17 + AnnunciatorPanelBlock.FACE_DEPTH / 16.0);
+        scene.overlay().showControls(buttons, Pointing.DOWN, 30).rightClick();
+        lampTest(scene, util, true);
+        scene.effects().indicateRedstone(ANNUNCIATOR.above());
         scene.overlay().showText(120)
                 .text(lines.next())
-                .pointAt(window)
+                .pointAt(buttons)
                 .placeNearTarget();
-        scene.idle(130);
+        scene.idle(40);
+        lampTest(scene, util, false);
+        scene.idle(90);
 
         // Chart recorders.
         PonderZoom.to(scene, BOARD_WEST, ZOOM_TICKS);
@@ -759,6 +765,11 @@ public class ControlRoomScenes {
             scene.world().modifyBlockEntityNBT(util.select().position(17, 4, z), AnnunciatorPanelBlockEntity.class,
                     nbt -> annunciator(nbt, TOKAMAK, true, index, lit), false);
         }
+        // Each board rings the first window to trip on it.
+        scene.world().modifyBlockEntityNBT(util.select().position(ANNUNCIATOR_BOARD), AnnunciatorPanelBlockEntity.class,
+                nbt -> boardFirstOut(nbt, new BlockPos(10, 5, 17), (10 * 5) % 6), false);
+        scene.world().modifyBlockEntityNBT(util.select().position(TOKAMAK_BOARD), AnnunciatorPanelBlockEntity.class,
+                nbt -> boardFirstOut(nbt, new BlockPos(17, 4, 9), (9 * 5) % 6), false);
         for (int x : new int[]{1, 2, 15, 16}) {
             int seed = x;
             scene.world().modifyBlockEntityNBT(util.select().position(x, 1, 17), ChartRecorderBlockEntity.class,
@@ -853,6 +864,12 @@ public class ControlRoomScenes {
         return new Face(face.module(), face.shown(), face.value(), picture, face.coverOpen(), face.demand());
     }
 
+    /** The back wall board's lamp test, on or off; set by hand, as a Ponder scene does not tick. */
+    private static void lampTest(CreateSceneBuilder scene, SceneBuildingUtil util, boolean on) {
+        scene.world().modifyBlockEntityNBT(util.select().position(ANNUNCIATOR_BOARD), AnnunciatorPanelBlockEntity.class,
+                nbt -> nbt.putInt("LampTest", on ? AnnunciatorPanelBlockEntity.LAMP_TEST_TICKS : 0), false);
+    }
+
     /** One annunciator window: {@code state} (ordinal of AnnunciatorLogic.State) and the first out. */
     private static void annunciatorState(CreateSceneBuilder scene, SceneBuildingUtil util, BlockPos pos, int state, int firstOut) {
         scene.world().modifyBlockEntityNBT(util.select().position(pos), AnnunciatorPanelBlockEntity.class, nbt -> {
@@ -861,6 +878,9 @@ public class ControlRoomScenes {
             nbt.putIntArray("States", states);
             nbt.putInt("FirstOut", firstOut);
         }, false);
+        // The board's first-out lives in its origin: this window while it is lit, else the one dressed in.
+        scene.world().modifyBlockEntityNBT(util.select().position(ANNUNCIATOR_BOARD), AnnunciatorPanelBlockEntity.class,
+                nbt -> boardFirstOut(nbt, firstOut >= 0 ? pos : new BlockPos(10, 5, 17), firstOut >= 0 ? firstOut : (10 * 5) % 6), false);
     }
 
     private static BlockState port(RedstonePortMode mode, int power) {

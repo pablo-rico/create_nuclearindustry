@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "create_nuclearindustry:block/injection_septum_side",
+    "north": "create_nuclearindustry:block/injection_septum_front",
+    "south": "create_nuclearindustry:block/injection_septum_back",
+    "east": "create_nuclearindustry:block/injection_septum_side",
+    "west": "create_nuclearindustry:block/injection_septum_side",
+    "up": "create_nuclearindustry:block/injection_septum_top",
+    "down": "create_nuclearindustry:block/injection_septum_top"
+  }
+}

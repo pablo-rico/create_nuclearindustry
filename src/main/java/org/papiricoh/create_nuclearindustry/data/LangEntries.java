@@ -223,6 +223,22 @@ public final class LangEntries {
         add("itemGroup.create_nuclearindustry.nuclear_tab",
                 "Create: Nuclear industry",
                 "Create: Nuclear industry");
+        add("itemGroup.create_nuclearindustry.section.materials", "Mining & Materials", "Minería y materiales");
+        add("itemGroup.create_nuclearindustry.section.fuel_cycle", "Fuel Cycle", "Ciclo del combustible");
+        add("itemGroup.create_nuclearindustry.section.fission", "Fission", "Fisión");
+        add("itemGroup.create_nuclearindustry.section.primary_loop", "PWR & Containment", "PWR y contención");
+        add("itemGroup.create_nuclearindustry.section.power", "Power Generation", "Generación eléctrica");
+        add("itemGroup.create_nuclearindustry.section.control_room", "Control Room", "Sala de control");
+        add("itemGroup.create_nuclearindustry.section.spent_fuel", "Spent Fuel & Waste", "Gastado y residuos");
+        add("itemGroup.create_nuclearindustry.section.isotopes", "Isotopes & Medicine", "Isótopos y medicina");
+        add("itemGroup.create_nuclearindustry.section.safety", "Safety & Maintenance", "Mantenimiento y EPI");
+        add("itemGroup.create_nuclearindustry.section.fusion", "Fusion", "Fusión");
+        add("itemGroup.create_nuclearindustry.section.cryogenics", "Cryogenics", "Criogenia");
+        add("itemGroup.create_nuclearindustry.section.accelerator", "Accelerators", "Aceleradores");
+        add("itemGroup.create_nuclearindustry.section.antimatter", "Antimatter", "Antimateria");
+        add("itemGroup.create_nuclearindustry.section.civil_defense", "Civil Defense", "Defensa civil");
+        add("itemGroup.create_nuclearindustry.section.weapons", "Weapons", "Armamento");
+        add("itemGroup.create_nuclearindustry.section.other", "Other", "Otros");
         add("block.create_nuclearindustry.fusion_controller",
                 "Tokamak Controller",
                 "Controlador del tokamak");

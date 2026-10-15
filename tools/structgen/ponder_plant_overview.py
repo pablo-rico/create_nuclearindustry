@@ -25,7 +25,7 @@ the front (north and west) and the cooling tower at the back. Layout (matches Pl
 - the feedwater line from that port north to (15,2,14), west with a pump (12,2,14), through a
   penetration in the south wall (10,2,13) and north inside to the feedwater port;
 - the control room in front of the turbine: two control desks (18..19,1,1) facing north with an
-  annunciator panel (18,1,3) and a chart recorder (19,1,3) behind them;
+  annunciator panel (18,1,3) hung on a concrete wall (18..19,1,4) and a chart recorder (19,1,3) behind them;
 - the spent fuel pool x 1..7, z 16..22, walls y 1..4, water y 1..4, five racks on its floor at
   (3..5,1,18) and (3..4,1,20), a pool cooler (6,1,21) turned from a motor above the water, and
   two dry casks (9,1,18) and (9,1,20) beside it.
@@ -150,8 +150,12 @@ def control_room(blocks):
     desk = {"facing": "north", "shape": "straight"}
     put(blocks, (18, 1, 1), NS + "reactor_control_panel", dict(desk, left="true", right="false"))
     put(blocks, (19, 1, 1), NS + "reactor_control_panel", dict(desk, left="false", right="true"))
-    put(blocks, (18, 1, 3), NS + "annunciator_panel", {"facing": "north"})
+    put(blocks, (18, 1, 3), NS + "annunciator_panel", {"facing": "north", "mounted": "true", "left": "false", "right": "false",
+                                                       "up": "false", "down": "false"})
     put(blocks, (19, 1, 3), NS + "chart_recorder", {"facing": "north"})
+    # The instrument wall the annunciator hangs on.
+    for x in (18, 19):
+        put(blocks, (x, 1, 4), "minecraft:light_gray_concrete")
 
 
 def spent_fuel(blocks):

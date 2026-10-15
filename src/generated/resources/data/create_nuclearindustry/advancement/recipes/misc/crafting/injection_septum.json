@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_bending_magnet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:beam_bending_magnet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "create_nuclearindustry:crafting/injection_septum"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_bending_magnet"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "create_nuclearindustry:crafting/injection_septum"
+    ]
+  }
+}

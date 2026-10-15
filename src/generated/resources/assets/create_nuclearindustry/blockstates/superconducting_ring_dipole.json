@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "create_nuclearindustry:block/superconducting_ring_dipole",
+      "y": 90
+    },
+    "axis=y": {
+      "model": "create_nuclearindustry:block/superconducting_ring_dipole",
+      "x": 90
+    },
+    "axis=z": {
+      "model": "create_nuclearindustry:block/superconducting_ring_dipole"
+    }
+  }
+}

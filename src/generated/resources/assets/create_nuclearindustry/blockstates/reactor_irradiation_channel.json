@@ -1,0 +1,96 @@
+{
+  "variants": {
+    "facing=down,status=empty": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel",
+      "x": 90
+    },
+    "facing=down,status=irradiating": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_irradiating",
+      "x": 90
+    },
+    "facing=down,status=loaded": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_loaded",
+      "x": 90
+    },
+    "facing=down,status=ready": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_ready",
+      "x": 90
+    },
+    "facing=east,status=empty": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel",
+      "y": 90
+    },
+    "facing=east,status=irradiating": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_irradiating",
+      "y": 90
+    },
+    "facing=east,status=loaded": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_loaded",
+      "y": 90
+    },
+    "facing=east,status=ready": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_ready",
+      "y": 90
+    },
+    "facing=north,status=empty": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel"
+    },
+    "facing=north,status=irradiating": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_irradiating"
+    },
+    "facing=north,status=loaded": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_loaded"
+    },
+    "facing=north,status=ready": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_ready"
+    },
+    "facing=south,status=empty": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel",
+      "y": 180
+    },
+    "facing=south,status=irradiating": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_irradiating",
+      "y": 180
+    },
+    "facing=south,status=loaded": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_loaded",
+      "y": 180
+    },
+    "facing=south,status=ready": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_ready",
+      "y": 180
+    },
+    "facing=up,status=empty": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel",
+      "x": 270
+    },
+    "facing=up,status=irradiating": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_irradiating",
+      "x": 270
+    },
+    "facing=up,status=loaded": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_loaded",
+      "x": 270
+    },
+    "facing=up,status=ready": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_ready",
+      "x": 270
+    },
+    "facing=west,status=empty": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel",
+      "y": 270
+    },
+    "facing=west,status=irradiating": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_irradiating",
+      "y": 270
+    },
+    "facing=west,status=loaded": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_loaded",
+      "y": 270
+    },
+    "facing=west,status=ready": {
+      "model": "create_nuclearindustry:block/reactor_irradiation_channel_ready",
+      "y": 270
+    }
+  }
+}

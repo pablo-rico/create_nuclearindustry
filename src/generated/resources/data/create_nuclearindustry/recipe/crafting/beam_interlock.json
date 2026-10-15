@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "L": {
+      "item": "minecraft:redstone_lamp"
+    },
+    "S": {
+      "item": "create:iron_sheet"
+    },
+    "V": {
+      "item": "minecraft:lever"
+    }
+  },
+  "pattern": [
+    "SLS",
+    "SVS",
+    "SES"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:beam_interlock"
+  }
+}

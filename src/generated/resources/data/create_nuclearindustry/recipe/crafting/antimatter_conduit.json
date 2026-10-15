@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    }
+  },
+  "pattern": [
+    " C ",
+    "GEG",
+    " C "
+  ],
+  "result": {
+    "count": 4,
+    "id": "create_nuclearindustry:antimatter_conduit"
+  }
+}

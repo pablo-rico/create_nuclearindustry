@@ -3,7 +3,6 @@ package org.papiricoh.create_nuclearindustry.integration.cbc;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -17,6 +16,8 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import rbasamoyai.createbigcannons.index.CBCMunitionPropertiesHandlers;
 import rbasamoyai.createbigcannons.munitions.big_cannon.BigCannonProjectileBlockEntity;
 import rbasamoyai.createbigcannons.munitions.big_cannon.BigCannonProjectileRenderer;
@@ -136,7 +137,8 @@ public final class CBCNuclearContent {
         }
     }
 
-    public static void addCreativeItems(CreativeModeTab.Output output) {
+    public static void addCreativeItems(SectionedOutput output) {
+        output.section(NuclearTabSection.WEAPONS);
         output.accept(NUCLEAR_CANNON_SHELL.get());
         output.accept(THERMONUCLEAR_CANNON_SHELL.get());
         output.accept(DEPLETED_URANIUM_AP_SHOT.get());

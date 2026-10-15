@@ -64,7 +64,7 @@ public class AcceleratorMachineBlockEntity extends KineticBlockEntity implements
         return switch (role) {
             case KLYSTRON -> AcceleratorConfig.klystronStress;
             case MAGNET_POWER -> AcceleratorConfig.magnetSupplyStress;
-            case VACUUM_PUMP, CRYO -> AcceleratorConfig.pumpStress;
+            case VACUUM_PUMP, CRYO, INTERLOCK -> AcceleratorConfig.pumpStress;
         };
     }
 
@@ -75,7 +75,7 @@ public class AcceleratorMachineBlockEntity extends KineticBlockEntity implements
         return switch (role) {
             case KLYSTRON -> AcceleratorConfig.klystronRatedSpeed;
             case MAGNET_POWER -> AcceleratorConfig.magnetSupplyRatedSpeed;
-            case VACUUM_PUMP, CRYO -> AcceleratorConfig.pumpRatedSpeed;
+            case VACUUM_PUMP, CRYO, INTERLOCK -> AcceleratorConfig.pumpRatedSpeed;
         };
     }
 

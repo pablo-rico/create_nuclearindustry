@@ -6,6 +6,8 @@ import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.antimatter.AntimatterInfo;
+import org.papiricoh.create_nuclearindustry.isotope.IsotopeInfo;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
 import org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Registry;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.ModuleType;
@@ -116,6 +118,8 @@ public final class PlantJeiInfo {
         pages.addAll(FuelCycleInfo.pages());
         pages.addAll(GuideJeiInfo.pages());
         pages.addAll(org.papiricoh.create_nuclearindustry.accelerator.AcceleratorInfo.pages());
+        pages.addAll(AntimatterInfo.pages());
+        pages.addAll(IsotopeInfo.pages());
         return pages;
     }
 

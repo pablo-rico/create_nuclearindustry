@@ -1,0 +1,38 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/antiproton_injector_flash",
+    "flash": "create_nuclearindustry:block/antiproton_injector_flash"
+  },
+  "elements": [
+    {
+      "from": [
+        2.5,
+        2.5,
+        16.05
+      ],
+      "to": [
+        13.5,
+        13.5,
+        16.05
+      ],
+      "shade": false,
+      "neoforge_data": {
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#flash"
+        }
+      }
+    }
+  ]
+}

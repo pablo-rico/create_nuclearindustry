@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "create_nuclearindustry:block/annihilation_generator",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/annihilation_generator"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/annihilation_generator",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/annihilation_generator",
+      "y": 270
+    }
+  }
+}

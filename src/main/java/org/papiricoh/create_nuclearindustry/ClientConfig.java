@@ -2,6 +2,7 @@ package org.papiricoh.create_nuclearindustry;
 
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTab;
 
 /** Per-player display options; never read on a dedicated server. */
 public class ClientConfig {
@@ -34,6 +35,11 @@ public class ClientConfig {
     private static final ModConfigSpec.BooleanValue EXPLOSION_SHAKE = BUILDER
             .comment("Shake the view when a nuclear detonation's shock wave passes.")
             .define("explosion.shake", true);
+
+    private static final ModConfigSpec.BooleanValue CREATIVE_TAB_SECTIONS = BUILDER
+            .comment("Split the mod's creative tab into themed sections with banners. Off, it is one list in the same order.",
+                    "Takes effect the next time the tab is rebuilt (rejoin the world).")
+            .define("creativeTab.sections", true);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 
@@ -78,5 +84,6 @@ public class ClientConfig {
         explosionFlash = EXPLOSION_FLASH.get();
         explosionCloudDetail = EXPLOSION_CLOUD_DETAIL.get();
         explosionShake = EXPLOSION_SHAKE.get();
+        NuclearTab.bannersEnabled = CREATIVE_TAB_SECTIONS.get();
     }
 }

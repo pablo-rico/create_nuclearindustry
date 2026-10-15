@@ -9,7 +9,9 @@ package org.papiricoh.create_nuclearindustry.explosive.blast;
 public enum DetonationStyle {
     FISSION,
     THERMONUCLEAR,
-    DIRTY;
+    DIRTY,
+    /** Trapped antimatter annihilating: a small, very bright blast with a gamma pulse, no fallout and no cloud. */
+    ANTIMATTER;
 
     private static final DetonationStyle[] VALUES = values();
 

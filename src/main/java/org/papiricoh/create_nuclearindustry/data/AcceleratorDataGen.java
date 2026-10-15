@@ -19,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.accelerator.AcceleratorRegistry;
 import org.papiricoh.create_nuclearindustry.accelerator.block.AcceleratorControllerBlock;
 import org.papiricoh.create_nuclearindustry.accelerator.blockentity.IonSourceBlockEntity;
+import org.papiricoh.create_nuclearindustry.accelerator.interlock.BeamInterlockBlock;
 import org.papiricoh.create_nuclearindustry.data.recipe.AcceleratorRecipes;
 import org.papiricoh.create_nuclearindustry.integration.jei.PlantJeiInfo;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockTags;
@@ -48,6 +49,14 @@ final class AcceleratorDataGen extends AreaDataGen {
         LangEntries.block("particle_accelerator_magnet_power_supply", "Magnet Power Supply", "Fuente de alimentación de imanes");
         LangEntries.block("particle_accelerator_vacuum_pump", "Beamline Vacuum Pump", "Bomba de vacío de la línea de haz");
         LangEntries.fluid("hydrogen", "Hydrogen", "Hidrógeno");
+        LangEntries.block("ring_dipole_magnet", "Ring Dipole Magnet", "Imán dipolar de anillo");
+        LangEntries.block("superconducting_ring_dipole", "Superconducting Ring Dipole", "Dipolo superconductor de anillo");
+        LangEntries.block("superconducting_rf_cavity", "Superconducting RF Cavity", "Cavidad de radiofrecuencia superconductora");
+        LangEntries.block("injection_septum", "Injection Septum", "Septo de inyección");
+        LangEntries.block("extraction_septum", "Extraction Septum", "Septo de extracción");
+        LangEntries.block("accelerator_cryo_feed", "Accelerator Cryogenic Feed", "Alimentación criogénica del acelerador");
+        LangEntries.block("target_station", "Target Station", "Estación de blancos");
+        LangEntries.block("beam_interlock", "Beam Interlock", "Enclavamiento del haz");
 
         phases();
         trips();
@@ -57,6 +66,45 @@ final class AcceleratorDataGen extends AreaDataGen {
         screen();
         subtitles();
         jei();
+        ring();
+    }
+
+    /** The synchrotron's blocks, the target station, the cryogenic feed and the personnel interlock. */
+    private static void ring() {
+        String i = A + "interlock.";
+        LangEntries.add(i + "secured", "Area searched and secured: the beam may run", "Zona revisada y asegurada: el haz puede funcionar");
+        LangEntries.add(i + "already_secured", "Already secured. Sneak-click to open the interlock",
+                "Ya está asegurado. Haz clic agachado para abrir el enclavamiento");
+        LangEntries.add(i + "opened", "Interlock open: the beam cannot run", "Enclavamiento abierto: el haz no puede funcionar");
+        LangEntries.add(i + "close_doors", "Close the doors beside the panel first", "Cierra antes las puertas junto al panel");
+        LangEntries.add(i + "door_locked", "Locked by the beam interlock: the beam is on", "Bloqueada por el enclavamiento: el haz está en marcha");
+        LangEntries.add(i + "goggles.secured", "Secured", "Asegurado");
+        LangEntries.add(i + "goggles.open", "Open: the beam cannot run", "Abierto: el haz no puede funcionar");
+        LangEntries.add(i + "goggles.linked", "Guarding an accelerator: %s", "Protege un acelerador: %s");
+        LangEntries.add(i + "goggles.not_linked", "Not beside a formed accelerator's beamline", "No está junto a la línea de un acelerador formado");
+        LangEntries.add(i + "goggles.doors_locked", "Doors beside it are locked", "Las puertas de al lado están bloqueadas");
+        LangEntries.add(i + "goggles.hint", "Click to secure, sneak-click to open", "Clic para asegurar, clic agachado para abrir");
+        String c = A + "cryo_feed.goggles.";
+        LangEntries.add(c + "linked", "Feeding the accelerator's helium loop", "Alimenta el circuito de helio del acelerador");
+        LangEntries.add(c + "not_linked", "Not beside a formed accelerator's beamline", "No está junto a la línea de un acelerador formado");
+        LangEntries.add(c + "helium", "Liquid helium: %s / %s mB", "Helio líquido: %s / %s mB");
+        LangEntries.add(c + "hint", "Pipe liquid helium in; warm helium comes back out", "Mete helio líquido por tubería; el helio caliente vuelve a salir");
+        String t = A + "target.goggles.";
+        LangEntries.add(t + "antiprotons", "Collecting %s ng of antiprotons a minute", "Recoge %s ng de antiprotones por minuto");
+        LangEntries.add(t + "threshold", "Makes antiprotons only above %s GeV", "Solo produce antiprotones por encima de %s GeV");
+        String p = PlantJeiInfo.PREFIX;
+        LangEntries.add(p + "synchrotron",
+                "A synchrotron ring raises the beam far beyond what a linac reaches. End the linac in an Injection Septum facing the centre of a round ring, one block wide, of radius 6 or more, and fill every cell of the ring with Ring Dipole Magnets (more dipoles, more energy), Quadrupole Magnets (at least one every eight blocks), RF Cavities and exactly one Extraction Septum facing out, from which an extraction line runs on to a Target Station or a Beam Dump. Superconducting Ring Dipoles reach 8 T instead of 1.8 T and Superconducting RF Cavities add 12 MeV for little power, but both need liquid helium through an Accelerator Cryogenic Feed. The top energy is 0.3 x field x radius x share of dipoles, in GeV.",
+                "Un anillo sincrotrón lleva el haz mucho más allá de lo que alcanza un linac. Termina el linac en un septo de inyección que mire al centro de un anillo redondo, de un bloque de ancho y radio 6 o más, y llena cada celda del anillo con imanes dipolares de anillo (más dipolos, más energía), imanes cuadrupolares (al menos uno cada ocho bloques), cavidades de radiofrecuencia y exactamente un septo de extracción mirando hacia fuera, del que sale una línea de extracción hasta una estación de blancos o un absorbedor. Los dipolos superconductores llegan a 8 T en vez de 1,8 T y las cavidades superconductoras añaden 12 MeV con poca potencia, pero ambos necesitan helio líquido a través de una alimentación criogénica del acelerador. La energía máxima es 0,3 x campo x radio x fracción de dipolos, en GeV.");
+        LangEntries.add(p + "target_station",
+                "The end of an extraction line that does more than a beam dump. It takes the whole beam and gets activated like a dump, but above 25 GeV its magnetic horn also collects antiprotons and pushes them into the Penning traps beside it, or into an Antimatter Conduit. The higher the energy and the power of the beam, the more it collects. Its beam window faces the incoming beam. Putting antimatter into a trap without power annihilates it at once: power the traps first.",
+                "El final de una línea de extracción que hace más que un absorbedor. Recibe todo el haz y se activa como un absorbedor, pero por encima de 25 GeV su cuerno magnético también recoge antiprotones y los empuja a las trampas de Penning de al lado, o a un conducto de antimateria. Cuanta más energía y potencia tenga el haz, más recoge. Su ventana mira al haz que llega. Meter antimateria en una trampa sin energía la aniquila al instante: alimenta antes las trampas.");
+        LangEntries.add(p + "accelerator_cryo_feed",
+                "Beside the beamline, it passes liquid helium from pipes (a cryogenic plant, a helium well or Liquid Helium Cells emptied into a tank) to the accelerator's superconducting dipoles and cavities, and gives the warm helium back out for the plant to liquefy again. Without it, superconducting parts never cool down and the accelerator refuses to start.",
+                "Junto a la línea de haz, pasa el helio líquido de las tuberías (una planta criogénica, un pozo de helio o celdas de helio líquido vaciadas en un tanque) a los dipolos y cavidades superconductores del acelerador, y devuelve el helio caliente para que la planta lo vuelva a licuar. Sin ella, las piezas superconductoras nunca se enfrían y el acelerador no arranca.");
+        LangEntries.add(p + "beam_interlock",
+                "A personnel interlock panel. Place it beside the beamline, next to the door into the beam area: once you have checked nobody is inside, right-click it to secure the area. While any interlock of an accelerator is open its beam cannot start, and a running beam trips with a buzzer. Doors beside a panel stay locked while the beam is on, and a door opened anyway opens the interlock. A secured panel gives a redstone signal out of its back, for a warning light. The server can also refuse to run the beam with a player inside the machine.",
+                "Un panel de enclavamiento de personal. Colócalo junto a la línea de haz, al lado de la puerta de la zona del haz: cuando hayas comprobado que no queda nadie dentro, haz clic derecho para asegurar la zona. Mientras cualquier enclavamiento de un acelerador esté abierto el haz no puede arrancar, y un haz en marcha se dispara con un zumbador. Las puertas junto a un panel quedan bloqueadas mientras hay haz, y una puerta abierta de todos modos abre el enclavamiento. Un panel asegurado da señal de redstone por detrás, para una luz de aviso. El servidor también puede negarse a dar haz con un jugador dentro de la máquina.");
     }
 
     private static void phases() {
@@ -132,7 +180,8 @@ final class AcceleratorDataGen extends AreaDataGen {
                 "Ningún klistrón junto a la línea: las cavidades no reciben potencia");
         LangEntries.add(w + "no_magnet_supplies", "No magnet power supply beside the beamline", "Ninguna fuente de alimentación de imanes junto a la línea");
         LangEntries.add(w + "no_pumps", "No vacuum pump beside the beamline", "Ninguna bomba de vacío junto a la línea");
-        LangEntries.add(w + "no_cryo", "Superconducting parts but no cryogenic port", "Piezas superconductoras pero ningún puerto criogénico");
+        LangEntries.add(w + "no_cryo", "Superconducting parts but no Accelerator Cryogenic Feed beside the beamline",
+                "Piezas superconductoras pero ninguna alimentación criogénica junto a la línea");
     }
 
     private static void messages() {
@@ -245,6 +294,48 @@ final class AcceleratorDataGen extends AreaDataGen {
                 tex(provider, "beam_dump_top"));
         provider.simpleBlock(AcceleratorRegistry.BEAM_DUMP.get(), dump);
         provider.simpleBlockItem(AcceleratorRegistry.BEAM_DUMP.get(), dump);
+        ringElement(provider, AcceleratorRegistry.RING_DIPOLE.get(), "ring_dipole_magnet");
+        ringElement(provider, AcceleratorRegistry.SC_RING_DIPOLE.get(), "superconducting_ring_dipole");
+        ringElement(provider, AcceleratorRegistry.SC_RF_CAVITY.get(), "superconducting_rf_cavity");
+        facingExisting(provider, AcceleratorRegistry.INJECTION_SEPTUM.get(), existing(provider, "injection_septum"));
+        facingExisting(provider, AcceleratorRegistry.EXTRACTION_SEPTUM.get(), existing(provider, "extraction_septum"));
+        facingExisting(provider, AcceleratorRegistry.TARGET_STATION.get(), existing(provider, "target_station"));
+        ModelFile cryo = existing(provider, "accelerator_cryo_feed");
+        provider.getVariantBuilder(AcceleratorRegistry.CRYO_FEED.get()).forAllStates(state -> {
+            Direction facing = state.getValue(BlockStateProperties.FACING);
+            int x = facing == Direction.UP ? 270 : facing == Direction.DOWN ? 90 : 0;
+            int y = facing.getAxis().isHorizontal() ? ((int) facing.toYRot() + 180) % 360 : 0;
+            return ConfiguredModel.builder().modelFile(cryo).rotationX(x).rotationY(y).build();
+        });
+        provider.simpleBlockItem(AcceleratorRegistry.CRYO_FEED.get(), cryo);
+        ModelFile open = existing(provider, "beam_interlock");
+        ModelFile secured = existing(provider, "beam_interlock_secured");
+        provider.getVariantBuilder(AcceleratorRegistry.BEAM_INTERLOCK.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(BeamInterlockBlock.SECURED) ? secured : open)
+                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360).build());
+        provider.simpleBlockItem(AcceleratorRegistry.BEAM_INTERLOCK.get(), open);
+    }
+
+    private static ModelFile existing(NuclearBlockStateProvider provider, String name) {
+        return provider.models().getExistingFile(provider.modLoc("block/" + name));
+    }
+
+    /** A ring element on its hand-made model: the beam runs along the model's Z axis. */
+    private static void ringElement(NuclearBlockStateProvider provider, Block block, String id) {
+        ModelFile model = existing(provider, id);
+        provider.getVariantBuilder(block).forAllStates(state -> {
+            Direction.Axis axis = state.getValue(RotatedPillarBlock.AXIS);
+            return ConfiguredModel.builder().modelFile(model).rotationX(axis == Direction.Axis.Y ? 90 : 0)
+                    .rotationY(axis == Direction.Axis.X ? 90 : 0).build();
+        });
+        provider.simpleBlockItem(block, model);
+    }
+
+    /** A hand-made model whose north face is the block's horizontal {@code FACING}. */
+    private static void facingExisting(NuclearBlockStateProvider provider, Block block, ModelFile model) {
+        provider.getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder().modelFile(model)
+                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360).build());
+        provider.simpleBlockItem(block, model);
     }
 
     private static ResourceLocation tex(NuclearBlockStateProvider provider, String name) {

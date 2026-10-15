@@ -188,6 +188,131 @@ public final class GuidePonderText {
                     "beam_dump", "particle_accelerator_klystron", "particle_accelerator_magnet_power_supply",
                     "particle_accelerator_vacuum_pump"));
 
+    public static final Scene ACCELERATOR_SYNCHROTRON = new Scene("accelerator_synchrotron", "accelerator_synchrotron",
+            line("Building a Synchrotron", "Construir un sincrotrón"),
+            List.of(
+                    line("A synchrotron ring takes the beam round and round, gaining energy on every turn. The injector line ends in an Injection Septum facing the ring's centre.",
+                            "Un anillo sincrotrón hace girar el haz una y otra vez, ganando energía en cada vuelta. La línea de inyección termina en un Septo de inyección mirando al centro del anillo."),
+                    line("The ring is a circle of radius 6 or more, one block high, and every block of it must be a ring element. Ring Dipole Magnets bend the beam round it.",
+                            "El anillo es un círculo de radio 6 o más, de un bloque de alto, y cada bloque debe ser un elemento de anillo. Los Imanes dipolares de anillo curvan el haz a su alrededor."),
+                    line("Put a Quadrupole Magnet in every sector of about eight blocks to keep the beam focused, and RF cavities to speed it up on each turn.",
+                            "Pon un Imán cuadrupolar en cada sector de unos ocho bloques para mantener el haz enfocado, y cavidades de radiofrecuencia para acelerarlo en cada vuelta."),
+                    line("Superconducting Ring Dipoles and Superconducting RF Cavities are stronger but need liquid helium: an Accelerator Cryo Feed beside the ring takes it in by pipe and gives the warm gas back.",
+                            "Los Dipolos de anillo superconductores y las Cavidades de RF superconductoras son más potentes pero necesitan helio líquido: una Toma criogénica junto al anillo lo recibe por tubería y devuelve el gas caliente."),
+                    line("Klystrons, Magnet Power Supplies and Vacuum Pumps serve the ring from beside it, as on a linac.",
+                            "Los Klistrones, las Fuentes de alimentación de imanes y las Bombas de vacío sirven al anillo desde su lado, como en un linac."),
+                    line("Exactly one Extraction Septum lets the beam out of the ring, facing the way it leaves.",
+                            "Un único Septo de extracción deja salir el haz del anillo, mirando hacia donde sale."),
+                    line("The extraction line ends in a Target Station with its window towards the beam. It soaks up the beam like a dump...",
+                            "La línea de extracción termina en una Estación de blancos con la ventana hacia el haz. Se traga el haz como un absorbedor..."),
+                    line("...and above 25 GeV its horn collects antiprotons and pushes them into a Penning trap or an Antimatter Conduit beside it. Power the trap before the first antiproton arrives!",
+                            "...y por encima de 25 GeV su bocina recoge antiprotones y los empuja a una trampa de Penning o a un Conducto de antimateria a su lado. ¡Da energía a la trampa antes de que llegue el primer antiprotón!"),
+                    line("Beam Interlock panels keep people out of the ring. The beam only runs while every interlock beside it is secured: right-click one to search and secure it.",
+                            "Los paneles de Enclavamiento del haz mantienen a la gente fuera del anillo. El haz solo funciona mientras todos los enclavamientos junto a él están asegurados: haz clic derecho en uno para inspeccionar y asegurar."),
+                    line("Sneak-right-click it, or open a door beside it, and the interlock opens and the beam trips. While the beam runs, the doors beside a panel stay locked.",
+                            "Agachado y con clic derecho, o abriendo una puerta a su lado, el enclavamiento se abre y el haz se dispara. Mientras hay haz, las puertas junto a un panel quedan bloqueadas."),
+                    line("Right-click the controller and start the beam: it is injected, ramped up round the ring and extracted into the station.",
+                            "Haz clic derecho en el controlador y arranca el haz: se inyecta, sube de energía dando vueltas al anillo y se extrae hacia la estación.")),
+            List.of("injection_septum", "ring_dipole_magnet", "superconducting_ring_dipole", "superconducting_rf_cavity", "accelerator_cryo_feed",
+                    "extraction_septum", "target_station", "beam_interlock", "particle_accelerator_controller"));
+
+    // ------------------------------------------------------------------ antimatter
+
+    public static final Scene ANTIMATTER_CONTAINMENT = new Scene("antimatter_containment", "antimatter_containment",
+            line("Antimatter Containment", "Contención de antimateria"),
+            List.of(
+                    line("Antimatter is kept in Penning traps: a magnetic field between two magnet heads holds a cloud of antiprotons away from the glass. Each size has its own colour.",
+                            "La antimateria se guarda en trampas de Penning: un campo magnético entre dos cabezales sostiene una nube de antiprotones lejos del cristal. Cada tamaño tiene su color."),
+                    line("The Small Penning Trap holds 32 ng, the Penning Trap, two blocks tall, 256 ng, and the Large Penning Trap, 2x2 and three high, 2048 ng.",
+                            "La trampa de Penning pequeña guarda 32 ng, la trampa de Penning, de dos bloques de alto, 256 ng, y la trampa de Penning grande, de 2x2 y tres de alto, 2048 ng."),
+                    line("Every trap needs Forge Energy all the time, more the fuller it is. A Creative RF Generator gives what its value board says; in survival, bring FE by cable.",
+                            "Cada trampa necesita Forge Energy todo el tiempo, más cuanto más llena está. Un Generador de RF creativo da lo que marca su panel de valor; en supervivencia, trae FE por cable."),
+                    line("The light on the front tells how the field is doing: green when stable, amber when its buffer runs low.",
+                            "La luz del frente dice cómo va el campo: verde si es estable, ámbar cuando su reserva se agota."),
+                    line("Right-click a powered trap with an Antimatter Vial to put it in the port. The wrench switches the port between filling the vial and emptying it into the trap.",
+                            "Haz clic derecho en una trampa con energía con un Vial de antimateria para meterlo en el puerto. La llave cambia el puerto entre llenar el vial y vaciarlo en la trampa."),
+                    line("A loaded vial's battery holds its field for thirty seconds away from a powered port. When it runs out, the vial annihilates wherever it is.",
+                            "La batería de un vial cargado mantiene su campo treinta segundos lejos de un puerto con energía. Cuando se agota, el vial se aniquila donde esté."),
+                    line("An Antimatter Conduit moves antimatter between the traps it joins. Every block of it needs a little FE; without it, nothing moves.",
+                            "Un Conducto de antimateria mueve antimateria entre las trampas que une. Cada bloque necesita un poco de FE; sin ella, no se mueve nada."),
+                    line("If a loaded trap loses its power, its buffer lasts about ten seconds. Then it quenches: red lights, sparks and an alarm for three seconds...",
+                            "Si una trampa cargada pierde la energía, su reserva aguanta unos diez segundos. Después entra en quench: luces rojas, chispas y una alarma durante tres segundos..."),
+                    line("...and the antimatter annihilates: a blast that grows with the charge, a flash and a pulse of gamma rays. It leaves no fallout.",
+                            "...y la antimateria se aniquila: una explosión que crece con la carga, un destello y un pulso de rayos gamma. No deja lluvia radiactiva."),
+                    line("Putting antimatter into an unpowered trap, or breaking a loaded one, annihilates it at once. The blast breaks the traps beside it, and they go off in turn: keep them apart!",
+                            "Meter antimateria en una trampa sin energía, o romper una cargada, la aniquila al instante. La explosión rompe las trampas de al lado, que estallan a su vez: ¡sepáralas!")),
+            List.of("small_penning_trap", "penning_trap", "large_penning_trap", "antimatter_vial", "antimatter_conduit", "creative_rf_generator"));
+
+    public static final Scene ANTIMATTER_GENERATOR = new Scene("antimatter_generator", "antimatter_generator",
+            line("Annihilation Generator", "Generador de aniquilación"),
+            List.of(
+                    line("The Annihilation Generator burns antiprotons in a small chamber of its own, 1 ng, behind the porthole on its back.",
+                            "El Generador de aniquilación quema antiprotones en una pequeña cámara propia, de 1 ng, tras el ojo de buey de su parte trasera."),
+                    line("It draws antimatter from a Penning trap or an Antimatter Conduit beside it, or from a vial put in the socket on its top.",
+                            "Toma antimateria de una trampa de Penning o de un Conducto de antimateria a su lado, o de un vial metido en el zócalo de arriba."),
+                    line("To start, its chamber needs FE for its field: without it the generator takes no antimatter in, and a loaded vial in its socket runs its battery flat.",
+                            "Para arrancar, su cámara necesita FE para su campo: sin ella el generador no admite antimateria, y un vial cargado en su zócalo agota su batería."),
+                    line("A redstone signal sets the throttle. With no signal it keeps a small standby burn that holds its own field, and the mode lamp blinks.",
+                            "Una señal de redstone fija la potencia. Sin señal mantiene una pequeña combustión de reserva que sostiene su propio campo, y la luz del modo parpadea."),
+                    line("The panel on top, or the wrench on that face, picks the mode. Rotation turns the shaft at 256 RPM with a great deal of stress capacity...",
+                            "El panel de arriba, o la llave en esa cara, elige el modo. Rotación gira el eje a 256 RPM con muchísima capacidad de estrés..."),
+                    line("...Electric pushes FE out of its terminals into every block beside it, and Split gives half of each.",
+                            "...Eléctrico empuja FE por sus bornes a todos los bloques de al lado, y Mixto da la mitad de cada cosa."),
+                    line("In Electric or Split mode it powers the trap that feeds it and its own chamber: once running, it no longer needs any other source.",
+                            "En modo Eléctrico o Mixto alimenta la trampa que lo abastece y su propia cámara: una vez en marcha, ya no necesita otra fuente."),
+                    line("The core glows brighter the harder it burns and flickers when the supply cannot keep up. A comparator reads its output.",
+                            "El núcleo brilla más cuanto más fuerte quema y titila cuando el suministro no da abasto. Un comparador lee su potencia.")),
+            List.of("annihilation_generator"));
+
+    public static final Scene ANTIPROTON_INJECTOR = new Scene("antiproton_injector", "antiproton_injector",
+            line("Antiproton Injector", "Inyector de antiprotones"),
+            List.of(
+                    line("The Antiproton Injector is a block of a tokamak's shell. Its port faces out; its nozzle looks into the plasma.",
+                            "El Inyector de antiprotones es un bloque de la carcasa de un tokamak. Su puerto mira hacia fuera; su tobera, hacia el plasma."),
+                    line("It needs FE and antimatter: from a trap or a conduit beside it, or a vial in its port. Its little chamber holds four doses.",
+                            "Necesita FE y antimateria: de una trampa o un conducto a su lado, o de un vial en su puerto. Su pequeña cámara guarda cuatro dosis."),
+                    line("The wrench sets it to fire on its own, only with a redstone signal, or never. The amber lamp shows it armed.",
+                            "La llave lo pone a disparar solo, solo con señal de redstone o nunca. La luz ámbar indica que está armado."),
+                    line("The green lamp means it is ready: armed, powered and loaded with a dose. Only the plasma is missing.",
+                            "La luz verde indica que está listo: armado, con energía y cargado con una dosis. Solo falta el plasma."),
+                    line("While the tokamak heats, once its plasma is well confined and dense enough, the injector fires one dose of antiprotons into it...",
+                            "Mientras el tokamak calienta, en cuanto su plasma está bien confinado y es lo bastante denso, el inyector le dispara una dosis de antiprotones..."),
+                    line("...and their annihilation ignites the plasma at once, without heating it all the way. Then the injector cools down for ten seconds.",
+                            "...y su aniquilación enciende el plasma al momento, sin calentarlo del todo. Después el inyector se enfría durante diez segundos.")),
+            List.of("antiproton_injector"));
+
+    public static final Scene ISOTOPES = new Scene("isotopes", "isotopes",
+            line("Isotopes and Nuclear Medicine", "Isótopos y medicina nuclear"),
+            List.of(
+                    line("Cobalt-60 is made in a fission reactor: build a Reactor Irradiation Channel into its wall in place of a casing block.",
+                            "El cobalto-60 se fabrica en un reactor de fisión: construye un Canal de irradiación del reactor en su pared en lugar de un bloque de carcasa."),
+                    line("Load it with cobalt ingots. While the reactor runs, its neutrons activate the whole batch, which comes out as cobalt-60 sources.",
+                            "Cárgalo con lingotes de cobalto. Mientras el reactor funciona, sus neutrones activan todo el lote, que sale como fuentes de cobalto-60."),
+                    line("Every isotope decays on its own clock, even in a chest: the bar under the item shows the activity left, and the Geiger counter follows it.",
+                            "Cada isótopo se desintegra con su propio reloj, incluso en un cofre: la barra bajo el objeto muestra la actividad que queda, y el contador Geiger la sigue."),
+                    line("A Gamma Irradiator holds up to four cobalt-60 sources and works two blocks above a depot or a belt, like a press.",
+                            "Un Irradiador gamma guarda hasta cuatro fuentes de cobalto-60 y trabaja dos bloques por encima de un depósito o una cinta, como una prensa."),
+                    line("Harmful food stops under it while the shutter opens, and comes out sterilised: no harmful effects. Stay clear while it is open!",
+                            "La comida dañina se detiene debajo mientras se abre el obturador, y sale esterilizada: sin efectos dañinos. ¡Apártate mientras está abierto!"),
+                    line("A Smoke Detector, made with americium-241, gives a redstone signal when fire, a lit campfire or lava is close.",
+                            "Un Detector de humo, hecho con americio-241, da una señal de redstone cuando hay fuego, una fogata encendida o lava cerca.")),
+            List.of("reactor_irradiation_channel", "gamma_irradiator", "smoke_detector"));
+
+    public static final Scene MAINTENANCE = new Scene("maintenance", "maintenance",
+            line("Plant Maintenance", "Mantenimiento de la central"),
+            List.of(
+                    line("A plant's parts wear with use: the reactor's control rod drives and relief valve, a steam generator's tubes, a turbine's blades. Worn out, they fail.",
+                            "Las piezas de una central se desgastan con el uso: los mecanismos de las barras y la válvula de alivio del reactor, los tubos de un generador de vapor, los álabes de una turbina. Gastadas, fallan."),
+                    line("A reactor shut down cold with every rod in is in a refuelling outage: only then does its fuel port take fresh fuel.",
+                            "Un reactor parado en frío y con todas las barras dentro está en parada de recarga: solo entonces su puerto de combustible admite combustible nuevo."),
+                    line("In the outage, a Maintenance Kit used on any block of the reactor services its parts and frees a stuck rod. Steam generators and turbines just need to be stopped.",
+                            "En la parada, un kit de mantenimiento usado en cualquier bloque del reactor revisa sus piezas y libera una barra atascada. Los generadores de vapor y las turbinas solo tienen que estar parados."),
+                    line("Goggles and the Radiography Camera show how worn each part is, so it can be serviced before it fails.",
+                            "Las gafas y la cámara de radiografía muestran lo gastada que está cada pieza, para revisarla antes de que falle."),
+                    line("Now and then the ground shakes: a reactor past its seismic trip scrams, and every incident goes into the server's log on the INES scale.",
+                            "De vez en cuando tiembla la tierra: un reactor que pasa su disparo sísmico entra en SCRAM, y cada incidente queda en el registro del servidor con la escala INES.")),
+            List.of("maintenance_kit"));
+
     // ------------------------------------------------------------------ control room
 
     public static final String CONTROL_ROOM_TAG_ID = "control_room";
@@ -267,12 +392,12 @@ public final class GuidePonderText {
                             "El Mapa del núcleo muestra un núcleo de fisión desde arriba, con el norte arriba: el combustible de verde a rojo al quemarse y los canales llenándose de azul al entrar sus barras. Cuatro en un bloque hacen un mapa grande."),
                     line("The Plasma Section is a cut through a tokamak: its plasma glows with the temperature, swells with the density and shakes as it grows unstable. Four in one block make one big screen too.",
                             "La Sección del plasma es un corte de un tokamak: el plasma brilla con la temperatura, crece con la densidad y tiembla al volverse inestable. Cuatro en un bloque forman también una pantalla grande."),
-                    line("Annunciator Panels line the top of the board, six alarm windows each. Link a window with the linker, or the frame for all six, and wrench it to choose its alarm, threshold and label.",
-                            "Los Paneles anunciadores recorren lo alto del panel, con seis ventanas de alarma cada uno. Enlaza una ventana con el enlazador, o el marco para las seis, y usa la llave para elegir su alarma, umbral y etiqueta."),
-                    line("A window that trips flashes and the horn sounds until ACK; then it stays lit while the alarm lasts, flashes slowly once it clears and goes dark on RESET. The first to trip is marked first out.",
-                            "Una ventana que salta parpadea y suena la bocina hasta ACK; luego queda encendida mientras dura la alarma, parpadea despacio al despejarse y se apaga con RESET. La primera en saltar se marca como primera."),
-                    line("Redstone pulses into its left and right sides press ACK and RESET. Its back and bottom give a signal while an alarm waits, and a comparator reads how many windows are lit.",
-                            "Los pulsos de redstone en sus lados izquierdo y derecho pulsan ACK y RESET. Su parte trasera e inferior dan señal mientras una alarma espera, y un comparador lee cuántas ventanas hay encendidas."),
+                    line("Annunciator Panels hang on the wall, six alarm windows each, and side by side make one board. Link a window with the linker, or the plate for all six; wrench it to set its alarm, threshold, severity and label.",
+                            "Los Paneles anunciadores cuelgan de la pared, con seis ventanas cada uno, y juntos forman un tablero. Enlaza una ventana con el enlazador, o la placa para las seis; con la llave eliges su alarma, umbral, severidad y etiqueta."),
+                    line("A tripped window flashes and the horn sounds until ACK; it stays lit while the alarm lasts, flashes slowly once clear and goes dark on RESET. Alarms are red, warnings amber; the board rings the first to trip.",
+                            "Una ventana que salta parpadea y suena la bocina hasta RECON.; sigue encendida mientras dura, parpadea despacio al despejarse y se apaga al rearmar. Alarmas en rojo, avisos en ámbar; la primera en saltar queda rodeada."),
+                    line("The board's buttons sit at the right of its bottom strip: TEST lights every lamp, SIL quiets the horn, then ACK and RESET. Redstone presses them: left ACK, right RESET, above SIL, below TEST. A waiting alarm powers the wall.",
+                            "Los botones están a la derecha de la franja inferior: PRUEBA enciende las lámparas, SIL. calla la bocina, luego RECON. y REARME. La redstone los pulsa: izquierda RECON., derecha REARME, arriba SIL., abajo PRUEBA."),
                     line("Chart Recorders draw up to three readings on paper. Feed them paper by hand or with a hopper, and wrench them to choose the pens and the speed.",
                             "Los Registradores gráficos dibujan hasta tres lecturas en papel. Dales papel a mano o con una tolva, y usa la llave para elegir las plumas y la velocidad."),
                     line("Sneak-click one with an empty hand to tear the chart off as a Chart Roll, to read anywhere. A comparator reads the paper left.",
@@ -322,7 +447,8 @@ public final class GuidePonderText {
 
     /** Every guide scene, in the order they are registered. */
     public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, MISSILE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
-            ACCELERATOR_LINAC, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO);
+            ACCELERATOR_LINAC, ACCELERATOR_SYNCHROTRON, ANTIMATTER_CONTAINMENT, ANTIMATTER_GENERATOR, ANTIPROTON_INJECTOR,
+            ISOTOPES, MAINTENANCE, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO);
 
     private GuidePonderText() {}
 

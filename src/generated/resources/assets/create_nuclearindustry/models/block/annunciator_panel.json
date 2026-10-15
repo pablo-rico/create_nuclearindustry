@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/orientable",
-  "textures": {
-    "front": "create_nuclearindustry:block/annunciator_panel_front",
-    "side": "create_nuclearindustry:block/control_monitor_side",
-    "top": "create_nuclearindustry:block/control_monitor_side"
-  }
-}

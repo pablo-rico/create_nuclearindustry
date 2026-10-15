@@ -8,6 +8,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,6 +21,11 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
+import org.papiricoh.create_nuclearindustry.maintenance.MaintenanceConfig;
+import org.papiricoh.create_nuclearindustry.maintenance.PartWear;
+import org.papiricoh.create_nuclearindustry.maintenance.incident.IncidentLog;
+import org.papiricoh.create_nuclearindustry.maintenance.incident.IncidentType;
+import org.papiricoh.create_nuclearindustry.maintenance.physics.WearPart;
 import org.papiricoh.create_nuclearindustry.multiblock.BlockChange;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockController;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockMessenger;
@@ -37,6 +44,8 @@ import java.util.Optional;
  * Create network at 64 RPM with capacity proportional to the flow.
  */
 public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKineticBlockEntity implements MultiblockController {
+    /** The blades' wear; failed, the turbine trips on vibration. */
+    private final PartWear bladeWear = new PartWear(WearPart.TURBINE_BLADES);
     public static final float ACTIVE_RPM = 64.0f;
     /** Exhausting to a cooling tower (a cold condenser) doubles the work each mB of steam does. */
     public static final float EXHAUST_POWER_MULTIPLIER = 2.0f;
@@ -123,7 +132,11 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
         }
 
         suspended = structure.isPresent() && !isLoaded(structure.get().bounds());
-        int used = structure.isPresent() && !suspended ? expand(structure.get()) : 0;
+        // Failed blades: the vibration trip keeps the stop valves shut until they are repaired.
+        int used = structure.isPresent() && !suspended && !bladeWear.failed() ? expand(structure.get()) : 0;
+        if (structure.isPresent() && bladeWear.tick(level, used / (double) Math.max(1, structure.get().throughputLimit()))) {
+            trip();
+        }
         currentUse = used;
         recentUse = (recentUse * 7 + used) / 8;
         if (recentUse < 0.5f) {
@@ -151,6 +164,37 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
                 sendData();
             }
         }
+    }
+
+    /** The blades failed: the turbine trips on vibration and stays tripped until they are repaired. */
+    public void trip() {
+        bladeWear.fail();
+        IncidentLog.record(level, worldPosition, IncidentType.TURBINE_TRIP);
+        if (level != null) {
+            level.playSound(null, worldPosition, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.8f, 0.5f);
+        }
+        setChanged();
+        sendData();
+    }
+
+    public PartWear bladeWear() {
+        return bladeWear;
+    }
+
+    /** Whether it is stopped enough to open for repairs: tripped, or expanding no steam. */
+    public boolean idleForRepair() {
+        return bladeWear.failed() || currentUse == 0;
+    }
+
+    /** Mends the blades by {@code amount}, if idle. Returns whether anything was mended. */
+    public boolean repair(double amount) {
+        if (!idleForRepair()) {
+            return false;
+        }
+        boolean mended = bladeWear.repair(amount);
+        setChanged();
+        sendData();
+        return mended;
     }
 
     protected void clientTick() {
@@ -397,6 +441,12 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
                 ChatFormatting.GRAY));
         tooltip.add(line(Component.translatable(KEY + (NuclearFluidHelper.isExhaustSteam(condensateTank.getFluid()) ? "goggles.exhaust" : "goggles.condensate"),
                 condensateTank.getFluidAmount(), condensateTank.getCapacity()), ChatFormatting.GRAY));
+        if (MaintenanceConfig.wearOn()) {
+            tooltip.add(line(bladeWear.line(), ChatFormatting.GRAY));
+        }
+        if (bladeWear.failed()) {
+            tooltip.add(line(Component.translatable(KEY + "goggles.tripped"), ChatFormatting.RED));
+        }
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
         return true;
     }
@@ -412,6 +462,7 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
         tag.put("Condensate", condensateTank.writeToNBT(registries, new CompoundTag()));
         tag.putFloat("RecentUse", recentUse);
         tag.put("Turbine", display.write());
+        bladeWear.save(tag, "Blades");
     }
 
     @Override
@@ -427,6 +478,7 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
         steamTank.readFromNBT(registries, tag.getCompound("Steam"));
         condensateTank.readFromNBT(registries, tag.getCompound("Condensate"));
         recentUse = tag.getFloat("RecentUse");
+        bladeWear.load(tag, "Blades");
         TurbineDisplay previous = display;
         display = TurbineDisplay.read(tag.getCompound("Turbine"));
         if (clientPacket && !display.equals(previous)) {

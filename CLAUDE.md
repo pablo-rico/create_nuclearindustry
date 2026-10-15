@@ -26,7 +26,7 @@ Bucle de verificación de cada cambio: `compileJava` → `runData` (revisa el di
 
 **Registro** (no hay Registrate; todo son `DeferredRegister`):
 - Bloques `AllNuclearBlocks`, ítems `AllNuclearItems` (más su `BlockItem`), block entities `AllNuclearEntities`, menús `AllNuclearGUIs`, componentes `AllNuclearDataComponents`, efectos/attachments/data maps `radiation/AllNuclearRadiation`, fuentes de Display Link `AllNuclearDisplaySources`, triggers `advancement/NuclearAdvancements`.
-- Pestaña creativa: `AllCreativeTabs` (añadir con `output.accept`).
+- Pestaña creativa: `AllCreativeTabs` (núcleo) y `fillCreativeTab` de cada área. La salida es un `creativetab/SectionedOutput`: llama a `output.section(NuclearTabSection.X)` antes de los `output.accept` (aceptar sin sección lanza una excepción). Una sección nueva va en `NuclearTabSection`, con su título en `LangEntries` y su banner en `tools/texturegen/tex_creative_tab.py`.
 - Renderers de BE y pantallas: `Create_NuclearIndustry.ClientModEvents` (`onRegisterRenderers`, `onRegisterScreens`). Partial models: créalos en el constructor del mod (`turbine/client/NuclearClient.init`, p. ej. `DeskPartials`, `NuclearPartialModels`).
 - Paquetes de red: `RegisterPayloadHandlersEvent` (ejemplo: `controlroom/desk/ConfigureModulePayload`). Valida siempre en el servidor (distancia, que el objetivo exista, sanea textos y rangos).
 - Block entities con lógica: preferir `SmartBlockEntity` + `IBE` de Create (ticker automático, `write/read(tag, registries, clientPacket)`, `notifyUpdate()` para sincronizar). `setRemoved` es `final` en `SmartBlockEntity`: usa `invalidate()`/`remove()`.

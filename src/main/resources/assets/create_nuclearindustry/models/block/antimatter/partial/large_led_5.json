@@ -1,0 +1,38 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/penning_trap_led_lit",
+    "lit": "create_nuclearindustry:block/penning_trap_led_lit"
+  },
+  "elements": [
+    {
+      "from": [
+        30,
+        12.7,
+        22.95
+      ],
+      "to": [
+        30.3,
+        13.8,
+        25.05
+      ],
+      "shade": false,
+      "neoforge_data": {
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lit"
+        }
+      }
+    }
+  ]
+}

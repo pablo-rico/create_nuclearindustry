@@ -67,6 +67,26 @@ public class AdvancementTriggerTests {
         helper.succeed();
     }
 
+    /** The antimatter branch hangs from the first nanogram; the quench is a hidden surprise. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void theAntimatterAdvancementsAreLoaded(GameTestHelper helper) {
+        String[][] expected = {{"first_nanogram", "gev_beam"}, {"quench", "first_nanogram"},
+                {"annihilation_power", "first_nanogram"}, {"annihilation_ignition", "first_nanogram"}};
+        for (String[] pair : expected) {
+            AdvancementHolder holder = advancement(helper, pair[0]);
+            helper.assertTrue(holder != null, pair[0] + " should be loaded");
+            helper.assertTrue(holder.value().parent().map(parent -> parent.getPath().equals(pair[1])).orElse(false),
+                    pair[0] + " should hang from " + pair[1]);
+        }
+        AdvancementHolder quench = advancement(helper, "quench");
+        helper.assertTrue(quench.value().display().map(display -> display.isHidden()).orElse(false), "the quench is secret");
+        NuclearEventTrigger.TriggerInstance ignition = (NuclearEventTrigger.TriggerInstance)
+                NuclearEventTrigger.TriggerInstance.of(NuclearEvent.ANNIHILATION_IGNITION).triggerInstance();
+        helper.assertTrue(ignition.matches(NuclearEvent.ANNIHILATION_IGNITION) && !ignition.matches(NuclearEvent.TOKAMAK_IGNITION),
+                "an antiproton ignition is its own event, not the tokamak's");
+        helper.succeed();
+    }
+
     private static AdvancementHolder advancement(GameTestHelper helper, String id) {
         return helper.getLevel().getServer().getAdvancements()
                 .get(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, id));

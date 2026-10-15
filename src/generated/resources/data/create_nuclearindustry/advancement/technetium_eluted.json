@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:first_isotope",
+  "criteria": {
+    "technetium_eluted": {
+      "conditions": {
+        "event": "technetium_eluted"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.technetium_eluted.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:technetium_generator"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.technetium_eluted.title"
+    }
+  },
+  "requirements": [
+    [
+      "technetium_eluted"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

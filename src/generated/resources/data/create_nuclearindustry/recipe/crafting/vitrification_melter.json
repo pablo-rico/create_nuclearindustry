@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:bricks"
+    },
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "F": {
+      "item": "minecraft:blast_furnace"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "PCP",
+    "BFB",
+    "PBP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:vitrification_melter"
+  }
+}

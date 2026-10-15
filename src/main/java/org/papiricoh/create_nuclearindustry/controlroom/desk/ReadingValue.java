@@ -71,6 +71,13 @@ public final class ReadingValue {
             case FUEL_RATE -> of(K_FUEL_RATE, "mB/t", 2);
             case LIQUID_HELIUM -> percent(K_LIQUID_HELIUM, 0);
             case TRITIUM -> percent(K_TRITIUM, 0);
+            case TRAP_ANTIMATTER -> of(P_STORED, "ng", 2);
+            case TRAP_FIELD -> percent(P_FIELD, 0);
+            case TRAP_BUFFER -> percent(P_BUFFER, 0);
+            case GENERATOR_OUTPUT -> percent(G_OUTPUT, 0);
+            case GENERATOR_THROTTLE -> percent(G_THROTTLE, 0);
+            case GENERATOR_CHAMBER -> of(G_STORED, "ng", 2);
+            case GENERATOR_ENERGY -> of(G_FE, "FE/t", 0);
         };
     }
 

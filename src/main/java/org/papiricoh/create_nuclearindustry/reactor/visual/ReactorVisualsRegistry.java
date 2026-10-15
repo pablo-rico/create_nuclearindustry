@@ -11,6 +11,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.NuclearFeature;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 
 /**
  * Content for the visible and audible fission reactor: the casing viewport, the fuel channels'
@@ -31,7 +33,8 @@ public final class ReactorVisualsRegistry implements NuclearFeature {
     private ReactorVisualsRegistry() {}
 
     @Override
-    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        output.section(NuclearTabSection.FISSION);
         output.accept(REACTOR_VIEWPORT_ITEM.get());
     }
 }

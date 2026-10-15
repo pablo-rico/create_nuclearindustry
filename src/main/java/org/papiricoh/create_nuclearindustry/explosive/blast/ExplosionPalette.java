@@ -5,7 +5,9 @@ package org.papiricoh.create_nuclearindustry.explosive.blast;
  * warhead keeps the look it always had: a fireball going white, yellow, orange in four seconds and a cloud
  * cooling to grey-brown. A thermonuclear one burns bigger, whiter and longer, its fireball deepening to
  * a saturated orange-red, and the cloud it raises is sooty, near black, with a darker ground surge, a
- * harder flash and a redder sky. No game classes.
+ * harder flash and a redder sky. Annihilating antimatter has no fireball to speak of and no smoke: a
+ * blinding white-green flash, a shell of green and cyan sparks thrown out to the blast's edge and a
+ * green afterglow, gone in two seconds. No game classes.
  *
  * @param fireballSeconds   how long the fireball shows before the cap swallows it
  * @param fireballScale     its size against the profile's fireball radius
@@ -61,8 +63,19 @@ public record ExplosionPalette(double fireballSeconds, double fireballScale, flo
             new Rgb(1.0f, 1.0f, 1.0f), 0.8, new Rgb(1.0f, 0.42f, 0.15f), 0.22, 40,
             new Rgb(0.85f, 0.30f, 0.12f), 0.6, new Rgb(0.45f, 0.40f, 0.36f), 0.28, 2);
 
+    /** Antiprotons meeting matter: white-green light and sparks, no smoke at all (its smoke and domes are clear). */
+    public static final ExplosionPalette ANTIMATTER = new ExplosionPalette(0.6, 0.6, 1.0f, 0.9f, 0.75f, 1.0f, 0.9f, 0.4,
+            new Rgb(0.75f, 1.0f, 0.82f), new Rgb(0.55f, 0.95f, 0.85f), new Rgb(0.55f, 0.95f, 0.85f), 0.0, 0.35, 360,
+            Double.POSITIVE_INFINITY,
+            new Rgb(0.92f, 1.0f, 0.94f), 0.25, new Rgb(0.45f, 1.0f, 0.65f), 0.12, 0.6,
+            new Rgb(0.5f, 1.0f, 0.75f), 0.15, new Rgb(0.6f, 1.0f, 0.9f), 0.0, 0);
+
     /** The palette a {@code style} of detonation is drawn with; a dirty bomb's small blast keeps fission's. */
     public static ExplosionPalette of(DetonationStyle style) {
-        return style == DetonationStyle.THERMONUCLEAR ? THERMONUCLEAR : FISSION;
+        return switch (style) {
+            case THERMONUCLEAR -> THERMONUCLEAR;
+            case ANTIMATTER -> ANTIMATTER;
+            default -> FISSION;
+        };
     }
 }

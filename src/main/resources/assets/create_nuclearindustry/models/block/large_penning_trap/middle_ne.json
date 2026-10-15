@@ -1,0 +1,190 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "create_nuclearindustry:block/penning_trap_steel",
+    "steel": "create_nuclearindustry:block/penning_trap_steel",
+    "plate": "create_nuclearindustry:block/penning_trap_plate",
+    "pole": "create_nuclearindustry:block/penning_trap_pole",
+    "coil": "create_nuclearindustry:block/penning_trap_coil",
+    "copper": "create_nuclearindustry:block/penning_trap_copper",
+    "band": "create_nuclearindustry:block/penning_trap_band_large",
+    "glass": "create_nuclearindustry:block/penning_trap_glass",
+    "port": "create_nuclearindustry:block/penning_trap_port",
+    "led": "create_nuclearindustry:block/penning_trap_led",
+    "brass": "create_nuclearindustry:block/penning_trap_brass",
+    "gauge": "create_nuclearindustry:block/penning_trap_gauge",
+    "fins": "create_nuclearindustry:block/penning_trap_fins",
+    "cable": "create_nuclearindustry:block/penning_trap_cable",
+    "plinth": "create_nuclearindustry:block/penning_trap_plinth"
+  },
+  "elements": [
+    {
+      "from": [
+        9.5,
+        0,
+        2.5
+      ],
+      "to": [
+        13.5,
+        16,
+        6.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.5,
+            0,
+            6.5,
+            16
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            9.5,
+            0,
+            13.5,
+            16
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            2.5,
+            0,
+            6.5,
+            16
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            9.5,
+            0,
+            13.5,
+            16
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        6
+      ],
+      "to": [
+        4.1421,
+        16,
+        6
+      ],
+      "neoforge_data": {
+        "color": "48FFFFFF",
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            2.6667,
+            1,
+            13.3333
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            1,
+            2.6667,
+            0,
+            13.3333
+          ],
+          "texture": "#glass"
+        }
+      }
+    },
+    {
+      "from": [
+        -4.1421,
+        0,
+        6
+      ],
+      "to": [
+        4.1421,
+        16,
+        6
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          0,
+          8,
+          16
+        ]
+      },
+      "neoforge_data": {
+        "color": "48FFFFFF",
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            2.6667,
+            4,
+            13.3333
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            4,
+            2.6667,
+            2,
+            13.3333
+          ],
+          "texture": "#glass"
+        }
+      }
+    },
+    {
+      "from": [
+        10,
+        0,
+        11.8579
+      ],
+      "to": [
+        10,
+        16,
+        16
+      ],
+      "neoforge_data": {
+        "color": "48FFFFFF",
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "west": {
+          "uv": [
+            6,
+            2.6667,
+            5,
+            13.3333
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            5,
+            2.6667,
+            6,
+            13.3333
+          ],
+          "texture": "#glass"
+        }
+      }
+    }
+  ]
+}

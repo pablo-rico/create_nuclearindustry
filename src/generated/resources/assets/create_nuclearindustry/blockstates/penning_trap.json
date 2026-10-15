@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=east,half=lower": {
+      "model": "create_nuclearindustry:block/penning_trap/lower",
+      "y": 90
+    },
+    "facing=east,half=upper": {
+      "model": "create_nuclearindustry:block/penning_trap/upper",
+      "y": 90
+    },
+    "facing=north,half=lower": {
+      "model": "create_nuclearindustry:block/penning_trap/lower"
+    },
+    "facing=north,half=upper": {
+      "model": "create_nuclearindustry:block/penning_trap/upper"
+    },
+    "facing=south,half=lower": {
+      "model": "create_nuclearindustry:block/penning_trap/lower",
+      "y": 180
+    },
+    "facing=south,half=upper": {
+      "model": "create_nuclearindustry:block/penning_trap/upper",
+      "y": 180
+    },
+    "facing=west,half=lower": {
+      "model": "create_nuclearindustry:block/penning_trap/lower",
+      "y": 270
+    },
+    "facing=west,half=upper": {
+      "model": "create_nuclearindustry:block/penning_trap/upper",
+      "y": 270
+    }
+  }
+}

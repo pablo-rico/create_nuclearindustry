@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:scram",
+  "criteria": {
+    "seismic_scram": {
+      "conditions": {
+        "event": "seismic_scram"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.seismic_scram.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:seismic_detector"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.seismic_scram.title"
+    }
+  },
+  "requirements": [
+    [
+      "seismic_scram"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

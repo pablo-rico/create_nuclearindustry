@@ -6,7 +6,7 @@
 Layout (matches PlantScenes.controlSafety), 15x10x15. Ponder looks from the north-west, so the
 control room stands in the north-west corner and the containment's front walls are north and west:
 - control room: two joined control desks (1..2,1,1) facing north, an annunciator panel (1,1,3)
-  and a chart recorder (2,1,3) behind them, facing north;
+  and a chart recorder (2,1,3) behind them, facing north, against a concrete wall (1..2,1,4);
 - containment x 5..13, z 5..13: Containment Concrete floor at y 0, walls y 1..8, roof y 9; two
   penetrations (9,3,5) and (9,4,5) carry the pipes through the north wall, a glass window
   (5,4,9) is the weak spot of the west wall and a filtered vent (13,7,9) sits in the east wall;
@@ -44,8 +44,12 @@ def build():
     desk = {"facing": "north", "shape": "straight"}
     put(blocks, (1, 1, 1), NS + "reactor_control_panel", dict(desk, left="true", right="false"))
     put(blocks, (2, 1, 1), NS + "reactor_control_panel", dict(desk, left="false", right="true"))
-    put(blocks, (1, 1, 3), NS + "annunciator_panel", {"facing": "north"})
+    put(blocks, (1, 1, 3), NS + "annunciator_panel", {"facing": "north", "mounted": "true", "left": "false", "right": "false",
+                                                     "up": "false", "down": "false"})
     put(blocks, (2, 1, 3), NS + "chart_recorder", {"facing": "north"})
+    # The instrument wall the annunciator hangs on.
+    for x in (1, 2):
+        put(blocks, (x, 1, 4), "minecraft:light_gray_concrete")
 
     containment(blocks)
     for x in range(7, 12):

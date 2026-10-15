@@ -1,7 +1,13 @@
 {
   "values": {
+    "create_nuclearindustry:americium_241": {
+      "per_second": 0.1
+    },
     "create_nuclearindustry:cemented_waste_drum": {
       "per_second": 1.5
+    },
+    "create_nuclearindustry:cobalt_60": {
+      "per_second": 3.0
     },
     "create_nuclearindustry:compacted_waste_drum": {
       "per_second": 0.4
@@ -100,6 +106,18 @@
     },
     "create_nuclearindustry:spent_fuel_fragments": {
       "per_second": 3.0
+    },
+    "create_nuclearindustry:strontium_90": {
+      "per_second": 1.0
+    },
+    "create_nuclearindustry:strontium_rtg_pellet": {
+      "per_second": 2.5
+    },
+    "create_nuclearindustry:technetium_99m": {
+      "per_second": 0.4
+    },
+    "create_nuclearindustry:technetium_generator": {
+      "per_second": 1.0
     },
     "create_nuclearindustry:thorium_dioxide": {
       "per_second": 0.05

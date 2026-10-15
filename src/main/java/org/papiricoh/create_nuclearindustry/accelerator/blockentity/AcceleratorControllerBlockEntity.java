@@ -34,6 +34,7 @@ import org.papiricoh.create_nuclearindustry.accelerator.api.BeamReadings;
 import org.papiricoh.create_nuclearindustry.accelerator.api.BeamTerminal;
 import org.papiricoh.create_nuclearindustry.accelerator.api.BeamTripCause;
 import org.papiricoh.create_nuclearindustry.accelerator.block.AcceleratorControllerBlock;
+import org.papiricoh.create_nuclearindustry.accelerator.interlock.PersonnelInterlock;
 import org.papiricoh.create_nuclearindustry.accelerator.multiblock.AcceleratorStructure;
 import org.papiricoh.create_nuclearindustry.accelerator.multiblock.AcceleratorValidator;
 import org.papiricoh.create_nuclearindustry.accelerator.multiblock.BeamElementRole;
@@ -374,9 +375,25 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         return ringMaxEnergy(s) * energySetpoint;
     }
 
-    /** Every personnel interlock is closed. */
+    /**
+     * Every personnel interlock beside the beamline is secured and, with
+     * {@code accelerator.interlock.requirePlayersOutside}, nobody is inside the machine. A machine
+     * without interlocks has nothing to check.
+     */
     protected boolean interlocksClear() {
-        return true;
+        if (level == null || level.isClientSide || structure.isEmpty()) {
+            return true;
+        }
+        refreshParts(structure.get());
+        return PersonnelInterlock.clear(this, attachmentCache);
+    }
+
+    /** The attachments this controller found last (machines, cryogenic feeds, interlocks), as looked up now. */
+    public List<AcceleratorAttachment> attachments() {
+        if (level != null && structure.isPresent()) {
+            refreshParts(structure.get());
+        }
+        return attachmentCache;
     }
 
     private void handle(BeamSequence.Transition transition) {
@@ -430,6 +447,14 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         }
     }
 
+    /** Whatever stood on the old line hears that the beam is gone and that it serves no controller now. */
+    private void releaseAttachments(AcceleratorStructure s) {
+        forEachAttachment(s, attachment -> {
+            attachment.observe(BeamReadings.NONE);
+            attachment.bind(null);
+        });
+    }
+
     @Nullable
     private IonSourceBlockEntity source(AcceleratorStructure s) {
         if (level == null) {
@@ -473,6 +498,8 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
             }
         }
         attachmentCache = attachments;
+        BlockPos self = getBlockPos();
+        attachments.forEach(attachment -> attachment.bind(self));
     }
 
     @Nullable
@@ -594,7 +621,7 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
     public void setRemoved() {
         if (level != null && !level.isClientSide) {
             partsOf = null;
-            structure.ifPresent(s -> forEachAttachment(s, attachment -> attachment.observe(BeamReadings.NONE)));
+            structure.ifPresent(this::releaseAttachments);
             MultiblockRegistry.unregister(this);
             AcceleratorHooks.onRemoved.accept(this);
         }
@@ -658,7 +685,7 @@ public class AcceleratorControllerBlockEntity extends BlockEntity implements IHa
         } else {
             // Whatever stands on the old line now hears that the beam is gone.
             partsOf = null;
-            structure.ifPresent(s -> forEachAttachment(s, attachment -> attachment.observe(BeamReadings.NONE)));
+            structure.ifPresent(this::releaseAttachments);
             setStructure(Optional.empty());
             if (playerInitiated || wasFormed) {
                 messenger.status(level, playerInitiated ? player : null, Component.translatable(wasFormed ? "create_nuclearindustry.accelerator.message.broken"

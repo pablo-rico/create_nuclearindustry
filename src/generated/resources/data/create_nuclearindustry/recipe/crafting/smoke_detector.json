@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "A": {
+      "item": "create_nuclearindustry:americium_241"
+    },
+    "N": {
+      "item": "minecraft:iron_nugget"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "NAN",
+    "NRN"
+  ],
+  "result": {
+    "count": 4,
+    "id": "create_nuclearindustry:smoke_detector"
+  }
+}

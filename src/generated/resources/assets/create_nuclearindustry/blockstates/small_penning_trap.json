@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "create_nuclearindustry:block/small_penning_trap",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/small_penning_trap"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/small_penning_trap",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/small_penning_trap",
+      "y": 270
+    }
+  }
+}

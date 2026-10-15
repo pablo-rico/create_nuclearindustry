@@ -35,6 +35,8 @@ import org.papiricoh.create_nuclearindustry.civildefense.siren.HandCrankSirenBlo
 import org.papiricoh.create_nuclearindustry.civildefense.shelter.ShelterFiltrationUnitBlock;
 import org.papiricoh.create_nuclearindustry.civildefense.shelter.ShelterFiltrationUnitBlockEntity;
 import org.papiricoh.create_nuclearindustry.civildefense.siren.HandCrankSirenBlockEntity;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -136,7 +138,8 @@ public final class CivilDefenseRegistry implements NuclearFeature {
     }
 
     @Override
-    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        output.section(NuclearTabSection.CIVIL_DEFENSE);
         items().forEach(item -> output.accept(item.get()));
     }
 }

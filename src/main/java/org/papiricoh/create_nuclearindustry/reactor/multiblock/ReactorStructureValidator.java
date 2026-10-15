@@ -15,6 +15,7 @@ import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import org.papiricoh.create_nuclearindustry.reactor.control.ControlRodGeometry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PressurizerStack;
+import org.papiricoh.create_nuclearindustry.isotope.IsotopeRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsRegistry;
 
 import java.util.ArrayList;
@@ -457,7 +458,8 @@ public class ReactorStructureValidator {
      * plain casing.
      */
     private static boolean isCasing(Block block) {
-        return block == AllNuclearBlocks.REACTOR_CASING.get() || block == ReactorVisualsRegistry.REACTOR_VIEWPORT.get();
+        return block == AllNuclearBlocks.REACTOR_CASING.get() || block == ReactorVisualsRegistry.REACTOR_VIEWPORT.get()
+                || block == IsotopeRegistry.IRRADIATION_CHANNEL.get();
     }
 
     /** A validation message: a lang key under {@link #KEY} and its arguments. */

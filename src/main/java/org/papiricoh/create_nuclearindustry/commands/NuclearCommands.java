@@ -18,6 +18,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.maintenance.incident.IncidentCommands;
 import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 
@@ -42,7 +43,8 @@ public final class NuclearCommands {
                 .requires(source -> source.hasPermission(2))
                 .then(contamination())
                 .then(dose())
-                .then(spawn()));
+                .then(spawn())
+                .then(IncidentCommands.incident()));
     }
 
     /**

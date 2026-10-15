@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:first_nanogram",
+  "criteria": {
+    "quench": {
+      "conditions": {
+        "event": "quench"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.quench.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:antimatter_vial"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.quench.title"
+    }
+  },
+  "requirements": [
+    [
+      "quench"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -150,6 +150,8 @@ public class Config
         PerformanceConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.accelerator.AcceleratorConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.explosive.ExplosiveConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.isotope.IsotopeConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.maintenance.MaintenanceConfig.define(BUILDER);
     }
 
     static final ModConfigSpec SPEC = BUILDER.build();
@@ -260,5 +262,7 @@ public class Config
         PerformanceConfig.bake();
         org.papiricoh.create_nuclearindustry.accelerator.AcceleratorConfig.bake();
         org.papiricoh.create_nuclearindustry.explosive.ExplosiveConfig.bake();
+        org.papiricoh.create_nuclearindustry.isotope.IsotopeConfig.bake();
+        org.papiricoh.create_nuclearindustry.maintenance.MaintenanceConfig.bake();
     }
 }

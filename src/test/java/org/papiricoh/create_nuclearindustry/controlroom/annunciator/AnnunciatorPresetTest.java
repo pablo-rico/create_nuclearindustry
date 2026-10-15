@@ -86,9 +86,30 @@ class AnnunciatorPresetTest {
         assertSame(AnnunciatorPreset.CONTAINMENT, AnnunciatorPreset.byName("CONTAINMENT"));
         assertNull(AnnunciatorPreset.byName("NOT_A_PRESET"));
         assertSame(AnnunciatorPreset.PWR_PRIMARY, AnnunciatorPreset.REACTOR_CORE.next(1));
-        // The tokamak's preset came last, so going back from the first now lands on it.
-        assertSame(AnnunciatorPreset.TOKAMAK, AnnunciatorPreset.REACTOR_CORE.next(-1));
+        // The maintenance preset came last, so going back from the first now lands on it.
+        assertSame(AnnunciatorPreset.MAINTENANCE, AnnunciatorPreset.REACTOR_CORE.next(-1));
+        assertSame(AnnunciatorPreset.MAINTENANCE, AnnunciatorPreset.ANTIMATTER.next(1));
+        assertSame(AnnunciatorPreset.ANTIMATTER, AnnunciatorPreset.TOKAMAK.next(1));
         assertSame(AnnunciatorPreset.TOKAMAK, AnnunciatorPreset.CONTAINMENT.next(1));
         assertEquals("create_nuclearindustry.annunciator.preset.steam_generator.3", AnnunciatorPreset.STEAM_GENERATOR.labelKey(2));
+    }
+
+    @ParameterizedTest
+    @EnumSource(AnnunciatorPreset.class)
+    void everyPresetWindowHasASeverityAndEachPresetAnAlarm(AnnunciatorPreset preset) {
+        List<AnnunciatorPreset.Window> windows = preset.windows(DEFAULTS);
+        for (AnnunciatorPreset.Window window : windows) {
+            assertTrue(window.severity() != null, window + " has a severity");
+        }
+        assertTrue(windows.stream().anyMatch(window -> window.severity() == AnnunciatorSeverity.ALARM),
+                preset + " has at least one alarm window");
+    }
+
+    @Test
+    void tripsAreAlarmsByDefault() {
+        assertSame(AnnunciatorSeverity.ALARM, AnnunciatorPreset.defaultSeverity("SCRAM"));
+        assertSame(AnnunciatorSeverity.ALARM, AnnunciatorPreset.defaultSeverity("TOKAMAK_TRIP"));
+        assertSame(AnnunciatorSeverity.WARNING, AnnunciatorPreset.defaultSeverity("XENON"));
+        assertSame(AnnunciatorSeverity.WARNING, AnnunciatorPreset.defaultSeverity("NOT_A_METRIC"));
     }
 }

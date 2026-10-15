@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=east,secured=false": {
+      "model": "create_nuclearindustry:block/beam_interlock",
+      "y": 90
+    },
+    "facing=east,secured=true": {
+      "model": "create_nuclearindustry:block/beam_interlock_secured",
+      "y": 90
+    },
+    "facing=north,secured=false": {
+      "model": "create_nuclearindustry:block/beam_interlock"
+    },
+    "facing=north,secured=true": {
+      "model": "create_nuclearindustry:block/beam_interlock_secured"
+    },
+    "facing=south,secured=false": {
+      "model": "create_nuclearindustry:block/beam_interlock",
+      "y": 180
+    },
+    "facing=south,secured=true": {
+      "model": "create_nuclearindustry:block/beam_interlock_secured",
+      "y": 180
+    },
+    "facing=west,secured=false": {
+      "model": "create_nuclearindustry:block/beam_interlock",
+      "y": 270
+    },
+    "facing=west,secured=true": {
+      "model": "create_nuclearindustry:block/beam_interlock_secured",
+      "y": 270
+    }
+  }
+}

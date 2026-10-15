@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "D": {
+      "item": "create_nuclearindustry:beam_dump"
+    },
+    "G": {
+      "item": "create_nuclearindustry:graphite"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "pattern": [
+    "IGI",
+    "CDC",
+    "IPI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:target_station"
+  }
+}

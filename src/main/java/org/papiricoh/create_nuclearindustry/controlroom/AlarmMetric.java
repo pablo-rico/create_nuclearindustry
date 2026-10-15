@@ -2,6 +2,8 @@ package org.papiricoh.create_nuclearindustry.controlroom;
 
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
 import com.simibubi.create.foundation.gui.AllIcons;
+import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorPreset;
+import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorSeverity;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReleasePath;
 
@@ -548,6 +550,74 @@ public enum AlarmMetric implements INamedIconOptions {
         float reading(MonitorReading reading) {
             return reading.value(MonitorReading.R_CORE_DAMAGE) * 100f;
         }
+    },
+    /** A Penning trap's fill, % of its capacity: a full trap takes nothing more in. */
+    ANTIMATTER_STORED(AllIcons.I_FILL, TargetKind.ANTIMATTER_TRAP) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.P_FILL) * 100f;
+        }
+    },
+    /**
+     * A Penning trap's energy buffer, %: it sounds below the threshold, while the buffer still holds
+     * the field. An empty trap has nothing to lose and never sets it off.
+     */
+    TRAP_POWER(AllIcons.I_PRIORITY_LOW, TargetKind.ANTIMATTER_TRAP) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.P_BUFFER) * 100f;
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return super.applies(sample) && sample.value(MonitorReading.P_STORED) > 0;
+        }
+    },
+    /** The worse of a reactor's rod drives and relief valve, % health: it sounds below the threshold, at 0 when one failed. */
+    COMPONENT_WEAR(AllIcons.I_CONFIG_DISCARD, TargetKind.REACTOR) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_WEAR) * 100f;
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+    },
+    /** A turbine's blades, % health: it sounds below the threshold, at 0 when they tripped the turbine. */
+    BLADE_WEAR(AllIcons.I_CONFIG_DISCARD, TargetKind.TURBINE) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.T_BLADES) * 100f;
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+    },
+    /** A reactor in a refuelling outage: shut down cold with every rod in. */
+    REFUELLING_OUTAGE(AllIcons.I_PAUSE, TargetKind.REACTOR) {
+        @Override
+        public String format(int setting) {
+            return "-";
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_OUTAGE);
+        }
+
+        @Override
+        boolean tripped(float reading, int setting) {
+            return reading > 0;
+        }
     };
 
     private final AllIcons icon;
@@ -623,6 +693,11 @@ public enum AlarmMetric implements INamedIconOptions {
      */
     public float liveValue(MonitorReading sample) {
         return applies(sample) ? reading(sample) : Float.NaN;
+    }
+
+    /** How much an annunciator window on this metric matters until it is set otherwise. */
+    public AnnunciatorSeverity defaultSeverity() {
+        return AnnunciatorPreset.defaultSeverity(name());
     }
 
     /** True for on/off metrics (SCRAM, relief valve, trip...), which take no threshold. */

@@ -168,6 +168,8 @@ final class MonitorDraw {
             case TOKAMAK -> new String[]{"plasma", "power"};
             case STEAM_GENERATOR -> new String[]{"level", "steam_made"};
             case CONTAINMENT -> new String[]{"pressure", "hydrogen"};
+            case ANTIMATTER_TRAP -> new String[]{"antimatter", "trap_buffer"};
+            case ANNIHILATION_GENERATOR -> new String[]{"gen_output", "antimatter"};
             default -> new String[]{"exposure", "ground"};
         };
         return new Component[]{label(keys[0]), label(keys[1])};
@@ -203,6 +205,8 @@ final class MonitorDraw {
             case STEAM_GENERATOR -> "SG";
             case CONTAINMENT -> "CNT";
             case COOLING_TOWER -> "CT";
+            case ANTIMATTER_TRAP -> "PT";
+            case ANNIHILATION_GENERATOR -> "AG";
             default -> "RAD";
         };
     }

@@ -71,6 +71,15 @@ public final class ControlRoomLayout {
     public static final BlockPos BACK_BARS = new BlockPos(1, 3, 17);
     public static final BlockPos BACK_LEDS = new BlockPos(9, 1, 17);
     public static final BlockPos ANNUNCIATOR = new BlockPos(8, 5, 17);
+    /**
+     * The two annunciator boards: along the back wall x 1..16 (its origin, the bottom-left seen from
+     * the front, at the east end) and along the east wall z 7..16 (origin at the north end). Ponder
+     * scenes do not tick, so the boards are written into the panels instead of being found.
+     */
+    public static final BlockPos ANNUNCIATOR_BOARD = new BlockPos(16, 5, 17);
+    public static final int ANNUNCIATOR_BOARD_WIDTH = 16;
+    public static final BlockPos TOKAMAK_BOARD = new BlockPos(17, 4, 7);
+    public static final int TOKAMAK_BOARD_WIDTH = 10;
     public static final BlockPos CHART_RECORDER = new BlockPos(2, 1, 17);
     public static final BlockPos ALARM = new BlockPos(6, 6, 17);
     public static final BlockPos ALARM_EAST = new BlockPos(11, 6, 17);
@@ -499,6 +508,10 @@ public final class ControlRoomLayout {
             {"TEMPERATURE", "CORE TEMP"}, {"POWER", "POWER HI"}, {"PRESSURE_HIGH", "PRESS HI"}, {"PRESSURE_LOW", "PRESS LO"},
             {"SUBCOOLING_LOW", "SUBCOOL LO"}, {"PZR_LEVEL", "PZR LEVEL"}, {"LOSS_OF_FLOW", "FLOW LO"}, {"SCRAM", "SCRAM"},
             {"XENON", "XENON"}, {"COOLANT_LOW", "COOLANT LO"}, {"RELIEF_OPEN", "RELIEF OPEN"}, {"CORE_DAMAGE", "CORE DAMAGE"}};
+    /** The group nameplates, one for each pair of panels. */
+    private static final String[] REACTOR_GROUPS = {"CORE", "PRIMARY", "STEAM GEN", "CONTAINMENT", "FEEDWATER", "TURBINE", "ELECTRICAL",
+            "RADIATION", "AUX SYSTEMS"};
+    private static final String[] TOKAMAK_GROUPS = {"PLASMA", "MAGNETS", "VACUUM", "FUEL", "HEATING", "CRYO"};
     private static final String[][] TOKAMAK_WINDOWS = {
             {"PLASMA_TEMPERATURE", "PLASMA TEMP"}, {"PLASMA_INSTABILITY", "INSTABILITY"}, {"VACUUM_POOR", "VACUUM"},
             {"MAGNET_TEMPERATURE", "MAGNET TEMP"}, {"FUSION_GAIN_LOW", "GAIN LO"}, {"PLASMA_DENSITY", "DENSITY"},
@@ -510,6 +523,12 @@ public final class ControlRoomLayout {
      */
     static void annunciator(CompoundTag nbt, GlobalPos target, boolean tokamak, int index, int lit) {
         String[][] windows = tokamak ? TOKAMAK_WINDOWS : REACTOR_WINDOWS;
+        BlockPos board = tokamak ? TOKAMAK_BOARD : ANNUNCIATOR_BOARD;
+        nbt.putLong("Origin", board.asLong());
+        nbt.putInt("Width", tokamak ? TOKAMAK_BOARD_WIDTH : ANNUNCIATOR_BOARD_WIDTH);
+        nbt.putInt("Height", 1);
+        String[] groups = tokamak ? TOKAMAK_GROUPS : REACTOR_GROUPS;
+        nbt.putString("Nameplate", groups[index / 2 % groups.length]);
         ListTag list = new ListTag();
         int[] states = new int[6];
         for (int w = 0; w < 6; w++) {
@@ -529,6 +548,12 @@ public final class ControlRoomLayout {
         nbt.put("Windows", list);
         nbt.put("States", new IntArrayTag(states));
         nbt.putInt("FirstOut", lit > 0 ? (index * 5) % 6 : -1);
+    }
+
+    /** The board's first-out, written into its origin: window {@code window} of the panel at {@code panel}. */
+    static void boardFirstOut(CompoundTag nbt, BlockPos panel, int window) {
+        nbt.putLong("BoardFirstOut", panel.asLong());
+        nbt.putInt("BoardFirstOutWindow", window);
     }
 
     /** Three pens of the reactor: power and temperature settling, pressure steady, and paper in the tray. */

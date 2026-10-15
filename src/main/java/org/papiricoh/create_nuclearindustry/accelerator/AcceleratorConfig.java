@@ -6,6 +6,8 @@ import org.papiricoh.create_nuclearindustry.accelerator.physics.AnnihilationMode
 import org.papiricoh.create_nuclearindustry.accelerator.physics.AntimatterModel;
 import org.papiricoh.create_nuclearindustry.accelerator.physics.BeamModel;
 import org.papiricoh.create_nuclearindustry.accelerator.physics.BeamSequence;
+import org.papiricoh.create_nuclearindustry.accelerator.physics.TargetStationModel;
+import org.papiricoh.create_nuclearindustry.antimatter.AntimatterConfig;
 import org.papiricoh.create_nuclearindustry.fusion.heating.HeatingDrive;
 
 /**
@@ -48,6 +50,7 @@ public final class AcceleratorConfig {
     private static ModConfigSpec.BooleanValue PLAYERS_OUTSIDE;
     private static ModConfigSpec.DoubleValue ANTIPROTON_THRESHOLD;
     private static ModConfigSpec.DoubleValue COLLECTOR_EFFICIENCY;
+    private static ModConfigSpec.DoubleValue KJ_PER_NANOGRAM;
     private static ModConfigSpec.DoubleValue GENERATOR_BURN;
     private static ModConfigSpec.DoubleValue GENERATOR_CAPACITY;
     private static ModConfigSpec.DoubleValue GENERATOR_ENERGY;
@@ -88,6 +91,7 @@ public final class AcceleratorConfig {
     public static boolean interlockRequiresPlayersOutside = false;
     public static double antiprotonThreshold = 25;
     public static double collectorEfficiency = 0.8;
+    public static double kjPerNanogram = TargetStationModel.Params.DEFAULT.kjPerNanogram();
     public static double generatorBurnPerMinute = 6;
     public static double generatorCapacity = 256;
     public static double generatorEnergy = 16384;
@@ -194,7 +198,8 @@ public final class AcceleratorConfig {
                         "Doors opened anyway (by redstone) trip the beam.")
                 .define("accelerator.interlock.locksDoors", true);
         PLAYERS_OUTSIDE = builder
-                .comment("Whether the accelerator refuses to start with a player within 2 blocks of its beamline.")
+                .comment("Whether the beam refuses to start, and trips, with a player inside the box the accelerator takes up",
+                        "(a block round its beamline; a ring's whole inside counts).")
                 .define("accelerator.interlock.requirePlayersOutside", false);
         ANTIPROTON_THRESHOLD = builder
                 .comment("Beam energy below which a target makes no antiprotons, in GeV.")
@@ -202,6 +207,10 @@ public final class AcceleratorConfig {
         COLLECTOR_EFFICIENCY = builder
                 .comment("Share of the antiprotons a Target Station's collector catches.")
                 .defineInRange("accelerator.antimatter.collectorEfficiency", 0.8, 0.0, 1.0);
+        KJ_PER_NANOGRAM = builder
+                .comment("Beam energy a Target Station takes to collect one nanogram of antiprotons at the nominal yield, in kJ.",
+                        "A 100 GeV, 6.8 MW beam collects about 11 nanograms a minute with the default.")
+                .defineInRange("accelerator.antimatter.kjPerNanogram", TargetStationModel.Params.DEFAULT.kjPerNanogram(), 1.0, 1.0e9);
         GENERATOR_BURN = builder
                 .comment("Antiprotons an Annihilation Generator burns at full throttle, in nanograms per minute.")
                 .defineInRange("antimatter.generator.burnPerMinute", 6.0, 0.001, 10000.0);
@@ -217,6 +226,7 @@ public final class AcceleratorConfig {
         IGNITION_DOSE = builder
                 .comment("Antiprotons a Tokamak Antiproton Injector spends to ignite a plasma, in nanograms.")
                 .defineInRange("antimatter.ignitionDose", 2.0, 0.0, 1000.0);
+        AntimatterConfig.define(builder);
     }
 
     public static void bake() {
@@ -259,6 +269,8 @@ public final class AcceleratorConfig {
         generatorEnergy = GENERATOR_ENERGY.get();
         generatorFe = GENERATOR_FE.get();
         ignitionDose = IGNITION_DOSE.get();
+        kjPerNanogram = KJ_PER_NANOGRAM.get();
+        AntimatterConfig.bake();
     }
 
     /** The beam's parameters, from the current config. */
@@ -288,6 +300,11 @@ public final class AcceleratorConfig {
 
     public static AntimatterModel.Params antimatter() {
         return new AntimatterModel.Params(antiprotonThreshold, AntimatterModel.Params.DEFAULT.maxYield(), collectorEfficiency);
+    }
+
+    /** The Target Station's collector, from the current config. */
+    public static TargetStationModel.Params targetStation() {
+        return new TargetStationModel.Params(kjPerNanogram);
     }
 
     public static AnnihilationModel.Params generator() {

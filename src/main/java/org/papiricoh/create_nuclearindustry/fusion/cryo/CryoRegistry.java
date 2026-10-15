@@ -15,6 +15,8 @@ import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.NuclearFeature;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.plant.CryoplantCompressorBlock;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.plant.CryoplantCompressorBlockEntity;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.plant.CryoplantControllerBlock;
@@ -119,7 +121,8 @@ public final class CryoRegistry implements NuclearFeature {
     }
 
     @Override
-    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        output.section(NuclearTabSection.CRYOGENICS);
         output.accept(HELIUM_WELL_ITEM.get());
         output.accept(CRYOPLANT_CONTROLLER_ITEM.get());
         output.accept(CRYOPLANT_CASING_ITEM.get());

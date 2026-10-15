@@ -21,6 +21,8 @@ import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearIngredients;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.NuclearFeature;
+import org.papiricoh.create_nuclearindustry.creativetab.NuclearTabSection;
+import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import org.papiricoh.create_nuclearindustry.spentfuel.block.DryCaskBlock;
 import org.papiricoh.create_nuclearindustry.spentfuel.block.DryCaskBlockEntity;
 import org.papiricoh.create_nuclearindustry.spentfuel.block.PoolCoolerBlock;
@@ -82,7 +84,8 @@ public final class SpentFuelRegistry implements NuclearFeature {
     }
 
     @Override
-    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
+        output.section(NuclearTabSection.SPENT_FUEL);
         output.accept(SPENT_FUEL_RACK_ITEM.get());
         output.accept(POOL_COOLER_ITEM.get());
         output.accept(DRY_CASK_ITEM.get());

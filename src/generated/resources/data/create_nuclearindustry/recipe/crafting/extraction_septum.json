@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "create_nuclearindustry:beam_bending_magnet"
+    },
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "SRS",
+    "SBS",
+    "SES"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:extraction_septum"
+  }
+}
