@@ -17,7 +17,8 @@ public class Config
             .defineInRange("turbines.plasmaCapacityPerPort", 65536.0, 0.0, 1.0e9);
     private static final ModConfigSpec.DoubleValue BORON_ABSORPTION = BUILDER
             .comment("Boron control rod absorption effectiveness, multiplied by the control/fuel rod ratio.",
-                    "Absorption is capped at 100% before applying insertion. Zero disables absorption.")
+                    "With 1.5, rods inserted at least equal to the fuel blocks hold any fuel subcritical. Absorption is",
+                    "capped by fission.reactivity.maxRodAbsorption before applying insertion. Zero disables absorption.")
             .defineInRange("fission.boronAbsorption", 1.5, 0.0, 1000.0);
     private static final ModConfigSpec.DoubleValue FUEL_UNITS = BUILDER
             .comment("Fuel units in a low-enriched (5%) assembly. Richer fuel lasts longer:",

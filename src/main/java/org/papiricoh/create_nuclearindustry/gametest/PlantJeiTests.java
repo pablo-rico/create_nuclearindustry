@@ -12,6 +12,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.NuclearFeatures;
@@ -74,6 +75,27 @@ public class PlantJeiTests {
             helper.assertTrue(covered.contains(stack.getItem()),
                     BuiltInRegistries.ITEM.getKey(stack.getItem()) + " has no JEI info page");
         }
+        helper.succeed();
+    }
+
+    /** The safe shutdown page follows boric acid and the water bled from a core; the building hydrogen page the recombiner. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void shutdownPagesFollowTheirFluids(GameTestHelper helper) {
+        PlantJeiInfo.Page shutdown = PlantJeiInfo.pages().stream().filter(page -> page.id().equals("safe_shutdown")).findFirst().orElse(null);
+        helper.assertTrue(shutdown != null, "a safe shutdown page");
+        if (shutdown == null) {
+            return;
+        }
+        for (var fluid : List.of(AllNuclearFluids.BORIC_ACID.get(), AllNuclearFluids.HOT_WATER.get(), AllNuclearFluids.HOT_HEAVY_WATER.get())) {
+            helper.assertTrue(shutdown.fluids().stream().anyMatch(stack -> stack.getFluid() == fluid), "shown for " + fluid);
+        }
+        PlantJeiInfo.Page hydrogen = PlantJeiInfo.pages().stream().filter(page -> page.id().equals("reactor_building_hydrogen"))
+                .findFirst().orElse(null);
+        helper.assertTrue(hydrogen != null && hydrogen.items().stream()
+                        .anyMatch(stack -> stack.is(org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry.RECOMBINER_ITEM.get())),
+                "a building hydrogen page on the recombiner");
+        Language language = Language.getInstance();
+        helper.assertTrue(language.has(shutdown.key()) && hydrogen != null && language.has(hydrogen.key()), "both with their text");
         helper.succeed();
     }
 

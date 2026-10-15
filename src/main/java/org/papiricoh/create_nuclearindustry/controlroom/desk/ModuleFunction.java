@@ -62,7 +62,9 @@ public enum ModuleFunction {
     /** Core map: the reactor's columns, how far each channel's rods are in and how burnt each fuel column is. */
     CORE_VIEW(TargetKind.REACTOR),
     /** Plasma section: a cut through the tokamak's torus with its plasma. */
-    PLASMA_VIEW(TargetKind.TOKAMAK);
+    PLASMA_VIEW(TargetKind.TOKAMAK),
+    /** Lamp: lit while the reactor is in a cold shutdown, held off with margin, cold and its core under water. */
+    LAMP_COLD_SHUTDOWN(TargetKind.REACTOR);
 
     @Nullable
     private final TargetKind needs;

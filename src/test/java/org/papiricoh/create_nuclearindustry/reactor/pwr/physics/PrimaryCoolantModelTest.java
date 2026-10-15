@@ -126,4 +126,70 @@ class PrimaryCoolantModelTest {
         }
         assertEquals(80, moved, "8 mB/t of natural circulation before the pumps see any coolant");
     }
+
+    @Test
+    void withoutMakeupTheBaselineIsTheColdLeg() {
+        PrimaryCoolantModel model = new PrimaryCoolantModel();
+        assertEquals(290.0, model.baseline(PARAMS), 0.0);
+        assertTrue(Double.isInfinite(model.savedBaseline()), "nothing to save");
+        PrimaryCoolantModel reference = new PrimaryCoolantModel();
+        for (int t = 0; t < 200; t++) {
+            model.step(flowing(9.0, 64), PARAMS);
+            reference.step(flowing(9.0, 64), PARAMS);
+        }
+        assertEquals(reference.coldLeg(), model.coldLeg(), 0.0);
+        assertEquals(reference.storedHeat(), model.storedHeat(), 0.0);
+    }
+
+    @Test
+    void coldMakeupLowersTheColdLegBelowBoiling() {
+        PrimaryCoolantModel model = new PrimaryCoolantModel();
+        model.update(16_000, CORE, SATURATION, PARAMS);
+        // Letdown and makeup of 200 mB a tick: the water mixes towards the makeup's 20 °C.
+        for (int t = 0; t < 120; t++) {
+            model.mixCold(200, 20, 16_000, PARAMS);
+            model.step(new PrimaryCoolantModel.Conditions(0, 10_000, 10_000, 0, 16_000, CORE, SATURATION), PARAMS);
+        }
+        assertTrue(model.coldLeg() < 100, "the cold leg falls below 100 °C: " + model.coldLeg());
+        assertTrue(model.hotLeg() < 100, "and with no heat to carry the hot leg with it: " + model.hotLeg());
+        assertTrue(model.coldLeg() > 20, "never below the makeup's temperature");
+        assertEquals(model.baseline(PARAMS), model.savedBaseline(), 0.0);
+    }
+
+    @Test
+    void storedHeatWarmsTheMakeupFirst() {
+        PrimaryCoolantModel model = new PrimaryCoolantModel();
+        model.addHeat(100);
+        model.update(16_000, CORE, SATURATION, PARAMS);
+        model.mixCold(100, 20, 16_000, PARAMS);
+        // 100 mB warmed 270 K takes about 92 heat units of the 100 stored.
+        assertEquals(290.0, model.baseline(PARAMS), 1.0e-9, "the vessel's heat covers it");
+        assertTrue(model.storedHeat() < 10, "but it is spent: " + model.storedHeat());
+    }
+
+    @Test
+    void theCoresHeatWarmsALoweredBaselineBeforeItStoresAny() {
+        PrimaryCoolantModel model = new PrimaryCoolantModel();
+        model.mixCold(4_000, 20, 12_000, PARAMS);
+        double lowered = model.baseline(PARAMS);
+        assertEquals((290 * 12_000 + 20 * 4_000) / 16_000.0, lowered, 1.0e-9);
+        double cp = 0.12 / 35;
+        double toWarm = (290 - lowered) * 16_000 * cp;
+        model.step(new PrimaryCoolantModel.Conditions(toWarm / 2, 10_000, 10_000, 0, 16_000, CORE, SATURATION), PARAMS);
+        assertEquals((290 + lowered) / 2, model.baseline(PARAMS), 1.0e-6, "half the heat warms it halfway");
+        assertEquals(0.0, model.storedHeat(), 0.0, "and none is stored yet");
+        model.step(new PrimaryCoolantModel.Conditions(toWarm, 10_000, 10_000, 0, 16_000, CORE, SATURATION), PARAMS);
+        assertEquals(290.0, model.baseline(PARAMS), 0.0, "back at the cold leg temperature");
+        assertTrue(Double.isInfinite(model.savedBaseline()), "where it no longer needs saving");
+        assertTrue(model.storedHeat() > 0, "and the rest is stored as before");
+    }
+
+    @Test
+    void aSavedBaselineRestores() {
+        PrimaryCoolantModel model = new PrimaryCoolantModel();
+        model.restoreBaseline(80);
+        assertEquals(80, model.baseline(PARAMS), 0.0);
+        model.restoreBaseline(Double.NaN);
+        assertEquals(290, model.baseline(PARAMS), 0.0);
+    }
 }

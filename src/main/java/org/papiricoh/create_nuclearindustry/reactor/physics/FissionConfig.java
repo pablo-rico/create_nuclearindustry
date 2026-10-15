@@ -57,6 +57,31 @@ public final class FissionConfig {
     private static ModConfigSpec.DoubleValue MELTING_RATE_MAX;
     private static ModConfigSpec.DoubleValue MELTDOWN_DAMAGE;
     private static ModConfigSpec.DoubleValue FUEL_BURN;
+    private static ModConfigSpec.DoubleValue MAX_ROD_ABSORPTION;
+    private static ModConfigSpec.DoubleValue FEEDWATER_HEAT_CAPACITY;
+    private static ModConfigSpec.DoubleValue BORON_WORTH;
+    private static ModConfigSpec.DoubleValue BORON_SOLUTION_PPM;
+    private static ModConfigSpec.DoubleValue BORON_MAX_PPM;
+    private static ModConfigSpec.BooleanValue BLEED;
+    private static ModConfigSpec.DoubleValue CONTAMINATED_DAMAGE;
+    private static ModConfigSpec.DoubleValue REQUIRED_MARGIN;
+
+    /** Most rod banks a core's rods can be worth, however many rod blocks it has: only a guard. */
+    public static double maxRodAbsorption = 4.0;
+    /** Heat one mB of cold feedwater takes per kelvin, MJ. */
+    public static double feedwaterHeatCapacity = CoreThermalModel.DEFAULT_FEEDWATER_HEAT_CAPACITY;
+    /** Reactivity each ppm of dissolved boron takes, pcm. */
+    public static double boronWorthPerPpm = ReactivityModel.Params.DEFAULT_BORON_WORTH;
+    /** Boron in boric acid, ppm. */
+    public static double boronSolutionPpm = 7000;
+    /** Most boron the core's water dissolves, ppm; the rest precipitates until there is water for it. */
+    public static double boronMaxPpm = 10000;
+    /** Whether a shut-down core's output ports bleed its coolant once there is no steam to give. */
+    public static boolean bleed = true;
+    /** Core damage from which the bled water comes out contaminated. */
+    public static double contaminatedDamage = 0.05;
+    /** Cold shutdown margin a shutdown needs to count as safe, pcm. */
+    public static double requiredShutdownMargin = 1000;
 
     public static boolean sixGroups = true;
     public static double delayedTimeScale = 1.0;
@@ -125,8 +150,8 @@ public final class FissionConfig {
                 .defineInRange("fission.reactivity.burnupDefect", 0.6, 0.0, 1.0);
         EMPTY_CHANNEL_WORTH = b.comment("Reactivity lost when every fuel channel is empty, in pcm (a partly loaded core loses its share).")
                 .defineInRange("fission.reactivity.emptyChannelWorth", 24000.0, 0.0, 100000.0);
-        ROD_BANK_WORTH = b.comment("Worth of a full set of control rods, in pcm. Fewer rod channels than fuel scale it down",
-                        "(fission.boronAbsorption x channels / fuel, at most 1).")
+        ROD_BANK_WORTH = b.comment("Worth of a full set of control rods, in pcm. The rod blocks per fuel block scale it",
+                        "(fission.boronAbsorption x rod blocks / fuel blocks, up to fission.reactivity.maxRodAbsorption).")
                 .defineInRange("fission.reactivity.rodBankWorth", 22000.0, 0.0, 100000.0);
         ROD_WORTH_SHAPE = b.comment("How much rods are worth more in the middle of the core: 0 the same along their length, 1 a full S curve.")
                 .defineInRange("fission.reactivity.rodWorthShape", 0.5, 0.0, 1.0);
@@ -205,6 +230,30 @@ public final class FissionConfig {
 
         FUEL_BURN = b.comment("Fuel units each rod burns per tick at rated power. Zero disables fuel depletion.")
                 .defineInRange("fission.fuelBurnPerRod", 7.5e-4, 0.0, 100.0);
+
+        MAX_ROD_ABSORPTION = b.comment("Most rod banks (fission.reactivity.rodBankWorth) a core's control rods can be worth, however many",
+                        "rod blocks it has per fuel block. Only a guard: rods inserted at least equal to the fuel blocks already",
+                        "hold any fuel subcritical.")
+                .defineInRange("fission.reactivity.maxRodAbsorption", 4.0, 0.0, 100.0);
+        FEEDWATER_HEAT_CAPACITY = b.comment("Heat one mB of cold water fed into a boiling reactor takes per kelvin it warms up, in MJ.",
+                        "Only water fed beyond the steam the core boils counts: feeding and bleeding a shut-down core cools it",
+                        "below boiling.")
+                .defineInRange("fission.thermal.feedwaterHeatCapacity", CoreThermalModel.DEFAULT_FEEDWATER_HEAT_CAPACITY, 0.0, 1.0);
+        BORON_WORTH = b.comment("Reactivity each ppm of boron dissolved in the core's water takes, in pcm.")
+                .defineInRange("fission.boron.worthPerPpm", ReactivityModel.Params.DEFAULT_BORON_WORTH, 0.0, 1000.0);
+        BORON_SOLUTION_PPM = b.comment("Boron in boric acid, in ppm. Boric acid pumped into a reactor brings this much per mB.")
+                .defineInRange("fission.boron.solutionPpm", 7000.0, 0.0, 100000.0);
+        BORON_MAX_PPM = b.comment("Most boron the core's water dissolves, in ppm. Boiling concentrates it up to this; the rest",
+                        "precipitates and dissolves again when water comes back. Only bleeding water out takes boron away.")
+                .defineInRange("fission.boron.maxPpm", 10000.0, 0.0, 100000.0);
+        BLEED = b.comment("Whether a shut-down reactor's output ports bleed water from its coolant tank once there is no steam",
+                        "to give (never below the water that keeps the core covered).")
+                .define("fission.coolant.bleed", true);
+        CONTAMINATED_DAMAGE = b.comment("Core damage (0-1) from which the water bled from a reactor comes out as contaminated water.")
+                .defineInRange("fission.coolant.contaminatedDamage", 0.05, 0.0, 1.0);
+        REQUIRED_MARGIN = b.comment("Cold shutdown margin a shut-down reactor needs to count as safely shut down, in pcm: the",
+                        "reactivity its rods and boron would hold back once cold and without xenon.")
+                .defineInRange("fission.shutdown.requiredMargin", 1000.0, 0.0, 100000.0);
     }
 
     public static void bake() {
@@ -250,6 +299,14 @@ public final class FissionConfig {
         meltingDamageRateMax = Math.max(MELTING_RATE_MAX.get(), meltingDamageRate);
         meltdownDamage = MELTDOWN_DAMAGE.get();
         fuelBurnPerRod = FUEL_BURN.get();
+        maxRodAbsorption = MAX_ROD_ABSORPTION.get();
+        feedwaterHeatCapacity = FEEDWATER_HEAT_CAPACITY.get();
+        boronWorthPerPpm = BORON_WORTH.get();
+        boronSolutionPpm = BORON_SOLUTION_PPM.get();
+        boronMaxPpm = BORON_MAX_PPM.get();
+        bleed = BLEED.get();
+        contaminatedDamage = CONTAMINATED_DAMAGE.get();
+        requiredShutdownMargin = REQUIRED_MARGIN.get();
     }
 
     /** Every parameter of the core's physics, from the current config. */
@@ -259,7 +316,7 @@ public final class FissionConfig {
                 new ReactivityModel.Params(fuelExcess, burnupDefect, emptyChannelWorth, rodBankWorth, rodWorthShape, graphiteWorth,
                         reflectorWorth, heavyWaterWorth, dopplerCoefficient, moderatorCoefficient, voidCoefficient,
                         graphiteModeratorCoefficient, graphiteVoidCoefficient, heavyWaterVoidCoefficient, damageWorth,
-                        dryCoreWorth),
+                        dryCoreWorth, boronWorthPerPpm),
                 thermal(),
                 new CoreDamageModel.Params(claddingFailureTemperature, fuelMeltingTemperature, claddingDamageRate, meltingDamageRate,
                         meltingDamageRateMax, meltdownDamage),
@@ -271,7 +328,7 @@ public final class FissionConfig {
         CoreThermalModel.Params d = CoreThermalModel.Params.DEFAULT;
         return new CoreThermalModel.Params(ratedPowerPerRod, fuelRiseAtRated, fuelHeatCapacity, coolantHeatCapacity,
                 structureHeatCapacity, boilingTemperature, ratedVoid, d.passiveLoss(), d.radiation(), chfMargin, maxFuelTemperature,
-                maxSuperheat);
+                maxSuperheat, feedwaterHeatCapacity);
     }
 
     /** Fuel temperature, Celsius, from which the core reads Warning: where its cladding starts to fail. */

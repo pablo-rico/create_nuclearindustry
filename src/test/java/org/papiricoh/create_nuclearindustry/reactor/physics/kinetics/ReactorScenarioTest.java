@@ -36,8 +36,9 @@ class ReactorScenarioTest {
             return new Core(240, 12, 10, 100, 50, 0);
         }
 
+        /** Rod banks the rods are worth: no longer capped at one, only by the 4-bank guard. */
         double maxAbsorption() {
-            return Math.min(1, (double) channels * channelHeight / rods * 1.5);
+            return RodWorth.absorption(channels * channelHeight, rods, 1.5, 1.0, 4.0);
         }
 
         double maxRemoval() {
@@ -65,6 +66,10 @@ class ReactorScenarioTest {
         double steamCarry;
         double minPower = Double.MAX_VALUE;
         double maxPower;
+        /** Cold water fed beyond the steam, mB per second (feed and bleed). */
+        double feedFlow;
+        /** Boron dissolved in the water, ppm. */
+        double boronPpm;
 
         Run(Core core, double insertion) {
             this.core = core;
@@ -90,9 +95,9 @@ class ReactorScenarioTest {
                     removal = Math.min(removal, Math.max(0, tankCapacity - tank) * STEAM_MW_PER_MB);
                 }
                 CoreThermalModel.Boundary boundary = coverage <= 0 ? new CoreThermalModel.Dry()
-                        : new CoreThermalModel.Boiling(coverage, removal, core.chf());
+                        : new CoreThermalModel.Boiling(coverage, removal, core.chf(), feedFlow);
                 fission.tick(params, new FissionCore.Inputs(core.rods(), true, 1.0, 650, reactivityOfFuel, 0, 0, 0, core.moderation(), 0,
-                        ReactivityModel.Coolant.WATER, core.maxAbsorption(), channels, boundary, 0, 0.6, 0.002));
+                        ReactivityModel.Coolant.WATER, core.maxAbsorption(), channels, boundary, 0, 0.6, 0.002, boronPpm));
                 if (tank >= 0) {
                     steamCarry += fission.thermalResult().boiled() / STEAM_MW_PER_MB;
                     int steam = (int) steamCarry;
@@ -312,7 +317,9 @@ class ReactorScenarioTest {
     /** The turbine takes less than the core makes: the tank fills, the outlet chokes, and the power holds steady. */
     @Test
     void aChokedSteamTankDoesNotMakeThePowerSawtooth() {
-        Run run = new Run(new Core(12, 3, 3, 6, 3, 0), 0.45);
+        // Nine rod blocks for twelve of fuel are worth 1.125 banks now that the absorption is not capped at
+        // one: 0.4175 in holds the same 9360 pcm 0.45 did, so the core makes more steam than the turbine takes.
+        Run run = new Run(new Core(12, 3, 3, 6, 3, 0), 0.4175);
         run.tank = 0;
         run.turbineDraw = 100;
         run.seconds(300);
@@ -340,5 +347,73 @@ class ReactorScenarioTest {
         Run run = new Run(core, 0);
         run.seconds(600);
         assertTrue(run.peakFuel > DAMAGE, "graphite keeps moderating when the water boils: " + run.peakFuel);
+    }
+
+    /** The six-rod test core after an hour near full power, scrammed, its decay heat boiling away for half a minute. */
+    private static Run scrammedAfterAnHour() {
+        Run run = new Run(Core.testCore(), 0.52);
+        run.seconds(3600);
+        assertTrue(run.power() > 0.5, "it ran: " + run.power());
+        run.insertAll(1);
+        run.seconds(30);
+        assertTrue(run.power() < 0.05, "and the SCRAM stopped it, but for the delayed neutrons' tail: " + run.power());
+        return run;
+    }
+
+    private static boolean cold(Run run) {
+        return run.fission.fuelTemperature() < ShutdownState.COLD_TEMPERATURE
+                && run.fission.coolantTemperature() < ShutdownState.COLD_TEMPERATURE;
+    }
+
+    @Test
+    void withoutFeedAScrammedCoreStaysHot() {
+        Run run = scrammedAfterAnHour();
+        run.seconds(600);
+        assertEquals(D.thermal().boilingTemperature(), run.fission.coolantTemperature(), 1,
+                "its decay heat boils the water, which never cools below saturation");
+        assertTrue(run.fission.fuelTemperature() > D.thermal().boilingTemperature(), "and the fuel stays above it");
+    }
+
+    @Test
+    void feedingAndBleedingTakesAScrammedCoreCold() {
+        Run run = scrammedAfterAnHour();
+        run.feedFlow = 50 * TICKS_PER_SECOND;
+        int seconds = 0;
+        while (!cold(run) && seconds < 600) {
+            run.seconds(1);
+            seconds++;
+        }
+        assertTrue(seconds < 120, "50 mB/t of cold water fed and bled takes it below 100 °C in under two minutes: " + seconds + " s, "
+                + run.fission.fuelTemperature() + " / " + run.fission.coolantTemperature());
+        run.seconds(600);
+        assertTrue(cold(run) && run.power() < 1.0e-3, "and holds it there, shut down: " + run.fission.fuelTemperature() + ", "
+                + run.power());
+        assertEquals(ShutdownState.COLD_SHUTDOWN, ShutdownState.classify(run.power() > 1.0e-3, run.fission.reactivity(),
+                run.fission.coldShutdownMargin(false), 1000, run.fission.fuelTemperature(), run.fission.coolantTemperature(), 1));
+    }
+
+    /**
+     * Twenty percent fuel with one rod block for every two of fuel: the rods (16500 pcm) cannot hold
+     * its 18000 pcm when cold, so with every rod in it still warms itself up to criticality. 600 ppm
+     * of boron (3000 pcm) keep it shut down and cold with margin to spare.
+     */
+    @Test
+    void boronHoldsARichCoreShutWhenCold() {
+        Core core = new Core(6, 1, 3, 3, 1, 0);
+        Run bare = new Run(core, 1.0);
+        bare.reactivityOfFuel = 1.5;
+        bare.seconds(600);
+        assertTrue(bare.fission.coldShutdownMargin(true) < 0, "the rods alone are short: " + bare.fission.coldShutdownMargin(true));
+        assertTrue(bare.fission.fuelTemperature() > 100, "so it heats itself up with every rod in: " + bare.fission.fuelTemperature());
+
+        Run borated = new Run(core, 1.0);
+        borated.reactivityOfFuel = 1.5;
+        borated.boronPpm = 600;
+        borated.seconds(600);
+        assertTrue(borated.power() < 1.0e-3 && cold(borated), "boron holds it shut down and cold: " + borated.power() + ", "
+                + borated.fission.fuelTemperature());
+        assertEquals(1500, borated.fission.coldShutdownMargin(true), 20, "with 16500 + 3000 - 18000 pcm to spare");
+        assertEquals(-3000, borated.fission.breakdown().parts().boron(), 1, "the boron's part of the reactivity");
+        assertEquals(borated.fission.breakdown().parts().total(), borated.fission.reactivity(), 1.0e-6, "the parts still add up");
     }
 }

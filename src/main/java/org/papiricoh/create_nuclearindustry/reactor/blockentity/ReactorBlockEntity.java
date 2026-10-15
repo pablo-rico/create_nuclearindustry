@@ -45,6 +45,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -86,7 +87,9 @@ import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimula
 import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ReactivityModel;
 import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.FissionCore;
 import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.CoreThermalModel;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ShutdownState;
 import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
+import org.papiricoh.create_nuclearindustry.reactor.physics.SolubleBoron;
 import org.papiricoh.create_nuclearindustry.AllNuclearSounds;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorSoundModel;
@@ -213,6 +216,22 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
     private boolean coolingAfterScram;
     /** Reached full power and has not fallen well below it since. */
     private boolean atFullPower;
+    /** Boron dissolved in the vessel's water: boric acid brings it, only bleeding takes it away. */
+    private final SolubleBoron boron = new SolubleBoron();
+    /** Water fed into the coolant tank this tick, mB, and the smoothed feed and steam it is weighed against, mB/t. */
+    private int feedThisTick;
+    private double feedAverage;
+    private double steamAverage;
+    /** Where the core stands on its way to a cold shutdown, as last worked out. */
+    private ShutdownState shutdownState = ShutdownState.OPERATING;
+    /** The core ran or was hot since its last cold shutdown: reaching one again is an achievement. */
+    private boolean awaitingColdShutdown;
+    /** Last game tick something was bled from the coolant tank, for displays. */
+    private long lastBleedTime = Long.MIN_VALUE / 2;
+    /** Smoothing of the feed and steam flows, per tick. */
+    private static final double FEED_SMOOTHING = 0.2;
+    /** Extra feed below this counts as none, mB/t: pumps only replacing the steam jitter around zero. */
+    private static final double FEED_DEADBAND = 1.0;
 
     /**
      * Least ticks between two client updates, unless the state the clients act on changes (see
@@ -236,7 +255,9 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
     /** Where the tanks' percents sit in the visible key, compared with {@link #SYNC_TANK_HYSTERESIS}. */
     private static final int KEY_COOLANT_PERCENT = 1;
     private static final int KEY_STEAM_PERCENT = 3;
-    private static final int VISIBLE_KEY_SIZE = 45;
+    private static final int VISIBLE_KEY_SIZE = 51;
+    /** Step of the dissolved boron that counts as a visible change, ppm. */
+    private static final double SYNC_BORON_STEP = 10.0;
     /** Something a player did (or the reactor's state) changed since the last update: it goes out when allowed. */
     private boolean syncDirty;
     /** Tanks or fuel slots changed since the last update; they go out once the change is visible. */
@@ -318,9 +339,11 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
             entity.tickMaintenance();
             entity.tryStorePendingDepletedFuel();
             entity.tryLoadFuelAssembly();
+            entity.physicsSimulator.setBoronPpm(entity.getBoronPpm());
             boolean stillRunning = entity.physicsSimulator.tick();
             entity.collectSpentFuel();
             entity.processLoops();
+            entity.updateShutdownState();
             if (entity.runAccidents() || entity.isRemoved()) {
                 // an explosion took the reactor apart; nothing of it is left to update this tick
                 return;
@@ -881,11 +904,10 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
                 coolingAfterScram = false;
                 setChanged();
             } else if (temperature < ReactorSoundModel.COLD_SHUTDOWN_TEMPERATURE && !physicsSimulator.isRunning()) {
+                // Cooled down after its SCRAM; the cold shutdown itself (margin, water, coolant) is
+                // marked by updateShutdownState.
                 coolingAfterScram = false;
                 setChanged();
-                if (isFormed()) {
-                    awardMachine(NuclearEvent.COLD_SHUTDOWN);
-                }
             }
         }
 
@@ -905,6 +927,97 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
     /** A hot core was scrammed and has not cooled down yet: the cold shutdown is still to come. */
     public boolean isCoolingAfterScram() {
         return coolingAfterScram;
+    }
+
+    /**
+     * Works out where the core stands after this tick's loops (see {@link ShutdownState}) and marks
+     * reaching a cold shutdown, held off with margin, cold and covered, after running or being hot.
+     */
+    private void updateShutdownState() {
+        boolean fuelled = physicsSimulator.hasFuel();
+        double fuel = physicsSimulator.getCoreTemperature();
+        double coolant = physicsSimulator.getCoolantTemperature();
+        // An empty core has nothing to keep under water.
+        ShutdownState next = ShutdownState.classify(physicsSimulator.isRunning(), physicsSimulator.getNetReactivity(),
+                physicsSimulator.getColdShutdownMargin(false), FissionConfig.requiredShutdownMargin, fuel, coolant,
+                fuelled ? getCoreCoverage() : 1.0);
+        if (next != ShutdownState.COLD_SHUTDOWN && (physicsSimulator.isRunning()
+                || fuel >= ShutdownState.COLD_TEMPERATURE || coolant >= ShutdownState.COLD_TEMPERATURE)) {
+            awaitingColdShutdown = true;
+        }
+        if (next == ShutdownState.COLD_SHUTDOWN && shutdownState != ShutdownState.COLD_SHUTDOWN && awaitingColdShutdown && fuelled) {
+            awaitingColdShutdown = false;
+            awardMachine(NuclearEvent.COLD_SHUTDOWN);
+        }
+        if (next != shutdownState) {
+            shutdownState = next;
+            setChanged();
+        }
+    }
+
+    /** Where the core stands on its way to a cold shutdown; {@link ShutdownState#OPERATING} while it is not formed. */
+    public ShutdownState getShutdownState() {
+        return isFormed() ? shutdownState : ShutdownState.OPERATING;
+    }
+
+    /**
+     * Reactivity the rods and boron would hold back once the core is cold, flooded and free of
+     * xenon, pcm (positive is subcritical): with the rods where they stand, or with every rod in.
+     */
+    public double getColdShutdownMargin(boolean allRodsIn) {
+        return isFormed() ? physicsSimulator.getColdShutdownMargin(allRodsIn) : 0.0;
+    }
+
+    /** Boron dissolved in the vessel's water, ppm. */
+    public double getBoronPpm() {
+        return boron.ppm(boronInventory(), FissionConfig.boronMaxPpm);
+    }
+
+    /** Boron in the vessel, dissolved or precipitated, ppm times mB. */
+    public double getBoronMass() {
+        return boron.mass();
+    }
+
+    /** Rod blocks the inserted control rods are worth; at least the fuel blocks holds any fuel subcritical. */
+    public double getEffectiveRods() {
+        return isFormed() ? physicsSimulator.getEffectiveRods() : 0.0;
+    }
+
+    /** Fuel rod blocks in the core. */
+    public int getFuelRodCount() {
+        return currentStructure.map(structure -> structure.uraniumRodCount).orElse(0);
+    }
+
+    /** Share of the core under water, 0-1. */
+    public double getCoreCoverage() {
+        if (!isFormed()) {
+            return 0.0;
+        }
+        if (isPrimaryLoopActive()) {
+            return primaryLoop.coverage();
+        }
+        return Math.min(1.0, coolantTank.getFluidAmount() / (double) CORE_WATER);
+    }
+
+    /** Heat the coolant takes from the core, MW: what boils off as steam, warms the feedwater, or the pressurized loop carries. */
+    public double getHeatRemovedMw() {
+        return isFormed() ? physicsSimulator.getRemovedHeat() : 0.0;
+    }
+
+    /** Whether the output ports bled water from the coolant tank in the last second. */
+    public boolean isBleeding() {
+        Level level = getLevel();
+        return level != null && level.getGameTime() - lastBleedTime <= SYNC_INTERVAL;
+    }
+
+    /** Water the boron is dissolved in, mB: the boiling water, or the pressurized loop's cold and hot coolant. */
+    private double boronInventory() {
+        FluidStack coolant = coolantTank.getFluid();
+        if (NuclearFluidHelper.isPrimaryCoolant(coolant) || NuclearFluidHelper.isHotPrimary(steamTank.getFluid())) {
+            int hot = NuclearFluidHelper.isHotPrimary(steamTank.getFluid()) ? steamTank.getFluidAmount() : 0;
+            return coolantTank.getFluidAmount() + hot;
+        }
+        return coolantTank.getFluidAmount();
     }
 
     /** What the fuel channels show, for tests. */
@@ -941,6 +1054,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
     private void processLoops() {
         if (isPrimaryLoopActive()) {
             processPrimaryLoop();
+            feedThisTick = 0;
             return;
         }
         if (primaryLoop.readings().pwr()) {
@@ -949,6 +1063,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
             showReliefValve(false);
         }
         processCoolantLoop();
+        feedThisTick = 0;
     }
 
     /** The coolant tank holds primary coolant (or it all sits hot in the output tank) and a pressurizer stands on the lid. */
@@ -1054,15 +1169,18 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
 
         boilCarry += physicsSimulator.getBoiledHeat() / Math.max(1.0e-9, energyPerMb);
         int steam = (int) Math.floor(boilCarry);
+        int boiledOff = 0;
         if (water && steam > 0) {
             FluidStack produced = new FluidStack(heavy ? AllNuclearFluids.HEAVY_STEAM.get() : AllNuclearFluids.STEAM.get(), steam);
             int room = steamTank.fill(produced, IFluidHandler.FluidAction.SIMULATE);
             FluidStack drained = coolantTank.drain(Math.min(steam, room), IFluidHandler.FluidAction.EXECUTE);
             if (!drained.isEmpty()) {
+                boiledOff = drained.getAmount();
                 steamTank.fill(new FluidStack(produced.getFluid(), drained.getAmount()), IFluidHandler.FluidAction.EXECUTE);
             }
         }
         boilCarry = Math.max(0, Math.min(1, boilCarry - steam));
+        double feedFlow = extraFeed(boiledOff);
 
         if (currentStructure.isEmpty()) {
             return;
@@ -1076,8 +1194,20 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         double coverage = Math.min(1.0, coolantTank.getFluidAmount() / (double) CORE_WATER);
         // Primary coolant without a pressurizer only sits in the core: it cannot boil away.
         int removal = water ? Math.min(getSteamThroughputLimit(), steamTank.getSpace()) : 0;
-        physicsSimulator.setCoolant(new CoreThermalModel.Boiling(coverage, removal * energyPerMb, chf),
+        physicsSimulator.setCoolant(new CoreThermalModel.Boiling(coverage, removal * energyPerMb, chf, water ? feedFlow : 0),
                 heavy ? ReactivityModel.Coolant.HEAVY_WATER : ReactivityModel.Coolant.WATER);
+    }
+
+    /**
+     * Cold water fed in beyond what boils away, mB per second: what the core has to warm up. Only
+     * the feed above the steam counts, both smoothed over a few ticks, so pumps that only replace the
+     * steam a running core boils give none, and a shut-down core fed and bled is cooled by it.
+     */
+    private double extraFeed(int boiledOff) {
+        feedAverage += (feedThisTick - feedAverage) * FEED_SMOOTHING;
+        steamAverage += (boiledOff - steamAverage) * FEED_SMOOTHING;
+        double extra = feedAverage - steamAverage;
+        return extra > FEED_DEADBAND ? extra * 20.0 : 0.0;
     }
 
     private int getSteamThroughputLimit() {
@@ -1317,6 +1447,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         key[i++] = Math.round(loop.coldLeg());
         key[i++] = Math.round(accidents.containmentPressure() * 100.0f);
         key[i++] = Math.round(accidents.containmentHydrogen() * 1000.0f);
+        key[i++] = Math.round((float) accidents.buildingHydrogen() * 1000.0f);
         key[i++] = getReactorState().ordinal();
         key[i++] = (int) Math.round(physicsSimulator.getThermalStress());
         key[i++] = (int) Math.floor(Math.log10(Math.max(1e-9, physicsSimulator.getRelativePower())) * SYNC_LOG_POWER_STEPS);
@@ -1331,7 +1462,12 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         key[i++] = (int) Math.floor(parts.temperature() / SYNC_REACTIVITY_PART_STEP);
         key[i++] = (int) Math.floor(parts.voids() / SYNC_REACTIVITY_PART_STEP);
         key[i++] = (int) Math.floor(parts.xenon() / SYNC_REACTIVITY_PART_STEP);
-        key[i] = (int) Math.floor(parts.damage() / SYNC_REACTIVITY_PART_STEP);
+        key[i++] = (int) Math.floor(parts.damage() / SYNC_REACTIVITY_PART_STEP);
+        key[i++] = (int) Math.floor(parts.boron() / SYNC_REACTIVITY_PART_STEP);
+        key[i++] = shutdownState.ordinal() | (isBleeding() ? 16 : 0);
+        key[i++] = (int) Math.floor(getBoronPpm() / SYNC_BORON_STEP);
+        key[i++] = (int) Math.floor(physicsSimulator.getColdShutdownMargin(false) / SYNC_REACTIVITY_PART_STEP);
+        key[i] = (int) Math.floor(physicsSimulator.getColdShutdownMargin(true) / SYNC_REACTIVITY_PART_STEP);
     }
 
     /**
@@ -1459,6 +1595,7 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         currentStructure.ifPresent(this::clearStructureParts);
         setStructure(Optional.empty());
         physicsSimulator = new ReactorPhysicsSimulator(0);
+        boron.clear();
         markDirtyAndSync();
         alertMessage(message(ChatFormatting.DARK_RED, "meltdown", getBlockPos().toShortString()));
         level.explode(null, reactorPos.getX() + 0.5, reactorPos.getY() + 0.5, reactorPos.getZ() + 0.5,
@@ -1478,6 +1615,10 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         // A melt the containment holds is a 5; one with nothing round it lets most of the core out.
         IncidentLog.record(level, reactorPos, IncidentType.MELTDOWN, InesScale.core(1.0, true, containment == null ? 1.0 : 0.0), "");
 
+        // Without a containment, the building around the reactor takes the melt's steam and hydrogen.
+        if (PwrConfig.hydrogen) {
+            accidents.prepareBuilding(level, box);
+        }
         // The vessel's water flashes off the molten core; what cladding is left reacts in the melt.
         int water = coolantTank.getFluidAmount() + steamTank.getFluidAmount();
         coolantTank.setFluid(FluidStack.EMPTY);
@@ -1494,11 +1635,19 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         currentStructure.ifPresent(this::clearStructureParts);
         setStructure(Optional.empty());
         physicsSimulator = new ReactorPhysicsSimulator(0);
+        boron.clear();
         primaryLoop.idle();
         markDirtyAndSync();
         alertMessage(message(ChatFormatting.DARK_RED, containment != null ? "meltdown_contained" : "meltdown_release",
                 reactorPos.toShortString()));
         formCorium(level, structure, rods);
+        // A building full of the melt's hydrogen does not wait for a spark.
+        if (PwrConfig.hydrogen && accidents.igniteBuilding(level, rods)) {
+            alertMessage(message(ChatFormatting.DARK_RED, "building_explosion", reactorPos.toShortString()));
+            if (!isRemoved()) {
+                markDirtyAndSync();
+            }
+        }
     }
 
     /** The fuel rods turn into corium, lowest first, at most {@link #MAX_CORIUM} blocks; the rest of the melt joins it. */
@@ -1543,9 +1692,16 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
             return false;
         }
         ReactorStructureValidator.ReactorStructure structure = currentStructure.get();
-        accidents.tick(level, vesselBox(structure));
-        BlockPos center = BlockPos.containing(radiationOrigin());
         int rods = structure.uraniumRodCount;
+        if (accidents.tick(level, vesselBox(structure), rods)) {
+            // the hydrogen in the reactor building blew up; the blast may have taken the reactor apart
+            alertMessage(message(ChatFormatting.DARK_RED, "building_explosion", getBlockPos().toShortString()));
+            if (!isRemoved()) {
+                markDirtyAndSync();
+            }
+            return true;
+        }
+        BlockPos center = BlockPos.containing(radiationOrigin());
         double temperature = physicsSimulator.getCoreTemperature();
         // The cladding sits between the fuel and its coolant.
         double cladding = physicsSimulator.getCoolantTemperature() + 0.3 * (temperature - physicsSimulator.getCoolantTemperature());
@@ -1618,6 +1774,11 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
 
     public ReactorAccidents getAccidents() {
         return accidents;
+    }
+
+    /** Hydrogen volume fraction in the ordinary building around the reactor, 0-1, or 0 without one. */
+    public double getBuildingHydrogen() {
+        return accidents.buildingHydrogen();
     }
 
     public void setControlRodPosition(float position) {
@@ -1928,12 +2089,163 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
             }
             return filled;
         }
-        return NuclearFluidHelper.isCoolant(resource) ? coolantTank.fill(resource, action) : 0;
+        boolean boric = NuclearFluidHelper.isBoricAcid(resource);
+        if (!boric && !NuclearFluidHelper.isCoolant(resource)) {
+            return 0;
+        }
+        if (holdsPrimaryCoolant() && (boric || NuclearFluidHelper.isWater(resource))) {
+            // Makeup for a pressurized loop: fresh water (boric acid or plain, which dilutes the boron)
+            // joins the loop's coolant cold.
+            if (!hasPressurizer()) {
+                return 0;
+            }
+            double inventory = boronInventory();
+            int filled = coolantTank.fill(new FluidStack(AllNuclearFluids.PRIMARY_COOLANT.get(), resource.getAmount()), action);
+            if (action.execute() && filled > 0) {
+                if (boric) {
+                    injectBoron(filled);
+                }
+                primaryLoop.recordMakeup(filled, inventory);
+            }
+            return filled;
+        }
+        if (boric) {
+            // Boric acid is water with boron in it: a boiling core takes its water and keeps the boron.
+            // Heavy water would only be spoilt by it.
+            if (NuclearFluidHelper.isHeavyWater(coolantTank.getFluid())) {
+                return 0;
+            }
+            int filled = coolantTank.fill(new FluidStack(Fluids.WATER, resource.getAmount()), action);
+            if (action.execute() && filled > 0) {
+                injectBoron(filled);
+                feedThisTick += filled;
+            }
+            return filled;
+        }
+        int filled = coolantTank.fill(resource, action);
+        if (action.execute() && filled > 0) {
+            feedThisTick += filled;
+        }
+        return filled;
     }
 
-    /** Whether a coolant port would take {@code stack} at all. */
+    /** Dissolves the boron of {@code mb} of boric acid; the first into boron-free water earns its advancement. */
+    private void injectBoron(int mb) {
+        if (boron.mass() <= 0) {
+            awardMachine(NuclearEvent.BORON_INJECTED);
+        }
+        boron.add(mb, FissionConfig.boronSolutionPpm);
+    }
+
+    /** Whether a coolant port would take {@code stack} at all. Water bled hot from a reactor never goes back in. */
     public boolean acceptsCoolant(FluidStack stack) {
+        if (NuclearFluidHelper.isBoricAcid(stack)) {
+            if (holdsPrimaryCoolant()) {
+                return hasPressurizer();
+            }
+            return !NuclearFluidHelper.isHeavyWater(coolantTank.getFluid());
+        }
         return NuclearFluidHelper.isCoolant(stack) || NuclearFluidHelper.isPrimaryLoopFluid(stack) && hasPressurizer();
+    }
+
+    // ------------------------------------------------------------------ output ports: steam, and bleeding the coolant
+
+    /**
+     * What an output port gives: the steam (or hot primary coolant) in the output tank, otherwise, once
+     * the chain reaction is off, water bled from the coolant tank (see {@link #getBleedFluid()}). Only
+     * the output ports use this; {@link #drainSteam(int, IFluidHandler.FluidAction)} keeps draining the
+     * output tank alone.
+     */
+    public FluidStack drainOutput(int maxDrain, IFluidHandler.FluidAction action) {
+        if (!steamTank.isEmpty()) {
+            return drainSteam(maxDrain, action);
+        }
+        return bleed(maxDrain, action);
+    }
+
+    /**
+     * {@code resource} from an output port: steam or hot primary coolant from the output tank, or the
+     * fluid the coolant tank bleeds as. A pipe already full of bled water keeps bleeding while some
+     * steam is still about.
+     */
+    public FluidStack drainOutput(FluidStack resource, IFluidHandler.FluidAction action) {
+        if (resource.isEmpty()) {
+            return FluidStack.EMPTY;
+        }
+        if (NuclearFluidHelper.isReactorOutput(resource)) {
+            return drainSteam(resource, action);
+        }
+        if (NuclearFluidHelper.isReactorBleed(resource) && resource.getFluid() == bleedFluid()) {
+            return bleed(resource.getAmount(), action);
+        }
+        return FluidStack.EMPTY;
+    }
+
+    /** What an output port shows: the output tank, or what the coolant tank would bleed once it is empty. */
+    public FluidStack getOutputFluid() {
+        return steamTank.isEmpty() ? getBleedFluid() : getSteamFluid();
+    }
+
+    /**
+     * The water an output port can bleed from the coolant tank right now, with how much there is to
+     * bleed, or nothing: hot water or hot heavy water from a boiling core, primary coolant let down
+     * from a pressurized loop, contaminated water from a damaged core.
+     */
+    public FluidStack getBleedFluid() {
+        int amount = bleedAllowed() ? bleedable() : 0;
+        return amount > 0 ? new FluidStack(bleedFluid(), amount) : FluidStack.EMPTY;
+    }
+
+    /**
+     * Whether the coolant tank can be bled: allowed by the config, formed, the chain reaction off and
+     * more water than it takes to keep the core covered.
+     */
+    public boolean bleedAllowed() {
+        return FissionConfig.bleed && isFormed() && status == ReactorStatus.FORMED && !physicsSimulator.isRunning() && bleedable() > 0;
+    }
+
+    /** Coolant above what keeps the core covered, mB. */
+    private int bleedable() {
+        FluidStack coolant = coolantTank.getFluid();
+        if (coolant.isEmpty()) {
+            return 0;
+        }
+        if (NuclearFluidHelper.isPrimaryCoolant(coolant)) {
+            int hot = NuclearFluidHelper.isHotPrimary(steamTank.getFluid()) ? steamTank.getFluidAmount() : 0;
+            return Math.max(0, Math.min(coolant.getAmount(), coolant.getAmount() + hot - PrimaryLoop.CORE_VOLUME));
+        }
+        return Math.max(0, coolant.getAmount() - CORE_WATER);
+    }
+
+    /**
+     * What the coolant tank bleeds as. A pressurized loop's letdown leaves it as hot water too, not as
+     * primary coolant: a steam generator passes cold primary coolant straight back to the reactor, so a
+     * letdown it took would only circulate, washing the loop's boron out on every pass.
+     */
+    private net.minecraft.world.level.material.Fluid bleedFluid() {
+        FluidStack coolant = coolantTank.getFluid();
+        if (physicsSimulator.getCoreDamage() >= FissionConfig.contaminatedDamage && FissionConfig.contaminatedDamage > 0) {
+            return AllNuclearFluids.CONTAMINATED_WATER.get();
+        }
+        return NuclearFluidHelper.isHeavyWater(coolant) ? AllNuclearFluids.HOT_HEAVY_WATER.get() : AllNuclearFluids.HOT_WATER.get();
+    }
+
+    /** Bleeds up to {@code maxDrain} mB of the coolant tank; the boron dissolved in it leaves with it. */
+    private FluidStack bleed(int maxDrain, IFluidHandler.FluidAction action) {
+        if (maxDrain <= 0 || !bleedAllowed()) {
+            return FluidStack.EMPTY;
+        }
+        net.minecraft.world.level.material.Fluid fluid = bleedFluid();
+        int amount = Math.min(maxDrain, bleedable());
+        if (action.execute()) {
+            double inventory = boronInventory();
+            amount = coolantTank.drain(amount, IFluidHandler.FluidAction.EXECUTE).getAmount();
+            boron.removeWith(amount, inventory, FissionConfig.boronMaxPpm);
+            if (amount > 0 && getLevel() != null) {
+                lastBleedTime = getLevel().getGameTime();
+            }
+        }
+        return amount > 0 ? new FluidStack(fluid, amount) : FluidStack.EMPTY;
     }
 
     public FluidStack drainSteam(FluidStack resource, IFluidHandler.FluidAction action) {
@@ -2053,6 +2365,11 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         tag.put("Maintenance", maintenance.save());
         tag.putBoolean("CoolingAfterScram", coolingAfterScram);
         tag.putBoolean("AtFullPower", atFullPower);
+        tag.putDouble("SolubleBoron", boron.mass());
+        tag.putInt("ShutdownState", shutdownState.ordinal());
+        tag.putBoolean("AwaitingColdShutdown", awaitingColdShutdown);
+        tag.putDouble("FeedAverage", feedAverage);
+        tag.putDouble("SteamAverage", steamAverage);
     }
 
     private void writePendingDepleted(CompoundTag tag) {
@@ -2117,6 +2434,12 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         maintenance.load(tag.getCompound("Maintenance"));
         coolingAfterScram = tag.getBoolean("CoolingAfterScram");
         atFullPower = tag.getBoolean("AtFullPower");
+        // Saves from before soluble boron have none in their water.
+        boron.restore(tag.getDouble("SolubleBoron"));
+        shutdownState = ShutdownState.byOrdinal(tag.getInt("ShutdownState"));
+        awaitingColdShutdown = tag.getBoolean("AwaitingColdShutdown");
+        feedAverage = tag.getDouble("FeedAverage");
+        steamAverage = tag.getDouble("SteamAverage");
         // A SCRAM saved with the world was already heard: no thud on load.
         scramShown = isScramRequested();
         pendingRevalidation = true;
@@ -2162,6 +2485,8 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         tag.put("Pwr", primaryLoop.save());
         tag.put("Accident", accidents.save());
         tag.put("Maintenance", maintenance.save());
+        tag.putDouble("SolubleBoron", boron.mass());
+        tag.putInt("ShutdownState", shutdownState.ordinal());
         currentStructure.ifPresent(structure -> {
             if (withStructure) {
                 tag.put("structure", writeStructureTag(structure));
@@ -2207,6 +2532,8 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         primaryLoop.load(tag.getCompound("Pwr"));
         accidents.load(tag.getCompound("Accident"));
         maintenance.load(tag.getCompound("Maintenance"));
+        boron.restore(tag.getDouble("SolubleBoron"));
+        shutdownState = ShutdownState.byOrdinal(tag.getInt("ShutdownState"));
         if (!tag.getBoolean("structureUnchanged")) {
             currentStructure = tag.contains("structure")
                     ? readStructureTag(tag.getCompound("structure"))
@@ -2282,7 +2609,15 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
                 physicsSimulator.getPeriod(),
                 physicsSimulator.getCoreDamage(),
                 physicsSimulator.getShutdownMargin(),
-                physicsSimulator.getReactivityParts()
+                physicsSimulator.getReactivityParts(),
+                getShutdownState(),
+                getColdShutdownMargin(false),
+                getColdShutdownMargin(true),
+                getBoronPpm(),
+                getEffectiveRods(),
+                getCoreCoverage(),
+                getHeatRemovedMw(),
+                isBleeding()
         );
     }
 
@@ -2346,7 +2681,15 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
         ReactivityModel.Parts parts = snapshot.reactivityParts();
         tag.putIntArray("reactivityParts", new int[] {(int) Math.round(parts.fuel()), (int) Math.round(parts.rods()),
                 (int) Math.round(parts.temperature()), (int) Math.round(parts.voids()), (int) Math.round(parts.xenon()),
-                (int) Math.round(parts.damage())});
+                (int) Math.round(parts.damage()), (int) Math.round(parts.boron())});
+        tag.putInt("shutdownState", snapshot.shutdownState().ordinal());
+        tag.putDouble("coldShutdownMargin", snapshot.coldShutdownMargin());
+        tag.putDouble("coldShutdownMarginAllRods", snapshot.coldShutdownMarginAllRods());
+        tag.putDouble("boronPpm", snapshot.boronPpm());
+        tag.putDouble("effectiveRods", snapshot.effectiveRods());
+        tag.putDouble("coreCoverage", snapshot.coreCoverage());
+        tag.putDouble("heatRemoved", snapshot.heatRemovedMw());
+        tag.putBoolean("bleeding", snapshot.bleeding());
         return tag;
     }
 
@@ -2403,15 +2746,23 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
                 tag.getDouble("period") == 0 ? Double.POSITIVE_INFINITY : tag.getDouble("period"),
                 Math.max(0.0, Math.min(1.0, tag.getDouble("coreDamage"))),
                 tag.getDouble("shutdownMargin"),
-                readReactivityParts(tag.getIntArray("reactivityParts"))
+                readReactivityParts(tag.getIntArray("reactivityParts")),
+                ShutdownState.byOrdinal(tag.getInt("shutdownState")),
+                tag.getDouble("coldShutdownMargin"),
+                tag.getDouble("coldShutdownMarginAllRods"),
+                Math.max(0.0, tag.getDouble("boronPpm")),
+                Math.max(0.0, tag.getDouble("effectiveRods")),
+                Math.max(0.0, Math.min(1.0, tag.getDouble("coreCoverage"))),
+                Math.max(0.0, tag.getDouble("heatRemoved")),
+                tag.getBoolean("bleeding")
         );
     }
 
     private static ReactivityModel.Parts readReactivityParts(int[] parts) {
-        if (parts == null || parts.length != 6) {
+        if (parts == null || parts.length < 6) {
             return ReactivityModel.Parts.NONE;
         }
-        return new ReactivityModel.Parts(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]);
+        return new ReactivityModel.Parts(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts.length > 6 ? parts[6] : 0);
     }
 
     /** Keys and tag types {@link #writeDisplaySnapshot} writes, sorted: the order a packed snapshot keeps. */
@@ -2762,7 +3113,15 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
             double period,
             double coreDamage,
             double shutdownMargin,
-            ReactivityModel.Parts reactivityParts
+            ReactivityModel.Parts reactivityParts,
+            ShutdownState shutdownState,
+            double coldShutdownMargin,
+            double coldShutdownMarginAllRods,
+            double boronPpm,
+            double effectiveRods,
+            double coreCoverage,
+            double heatRemovedMw,
+            boolean bleeding
     ) {
         /** Fission power as a share of the rated power, 0 when there is none. */
         public double powerFraction() {
@@ -2830,7 +3189,15 @@ public class ReactorBlockEntity extends BlockEntity implements PanelSource, Clea
                     Double.POSITIVE_INFINITY,
                     0.0,
                     0.0,
-                    ReactivityModel.Parts.NONE
+                    ReactivityModel.Parts.NONE,
+                    ShutdownState.OPERATING,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    false
             );
         }
     }

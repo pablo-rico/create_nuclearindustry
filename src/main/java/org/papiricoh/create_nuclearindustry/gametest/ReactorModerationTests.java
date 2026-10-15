@@ -101,15 +101,16 @@ public class ReactorModerationTests {
     }
 
     /**
-     * Neutron level a minute and a half after pulling the rods to just past half, where a bare core
-     * runs at part power once its fuel and water have warmed up.
+     * Neutron level a minute and a half after pulling the rods to just past half their worth, where a
+     * bare core runs at part power once its fuel and water have warmed up. Four rod blocks for four of
+     * fuel are worth 1.5 banks, so 0.3485 in holds what 0.45 did when the absorption was capped at one.
      */
     private static double steadyNeutrons(double moderation, double reflection) {
         ReactorPhysicsSimulator physics = new ReactorPhysicsSimulator(4, 4, moderation, reflection);
         for (int i = 0; i < 4; i++) {
             physics.loadFuelAssembly(5f);
         }
-        physics.setControlRodInsertion(0.45f);
+        physics.setControlRodInsertion(0.3485f);
         for (int i = 0; i < 1800; i++) {
             physics.tick();
         }

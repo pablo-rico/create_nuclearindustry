@@ -14,9 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Which rows a control room screen draws, in which order, from a reading made by hand. */
 class MonitorRowTest {
 
-    /** A reactor reading: 300 °C, 50 MW of 100, rods half in; a pressurized loop and damaged fuel if asked. */
+    /** A reactor reading: 300 °C, 50 MW of 100, rods half in; a pressurized loop (with borated water) and damaged fuel if asked. */
     private static MonitorReading reactor(boolean pwr, float damage) {
-        float[] v = new float[35];
+        float[] v = new float[46];
         v[MonitorReading.R_TEMPERATURE] = 300;
         v[MonitorReading.R_POWER] = 50;
         v[MonitorReading.R_RATED_POWER] = 100;
@@ -25,6 +25,7 @@ class MonitorRowTest {
         v[MonitorReading.R_PWR] = pwr ? 1 : 0;
         v[MonitorReading.R_PRESSURE] = pwr ? 155 : 0;
         v[MonitorReading.R_CORE_DAMAGE] = damage;
+        v[MonitorReading.R_BORON_PPM] = pwr ? 1200 : 0;
         return new MonitorReading(TargetKind.REACTOR, "Running", v, 300 / 4000f, 0.5f);
     }
 
@@ -40,7 +41,8 @@ class MonitorRowTest {
         assertEquals(MonitorRow.REACTOR_RODS, shown.get(2), "no damage and no pressurized loop: rods come third");
         assertFalse(shown.contains(MonitorRow.REACTOR_PRESSURE), "a reactor boiling directly has no loop pressure");
         assertFalse(shown.contains(MonitorRow.REACTOR_DAMAGE), "sound fuel shows no damage");
-        assertEquals(MonitorRow.forKind(TargetKind.REACTOR).size() - 10, shown.size(), "nine loop rows and the damage row left out");
+        assertEquals(MonitorRow.forKind(TargetKind.REACTOR).size() - 11, shown.size(),
+                "nine loop rows, the damage row and the boron row (no boron dissolved) left out");
     }
 
     @Test
@@ -85,5 +87,24 @@ class MonitorRowTest {
             assertEquals(real, !rows.isEmpty(), kind + " rows");
             assertEquals(rows.size(), rows.stream().map(MonitorRow::labelKey).distinct().count(), kind + " labels are unique");
         }
+    }
+
+    @Test
+    void theShutdownMarginWarnsBelowWhatASafeShutdownNeeds() {
+        float[] v = new float[46];
+        v[MonitorReading.R_COLD_MARGIN] = 600;
+        MonitorReading short_ = new MonitorReading(TargetKind.REACTOR, "Idle", v, 0, 0);
+        MonitorRow.Line line = MonitorRow.REACTOR_SHUTDOWN_MARGIN.line(short_);
+        assertEquals("+600 pcm", line.value());
+        assertEquals(MonitorRow.Tone.BAD, line.tone(), "under the 1000 pcm a safe shutdown needs");
+        v[MonitorReading.R_COLD_MARGIN] = 1500;
+        assertEquals(MonitorRow.Tone.WARN, MonitorRow.REACTOR_SHUTDOWN_MARGIN.line(new MonitorReading(TargetKind.REACTOR, "Idle", v, 0, 0)).tone());
+        v[MonitorReading.R_COLD_MARGIN] = 4000;
+        assertEquals(MonitorRow.Tone.GOOD, MonitorRow.REACTOR_SHUTDOWN_MARGIN.line(new MonitorReading(TargetKind.REACTOR, "Idle", v, 0, 0)).tone());
+        assertNull(MonitorRow.REACTOR_BORON.line(short_), "no boron dissolved, no boron row");
+        v[MonitorReading.R_BORON_PPM] = 570;
+        MonitorRow.Line boron = MonitorRow.REACTOR_BORON.line(new MonitorReading(TargetKind.REACTOR, "Idle", v, 0, 0));
+        assertEquals("570 ppm", boron.value());
+        assertEquals(570 / MonitorReading.BORON_MAX, boron.gauge(), 1e-6);
     }
 }

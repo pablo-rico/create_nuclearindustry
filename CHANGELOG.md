@@ -5,6 +5,74 @@
 Worlds from 1.1.0 load: every item and block keeps its id. See "Upgrading"
 below for what changes in existing worlds.
 
+### Safe shutdown and loss of cooling
+- A fission reactor can now really be shut down. With at least as many
+  inserted control rod blocks as fuel rod blocks, any core stays subcritical
+  even cold; rods are no longer capped at one bank, so cores with more than two
+  rods per three fuel blocks get stronger rods (cores with fewer behave as
+  before). The desk's automatic controller scales its gains to match.
+- New **Boric Acid** (Create mixing: 1000 mB water, a borax salt and 100 mB
+  sulfuric acid). Pumped into a reactor, its boron holds the core down from the
+  water (5 pcm per ppm). It stays when the water boils; only bleeding takes it
+  out, which is how you dilute it for a restart. A pressurized reactor takes it
+  (and plain makeup water, which dilutes it) as primary coolant; heavy-water
+  cores refuse it.
+- **Feed and bleed**: boiling never takes a core below 100 °C, so a scrammed
+  core with pumps only replacing its steam stays hot. Cold water fed in beyond
+  the steam now carries heat away, and once the chain reaction is off the
+  output ports bleed the coolant tank (never below the water that covers the
+  core) as new **Hot Water** or **Hot Heavy Water**, or as Contaminated Water
+  from a damaged core. Send it to a cooling tower, which turns it back into
+  water; input ports refuse it. A pressurized reactor's letdown also leaves as
+  hot water, so it goes through a tower and comes back as boron-diluting makeup
+  instead of circulating; makeup water now cools its loop below boiling (its
+  pressurizer level and pressure drop, lighting PZR LO and PRESS LO: normal for
+  a cold, depressurized loop). The output port shows two tanks, so a pipe full
+  of bled water keeps bleeding while some steam is about.
+- Shutdown states: Subcritical (off, but it will restart as it cools or its
+  xenon decays), Hot shutdown (held off with margin) and Cold shutdown (margin,
+  fuel and water under 100 °C, core under water). The Cold Shutdown advancement
+  now needs a real cold shutdown.
+- Goggles show a Shutdown section (state, cold margin, boron, rods against
+  fuel, heat carried away against decay heat), the boron term of the
+  reactivity, and warnings for decay heat not carried away, an uncovered core
+  and contaminated water being bled; output ports say whether they bleed.
+  Goggles on a reactor's fluid ports now find their reactor (they used to
+  say "No reactor" on clients) and show its tanks.
+- New Display Link sources: shutdown state, cold shutdown margin, boron, core
+  under water, heat removed / decay heat, rods in / fuel rods ("12 / 12") and
+  building hydrogen; the reactivity breakdown gains a boron term ("B-2850").
+  Monitors get Shutdown margin and Boron rows, gauges and LED displays the
+  cold shutdown margin and dissolved boron, desks a Cold shutdown lamp.
+- New alarms: cold shutdown margin low, cold shutdown, core level low and decay
+  heat not carried away, and a Shutdown annunciator preset (SCRAM, SDM LO,
+  DECAY HEAT, CORE LEVEL LO, H2 HI, COLD SHUTDOWN). The hydrogen alarm on a
+  reactor also reads the building around it.
+- **Hydrogen in the reactor building (Fukushima)**: a reactor without a sealed
+  containment, standing in a closed room of ordinary blocks, now keeps the
+  hydrogen of its overheated cladding under the roof instead of losing it to
+  the sky. Steam from leaks dilutes it, recombiners in the room remove it and
+  the building slowly leaks it away; in open air it disperses as before. From
+  4% it may ignite and at 8% it always does: ordinary walls hold only 1.5 bar,
+  so the blast blows the roof off, sounds the sirens, logs an INES 3 incident
+  (INES 5 with damaged cladding), burns anyone inside and lets some of the
+  damaged fuel's activity fall out around the plant. A meltdown sets off a
+  flammable mix; one inerted by steam does not explode, and steam alone above
+  1.5 bar only gives way at the weakest wall. Configured under
+  `pwr.building.*` (`hydrogen`, `maxVolume` 4096, `leakRate` 0.0005,
+  `maxExplosionPower` 8.0, `explosionRelease` 0.02).
+- Hydrogen is now visible: pale, bluish wisps of gas gather and hover under the
+  roof of a reactor building or a sealed containment holding it, from a few
+  wisps at 1% to a thick cloud once it is sure to ignite (8%). Goggles on the
+  reactor warn about hydrogen in the building.
+- New advancements: Liquid Control Rods (boric acid into a reactor) and the
+  secret It Wasn't the Reactor (a building's hydrogen explosion).
+- Two new Ponder scenes in the power plant series, Safe Shutdown and Loss of
+  Cooling, and JEI pages on safe shutdown and building hydrogen.
+- Config: `fission.reactivity.maxRodAbsorption`, `fission.thermal.feedwaterHeatCapacity`,
+  `fission.boron.*`, `fission.coolant.bleed`, `fission.coolant.contaminatedDamage`
+  and `fission.shutdown.requiredMargin` (see docs/configuration.md).
+
 ### Uranium and fuel
 - New fuel chain: ore, crushing, washing, acid leaching (yellowcake),
   hydrofluorination to uranium hexafluoride, a centrifuge cascade with reflux

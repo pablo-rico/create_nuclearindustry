@@ -288,6 +288,79 @@ Cada canal de combustible aloja un elemento. El reactor solo acepta elementos
 combustibles al 3% o mas; el uranio metalico suelto ya no es combustible. El
 combustible gastado conserva el enriquecimiento con el que entro.
 
+### Parada segura
+
+Un SCRAM para la reacción en cadena, pero no el calor: el combustible sigue
+dando **calor residual** (unos pocos por ciento de su potencia) durante mucho
+rato. Para dejar un reactor apagado del todo hay que mantenerlo subcrítico y
+llevarse ese calor.
+
+- **Barras ≥ combustible.** Con al menos tantos bloques de barras de control
+  insertados como bloques de barras de combustible, cualquier núcleo queda
+  subcrítico incluso en frío y sin xenón. Ya no hay tope de absorción a 1 banco:
+  los núcleos con más de 2 barras por cada 3 de combustible tienen barras más
+  fuertes (hasta `fission.reactivity.maxRodAbsorption` bancos, solo una
+  salvaguarda); los demás no cambian. El controlador PID del pupitre escala sus
+  ganancias para no oscilar en esos núcleos.
+- **Boro soluble.** El **Ácido bórico** (mezcladora de Create: 1000 mB de agua +
+  1 sal de bórax + 100 mB de ácido sulfúrico) entra por un puerto de entrada: su
+  agua va al tanque y su boro frena el núcleo (`worthPerPpm` pcm por ppm, por la
+  parte del núcleo cubierta). El boro no se va con el vapor (al hervir se
+  concentra, hasta `maxPpm`; el resto precipita y se redisuelve cuando vuelve el
+  agua): **solo la purga lo saca**, que es como se diluye para rearrancar. En un
+  PWR el ácido bórico y el agua de reposición entran como refrigerante primario
+  (el agua diluye el boro). Un núcleo de agua pesada rechaza el ácido bórico. La
+  fusión del núcleo borra el boro.
+- **Alimentar y purgar.** Hervir nunca enfría el agua por debajo de unos 100 °C.
+  Con la reacción en cadena parada, el agua fría que se bombea por un puerto de
+  entrada **por encima del vapor que se produce** se lleva calor
+  (`feedwaterHeatCapacity` MJ por mB y kelvin), y los puertos de salida, cuando
+  ya no queda vapor, **purgan** el tanque de refrigerante: Agua caliente (Agua
+  pesada caliente en un núcleo de agua pesada), o **Agua contaminada** si el
+  combustible está dañado (desde `contaminatedDamage`). La purga nunca baja el
+  agua del nivel que cubre el núcleo. La purga de un PWR (letdown) sale también
+  como agua caliente, no como refrigerante primario, para que pase por una torre
+  de refrigeración y vuelva como agua de reposición que diluye el boro. El puerto
+  de salida ofrece dos tanques: el vapor (o la purga) y, mientras quede vapor, la
+  purga, para que una tubería ya llena de agua purgada siga purgando. El agua
+  caliente no se acepta de vuelta por la entrada: hay que enfriarla antes en una
+  torre, que la devuelve como agua. Un núcleo de 6 barras con 50 mB/t pasa de
+  SCRAM en caliente a menos de 100 °C en uno o dos minutos; mantenerlo frío pide
+  unos 6 mB/t. En un PWR frío el presionador pierde nivel y se encienden PZR LO y
+  PRESS LO: es lo normal en una parada fría despresurizada.
+- **Estados de parada.** *Subcrítico*: apagado, pero sin margen suficiente
+  (`requiredMargin`): volverá a arrancar al enfriarse o al decaer el xenón.
+  *Parada en caliente*: con margen, aún caliente. *Parada en frío*: con margen,
+  combustible y agua por debajo de 100 °C y el núcleo cubierto. El logro
+  «Parada en frío» se da al llegar a una parada en frío de verdad, y «Barras de
+  control líquidas» al echar ácido bórico a un reactor.
+- **Dónde se ve.** Las gafas muestran la sección *Parada* (estado, margen en
+  frío, boro, barras frente a combustible, calor evacuado frente a residual) y
+  avisan del calor residual sin evacuar, del núcleo descubierto y de la purga de
+  agua contaminada; las del puerto de salida dicen si purga. Display Link:
+  «Estado de parada», «Margen de parada en frío» (con todas las barras dentro),
+  «Boro», «Núcleo cubierto», «Calor evacuado / residual», «Barras dentro /
+  combustible» y «Hidrógeno en el edificio»; el desglose de reactividad añade
+  `B` (boro). Monitores: filas *Margen parada* y *Boro*; agujas y displays LED:
+  *Margen de parada en frío* y *Boro disuelto*; lámpara de pupitre *Parada en
+  frío*. Alarmas: margen de parada en frío por debajo de (50 pcm por paso),
+  reactor en parada en frío, núcleo cubierto por debajo de, y calor residual
+  evacuado por debajo de (solo apagado y con al menos 0,5 MW de calor residual).
+  El preajuste **Parada** del anunciador pone SCRAM, SDM LO (al margen
+  requerido), DECAY HEAT (90 %), CORE LEVEL LO (99 %), H2 HI (4 %) y COLD
+  SHUTDOWN.
+
+| Opción | Por defecto | Qué hace |
+|---|---|---|
+| `fission.reactivity.maxRodAbsorption` | 4,0 | Bancos de barras (`fission.reactivity.rodBankWorth`) que pueden valer como mucho las barras de un núcleo; solo una salvaguarda |
+| `fission.thermal.feedwaterHeatCapacity` | 0,0006 | Calor (MJ) que se lleva cada mB de agua de alimentación por kelvin que se calienta; solo cuenta el agua por encima del vapor producido |
+| `fission.boron.worthPerPpm` | 5,0 | Reactividad (pcm) que quita cada ppm de boro disuelto |
+| `fission.boron.solutionPpm` | 7000 | Boro (ppm) del ácido bórico |
+| `fission.boron.maxPpm` | 10000 | Boro (ppm) que admite disuelto el agua del núcleo; el resto precipita hasta que haya agua |
+| `fission.coolant.bleed` | true | Los puertos de salida de un reactor parado purgan el tanque de refrigerante cuando no hay vapor |
+| `fission.coolant.contaminatedDamage` | 0,05 | Daño del núcleo (0-1) desde el que el agua purgada sale contaminada |
+| `fission.shutdown.requiredMargin` | 1000 | Margen de parada en frío (pcm) que necesita un reactor parado para contar como parada segura |
+
 ## Sala de control
 
 - `linkRange`: distancia maxima, en bloques, entre un monitor, panel o alarma y
@@ -1005,6 +1078,40 @@ una cadena de accidente realista. Cada parte se puede apagar con
 | `pwr.accidents.steamExplosionTemperature` | 2800 | Temperatura (°C) del núcleo por encima de la cual el agua que vuelve provoca una explosión de vapor |
 
 La probabilidad de que la válvula de alivio se atasque sigue en `pwr.reliefStickChance`.
+
+### Hidrógeno en el edificio del reactor
+
+Sin una contención estanca, el hidrógeno de las vainas sobrecalentadas (por
+encima de 1200 °C) ya no se pierde siempre en el cielo: si el reactor está en
+**cualquier sala cerrada de bloques normales**, se acumula bajo el techo. Al
+aire libre se dispersa, como antes. El vapor de las fugas lo diluye, los
+recombinadores dentro de la sala lo eliminan y el edificio lo deja escapar poco
+a poco (`leakRate`).
+
+Desde el 4 % de hidrógeno puede prender (con la probabilidad
+`pwr.containment.hydrogenIgnitionChance` por segundo) y al 8 % prende siempre.
+Las paredes normales solo aguantan 1,5 bar, así que la combustión **vuela el
+tejado** (como en Fukushima): suenan las sirenas, se registra un incidente
+INES 3 (INES 5 si las vainas están dañadas), quema a quien esté dentro y parte
+de la actividad del combustible dañado cae alrededor de la central. La fusión
+del núcleo hace estallar el hidrógeno que haya en el edificio, pero solo si la
+mezcla es inflamable: una mezcla inertizada por el vapor no explota. Si el vapor
+solo sube el edificio por encima de 1,5 bar, cede su pared más débil, sin
+explosión ni incidente (con `pwr.accidents.containmentRupture` y
+`blockDestruction`). El logro secreto «No fue el reactor» premia la explosión.
+
+También usa `pwr.accidents.hydrogen`, `pwr.accidents.blockDestruction`,
+`pwr.accidents.containmentRupture` y `pwr.containment.hydrogenIgnitionChance`,
+`condensation` y `recombinerRate`. La alarma de hidrógeno de un reactor lee el
+mayor entre el de su contención y el de su edificio.
+
+| Opción | Por defecto | Qué hace |
+|---|---|---|
+| `pwr.building.hydrogen` | true | El hidrógeno de un reactor sin contención se acumula en la sala cerrada que lo rodea y puede explotar |
+| `pwr.building.maxVolume` | 4096 | Bloques de aire (64-65536) que puede tener esa sala; una mayor cuenta como aire libre |
+| `pwr.building.leakRate` | 0,0005 | Parte del gas (0-0,1) que se escapa del edificio por tick |
+| `pwr.building.maxExplosionPower` | 8,0 | Potencia máxima (2-20) de la explosión que vuela el tejado |
+| `pwr.building.explosionRelease` | 0,02 | Parte (0-1) de la actividad del combustible dañado que suelta la explosión |
 
 ## Combustible gastado
 

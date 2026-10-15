@@ -8,6 +8,7 @@ import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
 import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.CoreThermalModel;
 import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.FissionCore;
 import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ReactivityModel;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.RodWorth;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 
 import java.util.ArrayDeque;
@@ -60,6 +61,7 @@ public class ReactorPhysicsSimulator {
     private ReactivityModel.Coolant coolantKind = ReactivityModel.Coolant.WATER;
     private double oxidationHeat;                                   // MW per rod
     private double coolantFeedback = 1.0;                           // the pressurized loop's reading, for display
+    private double boronPpm;                                        // dissolved in the core's water, set by the reactor
 
     public ReactorPhysicsSimulator(int uraniumRodCount) {
         this(uraniumRodCount, 0);
@@ -102,7 +104,7 @@ public class ReactorPhysicsSimulator {
         return new FissionCore.Inputs(uraniumRodCount, hasFuel(), getFuelHeatFactor(), weightedByUnits(a -> a.kind.delayedFraction()),
                 getFuelReactivity(), getBurntFraction(), weightedByUnits(a -> a.kind == FuelKind.THORIUM ? 1.0 : 0.0), empty,
                 moderation, reflection, coolantKind, getMaxAbsorption(), channelInsertion, boundary, oxidationHeat,
-                PwrConfig.voidWorth, PwrConfig.temperatureCoefficient);
+                PwrConfig.voidWorth, PwrConfig.temperatureCoefficient, boronPpm);
     }
 
     /** What cools the core this tick: boiling water, a pressurized loop, or nothing. */
@@ -228,16 +230,45 @@ public class ReactorPhysicsSimulator {
     }
 
     /**
-     * Share of the core's reactivity the control rods can hold back when fully inserted: the ratio of
-     * control rods to fuel times their boron, capped at 100%. MOX lowers the rods' worth inside the
-     * cap, so it needs more rods while a full SCRAM can still shut it down.
+     * Rod banks the control rods are worth when fully inserted: the ratio of rod blocks to fuel blocks
+     * times their boron and the fuel's control worth, guarded by
+     * {@link FissionConfig#maxRodAbsorption}. MOX lowers the rods' worth, so it needs more rods; a core
+     * with more rod blocks than it needs has stronger rods.
      */
     public double getMaxAbsorption() {
-        if (uraniumRodCount == 0 || controlRodCount == 0) {
-            return 0.0;
-        }
-        double rodRatio = (double) controlRodCount / uraniumRodCount;
-        return Math.min(1.0, rodRatio * Config.boronAbsorption * getControlWorth());
+        return RodWorth.absorption(controlRodCount, uraniumRodCount, Config.boronAbsorption, getControlWorth(),
+                FissionConfig.maxRodAbsorption);
+    }
+
+    /**
+     * Rod blocks the inserted control rods are worth (see {@link RodWorth#effectiveRods}): with at least
+     * as many as there are fuel blocks the core is held subcritical whatever its fuel.
+     */
+    public double getEffectiveRods() {
+        return RodWorth.effectiveRods(channelInsertion, controlRodCount, FissionConfig.rodWorthShape);
+    }
+
+    /** Boron dissolved in the core's water, ppm, as the block entity last set it. */
+    public double getBoronPpm() {
+        return boronPpm;
+    }
+
+    /** Boron dissolved in the core's water, ppm: the reactor keeps the boron and sets this each tick. */
+    public void setBoronPpm(double ppm) {
+        this.boronPpm = Double.isFinite(ppm) ? Math.max(0, ppm) : 0;
+    }
+
+    /** Reactivity the dissolved boron holds back right now, pcm (positive). */
+    public double getBoronReactivity() {
+        return -core.breakdown().boron();
+    }
+
+    /**
+     * Reactivity the rods and boron would hold back with the core cold, flooded and without xenon,
+     * pcm (positive is subcritical): with the rods where they stand, or with every rod in.
+     */
+    public double getColdShutdownMargin(boolean allRodsIn) {
+        return core.coldShutdownMargin(allRodsIn);
     }
 
     /** Heat per unit power relative to uranium, weighted by the units each assembly still holds. */
@@ -417,6 +448,7 @@ public class ReactorPhysicsSimulator {
         controlRodInsertion = previous.controlRodInsertion;
         channelInsertion = previous.channelInsertion.clone();
         coolantFeedback = previous.coolantFeedback;
+        boronPpm = previous.boronPpm;
         boundary = previous.boundary;
         coolantKind = previous.coolantKind;
     }
@@ -744,6 +776,7 @@ public class ReactorPhysicsSimulator {
         tag.putDouble("iodine", core.xenon().iodine());
         tag.putDouble("xenon", core.xenon().xenon());
         tag.putDouble("decayHeatRelative", core.decay().heat());
+        tag.putDouble("boronPpm", boronPpm);
         if (!histories) {
             return;
         }
@@ -806,6 +839,7 @@ public class ReactorPhysicsSimulator {
         core.damageModel().restore(current ? tag.getDouble("coreDamage") : 0);
         core.restoreRods(current && tag.contains("rodReactivity") ? tag.getDouble("rodReactivity") : Double.NaN);
         core.xenon().set(tag.getDouble("iodine"), tag.getDouble("xenon"));
+        setBoronPpm(tag.getDouble("boronPpm"));
         if (current) {
             double[] decayGroups = null;
             if (tag.contains("decayGroups", Tag.TAG_LONG_ARRAY)) {

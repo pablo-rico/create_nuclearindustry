@@ -18,6 +18,11 @@ package org.papiricoh.create_nuclearindustry.reactor.physics.kinetics;
  *       holds the power down (a steam-bound core still answers its rods, with its temperature).
  *       The steam void follows its target with a short lag, as bubbles take time to form and
  *       clear, so a steam outlet that opens and shuts every tick does not saw the power.</li>
+ *   <li>Cold water fed in beyond what boils away ({@link Boiling#feedFlow()}) is heated up to the
+ *       core's water by it: a sink of {@code feed x feedwaterHeatCapacity x (T - ambient)}. That is
+ *       what lets a shut-down core be fed and bled down to cold: boiling alone never takes the
+ *       water below its saturation temperature. Nothing is fed in a core whose pumps only replace
+ *       the steam it boils, so a running reactor sees no sink.</li>
  *   <li>A pressurized loop holds the coolant at the loop's temperature and takes the heat it can.</li>
  *   <li>A dry core keeps only its structure's heat capacity and radiates.</li>
  * </ul>
@@ -25,6 +30,8 @@ package org.papiricoh.create_nuclearindustry.reactor.physics.kinetics;
  */
 public final class CoreThermalModel {
     public static final double AMBIENT = 20.0;
+    /** Heat one mB of cold feedwater takes per kelvin it is warmed, MJ, when none is given. */
+    public static final double DEFAULT_FEEDWATER_HEAT_CAPACITY = 0.0006;
 
     /**
      * @param ratedPowerPerRod      thermal power of one rod at full rated power, MW
@@ -40,11 +47,22 @@ public final class CoreThermalModel {
      * @param maxFuelTemperature    the fuel never gets hotter, Celsius
      * @param maxSuperheat          how far above boiling the core's water can be driven when its steam
      *                              cannot leave, K; past it the heat stays in the fuel
+     * @param feedwaterHeatCapacity heat one mB of cold feedwater takes per kelvin it is warmed, MJ/(mB K)
      */
     public record Params(double ratedPowerPerRod, double fuelRiseAtRated, double fuelHeatCapacity, double coolantHeatCapacity,
                          double structureHeatCapacity, double boilingTemperature, double ratedVoid, double passiveLoss,
-                         double radiation, double chfMargin, double maxFuelTemperature, double maxSuperheat) {
-        public static final Params DEFAULT = new Params(50, 600, 0.5, 1.5, 0.2, 285, 0.30, 0.00005, 3.0e-15, 1.25, 4500, 50);
+                         double radiation, double chfMargin, double maxFuelTemperature, double maxSuperheat,
+                         double feedwaterHeatCapacity) {
+        public static final Params DEFAULT = new Params(50, 600, 0.5, 1.5, 0.2, 285, 0.30, 0.00005, 3.0e-15, 1.25, 4500, 50,
+                DEFAULT_FEEDWATER_HEAT_CAPACITY);
+
+        /** The parameters from before the feedwater sink, with its default heat capacity. */
+        public Params(double ratedPowerPerRod, double fuelRiseAtRated, double fuelHeatCapacity, double coolantHeatCapacity,
+                      double structureHeatCapacity, double boilingTemperature, double ratedVoid, double passiveLoss,
+                      double radiation, double chfMargin, double maxFuelTemperature, double maxSuperheat) {
+            this(ratedPowerPerRod, fuelRiseAtRated, fuelHeatCapacity, coolantHeatCapacity, structureHeatCapacity, boilingTemperature,
+                    ratedVoid, passiveLoss, radiation, chfMargin, maxFuelTemperature, maxSuperheat, DEFAULT_FEEDWATER_HEAT_CAPACITY);
+        }
 
         /** Fuel to coolant conductance of one healthy, covered rod, MW/K. */
         public double conductance() {
@@ -61,8 +79,14 @@ public final class CoreThermalModel {
      * @param coverage   share of the core under water, 0..1
      * @param maxRemoval steam the exchangers, ports and tank can take away, MW for the whole core
      * @param chf        critical heat flux of the whole core, MW
+     * @param feedFlow   cold water fed in beyond what boils away, mB per second for the whole core
      */
-    public record Boiling(double coverage, double maxRemoval, double chf) implements Boundary {}
+    public record Boiling(double coverage, double maxRemoval, double chf, double feedFlow) implements Boundary {
+        /** Boiling with nothing fed in beyond the steam. */
+        public Boiling(double coverage, double maxRemoval, double chf) {
+            this(coverage, maxRemoval, chf, 0);
+        }
+    }
 
     /**
      * A pressurized primary loop.
@@ -81,9 +105,15 @@ public final class CoreThermalModel {
      * @param removed      heat that left the core with its coolant, MW for the whole core
      * @param boiled       of it, what boiled water into steam, MW
      * @param voidFraction steam void in the core, 0..1
+     * @param fed          heat the cold feedwater took warming up, MW for the whole core
      */
-    public record Result(double removed, double boiled, double voidFraction) {
-        public static final Result NONE = new Result(0, 0, 0);
+    public record Result(double removed, double boiled, double voidFraction, double fed) {
+        public static final Result NONE = new Result(0, 0, 0, 0);
+
+        /** A result with no feedwater. */
+        public Result(double removed, double boiled, double voidFraction) {
+            this(removed, boiled, voidFraction, 0);
+        }
     }
 
     /** Seconds the steam void takes to follow a change in boiling (bubbles forming and clearing). */
@@ -142,6 +172,17 @@ public final class CoreThermalModel {
     }
 
     /**
+     * Heat the cold feedwater takes from one rod's water at {@code temperature}, MW: the feed shared
+     * between the rods, warmed from ambient up to the water's temperature.
+     */
+    public static double feedSink(Params p, double feedFlow, int rods, double temperature) {
+        if (feedFlow <= 0) {
+            return 0;
+        }
+        return feedFlow / Math.max(1, rods) * Math.max(0, p.feedwaterHeatCapacity()) * Math.max(0, temperature - AMBIENT);
+    }
+
+    /**
      * Advances by {@code seconds}.
      *
      * @param rods          fuel rods in the core
@@ -169,14 +210,16 @@ public final class CoreThermalModel {
         }
         double passive = p.passiveLoss() * (coolantTemperature - AMBIENT);
         double ceiling = p.boilingTemperature() + Math.max(0, p.maxSuperheat());
+        // Cold feedwater warming up to the core's water, per rod.
+        double sink = boundary instanceof Boiling b ? feedSink(p, b.feedFlow(), n, coolantTemperature) : 0;
         // What the water can take: what it boils off, what it can still absorb by warming up to the
-        // ceiling, and its losses. Heat beyond that stays in the fuel.
+        // ceiling, what the feedwater takes, and its losses. Heat beyond that stays in the fuel.
         double accepted = transfer;
         if (boundary instanceof Boiling b && transfer > 0) {
             double capacity = p.coolantHeatCapacity() * coverage + p.structureHeatCapacity();
             double headroom = Math.max(0, ceiling - coolantTemperature) * capacity / Math.max(1.0e-9, dt);
             double removal = coverage > 0 ? Math.max(0, b.maxRemoval()) / n : 0;
-            accepted = Math.min(transfer, removal + headroom + Math.max(0, passive));
+            accepted = Math.min(transfer, removal + headroom + Math.max(0, passive) + sink);
         }
         double radiated = p.radiation() * Math.pow(fuelTemperature + 273.15, 4);
         fuelTemperature += dt * (heatPerRod - accepted - radiated) / p.fuelHeatCapacity();
@@ -191,7 +234,13 @@ public final class CoreThermalModel {
             }
             case Boiling b -> {
                 double capacity = p.coolantHeatCapacity() * coverage + p.structureHeatCapacity();
-                double next = coolantTemperature + dt * (accepted - passive) / capacity;
+                double next = coolantTemperature + dt * (accepted - passive - sink) / capacity;
+                double fed = sink;
+                if (next < AMBIENT) {
+                    // The feedwater cannot cool the core below its own temperature.
+                    fed = Math.max(0, sink - (AMBIENT - next) * capacity / Math.max(1.0e-9, dt));
+                    next = AMBIENT;
+                }
                 double boiledPerRod = 0;
                 if (coverage > 0 && next > p.boilingTemperature()) {
                     double surplus = (next - p.boilingTemperature()) * capacity / Math.max(1.0e-9, dt);
@@ -212,7 +261,7 @@ public final class CoreThermalModel {
                 double target = Math.min(1, p.ratedVoid() * Math.min(1, boiledPerRod / Math.max(1.0e-9, p.ratedPowerPerRod())) + superheat);
                 boilingVoid += (clamp(target) - boilingVoid) * Math.min(1, dt / VOID_TIME_CONSTANT);
                 voidFraction = clamp((1 - coverage) + coverage * boilingVoid);
-                yield new Result(boiledPerRod * n, boiledPerRod * n, voidFraction);
+                yield new Result(boiledPerRod * n + fed * n, boiledPerRod * n, voidFraction, fed * n);
             }
             case Dry d -> {
                 coolantTemperature = Math.max(AMBIENT, coolantTemperature + dt * (transfer - passive) / p.structureHeatCapacity());

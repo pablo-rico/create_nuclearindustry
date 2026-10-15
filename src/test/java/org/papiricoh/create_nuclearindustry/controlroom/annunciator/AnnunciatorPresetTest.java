@@ -86,8 +86,9 @@ class AnnunciatorPresetTest {
         assertSame(AnnunciatorPreset.CONTAINMENT, AnnunciatorPreset.byName("CONTAINMENT"));
         assertNull(AnnunciatorPreset.byName("NOT_A_PRESET"));
         assertSame(AnnunciatorPreset.PWR_PRIMARY, AnnunciatorPreset.REACTOR_CORE.next(1));
-        // The maintenance preset came last, so going back from the first now lands on it.
-        assertSame(AnnunciatorPreset.MAINTENANCE, AnnunciatorPreset.REACTOR_CORE.next(-1));
+        // The shutdown preset came last, so going back from the first now lands on it.
+        assertSame(AnnunciatorPreset.SHUTDOWN, AnnunciatorPreset.REACTOR_CORE.next(-1));
+        assertSame(AnnunciatorPreset.SHUTDOWN, AnnunciatorPreset.MAINTENANCE.next(1));
         assertSame(AnnunciatorPreset.MAINTENANCE, AnnunciatorPreset.ANTIMATTER.next(1));
         assertSame(AnnunciatorPreset.ANTIMATTER, AnnunciatorPreset.TOKAMAK.next(1));
         assertSame(AnnunciatorPreset.TOKAMAK, AnnunciatorPreset.CONTAINMENT.next(1));
@@ -106,10 +107,28 @@ class AnnunciatorPresetTest {
     }
 
     @Test
+    void theShutdownPresetFollowsTheRequiredMargin() {
+        List<AnnunciatorPreset.Window> windows = AnnunciatorPreset.SHUTDOWN.windows(DEFAULTS);
+        assertEquals(List.of("SCRAM", "SHUTDOWN_MARGIN_LOW", "DECAY_HEAT_UNREMOVED", "CORE_LEVEL_LOW", "HYDROGEN", "COLD_SHUTDOWN"),
+                windows.stream().map(AnnunciatorPreset.Window::metric).toList());
+        assertEquals(20, windows.get(1).setting(), "1000 pcm of margin on a 5000 pcm scale");
+        assertEquals(90, windows.get(2).setting(), "nine tenths of the decay heat carried away");
+        assertEquals(99, windows.get(3).setting(), "any of the core above the water");
+        assertEquals(40, windows.get(4).setting(), "4% hydrogen, where it can burn");
+        assertSame(AnnunciatorSeverity.STATUS, windows.get(5).severity(), "the cold shutdown lamp is only a status");
+        AnnunciatorPreset.Plant stricter = new AnnunciatorPreset.Plant(155.0, 170.0, 8.0, 35.0, 2000.0);
+        assertEquals(40, AnnunciatorPreset.SHUTDOWN.windows(stricter).get(1).setting(), "2000 pcm required");
+        assertEquals(1000.0, new AnnunciatorPreset.Plant(155.0, 170.0, 8.0, 35.0).requiredShutdownMargin(),
+                "the loop-only settings keep the default margin");
+    }
+
+    @Test
     void tripsAreAlarmsByDefault() {
         assertSame(AnnunciatorSeverity.ALARM, AnnunciatorPreset.defaultSeverity("SCRAM"));
         assertSame(AnnunciatorSeverity.ALARM, AnnunciatorPreset.defaultSeverity("TOKAMAK_TRIP"));
         assertSame(AnnunciatorSeverity.WARNING, AnnunciatorPreset.defaultSeverity("XENON"));
         assertSame(AnnunciatorSeverity.WARNING, AnnunciatorPreset.defaultSeverity("NOT_A_METRIC"));
+        assertSame(AnnunciatorSeverity.ALARM, AnnunciatorPreset.defaultSeverity("DECAY_HEAT_UNREMOVED"));
+        assertSame(AnnunciatorSeverity.STATUS, AnnunciatorPreset.defaultSeverity("COLD_SHUTDOWN"));
     }
 }

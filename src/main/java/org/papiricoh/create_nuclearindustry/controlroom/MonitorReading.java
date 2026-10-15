@@ -9,6 +9,7 @@ import org.papiricoh.create_nuclearindustry.fusion.api.TokamakReadings;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ReactivityModel;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ShutdownState;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.display.ReactorReadout;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PlantReadings;
@@ -42,7 +43,15 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     public static final int R_REACTIVITY_FUEL = 31, R_REACTIVITY_RODS = 32, R_REACTIVITY_TEMPERATURE = 33, R_REACTIVITY_VOIDS = 34;
     /** Maintenance, appended: the worse of the rod drives' and relief valve's health 0-1 (0 failed), refuelling outage flag. */
     public static final int R_WEAR = 35, R_OUTAGE = 36;
-    private static final int REACTOR_VALUES = 37;
+    /**
+     * Safe shutdown, appended: the cold shutdown margin with every rod in, pcm; where the core stands
+     * ({@link ShutdownState} by ordinal); dissolved boron, ppm; share of the core under water 0-1; heat
+     * the coolant takes away, MW; the boron's share of the reactivity, pcm; rod blocks the inserted
+     * rods are worth and fuel rod blocks; hydrogen in the room around a reactor with no containment, 0-1.
+     */
+    public static final int R_COLD_MARGIN = 37, R_SHUTDOWN_STATE = 38, R_BORON_PPM = 39, R_CORE_COVERAGE = 40,
+            R_HEAT_REMOVED = 41, R_REACTIVITY_BORON = 42, R_RODS_EFFECTIVE = 43, R_FUEL_RODS = 44, R_BUILDING_H2 = 45;
+    private static final int REACTOR_VALUES = 46;
     // Steam generator: water level 0-1, steam made mB/t, primary temperature drop °C, formed flag, heat moved MW
     public static final int S_LEVEL = 0, S_STEAM = 1, S_PRIMARY_DT = 2, S_FORMED = 3, S_HEAT = 4;
     // Containment: pressure bar, hydrogen fraction 0-1, sealed flag, vent open flag, airborne activity, free volume m³
@@ -97,6 +106,12 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
      */
     public static final float PRESSURE_MAX = 250.0f, LEG_TEMPERATURE_MAX = 375.0f, SUBCOOLING_MAX = 50.0f,
             FLOW_MAX = 256.0f, CONTAINMENT_PRESSURE_MAX = 10.0f, HYDROGEN_MAX = 0.1f;
+    /**
+     * Full scale of the safe shutdown gauges and alarms: a cold shutdown margin of 5000 pcm (five times
+     * the margin a safe shutdown needs, fission.shutdown.requiredMargin) and 2500 ppm of boron, more
+     * than any core needs to stay down.
+     */
+    public static final float SHUTDOWN_MARGIN_MAX = 5000.0f, BORON_MAX = 2500.0f;
     /**
      * Full scale of steam generator gauges: steam made mB/t, heat moved MW, primary temperature drop °C.
      * One generator fed by two full-speed pumps makes about 250 mB/t of steam from about 280 MW; the
@@ -186,10 +201,27 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
         v[R_REACTIVITY_VOIDS] = (float) parts.voids();
         v[R_WEAR] = (float) reactor.getMaintenance().worstHealth();
         v[R_OUTAGE] = reactor.inOutage() ? 1 : 0;
+        v[R_COLD_MARGIN] = (float) reactor.getColdShutdownMargin(true);
+        v[R_SHUTDOWN_STATE] = reactor.getShutdownState().ordinal();
+        v[R_BORON_PPM] = (float) reactor.getBoronPpm();
+        v[R_CORE_COVERAGE] = (float) reactor.getCoreCoverage();
+        v[R_HEAT_REMOVED] = (float) reactor.getHeatRemovedMw();
+        v[R_REACTIVITY_BORON] = (float) parts.boron();
+        v[R_RODS_EFFECTIVE] = (float) reactor.getEffectiveRods();
+        v[R_FUEL_RODS] = reactor.getFuelRodCount();
+        v[R_BUILDING_H2] = (float) buildingHydrogen(reactor);
         String status = ReactorReadout.STATUS.read(reactor).getString();
         float rated = Math.max(1.0f, v[R_RATED_POWER]);
         return new MonitorReading(TargetKind.REACTOR, status, v,
                 clamp01(v[R_TEMPERATURE] / 4000.0f), clamp01(v[R_POWER] / rated));
+    }
+
+    /**
+     * Hydrogen gathered in the closed room around a reactor that has no sealed containment, 0-1: what
+     * the building readout shows and, with the containment's, what the hydrogen alarm watches.
+     */
+    public static double buildingHydrogen(ReactorBlockEntity reactor) {
+        return reactor.getBuildingHydrogen();
     }
 
     private static MonitorReading turbine(AbstractTurbineControllerBlockEntity turbine) {

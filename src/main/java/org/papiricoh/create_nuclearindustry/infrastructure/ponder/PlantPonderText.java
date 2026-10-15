@@ -7,7 +7,7 @@ import java.util.Set;
 
 /**
  * Text and wiring of the "Nuclear power plant" Ponder series: the ponder tag, the chained scenes
- * (an overview of the whole plant, then four on its parts) with every line in English and
+ * (an overview of the whole plant, four on its parts, then shutting it down safely and losing its cooling) with every line in English and
  * Spanish, and the items each scene is reached from.
  *
  * <p>Pure Java on purpose: the scenes ({@code PlantScenes}) take their lines from here in the
@@ -229,8 +229,49 @@ public final class PlantPonderText {
             List.of("spent_fuel_rack", "pool_cooler", "dry_cask", "vitrification_melter", "compacted_waste_drum",
                     "cemented_waste_drum", "vitrified_waste_canister", "bentonite", "repository_inspector", "radioactive_waste_barrel"));
 
+    public static final Scene SAFE_SHUTDOWN = new Scene("plant_safe_shutdown", "plant_shutdown",
+            line("Safe Shutdown", "Parada segura"),
+            List.of(
+                    line("A SCRAM stops the chain reaction, not the heat: the fuel keeps making decay heat, a few percent of its power, long after.",
+                            "Un SCRAM para la reacción en cadena, no el calor: el combustible sigue produciendo calor residual, un pequeño porcentaje de su potencia, mucho después."),
+                    line("Rods first: with as many inserted control rod blocks as fuel rod blocks, any core stays subcritical even when cold.",
+                            "Primero las barras: con tantos bloques de barras de control insertados como bloques de combustible, cualquier núcleo sigue subcrítico incluso en frío."),
+                    line("Fewer rods than that? Pump in Boric Acid, mixed from water, borax salt and sulfuric acid. Its boron holds the core down from the water.",
+                            "¿Menos barras? Bombea Ácido bórico, mezclado con agua, sal de bórax y ácido sulfúrico. Su boro frena el núcleo desde el agua."),
+                    line("Boiling never takes the water below 100 °C. Feed cold water through an input port, with a pump that has a drive of its own...",
+                            "Hervir nunca baja el agua de 100 °C. Alimenta agua fría por un puerto de entrada, con una bomba que tenga su propio motor..."),
+                    line("...and, once the chain reaction is off, bleed the hot water out of an output port. It never bleeds the core dry.",
+                            "...y, con la reacción en cadena parada, purga el agua caliente por un puerto de salida. Nunca deja el núcleo en seco."),
+                    line("Send the Hot Water to a Cooling Tower, never straight back in: it returns as water. Bleeding also washes the boron out, to dilute it for a restart.",
+                            "Manda el Agua caliente a una Torre de refrigeración, nunca directamente de vuelta: vuelve como agua. La purga también se lleva el boro, para diluirlo antes de rearrancar."),
+                    line("Goggles on the reactor show the way down: Subcritical, Hot shutdown, then Cold shutdown, held with margin under 100 °C and the core under water.",
+                            "Las gafas sobre el reactor muestran el camino: Subcrítico, Parada en caliente y por fin Parada en frío, con margen, por debajo de 100 °C y el núcleo cubierto.")),
+            List.of("control_rod", "reactor_fluid_port"));
+
+    public static final Scene LOSS_OF_COOLING = new Scene("plant_loss_of_cooling", "plant_shutdown",
+            line("Loss of Cooling", "Pérdida de refrigeración"),
+            List.of(
+                    line("The worst case is losing the cooling. Feed pumps turned by the plant's own turbine stop with it at a SCRAM, and the decay heat stays.",
+                            "El peor caso es perder la refrigeración. Las bombas movidas por la propia turbina de la central se paran con ella en un SCRAM, y el calor residual sigue ahí."),
+                    line("With nothing feeding it, the water boils away and the core uncovers.",
+                            "Sin nada que la reponga, el agua se evapora y el núcleo queda al descubierto."),
+                    line("Above 1200 °C the zirconium cladding reacts with the steam and gives off hydrogen.",
+                            "Por encima de 1200 °C las vainas de circonio reaccionan con el vapor y desprenden hidrógeno."),
+                    line("Without a containment, the hydrogen gathers in any closed room around the reactor. From 4%% it may ignite...",
+                            "Sin contención, el hidrógeno se acumula en cualquier sala cerrada alrededor del reactor. Desde el 4%% puede prender..."),
+                    line("...and from 8%% it always does, blowing the roof off: an INES incident with sirens, as at Fukushima. In open air it disperses.",
+                            "...y desde el 8%% prende siempre y vuela el tejado: un incidente INES con sirenas, como en Fukushima. Al aire libre se dispersa."),
+                    line("A sealed containment keeps the hydrogen in, and Recombiners set in its walls remove it before it burns.",
+                            "Una contención estanca retiene el hidrógeno, y los Recombinadores puestos en sus paredes lo eliminan antes de que arda."),
+                    line("Water bled from a damaged core comes out as Contaminated Water: treat it as low-level waste.",
+                            "El agua purgada de un núcleo dañado sale como Agua contaminada: trátala como residuo de baja actividad."),
+                    line("Give the feed pumps a drive of their own, apart from the turbine, and a SCRAM ends in a cold shutdown instead.",
+                            "Dale a las bombas de alimentación un motor propio, aparte de la turbina, y un SCRAM acabará en una parada en frío.")),
+            List.of("recombiner", "reactor_casing"));
+
     /** The series, in the order Ponder chains it. */
-    public static final List<Scene> SCENES = List.of(OVERVIEW, HEAT_LOOP, GENERATION, CONTROL_SAFETY, WASTE);
+    public static final List<Scene> SCENES = List.of(OVERVIEW, HEAT_LOOP, GENERATION, CONTROL_SAFETY, WASTE, SAFE_SHUTDOWN,
+            LOSS_OF_COOLING);
 
     /** Plant parts with no scene of the series of their own that still belong under the tag. */
     private static final List<String> OTHER_PARTS = List.of("containment_door", "reactor_casing", "reactor_fuel_port", "control_rod", "heat_exchanger",

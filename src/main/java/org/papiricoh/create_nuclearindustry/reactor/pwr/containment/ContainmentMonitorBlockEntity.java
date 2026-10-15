@@ -165,7 +165,11 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
     @Override
     public void tick() {
         super.tick();
-        if (level == null || level.isClientSide) {
+        if (level == null) {
+            return;
+        }
+        if (level.isClientSide) {
+            ContainmentClientHooks.monitorClientTick.accept(this);
             return;
         }
         if (++resurveyTimer >= (shape == null ? unsealedInterval : RESURVEY_INTERVAL)) {
@@ -492,6 +496,15 @@ public class ContainmentMonitorBlockEntity extends SmartBlockEntity
     @Nullable
     public ContainmentShape getShape() {
         return shape;
+    }
+
+    /** The air inside as last measured; on clients, as last synced. Null while unsealed. */
+    @Nullable
+    public BoundingBox clientBounds() {
+        if (level != null && level.isClientSide) {
+            return sealedClient ? savedBounds : null;
+        }
+        return sealed() ? shape.bounds() : null;
     }
 
     public boolean isRuptured() {

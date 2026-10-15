@@ -108,6 +108,13 @@ public class AllNuclearFluids {
     // The same water leaving the core: it only exists inside the loop, a leak flashes it away.
     public static final NuclearFluid HOT_PRIMARY_COOLANT_FLUID = liquid("hot_primary_coolant", 0xE0E08A5A, 700, 800, 600);
 
+    // ---------------------------------------------------------------- safe shutdown: soluble boron, and water bled from a shut-down core
+    // Water with boric acid dissolved in it: liquid control rods pumped into a reactor's coolant.
+    public static final NuclearFluid BORIC_ACID_FLUID = liquid("boric_acid", 0xD8E4ECF0, 1050, 1100, 300);
+    // Water bled from a boiling reactor's vessel; a cooling tower turns it back into water.
+    public static final NuclearFluid HOT_WATER_FLUID = liquid("hot_water", 0xE08CC4F0, 960, 700, 360);
+    public static final NuclearFluid HOT_HEAVY_WATER_FLUID = liquid("hot_heavy_water", 0xE06A86D8, 1050, 900, 360);
+
     // ---------------------------------------------------------------- cryogenics: the tokamak's helium loop and the air it is first won from
     // Warm helium gas: what the coils hand back to the cryogenic plant, and the plasma's ash.
     public static final NuclearFluid HELIUM_FLUID = gas("helium", 0x90FFE2C8, -120, 20, 300, 0);
@@ -157,6 +164,9 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> CONTAMINATED_WATER = CONTAMINATED_WATER_FLUID.source();
     public static final Supplier<FlowingFluid> PRIMARY_COOLANT = PRIMARY_COOLANT_FLUID.source();
     public static final Supplier<FlowingFluid> HOT_PRIMARY_COOLANT = HOT_PRIMARY_COOLANT_FLUID.source();
+    public static final Supplier<FlowingFluid> BORIC_ACID = BORIC_ACID_FLUID.source();
+    public static final Supplier<FlowingFluid> HOT_WATER = HOT_WATER_FLUID.source();
+    public static final Supplier<FlowingFluid> HOT_HEAVY_WATER = HOT_HEAVY_WATER_FLUID.source();
     public static final Supplier<FlowingFluid> HELIUM = HELIUM_FLUID.source();
     public static final Supplier<FlowingFluid> LIQUID_HELIUM = LIQUID_HELIUM_FLUID.source();
     public static final Supplier<FlowingFluid> LIQUID_AIR = LIQUID_AIR_FLUID.source();

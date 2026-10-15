@@ -1,0 +1,24 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:borax_salt"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 1000,
+      "fluid": "minecraft:water"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 100,
+      "fluid": "create_nuclearindustry:sulfuric_acid"
+    }
+  ],
+  "results": [
+    {
+      "amount": 1000,
+      "id": "create_nuclearindustry:boric_acid"
+    }
+  ]
+}

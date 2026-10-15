@@ -61,6 +61,9 @@ final class PwrDataGen extends AreaDataGen {
         LangEntries.block("primary_coolant", "Primary Coolant", "Refrigerante primario");
         LangEntries.item("primary_coolant_bucket", "Primary Coolant Bucket", "Cubo de refrigerante primario");
         LangEntries.fluid("hot_primary_coolant", "Hot Primary Coolant", "Refrigerante primario caliente");
+        LangEntries.add("create_nuclearindustry.reactor.message.building_explosion",
+                "Hydrogen explosion: the reactor building at %s blew apart",
+                "Explosión de hidrógeno: el edificio del reactor en %s ha volado");
 
         String source = "create_nuclearindustry.display_source.";
         LangEntries.add(source + "reactor_pressure", "Primary Pressure", "Presión del primario");

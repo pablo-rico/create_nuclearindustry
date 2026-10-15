@@ -101,6 +101,23 @@ public class PlantPonderSchematicTests {
         });
     }
 
+    /**
+     * The shutdown scenes' reactor forms inside its ordinary building, with as many control rod blocks
+     * as fuel rod blocks: "rods at least as many as the fuel" holds for the core the scenes show.
+     */
+    @GameTest(template = "gametest/plant_shutdown_ponder", timeoutTicks = 200)
+    public static void shutdownSchematicFormsInsideItsBuilding(GameTestHelper helper) {
+        helper.succeedWhen(() -> {
+            ReactorBlockEntity reactor = at(helper, new BlockPos(6, 6, 7), ReactorBlockEntity.class);
+            helper.assertTrue(reactor != null && reactor.isFormed(), "the shutdown scenes' reactor forms");
+            helper.assertTrue(reactor.getFuelRodCount() == 12, "with twelve fuel rod blocks, " + reactor.getFuelRodCount());
+            helper.assertTrue(reactor.getEffectiveRods() >= reactor.getFuelRodCount(),
+                    "and every rod in is worth at least the fuel: " + reactor.getEffectiveRods());
+            helper.assertBlockPresent(Blocks.STONE_BRICKS, new BlockPos(6, 9, 7));
+            helper.assertBlockPresent(Blocks.STONE_BRICKS, new BlockPos(2, 4, 7));
+        });
+    }
+
     /** Every item the series is registered on, and every item under its ponder tag, exists. */
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void plantPonderItemsExist(GameTestHelper helper) {

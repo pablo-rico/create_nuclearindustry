@@ -82,6 +82,8 @@ public final class ReadingValue {
             case THERMAL_NOZZLE, ANTIMATTER_COIL -> of(E_TEMPERATURE, "°C", 0);
             case THERMAL_PROPELLANT -> percent(E_FUEL, 0);
             case ANTIMATTER_CHAMBER -> of(E_STORED, "ng", 2);
+            case REACTOR_SHUTDOWN_MARGIN -> of(R_COLD_MARGIN, "pcm", 0);
+            case REACTOR_BORON -> of(R_BORON_PPM, "ppm", 0);
         };
     }
 

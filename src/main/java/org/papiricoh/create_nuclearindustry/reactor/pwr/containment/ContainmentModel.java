@@ -225,6 +225,30 @@ public final class ContainmentModel {
         return released;
     }
 
+    /**
+     * A room that is closed but not airtight, such as an ordinary building: {@code share} of its gas
+     * (and the activity in it) swaps for outside air, as much air as would fill that share of the
+     * room at the outside pressure. Repeated, the pressure settles at the outside's and the hydrogen
+     * thins out by {@code share} each time. Returns the activity that left.
+     */
+    public double leak(double share) {
+        double s = Double.isFinite(share) ? Math.max(0.0, Math.min(1.0, share)) : 0.0;
+        if (s <= 0.0) {
+            return 0.0;
+        }
+        inert *= 1.0 - s;
+        oxygen *= 1.0 - s;
+        steam *= 1.0 - s;
+        hydrogen *= 1.0 - s;
+        double leaked = activity * s;
+        activity -= leaked;
+        double air = s * ATMOSPHERE * 1.0e5 * volume / (R * WALL_TEMPERATURE);
+        mix(air, WALL_TEMPERATURE);
+        inert += air * (1.0 - OXYGEN_IN_AIR);
+        oxygen += air * OXYGEN_IN_AIR;
+        return leaked;
+    }
+
     /** Absolute pressure, bar. */
     public double pressure() {
         return totalMoles() * R * temperature / volume / 1.0e5;

@@ -786,7 +786,7 @@ public class AnnunciatorPanelBlockEntity extends SmartBlockEntity implements Con
     /** The plant settings preset thresholds follow, from the config in force. */
     public static AnnunciatorPreset.Plant plantConfig() {
         return new AnnunciatorPreset.Plant(PwrConfig.pressureSetpoint, PwrConfig.reliefOpenPressure, PwrConfig.naturalCirculation,
-                PwrConfig.coreTemperatureRise);
+                PwrConfig.coreTemperatureRise, org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig.requiredShutdownMargin);
     }
 
     private static AlarmMetric metricByName(String name, AlarmMetric fallback) {

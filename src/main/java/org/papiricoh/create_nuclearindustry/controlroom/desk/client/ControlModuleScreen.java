@@ -682,6 +682,7 @@ public class ControlModuleScreen extends AbstractSimiContainerScreen<ControlModu
             case LAMP_RELIEF_OPEN -> AllIcons.I_SEND_AND_RECEIVE;
             case CORE_VIEW -> AllIcons.I_VIEW_SCHEDULE;
             case PLASMA_VIEW -> AllIcons.I_FX_FIELD_ON;
+            case LAMP_COLD_SHUTDOWN -> AllIcons.I_FX_FIELD_OFF;
         };
     }
 

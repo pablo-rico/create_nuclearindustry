@@ -55,6 +55,8 @@ public final class PrimaryCoolantModel {
     private double saturation;
     private double inventory;
     private double coreVolume;
+    /** Temperature cold makeup water lowered the vessel to, °C; infinity while it is at the cold leg temperature. */
+    private double baseline = Double.POSITIVE_INFINITY;
 
     /**
      * Advances one tick and returns how many mB of cold coolant left the core hot; the caller moves
@@ -62,7 +64,7 @@ public final class PrimaryCoolantModel {
      */
     public int step(Conditions c, Params p) {
         double perMb = Math.max(1.0e-9, p.enthalpyPerMb());
-        storedHeat += Math.max(0.0, c.heat());
+        storedHeat += reheatBaseline(Math.max(0.0, c.heat()), c.inventory(), p);
         double circulation = Math.max(0.0, c.pumpFlow()) + Math.max(0.0, p.naturalCirculation());
         int available = Math.max(0, Math.min(c.cold(), c.hotSpace()));
         int moved = (int) Math.min(available, Math.floor(Math.min(circulation, storedHeat / perMb)));
@@ -83,6 +85,57 @@ public final class PrimaryCoolantModel {
     }
 
     /**
+     * Cold makeup water: {@code mb} at {@code temperature} °C mixed into the vessel's
+     * {@code inventory} mB lowers the water's baseline, the temperature the cold leg returns to
+     * without heat. The core's heat warms the baseline back to the loop's cold leg temperature before
+     * it stores any (see {@link #step}), so a vessel fed enough cold water cools below boiling.
+     */
+    public void mixCold(double mb, double temperature, double inventory, Params p) {
+        if (mb <= 0) {
+            return;
+        }
+        double base = baseline(p);
+        double mass = Math.max(1.0, inventory);
+        double mixed = (base * mass + Math.min(temperature, base) * mb) / (mass + mb);
+        // Stored heat warms the cold water first: the vessel's sensible heat and the makeup share it.
+        double cp = p.heatCapacityPerMb();
+        double needed = (base - mixed) * mass * cp;
+        double fromStore = Math.min(storedHeat, needed);
+        storedHeat -= fromStore;
+        baseline = mixed + fromStore / (mass * cp);
+    }
+
+    /** What the core's heat does first: warm a lowered baseline back up. Returns the heat left over. */
+    private double reheatBaseline(double heat, double inventory, Params p) {
+        double base = baseline(p);
+        if (base >= p.coldLegTemperature() || heat <= 0) {
+            return heat;
+        }
+        double capacity = Math.max(1.0, inventory) * p.heatCapacityPerMb();
+        double needed = (p.coldLegTemperature() - base) * capacity;
+        if (heat >= needed) {
+            baseline = Double.POSITIVE_INFINITY;
+            return heat - needed;
+        }
+        baseline = base + heat / capacity;
+        return 0.0;
+    }
+
+    /** Temperature the vessel water returns to with no heat stored, °C: the cold leg's, unless cold makeup lowered it. */
+    public double baseline(Params p) {
+        return Math.min(baseline, p.coldLegTemperature());
+    }
+
+    /** The lowered baseline, or infinity when it sits at the cold leg temperature (saved). */
+    public double savedBaseline() {
+        return baseline;
+    }
+
+    public void restoreBaseline(double baseline) {
+        this.baseline = Double.isFinite(baseline) ? Math.max(0.0, baseline) : Double.POSITIVE_INFINITY;
+    }
+
+    /**
      * A relief valve lets steam out: up to {@code maxHeat} of the boiling heat leaves with it.
      * Returns the mB of coolant that left as steam.
      */
@@ -97,10 +150,11 @@ public final class PrimaryCoolantModel {
     public void update(double inventory, double coreVolume, double saturation, Params p) {
         double cp = p.heatCapacityPerMb();
         double mass = coreWater(inventory, coreVolume);
-        double sensibleCap = mass * cp * Math.max(0.0, saturation - p.coldLegTemperature());
+        double base = baseline(p);
+        double sensibleCap = mass * cp * Math.max(0.0, saturation - base);
         double sensible = Math.min(storedHeat, sensibleCap);
         double vaporHeat = storedHeat - sensible;
-        coldLeg = Math.min(saturation, p.coldLegTemperature() + sensible / (mass * cp));
+        coldLeg = Math.min(saturation, base + sensible / (mass * cp));
         hotLeg = Math.max(coldLeg, Math.min(saturation, coldLeg + flowRise));
         vaporVolume = vaporHeat / Math.max(1.0e-9, p.latentPerMb()) * Math.max(0.0, p.vaporExpansion());
         voidFraction = vaporVolume / (mass + vaporVolume);
@@ -113,7 +167,7 @@ public final class PrimaryCoolantModel {
     private double vaporHeat(Params p) {
         double cp = p.heatCapacityPerMb();
         double mass = coreWater(inventory, coreVolume);
-        return Math.max(0.0, storedHeat - mass * cp * Math.max(0.0, saturation - p.coldLegTemperature()));
+        return Math.max(0.0, storedHeat - mass * cp * Math.max(0.0, saturation - baseline(p)));
     }
 
     private static double coreWater(double inventory, double coreVolume) {

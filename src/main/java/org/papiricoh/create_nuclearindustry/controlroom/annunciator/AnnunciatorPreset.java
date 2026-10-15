@@ -30,7 +30,8 @@ public enum AnnunciatorPreset {
     CONTAINMENT,
     TOKAMAK,
     ANTIMATTER,
-    MAINTENANCE;
+    MAINTENANCE,
+    SHUTDOWN;
 
     /** Threshold of the containment pressure HI-HI window, as a share of containment concrete's 6 bar rating. */
     static final double CONCRETE_RATING = 6.0;
@@ -52,8 +53,9 @@ public enum AnnunciatorPreset {
      */
     public static AnnunciatorSeverity defaultSeverity(String metric) {
         return switch (metric) {
-            case "SCRAM", "CORE_DAMAGE", "TOKAMAK_TRIP", "CONTAINMENT_PRESSURE", "CONTAINMENT_ACTIVITY", "CONTAINMENT_OPEN", "HYDROGEN" ->
-                    ALARM;
+            case "SCRAM", "CORE_DAMAGE", "TOKAMAK_TRIP", "CONTAINMENT_PRESSURE", "CONTAINMENT_ACTIVITY", "CONTAINMENT_OPEN", "HYDROGEN",
+                 "SHUTDOWN_MARGIN_LOW", "CORE_LEVEL_LOW", "DECAY_HEAT_UNREMOVED" -> ALARM;
+            case "COLD_SHUTDOWN" -> STATUS;
             default -> WARNING;
         };
     }
@@ -65,10 +67,17 @@ public enum AnnunciatorPreset {
      * @param reliefOpenPressure pressure the relief valve opens at, bar
      * @param naturalCirculation flow through the core with the pumps stopped, mB/t
      * @param coreTemperatureRise how much the primary warms crossing the core, °C
+     * @param requiredShutdownMargin cold shutdown margin a safe shutdown needs, pcm (fission.shutdown.requiredMargin)
      */
-    public record Plant(double pressureSetpoint, double reliefOpenPressure, double naturalCirculation, double coreTemperatureRise) {
+    public record Plant(double pressureSetpoint, double reliefOpenPressure, double naturalCirculation, double coreTemperatureRise,
+                        double requiredShutdownMargin) {
         /** The config's defaults. */
-        public static final Plant DEFAULTS = new Plant(155.0, 170.0, 8.0, 35.0);
+        public static final Plant DEFAULTS = new Plant(155.0, 170.0, 8.0, 35.0, 1000.0);
+
+        /** The pressurized loop's settings, with the default shutdown margin. */
+        public Plant(double pressureSetpoint, double reliefOpenPressure, double naturalCirculation, double coreTemperatureRise) {
+            this(pressureSetpoint, reliefOpenPressure, naturalCirculation, coreTemperatureRise, 1000.0);
+        }
     }
 
     /** The six windows, in panel order (left to right, top to bottom). */
@@ -135,6 +144,17 @@ public enum AnnunciatorPreset {
                     new Window("REFUELLING_OUTAGE", 0, "OUTAGE", STATUS),
                     new Window("SCRAM", 0, "SCRAM", ALARM),
                     new Window("CORE_DAMAGE", 1, "CORE DAMAGE", ALARM));
+            // A reactor on its way to a cold shutdown: tripped, held down with margin, its decay heat carried
+            // away, the core under water and no hydrogen gathering, until the white COLD SHUTDOWN lamp lights.
+            case SHUTDOWN -> List.of(
+                    new Window("SCRAM", 0, "SCRAM", ALARM),
+                    new Window("SHUTDOWN_MARGIN_LOW", scaled(plant.requiredShutdownMargin(), MonitorReading.SHUTDOWN_MARGIN_MAX), "SDM LO", ALARM),
+                    // Most of the decay heat no longer leaves with the coolant: the core heats up again.
+                    new Window("DECAY_HEAT_UNREMOVED", 90, "DECAY HEAT", ALARM),
+                    // Any of the fuel above the water.
+                    new Window("CORE_LEVEL_LOW", 99, "CORE LEVEL LO", ALARM),
+                    new Window("HYDROGEN", scaled(100.0 * ContainmentModel.LOWER_FLAMMABILITY, 10.0), "H2 HI", ALARM),
+                    new Window("COLD_SHUTDOWN", 0, "COLD SHUTDOWN", STATUS));
         };
     }
 

@@ -920,6 +920,294 @@ public class PlantScenes {
         scene.idle(120);
     }
 
+    // ------------------------------------------------------------------ 5. a safe shutdown
+
+    private static final int SHUTDOWN_SIZE = 15;
+
+    /** The reactor of ponder/plant_shutdown.nbt (tools/structgen/ponder_plant_shutdown.py), with its ports. */
+    private static Selection shutdownReactor(SceneBuildingUtil util) {
+        return util.select().fromTo(4, 1, 5, 8, 5, 9);
+    }
+
+    /** Water and boric acid tanks, the feed pump with its own motor and the pipe to the input port. */
+    private static Selection feedLine(SceneBuildingUtil util) {
+        return util.select().fromTo(5, 1, 0, 5, 2, 0)
+                .add(util.select().fromTo(3, 1, 1, 3, 2, 1))
+                .add(util.select().fromTo(4, 2, 1, 5, 2, 4))
+                .add(util.select().fromTo(5, 3, 1, 5, 3, 2));
+    }
+
+    /** From the output port through the bleed pump and its motor to the east edge. */
+    private static Selection bleedLine(SceneBuildingUtil util) {
+        return util.select().fromTo(7, 3, 2, 7, 3, 4)
+                .add(util.select().fromTo(8, 3, 2, 14, 3, 2))
+                .add(util.select().fromTo(8, 4, 2, 9, 4, 2));
+    }
+
+    /** The control rod blocks of the reactor: four columns, three high. */
+    private static Selection controlRods(SceneBuildingUtil util) {
+        return util.select().fromTo(5, 2, 6, 5, 4, 6).add(util.select().fromTo(7, 2, 6, 7, 4, 6))
+                .add(util.select().fromTo(5, 2, 8, 5, 4, 8)).add(util.select().fromTo(7, 2, 8, 7, 4, 8));
+    }
+
+    /** The fuel rod blocks of the reactor, as many as the control rods. */
+    private static Selection fuelRods(SceneBuildingUtil util) {
+        return util.select().fromTo(6, 2, 6, 6, 4, 6).add(util.select().fromTo(5, 2, 7, 5, 4, 7))
+                .add(util.select().fromTo(7, 2, 7, 7, 4, 7)).add(util.select().fromTo(6, 2, 8, 6, 4, 8));
+    }
+
+    /** The building's four walls without the two pipes that pass through the north one. */
+    private static Selection buildingWalls(SceneBuildingUtil util) {
+        return util.select().fromTo(2, 1, 3, 10, 7, 11)
+                .substract(util.select().fromTo(3, 1, 4, 9, 7, 10))
+                .substract(util.select().position(5, 2, 3))
+                .substract(util.select().position(7, 3, 3));
+    }
+
+    private static Selection buildingRoof(SceneBuildingUtil util) {
+        return util.select().fromTo(2, 8, 3, 10, 8, 11);
+    }
+
+    /**
+     * Shutting a reactor down for good ({@code ponder/plant_shutdown.nbt}): the decay heat, rods at
+     * least as many as the fuel, boric acid, feeding cold water with a pump of its own and bleeding the
+     * hot water to a cooling tower, and the states goggles show on the way down.
+     */
+    public static void safeShutdown(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        PlantPonderText.Scene text = PlantPonderText.SAFE_SHUTDOWN;
+        Script lines = text.script();
+        scene.title(text.id(), text.title().english());
+        scene.configureBasePlate(0, 0, SHUTDOWN_SIZE);
+        scene.scaleSceneView(0.5f);
+        scene.setSceneOffsetY(1.0f);
+
+        BlockPos controller = util.grid().at(6, 5, 7);
+        BlockPos outputPort = util.grid().at(7, 3, 5);
+        BlockPos acidTank = util.grid().at(3, 2, 1);
+        BlockPos feedPump = util.grid().at(5, 2, 2);
+        BlockPos bleedPump = util.grid().at(8, 3, 2);
+        BlockPos bleedEnd = util.grid().at(14, 3, 2);
+        Selection westWall = util.select().fromTo(4, 2, 6, 4, 4, 8);
+
+        scene.showBasePlate();
+        scene.idle(10);
+        scene.world().showSection(shutdownReactor(util), Direction.DOWN);
+        scene.idle(15);
+        scene.effects().emitParticles(util.vector().topOf(controller),
+                scene.effects().simpleParticleEmitter(ParticleTypes.CLOUD, new Vec3(0, 0.04, 0)), 1, 90);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(controller))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+
+        // Rods against fuel, seen through the west wall.
+        scene.world().hideSection(westWall, Direction.WEST);
+        scene.idle(15);
+        scene.overlay().showOutline(PonderPalette.GREEN, "rods", controlRods(util), 110);
+        scene.overlay().showOutline(PonderPalette.RED, "fuel", fuelRods(util), 110);
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(util.grid().at(5, 3, 6), Direction.WEST))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+        scene.world().showSection(westWall, Direction.WEST);
+        scene.idle(10);
+
+        // Boric acid.
+        scene.world().showSection(util.select().fromTo(3, 1, 1, 3, 2, 1), Direction.DOWN);
+        scene.idle(10);
+        scene.overlay().showControls(util.vector().topOf(acidTank), Pointing.DOWN, 60)
+                .withItem(new ItemStack(AllNuclearItems.BORAX_SALT.get()));
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(acidTank))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+
+        // Feed cold water with a pump that has a motor of its own.
+        scene.world().showSection(feedLine(util).substract(util.select().fromTo(3, 1, 1, 3, 2, 1)), Direction.DOWN);
+        scene.idle(10);
+        spin(scene, util.select().fromTo(5, 3, 1, 5, 3, 2), util.select().position(feedPump), KINETIC);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .colored(PonderPalette.BLUE)
+                .pointAt(util.vector().blockSurface(feedPump, Direction.WEST))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+
+        // Bleed the hot water once the chain reaction is off.
+        scene.world().showSection(bleedLine(util), Direction.DOWN);
+        scene.idle(10);
+        spin(scene, util.select().fromTo(8, 4, 2, 9, 4, 2), util.select().position(bleedPump), KINETIC);
+        scene.effects().emitParticles(util.vector().blockSurface(bleedEnd, Direction.EAST),
+                scene.effects().simpleParticleEmitter(ParticleTypes.CLOUD, new Vec3(0.03, 0.04, 0)), 1, 200);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .colored(PonderPalette.RED)
+                .pointAt(util.vector().blockSurface(outputPort, Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(110);
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(bleedEnd))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+
+        // The states on the goggles.
+        scene.overlay().showControls(util.vector().topOf(controller), Pointing.DOWN, 90)
+                .withItem(new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("create", "goggles"))));
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .colored(PonderPalette.GREEN)
+                .pointAt(util.vector().topOf(controller))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+    }
+
+    // ------------------------------------------------------------------ 6. losing the cooling
+
+    /**
+     * What happens when the cooling is lost ({@code ponder/plant_shutdown.nbt}): the feed pumps stop
+     * with the turbine, the water boils away, the cladding makes hydrogen, which blows the roof off an
+     * ordinary building but stays inside a containment with recombiners, and the bled water comes out
+     * contaminated. A drive of their own for the pumps prevents it all.
+     */
+    public static void lossOfCooling(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        PlantPonderText.Scene text = PlantPonderText.LOSS_OF_COOLING;
+        Script lines = text.script();
+        scene.title(text.id(), text.title().english());
+        scene.configureBasePlate(0, 0, SHUTDOWN_SIZE);
+        scene.scaleSceneView(0.5f);
+        scene.setSceneOffsetY(1.0f);
+
+        BlockPos controller = util.grid().at(6, 5, 7);
+        BlockPos feedPump = util.grid().at(5, 2, 2);
+        BlockPos feedMotor = util.grid().at(5, 3, 1);
+        BlockPos bleedPump = util.grid().at(8, 3, 2);
+        BlockPos westRecombiner = util.grid().at(2, 4, 7);
+        BlockPos northRecombiner = util.grid().at(9, 5, 3);
+        Selection feedDrive = util.select().fromTo(5, 3, 1, 5, 3, 2);
+        Selection bleedDrive = util.select().fromTo(8, 4, 2, 9, 4, 2);
+        Selection westWall = util.select().fromTo(4, 2, 6, 4, 4, 8);
+        Selection core = util.select().fromTo(5, 2, 6, 7, 4, 8);
+
+        scene.showBasePlate();
+        scene.idle(10);
+        scene.world().showSection(shutdownReactor(util), Direction.DOWN);
+        scene.world().showSection(feedLine(util), Direction.DOWN);
+        scene.world().showSection(bleedLine(util), Direction.DOWN);
+        scene.idle(10);
+        spin(scene, feedDrive, util.select().position(feedPump), KINETIC);
+        scene.idle(20);
+
+        // The turbine trips with the reactor, and the pumps it turned stop.
+        spin(scene, feedDrive, util.select().position(feedPump), 0);
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .colored(PonderPalette.RED)
+                .pointAt(util.vector().blockSurface(feedPump, Direction.WEST))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+
+        // The water boils off and the core uncovers.
+        scene.world().hideSection(westWall, Direction.WEST);
+        scene.idle(15);
+        scene.effects().emitParticles(util.vector().topOf(controller),
+                scene.effects().simpleParticleEmitter(ParticleTypes.CLOUD, new Vec3(0, 0.1, 0)), 3, 90);
+        scene.overlay().showText(90)
+                .text(lines.next())
+                .pointAt(util.vector().centerOf(util.grid().at(5, 3, 7)))
+                .placeNearTarget();
+        scene.idle(100);
+        scene.overlay().showOutline(PonderPalette.RED, "cladding", core, 100);
+        scene.effects().emitParticles(util.vector().centerOf(util.grid().at(6, 3, 7)),
+                scene.effects().simpleParticleEmitter(ParticleTypes.LARGE_SMOKE, new Vec3(0, 0.05, 0)), 1, 90);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .colored(PonderPalette.RED)
+                .pointAt(util.vector().blockSurface(util.grid().at(5, 3, 7), Direction.WEST))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+        scene.world().showSection(westWall, Direction.WEST);
+        scene.idle(10);
+
+        // An ordinary building closes around it: the hydrogen gathers under the roof.
+        scene.world().showSection(buildingWalls(util), Direction.DOWN);
+        scene.idle(10);
+        ElementLink<WorldSectionElement> roof = scene.world().showIndependentSection(buildingRoof(util), Direction.DOWN);
+        scene.idle(15);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(util.grid().at(6, 8, 7)))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+
+        // ... until it ignites and blows the roof off.
+        scene.effects().emitParticles(util.vector().topOf(util.grid().at(6, 8, 7)),
+                scene.effects().simpleParticleEmitter(ParticleTypes.EXPLOSION_EMITTER, Vec3.ZERO), 1, 2);
+        scene.effects().emitParticles(util.vector().topOf(util.grid().at(6, 8, 7)),
+                scene.effects().simpleParticleEmitter(ParticleTypes.LARGE_SMOKE, new Vec3(0, 0.1, 0)), 4, 60);
+        scene.world().hideIndependentSection(roof, Direction.UP);
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .colored(PonderPalette.RED)
+                .pointAt(util.vector().topOf(util.grid().at(6, 7, 7)))
+                .placeNearTarget();
+        scene.idle(120);
+
+        // A sealed containment with recombiners instead.
+        BlockState concrete = PwrRegistry.CONTAINMENT_CONCRETE.get().defaultBlockState();
+        scene.world().setBlocks(buildingWalls(util), concrete, true);
+        scene.world().setBlocks(buildingRoof(util), concrete, false);
+        scene.world().setBlock(westRecombiner, PwrRegistry.RECOMBINER.get().defaultBlockState(), false);
+        scene.world().setBlock(northRecombiner, PwrRegistry.RECOMBINER.get().defaultBlockState(), false);
+        scene.idle(10);
+        scene.world().showSection(buildingRoof(util), Direction.DOWN);
+        scene.idle(15);
+        scene.overlay().showOutline(PonderPalette.GREEN, "recombiners",
+                util.select().position(westRecombiner).add(util.select().position(northRecombiner)), 100);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .colored(PonderPalette.GREEN)
+                .pointAt(util.vector().blockSurface(westRecombiner, Direction.WEST))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+
+        // Bleeding a damaged core.
+        spin(scene, bleedDrive, util.select().position(bleedPump), KINETIC);
+        scene.overlay().showOutline(PonderPalette.RED, "bleed", util.select().fromTo(9, 3, 2, 14, 3, 2), 90);
+        scene.overlay().showText(90)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(util.grid().at(12, 3, 2)))
+                .placeNearTarget();
+        scene.idle(100);
+        spin(scene, bleedDrive, util.select().position(bleedPump), 0);
+
+        // The fix: a drive of their own for the feed pumps.
+        spin(scene, feedDrive, util.select().position(feedPump), KINETIC);
+        scene.overlay().showOutline(PonderPalette.GREEN, "drive", feedDrive, 100);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .colored(PonderPalette.GREEN)
+                .pointAt(util.vector().blockSurface(feedMotor, Direction.WEST))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /** Turns a pump's motor and cog one way and the pump, meshed under the cog, the other. */

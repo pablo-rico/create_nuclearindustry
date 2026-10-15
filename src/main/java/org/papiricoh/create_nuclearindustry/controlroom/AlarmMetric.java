@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.gui.AllIcons;
 import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorPreset;
 import org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorSeverity;
 import org.papiricoh.create_nuclearindustry.fusion.api.TokamakPhase;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ShutdownState;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReleasePath;
 
 import java.util.Locale;
@@ -301,8 +302,9 @@ public enum AlarmMetric implements INamedIconOptions {
 
         @Override
         float reading(MonitorReading reading) {
+            // A reactor reads its containment, or the closed room around it when it has none.
             return 100f * (reading.kind() == TargetKind.REACTOR
-                    ? reading.value(MonitorReading.R_H2)
+                    ? Math.max(reading.value(MonitorReading.R_H2), reading.value(MonitorReading.R_BUILDING_H2))
                     : reading.value(MonitorReading.N_H2));
         }
 
@@ -618,7 +620,97 @@ public enum AlarmMetric implements INamedIconOptions {
         boolean tripped(float reading, int setting) {
             return reading > 0;
         }
+    },
+    // Safe shutdown. Saved by ordinal: new metrics go after these.
+    /**
+     * The cold shutdown margin with every rod in, pcm, at or below the threshold: a SCRAM would not hold
+     * the core down once it is cold and its xenon gone. Boric acid or more rods fix it.
+     */
+    SHUTDOWN_MARGIN_LOW(AllIcons.I_PRIORITY_LOW, TargetKind.REACTOR) {
+        @Override
+        public float scaled(int setting) {
+            return setting * MonitorReading.SHUTDOWN_MARGIN_MAX / 100f;
+        }
+
+        @Override
+        public String format(int setting) {
+            return String.format(Locale.ROOT, "%.0f pcm", scaled(setting));
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_COLD_MARGIN);
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return reactorFormed(sample);
+        }
+    },
+    /** A reactor in a cold shutdown: held off with margin, fuel and water under 100 °C, the core under water. */
+    COLD_SHUTDOWN(AllIcons.I_FX_FIELD_OFF, TargetKind.REACTOR) {
+        @Override
+        public String format(int setting) {
+            return "-";
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_SHUTDOWN_STATE) == ShutdownState.COLD_SHUTDOWN.ordinal() ? 1 : 0;
+        }
+
+        @Override
+        boolean tripped(float reading, int setting) {
+            return reading > 0;
+        }
+    },
+    /** Share of a fuelled core under water, %, at or below the threshold: the fuel uncovers and overheats. */
+    CORE_LEVEL_LOW(AllIcons.I_FLATTEN, TargetKind.REACTOR) {
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.R_CORE_COVERAGE) * 100f;
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return reactorFormed(sample) && sample.value(MonitorReading.R_FUEL) > 0;
+        }
+    },
+    /**
+     * Heat the coolant takes away as a share of the decay heat, %, at or below the threshold, once the
+     * chain reaction is off and the decay heat is worth watching: the core is heating up again.
+     */
+    DECAY_HEAT_UNREMOVED(AllIcons.I_FX_SURFACE_ON, TargetKind.REACTOR) {
+        @Override
+        float reading(MonitorReading reading) {
+            float decay = reading.value(MonitorReading.R_DECAY_HEAT);
+            return decay > 0 ? reading.value(MonitorReading.R_HEAT_REMOVED) / decay * 100f : 100f;
+        }
+
+        @Override
+        boolean below() {
+            return true;
+        }
+
+        @Override
+        boolean applies(MonitorReading sample) {
+            return reactorFormed(sample) && sample.value(MonitorReading.R_SHUTDOWN_STATE) != ShutdownState.OPERATING.ordinal()
+                    && sample.value(MonitorReading.R_DECAY_HEAT) >= DECAY_HEAT_WATCHED;
+        }
     };
+
+    /** Decay heat below this, MW, is too little for {@link #DECAY_HEAT_UNREMOVED} to watch. */
+    public static final float DECAY_HEAT_WATCHED = 0.5f;
 
     private final AllIcons icon;
     private final TargetKind watches;
@@ -666,6 +758,10 @@ public enum AlarmMetric implements INamedIconOptions {
     private static TokamakPhase tokamakPhase(MonitorReading sample) {
         return sample.kind() == TargetKind.TOKAMAK && sample.flag(MonitorReading.K_FORMED)
                 ? TokamakScales.phase(sample.value(MonitorReading.K_PHASE)) : null;
+    }
+
+    private static boolean reactorFormed(MonitorReading sample) {
+        return sample.kind() == TargetKind.REACTOR && sample.flag(MonitorReading.R_FORMED);
     }
 
     private static boolean steamGeneratorFormed(MonitorReading sample) {
@@ -723,7 +819,8 @@ public enum AlarmMetric implements INamedIconOptions {
             case VACUUM_POOR -> TokamakScales.formatPressure(value);
             case MAGNET_TEMPERATURE -> formatted("%.1f K", value);
             case FUSION_GAIN_LOW -> TokamakScales.formatGain(value);
-            case SCRAM, RELIEF_OPEN, CONTAINMENT_OPEN, TOKAMAK_TRIP -> value > 0 ? "1" : "0";
+            case SHUTDOWN_MARGIN_LOW -> formatted("%.0f pcm", value);
+            case SCRAM, RELIEF_OPEN, CONTAINMENT_OPEN, TOKAMAK_TRIP, COLD_SHUTDOWN -> value > 0 ? "1" : "0";
             default -> formatted("%.0f%%", value);
         };
     }

@@ -90,7 +90,7 @@ public class AllNuclearPonderScenes {
     /**
      * The "Nuclear power plant" series. Ponder chains the scenes of one item in the order they are
      * registered, so registering scene by scene keeps the series in order on every item that has more
-     * than one of them; the hubs (reactor and steam generator controllers) show all five, the overview first.
+     * than one of them; the hubs (reactor and steam generator controllers) show all seven, the overview first.
      */
     private static void registerPlantSeries(PonderSceneRegistrationHelper<ResourceLocation> helper) {
         storyBoard(helper, PlantPonderText.OVERVIEW, PlantScenes::overview);
@@ -98,6 +98,8 @@ public class AllNuclearPonderScenes {
         storyBoard(helper, PlantPonderText.GENERATION, PlantScenes::generation);
         storyBoard(helper, PlantPonderText.CONTROL_SAFETY, PlantScenes::controlSafety);
         storyBoard(helper, PlantPonderText.WASTE, PlantScenes::waste);
+        storyBoard(helper, PlantPonderText.SAFE_SHUTDOWN, PlantScenes::safeShutdown);
+        storyBoard(helper, PlantPonderText.LOSS_OF_COOLING, PlantScenes::lossOfCooling);
     }
 
     private static void storyBoard(PonderSceneRegistrationHelper<ResourceLocation> helper, PlantPonderText.Scene scene,

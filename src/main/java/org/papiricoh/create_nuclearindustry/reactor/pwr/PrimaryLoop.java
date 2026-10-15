@@ -95,6 +95,27 @@ public final class PrimaryLoop {
         outThisTick += Math.max(0, amount);
     }
 
+    /** Ambient temperature of fresh makeup water (plain water or boric acid), °C. */
+    public static final double MAKEUP_TEMPERATURE = 20.0;
+
+    /**
+     * Fresh makeup water pumped into the cold leg (water or boric acid, not coolant coming back from
+     * the steam generators): it mixes into the vessel's {@code inventory} mB and lowers the water's
+     * baseline temperature (see {@link PrimaryCoolantModel#mixCold}).
+     */
+    public void recordMakeup(int amount, double inventory) {
+        if (amount <= 0) {
+            return;
+        }
+        inThisTick += amount;
+        coolant.mixCold(amount, MAKEUP_TEMPERATURE, inventory, coolantParams());
+    }
+
+    /** Temperature the vessel water returns to with no heat stored, °C: the cold leg's unless makeup lowered it. */
+    public double baseline() {
+        return coolant.baseline(coolantParams());
+    }
+
     public Result tick(Context c) {
         flowIn += (inThisTick - flowIn) * FLOW_SMOOTHING;
         flowOut += (outThisTick - flowOut) * FLOW_SMOOTHING;
@@ -281,6 +302,9 @@ public final class PrimaryLoop {
         CompoundTag tag = new CompoundTag();
         tag.putDouble("StoredHeat", coolant.storedHeat());
         tag.putDouble("FlowRise", coolant.flowRise());
+        if (Double.isFinite(coolant.savedBaseline())) {
+            tag.putDouble("Baseline", coolant.savedBaseline());
+        }
         tag.putDouble("FlowIn", flowIn);
         tag.putDouble("FlowOut", flowOut);
         if (pressurizer != null) {
@@ -310,6 +334,8 @@ public final class PrimaryLoop {
 
     public void load(CompoundTag tag) {
         coolant.restore(tag.getDouble("StoredHeat"), tag.getDouble("FlowRise"));
+        // Saves from before makeup cooling have no baseline: the vessel sits at the cold leg temperature.
+        coolant.restoreBaseline(tag.contains("Baseline") ? tag.getDouble("Baseline") : Double.POSITIVE_INFINITY);
         flowIn = Math.max(0.0, tag.getDouble("FlowIn"));
         flowOut = Math.max(0.0, tag.getDouble("FlowOut"));
         if (tag.contains("Pressurizer")) {

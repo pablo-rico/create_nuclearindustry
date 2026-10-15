@@ -7,6 +7,7 @@ import org.papiricoh.create_nuclearindustry.reactor.pwr.accident.ReactorAccident
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.physics.FissionConfig;
 import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ReactivityModel;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ShutdownState;
 import org.papiricoh.create_nuclearindustry.reactor.physics.ReactorPhysicsSimulator;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PlantReadings;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PrimaryLoop;
@@ -123,8 +124,52 @@ public final class FissionPanel {
         card.add(new Bar(label(F + "steam"), snapshot.steamAmount() / (float) capacity,
                 of(snapshot.steamAmount(), snapshot.tankCapacity()), snapshot.steamAmount() > capacity * 0.9f ? AMBER : CYAN));
 
+        shutdown(card, snapshot);
         primaryLoop(card, reactor, plant);
         alerts(card, reactor, snapshot);
+    }
+
+    /**
+     * Where a core that is not running stands on its way to a cold shutdown (or any core with boron in
+     * its water): its state, the margin the rods and boron hold once cold, the boron, the rods against
+     * the fuel, and whether the coolant carries the decay heat away.
+     */
+    private static void shutdown(PanelCard card, ReactorBlockEntity.ReactorDisplaySnapshot snapshot) {
+        ShutdownState state = snapshot.shutdownState();
+        if (state == ShutdownState.OPERATING && snapshot.boronPpm() < 0.5) {
+            return;
+        }
+        card.add(new Section(label(F + "shutdown")));
+        double margin = snapshot.coldShutdownMargin();
+        double required = FissionConfig.requiredShutdownMargin;
+        long rods = (long) Math.floor(snapshot.effectiveRods() + 1.0e-6);
+        int fuel = snapshot.uraniumRodCount();
+        double decay = snapshot.decayHeatPower();
+        double removed = snapshot.heatRemovedMw();
+        // The long values get a line each; boron and rods share one.
+        card.add(new Field(label(F + "shutdown.state"), ReactorText.shutdown(state), shutdownColor(state)));
+        card.add(new Field(label(F + "shutdown.margin"), unit("pcm", signed(margin)),
+                margin < required ? RED : margin < 2 * required ? AMBER : GREEN));
+        card.add(new Grid(List.of(
+                new Field(label(F + "shutdown.boron"), unit("ppm", Math.round(snapshot.boronPpm())), TEXT),
+                new Field(label(F + "shutdown.rods"), of(rods, fuel), rods >= fuel ? GREEN : AMBER))));
+        card.add(new Field(label(F + "shutdown.heat"), label(F + "shutdown.heat_value", Math.round(removed), Math.round(decay)),
+                decayHeatUnremoved(snapshot) ? RED : TEXT));
+    }
+
+    /** The chain reaction is off, the decay heat worth watching, and the coolant takes away less than nine tenths of it. */
+    private static boolean decayHeatUnremoved(ReactorBlockEntity.ReactorDisplaySnapshot snapshot) {
+        return snapshot.shutdownState() != ShutdownState.OPERATING && snapshot.decayHeatPower() >= 0.5
+                && snapshot.heatRemovedMw() < 0.9 * snapshot.decayHeatPower();
+    }
+
+    private static int shutdownColor(ShutdownState state) {
+        return switch (state) {
+            case COLD_SHUTDOWN -> GREEN;
+            case HOT_SHUTDOWN -> CYAN;
+            case SUBCRITICAL -> AMBER;
+            case OPERATING -> TEXT;
+        };
     }
 
     /** The pressurized loop when there is one, or the missing pressurizer of a reactor holding primary coolant. */
@@ -161,6 +206,10 @@ public final class FissionPanel {
             card.add(new Field(label(F + "containment"), label(F + "containment_value", number(accidents.containmentPressure(), 2),
                     number(accidents.containmentHydrogen() * 100, 1)), accidents.containmentHydrogen() >= 0.04f ? AMBER : TEXT));
         }
+        double building = accidents.buildingHydrogen();
+        if (building >= 0.001) {
+            card.add(new Alert(label(F + "building_hydrogen", number(building * 100, 1)), building >= 0.04 ? RED : AMBER));
+        }
         double cladding = accidents.cladding().damage(snapshot.uraniumRodCount(), PwrConfig.zirconiumPerRod);
         if (cladding >= 0.005) {
             card.add(new Alert(label(F + "cladding", Math.round(cladding * 100)), RED));
@@ -173,6 +222,16 @@ public final class FissionPanel {
         }
         if (snapshot.thermalExcursionActive()) {
             card.add(new Alert(label(F + "excursion"), RED));
+        }
+        if (snapshot.fuelRemaining() > 0 && snapshot.coreCoverage() < ShutdownState.COVERED) {
+            card.add(new Alert(label(F + "core_uncovered", Math.round(snapshot.coreCoverage() * 100)), RED));
+        }
+        if (decayHeatUnremoved(snapshot)) {
+            card.add(new Alert(label(F + "decay_unremoved"), RED));
+        }
+        if (snapshot.bleeding()) {
+            boolean contaminated = FissionConfig.contaminatedDamage > 0 && snapshot.coreDamage() >= FissionConfig.contaminatedDamage;
+            card.add(contaminated ? new Alert(label(F + "bleeding_contaminated"), AMBER) : new Note(label(F + "bleeding")));
         }
         if (reactor.getAutoScram().isTripped()) {
             card.add(new Alert(label(F + "auto_scram", reactor.getAutoScram().getThreshold()), RED));
@@ -225,6 +284,7 @@ public final class FissionPanel {
                 new Field(label(F + "term.temperature"), unit("pcm", signed(parts.temperature())), TEXT),
                 new Field(label(F + "term.voids"), unit("pcm", signed(parts.voids())), TEXT),
                 new Field(label(F + "term.xenon"), unit("pcm", signed(parts.xenon())), TEXT),
+                new Field(label(F + "term.boron"), unit("pcm", signed(parts.boron())), TEXT),
                 new Field(label(F + "neutrons"), Component.literal(Long.toString(Math.round(snapshot.neutronLevel()))), TEXT))));
 
         card.add(new Section(label(F + "fuel")));

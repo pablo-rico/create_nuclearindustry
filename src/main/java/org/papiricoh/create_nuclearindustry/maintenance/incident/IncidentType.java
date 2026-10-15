@@ -19,7 +19,9 @@ public enum IncidentType {
     DETONATION(InesScale.NONE),
     DRILL(InesScale.NONE),
     /** A nuclear thermal or antimatter engine blew up. */
-    ENGINE_FAILURE(3);
+    ENGINE_FAILURE(3),
+    /** Hydrogen from a reactor without a containment blew up its building. */
+    HYDROGEN_EXPLOSION(3);
 
     private final int ines;
 

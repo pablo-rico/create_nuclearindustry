@@ -37,7 +37,8 @@ abstract class AreaDataGen {
             MaintenanceDataGen.INSTANCE,
             RuinsDataGen.INSTANCE,
             ExplosiveDataGen.INSTANCE,
-            PropulsionDataGen.INSTANCE);
+            PropulsionDataGen.INSTANCE,
+            ShutdownDataGen.INSTANCE);
 
     void lang() {}
 

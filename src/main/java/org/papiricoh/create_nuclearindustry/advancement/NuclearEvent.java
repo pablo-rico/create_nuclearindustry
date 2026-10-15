@@ -58,7 +58,12 @@ public enum NuclearEvent {
     SEISMIC_SCRAM,
     // Nuclear engines on Create Aeronautics ships
     NUCLEAR_FLIGHT,
-    ANTIMATTER_THRUST;
+    ANTIMATTER_THRUST,
+    // Safe shutdown and loss of cooling
+    /** Boric acid went into a reactor whose water held no boron. */
+    BORON_INJECTED,
+    /** Hydrogen from overheated cladding blew up the room around a reactor with no containment. */
+    HYDROGEN_EXPLOSION;
 
     public String id() {
         return name().toLowerCase(Locale.ROOT);

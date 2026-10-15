@@ -44,6 +44,11 @@ public final class PwrConfig {
     private static ModConfigSpec.DoubleValue VESSEL_FAILURE_PRESSURE;
     private static ModConfigSpec.IntValue VESSEL_FAILURE_TICKS;
     private static ModConfigSpec.DoubleValue STEAM_EXPLOSION_TEMPERATURE;
+    private static ModConfigSpec.BooleanValue BUILDING_HYDROGEN;
+    private static ModConfigSpec.IntValue BUILDING_MAX_VOLUME;
+    private static ModConfigSpec.DoubleValue BUILDING_LEAK_RATE;
+    private static ModConfigSpec.DoubleValue BUILDING_MAX_EXPLOSION_POWER;
+    private static ModConfigSpec.DoubleValue BUILDING_EXPLOSION_RELEASE;
 
     public static double coldLegTemperature = 290.0;
     public static double coreTemperatureRise = 35.0;
@@ -82,6 +87,11 @@ public final class PwrConfig {
     public static double vesselFailurePressure = 250.0;
     public static int vesselFailureTicks = 100;
     public static double steamExplosionTemperature = 2800.0;
+    public static boolean buildingHydrogen = true;
+    public static int buildingMaxVolume = 4096;
+    public static double buildingLeakRate = 0.0005;
+    public static double buildingMaxExplosionPower = 8.0;
+    public static double buildingExplosionRelease = 0.02;
 
     private PwrConfig() {}
 
@@ -208,6 +218,23 @@ public final class PwrConfig {
         STEAM_EXPLOSION_TEMPERATURE = builder
                 .comment("Core temperature above which water pumped back into a dried-out core explodes, in °C.")
                 .defineInRange("pwr.accidents.steamExplosionTemperature", 2800.0, 500.0, 4000.0);
+
+        BUILDING_HYDROGEN = builder
+                .comment("Hydrogen from a reactor without a sealed containment gathers in any closed room of ordinary blocks around it",
+                        "and can blow its roof off. False lets it escape to the open air, as before.")
+                .define("pwr.building.hydrogen", true);
+        BUILDING_MAX_VOLUME = builder
+                .comment("Most blocks of air a reactor building may enclose to hold hydrogen; a bigger space counts as open air.")
+                .defineInRange("pwr.building.maxVolume", 4096, 64, 65_536);
+        BUILDING_LEAK_RATE = builder
+                .comment("Share of a reactor building's gas that swaps with outside air each tick: ordinary buildings are not airtight.")
+                .defineInRange("pwr.building.leakRate", 0.0005, 0.0, 0.1);
+        BUILDING_MAX_EXPLOSION_POWER = builder
+                .comment("Strongest explosion a hydrogen burn in a reactor building makes (TNT is 4).")
+                .defineInRange("pwr.building.maxExplosionPower", 8.0, 2.0, 20.0);
+        BUILDING_EXPLOSION_RELEASE = builder
+                .comment("Share of the damaged fuel's airborne activity a reactor building explosion throws out as fallout.")
+                .defineInRange("pwr.building.explosionRelease", 0.02, 0.0, 1.0);
     }
 
     public static void bake() {
@@ -248,6 +275,11 @@ public final class PwrConfig {
         vesselFailurePressure = VESSEL_FAILURE_PRESSURE.get();
         vesselFailureTicks = VESSEL_FAILURE_TICKS.get();
         steamExplosionTemperature = STEAM_EXPLOSION_TEMPERATURE.get();
+        buildingHydrogen = BUILDING_HYDROGEN.get();
+        buildingMaxVolume = BUILDING_MAX_VOLUME.get();
+        buildingLeakRate = BUILDING_LEAK_RATE.get();
+        buildingMaxExplosionPower = BUILDING_MAX_EXPLOSION_POWER.get();
+        buildingExplosionRelease = BUILDING_EXPLOSION_RELEASE.get();
     }
 
     /** Hot leg temperature at full flow, °C. */

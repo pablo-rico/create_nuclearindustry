@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:scram",
+  "criteria": {
+    "boron_injected": {
+      "conditions": {
+        "event": "boron_injected"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.boron_injected.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:boron"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.boron_injected.title"
+    }
+  },
+  "requirements": [
+    [
+      "boron_injected"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

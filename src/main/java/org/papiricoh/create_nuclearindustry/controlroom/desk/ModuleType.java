@@ -15,7 +15,7 @@ public enum ModuleType {
             ModuleFunction.TOKAMAK_HEATING)),
     DIAL("dial_module", List.of(ModuleFunction.ROD_TARGET, ModuleFunction.SCRAM_THRESHOLD, ModuleFunction.SIGNAL_LEVEL)),
     LAMP("lamp_module", List.of(ModuleFunction.LAMP_SCRAM, ModuleFunction.LAMP_RUNNING, ModuleFunction.LAMP_NO_SIGNAL,
-            ModuleFunction.LAMP_ALARM, ModuleFunction.LAMP_RELIEF_OPEN)),
+            ModuleFunction.LAMP_ALARM, ModuleFunction.LAMP_RELIEF_OPEN, ModuleFunction.LAMP_COLD_SHUTDOWN)),
     GAUGE("gauge_module", List.of(ModuleFunction.READING)),
     KEY_SWITCH("key_switch_module", List.of(ModuleFunction.TOGGLE)),
     /**

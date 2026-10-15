@@ -19,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.fusion.api.TokamakReadings;
 import org.papiricoh.create_nuclearindustry.fusion.api.TripCause;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
+import org.papiricoh.create_nuclearindustry.reactor.physics.kinetics.ShutdownState;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PrimaryLoop;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrConfig;
 
@@ -464,6 +465,7 @@ public final class ControlModule {
             case LAMP_RELIEF_OPEN -> reactor != null && reactor.getPrimaryLoop().reliefOpen() ? 1 : 0;
             case CORE_VIEW -> reactor != null && reactor.isFormed() ? 1 : 0;
             case PLASMA_VIEW -> sample.kind() == TargetKind.TOKAMAK && sample.flag(MonitorReading.K_FORMED) ? 1 : 0;
+            case LAMP_COLD_SHUTDOWN -> reactor != null && reactor.getShutdownState() == ShutdownState.COLD_SHUTDOWN ? 1 : 0;
         };
     }
 
@@ -590,7 +592,10 @@ public final class ControlModule {
                 : sample.value(MonitorReading.R_TEMPERATURE) / TEMPERATURE_SCALE;
         float current = reactor.getRodTarget() >= 0 ? reactor.getRodTarget() : reactor.getControlRodInsertionRatio();
         int steps = reactor.getStructure().map(structure -> structure.innerHeight()).orElse(0);
-        float next = (float) pid.step(setting / 100.0, measurement, dt, current, steps, tuning);
+        // A core with more rod blocks than it needs has rods worth more than one bank: each step of insertion
+        // moves more reactivity, so the gains shrink by the same factor to keep the loop as stable as before.
+        PidController.Tuning rodTuning = tuning.scaled(1.0 / Math.max(1.0, reactor.getPhysicsSimulator().getMaxAbsorption()));
+        float next = (float) pid.step(setting / 100.0, measurement, dt, current, steps, rodTuning);
         reactor.setRodTarget(next);
         boolean changed = Math.abs(next - demand) > 1.0e-4f;
         demand = next;

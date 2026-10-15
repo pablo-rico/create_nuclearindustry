@@ -82,6 +82,17 @@ public enum MonitorRow {
     REACTOR_COOLANT(TargetKind.REACTOR, "coolant", r -> line(fmt("%.0f%%", r.value(R_COOLANT) * 100), r.value(R_COOLANT),
             r.value(R_COOLANT) < 0.2f ? Tone.BAD : Tone.TEXT)),
     REACTOR_REACTIVITY(TargetKind.REACTOR, "reactivity", r -> line(fmt("%+.0f pcm", r.value(R_NET_REACTIVITY)), -1, Tone.TEXT)),
+    /** What a SCRAM (and the boron) would hold back once the core is cold: below the required margin it would restart. */
+    REACTOR_SHUTDOWN_MARGIN(TargetKind.REACTOR, "shutdown_margin", r -> {
+        float margin = r.value(R_COLD_MARGIN);
+        double required = FissionConfig.requiredShutdownMargin;
+        return line(fmt("%+.0f pcm", margin), margin / SHUTDOWN_MARGIN_MAX,
+                margin < required ? Tone.BAD : margin < 2 * required ? Tone.WARN : Tone.GOOD);
+    }),
+    /** Only once boric acid put boron in the water. */
+    REACTOR_BORON(TargetKind.REACTOR, "boron", r -> r.value(R_BORON_PPM) >= 0.5f
+            ? line(fmt("%.0f ppm", r.value(R_BORON_PPM)), r.value(R_BORON_PPM) / BORON_MAX, Tone.TEXT)
+            : null),
     REACTOR_COOLANT_TEMPERATURE(TargetKind.REACTOR, "coolant_temperature", r -> line(fmt("%.0f °C", r.value(R_COOLANT_TEMP)),
             r.value(R_COOLANT_TEMP) / 4000f, Tone.TEXT)),
     REACTOR_DECAY_HEAT(TargetKind.REACTOR, "decay_heat", r -> line(fmt("%.0f MW", r.value(R_DECAY_HEAT)), -1, Tone.TEXT)),

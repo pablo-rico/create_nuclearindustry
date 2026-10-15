@@ -45,4 +45,19 @@ class ReadingValueTest {
         assertTrue(Double.isNaN(ReadingValue.value(GaugeReading.REACTOR_TEMPERATURE, MonitorReading.NONE)));
         assertFalse(Double.isNaN(ReadingValue.value(GaugeReading.REACTOR_XENON, reactor())));
     }
+
+    @Test
+    void theShutdownReadingsShowMarginAndBoron() {
+        float[] v = new float[46];
+        v[MonitorReading.R_COLD_MARGIN] = 2500;
+        v[MonitorReading.R_BORON_PPM] = 625;
+        MonitorReading sample = new MonitorReading(TargetKind.REACTOR, "Idle", v, 0, 0);
+        assertEquals(2500, ReadingValue.value(GaugeReading.REACTOR_SHUTDOWN_MARGIN, sample), 1e-3);
+        assertEquals("pcm", ReadingValue.unit(GaugeReading.REACTOR_SHUTDOWN_MARGIN));
+        assertEquals(0.5, GaugeReading.REACTOR_SHUTDOWN_MARGIN.fraction(sample), 1e-6);
+        assertEquals("ppm", ReadingValue.unit(GaugeReading.REACTOR_BORON));
+        assertEquals(0.25, GaugeReading.REACTOR_BORON.fraction(sample), 1e-6);
+        v[MonitorReading.R_COLD_MARGIN] = -800;
+        assertEquals(0, GaugeReading.REACTOR_SHUTDOWN_MARGIN.fraction(sample), 1e-6, "a negative margin pins the needle at 0");
+    }
 }

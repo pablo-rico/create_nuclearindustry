@@ -290,7 +290,7 @@ final class ControlRoom2DataGen extends AreaDataGen {
         add(m + "loss_of_flow", "Primary flow below", "Caudal del primario por debajo de");
         add(m + "sg_level_low", "Steam generator level below", "Nivel del generador de vapor por debajo de");
         add(m + "containment_pressure", "Containment pressure above", "Presión de la contención por encima de");
-        add(m + "hydrogen", "Containment hydrogen above", "Hidrógeno en la contención por encima de");
+        add(m + "hydrogen", "Hydrogen above", "Hidrógeno por encima de");
         add(s + "relief_open", "RELIEF OPEN", "ALIVIO ABIERTA");
         add(s + "sg_level_high", "SG LEVEL HI", "NIVEL GV ALTO");
         add(s + "sg_steam_low", "STEAM FLOW LO", "VAPOR BAJO");

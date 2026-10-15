@@ -1,0 +1,31 @@
+{
+  "parent": "create_nuclearindustry:meltdown",
+  "criteria": {
+    "hydrogen_explosion": {
+      "conditions": {
+        "event": "hydrogen_explosion"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.hydrogen_explosion.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:recombiner"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.hydrogen_explosion.title"
+    }
+  },
+  "requirements": [
+    [
+      "hydrogen_explosion"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

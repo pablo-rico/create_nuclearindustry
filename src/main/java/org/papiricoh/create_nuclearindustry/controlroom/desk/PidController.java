@@ -24,7 +24,16 @@ public final class PidController {
      * @param deadband  error, in fractions of full scale, inside which the output holds
      * @param rateLimit largest output change per second, or 0 for no limit
      */
-    public record Tuning(double kp, double ki, double kd, double deadband, double rateLimit) {}
+    public record Tuning(double kp, double ki, double kd, double deadband, double rateLimit) {
+        /**
+         * The same tuning with its gains (not the deadband or the rate limit) multiplied by
+         * {@code factor}: a plant whose actuator is stronger per unit of output needs less gain.
+         */
+        public Tuning scaled(double factor) {
+            double f = Double.isFinite(factor) ? Math.max(0.0, factor) : 1.0;
+            return new Tuning(kp * f, ki * f, kd * f, deadband, rateLimit);
+        }
+    }
 
     private boolean initialized;
     private double integral;

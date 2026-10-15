@@ -16,7 +16,8 @@ import org.papiricoh.create_nuclearindustry.reactor.pwr.containment.ContainmentR
  * few seconds). Everything that leaves the reactor (steam from the relief valve or a break,
  * hydrogen from the cladding, radioactivity) goes through here: into the containment if it is
  * sealed, otherwise out into the open, where small leaks are gathered and laid as fallout in
- * batches.
+ * batches. Without a containment, hydrogen and steam gather in whatever closed room of ordinary
+ * blocks the reactor stands in (its {@link ReactorBuilding}), which a hydrogen burn blows apart.
  */
 public final class ReactorAccidents {
     private static final int LOOKUP_INTERVAL = 100;
@@ -29,6 +30,10 @@ public final class ReactorAccidents {
 
     private final CladdingOxidationModel cladding = new CladdingOxidationModel();
     private final VesselIntegrity vessel = new VesselIntegrity();
+    private final ReactorBuilding building = new ReactorBuilding();
+    /** The vessel as last ticked, where the building is measured from. */
+    @Nullable
+    private BoundingBox reactorBox;
     private boolean refloodLatched;
     private boolean refloodPending;
     @Nullable
@@ -51,6 +56,16 @@ public final class ReactorAccidents {
         return vessel;
     }
 
+    /** The ordinary building around a reactor without a containment. */
+    public ReactorBuilding building() {
+        return building;
+    }
+
+    /** Hydrogen volume fraction in the reactor building, 0-1, or 0 without a closed building holding it. */
+    public double buildingHydrogen() {
+        return building.hydrogenFraction();
+    }
+
     public static CladdingOxidationModel.Params claddingParams() {
         return new CladdingOxidationModel.Params(PwrConfig.oxidationTemperature, PwrConfig.oxidationRate, PwrConfig.zirconiumPerRod,
                 PwrConfig.oxidationHeat);
@@ -63,9 +78,11 @@ public final class ReactorAccidents {
 
     /**
      * Once a tick on the server: finds the containment again now and then, lays gathered open-air
-     * leaks as fallout and refreshes the containment readings.
+     * leaks as fallout, refreshes the containment readings and runs the reactor building, whose
+     * hydrogen may explode. Returns true if it did: the blast may have taken the reactor apart.
      */
-    public void tick(ServerLevel level, BoundingBox reactor) {
+    public boolean tick(ServerLevel level, BoundingBox reactor, int rods) {
+        reactorBox = reactor;
         if (++lookupTimer >= LOOKUP_INTERVAL) {
             lookupTimer = 0;
             ContainmentMonitorBlockEntity found = ContainmentRegistry.enclosing(level, reactor);
@@ -78,6 +95,10 @@ public final class ReactorAccidents {
         ContainmentMonitorBlockEntity containment = containment(level);
         containmentPressure = containment == null ? 0.0f : containment.getPressure();
         containmentHydrogen = containment == null ? 0.0f : containment.getHydrogen();
+        if (containment != null || !PwrConfig.buildingHydrogen) {
+            return false;
+        }
+        return building.tick(level, reactor, cladding.damage(rods, PwrConfig.zirconiumPerRod), rods, this::releaseOpen);
     }
 
     /** The sealed containment the reactor stands in, or null. */
@@ -92,9 +113,33 @@ public final class ReactorAccidents {
     /** Looks for the containment right now, for events that cannot wait for the next lookup. */
     @Nullable
     public ContainmentMonitorBlockEntity findContainment(ServerLevel level, BoundingBox reactor) {
+        reactorBox = reactor;
         ContainmentMonitorBlockEntity found = ContainmentRegistry.enclosing(level, reactor);
         containmentPos = found == null ? null : found.getBlockPos();
         return found;
+    }
+
+    /**
+     * Measures the reactor building right now unless a containment holds the reactor, for a
+     * meltdown about to flood it with steam and hydrogen.
+     */
+    public void prepareBuilding(ServerLevel level, BoundingBox reactor) {
+        reactorBox = reactor;
+        if (PwrConfig.buildingHydrogen && containment(level) == null) {
+            building.prepare(level, reactor, this::releaseOpen);
+        }
+    }
+
+    /**
+     * A meltdown sets off the hydrogen it just let into the reactor building, without waiting for
+     * a spark. Returns true if it exploded.
+     */
+    public boolean igniteBuilding(ServerLevel level, int rods) {
+        if (!PwrConfig.buildingHydrogen || !PwrConfig.hydrogen || containment(level) != null) {
+            return false;
+        }
+        // the melt has failed the cladding, whatever was oxidised before
+        return building.forceIgnition(level, 1.0, rods, this::releaseOpen);
     }
 
     /** Coolant flashing to steam out of the primary: into the containment, or out with its activity. */
@@ -105,11 +150,13 @@ public final class ReactorAccidents {
         ContainmentMonitorBlockEntity containment = containment(level);
         if (containment != null) {
             containment.addSteam(mb * PwrConfig.molesPerMb, temperatureK);
+        } else if (PwrConfig.buildingHydrogen) {
+            building.addSteam(mb * PwrConfig.molesPerMb, temperatureK);
         }
         releaseActivity(level, at, mb * activityPerMb);
     }
 
-    /** Hydrogen from the cladding: into the containment, or lost to the open air. */
+    /** Hydrogen from the cladding: into the containment, else into the reactor building, or lost to the open air. */
     public void releaseHydrogen(ServerLevel level, double moles, double temperatureK) {
         if (moles <= 0) {
             return;
@@ -118,6 +165,8 @@ public final class ReactorAccidents {
         ContainmentMonitorBlockEntity containment = containment(level);
         if (containment != null) {
             containment.addHydrogen(moles, temperatureK);
+        } else if (PwrConfig.buildingHydrogen) {
+            building.addHydrogen(level, reactorBox, moles, temperatureK, this::releaseOpen);
         }
     }
 
@@ -129,6 +178,14 @@ public final class ReactorAccidents {
         ContainmentMonitorBlockEntity containment = containment(level);
         if (containment != null) {
             containment.addActivity(activity);
+            return;
+        }
+        releaseOpen(level, at, activity);
+    }
+
+    /** Activity let out into the open air: gathered and laid as fallout in batches, at once if it is a lot. */
+    private void releaseOpen(ServerLevel level, BlockPos at, double activity) {
+        if (!(activity > 0)) {
             return;
         }
         openActivity += activity;
@@ -189,6 +246,7 @@ public final class ReactorAccidents {
         tag.putDouble("Hydrogen", hydrogenMade);
         tag.putFloat("ContainmentPressure", containmentPressure);
         tag.putFloat("ContainmentHydrogen", containmentHydrogen);
+        tag.put("Building", building.save());
         return tag;
     }
 
@@ -199,5 +257,6 @@ public final class ReactorAccidents {
         hydrogenMade = Math.max(0, tag.getDouble("Hydrogen"));
         containmentPressure = tag.getFloat("ContainmentPressure");
         containmentHydrogen = tag.getFloat("ContainmentHydrogen");
+        building.load(tag.getCompound("Building"));
     }
 }

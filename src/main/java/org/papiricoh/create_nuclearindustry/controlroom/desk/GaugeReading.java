@@ -73,7 +73,11 @@ public enum GaugeReading {
     THERMAL_PROPELLANT(TargetKind.THERMAL_ENGINE, r -> r.value(E_FUEL)),
     ANTIMATTER_THROTTLE(TargetKind.ANTIMATTER_ENGINE, r -> r.value(E_THROTTLE)),
     ANTIMATTER_COIL(TargetKind.ANTIMATTER_ENGINE, r -> r.value(E_LIMIT) > 0 ? r.value(E_TEMPERATURE) / r.value(E_LIMIT) : 0),
-    ANTIMATTER_CHAMBER(TargetKind.ANTIMATTER_ENGINE, r -> r.value(E_FUEL));
+    ANTIMATTER_CHAMBER(TargetKind.ANTIMATTER_ENGINE, r -> r.value(E_FUEL)),
+    // Safe shutdown. Saved by name; new readings go last anyway.
+    /** The cold shutdown margin with every rod in, up to {@link MonitorReading#SHUTDOWN_MARGIN_MAX}; a negative one reads 0. */
+    REACTOR_SHUTDOWN_MARGIN(TargetKind.REACTOR, r -> r.value(R_COLD_MARGIN) / SHUTDOWN_MARGIN_MAX),
+    REACTOR_BORON(TargetKind.REACTOR, r -> r.value(R_BORON_PPM) / BORON_MAX);
 
     private final TargetKind kind;
     private final ToDoubleFunction<MonitorReading> fraction;

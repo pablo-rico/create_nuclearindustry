@@ -82,7 +82,8 @@ final class MaintenanceDataGen extends AreaDataGen {
                 {"earthquake", "Earthquake", "Terremoto"},
                 {"detonation", "Detonation", "Detonación"},
                 {"drill", "Emergency drill", "Simulacro de emergencia"},
-                {"engine_failure", "Rocket engine failure", "Fallo de motor cohete"}};
+                {"engine_failure", "Rocket engine failure", "Fallo de motor cohete"},
+                {"hydrogen_explosion", "Reactor building hydrogen explosion", "Explosión de hidrógeno en el edificio del reactor"}};
         if (types.length != IncidentType.values().length) {
             throw new IllegalStateException("every incident type needs a name");
         }

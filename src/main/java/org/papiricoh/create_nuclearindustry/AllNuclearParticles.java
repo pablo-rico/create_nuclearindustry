@@ -15,6 +15,10 @@ public final class AllNuclearParticles {
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> RADIOACTIVE_DUST =
             PARTICLE_TYPES.register("radioactive_dust", () -> new SimpleParticleType(false));
 
+    /** Pale wisps of hydrogen gathering under the roof of a reactor building or a containment. */
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> HYDROGEN_GAS =
+            PARTICLE_TYPES.register("hydrogen_gas", () -> new SimpleParticleType(false));
+
     private AllNuclearParticles() {}
 
     public static void register(IEventBus modEventBus) {

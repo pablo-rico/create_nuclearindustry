@@ -104,6 +104,31 @@ public class AdvancementTriggerTests {
         helper.succeed();
     }
 
+    /** Boric acid hangs from the SCRAM; the building's hydrogen explosion is a secret under the meltdown. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void theShutdownAdvancementsAreLoaded(GameTestHelper helper) {
+        String[][] expected = {{"boron_injected", "scram"}, {"hydrogen_explosion", "meltdown"}, {"cold_shutdown", "scram"}};
+        for (String[] pair : expected) {
+            AdvancementHolder holder = advancement(helper, pair[0]);
+            helper.assertTrue(holder != null, pair[0] + " should be loaded");
+            helper.assertTrue(holder.value().parent().map(parent -> parent.getPath().equals(pair[1])).orElse(false),
+                    pair[0] + " should hang from " + pair[1]);
+        }
+        helper.assertTrue(advancement(helper, "hydrogen_explosion").value().display().map(display -> display.isHidden()).orElse(false),
+                "the hydrogen explosion is secret");
+        helper.assertFalse(advancement(helper, "boron_injected").value().display().map(display -> display.isHidden()).orElse(true),
+                "boric acid is not");
+        NuclearEventTrigger.TriggerInstance boron = (NuclearEventTrigger.TriggerInstance)
+                NuclearEventTrigger.TriggerInstance.of(NuclearEvent.BORON_INJECTED).triggerInstance();
+        helper.assertTrue(boron.matches(NuclearEvent.BORON_INJECTED) && !boron.matches(NuclearEvent.COLD_SHUTDOWN),
+                "boric acid is its own event");
+        NuclearEventTrigger.TriggerInstance hydrogen = (NuclearEventTrigger.TriggerInstance)
+                NuclearEventTrigger.TriggerInstance.of(NuclearEvent.HYDROGEN_EXPLOSION).triggerInstance();
+        helper.assertTrue(hydrogen.matches(NuclearEvent.HYDROGEN_EXPLOSION) && !hydrogen.matches(NuclearEvent.MELTDOWN),
+                "and so is the building's hydrogen explosion");
+        helper.succeed();
+    }
+
     private static AdvancementHolder advancement(GameTestHelper helper, String id) {
         return helper.getLevel().getServer().getAdvancements()
                 .get(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, id));

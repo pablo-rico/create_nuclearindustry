@@ -18,8 +18,10 @@ public class ReactorPoisonTests {
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void runningBuildsDecayHeatAndXenon(GameTestHelper helper) {
-        // Hot water and fuel take back about 1600 pcm, so the rods sit a little higher than half.
-        ReactorPhysicsSimulator physics = fuelled(0.45f);
+        // Hot water and fuel take back about 1600 pcm, so the rods hold a little less than half their old
+        // bank: four rod blocks for four of fuel are worth 1.5 banks, so 0.3485 in holds what 0.45 did with
+        // the absorption capped at one bank.
+        ReactorPhysicsSimulator physics = fuelled(0.3485f);
         for (int i = 0; i < 6000; i++) {
             physics.tick();
         }
@@ -53,9 +55,9 @@ public class ReactorPoisonTests {
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void xenonHoldsBackARestart(GameTestHelper helper) {
-        ReactorPhysicsSimulator poisoned = fuelled(0.5f);
+        ReactorPhysicsSimulator poisoned = fuelled(0.3857f);
         poisoned.setFissionProducts(1.0, 0.5, 0.0);
-        ReactorPhysicsSimulator clean = fuelled(0.5f);
+        ReactorPhysicsSimulator clean = fuelled(0.3857f);
         for (int i = 0; i < 300; i++) {
             for (ReactorPhysicsSimulator physics : new ReactorPhysicsSimulator[]{poisoned, clean}) {
                 physics.tick();
@@ -73,7 +75,7 @@ public class ReactorPoisonTests {
         boolean poisoning = Config.xenonPoisoning;
         try {
             Config.xenonPoisoning = false;
-            ReactorPhysicsSimulator physics = fuelled(0.5f);
+            ReactorPhysicsSimulator physics = fuelled(0.3857f);
             physics.setFissionProducts(1.0, 1.0, 0.0);
             helper.assertTrue(physics.getXenonPenalty() == 0.0, "no penalty with poisoning off");
         } finally {
@@ -84,7 +86,7 @@ public class ReactorPoisonTests {
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void fissionProductsSurviveSaving(GameTestHelper helper) {
-        ReactorPhysicsSimulator physics = fuelled(0.5f);
+        ReactorPhysicsSimulator physics = fuelled(0.3857f);
         physics.setFissionProducts(0.6, 0.3, 2.5);
         CompoundTag tag = new CompoundTag();
         physics.serializeNBT(tag);
@@ -107,6 +109,10 @@ public class ReactorPoisonTests {
         });
     }
 
+    /**
+     * Four fuel blocks and four rod blocks, worth 1.5 banks: 0.3857 in holds 11000 pcm, what half in held
+     * when the absorption was capped at one bank.
+     */
     private static ReactorPhysicsSimulator fuelled(float insertion) {
         ReactorPhysicsSimulator physics = new ReactorPhysicsSimulator(4, 4);
         for (int i = 0; i < 4; i++) {

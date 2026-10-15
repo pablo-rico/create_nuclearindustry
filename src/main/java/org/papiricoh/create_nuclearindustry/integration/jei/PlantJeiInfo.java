@@ -59,6 +59,11 @@ public final class PlantJeiInfo {
         pages.add(items("containment_door", PwrRegistry.CONTAINMENT_DOOR_ITEM));
         pages.add(items("corium", PwrRegistry.CORE_CATCHER_ITEM, PwrRegistry.CORIUM_ITEM, PwrRegistry.SOLIDIFIED_CORIUM_ITEM));
 
+        // Safe shutdown and the hydrogen of a reactor with no containment (text in ShutdownDataGen)
+        pages.add(new Page("safe_shutdown", stacks(AllNuclearItems.CONTROL_ROD, AllNuclearItems.BORON),
+                fluids(AllNuclearFluids.BORIC_ACID, AllNuclearFluids.HOT_WATER, AllNuclearFluids.HOT_HEAVY_WATER)));
+        pages.add(items("reactor_building_hydrogen", PwrRegistry.RECOMBINER_ITEM, AllNuclearItems.REACTOR_CASING));
+
         // Tokamak heating and viewports (text in PlasmaHeatingDataGen)
         pages.add(items("neutral_beam_injector", PlasmaHeatingRegistry.NEUTRAL_BEAM_INJECTOR_ITEM));
         pages.add(items("rf_antenna", PlasmaHeatingRegistry.RF_ANTENNA_ITEM));

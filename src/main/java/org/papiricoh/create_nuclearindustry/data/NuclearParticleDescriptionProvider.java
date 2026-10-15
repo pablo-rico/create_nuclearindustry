@@ -16,5 +16,7 @@ public class NuclearParticleDescriptionProvider extends ParticleDescriptionProvi
     protected void addDescriptions() {
         spriteSet(AllNuclearParticles.RADIOACTIVE_DUST.get(),
                 ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "radioactive_dust"), 3, false);
+        spriteSet(AllNuclearParticles.HYDROGEN_GAS.get(),
+                ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "hydrogen_gas"), 3, false);
     }
 }

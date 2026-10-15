@@ -2,8 +2,8 @@ package org.papiricoh.create_nuclearindustry.reactor.physics.kinetics;
 
 /**
  * The reactivity of a fission core, in pcm (1 pcm = 0.00001 dk/k): what the fuel has in excess,
- * what graphite, a reflector or heavy water add, and what the control rods, xenon, heat, steam voids
- * and damage take away.
+ * what graphite, a reflector or heavy water add, and what the control rods, dissolved boron, xenon,
+ * heat, steam voids and damage take away.
  *
  * <p>The temperature and void terms are what make a reactor manageable: fuel that heats broadens
  * its resonances (Doppler) and absorbs more, hot or boiling water moderates less, so a power rise
@@ -40,14 +40,28 @@ public final class ReactivityModel {
      * @param damageWorth          lost when the core is fully damaged, pcm
      * @param dryCoreWorth         lost by a water moderated core with no water at all: without its moderator
      *                             the chain reaction stops (graphite keeps moderating, so it scales down with it), pcm
+     * @param boronWorthPerPpm     taken by each ppm of boron dissolved in the water covering the core, pcm
      */
     public record Params(double fuelExcess, double burnupDefect, double emptyChannelWorth, double rodBankWorth,
                          double rodWorthShape, double graphiteWorth, double reflectorWorth, double heavyWaterWorth,
                          double dopplerCoefficient, double moderatorCoefficient, double voidCoefficient,
                          double graphiteModeratorCoefficient, double graphiteVoidCoefficient,
-                         double heavyWaterVoidCoefficient, double damageWorth, double dryCoreWorth) {
+                         double heavyWaterVoidCoefficient, double damageWorth, double dryCoreWorth, double boronWorthPerPpm) {
+        /** Boron worth when none is given, pcm per ppm. */
+        public static final double DEFAULT_BORON_WORTH = 5.0;
         public static final Params DEFAULT = new Params(12000, 0.6, 24000, 22000, 0.5, 1500, 1000, 500,
-                -2.0, -4.0, -15.0, -1.0, 3.0, -5.0, 2000, 20000);
+                -2.0, -4.0, -15.0, -1.0, 3.0, -5.0, 2000, 20000, DEFAULT_BORON_WORTH);
+
+        /** The coefficients from before soluble boron, with its default worth. */
+        public Params(double fuelExcess, double burnupDefect, double emptyChannelWorth, double rodBankWorth,
+                      double rodWorthShape, double graphiteWorth, double reflectorWorth, double heavyWaterWorth,
+                      double dopplerCoefficient, double moderatorCoefficient, double voidCoefficient,
+                      double graphiteModeratorCoefficient, double graphiteVoidCoefficient,
+                      double heavyWaterVoidCoefficient, double damageWorth, double dryCoreWorth) {
+            this(fuelExcess, burnupDefect, emptyChannelWorth, rodBankWorth, rodWorthShape, graphiteWorth, reflectorWorth,
+                    heavyWaterWorth, dopplerCoefficient, moderatorCoefficient, voidCoefficient, graphiteModeratorCoefficient,
+                    graphiteVoidCoefficient, heavyWaterVoidCoefficient, damageWorth, dryCoreWorth, DEFAULT_BORON_WORTH);
+        }
     }
 
     /**
@@ -67,17 +81,33 @@ public final class ReactivityModel {
      * @param damage           core damage, 0..1
      * @param pwrVoidWorth     pressurized water: share of reactivity a fully voided core loses
      * @param pwrTemperatureCoefficient pressurized water: share lost per kelvin
+     * @param boronPpm         boron dissolved in the core's water, ppm
      */
     public record Inputs(double fuelReactivity, double burnt, double noDefectShare, double emptyFraction, double moderation,
                          double reflection, Coolant coolant, double xenon, double rods, double fuelTemperature,
                          double coolantTemperature, double voidFraction, double coverage, double damage, double pwrVoidWorth,
-                         double pwrTemperatureCoefficient) {}
+                         double pwrTemperatureCoefficient, double boronPpm) {
+        /** A core with no boron in its water. */
+        public Inputs(double fuelReactivity, double burnt, double noDefectShare, double emptyFraction, double moderation,
+                      double reflection, Coolant coolant, double xenon, double rods, double fuelTemperature,
+                      double coolantTemperature, double voidFraction, double coverage, double damage, double pwrVoidWorth,
+                      double pwrTemperatureCoefficient) {
+            this(fuelReactivity, burnt, noDefectShare, emptyFraction, moderation, reflection, coolant, xenon, rods, fuelTemperature,
+                    coolantTemperature, voidFraction, coverage, damage, pwrVoidWorth, pwrTemperatureCoefficient, 0);
+        }
+    }
 
     /** Every term, pcm; positive adds reactivity. */
     public record Breakdown(double fuel, double moderation, double reflector, double heavyWater, double xenon, double rods,
-                            double doppler, double moderator, double voids, double damage) {
+                            double doppler, double moderator, double voids, double damage, double boron) {
+        /** A breakdown with no boron. */
+        public Breakdown(double fuel, double moderation, double reflector, double heavyWater, double xenon, double rods,
+                         double doppler, double moderator, double voids, double damage) {
+            this(fuel, moderation, reflector, heavyWater, xenon, rods, doppler, moderator, voids, damage, 0);
+        }
+
         public double total() {
-            return fuel + moderation + reflector + heavyWater + xenon + rods + doppler + moderator + voids + damage;
+            return fuel + moderation + reflector + heavyWater + xenon + rods + doppler + moderator + voids + damage + boron;
         }
 
         /** Reactivity with the rods all the way out. */
@@ -87,20 +117,26 @@ public final class ReactivityModel {
 
         /** The same reactivity grouped the way a player reads it. */
         public Parts parts() {
-            return new Parts(fuel + moderation + reflector + heavyWater, rods, doppler + moderator, voids, xenon, damage);
+            return new Parts(fuel + moderation + reflector + heavyWater, rods, doppler + moderator, voids, xenon, damage, boron);
         }
     }
 
     /**
      * The breakdown grouped into what a player can act on, pcm: the fuel (with its graphite, reflector
      * and heavy water), the rods, the temperature feedback (Doppler and moderator), the steam and
-     * missing water, the xenon and the damage. They add up to the net reactivity.
+     * missing water, the xenon, the damage and the boron dissolved in the water. They add up to the
+     * net reactivity.
      */
-    public record Parts(double fuel, double rods, double temperature, double voids, double xenon, double damage) {
-        public static final Parts NONE = new Parts(0, 0, 0, 0, 0, 0);
+    public record Parts(double fuel, double rods, double temperature, double voids, double xenon, double damage, double boron) {
+        public static final Parts NONE = new Parts(0, 0, 0, 0, 0, 0, 0);
+
+        /** Parts with no boron. */
+        public Parts(double fuel, double rods, double temperature, double voids, double xenon, double damage) {
+            this(fuel, rods, temperature, voids, xenon, damage, 0);
+        }
 
         public double total() {
-            return fuel + rods + temperature + voids + xenon + damage;
+            return fuel + rods + temperature + voids + xenon + damage + boron;
         }
     }
 
@@ -130,12 +166,26 @@ public final class ReactivityModel {
         double voids = alphaVoid * 100.0 * clamp(in.voidFraction())
                 - p.dryCoreWorth() * (1 - clamp(in.coverage())) * (1 - m);
         return new Breakdown(fuel, p.graphiteWorth() * m, p.reflectorWorth() * clamp(in.reflection()), heavy,
-                -Math.max(0, in.xenon()), -Math.max(0, in.rods()), doppler, moderator, voids, -p.damageWorth() * clamp(in.damage()));
+                -Math.max(0, in.xenon()), -Math.max(0, in.rods()), doppler, moderator, voids, -p.damageWorth() * clamp(in.damage()),
+                -boron(p, in.boronPpm(), in.coverage()));
     }
 
-    /** Worth of the full set of rods, pcm: the bank worth times the absorption ratio of rods to fuel. */
+    /**
+     * Reactivity the dissolved boron holds back, pcm (positive): its worth per ppm times the ppm, for
+     * the part of the core its water covers. Boron in water that has boiled out of the core holds
+     * nothing back there.
+     */
+    public static double boron(Params p, double ppm, double coverage) {
+        return Math.max(0, p.boronWorthPerPpm()) * Math.max(0, ppm) * clamp(coverage);
+    }
+
+    /**
+     * Worth of the full set of rods, pcm: the bank worth times the absorption ratio of rods to fuel.
+     * The ratio is not capped at one: a core with more rod blocks than it needs has stronger rods (the
+     * simulator only guards it with {@code fission.reactivity.maxRodAbsorption}).
+     */
     public static double rodBank(Params p, double maxAbsorption) {
-        return p.rodBankWorth() * clamp(maxAbsorption);
+        return p.rodBankWorth() * Math.max(0, maxAbsorption);
     }
 
     private static double lerp(double a, double b, double t) {

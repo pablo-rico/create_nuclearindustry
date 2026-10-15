@@ -34,6 +34,29 @@ public final class NuclearFluidHelper {
         return isPrimaryCoolant(stack) || isHotPrimary(stack);
     }
 
+    /** Water with boric acid dissolved in it: soluble boron for a reactor's coolant. */
+    public static boolean isBoricAcid(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.BORIC_ACID.get();
+    }
+
+    /** Water or heavy water bled hot from a shut-down reactor; a cooling tower condenses it back. */
+    public static boolean isHotWater(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.HOT_WATER.get() || stack.getFluid() == AllNuclearFluids.HOT_HEAVY_WATER.get();
+    }
+
+    /** Water from a fallout-reached lake or a damaged reactor's vessel. */
+    public static boolean isContaminatedWater(FluidStack stack) {
+        return stack.getFluid() == AllNuclearFluids.CONTAMINATED_WATER.get();
+    }
+
+    /**
+     * What a fission reactor's output ports bleed from its coolant tank: hot water or hot heavy water
+     * (a pressurized loop's letdown included), or contaminated water from a damaged core.
+     */
+    public static boolean isReactorBleed(FluidStack stack) {
+        return isHotWater(stack) || isContaminatedWater(stack);
+    }
+
     /** What a fission reactor's coolant tank holds: water to boil, or the pressurized loop's coolant. */
     public static boolean isReactorCoolant(FluidStack stack) {
         return isCoolant(stack) || isPrimaryCoolant(stack);
@@ -61,14 +84,15 @@ public final class NuclearFluidHelper {
         return stack.getFluid() == AllNuclearFluids.EXHAUST_STEAM.get() || stack.getFluid() == AllNuclearFluids.HEAVY_EXHAUST_STEAM.get();
     }
 
-    /** What a cooling tower condenses: reactor steam or turbine exhaust, light or heavy. */
+    /** What a cooling tower condenses: reactor steam, turbine exhaust or water bled hot from a reactor, light or heavy. */
     public static boolean isCondensable(FluidStack stack) {
-        return isTurbineSteam(stack) || isExhaustSteam(stack);
+        return isTurbineSteam(stack) || isExhaustSteam(stack) || isHotWater(stack);
     }
 
-    /** Heavy steam or heavy exhaust: condenses to heavy water. */
+    /** Heavy steam, heavy exhaust or hot heavy water: condenses to heavy water. */
     public static boolean isHeavyVapour(FluidStack stack) {
-        return isHeavySteam(stack) || stack.getFluid() == AllNuclearFluids.HEAVY_EXHAUST_STEAM.get();
+        return isHeavySteam(stack) || stack.getFluid() == AllNuclearFluids.HEAVY_EXHAUST_STEAM.get()
+                || stack.getFluid() == AllNuclearFluids.HOT_HEAVY_WATER.get();
     }
 
     public static boolean isDeuterium(FluidStack stack) {

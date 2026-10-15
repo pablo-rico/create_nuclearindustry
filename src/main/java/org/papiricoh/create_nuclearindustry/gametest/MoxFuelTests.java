@@ -58,11 +58,12 @@ public class MoxFuelTests {
         uranium.loadFuelAssembly(5f);
         ReactorPhysicsSimulator mox = new ReactorPhysicsSimulator(10, 7);
         mox.loadFuelAssembly(FuelKind.MOX, FuelKind.MOX_EQUIVALENT_ENRICHMENT);
-        helper.assertTrue(uranium.getMaxAbsorption() == 1.0, "uranium is fully held, got " + uranium.getMaxAbsorption());
+        // The absorption is no longer capped at one bank: more rods than needed are worth more.
+        helper.assertTrue(uranium.getMaxAbsorption() >= 1.0, "uranium is fully held, got " + uranium.getMaxAbsorption());
         helper.assertTrue(mox.getMaxAbsorption() < 1.0, "MOX slips past the same rods, got " + mox.getMaxAbsorption());
         ReactorPhysicsSimulator wellControlled = new ReactorPhysicsSimulator(10, 10);
         wellControlled.loadFuelAssembly(FuelKind.MOX, FuelKind.MOX_EQUIVALENT_ENRICHMENT);
-        helper.assertTrue(wellControlled.getMaxAbsorption() == 1.0, "with enough rods a SCRAM still stops MOX");
+        helper.assertTrue(wellControlled.getMaxAbsorption() >= 1.0, "with enough rods a SCRAM still stops MOX");
         helper.succeed();
     }
 

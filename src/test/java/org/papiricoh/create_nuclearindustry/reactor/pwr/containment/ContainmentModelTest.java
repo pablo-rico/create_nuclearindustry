@@ -180,4 +180,52 @@ class ContainmentModelTest {
         big.addSteam(30_000, STEAM_K);
         assertTrue(big.pressure() < small.pressure());
     }
+
+    @Test
+    void leakingThinsTheHydrogenByItsShare() {
+        ContainmentModel model = room();
+        model.addHydrogen(model.totalMoles() * 0.05, ContainmentModel.WALL_TEMPERATURE);
+        double before = model.hydrogen();
+        double excess = model.pressure() - ContainmentModel.ATMOSPHERE;
+        model.leak(0.01);
+        assertEquals(before * 0.99, model.hydrogen(), before * 1e-9);
+        for (int t = 0; t < 2_000; t++) {
+            model.leak(0.0005);
+        }
+        // 0.9995^2000 is about 0.37
+        double kept = 0.99 * Math.pow(0.9995, 2_000);
+        assertEquals(kept * before, model.hydrogen(), before * 1e-6);
+        assertEquals(ContainmentModel.ATMOSPHERE + kept * excess, model.pressure(), 1e-4,
+                "fresh air takes its place, at the outside pressure");
+        assertTrue(model.oxygenFraction() > 0.2, "and brings oxygen back, " + model.oxygenFraction());
+    }
+
+    @Test
+    void leakingRelievesOverpressureAndTakesTheActivity() {
+        ContainmentModel model = room();
+        model.addSteam(40_000, STEAM_K);
+        model.addActivity(10.0);
+        assertTrue(model.pressure() > 1.8);
+        double leaked = model.leak(0.1);
+        assertEquals(1.0, leaked, 1e-9, "a tenth of the activity goes with a tenth of the gas");
+        assertEquals(9.0, model.activity(), 1e-9);
+        for (int t = 0; t < 200; t++) {
+            model.leak(0.05);
+        }
+        assertEquals(ContainmentModel.ATMOSPHERE, model.pressure(), 0.02, "the room settles at the outside pressure");
+    }
+
+    @Test
+    void noLeakChangesNothing() {
+        ContainmentModel model = room();
+        model.addHydrogen(1_000, ContainmentModel.WALL_TEMPERATURE);
+        double moles = model.totalMoles(), h2 = model.hydrogen();
+        assertEquals(0.0, model.leak(0.0), 0.0);
+        assertEquals(0.0, model.leak(Double.NaN), 0.0);
+        assertEquals(moles, model.totalMoles(), 0.0);
+        assertEquals(h2, model.hydrogen(), 0.0);
+        model.leak(5.0);
+        assertEquals(0.0, model.hydrogen(), 0.0, "a share above 1 swaps all the gas");
+        assertEquals(ContainmentModel.ATMOSPHERE, model.pressure(), 1e-6);
+    }
 }
