@@ -14,8 +14,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
-import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
-import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
 import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
@@ -24,6 +22,8 @@ import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.FissileMaterial;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
+import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
 
@@ -34,7 +34,6 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
     public static final int URANIUM_SLOTS = 3;
     public static final int SLOT_COUNT = FIRST_URANIUM_SLOT + URANIUM_SLOTS;
     public static final float REQUIRED_ENRICHMENT = WarheadStats.REQUIRED_ENRICHMENT;
-    private static final int COUNTDOWN_TICKS = 200;
 
     private final ItemStackHandler inventory = new ItemStackHandler(SLOT_COUNT) {
         @Override
@@ -62,15 +61,15 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
     private boolean legacyChecked;
 
     public LaunchPadBlockEntity(BlockPos pos, BlockState state) {
-        super(AllNuclearEntities.LAUNCH_PAD.get(), pos, state);
+        super(MissileRegistry.LAUNCH_PAD_ENTITY.get(), pos, state);
     }
 
     public boolean isItemValid(int slot, ItemStack stack) {
         if (slot == MISSILE_SLOT) {
-            return stack.is(AllNuclearItems.MISSILE.get());
+            return stack.is(MissileRegistry.MISSILE_ITEM.get());
         }
         if (slot == DESIGNATOR_SLOT) {
-            return stack.is(AllNuclearItems.TARGET_DESIGNATOR.get());
+            return stack.is(MissileRegistry.TARGET_DESIGNATOR.get());
         }
         if (stack.is(AllNuclearTags.Items.THERMONUCLEAR_COMPONENTS)) {
             // A missile is too small for a thermonuclear warhead.
@@ -107,7 +106,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         }
 
         if (countdown < 0) {
-            countdown = COUNTDOWN_TICKS;
+            countdown = MissileConfig.launchCountdownTicks();
             reportThreat();
             markDirtyAndSync();
             return;
@@ -197,7 +196,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
     }
 
     public boolean hasMissile() {
-        return inventory.getStackInSlot(MISSILE_SLOT).is(AllNuclearItems.MISSILE.get());
+        return inventory.getStackInSlot(MISSILE_SLOT).is(MissileRegistry.MISSILE_ITEM.get());
     }
 
     @Nullable
@@ -214,7 +213,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
     }
 
     public int getCountdownDuration() {
-        return COUNTDOWN_TICKS;
+        return MissileConfig.launchCountdownTicks();
     }
 
     /** Warhead units loaded: eight per core. */
@@ -277,7 +276,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
             targetVec = targetVec.add(0, TargetDesignatorItem.airburstHeight(horizontalRadius), 0);
         }
 
-        MissileEntity missile = new MissileEntity(AllNuclearEntities.MISSILE.get(), serverLevel);
+        MissileEntity missile = new MissileEntity(MissileRegistry.MISSILE.get(), serverLevel);
         missile.setPos(start.x, start.y, start.z);
         if (dirty) {
             missile.configureDirty(start, targetVec, load);
@@ -290,7 +289,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
     }
 
     private void consumeFuel() {
-        // Consume el cohete y todo el uranio cargado; el designador es reutilizable y se conserva.
+        // The missile and the whole warhead go; the designator is kept for the next launch.
         inventory.extractItem(MISSILE_SLOT, 1, false);
         for (int slot = FIRST_URANIUM_SLOT; slot < SLOT_COUNT; slot++) {
             inventory.setStackInSlot(slot, ItemStack.EMPTY);

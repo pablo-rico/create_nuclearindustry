@@ -152,6 +152,7 @@ public class Config
         PerformanceConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.accelerator.AcceleratorConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.explosive.ExplosiveConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.missile.MissileConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.isotope.IsotopeConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.maintenance.MaintenanceConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig.define(BUILDER);
@@ -268,6 +269,7 @@ public class Config
         PerformanceConfig.bake();
         org.papiricoh.create_nuclearindustry.accelerator.AcceleratorConfig.bake();
         org.papiricoh.create_nuclearindustry.explosive.ExplosiveConfig.bake();
+        org.papiricoh.create_nuclearindustry.missile.MissileConfig.bake();
         org.papiricoh.create_nuclearindustry.isotope.IsotopeConfig.bake();
         org.papiricoh.create_nuclearindustry.maintenance.MaintenanceConfig.bake();
         org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig.bake();

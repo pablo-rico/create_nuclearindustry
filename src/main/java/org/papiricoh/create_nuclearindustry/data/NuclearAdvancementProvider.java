@@ -29,6 +29,7 @@ import org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleRegistry;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
 import org.papiricoh.create_nuclearindustry.isotope.IsotopeRegistry;
 import org.papiricoh.create_nuclearindustry.maintenance.MaintenanceRegistry;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsRegistry;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelRegistry;
@@ -374,8 +375,8 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
             tab(WEAPONS,
                     any(task("weapons", null, AllNuclearItems.NUCLEAR_BOMB,
                             hasEach(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE, AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE,
-                                    AllNuclearItems.NUCLEAR_BOMB, AllNuclearItems.DIRTY_BOMB, AllNuclearItems.MISSILE,
-                                    AllNuclearItems.LAUNCH_PAD, AllNuclearItems.TARGET_DESIGNATOR, ExplosiveRegistry.FIRING_SET,
+                                    AllNuclearItems.NUCLEAR_BOMB, AllNuclearItems.DIRTY_BOMB, MissileRegistry.MISSILE_ITEM,
+                                    MissileRegistry.LAUNCH_PAD_ITEM, MissileRegistry.TARGET_DESIGNATOR, ExplosiveRegistry.FIRING_SET,
                                     ExplosiveRegistry.EXPLOSIVE_LENS),
                             "Weapons of Mass Destruction", "Armas de destrucción masiva",
                             "Make a bomb, a missile or what goes into one", "Fabrica una bomba, un misil o lo que va dentro")),
@@ -402,7 +403,7 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
                     secret(task("nuclear_shell_fired", "weapons_core", () -> Items.FIRE_CHARGE, event(NuclearEvent.NUCLEAR_SHELL_FIRED),
                             "Artillery of Last Resort", "Artillería de último recurso",
                             "See a nuclear cannon shell go off", "Presencia la explosión de un proyectil nuclear de cañón")),
-                    task("missile_launched", "weapons", AllNuclearItems.MISSILE, event(NuclearEvent.MISSILE_LAUNCHED),
+                    task("missile_launched", "weapons", MissileRegistry.MISSILE_ITEM, event(NuclearEvent.MISSILE_LAUNCHED),
                             "Liftoff", "Despegue",
                             "Launch a missile from a launch pad", "Lanza un misil desde una plataforma de lanzamiento"),
                     task("dirty_detonation", "weapons", AllNuclearItems.DIRTY_BOMB, event(NuclearEvent.DIRTY_DETONATION),

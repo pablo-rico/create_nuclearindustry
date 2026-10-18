@@ -16,6 +16,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +49,7 @@ public class WeaponsRecipeTests {
     /** No crafting table makes a bomb, a missile or a launch pad any more. */
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void noBenchMakesAWarhead(GameTestHelper helper) {
-        List<Item> weapons = List.of(AllNuclearItems.NUCLEAR_BOMB.get(), AllNuclearItems.MISSILE.get(), AllNuclearItems.LAUNCH_PAD.get(),
+        List<Item> weapons = List.of(AllNuclearItems.NUCLEAR_BOMB.get(), MissileRegistry.MISSILE_ITEM.get(), MissileRegistry.LAUNCH_PAD_ITEM.get(),
                 ExplosiveRegistry.THERMONUCLEAR_BOMB_ITEM.get());
         for (RecipeHolder<?> holder : helper.getLevel().getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING)) {
             ItemStack result = holder.value().getResultItem(helper.getLevel().registryAccess());

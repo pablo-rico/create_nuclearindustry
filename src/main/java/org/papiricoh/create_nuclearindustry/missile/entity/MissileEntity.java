@@ -14,14 +14,12 @@ import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
 import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
-import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
 
 /**
- * Misil ICBM: vuela del punto de lanzamiento al objetivo describiendo un arco balistico
- * (ascenso -> crucero -> descenso) y al impactar detona reutilizando {@link NuclearBlastManager}.
- * El movimiento es autoritario en servidor; la posicion/rotacion se sincronizan por el tracker de
- * entidades y el cliente solo dibuja la estela de particulas.
+ * A missile in flight: it flies from its pad to its target along a ballistic arc (climb, cruise,
+ * descent) and detonates there through {@link NuclearDetonation}. The server moves it; position and
+ * rotation reach clients through the entity tracker, and clients only draw its trail.
  *
  * <p>The missile forces the chunk it is in, so it keeps flying far from players and resumes its
  * flight after a restart. That chunk is saved with the missile: one loaded again (after a restart
@@ -43,7 +41,7 @@ public class MissileEntity extends Entity {
     private int flightTicks = 100;
     private int age;
     private double arcHeight = 60.0;
-    // Chunk forzado a cargar que sigue al misil, para que siga tickeando aunque vuele lejos del jugador.
+    // The forced chunk that follows the missile, so it keeps ticking far from every player.
     private int forcedChunkX = Integer.MIN_VALUE;
     private int forcedChunkZ = Integer.MIN_VALUE;
     /** Saved by a version that did not save its forced chunk; see {@link #adoptLegacyForcedChunk}. */
@@ -55,7 +53,7 @@ public class MissileEntity extends Entity {
         setNoGravity(true);
     }
 
-    /** Configura la trayectoria y la carga al ser lanzado desde la plataforma (lado servidor). */
+    /** Sets the flight and the warhead when a pad launches it (server side). */
     public void configure(Vec3 start, Vec3 target, float power, int hRadius, float intensity) {
         this.startX = start.x;
         this.startY = start.y;
@@ -69,7 +67,7 @@ public class MissileEntity extends Entity {
         this.age = 0;
 
         double horizontalDistance = Math.hypot(target.x - start.x, target.z - start.z);
-        // Duracion y altura de arco escaladas con la distancia (con minimos para que se vea el arco).
+        // Flight time and arc height grow with the distance, with minimums so the arc still shows.
         this.flightTicks = flightTicks(start, target);
         this.arcHeight = Mth.clamp(40 + horizontalDistance * 0.5, 50, 180);
         setPos(start.x, start.y, start.z);
@@ -114,7 +112,7 @@ public class MissileEntity extends Entity {
         ThreatRegistry.report(level(), getUUID(), BlockPos.containing(targetX, targetY, targetZ), radius, flightTicks - age);
     }
 
-    /** Mantiene cargado el chunk actual del misil (liberando el anterior) para que no deje de tickear. */
+    /** Keeps the missile's chunk forced (letting the last one go) so it never stops ticking. */
     private void followChunk(Vec3 pos) {
         if (!(level() instanceof ServerLevel serverLevel)) {
             return;
@@ -257,7 +255,7 @@ public class MissileEntity extends Entity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        // El misil no usa datos sincronizados: la posicion/rotacion las propaga el tracker de entidades.
+        // No synced data: the entity tracker carries position and rotation.
     }
 
     @Override

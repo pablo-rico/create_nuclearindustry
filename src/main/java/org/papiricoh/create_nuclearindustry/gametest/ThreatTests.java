@@ -11,13 +11,13 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearDataComponents;
-import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.civildefense.ThreatBoard;
 import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
 import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 
@@ -59,12 +59,12 @@ public class ThreatTests {
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
     public static void launchCountdownWarnsTheTarget(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        helper.setBlock(WEAPON, AllNuclearBlocks.LAUNCH_PAD.get());
+        helper.setBlock(WEAPON, MissileRegistry.LAUNCH_PAD.get());
         LaunchPadBlockEntity pad = helper.getBlockEntity(WEAPON);
         BlockPos target = helper.absolutePos(WEAPON).offset(150, 0, 0);
-        ItemStack designator = new ItemStack(AllNuclearItems.TARGET_DESIGNATOR.get());
+        ItemStack designator = new ItemStack(MissileRegistry.TARGET_DESIGNATOR.get());
         designator.set(AllNuclearDataComponents.TARGET_POS.get(), target);
-        pad.getInventory().setStackInSlot(LaunchPadBlockEntity.MISSILE_SLOT, new ItemStack(AllNuclearItems.MISSILE.get()));
+        pad.getInventory().setStackInSlot(LaunchPadBlockEntity.MISSILE_SLOT, new ItemStack(MissileRegistry.MISSILE_ITEM.get()));
         pad.getInventory().setStackInSlot(LaunchPadBlockEntity.DESIGNATOR_SLOT, designator);
         pad.getInventory().setStackInSlot(LaunchPadBlockEntity.FIRST_URANIUM_SLOT, new ItemStack(AllNuclearItems.RADIOACTIVE_WASTE.get()));
         BlockPos at = helper.absolutePos(WEAPON);
@@ -92,7 +92,7 @@ public class ThreatTests {
         ServerLevel level = helper.getLevel();
         Vec3 start = Vec3.atCenterOf(helper.absolutePos(WEAPON));
         Vec3 target = start.add(200, 0, 0);
-        MissileEntity missile = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
+        MissileEntity missile = new MissileEntity(MissileRegistry.MISSILE.get(), level);
         missile.configureDirty(start, target, 1.0f);
         level.addFreshEntity(missile);
         int flight = MissileEntity.flightTicks(start, target);

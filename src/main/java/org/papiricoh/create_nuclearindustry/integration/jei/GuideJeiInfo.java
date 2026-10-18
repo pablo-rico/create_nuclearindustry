@@ -8,6 +8,7 @@ import net.minecraft.world.item.Items;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsRegistry;
 
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public final class GuideJeiInfo {
         pages.add(items("warhead_parts", ExplosiveRegistry.EXPLOSIVE_LENS, ExplosiveRegistry.IMPLOSION_ASSEMBLY,
                 ExplosiveRegistry.FIRING_SET, ExplosiveRegistry.NEUTRON_INITIATOR, ExplosiveRegistry.BOMB_CASING,
                 ExplosiveRegistry.THERMONUCLEAR_CASING));
-        pages.add(items("missile_launch", AllNuclearItems.LAUNCH_PAD, AllNuclearItems.MISSILE, AllNuclearItems.TARGET_DESIGNATOR));
+        pages.add(items("missile_launch", MissileRegistry.LAUNCH_PAD_ITEM, MissileRegistry.MISSILE_ITEM, MissileRegistry.TARGET_DESIGNATOR));
         item(NUCLEAR_CANNON_SHELL).ifPresent(shell ->
                 pages.add(new PlantJeiInfo.Page("nuclear_cannon_shell", List.of(new ItemStack(shell)), List.of())));
         item(THERMONUCLEAR_CANNON_SHELL).ifPresent(shell ->

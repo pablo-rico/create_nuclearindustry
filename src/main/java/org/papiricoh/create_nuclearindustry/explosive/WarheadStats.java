@@ -1,13 +1,13 @@
 package org.papiricoh.create_nuclearindustry.explosive;
 
 /**
- * Formulas compartidas para la cabeza nuclear (bomba y misil): a partir de la cantidad de uranio
- * valido y su enriquecimiento medio calcula potencia, radios e intensidad de la explosion.
- * Centralizado aqui para que la bomba ({@code NuclearBombBlockEntity}) y la plataforma de
- * lanzamiento ({@code LaunchPadBlockEntity}) produzcan exactamente los mismos resultados.
+ * The formulas of a fission warhead, shared by the bomb and the missile: from the warhead units loaded
+ * and their average enrichment, the power, radii and intensity of the detonation. Kept in one place so
+ * the bomb ({@code NuclearBombBlockEntity}) and the launch pad ({@code LaunchPadBlockEntity}) give the
+ * same results.
  */
 public final class WarheadStats {
-    /** Enriquecimiento minimo (%) para que el uranio sea apto como combustible de armamento. */
+    /** Lowest enrichment, %, at which uranium is weapons grade. */
     public static final float REQUIRED_ENRICHMENT = 90.0f;
     /** Warhead units that saturate power and radius: six cores of eight. */
     public static final int MAX_URANIUM_UNITS = 48;

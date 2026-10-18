@@ -11,7 +11,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.civildefense.ThreatBoard;
@@ -26,6 +25,7 @@ import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationStyle;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.ThermonuclearBombBlockEntity;
 import org.papiricoh.create_nuclearindustry.integration.cbc.CBCNuclearIntegration;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 
 /** The thermonuclear bomb: its three parts, its countdown, what it tells the world and its cannon shell. */
@@ -157,7 +157,7 @@ public class ThermonuclearTests {
     /** A missile is too small for a thermonuclear warhead. */
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
     public static void aLaunchPadTakesNoThermonuclearParts(GameTestHelper helper) {
-        helper.setBlock(BOMB, AllNuclearBlocks.LAUNCH_PAD.get());
+        helper.setBlock(BOMB, MissileRegistry.LAUNCH_PAD.get());
         LaunchPadBlockEntity pad = helper.getBlockEntity(BOMB);
         int warhead = LaunchPadBlockEntity.FIRST_URANIUM_SLOT;
         helper.assertFalse(pad.isItemValid(warhead, deuteride(1)), "no lithium deuteride");

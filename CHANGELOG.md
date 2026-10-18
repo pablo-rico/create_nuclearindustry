@@ -852,6 +852,10 @@ below for what changes in existing worlds.
   bottom of the Ponder window vanished behind the room's floor whenever the
   view closed in on part of it.
 
+### Missiles
+- The launch pad's countdown can now be set in the config
+  (`missile.launch.countdownSeconds`, 10 seconds as before).
+
 ### Nuclear weapons: the explosion
 - A nuclear detonation is now worked out from its warhead and the height it goes
   off at. A ground burst digs a real crater, about a third as wide as the

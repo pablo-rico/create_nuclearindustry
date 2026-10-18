@@ -6,7 +6,6 @@ import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenu;
-import org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadMenu;
 import org.papiricoh.create_nuclearindustry.reactor.gui.ReactorControlMenu;
 
 public class AllNuclearGUIs {
@@ -28,9 +27,6 @@ public class AllNuclearGUIs {
     public static final DeferredHolder<MenuType<?>, MenuType<org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModuleMenu>> CONTROL_MODULE_MENU =
             MENUS.register("control_module", () -> net.neoforged.neoforge.common.extensions.IMenuTypeExtension.create(
                     org.papiricoh.create_nuclearindustry.controlroom.desk.ControlModuleMenu::fromNetwork));
-
-    public static final DeferredHolder<MenuType<?>, MenuType<LaunchPadMenu>> LAUNCH_PAD_MENU =
-            MENUS.register("launch_pad", () -> IMenuTypeExtension.create(LaunchPadMenu::fromNetwork));
 
     public static final DeferredHolder<MenuType<?>, MenuType<org.papiricoh.create_nuclearindustry.fusion.gui.TokamakMenu>> TOKAMAK_MENU =
             MENUS.register("tokamak_control", () -> IMenuTypeExtension.create(

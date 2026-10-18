@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 
 public class LaunchPadRenderer implements BlockEntityRenderer<LaunchPadBlockEntity> {
@@ -22,7 +22,7 @@ public class LaunchPadRenderer implements BlockEntityRenderer<LaunchPadBlockEnti
     public void render(LaunchPadBlockEntity launchPad, float partialTick, PoseStack poseStack,
                        MultiBufferSource buffer, int packedLight, int packedOverlay) {
         ItemStack missile = launchPad.getInventory().getStackInSlot(LaunchPadBlockEntity.MISSILE_SLOT);
-        if (!missile.is(AllNuclearItems.MISSILE.get())) {
+        if (!missile.is(MissileRegistry.MISSILE_ITEM.get())) {
             return;
         }
 

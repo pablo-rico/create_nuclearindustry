@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 
 public class MissileRenderer extends EntityRenderer<MissileEntity> {
@@ -21,7 +21,7 @@ public class MissileRenderer extends EntityRenderer<MissileEntity> {
     public MissileRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.itemRenderer = context.getItemRenderer();
-        this.missileStack = new ItemStack(AllNuclearItems.MISSILE.get());
+        this.missileStack = new ItemStack(MissileRegistry.MISSILE_ITEM.get());
     }
 
     @Override

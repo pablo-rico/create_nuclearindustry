@@ -1731,6 +1731,16 @@ Misil: el Designador de objetivo, usado agachado al aire, cambia entre
 explosión en superficie y explosión aérea; en aérea el misil estalla
 `airburstHeight ×` su radio de bola de fuego por encima del objetivo.
 
+```toml
+[missile.launch]
+countdownSeconds = 10
+```
+
+Misil: una Plataforma de lanzamiento cargada y con señal de redstone cuenta
+`missile.launch.countdownSeconds` segundos antes del despegue (por defecto 10,
+los 200 ticks de siempre). Las sirenas del objetivo reciben el aviso durante
+toda la cuenta atrás.
+
 Lo que se ve (solo en el cliente): los jugadores a menos de `visualRange`
 bloques reciben la detonación y ven un destello blanco (más fuerte mirando
 hacia ella y si nada la tapa), un brillo naranja en la pantalla y en la niebla

@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
-import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 import org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadMenuProvider;
 
@@ -88,7 +88,7 @@ public class LaunchPadBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return type == AllNuclearEntities.LAUNCH_PAD.get()
+        return type == MissileRegistry.LAUNCH_PAD_ENTITY.get()
                 ? (lvl, pos, blockState, blockEntity) -> {
                     if (blockEntity instanceof LaunchPadBlockEntity pad) {
                         pad.tick();

@@ -19,7 +19,6 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
-import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
@@ -29,6 +28,7 @@ import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationProfile;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
 import org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenu;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 import org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadMenu;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
@@ -61,16 +61,16 @@ public class StaticStatePerformanceTests {
         BlockPos padB = new BlockPos(9, 2, 3);
         helper.setBlock(bombA, AllNuclearBlocks.NUCLEAR_BOMB.get());
         helper.setBlock(bombB, AllNuclearBlocks.NUCLEAR_BOMB.get());
-        helper.setBlock(padA, AllNuclearBlocks.LAUNCH_PAD.get());
-        helper.setBlock(padB, AllNuclearBlocks.LAUNCH_PAD.get());
+        helper.setBlock(padA, MissileRegistry.LAUNCH_PAD.get());
+        helper.setBlock(padB, MissileRegistry.LAUNCH_PAD.get());
         helper.runAfterDelay(1, () -> {
             Player first = helper.makeMockPlayer(GameType.SURVIVAL);
             Player second = helper.makeMockPlayer(GameType.SURVIVAL);
             // Opened one after the other, as the menus of two players would be; the first is checked last.
             NuclearBombMenu firstBomb = AllNuclearGUIs.NUCLEAR_BOMB_MENU.get().create(1, first.getInventory(), at(helper, bombA));
             NuclearBombMenu secondBomb = AllNuclearGUIs.NUCLEAR_BOMB_MENU.get().create(2, second.getInventory(), at(helper, bombB));
-            LaunchPadMenu firstPad = AllNuclearGUIs.LAUNCH_PAD_MENU.get().create(3, first.getInventory(), at(helper, padA));
-            LaunchPadMenu secondPad = AllNuclearGUIs.LAUNCH_PAD_MENU.get().create(4, second.getInventory(), at(helper, padB));
+            LaunchPadMenu firstPad = MissileRegistry.LAUNCH_PAD_MENU.get().create(3, first.getInventory(), at(helper, padA));
+            LaunchPadMenu secondPad = MissileRegistry.LAUNCH_PAD_MENU.get().create(4, second.getInventory(), at(helper, padB));
             helper.assertTrue(helper.absolutePos(bombA).equals(firstBomb.getBombPos()) && firstBomb.getBomb() != null
                             && firstBomb.getBomb().getBlockPos().equals(helper.absolutePos(bombA)),
                     "the first player's menu shows the first bomb, got " + firstBomb.getBombPos());
@@ -207,19 +207,19 @@ public class StaticStatePerformanceTests {
             helper.assertTrue(!wasForced, "the far chunk is free to use");
             level.setChunkForced(far.x, far.z, true);
             try {
-                MissileEntity legacy = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
+                MissileEntity legacy = new MissileEntity(MissileRegistry.MISSILE.get(), level);
                 Vec3 inFar = new Vec3(far.getMiddleBlockX() + 0.5, 100, far.getMiddleBlockZ() + 0.5);
                 legacy.configure(inFar, inFar.add(200, 0, 0), 1.0f, 4, 1.0f);
 
                 // Saved by the older version before its first tick: it had forced nothing yet.
-                MissileEntity unflown = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
+                MissileEntity unflown = new MissileEntity(MissileRegistry.MISSILE.get(), level);
                 unflown.load(legacySave(legacy, 0, inFar));
                 helper.assertTrue(!unflown.adoptLegacyForcedChunk(level) && unflown.getForcedChunk() == null,
                         "a missile that never flew does not take a chunk forced by someone else");
 
                 // Moved off its flight path (by a command, say): the chunk it stands in proves nothing.
                 int flown = 3;
-                MissileEntity displaced = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
+                MissileEntity displaced = new MissileEntity(MissileRegistry.MISSILE.get(), level);
                 displaced.load(legacySave(legacy, flown, legacy.trajectoryAt(flown).add(0, 5, 0)));
                 helper.assertTrue(!displaced.adoptLegacyForcedChunk(level) && displaced.getForcedChunk() == null,
                         "a missile off its flight path does not take the chunk it stands in");
@@ -227,7 +227,7 @@ public class StaticStatePerformanceTests {
                 // In flight where its own path put it, the chunk it forced still forced: that one is its own.
                 Vec3 onPath = legacy.trajectoryAt(flown);
                 helper.assertTrue(new ChunkPos(BlockPos.containing(onPath)).equals(far), "three ticks in, still in the far chunk");
-                MissileEntity loaded = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
+                MissileEntity loaded = new MissileEntity(MissileRegistry.MISSILE.get(), level);
                 loaded.load(legacySave(legacy, flown, onPath));
                 helper.assertTrue(loaded.getForcedChunk() == null, "an old save names no chunk");
                 helper.assertTrue(loaded.adoptLegacyForcedChunk(level) && far.equals(loaded.getForcedChunk()),
@@ -235,13 +235,13 @@ public class StaticStatePerformanceTests {
 
                 CompoundTag saved = loaded.saveWithoutId(new CompoundTag());
                 helper.assertTrue(saved.contains("ForcedChunk"), "the forced chunk is saved with the missile");
-                MissileEntity reloaded = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
+                MissileEntity reloaded = new MissileEntity(MissileRegistry.MISSILE.get(), level);
                 reloaded.load(saved);
                 helper.assertTrue(far.equals(reloaded.getForcedChunk()), "and comes back with it, got " + reloaded.getForcedChunk());
 
-                MissileEntity none = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
+                MissileEntity none = new MissileEntity(MissileRegistry.MISSILE.get(), level);
                 none.configure(inFar, inFar.add(200, 0, 0), 1.0f, 4, 1.0f);
-                MissileEntity noneLoaded = new MissileEntity(AllNuclearEntities.MISSILE.get(), level);
+                MissileEntity noneLoaded = new MissileEntity(MissileRegistry.MISSILE.get(), level);
                 noneLoaded.load(none.saveWithoutId(new CompoundTag()));
                 helper.assertTrue(noneLoaded.getForcedChunk() == null, "a missile that forced nothing loads with nothing");
             } finally {

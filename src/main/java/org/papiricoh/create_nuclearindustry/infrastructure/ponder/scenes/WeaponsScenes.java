@@ -15,6 +15,7 @@ import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.GuidePonderText;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.PlantPonderText;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.PlantPonderText.Script;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 
 /**
@@ -183,12 +184,12 @@ public class WeaponsScenes {
         scene.idle(90);
 
         scene.overlay().showControls(util.vector().topOf(util.grid().at(0, 0, 4)), Pointing.DOWN, 40)
-                .rightClick().withItem(new ItemStack(AllNuclearItems.TARGET_DESIGNATOR.get()));
+                .rightClick().withItem(new ItemStack(MissileRegistry.TARGET_DESIGNATOR.get()));
         scene.idle(45);
         scene.overlay().showControls(util.vector().topOf(pad), Pointing.DOWN, 50)
-                .withItem(new ItemStack(AllNuclearItems.MISSILE.get()));
+                .withItem(new ItemStack(MissileRegistry.MISSILE_ITEM.get()));
         scene.world().modifyBlockEntity(pad, LaunchPadBlockEntity.class, launchPad -> launchPad.getInventory()
-                .setStackInSlot(LaunchPadBlockEntity.MISSILE_SLOT, new ItemStack(AllNuclearItems.MISSILE.get())));
+                .setStackInSlot(LaunchPadBlockEntity.MISSILE_SLOT, new ItemStack(MissileRegistry.MISSILE_ITEM.get())));
         scene.overlay().showText(100)
                 .text(lines.next())
                 .pointAt(util.vector().blockSurface(pad, Direction.WEST))

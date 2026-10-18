@@ -23,6 +23,7 @@ import org.papiricoh.create_nuclearindustry.explosive.WarheadLoad;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
 import org.papiricoh.create_nuclearindustry.integration.cbc.CBCNuclearIntegration;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class FissileWeaponsTests {
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void bombAndPadTakeCoresNotLooseMetal(GameTestHelper helper) {
         helper.setBlock(BOMB, AllNuclearBlocks.NUCLEAR_BOMB.get());
-        helper.setBlock(PAD, AllNuclearBlocks.LAUNCH_PAD.get());
+        helper.setBlock(PAD, MissileRegistry.LAUNCH_PAD.get());
         NuclearBombBlockEntity bomb = helper.getBlockEntity(BOMB);
         LaunchPadBlockEntity pad = helper.getBlockEntity(PAD);
         int warhead = LaunchPadBlockEntity.FIRST_URANIUM_SLOT;
@@ -162,7 +163,7 @@ public class FissileWeaponsTests {
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void legacyLooseMetalIsEjected(GameTestHelper helper) {
         helper.setBlock(BOMB, AllNuclearBlocks.NUCLEAR_BOMB.get());
-        helper.setBlock(PAD, AllNuclearBlocks.LAUNCH_PAD.get());
+        helper.setBlock(PAD, MissileRegistry.LAUNCH_PAD.get());
         NuclearBombBlockEntity bomb = helper.getBlockEntity(BOMB);
         LaunchPadBlockEntity pad = helper.getBlockEntity(PAD);
         bomb.getInventory().setStackInSlot(0, uranium(90f, 16));

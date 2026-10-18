@@ -122,10 +122,6 @@ public class Create_NuclearIndustry {
     public static class ClientModEvents {
 
         public static void onRegisterRenderers(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
-            event.registerEntityRenderer(AllNuclearEntities.MISSILE.get(),
-                    org.papiricoh.create_nuclearindustry.missile.client.MissileRenderer::new);
-            event.registerBlockEntityRenderer(AllNuclearEntities.LAUNCH_PAD.get(),
-                    org.papiricoh.create_nuclearindustry.missile.client.LaunchPadRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.CENTRIFUGE.get(), ProcessingMachineRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.ELECTROLYZER.get(), ProcessingMachineRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.RTG.get(),
@@ -154,8 +150,6 @@ public class Create_NuclearIndustry {
                     org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombScreen::new);
             event.register(AllNuclearGUIs.CONTROL_MODULE_MENU.get(),
                     org.papiricoh.create_nuclearindustry.controlroom.desk.client.ControlModuleScreen::new);
-            event.register(AllNuclearGUIs.LAUNCH_PAD_MENU.get(),
-                    org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadScreen::new);
             event.register(AllNuclearGUIs.TOKAMAK_MENU.get(),
                     org.papiricoh.create_nuclearindustry.fusion.gui.TokamakScreen::new);
             org.papiricoh.create_nuclearindustry.client.NuclearFeaturesClient.registerScreens(event);

@@ -8,7 +8,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
-import org.papiricoh.create_nuclearindustry.AllNuclearGUIs;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 
 /**
@@ -32,7 +32,7 @@ public class LaunchPadMenu extends AbstractContainerMenu {
     }
 
     public LaunchPadMenu(int containerId, Inventory playerInventory, LaunchPadBlockEntity pad, BlockPos padPos) {
-        super(AllNuclearGUIs.LAUNCH_PAD_MENU.get(), containerId);
+        super(MissileRegistry.LAUNCH_PAD_MENU.get(), containerId);
         this.pad = pad;
         this.padPos = padPos;
         if (this.pad != null) {
@@ -42,7 +42,7 @@ public class LaunchPadMenu extends AbstractContainerMenu {
     }
 
     private void addPadSlots() {
-        // Cohete y designador arriba, slots de uranio a la derecha.
+        // Missile and designator at the top, warhead slots to the right.
         addSlot(new FilteredSlot(pad, LaunchPadBlockEntity.MISSILE_SLOT, 26, 35));
         addSlot(new FilteredSlot(pad, LaunchPadBlockEntity.DESIGNATOR_SLOT, 26, 62));
         for (int i = 0; i < LaunchPadBlockEntity.URANIUM_SLOTS; i++) {

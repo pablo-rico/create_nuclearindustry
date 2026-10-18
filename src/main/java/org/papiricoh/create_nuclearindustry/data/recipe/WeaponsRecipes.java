@@ -21,6 +21,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -157,7 +158,7 @@ public final class WeaponsRecipes implements DataProvider {
                 .patternLine("SDDDDDS")
                 .patternLine(" SSSSS "));
 
-        GeneratedRecipe MISSILE = create(() -> AllNuclearItems.MISSILE.get()).recipe(b -> b
+        GeneratedRecipe MISSILE = create(() -> MissileRegistry.MISSILE_ITEM.get()).recipe(b -> b
                 .key('F', ExplosiveRegistry.FIRING_SET.get())
                 .key('I', CreateItems.get("iron_sheet"))
                 .key('P', CreateItems.get("precision_mechanism"))
@@ -171,7 +172,7 @@ public final class WeaponsRecipes implements DataProvider {
                 .patternLine("INI")
                 .patternLine("K K"));
 
-        GeneratedRecipe LAUNCH_PAD = create(() -> AllNuclearItems.LAUNCH_PAD.get()).recipe(b -> b
+        GeneratedRecipe LAUNCH_PAD = create(() -> MissileRegistry.LAUNCH_PAD_ITEM.get()).recipe(b -> b
                 .key('K', CreateItems.get("sturdy_sheet"))
                 .key('F', ExplosiveRegistry.FIRING_SET.get())
                 .key('C', AllNuclearItems.REACTOR_CASING.get())

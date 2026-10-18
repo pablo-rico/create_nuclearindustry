@@ -15,6 +15,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
@@ -60,7 +61,7 @@ public class DirtyBombTests {
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void missilesGoDirtyOrSalted(GameTestHelper helper) {
-        helper.setBlock(PAD, AllNuclearBlocks.LAUNCH_PAD.get());
+        helper.setBlock(PAD, MissileRegistry.LAUNCH_PAD.get());
         LaunchPadBlockEntity pad = helper.getBlockEntity(PAD);
         ItemStack waste = new ItemStack(AllNuclearItems.RADIOACTIVE_WASTE.get(), 4);
         helper.assertTrue(pad.isItemValid(LaunchPadBlockEntity.FIRST_URANIUM_SLOT, waste), "the warhead slots take waste");

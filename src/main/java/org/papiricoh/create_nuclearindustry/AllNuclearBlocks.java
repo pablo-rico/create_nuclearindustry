@@ -15,7 +15,6 @@ import org.papiricoh.create_nuclearindustry.fusion.block.FusionPlasmaTurbineBloc
 import org.papiricoh.create_nuclearindustry.fusion.block.FusionReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.fusion.block.FusionTurbineFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.fluids.block.DualFluidPipeBlock;
-import org.papiricoh.create_nuclearindustry.missile.block.LaunchPadBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ControlRodBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.HeatExchangerBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.NuclearReactorControllerBlock;
@@ -82,7 +81,6 @@ public class AllNuclearBlocks {
     public static final DeferredHolder<Block, ? extends Block> TURBINE_EXHAUST_PORT = BLOCKS.register("turbine_exhaust_port", () -> new org.papiricoh.create_nuclearindustry.turbine.TurbineExhaustPortBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f, 6.0f)));
     public static final DeferredHolder<Block, ? extends Block> NUCLEAR_BOMB = BLOCKS.register("nuclear_bomb", () -> new NuclearBombBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0f, 12.0f).noOcclusion()));
     public static final DeferredHolder<Block, ? extends Block> DIRTY_BOMB = BLOCKS.register("dirty_bomb", () -> new NuclearBombBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GREEN).strength(4.0f, 12.0f).noOcclusion()));
-    public static final DeferredHolder<Block, ? extends Block> LAUNCH_PAD = BLOCKS.register("launch_pad", () -> new LaunchPadBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(4.0f, 12.0f).noOcclusion()));
 
     // ---- Control room ----
     public static final DeferredHolder<Block, ? extends Block> CONTROL_MONITOR = BLOCKS.register("control_monitor", () -> new org.papiricoh.create_nuclearindustry.controlroom.ControlMonitorBlock(

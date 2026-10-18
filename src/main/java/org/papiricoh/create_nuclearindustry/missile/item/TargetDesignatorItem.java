@@ -20,9 +20,9 @@ import org.papiricoh.create_nuclearindustry.AllNuclearDataComponents;
 import java.util.List;
 
 /**
- * Designador de objetivo: al hacer click derecho sobre un bloque guarda esas coordenadas en el
- * propio stack (via DataComponent TARGET_POS). Ese stack se inserta luego en la plataforma de
- * lanzamiento, que lee el objetivo desde el. Evita necesitar packets cliente->servidor.
+ * Target designator: right-clicking a block stores its position on the stack ({@code TARGET_POS}),
+ * and the launch pad reads the target from the designator put in it, so no packet from the client is
+ * needed.
  * Sneak-using it in the air switches between a ground burst and an airburst ({@code AIRBURST}): an
  * airburst goes off above the target, digs no crater and leaves little fallout, but its blast and
  * flash reach further.

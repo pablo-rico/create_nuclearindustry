@@ -8,7 +8,6 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyItem;
 import org.papiricoh.create_nuclearindustry.enrichment.EnrichmentTier;
 import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
-import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
 
 public class AllNuclearItems {
 
@@ -48,7 +47,6 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> TURBINE_EXHAUST_PORT = ITEMS.register("turbine_exhaust_port", () -> new BlockItem(AllNuclearBlocks.TURBINE_EXHAUST_PORT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> NUCLEAR_BOMB = ITEMS.register("nuclear_bomb", () -> new BlockItem(AllNuclearBlocks.NUCLEAR_BOMB.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> DIRTY_BOMB = ITEMS.register("dirty_bomb", () -> new BlockItem(AllNuclearBlocks.DIRTY_BOMB.value(), new Item.Properties()));
-    public static final DeferredHolder<Item, ? extends Item> LAUNCH_PAD = ITEMS.register("launch_pad", () -> new BlockItem(AllNuclearBlocks.LAUNCH_PAD.value(), new Item.Properties()));
 
     // Fusion reactor blocks
     public static final DeferredHolder<Item, ? extends Item> FUSION_CONTROLLER = ITEMS.register("fusion_controller", () -> new BlockItem(AllNuclearBlocks.FUSION_CONTROLLER.value(), new Item.Properties()));
@@ -145,8 +143,6 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> EMPTY_GAS_CELL = ITEMS.register("empty_gas_cell", () -> new Item(new Item.Properties().stacksTo(16)));
 
     // Sistema de misiles
-    public static final DeferredHolder<Item, ? extends Item> MISSILE = ITEMS.register("missile", () -> new Item(new Item.Properties().stacksTo(16)));
-    public static final DeferredHolder<Item, ? extends Item> TARGET_DESIGNATOR = ITEMS.register("target_designator", () -> new TargetDesignatorItem(new Item.Properties().stacksTo(1)));
 
     // Control room
     public static final DeferredHolder<Item, ? extends Item> CONTROL_MONITOR = ITEMS.register("control_monitor", () -> new BlockItem(AllNuclearBlocks.CONTROL_MONITOR.value(), new Item.Properties()));

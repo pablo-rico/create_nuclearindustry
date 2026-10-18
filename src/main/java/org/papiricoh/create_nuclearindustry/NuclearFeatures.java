@@ -40,6 +40,7 @@ public final class NuclearFeatures {
             org.papiricoh.create_nuclearindustry.isotope.IsotopeRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.maintenance.MaintenanceRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.ruins.RuinsRegistry.INSTANCE,
+            org.papiricoh.create_nuclearindustry.missile.MissileRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.propulsion.PropulsionRegistry.INSTANCE);
 

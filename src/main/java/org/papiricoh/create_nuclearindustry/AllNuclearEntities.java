@@ -2,14 +2,11 @@ package org.papiricoh.create_nuclearindustry;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.papiricoh.create_nuclearindustry.enrichment.blockentity.CentrifugeBlockEntity;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
-import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
-import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 import org.papiricoh.create_nuclearindustry.fluids.blockentity.DualFluidPipeBlockEntity;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFluidPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFuelInjectorBlockEntity;
@@ -143,12 +140,6 @@ public class AllNuclearEntities {
                     AllNuclearBlocks.NUCLEAR_ALARM.get()
             ).build(null));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LaunchPadBlockEntity>> LAUNCH_PAD =
-            ENTITIES.register("launch_pad", () -> BlockEntityType.Builder.of(
-                    LaunchPadBlockEntity::new,
-                    AllNuclearBlocks.LAUNCH_PAD.get()
-            ).build(null));
-
     // ---- Fusion reactor block entities ----
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FusionReactorBlockEntity>> FUSION_CONTROLLER =
             ENTITIES.register("fusion_controller", () -> BlockEntityType.Builder.of(
@@ -186,16 +177,10 @@ public class AllNuclearEntities {
                     AllNuclearBlocks.FUSION_TURBINE_FLUID_PORT.get()
             ).build(null));
 
-    // Entidades (no block-entities): el misil ICBM volador.
+    /** Entities (not block entities); areas register theirs here. */
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
             DeferredRegister.create(Registries.ENTITY_TYPE, Create_NuclearIndustry.MODID);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<MissileEntity>> MISSILE =
-            ENTITY_TYPES.register("missile", () -> EntityType.Builder.<MissileEntity>of(MissileEntity::new, MobCategory.MISC)
-                    .sized(0.6f, 2.0f)
-                    .clientTrackingRange(16)
-                    .updateInterval(1)
-                    .build("missile"));
 
     public static void init() {}
 }

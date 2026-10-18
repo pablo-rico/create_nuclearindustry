@@ -150,9 +150,6 @@ public class AllCreativeTabs {
         output.accept(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.value());
         output.accept(AllNuclearItems.NUCLEAR_BOMB.value());
         output.accept(AllNuclearItems.DIRTY_BOMB.value());
-        output.accept(AllNuclearItems.LAUNCH_PAD.value());
-        output.accept(AllNuclearItems.MISSILE.value());
-        output.accept(AllNuclearItems.TARGET_DESIGNATOR.value());
         output.clearSection();
     }
 

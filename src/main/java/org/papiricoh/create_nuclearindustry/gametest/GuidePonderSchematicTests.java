@@ -25,6 +25,7 @@ import org.papiricoh.create_nuclearindustry.infrastructure.ponder.GuidePonderTex
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.PlantPonderText;
 import org.papiricoh.create_nuclearindustry.integration.jei.GuideJeiInfo;
 import org.papiricoh.create_nuclearindustry.integration.jei.PlantJeiInfo;
+import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsRegistry;
 
 import java.util.HashSet;
@@ -89,7 +90,7 @@ public class GuidePonderSchematicTests {
 
     @GameTest(template = "gametest/weapons_missile_ponder", batch = BATCH)
     public static void missileSchematicLoads(GameTestHelper helper) {
-        helper.assertBlockPresent(AllNuclearBlocks.LAUNCH_PAD.get(), new BlockPos(2, 2, 2));
+        helper.assertBlockPresent(MissileRegistry.LAUNCH_PAD.get(), new BlockPos(2, 2, 2));
         helper.succeed();
     }
 
@@ -151,8 +152,8 @@ public class GuidePonderSchematicTests {
         helper.assertTrue(ids.contains("nuclear_cannon_shell") == shell, "the cannon shell page shows exactly when the shell exists");
         helper.assertTrue(ids.contains("thermonuclear_cannon_shell") == BuiltInRegistries.ITEM.containsKey(GuideJeiInfo.THERMONUCLEAR_CANNON_SHELL),
                 "the thermonuclear shell page shows exactly when the shell exists");
-        List<Supplier<? extends Item>> parts = List.of(AllNuclearItems.NUCLEAR_BOMB, AllNuclearItems.LAUNCH_PAD, AllNuclearItems.MISSILE,
-                AllNuclearItems.TARGET_DESIGNATOR, AllNuclearItems.REACTOR_FUEL_PORT, AllNuclearItems.REACTOR_FLUID_PORT,
+        List<Supplier<? extends Item>> parts = List.of(AllNuclearItems.NUCLEAR_BOMB, MissileRegistry.LAUNCH_PAD_ITEM, MissileRegistry.MISSILE_ITEM,
+                MissileRegistry.TARGET_DESIGNATOR, AllNuclearItems.REACTOR_FUEL_PORT, AllNuclearItems.REACTOR_FLUID_PORT,
                 AllNuclearItems.CONTROL_ROD, AllNuclearItems.REACTOR_TEMPERATURE_SENSOR, AllNuclearItems.FUSION_ACCELERATOR_SEGMENT,
                 AllNuclearItems.FUSION_ELECTROMAGNET, AllNuclearItems.FUSION_CENTRAL_SOLENOID, AllNuclearItems.FUSION_CRYOSTAT_CASING,
                 AllNuclearItems.FUSION_BREEDING_BLANKET, AllNuclearItems.FUSION_MAGNET_INPUT, AllNuclearItems.FUSION_FLUID_PORT,
