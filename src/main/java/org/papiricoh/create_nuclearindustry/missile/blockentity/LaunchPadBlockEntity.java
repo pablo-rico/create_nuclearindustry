@@ -5,6 +5,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -14,18 +15,23 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements;
+import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
+import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.NuclearBombBlockEntity;
 import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
-import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
-import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.FissileMaterial;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
 import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
 import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
-import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
+import org.papiricoh.create_nuclearindustry.missile.flight.Flight;
+import org.papiricoh.create_nuclearindustry.missile.flight.FlightTracker;
+import org.papiricoh.create_nuclearindustry.missile.flight.Warhead;
 import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
+import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
+import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
 
 public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
     public static final int MISSILE_SLOT = 0;
@@ -156,18 +162,64 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
      */
     private void reportThreat() {
         BlockPos target = getTarget();
-        if (target == null) {
+        Vec3 aim = aimPoint();
+        if (target == null || aim == null) {
             return;
         }
-        int radius = isDirtyWarhead() ? DirtyWarheadStats.falloutRadius(getRadiologicalLoad())
-                : NuclearDetonation.falloutRadius(getEstimatedRadius());
-        int flight = MissileEntity.flightTicks(launchPoint(), Vec3.atCenterOf(target));
-        ThreatRegistry.report(level, getBlockPos(), target, radius, countdown + flight);
+        ThreatRegistry.report(level, getBlockPos(), BlockPos.containing(aim), warhead().threatRadius(), countdown + predictedFlightTicks());
     }
 
     private Vec3 launchPoint() {
         BlockPos pos = getBlockPos();
         return new Vec3(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5);
+    }
+
+    /** The point the missile comes down on: its target, or above it when the designator is set to airburst. */
+    @Nullable
+    public Vec3 aimPoint() {
+        BlockPos target = getTarget();
+        if (target == null) {
+            return null;
+        }
+        Vec3 aim = Vec3.atCenterOf(target);
+        Warhead warhead = warhead();
+        if (warhead.nuclear() && TargetDesignatorItem.isAirburst(inventory.getStackInSlot(DESIGNATOR_SLOT))) {
+            // Set to airburst: it goes off above the target, clear of its own fireball.
+            aim = aim.add(0, TargetDesignatorItem.airburstHeight(warhead.destructionRadius()), 0);
+        }
+        return aim;
+    }
+
+    /** Ticks the loaded missile would fly to its aim point, from lift-off to impact; 0 without a target. */
+    public int predictedFlightTicks() {
+        Vec3 aim = aimPoint();
+        if (aim == null) {
+            return 0;
+        }
+        Vec3 start = level == null ? launchPoint() : ShipSpace.toWorld(level, launchPoint());
+        MissileFlight.Prediction flight = MissileFlight.predict(MissileDesign.LEGACY_PAD, Flight.v3(start), Flight.v3(aim),
+                Flight.v3(launchVelocity()), MissileConfig.flightParams());
+        return Mth.ceil(flight.ticks());
+    }
+
+    /** A pad aboard a ship hands its missile the ship's own speed, blocks per tick. */
+    private Vec3 launchVelocity() {
+        if (level == null) {
+            return Vec3.ZERO;
+        }
+        ShipSpace.Ship ship = ShipSpace.shipAt(level, getBlockPos());
+        return ship == null ? Vec3.ZERO : ship.velocity(ShipSpace.toWorld(level, launchPoint())).scale(1.0 / 20.0);
+    }
+
+    /** What the loaded warhead slots make. */
+    public Warhead warhead() {
+        if (isDirtyWarhead()) {
+            return Warhead.dirty(getRadiologicalLoad());
+        }
+        int units = getValidUraniumCount();
+        float enrichment = getAverageEnrichment();
+        return Warhead.fission(WarheadStats.power(units, enrichment), WarheadStats.horizontalRadius(units, enrichment),
+                WarheadStats.intensity(enrichment), getRadiologicalLoad());
     }
 
     @Override
@@ -252,40 +304,20 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
             return;
         }
         BlockPos target = getTarget();
-        if (target == null || !isReadyToLaunch()) {
+        Vec3 aim = aimPoint();
+        if (target == null || aim == null || !isReadyToLaunch()) {
             countdown = -1;
             return;
         }
-
-        float load = getRadiologicalLoad();
-        boolean dirty = isDirtyWarhead();
-        int units = getValidUraniumCount();
-        float avgEnrichment = getAverageEnrichment();
-        float power = WarheadStats.power(units, avgEnrichment);
-        int horizontalRadius = WarheadStats.horizontalRadius(units, avgEnrichment);
-        float intensity = WarheadStats.intensity(avgEnrichment);
-
+        Warhead warhead = warhead();
+        Vec3 velocity = launchVelocity();
         consumeFuel();
         markDirtyAndSync();
 
         // A pad aboard a ship launches from where the ship really is.
-        Vec3 start = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.toWorld(serverLevel, launchPoint());
-        Vec3 targetVec = new Vec3(target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
-        if (!dirty && TargetDesignatorItem.isAirburst(inventory.getStackInSlot(DESIGNATOR_SLOT))) {
-            // Set to airburst: it goes off above the target, clear of its own fireball.
-            targetVec = targetVec.add(0, TargetDesignatorItem.airburstHeight(horizontalRadius), 0);
-        }
-
-        MissileEntity missile = new MissileEntity(MissileRegistry.MISSILE.get(), serverLevel);
-        missile.setPos(start.x, start.y, start.z);
-        if (dirty) {
-            missile.configureDirty(start, targetVec, load);
-        } else {
-            missile.configure(start, targetVec, power, horizontalRadius, intensity);
-            missile.setSalting(load);
-        }
-        serverLevel.addFreshEntity(missile);
-        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardNearby(serverLevel, worldPosition, org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.WITNESS_RADIUS, org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.MISSILE_LAUNCHED);
+        Vec3 start = ShipSpace.toWorld(serverLevel, launchPoint());
+        FlightTracker.get(serverLevel).launch(serverLevel, MissileDesign.LEGACY_PAD, start, velocity, aim, target, warhead, null);
+        NuclearAdvancements.awardNearby(serverLevel, worldPosition, NuclearAdvancements.WITNESS_RADIUS, NuclearEvent.MISSILE_LAUNCHED);
     }
 
     private void consumeFuel() {

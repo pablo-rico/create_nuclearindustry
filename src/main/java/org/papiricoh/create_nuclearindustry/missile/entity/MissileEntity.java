@@ -2,6 +2,8 @@ package org.papiricoh.create_nuclearindustry.missile.entity;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -15,11 +17,22 @@ import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
 import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
+import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
+import org.papiricoh.create_nuclearindustry.missile.flight.Flight;
+import org.papiricoh.create_nuclearindustry.missile.flight.FlightTracker;
+import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
+
+import java.util.UUID;
 
 /**
- * A missile in flight: it flies from its pad to its target along a ballistic arc (climb, cruise,
- * descent) and detonates there through {@link NuclearDetonation}. The server moves it; position and
- * rotation reach clients through the entity tracker, and clients only draw its trail.
+ * A missile players can see. Missiles fly in the level's {@link FlightTracker}; near players the
+ * tracker shows each one as this entity, a puppet that only follows its {@link Flight} and is never
+ * saved. Position and rotation reach clients through the entity tracker, and clients draw its exhaust
+ * while its engines burn.
+ *
+ * <p>Missiles saved in flight by older versions load as entities of their own and finish that flight as
+ * it was: a scripted ballistic arc from their pad to their target (climb, cruise, descent), detonating
+ * there through {@link NuclearDetonation}.
  *
  * <p>The missile forces the chunk it is in, so it keeps flying far from players and resumes its
  * flight after a restart. That chunk is saved with the missile: one loaded again (after a restart
@@ -29,6 +42,11 @@ import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
  * so an admin's {@code /forceload} elsewhere is never released by a missile.
  */
 public class MissileEntity extends Entity {
+    private static final EntityDataAccessor<Boolean> BURNING = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.BOOLEAN);
+
+    /** The flight this entity shows, or null for a missile saved in flight by an older version. */
+    @Nullable
+    private UUID flightId;
     private double startX, startY, startZ;
     private double targetX, targetY, targetZ;
     private float power;
@@ -68,15 +86,37 @@ public class MissileEntity extends Entity {
 
         double horizontalDistance = Math.hypot(target.x - start.x, target.z - start.z);
         // Flight time and arc height grow with the distance, with minimums so the arc still shows.
-        this.flightTicks = flightTicks(start, target);
+        this.flightTicks = legacyFlightTicks(start, target);
         this.arcHeight = Mth.clamp(40 + horizontalDistance * 0.5, 50, 180);
         setPos(start.x, start.y, start.z);
     }
 
-    /** Ticks a missile takes from {@code start} to {@code target}; launch pads use it to warn ahead of the launch. */
-    public static int flightTicks(Vec3 start, Vec3 target) {
+    /** Ticks an old save's scripted flight takes from {@code start} to {@code target}. */
+    public static int legacyFlightTicks(Vec3 start, Vec3 target) {
         double horizontalDistance = Math.hypot(target.x - start.x, target.z - start.z);
         return (int) Mth.clamp(40 + horizontalDistance * 0.8, 60, 600);
+    }
+
+    /** Shows {@code flight}: puts this puppet where the flight is now, facing the way it flies. */
+    public void follow(Flight flight) {
+        this.flightId = flight.id();
+        Vec3 previous = position();
+        Vec3 next = flight.position();
+        setPos(next.x, next.y, next.z);
+        Vec3 velocity = flight.velocity();
+        updateRotation(velocity.lengthSqr() > 1.0e-6 ? velocity : next.subtract(previous));
+        entityData.set(BURNING, flight.flight().phase(MissileConfig.flightParams()) == MissileFlight.Phase.BOOST);
+    }
+
+    @Nullable
+    public UUID getFlightId() {
+        return flightId;
+    }
+
+    /** Puppets come and go with players nearby; only a missile still flying an old save's arc is saved. */
+    @Override
+    public boolean shouldBeSaved() {
+        return flightId == null && super.shouldBeSaved();
     }
 
     @Override
@@ -85,6 +125,14 @@ public class MissileEntity extends Entity {
 
         if (level().isClientSide) {
             spawnTrail();
+            return;
+        }
+        if (flightId != null) {
+            // The tracker moves it; one whose flight is over (or whose world forgot it) goes.
+            FlightTracker tracker = level() instanceof ServerLevel serverLevel ? FlightTracker.getIfPresent(serverLevel) : null;
+            if (tracker == null || tracker.get(flightId) == null) {
+                discard();
+            }
             return;
         }
 
@@ -194,6 +242,9 @@ public class MissileEntity extends Entity {
     }
 
     private void spawnTrail() {
+        if (!entityData.get(BURNING)) {
+            return;
+        }
         Vec3 pos = position();
         for (int i = 0; i < 2; i++) {
             double ox = (random.nextDouble() - 0.5) * 0.3;
@@ -255,7 +306,8 @@ public class MissileEntity extends Entity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        // No synced data: the entity tracker carries position and rotation.
+        // The entity tracker carries position and rotation; only whether the engines burn is synced.
+        builder.define(BURNING, true);
     }
 
     @Override

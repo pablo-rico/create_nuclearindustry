@@ -9,6 +9,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
@@ -21,13 +23,14 @@ import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 import org.papiricoh.create_nuclearindustry.missile.block.LaunchPadBlock;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
+import org.papiricoh.create_nuclearindustry.missile.flight.FlightTracker;
 import org.papiricoh.create_nuclearindustry.missile.gui.LaunchPadMenu;
 import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
 
 /**
- * Missiles: the launch pad, the missile it fires and the target designator that tells it where.
- * The ids are the ones these had in the shared registries, so existing worlds keep their pads and
- * missiles in flight.
+ * Missiles: the launch pad, the missile it fires and the target designator that tells it where, and
+ * the {@link FlightTracker} that flies every missile in a level. The ids are the ones these had in the
+ * shared registries, so existing worlds keep their pads and missiles in flight.
  */
 public final class MissileRegistry implements NuclearFeature {
     public static final MissileRegistry INSTANCE = new MissileRegistry();
@@ -58,6 +61,11 @@ public final class MissileRegistry implements NuclearFeature {
             AllNuclearGUIs.MENUS.register("launch_pad", () -> IMenuTypeExtension.create(LaunchPadMenu::fromNetwork));
 
     private MissileRegistry() {}
+
+    @Override
+    public void register(IEventBus modEventBus) {
+        NeoForge.EVENT_BUS.addListener(FlightTracker::onLevelTick);
+    }
 
     @Override
     public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {

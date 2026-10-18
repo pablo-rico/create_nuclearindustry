@@ -76,7 +76,7 @@ public class ThreatTests {
             helper.setBlock(WEAPON.east(), Blocks.AIR);
             helper.assertTrue(threat != null, "a launch countdown warns the sirens");
             helper.assertTrue(threat.x() == target.getX() && threat.z() == target.getZ(), "around the designated target");
-            int flight = MissileEntity.flightTicks(Vec3.atCenterOf(at).add(0, 0.5, 0), Vec3.atCenterOf(target));
+            int flight = pad.predictedFlightTicks();
             helper.assertTrue(Math.abs(ticks - (countdown + flight)) <= 1,
                     "lands after the countdown and the flight, expected " + (countdown + flight) + " got " + ticks);
         });
@@ -88,14 +88,14 @@ public class ThreatTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
-    public static void missileInFlightWarnsTheTarget(GameTestHelper helper) {
+    public static void oldSavedMissileInFlightWarnsTheTarget(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Vec3 start = Vec3.atCenterOf(helper.absolutePos(WEAPON));
         Vec3 target = start.add(200, 0, 0);
         MissileEntity missile = new MissileEntity(MissileRegistry.MISSILE.get(), level);
         missile.configureDirty(start, target, 1.0f);
         level.addFreshEntity(missile);
-        int flight = MissileEntity.flightTicks(start, target);
+        int flight = MissileEntity.legacyFlightTicks(start, target);
         helper.runAfterDelay(3, () -> {
             ThreatBoard.Threat threat = ThreatRegistry.find(level, missile.getUUID());
             long ticks = threat == null ? 0 : threat.ticksToImpact(level.getGameTime());

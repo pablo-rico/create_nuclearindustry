@@ -855,6 +855,21 @@ below for what changes in existing worlds.
 ### Missiles
 - The launch pad's countdown can now be set in the config
   (`missile.launch.countdownSeconds`, 10 seconds as before).
+- Missiles really fly: they climb straight up out of their pad, turn towards
+  their target and burn until they have the speed to fall on it, then coast
+  on a true ballistic arc and come down from above. Each missile has a limited
+  reach (about 3500 blocks for the launch pad's): a target too far away is
+  fallen short of. Flights take longer and climb higher than before (about 50
+  seconds and 600 blocks up for 2000 blocks).
+- A missile no longer drags force-loaded chunks across the world: its flight is
+  worked out on the server, and it is only drawn near players. In loaded
+  chunks it hits whatever terrain is in its way; the chunk it lands in is
+  loaded just before impact, so it always goes off. Its exhaust only shows
+  while its engine burns.
+- Sirens are warned for the whole flight with its exact time to impact.
+- Missiles in flight in an older save finish their flight as before.
+- Config: `missile.flight.*` (gravity, rise height, shortest range, top of the
+  atmosphere, terminal phase, show distance).
 
 ### Nuclear weapons: the explosion
 - A nuclear detonation is now worked out from its warhead and the height it goes

@@ -1734,12 +1734,42 @@ explosión en superficie y explosión aérea; en aérea el misil estalla
 ```toml
 [missile.launch]
 countdownSeconds = 10
+
+[missile.flight]
+gravity = 0.005
+riseHeight = 24.0
+minRange = 64.0
+atmosphereTop = 400.0
+terminalTicks = 100
+showDistance = 256
 ```
 
 Misil: una Plataforma de lanzamiento cargada y con señal de redstone cuenta
 `missile.launch.countdownSeconds` segundos antes del despegue (por defecto 10,
 los 200 ticks de siempre). Las sirenas del objetivo reciben el aviso durante
 toda la cuenta atrás.
+
+**Vuelo** (`missile.flight.*`): un misil sube recto `riseHeight` bloques (lo
+justo para salir de su silo), gira hacia el objetivo y su guiado mantiene el
+empuje hasta tener la velocidad con la que caería libremente sobre él; ahí corta
+motores y el resto del vuelo es una caída libre bajo `gravity` (bloques/tick²).
+Cada etapa pierde su masa al agotarse. Si se le acaba el propulsante antes de
+llegar a esa velocidad, el objetivo está fuera de su alcance y cae corto. El
+misil de la plataforma alcanza unos 3500 bloques con la gravedad por defecto y
+tarda unos 50 segundos en recorrer 2000 (apogeo de unos 600 bloques). Bajar
+`gravity` alarga los vuelos, los hace más altos y da más alcance.
+
+- Los blancos a menos de `minRange` bloques se tiran en vuelo alto, en vez de
+  rasante.
+- Por encima de `atmosphereTop` el misil está en curso medio; por debajo, en
+  reentrada. Los últimos `terminalTicks` ticks son la fase terminal.
+- El vuelo se calcula en el servidor sin cargar chunks ni crear entidades. Solo
+  los jugadores a menos de `showDistance` bloques (en horizontal) ven el misil,
+  y en sus chunks cargados el misil choca con el terreno que encuentre. Poco
+  antes del impacto se fuerza la carga del chunk donde cae, para que la cabeza
+  estalle siempre.
+- Los misiles guardados en vuelo por versiones anteriores terminan su vuelo como
+  antes.
 
 Lo que se ve (solo en el cliente): los jugadores a menos de `visualRange`
 bloques reciben la detonación y ven un destello blanco (más fuerte mirando
