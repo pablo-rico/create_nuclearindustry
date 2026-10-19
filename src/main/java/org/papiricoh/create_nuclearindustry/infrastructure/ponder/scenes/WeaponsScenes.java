@@ -167,67 +167,89 @@ public class WeaponsScenes {
         Script lines = text.script();
         scene.title(text.id(), text.title().english());
         scene.configureBasePlate(0, 0, 5);
-        scene.scaleSceneView(0.9f);
-
-        BlockPos pad = util.grid().at(2, 1, 2);
-        BlockPos lever = util.grid().at(2, 1, 1);
-
+        scene.scaleSceneView(0.75f);
+        scene.world().setBlocks(util.select().fromTo(0, 1, 0, 4, 7, 4), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), false);
+        for (int x = 0; x < 5; x++) for (int z = 0; z < 5; z++) {
+            scene.world().setBlock(util.grid().at(x, 0, z), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WALL.get().defaultBlockState(), false);
+            if (x == 0 || z == 4) for (int y = 1; y <= 4; y++)
+                scene.world().setBlock(util.grid().at(x, y, z), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WALL.get().defaultBlockState(), false);
+        }
+        BlockPos controller = util.grid().at(2, 0, 0);
+        scene.world().setBlock(controller, org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.CONTROLLER.get().defaultBlockState(), false);
+        scene.world().setBlock(util.grid().at(2, 1, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.ENGINE.get().defaultBlockState(), false);
+        scene.world().setBlock(util.grid().at(2, 2, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.TANK.get().defaultBlockState(), false);
+        scene.world().setBlock(util.grid().at(2, 3, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.GUIDANCE.get().defaultBlockState(), false);
+        scene.world().setBlock(util.grid().at(2, 4, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WARHEAD.get().defaultBlockState(), false);
         scene.showBasePlate();
-        scene.idle(10);
-        scene.world().showSection(util.select().position(pad), Direction.DOWN);
+        scene.world().showSection(util.select().fromTo(0, 1, 0, 4, 4, 4), Direction.DOWN);
         scene.idle(20);
-        scene.overlay().showText(80)
-                .text(lines.next())
-                .pointAt(util.vector().topOf(pad))
-                .placeNearTarget()
-                .attachKeyFrame();
-        scene.idle(90);
-
-        scene.overlay().showControls(util.vector().topOf(util.grid().at(0, 0, 4)), Pointing.DOWN, 40)
-                .rightClick().withItem(new ItemStack(MissileRegistry.TARGET_DESIGNATOR.get()));
-        scene.idle(45);
-        scene.overlay().showControls(util.vector().topOf(pad), Pointing.DOWN, 50)
-                .withItem(new ItemStack(MissileRegistry.MISSILE_ITEM.get()));
-        scene.world().modifyBlockEntity(pad, LaunchPadBlockEntity.class, launchPad -> launchPad.getInventory()
-                .setStackInSlot(LaunchPadBlockEntity.MISSILE_SLOT, new ItemStack(MissileRegistry.MISSILE_ITEM.get())));
-        scene.overlay().showText(100)
-                .text(lines.next())
-                .pointAt(util.vector().blockSurface(pad, Direction.WEST))
-                .placeNearTarget();
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
-        scene.overlay().showControls(util.vector().topOf(pad), Pointing.DOWN, 80)
-                .withItem(new ItemStack(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get()));
-        scene.overlay().showText(100)
-                .text(lines.next())
-                .pointAt(util.vector().blockSurface(pad, Direction.WEST))
-                .placeNearTarget()
-                .attachKeyFrame();
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+    }
 
-        scene.world().showSection(util.select().position(lever), Direction.SOUTH);
-        scene.idle(15);
-        scene.world().toggleRedstonePower(util.select().fromTo(2, 1, 1, 2, 1, 2));
-        scene.effects().indicateRedstone(lever);
-        scene.overlay().showText(90)
-                .text(lines.next())
-                .colored(PonderPalette.RED)
-                .pointAt(util.vector().blockSurface(lever, Direction.NORTH))
-                .placeNearTarget()
-                .attachKeyFrame();
-        scene.idle(70);
-        // Liftoff: the missile leaves the pad in a plume of smoke.
-        scene.world().modifyBlockEntity(pad, LaunchPadBlockEntity.class, launchPad -> launchPad.getInventory()
-                .setStackInSlot(LaunchPadBlockEntity.MISSILE_SLOT, ItemStack.EMPTY));
-        scene.effects().emitParticles(util.vector().topOf(pad),
-                scene.effects().simpleParticleEmitter(ParticleTypes.LARGE_SMOKE, new Vec3(0, 0.2, 0)), 4, 20);
+    public static void siloLaunch(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        PlantPonderText.Scene text = GuidePonderText.SILO_LAUNCH;
+        Script lines = text.script();
+        scene.title(text.id(), text.title().english());
+        scene.configureBasePlate(0, 0, 5);
+        scene.scaleSceneView(0.75f);
+        scene.world().setBlocks(util.select().fromTo(0, 1, 0, 4, 7, 4), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), false);
+        for (int x = 0; x < 5; x++) for (int z = 0; z < 5; z++) {
+            scene.world().setBlock(util.grid().at(x, 0, z), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WALL.get().defaultBlockState(), false);
+            if (x == 0 || z == 4) for (int y = 1; y <= 4; y++)
+                scene.world().setBlock(util.grid().at(x, y, z), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WALL.get().defaultBlockState(), false);
+        }
+        BlockPos controller = util.grid().at(2, 0, 0);
+        scene.world().setBlock(controller, org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.CONTROLLER.get().defaultBlockState(), false);
+        scene.world().setBlock(util.grid().at(2, 1, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.ENGINE.get().defaultBlockState(), false);
+        scene.world().setBlock(util.grid().at(2, 2, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.TANK.get().defaultBlockState(), false);
+        scene.world().setBlock(util.grid().at(2, 3, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.GUIDANCE.get().defaultBlockState(), false);
+        scene.world().setBlock(util.grid().at(2, 4, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WARHEAD.get().defaultBlockState(), false);
+        scene.showBasePlate();
+        scene.world().showSection(util.select().fromTo(0, 1, 0, 4, 4, 4), Direction.DOWN);
+        scene.idle(20);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.world().hideSection(util.select().fromTo(2, 1, 2, 2, 4, 2), Direction.UP);
+        scene.effects().emitParticles(util.vector().centerOf(2, 1, 2), scene.effects().simpleParticleEmitter(ParticleTypes.LARGE_SMOKE, new Vec3(0, 0.2, 0)), 4, 20);
         scene.idle(30);
-        scene.world().toggleRedstonePower(util.select().fromTo(2, 1, 1, 2, 1, 2));
-        scene.overlay().showText(90)
-                .text(lines.next())
-                .colored(PonderPalette.RED)
-                .pointAt(util.vector().topOf(pad))
-                .placeNearTarget();
-        scene.idle(100);
+    }
+
+    public static void radar(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        PlantPonderText.Scene text = GuidePonderText.RADAR;
+        Script lines = text.script();
+        scene.title(text.id(), text.title().english());
+        scene.configureBasePlate(0, 0, 5);
+        scene.world().setBlocks(util.select().fromTo(0, 1, 0, 4, 5, 4), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), false);
+        BlockPos radar = util.grid().at(2, 1, 2);
+        scene.world().setBlock(radar, org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.RADAR.get().defaultBlockState(), false);
+        scene.showBasePlate();
+        scene.world().showSection(util.select().position(radar), Direction.DOWN);
+        scene.world().setKineticSpeed(util.select().position(radar), 32);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(radar)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(radar)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(radar)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(radar)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
     }
 
     private WeaponsScenes() {}

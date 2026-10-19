@@ -27,7 +27,7 @@ final class RuinsDataGen extends AreaDataGen {
     static final List<String> FORBIDDEN = List.of("reactor_controller", "cooling_tower_controller", "turbine_output",
             "fusion_controller", "fusion_plasma_turbine", "cryoplant_controller", "steam_generator_controller",
             "containment_monitor", "particle_accelerator_controller", "shelter_filtration_unit", "blast_door_controller",
-            "nuclear_bomb", "dirty_bomb", "thermonuclear_bomb");
+            "nuclear_bomb", "dirty_bomb", "thermonuclear_bomb", "silo_controller");
 
     private RuinsDataGen() {}
 

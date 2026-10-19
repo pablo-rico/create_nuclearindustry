@@ -13,6 +13,7 @@
     "create_nuclearindustry:blast_door_controller",
     "create_nuclearindustry:nuclear_bomb",
     "create_nuclearindustry:dirty_bomb",
-    "create_nuclearindustry:thermonuclear_bomb"
+    "create_nuclearindustry:thermonuclear_bomb",
+    "create_nuclearindustry:silo_controller"
   ]
 }

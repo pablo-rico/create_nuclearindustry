@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "N": {
+      "item": "create:propeller"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "pattern": [
+    "SPS",
+    "INI",
+    "S S"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:rocket_engine"
+  }
+}

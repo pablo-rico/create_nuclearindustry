@@ -22,8 +22,7 @@ import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEn
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 
 /**
- * What sirens listen to: bomb and launch countdowns and missiles in flight report themselves while
- * pending and withdraw when cancelled. Every test stops its countdown or missile before asserting,
+ * Bombs still report threats; missiles require radar and never report direct siren threats. Every test stops its countdown or missile before asserting,
  * so a failure never leaves a live weapon behind.
  */
 @GameTestHolder(Create_NuclearIndustry.MODID)
@@ -57,7 +56,7 @@ public class ThreatTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
-    public static void launchCountdownWarnsTheTarget(GameTestHelper helper) {
+    public static void legacyLaunchPadDoesNotWarnTheTarget(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         helper.setBlock(WEAPON, MissileRegistry.LAUNCH_PAD.get());
         LaunchPadBlockEntity pad = helper.getBlockEntity(WEAPON);
@@ -71,14 +70,9 @@ public class ThreatTests {
         helper.setBlock(WEAPON.east(), Blocks.REDSTONE_BLOCK);
         helper.runAfterDelay(5, () -> {
             ThreatBoard.Threat threat = ThreatRegistry.find(level, at);
-            int countdown = pad.getCountdown();
-            long ticks = threat == null ? 0 : threat.ticksToImpact(level.getGameTime());
             helper.setBlock(WEAPON.east(), Blocks.AIR);
-            helper.assertTrue(threat != null, "a launch countdown warns the sirens");
-            helper.assertTrue(threat.x() == target.getX() && threat.z() == target.getZ(), "around the designated target");
-            int flight = pad.predictedFlightTicks();
-            helper.assertTrue(Math.abs(ticks - (countdown + flight)) <= 1,
-                    "lands after the countdown and the flight, expected " + (countdown + flight) + " got " + ticks);
+            helper.assertTrue(threat == null, "a disabled platform does not warn the sirens");
+            helper.assertTrue(pad.getCountdown() < 0 && pad.hasMissile(), "legacy platform preserves inventory and never launches");
         });
         helper.runAfterDelay(10, () -> {
             helper.assertTrue(ThreatRegistry.find(level, at) == null, "cancelling the launch withdraws the threat");
@@ -88,7 +82,7 @@ public class ThreatTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
-    public static void oldSavedMissileInFlightWarnsTheTarget(GameTestHelper helper) {
+    public static void oldSavedMissileDoesNotBypassRadar(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Vec3 start = Vec3.atCenterOf(helper.absolutePos(WEAPON));
         Vec3 target = start.add(200, 0, 0);
@@ -98,11 +92,8 @@ public class ThreatTests {
         int flight = MissileEntity.legacyFlightTicks(start, target);
         helper.runAfterDelay(3, () -> {
             ThreatBoard.Threat threat = ThreatRegistry.find(level, missile.getUUID());
-            long ticks = threat == null ? 0 : threat.ticksToImpact(level.getGameTime());
             missile.discard();
-            helper.assertTrue(threat != null, "a missile in flight warns the sirens");
-            helper.assertTrue(threat.x() == BlockPos.containing(target).getX(), "around its target");
-            helper.assertTrue(ticks > 0 && ticks < flight, "lands at the end of its flight, got " + ticks + " of " + flight);
+            helper.assertTrue(threat == null, "old saved missiles cannot bypass radar requirements");
         });
         helper.runAfterDelay(6, () -> {
             helper.assertTrue(ThreatRegistry.find(level, missile.getUUID()) == null, "a removed missile withdraws its threat");

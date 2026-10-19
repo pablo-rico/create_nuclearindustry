@@ -7,18 +7,15 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.ServerOpListEntry;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import org.papiricoh.create_nuclearindustry.AllNuclearDataComponents;
-import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.PerformanceConfig;
-import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
 import org.papiricoh.create_nuclearindustry.explosive.ExplosiveConfig;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.integration.claims.ClaimGuard;
@@ -26,66 +23,54 @@ import org.papiricoh.create_nuclearindustry.integration.claims.ClaimGuards;
 import org.papiricoh.create_nuclearindustry.missile.LaunchCooldowns;
 import org.papiricoh.create_nuclearindustry.missile.LaunchRules;
 import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
-import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
-import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 import org.papiricoh.create_nuclearindustry.missile.flight.Flight;
 import org.papiricoh.create_nuclearindustry.missile.flight.FlightTracker;
+import org.papiricoh.create_nuclearindustry.missile.silo.SiloControllerEntity;
 
 import java.util.List;
 import java.util.UUID;
 
 /**
- * What a server can forbid: launch pads keep to {@code missile.maxRange}, the protected spawn, the
- * allowed dimensions, the launch permission level and the per-player cooldown, and nuclear craters leave
- * claimed chunks alone. Each test changes the config and puts it back within one tick, so tests running
- * beside it never see the change.
+ * What a server can forbid: silos keep to {@code missile.maxRange}, the protected spawn, the allowed
+ * dimensions, the launch permission level and the per-player cooldown, and nuclear craters leave claimed
+ * chunks alone. Each test changes the config and puts it back within one tick, so tests running beside it
+ * never see the change.
  */
 @GameTestHolder(Create_NuclearIndustry.MODID)
 @PrefixGameTestTemplate(false)
 public class MissileLimitsTests {
     private static final String BATCH = "missile_limits";
-    private static final BlockPos PAD = new BlockPos(6, 3, 6);
 
-    /** A pad loaded with a missile, a dirty warhead and a designator aimed {@code dx} blocks east. */
-    private static LaunchPadBlockEntity loadedPad(GameTestHelper helper, int dx) {
-        helper.setBlock(PAD, MissileRegistry.LAUNCH_PAD.get());
-        LaunchPadBlockEntity pad = helper.getBlockEntity(PAD);
-        ItemStack designator = new ItemStack(MissileRegistry.TARGET_DESIGNATOR.get());
-        designator.set(AllNuclearDataComponents.TARGET_POS.get(), helper.absolutePos(PAD).offset(dx, 0, 0));
-        pad.getInventory().setStackInSlot(LaunchPadBlockEntity.MISSILE_SLOT, new ItemStack(MissileRegistry.MISSILE_ITEM.get()));
-        pad.getInventory().setStackInSlot(LaunchPadBlockEntity.DESIGNATOR_SLOT, designator);
-        pad.getInventory().setStackInSlot(LaunchPadBlockEntity.FIRST_URANIUM_SLOT, new ItemStack(AllNuclearItems.RADIOACTIVE_WASTE.get()));
-        return pad;
+    /** A built, turning silo aimed {@code dx} blocks east by a mock player. */
+    private static SiloControllerEntity aimedSilo(GameTestHelper helper, int dx) {
+        SiloControllerEntity silo = new SiloTestBuilder().build(helper);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        silo.configure(player, helper.absolutePos(SiloTestBuilder.FLOOR).offset(dx, 0, 0), false);
+        return silo;
     }
 
-    /** A target past {@code missile.maxRange}: the powered pad never counts down, and says why. */
+    /** A target past {@code missile.maxRange}: the silo will not be ready, and says why. */
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
     public static void aTargetOutOfRangeIsRefused(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        LaunchPadBlockEntity pad = loadedPad(helper, 400);
-        helper.runAfterDelay(2, () -> {
+        SiloControllerEntity silo = aimedSilo(helper, 400);
+        helper.runAfterDelay(5, () -> {
             double saved = MissileConfig.maxRange;
-            LaunchRules.Refusal refused;
+            String error;
+            SiloControllerEntity.State state;
             LaunchRules.Refusal inRange;
-            int countdown;
-            boolean warned;
             try {
                 MissileConfig.maxRange = 200;
-                helper.setBlock(PAD.east(), Blocks.REDSTONE_BLOCK);
-                pad.tick();
-                pad.tick();
-                refused = pad.getRefusal();
-                countdown = pad.getCountdown();
-                warned = ThreatRegistry.find(level, helper.absolutePos(PAD)) != null;
+                silo.validate();
+                error = silo.error();
+                state = silo.state();
                 MissileConfig.maxRange = 500;
-                inRange = pad.checkLimits(level);
+                inRange = silo.checkLimits(level);
             } finally {
                 MissileConfig.maxRange = saved;
-                helper.setBlock(PAD.east(), Blocks.AIR);
-                pad.clearContent();
             }
-            helper.assertTrue(refused == LaunchRules.Refusal.OUT_OF_RANGE, "a target 400 blocks off is past a 200 block limit, got " + refused);
-            helper.assertTrue(countdown < 0 && !warned, "so the pad does not count down nor warn the target");
+            helper.assertTrue("out_of_range".equals(error), "a target 400 blocks off is past a 200 block limit, got " + error);
+            helper.assertTrue(state == SiloControllerEntity.State.UNPREPARED, "so the silo cannot be armed, got " + state);
             helper.assertTrue(inRange == LaunchRules.Refusal.NONE, "within a 500 block limit it may launch, got " + inRange);
             helper.succeed();
         });
@@ -94,20 +79,17 @@ public class MissileLimitsTests {
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
     public static void theSpawnIsProtected(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        helper.setBlock(PAD, MissileRegistry.LAUNCH_PAD.get());
-        LaunchPadBlockEntity pad = helper.getBlockEntity(PAD);
-        ItemStack designator = new ItemStack(MissileRegistry.TARGET_DESIGNATOR.get());
-        designator.set(AllNuclearDataComponents.TARGET_POS.get(), level.getSharedSpawnPos().offset(20, 0, 0));
-        pad.getInventory().setStackInSlot(LaunchPadBlockEntity.DESIGNATOR_SLOT, designator);
+        SiloControllerEntity silo = new SiloTestBuilder().build(helper);
+        silo.configure(helper.makeMockPlayer(GameType.SURVIVAL), level.getSharedSpawnPos().offset(20, 0, 0), false);
         helper.runAfterDelay(1, () -> {
             int saved = MissileConfig.protectedSpawnRadius;
             LaunchRules.Refusal near;
             LaunchRules.Refusal off;
             try {
                 MissileConfig.protectedSpawnRadius = 64;
-                near = pad.checkLimits(level);
+                near = silo.checkLimits(level);
                 MissileConfig.protectedSpawnRadius = 0;
-                off = pad.checkLimits(level);
+                off = silo.checkLimits(level);
             } finally {
                 MissileConfig.protectedSpawnRadius = saved;
             }
@@ -121,19 +103,18 @@ public class MissileLimitsTests {
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
     public static void onlyAllowedDimensionsLaunch(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        LaunchPadBlockEntity pad = loadedPad(helper, 100);
+        SiloControllerEntity silo = aimedSilo(helper, 100);
         helper.runAfterDelay(1, () -> {
             List<String> saved = MissileConfig.allowedDimensions;
             LaunchRules.Refusal elsewhere;
             LaunchRules.Refusal here;
             try {
                 MissileConfig.allowedDimensions = List.of("minecraft:the_nether");
-                elsewhere = pad.checkLimits(level);
+                elsewhere = silo.checkLimits(level);
                 MissileConfig.allowedDimensions = List.of("minecraft:overworld");
-                here = pad.checkLimits(level);
+                here = silo.checkLimits(level);
             } finally {
                 MissileConfig.allowedDimensions = saved;
-                pad.clearContent();
             }
             helper.assertTrue(elsewhere == LaunchRules.Refusal.DIMENSION, "only the Nether allowed: refused, got " + elsewhere);
             helper.assertTrue(here == LaunchRules.Refusal.NONE, "the overworld allowed: launches, got " + here);
@@ -141,12 +122,12 @@ public class MissileLimitsTests {
         });
     }
 
-    /** The player who loaded the pad needs {@code missile.launchPermissionLevel}; an operator has it. */
+    /** The player answerable for the silo needs {@code missile.launchPermissionLevel}; an operator has it. */
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
     public static void itsPlayerNeedsThePermissionLevel(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
-        LaunchPadBlockEntity pad = loadedPad(helper, 100);
+        SiloControllerEntity silo = aimedSilo(helper, 100);
         GameProfile profile = new GameProfile(UUID.randomUUID(), "nuclear_test_op");
         helper.runAfterDelay(1, () -> {
             int saved = MissileConfig.launchPermissionLevel;
@@ -156,61 +137,67 @@ public class MissileLimitsTests {
             LaunchRules.Refusal open;
             try {
                 MissileConfig.launchPermissionLevel = 2;
-                nobody = pad.checkLimits(level);
-                pad.setOperator(profile.getId());
-                player = pad.checkLimits(level);
+                silo.setOperator(null);
+                nobody = silo.checkLimits(level);
+                silo.setOperator(profile.getId());
+                player = silo.checkLimits(level);
                 // An entry of its own: the game test server makes operators at level 0.
                 server.getPlayerList().getOps().add(new ServerOpListEntry(profile, 4, false));
-                op = pad.checkLimits(level);
+                op = silo.checkLimits(level);
                 server.getPlayerList().getOps().remove(profile);
                 MissileConfig.launchPermissionLevel = 0;
-                open = pad.checkLimits(level);
+                open = silo.checkLimits(level);
             } finally {
                 MissileConfig.launchPermissionLevel = saved;
                 server.getPlayerList().getOps().remove(profile);
-                pad.clearContent();
             }
-            helper.assertTrue(nobody == LaunchRules.Refusal.NO_PERMISSION, "a pad nobody answers for is refused, got " + nobody);
-            helper.assertTrue(player == LaunchRules.Refusal.NO_PERMISSION, "so is one loaded by a plain player, got " + player);
+            helper.assertTrue(nobody == LaunchRules.Refusal.NO_PERMISSION, "a silo nobody answers for is refused, got " + nobody);
+            helper.assertTrue(player == LaunchRules.Refusal.NO_PERMISSION, "so is one set by a plain player, got " + player);
             helper.assertTrue(op == LaunchRules.Refusal.NONE, "an operator may launch, got " + op);
             helper.assertTrue(open == LaunchRules.Refusal.NONE, "and anyone may at level 0, got " + open);
             helper.succeed();
         });
     }
 
-    /** A launch starts its player's cooldown, during which their pads are refused. */
+    /** An armed silo launches on a rising redstone edge, and the launch starts its player's cooldown. */
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, timeoutTicks = 400)
     public static void aLaunchStartsItsPlayersCooldown(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
-        UUID player = helper.makeMockPlayer(GameType.SURVIVAL).getUUID();
-        LaunchPadBlockEntity pad = loadedPad(helper, 400);
-        BlockPos target = helper.absolutePos(PAD).offset(400, 0, 0);
-        pad.setOperator(player);
-        helper.setBlock(PAD.east(), Blocks.REDSTONE_BLOCK);
+        SiloControllerEntity silo = new SiloTestBuilder().tanks(2).build(helper);
+        Player mock = helper.makeMockPlayer(GameType.SURVIVAL);
+        UUID player = mock.getUUID();
+        BlockPos target = helper.absolutePos(SiloTestBuilder.FLOOR).offset(150, 0, 0);
+        silo.configure(mock, target, false);
         FlightTracker tracker = FlightTracker.get(level);
         LaunchCooldowns cooldowns = LaunchCooldowns.get(server);
+        helper.runAfterDelay(10, () -> {
+            silo.arm(mock);
+            helper.assertTrue(silo.state() == SiloControllerEntity.State.ARMED,
+                    "a complete, turning, aimed silo arms, got " + silo.state() + " " + silo.error());
+            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.REDSTONE_BLOCK);
+        });
         helper.succeedWhen(() -> {
             Flight launched = tracker.flights().stream().filter(f -> f.target().equals(target)).findFirst().orElse(null);
-            helper.assertTrue(launched != null, "the pad launches");
+            helper.assertTrue(launched != null, "the silo launches, state " + silo.state() + " " + silo.error());
             tracker.remove(level, launched);
-            helper.setBlock(PAD.east(), Blocks.AIR);
-            helper.assertTrue(player.equals(launched.owner()), "the flight belongs to the player who loaded the pad");
+            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.AIR);
+            helper.assertTrue(player.equals(launched.owner()), "the flight belongs to the player who armed the silo");
             long last = cooldowns.lastLaunch(player);
             int saved = MissileConfig.launchCooldownSeconds;
             LaunchRules.Refusal cooling;
             LaunchRules.Refusal cleared;
             try {
                 MissileConfig.launchCooldownSeconds = 60;
-                cooling = pad.checkLimits(level);
+                cooling = silo.checkLimits(level);
                 cooldowns.clear(player);
-                cleared = pad.checkLimits(level);
+                cleared = silo.checkLimits(level);
             } finally {
                 MissileConfig.launchCooldownSeconds = saved;
                 cooldowns.clear(player);
             }
             helper.assertTrue(last >= 0, "the launch is recorded against the player");
-            helper.assertTrue(cooling == LaunchRules.Refusal.COOLDOWN, "with a minute's cooldown their pad is refused, got " + cooling);
+            helper.assertTrue(cooling == LaunchRules.Refusal.COOLDOWN, "with a minute's cooldown their silo is refused, got " + cooling);
             helper.assertTrue(cleared == LaunchRules.Refusal.NONE, "and free again once it is over, got " + cleared);
         });
     }

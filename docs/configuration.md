@@ -1448,11 +1448,9 @@ Sirenas:
   ataque: un aullido rápido cada 3 s). Una amenaza está a su alcance si su
   objetivo está, en horizontal, a `siren.threatRadius` bloques o menos más el
   radio de la propia amenaza (el radio de su lluvia radiactiva).
-- Son amenazas los misiles en vuelo (hacia su objetivo), las bombas en cuenta
-  atrás (sobre la propia bomba) y las plataformas de lanzamiento en cuenta atrás
-  (sobre el objetivo del designador, avisando antes del despegue). Se guardan
-  solo en memoria: tras recargar el mundo, cada fuente vuelve a avisar en su
-  siguiente tick. Al cancelar la cuenta atrás o al detonar, el aviso se retira.
+- Las bombas en cuenta atrás mantienen sus avisos automáticos. Los misiles y
+  las cuentas atrás de silos no publican amenazas. Para alertar de vuelos hay que
+  conectar la salida redstone de un radar operativo a las sirenas.
 - Los accidentes de una central también son amenazas, en el sitio del
   accidente: una fusión del núcleo, la rotura de la vasija, una explosión de
   vapor, la rotura de una contención y una combustión de hidrógeno hacen sonar
@@ -1738,8 +1736,7 @@ estalla el primario, como una cabeza de un núcleo.
   primario.
 - Proyectil termonuclear de Create Big Cannons: un proyectil explosivo, una Bomba
   termonuclear, un núcleo, de uno a cuatro de deuteruro y hasta dos bloques de
-  uranio empobrecido; como mucho llega a unos 470 bloques. Un misil no admite
-  piezas termonucleares.
+  uranio empobrecido; como mucho llega a unos 470 bloques. Las ojivas modulares admiten cargas termonucleares.
 
 Misil: el Designador de objetivo, usado agachado al aire, cambia entre
 explosión en superficie y explosión aérea; en aérea el misil estalla
@@ -1752,7 +1749,7 @@ protectedSpawnRadius = 0
 allowedDimensions = []
 launchPermissionLevel = 0
 launchCooldownSeconds = 0
-launchBroadcast = "IMPACT_AREA"
+launchBroadcast = "NONE" # obsoleto: sin efecto; usa un radar
 
 [missile.launch]
 countdownSeconds = 10
@@ -1766,19 +1763,19 @@ terminalTicks = 100
 showDistance = 256
 ```
 
-Misil: una Plataforma de lanzamiento cargada y con señal de redstone cuenta
-`missile.launch.countdownSeconds` segundos antes del despegue (por defecto 10,
-los 200 ticks de siempre). Las sirenas del objetivo reciben el aviso durante
-toda la cuenta atrás.
+El lanzamiento usa un cohete modular construido dentro de un silo de 5×5.
+Consulta [la guía de montaje](modular-missiles.md). El controlador requiere
+32 RPM por defecto y consume 8 SU/RPM. Hay que armarlo desde su pantalla y
+aplicar un nuevo flanco de redstone. Cuenta `missile.launch.countdownSeconds`
+segundos (10 por defecto). La pérdida de rotación, un cambio del cohete o una
+obstrucción cancela la cuenta y exige volver a armar. Recargar también lo desarma.
 
 **Vuelo** (`missile.flight.*`): un misil sube recto `riseHeight` bloques (lo
 justo para salir de su silo), gira hacia el objetivo y su guiado mantiene el
 empuje hasta tener la velocidad con la que caería libremente sobre él; ahí corta
 motores y el resto del vuelo es una caída libre bajo `gravity` (bloques/tick²).
 Cada etapa pierde su masa al agotarse. Si se le acaba el propulsante antes de
-llegar a esa velocidad, el objetivo está fuera de su alcance y cae corto. El
-misil de la plataforma alcanza unos 3500 bloques con la gravedad por defecto y
-tarda unos 50 segundos en recorrer 2000 (apogeo de unos 600 bloques). Bajar
+llegar a esa velocidad, el objetivo está fuera de su alcance y cae corto. El alcance depende de las etapas, sus depósitos y la masa de la carga. Bajar
 `gravity` alarga los vuelos, los hace más altos y da más alcance.
 
 - Los blancos a menos de `minRange` bloques se tiran en vuelo alto, en vez de
@@ -1793,12 +1790,10 @@ tarda unos 50 segundos en recorrer 2000 (apogeo de unos 600 bloques). Bajar
 - Los misiles guardados en vuelo por versiones anteriores terminan su vuelo como
   antes.
 
-**Límites para servidores** (`missile.*`). La plataforma los comprueba antes de
-empezar la cuenta atrás y otra vez en el despegue. Si alguno lo impide, no
-cuenta ni avisa a las sirenas: su pantalla pone «Lanzamiento denegado» con el
-motivo, y el jugador responsable, si está conectado, recibe el motivo por chat.
-La plataforma lo vuelve a comprobar cada segundo y lanza en cuanto se puede
-(por ejemplo, al acabar el enfriamiento).
+**Límites para servidores** (`missile.*`). El controlador comprueba los límites
+al preparar y al despegar; rechaza un lanzamiento no permitido e indica el
+motivo. Corregir el motivo no provoca un lanzamiento automático: hay que volver
+a armar y aplicar un nuevo flanco de redstone.
 
 - `maxRange`: distancia máxima en horizontal, en bloques, entre la plataforma y
   el objetivo. 0 no pone más límite que el propio alcance del misil.
@@ -1816,11 +1811,11 @@ La plataforma lo vuelve a comprobar cada segundo y lanza en cuanto se puede
   que una de sus plataformas dispare para que otra suya pueda hacerlo. Se
   guarda con el mundo y se mide con el reloj del Overworld, así que no se
   reinicia al reiniciar el servidor ni al cambiar de dimensión.
-- `launchBroadcast`: a quién se avisa en el chat de cada lanzamiento, con el
-  punto de impacto y el tiempo de vuelo. `NONE`, nadie; `IMPACT_AREA` (por
-  defecto), los jugadores de esa dimensión a menos de `max(2 × radio de aviso
-  de la cabeza, 128)` bloques del punto de impacto; `SERVER`, todos los
-  jugadores del servidor (el mensaje incluye la dimensión).
+- `launchBroadcast`: opción obsoleta y sin efecto, incluso en configuraciones
+  antiguas. Ya no hay mensajes de lanzamiento por chat ni amenazas automáticas
+  para las sirenas. Un radar operativo detecta todos los vuelos de su dimensión
+  desde el despegue y emite redstone 15 mientras haya contactos; conecta esa
+  señal a las sirenas. No detecta preparativos ni cuentas atrás.
 
 Lo que se ve (solo en el cliente): los jugadores a menos de `visualRange`
 bloques reciben la detonación y ven un destello blanco (más fuerte mirando

@@ -14,6 +14,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -22,6 +23,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
 import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
+import org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -158,31 +160,6 @@ public final class WeaponsRecipes implements DataProvider {
                 .patternLine("SDDDDDS")
                 .patternLine(" SSSSS "));
 
-        GeneratedRecipe MISSILE = create(() -> MissileRegistry.MISSILE_ITEM.get()).recipe(b -> b
-                .key('F', ExplosiveRegistry.FIRING_SET.get())
-                .key('I', CreateItems.get("iron_sheet"))
-                .key('P', CreateItems.get("precision_mechanism"))
-                .key('B', CreateItems.get("blaze_cake"))
-                .key('N', CreateItems.get("propeller"))
-                .key('K', CreateItems.get("sturdy_sheet"))
-                .patternLine(" F ")
-                .patternLine("IPI")
-                .patternLine("IBI")
-                .patternLine("IBI")
-                .patternLine("INI")
-                .patternLine("K K"));
-
-        GeneratedRecipe LAUNCH_PAD = create(() -> MissileRegistry.LAUNCH_PAD_ITEM.get()).recipe(b -> b
-                .key('K', CreateItems.get("sturdy_sheet"))
-                .key('F', ExplosiveRegistry.FIRING_SET.get())
-                .key('C', AllNuclearItems.REACTOR_CASING.get())
-                .key('P', CreateItems.get("precision_mechanism"))
-                .key('M', CreateItems.get("mechanical_piston"))
-                .key('I', Items.IRON_BLOCK)
-                .patternLine("KKFKK")
-                .patternLine("CPMPC")
-                .patternLine("IIIII"));
-
         Mechanical(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
             super(output, registries, Create_NuclearIndustry.MODID);
         }
@@ -197,6 +174,19 @@ public final class WeaponsRecipes implements DataProvider {
         @Override
         protected void buildRecipes(RecipeOutput output) {
             Item sturdy = CreateItems.get("sturdy_sheet");
+            part(output, SiloRegistry.ENGINE.get(), "SPS", "INI", "S S", 'S', sturdy, 'P', CreateItems.get("precision_mechanism"), 'I', CreateItems.get("iron_sheet"), 'N', CreateItems.get("propeller"));
+            part(output, SiloRegistry.TANK.get(), "III", "I I", "III", 'I', CreateItems.get("iron_sheet"));
+            part(output, SiloRegistry.GUIDANCE.get(), "IEI", "PFP", "III", 'I', CreateItems.get("iron_sheet"), 'E', CreateItems.get("electron_tube"), 'P', CreateItems.get("precision_mechanism"), 'F', ExplosiveRegistry.FIRING_SET.get());
+            part(output, SiloRegistry.WARHEAD.get(), " S ", "SFS", "SSS", 'S', sturdy, 'F', ExplosiveRegistry.FIRING_SET.get());
+            part(output, SiloRegistry.CONTROLLER.get(), "SFS", "PEP", "SIS", 'S', sturdy, 'F', ExplosiveRegistry.FIRING_SET.get(), 'P', CreateItems.get("precision_mechanism"), 'E', CreateItems.get("electron_tube"), 'I', Items.IRON_BLOCK);
+            part(output, SiloRegistry.WALL.get(), "III", "ISI", "III", 'I', Items.STONE, 'S', sturdy);
+            part(output, SiloRegistry.PROPELLANT.get(), " I ", " B ", " I ", 'I', CreateItems.get("iron_sheet"), 'B', CreateItems.get("blaze_cake"));
+            ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, SiloRegistry.ENGINE.get())
+                    .requires(MissileRegistry.MISSILE_ITEM.get()).unlockedBy("has_legacy_missile", has(MissileRegistry.MISSILE_ITEM.get()))
+                    .save(output, ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "crafting/convert_legacy_missile"));
+            ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, SiloRegistry.CONTROLLER.get())
+                    .requires(MissileRegistry.LAUNCH_PAD_ITEM.get()).unlockedBy("has_legacy_pad", has(MissileRegistry.LAUNCH_PAD_ITEM.get()))
+                    .save(output, ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "crafting/convert_legacy_launch_pad"));
             ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AllNuclearItems.DIRTY_BOMB.get())
                     .pattern("SFS")
                     .pattern("TBT")
@@ -209,5 +199,14 @@ public final class WeaponsRecipes implements DataProvider {
                     .unlockedBy("has_radioactive_waste_barrel", has(AllNuclearItems.RADIOACTIVE_WASTE_BARREL.get()))
                     .save(output, ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "crafting/dirty_bomb"));
         }
+        private static void part(RecipeOutput output, net.minecraft.world.level.ItemLike result,
+                                 String top, String middle, String bottom, Object... ingredients) {
+            ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.MISC, result)
+                    .pattern(top).pattern(middle).pattern(bottom);
+            for (int i = 0; i < ingredients.length; i += 2)
+                builder.define((Character) ingredients[i], (net.minecraft.world.level.ItemLike) ingredients[i + 1]);
+            builder.unlockedBy("has_iron", has(Items.IRON_INGOT)).save(output);
+        }
+
     }
 }

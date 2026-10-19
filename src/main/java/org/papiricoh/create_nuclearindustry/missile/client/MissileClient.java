@@ -14,12 +14,15 @@ public final class MissileClient implements NuclearFeatureClient {
 
     @Override
     public void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.registerRenderers(event);
         event.registerEntityRenderer(MissileRegistry.MISSILE.get(), MissileRenderer::new);
         event.registerBlockEntityRenderer(MissileRegistry.LAUNCH_PAD_ENTITY.get(), LaunchPadRenderer::new);
     }
 
     @Override
     public void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.MENU.get(), org.papiricoh.create_nuclearindustry.missile.silo.SiloScreen::new);
+        org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.registerScreens(event);
         event.register(MissileRegistry.LAUNCH_PAD_MENU.get(), LaunchPadScreen::new);
     }
 }

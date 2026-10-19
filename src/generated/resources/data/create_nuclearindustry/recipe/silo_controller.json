@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "F": {
+      "item": "create_nuclearindustry:firing_set"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "pattern": [
+    "SFS",
+    "PEP",
+    "SIS"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:silo_controller"
+  }
+}

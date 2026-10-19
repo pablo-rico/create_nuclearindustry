@@ -22,8 +22,8 @@ public final class GuidePonderText {
             List.of(
                     line("The Air Raid Siren sounds a steady alert while it gets a redstone signal.",
                             "La Sirena antiaérea da un aviso continuo mientras recibe una señal de redstone."),
-                    line("Without redstone it watches the sky: a missile, a bomb or a launch countdown aimed within 96 blocks of it, plus its fallout's reach, sets off the faster attack warning.",
-                            "Sin redstone vigila el cielo: un misil, una bomba o una cuenta atrás de lanzamiento apuntados a menos de 96 bloques, más el alcance de su lluvia radiactiva, disparan el aviso de ataque, más rápido."),
+                    line("Bomb countdowns and plant accidents trigger automatic warnings. Missile alerts require a powered radar connected by redstone.",
+                            "Las cuentas atrás de bombas y los accidentes activan avisos automáticos. Para alertas de misiles conecta un radar operativo mediante redstone."),
                     line("Goggles on it tell how long until the impact. It is heard up to 128 blocks away.",
                             "Con las gafas se ve cuánto falta para el impacto. Se oye hasta a 128 bloques."),
                     line("The Hand-Crank Siren has no power of its own: it sounds while the shaft under it turns at 32 RPM or more...",
@@ -101,19 +101,45 @@ public final class GuidePonderText {
             List.of("thermonuclear_bomb", "lithium_deuteride"));
 
     public static final Scene MISSILE = new Scene("weapons_missile", "weapons_missile",
-            line("Missile Launch Pads", "Plataformas de lanzamiento"),
+            line("Building a Modular Rocket", "Montaje de un cohete modular"),
             List.of(
-                    line("A Missile Launch Pad fires a Nuclear Missile at a target far away.",
-                            "Una Plataforma de lanzamiento dispara un Misil nuclear contra un objetivo lejano."),
-                    line("Right-click a block with a Target Designator to aim, then put the designator and a missile in the pad. Sneak-use it in the air for an airburst.",
-                            "Haz clic derecho en un bloque con un Designador de objetivo para apuntar, y pon el designador y un misil en la plataforma. Úsalo agachado al aire para una explosión aérea."),
-                    line("Its three warhead slots take weapons-grade cores for a nuclear warhead, or other radioactive material for a dirty one. Both together salt the fallout.",
-                            "Sus tres huecos de cabeza admiten núcleos de grado militar para una cabeza nuclear, u otro material radiactivo para una sucia. Ambos a la vez ensucian la lluvia radiactiva."),
-                    line("Power the pad with redstone: after a ten second countdown the missile lifts off and flies to its target.",
-                            "Dale a la plataforma una señal de redstone: tras una cuenta atrás de diez segundos el misil despega y vuela hasta su objetivo."),
-                    line("Air Raid Sirens near the target hear the countdown and sound the attack warning before the missile lands.",
-                            "Las Sirenas antiaéreas cerca del objetivo oyen la cuenta atrás y dan el aviso de ataque antes de que caiga el misil.")),
-            List.of("launch_pad", "missile", "target_designator"));
+                    line("Build a 5×5 silo floor and perimeter walls, leaving a 3×3 interior. Put its controller at the middle of a base wall.",
+                            "Construye un suelo de 5×5 y paredes perimetrales con un interior de 3×3. Pon el controlador en el centro de una pared de la base."),
+                    line("Stack one to three stages at the centre: each engine supports one to four tanks. Finish with guidance and one warhead. Height: 4–17 blocks.",
+                            "Apila de una a tres etapas en el centro: cada motor lleva de uno a cuatro depósitos. Termina con guiado y una ojiva. Altura: 4–17 bloques."),
+                    line("Load one propellant cartridge into every tank. Configure the warhead; an inert load tests the entire flight without an explosion.",
+                            "Carga un cartucho de propelente en cada depósito. Configura la ojiva; una carga inerte prueba todo el vuelo sin explosión."),
+                    line("Set coordinates or use a Target Designator. The controller checks range, the complete silo and the open exit above the rocket.",
+                            "Introduce coordenadas o usa el Designador. El controlador comprueba alcance, estructura completa y salida libre sobre el cohete."),
+                    line("Extend the walls to the rocket tip. Silos remain after launch. These installations must stay in the world, outside ships and contraptions.",
+                            "Extiende las paredes hasta la punta. El silo permanece tras lanzar. Estas instalaciones deben estar en el mundo, fuera de naves y contraptions.")),
+            List.of("silo_controller", "silo_wall", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead", "propellant_cartridge", "target_designator"));
+
+    public static final Scene SILO_LAUNCH = new Scene("silo_launch", "weapons_missile",
+            line("Arming and Launching", "Armado y lanzamiento"),
+            List.of(
+                    line("Supply at least 32 RPM to the silo controller. Its default stress impact is 8 SU per RPM. Arm the prepared rocket from the screen.",
+                            "Suministra al menos 32 RPM al controlador. Su impacto de estrés inicial es 8 SU por RPM. Arma el cohete preparado desde la pantalla."),
+                    line("Apply a new redstone rising edge to start the ten-second countdown. A continuously powered wire cannot launch the next rocket.",
+                            "Aplica un nuevo flanco de redstone para iniciar los diez segundos de cuenta atrás. Una señal permanente no lanza el siguiente cohete."),
+                    line("Losing rotation, modifying the rocket or blocking the exit cancels the countdown. Loading the world also disarms it: arm again before retrying.",
+                            "Perder rotación, modificar el cohete u obstruir la salida cancela la cuenta. Recargar el mundo también lo desarma: vuelve a armar antes de reintentar."),
+                    line("The rocket and its contents are consumed on liftoff. Missiles do not warn sirens or broadcast messages: connect a powered radar for alerts.",
+                            "El cohete y su contenido se consumen al despegar. Los misiles no avisan a sirenas ni emiten mensajes: conecta un radar operativo para recibir alertas.")),
+            List.of("silo_controller", "rocket_guidance", "target_designator"));
+
+    public static final Scene RADAR = new Scene("missile_radar", "weapons_missile",
+            line("Radar and Missile Alerts", "Radar y alertas de misiles"),
+            List.of(
+                    line("Drive the radar at 32 RPM or more and open its screen. It detects every flight in its dimension, including your own and inert test rockets.",
+                            "Acciona el radar a 32 RPM o más y abre su pantalla. Detecta todos los vuelos de su dimensión, incluidos los propios y las pruebas inertes."),
+                    line("The map and contact list update each second without loading terrain. Select a contact to see its origin, trajectory, predicted impact and remaining time.",
+                            "El mapa y la lista se actualizan cada segundo sin cargar terreno. Selecciona un contacto para ver origen, trayectoria, impacto previsto y tiempo restante."),
+                    line("The radar outputs redstone level 15 while flights exist. Wire it to sirens or Create Redstone Links. A Display Link shows contacts and the nearest impact time.",
+                            "El radar emite redstone 15 mientras haya vuelos. Conéctalo a sirenas o enlaces de Create. Un Display Link muestra contactos y tiempo al impacto más próximo."),
+                    line("A stopped or unloaded radar loses its alarm. Preparations and countdowns are invisible; detection starts at liftoff and ends at impact.",
+                            "Un radar parado o descargado pierde su alarma. Los preparativos y las cuentas atrás son invisibles; la detección empieza al despegar y termina al impactar.")),
+            List.of("missile_radar", "air_raid_siren"));
 
     // ------------------------------------------------------------------ fuel cycle and fan treatments
 
@@ -478,7 +504,7 @@ public final class GuidePonderText {
             List.of("antimatter_engine", "magnetic_coil", "magnetic_nozzle"));
 
     /** Every guide scene, in the order they are registered. */
-    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, MISSILE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
+    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, MISSILE, SILO_LAUNCH, RADAR, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
             ACCELERATOR_LINAC, ACCELERATOR_SYNCHROTRON, ANTIMATTER_CONTAINMENT, ANTIMATTER_GENERATOR, ANTIPROTON_INJECTOR,
             ISOTOPES, MAINTENANCE, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO,
             THERMAL_ENGINE, ANTIMATTER_ENGINE);

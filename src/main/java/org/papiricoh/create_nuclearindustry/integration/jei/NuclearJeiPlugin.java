@@ -83,6 +83,13 @@ public class NuclearJeiPlugin implements IModPlugin {
     }
 
     @Override
+    public void onRuntimeAvailable(mezz.jei.api.runtime.IJeiRuntime runtime) {
+        runtime.getIngredientManager().removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, List.of(
+                new ItemStack(org.papiricoh.create_nuclearindustry.missile.MissileRegistry.MISSILE_ITEM.get()),
+                new ItemStack(org.papiricoh.create_nuclearindustry.missile.MissileRegistry.LAUNCH_PAD_ITEM.get())));
+    }
+
+    @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IGuiHelper gui = registration.getJeiHelpers().getGuiHelper();
         registration.addRecipeCategories(

@@ -44,6 +44,9 @@ public final class Flight {
     @Nullable
     private final UUID owner;
     private final long launchedAt;
+    @Nullable private final BlockPos origin;
+    private final List<String> visualSections;
+    private final List<Integer> visualStageStarts;
     /** The chunk forced so the impact lands in a loaded world, or {@link #NO_CHUNK}. */
     long forcedChunk = NO_CHUNK;
     /** The puppet entity showing it, while one is shown; never saved. */
@@ -51,6 +54,14 @@ public final class Flight {
     UUID puppet;
 
     Flight(UUID id, Kind kind, MissileFlight flight, Warhead warhead, BlockPos target, @Nullable UUID owner, long launchedAt) {
+        this(id, kind, flight, warhead, target, owner, launchedAt, null, List.of(), List.of());
+    }
+
+    Flight(UUID id, Kind kind, MissileFlight flight, Warhead warhead, BlockPos target, @Nullable UUID owner,
+           long launchedAt, @Nullable BlockPos origin, List<String> sections, List<Integer> stageStarts) {
+        this.origin = origin == null ? null : origin.immutable();
+        this.visualSections = List.copyOf(sections);
+        this.visualStageStarts = List.copyOf(stageStarts);
         this.id = id;
         this.kind = kind;
         this.flight = flight;
@@ -58,6 +69,18 @@ public final class Flight {
         this.target = target;
         this.owner = owner;
         this.launchedAt = launchedAt;
+    }
+
+    @Nullable public BlockPos origin() { return origin; }
+    public List<String> visualSections() { return visualSections; }
+    public List<Integer> visualStageStarts() { return visualStageStarts; }
+
+    /** Offset of the remaining assembly; after the final stage only guidance and warhead remain. */
+    public int firstVisualSection() {
+        if (visualSections.isEmpty() || visualStageStarts.isEmpty()) return 0;
+        int stage = flight.stage();
+        return stage >= visualStageStarts.size() ? Math.max(0, visualSections.size() - 2)
+                : visualStageStarts.get(Math.max(0, stage));
     }
 
     public UUID id() {
@@ -111,6 +134,12 @@ public final class Flight {
 
     CompoundTag save() {
         CompoundTag tag = new CompoundTag();
+        tag.putInt("FormatVersion", 2);
+        if (origin != null) tag.putLong("Origin", origin.asLong());
+        ListTag visuals = new ListTag();
+        visualSections.forEach(section -> visuals.add(net.minecraft.nbt.StringTag.valueOf(section)));
+        tag.put("VisualSections", visuals);
+        tag.putIntArray("VisualStageStarts", visualStageStarts);
         tag.putUUID("Id", id);
         tag.putString("Kind", kind.name().toLowerCase(Locale.ROOT));
         tag.put("Design", saveDesign(flight.design()));
@@ -146,7 +175,10 @@ public final class Flight {
                 tag.getBoolean("BurnedOut"), tag.getBoolean("Guided"), tag.getInt("BurnoutTick"), getV3(tag, "BurnoutPos"),
                 getV3(tag, "BurnoutVel"), tag.getDouble("FallTicks"), tag.getBoolean("Impacted"));
         Flight loaded = new Flight(tag.getUUID("Id"), Kind.byName(tag.getString("Kind")), flight, Warhead.load(tag.getCompound("Warhead")),
-                BlockPos.of(tag.getLong("Target")), tag.hasUUID("Owner") ? tag.getUUID("Owner") : null, tag.getLong("LaunchedAt"));
+                BlockPos.of(tag.getLong("Target")), tag.hasUUID("Owner") ? tag.getUUID("Owner") : null, tag.getLong("LaunchedAt"),
+                tag.contains("Origin", Tag.TAG_LONG) ? BlockPos.of(tag.getLong("Origin")) : null,
+                tag.getList("VisualSections", Tag.TAG_STRING).stream().map(Tag::getAsString).limit(17).toList(),
+                java.util.Arrays.stream(tag.getIntArray("VisualStageStarts")).filter(i -> i >= 0 && i < 17).limit(3).boxed().toList());
         loaded.forcedChunk = tag.contains("ForcedChunk") ? tag.getLong("ForcedChunk") : NO_CHUNK;
         return loaded;
     }

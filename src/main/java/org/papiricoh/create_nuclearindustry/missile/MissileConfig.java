@@ -12,6 +12,9 @@ import java.util.List;
  */
 public final class MissileConfig {
     public static int launchCountdownSeconds = 10;
+    public static double minimumRpm = 32;
+    public static double stressImpact = 8;
+    private static ModConfigSpec.DoubleValue minimumRpmValue, stressImpactValue;
     public static double gravity = BallisticModel.Params.DEFAULT.gravity();
     public static double riseHeight = BallisticModel.Params.DEFAULT.riseHeight();
     public static double minRange = BallisticModel.Params.DEFAULT.minRange();
@@ -42,9 +45,11 @@ public final class MissileConfig {
     private MissileConfig() {}
 
     public static void define(ModConfigSpec.Builder builder) {
+        minimumRpmValue = builder.defineInRange("missile.machinery.minimumRpm", 32.0, 1.0, 256.0);
+        stressImpactValue = builder.defineInRange("missile.machinery.stressImpact", 8.0, 0.0, 1024.0);
         launchCountdownSecondsValue = builder
                 .comment("Seconds a launch pad counts down once it is powered and loaded before the missile lifts off.",
-                        "The sirens around the target are warned for the whole countdown.")
+                        "Missile alerts require an operating radar; countdowns are private.")
                 .defineInRange("missile.launch.countdownSeconds", 10, 1, 600);
         gravityValue = builder
                 .comment("Gravity on a missile in flight, blocks per tick squared. It sets how long flights take and how much",
@@ -86,12 +91,13 @@ public final class MissileConfig {
                 .comment("Seconds a player must wait after one of their launch pads fires before another of theirs will. 0 for none.")
                 .defineInRange("missile.launchCooldownSeconds", 0, 0, 604800);
         launchBroadcastValue = builder
-                .comment("Who is told when a missile is launched, with where it comes down and how long it flies: NONE, IMPACT_AREA",
-                        "(players near where it comes down) or SERVER (everyone).")
+                .comment("Deprecated and ignored. Missile alerts now require an operational radar.")
                 .defineEnum("missile.launchBroadcast", LaunchBroadcast.IMPACT_AREA);
     }
 
     public static void bake() {
+        minimumRpm = minimumRpmValue.get();
+        stressImpact = stressImpactValue.get();
         launchCountdownSeconds = launchCountdownSecondsValue.get();
         gravity = gravityValue.get();
         riseHeight = riseHeightValue.get();
@@ -104,7 +110,7 @@ public final class MissileConfig {
         allowedDimensions = List.copyOf(allowedDimensionsValue.get());
         launchPermissionLevel = launchPermissionLevelValue.get();
         launchCooldownSeconds = launchCooldownSecondsValue.get();
-        launchBroadcast = launchBroadcastValue.get();
+        launchBroadcast = LaunchBroadcast.NONE; // Legacy option is ignored; radar supplies missile alerts.
     }
 
     /** The launch countdown, in ticks. */

@@ -38,7 +38,7 @@ import java.util.UUID;
  * {@link MissileFlight}, with no entity and no chunks loaded, so a missile crosses the world without
  * dragging its chunks along. Near players it shows as a puppet {@link MissileEntity}; where its chunk
  * is loaded it can hit the ground on the way; in its last moments it forces the chunk it comes down in,
- * so the impact always lands. Sirens are warned by every flight while it flies.
+ * so the impact always lands. Only operational radars expose flights to players.
  */
 public final class FlightTracker extends SavedData {
     private static final String NAME = "create_nuclearindustry_flights";
@@ -46,6 +46,25 @@ public final class FlightTracker extends SavedData {
     private static final int FORCE_IMPACT_CHUNK_TICKS = 40;
 
     private final Map<UUID, Flight> flights = new LinkedHashMap<>();
+    // Permanent receipts: replaying a silo transaction must not relaunch an already impacted missile.
+    private final java.util.Set<UUID> launchedIds = new java.util.HashSet<>();
+
+    public boolean hasLaunched(UUID id) { return launchedIds.contains(id); }
+
+    /** Returns the existing flight on replay, or null if that launch already finished. */
+    @Nullable
+    public Flight launchModular(ServerLevel level, UUID launchId, MissileDesign design, Vec3 start, Vec3 aim,
+                                BlockPos target, Warhead warhead, @Nullable UUID owner,
+                                List<String> sections, List<Integer> stageStarts) {
+        if (hasLaunched(launchId)) return flights.get(launchId);
+        Flight launched = new Flight(launchId, Flight.Kind.MISSILE,
+                new MissileFlight(design, Flight.v3(start), Flight.v3(aim), Flight.v3(Vec3.ZERO)),
+                warhead, target, owner, level.getGameTime(), BlockPos.containing(start), sections, stageStarts);
+        flights.put(launchId, launched);
+        launchedIds.add(launchId);
+        setDirty();
+        return launched;
+    }
 
     public static FlightTracker get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(new Factory<>(FlightTracker::new, FlightTracker::load, null), NAME);
@@ -73,10 +92,10 @@ public final class FlightTracker extends SavedData {
     public Flight launch(ServerLevel level, MissileDesign design, Vec3 start, Vec3 velocity, Vec3 aim, BlockPos target,
                          Warhead warhead, @Nullable UUID owner) {
         MissileFlight flight = new MissileFlight(design, Flight.v3(start), Flight.v3(aim), Flight.v3(velocity));
-        Flight launched = new Flight(UUID.randomUUID(), Flight.Kind.MISSILE, flight, warhead, target, owner, level.getGameTime());
+        Flight launched = new Flight(UUID.randomUUID(), Flight.Kind.MISSILE, flight, warhead, target, owner, level.getGameTime(), BlockPos.containing(start), List.of(), List.of());
         flights.put(launched.id(), launched);
+        launchedIds.add(launched.id());
         setDirty();
-        report(level, launched, MissileConfig.flightParams());
         return launched;
     }
 
@@ -113,16 +132,10 @@ public final class FlightTracker extends SavedData {
                 flight.warhead().detonate(level, impact);
                 continue;
             }
-            report(level, flight, params);
             forceImpactChunk(level, flight, params);
             showPuppet(level, flight);
         }
         setDirty();
-    }
-
-    private static void report(ServerLevel level, Flight flight, BallisticModel.Params params) {
-        int ticks = Mth.ceil(flight.flight().ticksToImpact(params));
-        ThreatRegistry.report(level, flight.id(), BlockPos.containing(flight.aim()), flight.warhead().threatRadius(), ticks);
     }
 
     private static void forceImpactChunk(ServerLevel level, Flight flight, BallisticModel.Params params) {
@@ -217,15 +230,22 @@ public final class FlightTracker extends SavedData {
         ListTag list = new ListTag();
         flights.values().forEach(flight -> list.add(flight.save()));
         tag.put("Flights", list);
+        ListTag receipts = new ListTag();
+        launchedIds.forEach(id -> receipts.add(net.minecraft.nbt.NbtUtils.createUUID(id)));
+        tag.put("LaunchedIds", receipts);
         return tag;
     }
 
     /** Public for tests: a tracker as it would load from {@code tag}. */
     public static FlightTracker load(CompoundTag tag, HolderLookup.Provider registries) {
         FlightTracker tracker = new FlightTracker();
+        for (Tag receipt : tag.getList("LaunchedIds", Tag.TAG_INT_ARRAY)) {
+            tracker.launchedIds.add(net.minecraft.nbt.NbtUtils.loadUUID(receipt));
+        }
         for (Tag t : tag.getList("Flights", Tag.TAG_COMPOUND)) {
             Flight flight = Flight.load((CompoundTag) t);
             tracker.flights.put(flight.id(), flight);
+            tracker.launchedIds.add(flight.id());
         }
         return tracker;
     }

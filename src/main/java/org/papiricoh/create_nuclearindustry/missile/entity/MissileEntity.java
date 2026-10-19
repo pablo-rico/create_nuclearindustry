@@ -12,10 +12,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
-import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearDetonation;
 import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
 import org.papiricoh.create_nuclearindustry.missile.flight.Flight;
@@ -43,6 +41,17 @@ import java.util.UUID;
  */
 public class MissileEntity extends Entity {
     private static final EntityDataAccessor<Boolean> BURNING = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.BOOLEAN);
+
+    private static final EntityDataAccessor<CompoundTag> VISUALS = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.COMPOUND_TAG);
+    private static final EntityDataAccessor<Integer> FIRST_SECTION = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.INT);
+    private int lastVisibleSection;
+
+    public java.util.List<String> visualSections() {
+        return entityData.get(VISUALS).getList("Sections", net.minecraft.nbt.Tag.TAG_STRING)
+                .stream().map(net.minecraft.nbt.Tag::getAsString).toList();
+    }
+
+    public int firstVisualSection() { return entityData.get(FIRST_SECTION); }
 
     /** The flight this entity shows, or null for a missile saved in flight by an older version. */
     @Nullable
@@ -99,6 +108,14 @@ public class MissileEntity extends Entity {
 
     /** Shows {@code flight}: puts this puppet where the flight is now, facing the way it flies. */
     public void follow(Flight flight) {
+        if (!flight.id().equals(this.flightId)) {
+            CompoundTag visuals = new CompoundTag();
+            net.minecraft.nbt.ListTag sections = new net.minecraft.nbt.ListTag();
+            flight.visualSections().forEach(id -> sections.add(net.minecraft.nbt.StringTag.valueOf(id)));
+            visuals.put("Sections", sections);
+            entityData.set(VISUALS, visuals);
+        }
+        entityData.set(FIRST_SECTION, flight.firstVisualSection());
         this.flightId = flight.id();
         Vec3 previous = position();
         Vec3 next = flight.position();
@@ -124,6 +141,13 @@ public class MissileEntity extends Entity {
         super.tick();
 
         if (level().isClientSide) {
+            int first = firstVisualSection();
+            if (first > lastVisibleSection && tickCount > 1) {
+                for (int i = 0; i < 18; i++) level().addParticle(ParticleTypes.POOF,
+                        getX(), getY(), getZ(), (random.nextDouble() - .5) * .3,
+                        -random.nextDouble() * .25, (random.nextDouble() - .5) * .3);
+            }
+            lastVisibleSection = first;
             spawnTrail();
             return;
         }
@@ -146,18 +170,11 @@ public class MissileEntity extends Entity {
             return;
         }
 
-        reportThreat();
         Vec3 previous = position();
         Vec3 next = trajectory(t);
         setPos(next.x, next.y, next.z);
         updateRotation(next.subtract(previous));
         followChunk(next);
-    }
-
-    /** Tells sirens near the target how long they have; reported every tick, so it survives a reload. */
-    private void reportThreat() {
-        int radius = dirty ? DirtyWarheadStats.falloutRadius(salting) : NuclearDetonation.falloutRadius(hRadius);
-        ThreatRegistry.report(level(), getUUID(), BlockPos.containing(targetX, targetY, targetZ), radius, flightTicks - age);
     }
 
     /** Keeps the missile's chunk forced (letting the last one go) so it never stops ticking. */
@@ -310,6 +327,8 @@ public class MissileEntity extends Entity {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         // The entity tracker carries position and rotation; only whether the engines burn is synced.
         builder.define(BURNING, true);
+        builder.define(VISUALS, new CompoundTag());
+        builder.define(FIRST_SECTION, 0);
     }
 
     @Override

@@ -46,6 +46,8 @@ public final class GuidePonderScenes {
         boards.put(GuidePonderText.BOMBS, WeaponsScenes::bombs);
         boards.put(GuidePonderText.THERMONUCLEAR, WeaponsScenes::thermonuclear);
         boards.put(GuidePonderText.MISSILE, WeaponsScenes::missile);
+        boards.put(GuidePonderText.SILO_LAUNCH, WeaponsScenes::siloLaunch);
+        boards.put(GuidePonderText.RADAR, WeaponsScenes::radar);
         boards.put(GuidePonderText.FUEL_CYCLE, FuelCycleScenes::oreToFuel);
         boards.put(GuidePonderText.ACID_LEACHING, FanTreatmentScenes::acidLeaching);
         boards.put(GuidePonderText.IRRADIATION, FanTreatmentScenes::irradiation);

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "create:blaze_cake"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    " I ",
+    " B ",
+    " I "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:propellant_cartridge"
+  }
+}

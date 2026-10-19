@@ -117,47 +117,13 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
     }
 
     public void tick() {
-        if (level == null || level.isClientSide) {
-            return;
-        }
-        if (!legacyChecked) {
+        // Kept only to let old worlds unload their inventories. Never resume an old countdown.
+        if (!legacyChecked && level != null && !level.isClientSide) {
             legacyChecked = true;
             ejectWhatNoLongerFits();
         }
-
-        boolean powered = level.hasNeighborSignal(getBlockPos());
-        if (!powered || !isReadyToLaunch()) {
-            if (countdown >= 0 || refusal != LaunchRules.Refusal.NONE) {
-                countdown = -1;
-                refusal = LaunchRules.Refusal.NONE;
-                ThreatRegistry.withdraw(level, getBlockPos());
-                markDirtyAndSync();
-            }
-            return;
-        }
-
-        if (countdown < 0) {
-            // A refused pad looks again once a second, so it starts when a cooldown runs out.
-            if (refusal != LaunchRules.Refusal.NONE && level.getGameTime() % 20 != 0 || refuse()) {
-                return;
-            }
-            countdown = MissileConfig.launchCountdownTicks();
-            reportThreat();
-            markDirtyAndSync();
-            return;
-        }
-
-        countdown--;
-        if (countdown <= 0) {
-            // The missile reports itself from its first tick of flight.
-            ThreatRegistry.withdraw(level, getBlockPos());
-            launch();
-        } else {
-            reportThreat();
-            if (countdown % 20 == 0) {
-                markDirtyAndSync();
-            }
-        }
+        countdown = -1;
+        if (level != null && !level.isClientSide) ThreatRegistry.withdraw(level, worldPosition);
     }
 
     /**
@@ -504,7 +470,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         if (tag.contains("inventory")) {
             inventory.deserializeNBT(provider, tag.getCompound("inventory"));
         }
-        countdown = tag.contains("countdown") ? tag.getInt("countdown") : -1;
+        countdown = -1;
         owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
         operator = tag.hasUUID("operator") ? tag.getUUID("operator") : null;
         // Only in client updates (block entity packets land here too); a save has none and reads as none.
@@ -531,7 +497,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         if (tag.contains("inventory")) {
             inventory.deserializeNBT(provider, tag.getCompound("inventory"));
         }
-        countdown = tag.contains("countdown") ? tag.getInt("countdown") : -1;
+        countdown = -1;
         refusal = LaunchRules.Refusal.byOrdinal(tag.getInt("refusal"));
     }
 }

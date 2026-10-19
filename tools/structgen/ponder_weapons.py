@@ -10,7 +10,7 @@ lose the block without that mod.
 - weapons_bombs, 7x3x5: a Nuclear Bomb (2,1,2) and a Dirty Bomb (4,1,2), each with a lever on
   its north face, towards the camera.
 - weapons_thermonuclear, 5x3x5: a Thermonuclear Bomb (2,1,2) with a lever on its north face (2,1,1).
-- weapons_missile, 5x3x5: a Missile Launch Pad (2,1,2) with a lever on its north face (2,1,1).
+- weapons_missile, 5x8x5: a cutaway silo and four-section modular rocket.
 """
 from ponder_plant_parts import NS, floor, put, write
 
@@ -38,11 +38,17 @@ def thermonuclear():
 
 
 def missile():
-    size = (5, 3, 5)
+    size = (5, 8, 5)
     blocks = {}
-    floor(blocks, size)
-    put(blocks, (2, 1, 2), NS + "launch_pad", {"powered": "false"})
-    put(blocks, (2, 1, 1), "minecraft:lever", LEVER)
+    for x in range(5):
+        for z in range(5):
+            put(blocks, (x, 0, z), NS + "silo_wall")
+            if x == 0 or z == 4:
+                for y in range(1, 5):
+                    put(blocks, (x, y, z), NS + "silo_wall")
+    put(blocks, (2, 0, 0), NS + "silo_controller")
+    for y, name in enumerate(("rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead"), 1):
+        put(blocks, (2, y, 2), NS + name)
     write("weapons_missile", size, blocks)
 
 

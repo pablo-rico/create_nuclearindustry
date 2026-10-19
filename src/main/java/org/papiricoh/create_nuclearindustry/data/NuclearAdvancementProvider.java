@@ -405,7 +405,7 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
                             "See a nuclear cannon shell go off", "Presencia la explosión de un proyectil nuclear de cañón")),
                     task("missile_launched", "weapons", MissileRegistry.MISSILE_ITEM, event(NuclearEvent.MISSILE_LAUNCHED),
                             "Liftoff", "Despegue",
-                            "Launch a missile from a launch pad", "Lanza un misil desde una plataforma de lanzamiento"),
+                            "Launch a modular rocket from a silo", "Lanza un cohete modular desde un silo"),
                     task("dirty_detonation", "weapons", AllNuclearItems.DIRTY_BOMB, event(NuclearEvent.DIRTY_DETONATION),
                             "Spreading the Waste", "Repartiendo los residuos",
                             "Witness a dirty bomb go off", "Presencia la explosión de una bomba sucia")),

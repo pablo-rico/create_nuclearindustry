@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": {
+      "item": "create:electron_tube"
+    },
+    "F": {
+      "item": "create_nuclearindustry:firing_set"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "pattern": [
+    "IEI",
+    "PFP",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:rocket_guidance"
+  }
+}

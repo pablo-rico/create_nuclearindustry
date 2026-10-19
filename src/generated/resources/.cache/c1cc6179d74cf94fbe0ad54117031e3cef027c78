@@ -1,10 +1,10 @@
-// 1.21.1	2026-10-19T01:23:15.088985	Tags for minecraft:block mod id create_nuclearindustry
+// 1.21.1	2026-10-20T00:50:01.680659	Tags for minecraft:block mod id create_nuclearindustry
 cf92bb0e0810d0a26ff3410c0f599ec9789139f4 data/c/tags/block/ores.json
 1cd91ac9d4465a0614f08bd99b4f951061d8de86 data/c/tags/block/ores/borax.json
 b2f76fecb3b121b7a7098ece381b67641b49ca6f data/c/tags/block/ores/lithium.json
 2837118acc6a75ab17eaf2b1ef96d6e65c63b2ce data/c/tags/block/ores/uranium.json
 a24b2d5e49cead5271901e5697ee7b6f4e1a91b7 data/create/tags/block/non_movable.json
-beedf5a9362e476f481798ab806e0c51e8a05b20 data/create/tags/block/wrench_pickup.json
+27303c831b23223abae424a4cccc33db6aee067d data/create/tags/block/wrench_pickup.json
 bce5e218645841b3172395ca85ae24280b9c0d6d data/create_nuclearindustry/tags/block/blast_fragile.json
 8fd7d8f62a632cfb58ecd89836dd7c9da1fa0161 data/create_nuclearindustry/tags/block/corium_resistant.json
 35133e95f1c8fdd7a1c21afcc231fc0bffefb9a8 data/create_nuclearindustry/tags/block/fan_processing_catalysts/acid_leaching.json
@@ -13,11 +13,11 @@ bce5e218645841b3172395ca85ae24280b9c0d6d data/create_nuclearindustry/tags/block/
 973c50747acd5a299a9970afb890a778d4c35635 data/create_nuclearindustry/tags/block/multiblock_parts.json
 89d93d5ba89088857f5aa01bbafe3b19ea8f7688 data/create_nuclearindustry/tags/block/repository_backfill.json
 14e41d7151995a2741e94c028edf2a2e5ef60189 data/create_nuclearindustry/tags/block/repository_host_rock.json
-1636dd54a01f85cd14dfc447acaa8f0982683ac8 data/create_nuclearindustry/tags/block/ruin_forbidden.json
+54fb8cd13c070e250420f29987486f36ec30a9c9 data/create_nuclearindustry/tags/block/ruin_forbidden.json
 644565fceda692895cff246465818beef514ed82 data/create_nuclearindustry/tags/block/ruin_rottable.json
 f1ae54c57108c6d03454a4136585b51bfb10bb6c data/minecraft/tags/block/impermeable.json
 9be854ef82b23737caea6eb2e9e9d370e637e353 data/minecraft/tags/block/mineable/axe.json
-e81f0da3d5f8284d7e7fc13463832b3f37d2335c data/minecraft/tags/block/mineable/pickaxe.json
+3e153ab0ba87d2884aaeaedce7a24a71d65411d7 data/minecraft/tags/block/mineable/pickaxe.json
 89d93d5ba89088857f5aa01bbafe3b19ea8f7688 data/minecraft/tags/block/mineable/shovel.json
 c06f2aaf4f1e2f81782e167f9dcc30ac147bca0e data/minecraft/tags/block/needs_iron_tool.json
 74816b984d2fed16b9b534954f6462de5e4e2a1e data/sable/tags/block/heavy.json

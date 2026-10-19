@@ -86,7 +86,7 @@ public class LaunchPadMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, padSlots, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (pad != null && moveIntoPad(stack)) {
+        } else if (false) {
             // movido
         } else {
             return ItemStack.EMPTY;
@@ -136,7 +136,7 @@ public class LaunchPadMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return pad.isItemValid(slotIndex, stack);
+            return false; // Retired platform: extraction only.
         }
     }
 }

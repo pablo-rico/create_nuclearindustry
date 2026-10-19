@@ -16,12 +16,14 @@ import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 
 public class MissileRenderer extends EntityRenderer<MissileEntity> {
+    private final net.minecraft.client.renderer.block.BlockRenderDispatcher blockRenderer;
     private final ItemRenderer itemRenderer;
     private final ItemStack missileStack;
 
     public MissileRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.itemRenderer = context.getItemRenderer();
+        this.blockRenderer = context.getBlockRenderDispatcher();
         this.missileStack = new ItemStack(MissileRegistry.MISSILE_ITEM.get());
     }
 
@@ -33,6 +35,18 @@ public class MissileRenderer extends EntityRenderer<MissileEntity> {
         // straight up), then turned to the heading, it points along the flight.
         poseStack.mulPose(Axis.YP.rotationDegrees(-entityYaw));
         poseStack.mulPose(Axis.XP.rotationDegrees(Mth.lerp(partialTicks, entity.xRotO, entity.getXRot()) + 90.0f));
+        java.util.List<String> sections = entity.visualSections();
+        if (!sections.isEmpty()) {
+            int first = Math.min(entity.firstVisualSection(), sections.size());
+            poseStack.translate(-.5, 0, -.5);
+            for (int i = first; i < sections.size(); i++) {
+                ResourceLocation id = ResourceLocation.tryParse(sections.get(i));
+                if (id != null) blockRenderer.renderSingleBlock(
+                        net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(id).defaultBlockState(),
+                        poseStack, buffer, packedLight, OverlayTexture.NO_OVERLAY);
+                poseStack.translate(0, 1, 0);
+            }
+        } else {
         poseStack.scale(1.35f, 1.35f, 1.35f);
         itemRenderer.renderStatic(
                 missileStack,
@@ -43,6 +57,7 @@ public class MissileRenderer extends EntityRenderer<MissileEntity> {
                 buffer,
                 entity.level(),
                 entity.getId());
+        }
         poseStack.popPose();
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
     }

@@ -36,7 +36,8 @@ public class WeaponsRecipeTests {
         for (String path : List.of("mixing/lithium_deuteride", "mixing/neutron_initiator", "sequenced_assembly/explosive_lens",
                 "sequenced_assembly/firing_set", "sequenced_assembly/implosion_assembly", "sequenced_assembly/nuclear_bomb",
                 "sequenced_assembly/thermonuclear_bomb", "mechanical_crafting/bomb_casing", "mechanical_crafting/thermonuclear_casing",
-                "mechanical_crafting/missile", "mechanical_crafting/launch_pad", "crafting/dirty_bomb")) {
+                "silo_controller", "silo_wall", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead",
+                "propellant_cartridge", "crafting/dirty_bomb")) {
             helper.assertTrue(recipe(helper, path).isPresent(), "no recipe " + path);
         }
         for (String path : List.of("mixing/lithium_deuteride", "mixing/neutron_initiator")) {

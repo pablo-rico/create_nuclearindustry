@@ -65,13 +65,15 @@ public final class MissileRegistry implements NuclearFeature {
     @Override
     public void register(IEventBus modEventBus) {
         NeoForge.EVENT_BUS.addListener(FlightTracker::onLevelTick);
+        org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.register(modEventBus);
+        org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.register(modEventBus);
     }
 
     @Override
     public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
         output.section(NuclearTabSection.WEAPONS);
-        output.accept(LAUNCH_PAD_ITEM.get());
-        output.accept(MISSILE_ITEM.get());
+        org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.fillCreativeTab(output);
+        org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.fillCreativeTab(output);
         output.accept(TARGET_DESIGNATOR.get());
     }
 }
