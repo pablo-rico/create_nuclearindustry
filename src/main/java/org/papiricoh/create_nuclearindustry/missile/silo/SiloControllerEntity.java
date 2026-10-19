@@ -11,6 +11,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.ChatFormatting;
+import org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements;
+import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
 import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import org.papiricoh.create_nuclearindustry.missile.*;
 import org.papiricoh.create_nuclearindustry.missile.flight.*;
@@ -34,6 +37,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private double flightTicks;
     /** Sections in the rocket standing in it, 0 if none is complete; for the client's countdown and launch effects. */
     private int rocketHeight;
+    private final MultiblockMessenger messenger = new MultiblockMessenger("silo");
 
     public SiloControllerEntity(BlockPos pos, BlockState state) { super(SiloRegistry.CONTROLLER_ENTITY.get(), pos, state); errorPos = pos; }
     public BlockPos floor() { return worldPosition.relative(getBlockState().getValue(SiloControllerBlock.FACING).getOpposite(), 2); }
@@ -46,8 +50,14 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     public int rocketHeight() { return rocketHeight; }
     public Component status() {
         return error.isEmpty() ? Component.translatable("silo.create_nuclearindustry.state." + state.name().toLowerCase(Locale.ROOT))
-                : Component.translatable("silo.create_nuclearindustry.error." + error, errorPos.getX(), errorPos.getY(), errorPos.getZ());
+                : MultiblockText.text(errorMessage());
     }
+    /** Why it is not ready, with where, as a {@link MultiblockText} message; empty when nothing is wrong. */
+    public String errorMessage() {
+        return error.isEmpty() ? "" : MultiblockText.message("silo.create_nuclearindustry.error." + error, errorPos.getX(), errorPos.getY(), errorPos.getZ());
+    }
+    /** Where the reason it is not ready lies (the controller when it is not a place). */
+    public BlockPos errorPos() { return errorPos; }
     public boolean powered() { return !isOverStressed() && Math.abs(getSpeed()) >= MissileConfig.minimumRpm; }
     @Override public float calculateStressApplied() { return lastStressApplied = (float) MissileConfig.stressImpact; }
     public void configure(Player player, BlockPos target, boolean airburst) {
@@ -64,6 +74,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         // Arming with a high input cannot count as an edge.
         lastSignal = level.hasNeighborSignal(worldPosition); initializedSignal = true;
         setChanged(); sendData();
+        messenger.status(level, player, status());
     }
     /** The player answerable for its launches (permission and cooldown), as {@link #configure} or {@link #arm} set it. */
     public void setOperator(UUID operator) { this.operator = operator; setChanged(); }
@@ -154,6 +165,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
             FlightTracker.get(server).launchModular(server, pendingLaunch, assembled.design(), Vec3.atBottomCenterOf(assembled.base()), aim(), target,
                     assembled.warhead(), operator, assembled.visuals(), assembled.composition().stageStarts());
             if (operator != null) LaunchCooldowns.get(server.getServer()).record(operator, LaunchCooldowns.now(server.getServer()));
+            NuclearAdvancements.awardMachine(server, worldPosition, operator == null ? null : server.getServer().getPlayerList().getPlayer(operator),
+                    NuclearEvent.MISSILE_LAUNCHED);
         }
         consume(assembled);
         pendingLaunch = null; rocket = null; rocketHeight = 0; countdown = -1; state = State.LAUNCHED; error = ""; dirty = false; setChanged();
@@ -188,5 +201,14 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
             error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks"); rocketHeight = tag.getInt("RocketHeight");
         } else { state = State.UNPREPARED; countdown = -1; initializedSignal = false; rocket = null; dirty = true; }
     }
-    @Override public boolean addToGoggleTooltip(List<Component> tooltip, boolean sneaking) { super.addToGoggleTooltip(tooltip, sneaking); tooltip.add(status()); return true; }
+    @Override public boolean addToGoggleTooltip(List<Component> tooltip, boolean sneaking) {
+        super.addToGoggleTooltip(tooltip, sneaking);
+        tooltip.add(Component.literal("    ").append(Component.translatable("block.create_nuclearindustry.silo_controller")).withStyle(ChatFormatting.GOLD));
+        ChatFormatting colour = !error.isEmpty() ? (state == State.INCOMPLETE ? ChatFormatting.RED : ChatFormatting.YELLOW)
+                : state == State.LAUNCHED ? ChatFormatting.GRAY : ChatFormatting.GREEN;
+        tooltip.add(Component.literal("     ").append(status()).withStyle(colour));
+        if (state == State.COUNTDOWN) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.countdown", (countdown + 19) / 20)).withStyle(ChatFormatting.RED));
+        if (target != null) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.target", target.getX(), target.getY(), target.getZ())).withStyle(ChatFormatting.GRAY));
+        return true;
+    }
 }

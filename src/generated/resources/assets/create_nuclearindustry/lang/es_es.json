@@ -2783,6 +2783,8 @@
   "silo.create_nuclearindustry.error.unloaded": "Chunk de la estructura descargado (%s, %s, %s)",
   "silo.create_nuclearindustry.error.wall": "Falta pared o suelo de silo (%s, %s, %s)",
   "silo.create_nuclearindustry.error.warhead": "Falta una ojiva (%s, %s, %s)",
+  "silo.create_nuclearindustry.goggles.countdown": "Despegue en %s s",
+  "silo.create_nuclearindustry.goggles.target": "Objetivo: %s %s %s",
   "silo.create_nuclearindustry.section": "%s: %s",
   "silo.create_nuclearindustry.state.armed": "Armado",
   "silo.create_nuclearindustry.state.countdown": "Cuenta atrás",

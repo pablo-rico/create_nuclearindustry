@@ -29,12 +29,17 @@ public final class MultiblockText {
         return bar < 0 ? encoded : encoded.substring(0, bar);
     }
 
+    /** A lang key of this mod: {@code create_nuclearindustry.*} or an area's {@code <area>.create_nuclearindustry.*}. */
+    private static boolean isModKey(String key) {
+        return key.startsWith(MOD_KEY_PREFIX) || key.indexOf(' ') < 0 && key.contains("." + MOD_KEY_PREFIX);
+    }
+
     /** A message from {@link #message}, or plain text from elsewhere, as a component. */
     public static Component text(String encoded) {
         if (encoded == null || encoded.isEmpty()) {
             return Component.empty();
         }
-        if (!encoded.startsWith(MOD_KEY_PREFIX)) {
+        if (!isModKey(key(encoded))) {
             return Component.literal(encoded);
         }
         String[] parts = encoded.split("\\|");

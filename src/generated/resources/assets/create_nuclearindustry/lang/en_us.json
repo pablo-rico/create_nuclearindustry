@@ -2783,6 +2783,8 @@
   "silo.create_nuclearindustry.error.unloaded": "Structure chunk unloaded (%s, %s, %s)",
   "silo.create_nuclearindustry.error.wall": "Missing silo wall or floor (%s, %s, %s)",
   "silo.create_nuclearindustry.error.warhead": "Expected one warhead (%s, %s, %s)",
+  "silo.create_nuclearindustry.goggles.countdown": "Lift-off in %s s",
+  "silo.create_nuclearindustry.goggles.target": "Target: %s %s %s",
   "silo.create_nuclearindustry.section": "%s: %s",
   "silo.create_nuclearindustry.state.armed": "Armed",
   "silo.create_nuclearindustry.state.countdown": "Counting down",

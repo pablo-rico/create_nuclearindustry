@@ -7,6 +7,8 @@ final class SiloLang {
         LangEntries.add("silo.create_nuclearindustry.target", "Set target", "Fijar objetivo");
         LangEntries.add("silo.create_nuclearindustry.timing", "Countdown / flight:", "Cuenta / vuelo:");
         LangEntries.add("silo.create_nuclearindustry.section", "%s: %s", "%s: %s");
+        LangEntries.add("silo.create_nuclearindustry.goggles.countdown", "Lift-off in %s s", "Despegue en %s s");
+        LangEntries.add("silo.create_nuclearindustry.goggles.target", "Target: %s %s %s", "Objetivo: %s %s %s");
         LangEntries.add("silo.create_nuclearindustry.state.incomplete", "Incomplete", "Incompleto");
         LangEntries.add("silo.create_nuclearindustry.state.unprepared", "Unprepared", "Sin preparar");
         LangEntries.add("silo.create_nuclearindustry.state.ready", "Ready", "Listo");
