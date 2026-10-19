@@ -14,6 +14,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.explosive.*;
 import org.papiricoh.create_nuclearindustry.missile.flight.Warhead;
+import org.papiricoh.create_nuclearindustry.missile.physics.GuidanceTier;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import java.util.UUID;
 
@@ -35,10 +36,23 @@ public class RocketSectionEntity extends BlockEntity {
     public RocketComposition.Section section() { return ((RocketSectionBlock) getBlockState().getBlock()).section; }
     private boolean accepts(int slot, ItemStack stack) {
         if (section() == RocketComposition.Section.TANK) return slot == 0 && stack.is(SiloRegistry.PROPELLANT.get());
+        if (section() == RocketComposition.Section.GUIDANCE) return slot == 0 && tierOf(stack) != GuidanceTier.BASIC;
         if (section() != RocketComposition.Section.WARHEAD) return false;
         if (slot < 3) return FissileMaterial.isWeaponsFissile(stack) || DirtyWarheadStats.isRadiological(stack);
         if (slot == 3) return stack.is(ExplosiveRegistry.LITHIUM_DEUTERIDE.get());
         return stack.is(AllNuclearTags.Items.THERMONUCLEAR_TAMPERS);
+    }
+    /** Create's precision mechanism, looked up by id (Create's item entries are not on the compile classpath). */
+    public static final net.minecraft.resources.ResourceLocation PRECISION_MECHANISM = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("create", "precision_mechanism");
+    /** What a guidance module holding {@code stack} steers by. */
+    public static GuidanceTier tierOf(ItemStack stack) {
+        if (stack.is(SiloRegistry.STAR_TRACKER.get())) return GuidanceTier.STELLAR;
+        if (!stack.isEmpty() && PRECISION_MECHANISM.equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()))) return GuidanceTier.INERTIAL;
+        return GuidanceTier.BASIC;
+    }
+    /** What this guidance module steers by; {@link GuidanceTier#BASIC} for any other section. */
+    public GuidanceTier guidanceTier() {
+        return section() == RocketComposition.Section.GUIDANCE ? tierOf(contents.getStackInSlot(0)) : GuidanceTier.BASIC;
     }
     public boolean fueled() { return section() != RocketComposition.Section.TANK || contents.getStackInSlot(0).is(SiloRegistry.PROPELLANT.get()); }
     public boolean validCharge() {
@@ -81,8 +95,12 @@ public class RocketSectionEntity extends BlockEntity {
         }
     }
     public Component description() {
-        return Component.translatable("silo.create_nuclearindustry.section", section().name(),
-                section() == RocketComposition.Section.WARHEAD ? warhead().kind().name() : fueled() ? "✓" : "0");
+        Object detail = switch (section()) {
+            case WARHEAD -> warhead().kind().name();
+            case GUIDANCE -> Component.translatable("silo.create_nuclearindustry.guidance." + guidanceTier().name().toLowerCase(java.util.Locale.ROOT));
+            default -> fueled() ? "✓" : "0";
+        };
+        return Component.translatable("silo.create_nuclearindustry.section", section().name(), detail);
     }
     public void consume() { for (int i = 0; i < contents.getSlots(); i++) contents.setStackInSlot(i, ItemStack.EMPTY); }
     public void dropContents() {

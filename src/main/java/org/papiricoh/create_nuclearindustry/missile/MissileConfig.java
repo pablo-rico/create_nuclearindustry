@@ -23,6 +23,7 @@ public final class MissileConfig {
     public static int showDistance = 256;
     public static int fxRange = 2048;
     public static int fxFarUpdateTicks = 4;
+    public static double cepScale = 1.0;
     public static double maxRange = 0.0;
     public static int protectedSpawnRadius = 0;
     public static List<String> allowedDimensions = List.of();
@@ -39,6 +40,7 @@ public final class MissileConfig {
     private static ModConfigSpec.IntValue showDistanceValue;
     private static ModConfigSpec.IntValue fxRangeValue;
     private static ModConfigSpec.IntValue fxFarUpdateTicksValue;
+    private static ModConfigSpec.DoubleValue cepScaleValue;
     private static ModConfigSpec.DoubleValue maxRangeValue;
     private static ModConfigSpec.IntValue protectedSpawnRadiusValue;
     private static ModConfigSpec.ConfigValue<List<? extends String>> allowedDimensionsValue;
@@ -82,6 +84,10 @@ public final class MissileConfig {
         fxFarUpdateTicksValue = builder
                 .comment("Ticks between updates for missiles further than 256 blocks from a player; nearer ones update every tick.")
                 .defineInRange("missile.fx.farUpdateTicks", 4, 1, 20);
+        cepScaleValue = builder
+                .comment("Multiplier on every rocket's circular error probable (the radius half its shots land within), which depends on its",
+                        "guidance module: empty, a precision mechanism or a star tracker. 0 makes every rocket land exactly on its target.")
+                .defineInRange("missile.guidance.cepScale", 1.0, 0.0, 10.0);
         maxRangeValue = builder
                 .comment("Furthest target, blocks (horizontally) from the launch pad, a missile may be launched at; 0 leaves only",
                         "the missile's own reach.")
@@ -118,6 +124,7 @@ public final class MissileConfig {
         showDistance = showDistanceValue.get();
         fxRange = fxRangeValue.get();
         fxFarUpdateTicks = fxFarUpdateTicksValue.get();
+        cepScale = cepScaleValue.get();
         maxRange = maxRangeValue.get();
         protectedSpawnRadius = protectedSpawnRadiusValue.get();
         allowedDimensions = List.copyOf(allowedDimensionsValue.get());

@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-19T04:34:25.086657	Nuclear weapons recipes
+// 1.21.1	2026-10-20T01:16:59.969541	Nuclear weapons recipes
 5b8432eff92d1eed165fefba9c1d336c0ca00509 data/create_nuclearindustry/advancement/recipes/misc/crafting/convert_legacy_launch_pad.json
 9b3f55d291e8d1fd044f258e0c2181879eaeee92 data/create_nuclearindustry/advancement/recipes/misc/crafting/convert_legacy_missile.json
 ab66f5dcc425a6c570f6cc587bbd76b7605d25ba data/create_nuclearindustry/advancement/recipes/misc/crafting/dirty_bomb.json
@@ -9,6 +9,7 @@ b389d5203909fdd26f0cc9cdda34d7146c12b724 data/create_nuclearindustry/advancement
 083a8445a04ce28d5bc6a5535416780d476ea9a8 data/create_nuclearindustry/advancement/recipes/misc/rocket_warhead.json
 2974fbb97433ffe954d16546bc5554137b52fbd1 data/create_nuclearindustry/advancement/recipes/misc/silo_controller.json
 d67de6134557a0f1ea24ff6e724390eec4c42a26 data/create_nuclearindustry/advancement/recipes/misc/silo_wall.json
+31ace4e8fd869dda2cc80a24a24d7cf61d8019cd data/create_nuclearindustry/advancement/recipes/misc/star_tracker.json
 86d92668fcece1e7e670963bfb570b4501a78d79 data/create_nuclearindustry/recipe/crafting/convert_legacy_launch_pad.json
 dd8f7bfdb2fd62fdd3b275f7b5d2e2eb79a7aaa8 data/create_nuclearindustry/recipe/crafting/convert_legacy_missile.json
 bf2ebd3bf6629798428d971db79a89e34c43ce78 data/create_nuclearindustry/recipe/crafting/dirty_bomb.json
@@ -28,3 +29,4 @@ d2afb0d8fe0834a92b701916f85cbb0076820dd0 data/create_nuclearindustry/recipe/sequ
 67a48f9e6c1528c5532f43a7670053b94acbc703 data/create_nuclearindustry/recipe/sequenced_assembly/thermonuclear_bomb.json
 8c5e88a03af52aca69f299e8acef16f68dc524d0 data/create_nuclearindustry/recipe/silo_controller.json
 94e5b53f1d994c6c360a203bd7f7720f855c8b6e data/create_nuclearindustry/recipe/silo_wall.json
+b2b4e0e794b009126b67ecd36c53bd6c0291a6e2 data/create_nuclearindustry/recipe/star_tracker.json

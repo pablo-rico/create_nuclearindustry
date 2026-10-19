@@ -39,6 +39,7 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
         g.drawString(font, title, 12, 8, 0xffeeeeee, false);
         if (minecraft.level.getBlockEntity(menu.pos) instanceof SiloControllerEntity c) {
             g.drawWordWrap(font, c.status(), 16, 32, 268, 0xffe4be72);
+            if (c.rocketHeight() > 0) g.drawString(font, c.guidanceLine(), 16, 74, 0xff9fc7b8, false);
             g.drawString(font, text("timing").append(Component.literal(" " + Math.max(0, c.countdown()/20) + "s / " + (int)(c.flightTicks()/20) + "s")), 16, 62, 0xffd0d0d0, false);
         }
     }

@@ -18,7 +18,10 @@ import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import org.papiricoh.create_nuclearindustry.missile.*;
 import org.papiricoh.create_nuclearindustry.missile.flight.*;
 import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
+import org.papiricoh.create_nuclearindustry.missile.physics.AccuracyModel;
+import org.papiricoh.create_nuclearindustry.missile.physics.GuidanceTier;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
+import org.papiricoh.create_nuclearindustry.missile.physics.V3;
 import org.papiricoh.create_nuclearindustry.multiblock.*;
 import java.util.*;
 
@@ -37,6 +40,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private double flightTicks;
     /** Sections in the rocket standing in it, 0 if none is complete; for the client's countdown and launch effects. */
     private int rocketHeight;
+    private GuidanceTier syncedGuidance = GuidanceTier.BASIC;
+    private double syncedCep;
     private final MultiblockMessenger messenger = new MultiblockMessenger("silo");
 
     public SiloControllerEntity(BlockPos pos, BlockState state) { super(SiloRegistry.CONTROLLER_ENTITY.get(), pos, state); errorPos = pos; }
@@ -93,18 +98,42 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     }
     @Override public boolean shouldReactToBlockChange(BlockChange change) { return !change.pos().equals(worldPosition); }
     @Override public void requestStructureRevalidation(Player player) { dirty = true; }
-    private Vec3 aim() {
+    /** Where it is sent: the target, or above it for an airburst. */
+    private Vec3 designatedAim() {
         Vec3 aim = Vec3.atCenterOf(target);
         return airburst && rocket != null && rocket.warhead().nuclear() ? aim.add(0, TargetDesignatorItem.airburstHeight(rocket.warhead().destructionRadius()), 0) : aim;
     }
+    /** Where it really comes down: off the designated aim by its guidance's miss, drawn from the rocket itself. */
+    private Vec3 aim() {
+        Vec3 aim = designatedAim();
+        if (rocket == null) return aim;
+        V3 miss = AccuracyModel.miss(cep(), rocket.missSeed());
+        return aim.add(miss.x(), 0, miss.z());
+    }
+    /** The circular error probable, blocks, of the rocket standing in it at its target; 0 without either. */
+    public double cep() {
+        if (level != null && level.isClientSide) return syncedCep;
+        if (rocket == null || target == null) return 0;
+        Vec3 start = Vec3.atBottomCenterOf(floor().above()), aim = designatedAim();
+        return rocket.guidance().cep(Math.hypot(aim.x - start.x, aim.z - start.z)) * MissileConfig.cepScale;
+    }
+    /** Its guidance and circular error probable, for screens and goggles. */
+    public Component guidanceLine() {
+        return Component.translatable("silo.create_nuclearindustry.guidance",
+                Component.translatable("silo.create_nuclearindustry.guidance." + guidance().name().toLowerCase(Locale.ROOT)), Math.round(cep()));
+    }
+    /** What the rocket standing in it steers by. */
+    public GuidanceTier guidance() { return level != null && level.isClientSide ? syncedGuidance : rocket == null ? GuidanceTier.BASIC : rocket.guidance(); }
     /** Why the server's limits forbid launching at the current target, or {@link LaunchRules.Refusal#NONE}. */
     public LaunchRules.Refusal checkLimits(ServerLevel server) {
         if (target == null) return LaunchRules.Refusal.NONE;
         if (!LaunchRules.dimensionAllowed(server.dimension().location().toString(), MissileConfig.allowedDimensions)) return LaunchRules.Refusal.DIMENSION;
-        Vec3 start = Vec3.atBottomCenterOf(floor().above()), aim = aim();
+        Vec3 start = Vec3.atBottomCenterOf(floor().above()), aim = designatedAim(), landing = aim();
         if (LaunchRules.outOfRange(start.x, start.z, aim.x, aim.z, MissileConfig.maxRange)) return LaunchRules.Refusal.OUT_OF_RANGE;
         BlockPos spawn = server.getSharedSpawnPos();
-        if (server.dimension() == Level.OVERWORLD && LaunchRules.nearSpawn(aim.x, aim.z, spawn.getX()+.5, spawn.getZ()+.5, MissileConfig.protectedSpawnRadius)) return LaunchRules.Refusal.SPAWN_PROTECTED;
+        // Both where it is sent and where its guidance really puts it must keep clear of the spawn.
+        if (server.dimension() == Level.OVERWORLD && (LaunchRules.nearSpawn(aim.x, aim.z, spawn.getX()+.5, spawn.getZ()+.5, MissileConfig.protectedSpawnRadius)
+                || LaunchRules.nearSpawn(landing.x, landing.z, spawn.getX()+.5, spawn.getZ()+.5, MissileConfig.protectedSpawnRadius))) return LaunchRules.Refusal.SPAWN_PROTECTED;
         var online = operator == null ? null : server.getServer().getPlayerList().getPlayer(operator);
         GameProfile profile = online == null ? new GameProfile(operator == null ? new UUID(0,0) : operator, "") : online.getGameProfile();
         if (server.getServer().getProfilePermissions(profile) < MissileConfig.launchPermissionLevel) return LaunchRules.Refusal.NO_PERMISSION;
@@ -162,7 +191,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         pendingLaunch = assembled.launchId(); setChanged();
         // Server ticks serialize both redstone activations. A deterministic id survives stale chunk saves.
         if (!FlightTracker.get(server).hasLaunched(pendingLaunch)) {
-            FlightTracker.get(server).launchModular(server, pendingLaunch, assembled.design(), Vec3.atBottomCenterOf(assembled.base()), aim(), target,
+            FlightTracker.get(server).launchModular(server, pendingLaunch, assembled.design(cep()), Vec3.atBottomCenterOf(assembled.base()), aim(), target,
                     assembled.warhead(), operator, assembled.visuals(), assembled.composition().stageStarts());
             if (operator != null) LaunchCooldowns.get(server.getServer()).record(operator, LaunchCooldowns.now(server.getServer()));
             NuclearAdvancements.awardMachine(server, worldPosition, operator == null ? null : server.getServer().getPlayerList().getPlayer(operator),
@@ -188,6 +217,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (clientPacket) {
             tag.putString("State", state.name()); tag.putString("Error", error); tag.putLong("ErrorPos", errorPos.asLong());
             tag.putInt("Countdown", countdown); tag.putDouble("FlightTicks", flightTicks); tag.putInt("RocketHeight", rocketHeight);
+            tag.putInt("Guidance", guidance().ordinal()); tag.putDouble("Cep", cep());
         }
     }
     @Override protected void read(CompoundTag tag, HolderLookup.Provider provider, boolean clientPacket) {
@@ -199,6 +229,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (clientPacket) {
             try { state = State.valueOf(tag.getString("State")); } catch (IllegalArgumentException ignored) { state = State.INCOMPLETE; }
             error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks"); rocketHeight = tag.getInt("RocketHeight");
+            syncedGuidance = GuidanceTier.byOrdinal(tag.getInt("Guidance")); syncedCep = tag.getDouble("Cep");
         } else { state = State.UNPREPARED; countdown = -1; initializedSignal = false; rocket = null; dirty = true; }
     }
     @Override public boolean addToGoggleTooltip(List<Component> tooltip, boolean sneaking) {
@@ -209,6 +240,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         tooltip.add(Component.literal("     ").append(status()).withStyle(colour));
         if (state == State.COUNTDOWN) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.countdown", (countdown + 19) / 20)).withStyle(ChatFormatting.RED));
         if (target != null) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.target", target.getX(), target.getY(), target.getZ())).withStyle(ChatFormatting.GRAY));
+        if (rocketHeight > 0) tooltip.add(Component.literal("     ").append(guidanceLine()).withStyle(ChatFormatting.GRAY));
         return true;
     }
 }

@@ -31,6 +31,12 @@ final class MissileDataGen extends AreaDataGen {
         block("silo_controller", "Silo Controller", "Controlador de silo");
         block("silo_wall", "Silo Wall", "Pared de silo");
         item("propellant_cartridge", "Propellant Cartridge", "Cartucho de propelente");
+        item("star_tracker", "Star Tracker", "Rastreador estelar");
+    }
+
+    @Override
+    void itemModels(NuclearItemModelProvider provider) {
+        provider.basicItem(SiloRegistry.STAR_TRACKER.get());
     }
 
     @Override

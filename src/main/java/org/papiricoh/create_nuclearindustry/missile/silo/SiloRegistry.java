@@ -19,6 +19,8 @@ public final class SiloRegistry {
     public static final DeferredHolder<Block, Block> WALL = AllNuclearBlocks.BLOCKS.register("silo_wall", () -> new Block(properties()));
     public static final DeferredHolder<Block, SiloControllerBlock> CONTROLLER = AllNuclearBlocks.BLOCKS.register("silo_controller", () -> new SiloControllerBlock(properties()));
     public static final DeferredHolder<Item, Item> PROPELLANT = AllNuclearItems.ITEMS.register("propellant_cartridge", () -> new Item(new Item.Properties()));
+    /** Goes in a guidance module for stellar guidance, the most accurate. */
+    public static final DeferredHolder<Item, Item> STAR_TRACKER = AllNuclearItems.ITEMS.register("star_tracker", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RocketSectionEntity>> SECTION_ENTITY = AllNuclearEntities.ENTITIES.register("rocket_section",
             () -> BlockEntityType.Builder.of(RocketSectionEntity::new, ENGINE.get(), TANK.get(), GUIDANCE.get(), WARHEAD.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SiloControllerEntity>> CONTROLLER_ENTITY = AllNuclearEntities.ENTITIES.register("silo_controller",
@@ -36,5 +38,6 @@ public final class SiloRegistry {
     public static void fillCreativeTab(SectionedOutput output) {
         for (var block : java.util.List.of(ENGINE, TANK, GUIDANCE, WARHEAD, WALL, CONTROLLER)) output.accept(block.get());
         output.accept(PROPELLANT.get());
+        output.accept(STAR_TRACKER.get());
     }
 }

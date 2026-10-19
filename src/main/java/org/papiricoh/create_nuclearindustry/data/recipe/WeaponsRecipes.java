@@ -181,6 +181,8 @@ public final class WeaponsRecipes implements DataProvider {
             part(output, SiloRegistry.CONTROLLER.get(), "SFS", "PEP", "SIS", 'S', sturdy, 'F', ExplosiveRegistry.FIRING_SET.get(), 'P', CreateItems.get("precision_mechanism"), 'E', CreateItems.get("electron_tube"), 'I', Items.IRON_BLOCK);
             part(output, SiloRegistry.WALL.get(), "III", "ISI", "III", 'I', Items.STONE, 'S', sturdy);
             part(output, SiloRegistry.PROPELLANT.get(), " I ", " B ", " I ", 'I', CreateItems.get("iron_sheet"), 'B', CreateItems.get("blaze_cake"));
+            part(output, SiloRegistry.STAR_TRACKER.get(), " G ", "EPE", " B ", 'G', Items.SPYGLASS, 'E', CreateItems.get("electron_tube"),
+                    'P', CreateItems.get("precision_mechanism"), 'B', CreateItems.get("brass_sheet"));
             ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, SiloRegistry.ENGINE.get())
                     .requires(MissileRegistry.MISSILE_ITEM.get()).unlockedBy("has_legacy_missile", has(MissileRegistry.MISSILE_ITEM.get()))
                     .save(output, ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "crafting/convert_legacy_missile"));

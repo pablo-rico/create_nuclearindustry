@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
+import org.papiricoh.create_nuclearindustry.missile.physics.GuidanceTier;
 
 public final class RocketValidator {
     public record Result(AssembledRocket rocket, String error, BlockPos position) {
@@ -15,6 +16,7 @@ public final class RocketValidator {
         List<String> visuals = new ArrayList<>();
         List<UUID> identities = new ArrayList<>();
         RocketSectionEntity payload = null;
+        GuidanceTier guidance = GuidanceTier.BASIC;
         for (int i = 0; i < 18; i++) {
             BlockPos pos = base.above(i);
             if (!level.isLoaded(pos)) return new Result(null, "unloaded", pos);
@@ -24,12 +26,13 @@ public final class RocketValidator {
             identities.add(part.identity());
             if (!part.fueled()) return new Result(null, "fuel", pos);
             if (part.section() == RocketComposition.Section.WARHEAD) payload = part;
+            if (part.section() == RocketComposition.Section.GUIDANCE) guidance = part.guidanceTier();
         }
         try {
             RocketComposition composition = RocketComposition.parse(sections);
             if (payload == null || !payload.validCharge()) return new Result(null, "charge", base.above(sections.size() - 1));
             UUID id = UUID.nameUUIDFromBytes(identities.toString().getBytes(StandardCharsets.UTF_8));
-            return new Result(new AssembledRocket(id, base, composition, composition.design(payload.payloadMass()), payload.warhead(), visuals, identities), "", base);
+            return new Result(new AssembledRocket(id, base, composition, composition.design(payload.payloadMass()), payload.warhead(), visuals, identities, guidance), "", base);
         } catch (RocketComposition.Invalid e) { return new Result(null, e.reason, base.above(e.index)); }
     }
 }

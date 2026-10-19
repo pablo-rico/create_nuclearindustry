@@ -41,8 +41,12 @@ public record RocketComposition(List<Integer> tanksPerStage) {
     }
     /** Game units, deliberately fictional; each cartridge contributes two units of propellant. */
     public MissileDesign design(double payloadMass) {
+        return design(payloadMass, 0);
+    }
+    /** The design with guidance of circular error probable {@code cep} blocks. */
+    public MissileDesign design(double payloadMass, double cep) {
         return new MissileDesign(tanksPerStage.stream()
-                .map(n -> new MissileDesign.Stage(0.6 + 0.1 * n, 2.0 * n, 0.24, 4.0)).toList(), payloadMass, 0);
+                .map(n -> new MissileDesign.Stage(0.6 + 0.1 * n, 2.0 * n, 0.24, 4.0)).toList(), payloadMass, Math.max(0, cep));
     }
     public static final class Invalid extends IllegalArgumentException {
         public final int index;

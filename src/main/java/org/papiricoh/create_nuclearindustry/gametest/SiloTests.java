@@ -13,7 +13,14 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.missile.flight.Flight;
 import org.papiricoh.create_nuclearindustry.missile.flight.FlightTracker;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
+import org.papiricoh.create_nuclearindustry.missile.physics.GuidanceTier;
+import org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition;
+import org.papiricoh.create_nuclearindustry.missile.silo.RocketSectionEntity;
 import org.papiricoh.create_nuclearindustry.missile.silo.RocketValidator;
+import org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry;
 import org.papiricoh.create_nuclearindustry.missile.silo.SiloControllerEntity;
 
 /**
@@ -147,6 +154,10 @@ public class SiloTests {
             helper.assertTrue(launched != null, "the silo launches, state " + silo.state() + " " + silo.error());
             tracker.remove(level, launched);
             helper.assertTrue(silo.state() == SiloControllerEntity.State.LAUNCHED, "and says it has, got " + silo.state());
+            double cep = launched.flight().design().cep();
+            helper.assertTrue(Math.abs(cep - GuidanceTier.BASIC.cep(150) * MissileConfig.cepScale) < 1, "an empty guidance module flies on dead reckoning, cep " + cep);
+            double miss = Math.hypot(launched.aim().x - (target.getX() + .5), launched.aim().z - (target.getZ() + .5));
+            helper.assertTrue(cep == 0 || miss > 0 && miss < cep * 6, "it is sent off the target by its guidance's miss, " + miss);
             for (int i = 1; i <= builder.height(); i++) {
                 helper.assertTrue(helper.getBlockState(SiloTestBuilder.FLOOR.above(i)).isAir(), "the rocket left the silo, section " + i + " is "
                         + helper.getBlockState(SiloTestBuilder.FLOOR.above(i)));
@@ -154,6 +165,40 @@ public class SiloTests {
             helper.assertTrue(level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
                     new net.minecraft.world.phys.AABB(helper.absolutePos(SiloTestBuilder.FLOOR)).inflate(8)).isEmpty(), "and dropped nothing");
             helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.AIR);
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void theGuidanceModuleSetsTheCep(GameTestHelper helper) {
+        SiloControllerEntity silo = aimed(helper, new SiloTestBuilder().tanks(2), helper.makeMockPlayer(GameType.SURVIVAL));
+        BlockPos guidance = SiloTestBuilder.FLOOR.above(4);
+        helper.runAfterDelay(5, () -> {
+            RocketSectionEntity module = helper.getBlockEntity(guidance);
+            helper.assertTrue(module.section() == RocketComposition.Section.GUIDANCE, "the guidance module is where expected");
+            helper.assertTrue(module.contents().insertItem(0, new ItemStack(Items.DIRT), true).getCount() == 1, "it takes no dirt");
+            module.contents().setStackInSlot(0, new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(RocketSectionEntity.PRECISION_MECHANISM)));
+        });
+        helper.runAfterDelay(10, () -> {
+            silo.validate();
+            helper.assertTrue(silo.guidance() == GuidanceTier.INERTIAL, "a precision mechanism gives inertial guidance, got " + silo.guidance());
+            helper.assertTrue(Math.abs(silo.cep() - GuidanceTier.INERTIAL.cep(150) * MissileConfig.cepScale) < 0.01, "its CEP at 150 blocks, got " + silo.cep());
+        });
+        helper.runAfterDelay(15, () -> {
+            RocketSectionEntity module = helper.getBlockEntity(guidance);
+            module.contents().setStackInSlot(0, new ItemStack(SiloRegistry.STAR_TRACKER.get()));
+            silo.validate();
+            helper.assertTrue(silo.guidance() == GuidanceTier.STELLAR, "a star tracker gives stellar guidance, got " + silo.guidance());
+            helper.assertTrue(Math.abs(silo.cep() - GuidanceTier.STELLAR.cep(150) * MissileConfig.cepScale) < 0.01, "its CEP at 150 blocks, got " + silo.cep());
+            double saved = MissileConfig.cepScale;
+            double perfect;
+            try {
+                MissileConfig.cepScale = 0;
+                perfect = silo.cep();
+            } finally {
+                MissileConfig.cepScale = saved;
+            }
+            helper.assertTrue(perfect == 0, "with missile.guidance.cepScale at 0 every rocket is exact");
+            helper.succeed();
         });
     }
 

@@ -8,6 +8,10 @@ final class SiloLang {
         LangEntries.add("silo.create_nuclearindustry.timing", "Countdown / flight:", "Cuenta / vuelo:");
         LangEntries.add("silo.create_nuclearindustry.section", "%s: %s", "%s: %s");
         LangEntries.add("silo.create_nuclearindustry.goggles.countdown", "Lift-off in %s s", "Despegue en %s s");
+        LangEntries.add("silo.create_nuclearindustry.guidance", "Guidance: %s · CEP %s m", "Guiado: %s · CEP %s m");
+        LangEntries.add("silo.create_nuclearindustry.guidance.basic", "Dead reckoning", "Navegación a estima");
+        LangEntries.add("silo.create_nuclearindustry.guidance.inertial", "Inertial", "Inercial");
+        LangEntries.add("silo.create_nuclearindustry.guidance.stellar", "Stellar-inertial", "Astroinercial");
         LangEntries.add("silo.create_nuclearindustry.goggles.target", "Target: %s %s %s", "Objetivo: %s %s %s");
         LangEntries.add("silo.create_nuclearindustry.state.incomplete", "Incomplete", "Incompleto");
         LangEntries.add("silo.create_nuclearindustry.state.unprepared", "Unprepared", "Sin preparar");

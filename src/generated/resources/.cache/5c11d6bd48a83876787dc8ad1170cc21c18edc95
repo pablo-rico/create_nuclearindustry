@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-15T02:08:15.424778	Item Models: create_nuclearindustry
+// 1.21.1	2026-10-20T01:16:59.970422	Item Models: create_nuclearindustry
 fbb44421d41b161a776411650882a190059c17c8 assets/create_nuclearindustry/models/item/americium_241.json
 c751b3309684aa5733087dd1d1e82066016215f0 assets/create_nuclearindustry/models/item/amidoxime_adsorbent.json
 70769908b82daba73c4d705865fc8fd119e7b179 assets/create_nuclearindustry/models/item/bomb_casing.json
@@ -65,6 +65,7 @@ f7228c9e3f5dd0bd7108d56c33f1dc787dd5e11c assets/create_nuclearindustry/models/it
 1c7c823d14c50ade1239ec631dda4239dc1bfa96 assets/create_nuclearindustry/models/item/raw_spodumene.json
 446dafef545160fae558f5e3af6f10f890f9bc4c assets/create_nuclearindustry/models/item/spent_fuel_fragments.json
 38e46ff873c53e6be74ff83c0eea811afe0b5edf assets/create_nuclearindustry/models/item/spodumene_concentrate.json
+606c373f59a00b6eae53ce98b4f2eda0eb490d7a assets/create_nuclearindustry/models/item/star_tracker.json
 57d012a48d13d690073ac836b4d282f58e577cba assets/create_nuclearindustry/models/item/steam_bucket.json
 37e8c72c998cbccfc558db664dd6c4261ff2e7c2 assets/create_nuclearindustry/models/item/strontium_90.json
 1c04d808a355bf9d201d9bc9288f52c32f59db0b assets/create_nuclearindustry/models/item/strontium_rtg_pellet.json
