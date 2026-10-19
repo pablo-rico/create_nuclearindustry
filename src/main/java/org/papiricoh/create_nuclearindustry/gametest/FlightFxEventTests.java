@@ -73,6 +73,9 @@ public class FlightFxEventTests {
         helper.assertTrue(order.contains(FlightFxEvent.TERMINAL) && order.indexOf(FlightFxEvent.TERMINAL) > order.indexOf(FlightFxEvent.BURNOUT),
                 "its last seconds come on the way down: " + order);
         helper.assertTrue(!order.contains(FlightFxEvent.ABORT), "a flight that lands is not aborted: " + order);
+        helper.assertTrue(order.stream().filter(e -> e == FlightFxEvent.REENTRY).count() == 1
+                && order.indexOf(FlightFxEvent.REENTRY) > order.indexOf(FlightFxEvent.BURNOUT),
+                "it comes back into the air once, on the way down after burnout: " + order);
 
         Flight restored = FlightTracker.load(saved, level.registryAccess()).get(id);
         helper.assertTrue(restored != null && restored.shape().equals(RocketShape.column(6, List.of(0, 2)))

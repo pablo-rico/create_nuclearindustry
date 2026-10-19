@@ -58,6 +58,8 @@ public final class Flight {
     /** The phase it was in last tick, to tell when it changes; not saved. */
     @Nullable
     MissileFlight.Phase lastPhase;
+    /** Whether it has come back down into the air since burnout; not saved. */
+    boolean reentered;
     /** The chunk forced so the impact lands in a loaded world, or {@link #NO_CHUNK}. */
     long forcedChunk = NO_CHUNK;
     /** The puppet entity showing it, while one is shown; never saved. */
