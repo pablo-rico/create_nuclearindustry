@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-19T04:34:25.087081	Loot Tables
+// 1.21.1	2026-10-20T01:26:23.082898	Loot Tables
 eaeb1a44ee986afa29b73bd40bcd6ecd94187e44 data/create_nuclearindustry/loot_table/blocks/accelerator_cryo_feed.json
 64315f2829f1110e8eef7a6c1c5c4d2310efebd1 data/create_nuclearindustry/loot_table/blocks/advanced_redstone_link.json
 13c05f487af479a2691bf45b4d60b1e69d36ac47 data/create_nuclearindustry/loot_table/blocks/air_raid_siren.json
@@ -120,6 +120,7 @@ dcf0d22db9f7f93544325ce3e7e47f3cb4ee62df data/create_nuclearindustry/loot_table/
 caf5fb94de42cafb1019fe775794ec501635289a data/create_nuclearindustry/loot_table/blocks/shelter_filtration_unit.json
 08cf48a5aa94de4355417fece53c99bc6928c991 data/create_nuclearindustry/loot_table/blocks/shielded_waste_cask.json
 1f2b567df597d63854d842ff88f7e33ff46e84ac data/create_nuclearindustry/loot_table/blocks/silo_controller.json
+4367905ec52522bdfb8b5c517d2c974193140fe0 data/create_nuclearindustry/loot_table/blocks/silo_fuel_port.json
 ad7c0bbced64d5e039d3e6a689a9b2efa7c7614d data/create_nuclearindustry/loot_table/blocks/silo_wall.json
 a84bbc689004013f6f2f26b65bdabd062aab664a data/create_nuclearindustry/loot_table/blocks/small_penning_trap.json
 83faad1b6eb215a509218aeaab458d03203ac0b9 data/create_nuclearindustry/loot_table/blocks/smoke_detector.json

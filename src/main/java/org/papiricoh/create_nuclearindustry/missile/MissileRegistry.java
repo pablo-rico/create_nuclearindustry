@@ -71,6 +71,11 @@ public final class MissileRegistry implements NuclearFeature {
     }
 
     @Override
+    public void registerCapabilities(net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent event) {
+        org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.registerCapabilities(event);
+    }
+
+    @Override
     public void fillCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, SectionedOutput output) {
         output.section(NuclearTabSection.WEAPONS);
         org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.fillCreativeTab(output);

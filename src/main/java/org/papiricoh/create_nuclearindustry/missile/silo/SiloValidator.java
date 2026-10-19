@@ -12,7 +12,7 @@ public final class SiloValidator {
             if (!level.isLoaded(p)) return new Result("unloaded", p);
             if (p.equals(controller)) continue;
             if (y == 0 || Math.abs(x) == 2 || Math.abs(z) == 2) {
-                if (!level.getBlockState(p).is(SiloRegistry.WALL.get())) return new Result("wall", p);
+                if (!level.getBlockState(p).is(SiloRegistry.SILO_WALLS)) return new Result("wall", p);
             } else if ((x != 0 || z != 0) && !level.getBlockState(p).isAir()) return new Result("interior", p);
         }
         return exit(level, floor, height);

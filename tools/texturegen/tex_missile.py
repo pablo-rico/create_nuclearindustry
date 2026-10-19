@@ -5,9 +5,59 @@ Register block textures with ``@block``, items with ``@item`` and screens with `
 """
 
 from blocks import block  # noqa: F401
+from common import bolt, flange
 from items import item, mask_from, sculpt
-from palette import BRASS, CYAN, DARK, RADIUM, STEEL, WARN, WHITE
-from pixelkit import Tex, glow, item_outline
+from palette import BRASS, CONCRETE, CYAN, DARK, IN_ACCENT, RADIUM, STEEL, WARN, WHITE
+from pixelkit import Tex, bevel, fbm, glow, hazard, item_outline, mix, outline, shade
+
+
+# ======================================================================================
+# the silo: poured concrete lined with steel, and the port propellant is pumped in by
+# ======================================================================================
+
+def _silo_concrete(t, seed):
+    """Smooth poured concrete with the faint marks of its formwork and a few pores."""
+    for x in range(16):
+        for y in range(16):
+            n = fbm(x, y, seed, 16, 16, octaves=3, scale=5.0)
+            t.set(x, y, CONCRETE.t(0.42 + 0.28 * n))
+    for y in (5, 10):
+        for x in range(16):
+            t.set(x, y, shade(t.get(x, y), 0.9))
+    for x, y in ((3, 2), (12, 7), (6, 12), (14, 13), (9, 3)):
+        t.set(x, y, CONCRETE[1])
+
+
+@block("silo_wall")
+def silo_wall():
+    t = Tex(seed=910)
+    _silo_concrete(t, 910)
+    # The steel liner's edge: a band round the slab, bolted at the corners.
+    outline(t, 0, 0, 15, 15, DARK)
+    t.hline(1, 14, 1, STEEL[4])
+    t.vline(1, 1, 14, STEEL[4])
+    t.hline(1, 14, 14, STEEL[1])
+    t.vline(14, 1, 14, STEEL[1])
+    for x, y in ((2, 2), (12, 2), (2, 12), (12, 12)):
+        bolt(t, x, y, STEEL)
+    return t
+
+
+@block("silo_fuel_port")
+def silo_fuel_port():
+    t = Tex(seed=911)
+    _silo_concrete(t, 911)
+    outline(t, 0, 0, 15, 15, DARK)
+    # A steel plate set in the wall, a flanged inlet and the yellow-black of a fuelling point.
+    t.rect(2, 2, 13, 13, STEEL[3])
+    bevel(t, 2, 2, 13, 13, STEEL)
+    outline(t, 2, 2, 13, 13, STEEL[0])
+    hazard(t, 3, 3, 12, 4, WARN[5], DARK[0], period=4, seed=911)
+    hazard(t, 3, 11, 12, 12, WARN[5], DARK[0], period=4, seed=912)
+    flange(t, STEEL, IN_ACCENT, cx=8.0, cy=8.0, r=3.6)
+    t.set(8, 8, IN_ACCENT[5])
+    t.set(7, 7, IN_ACCENT[6])
+    return t
 
 
 # ======================================================================================

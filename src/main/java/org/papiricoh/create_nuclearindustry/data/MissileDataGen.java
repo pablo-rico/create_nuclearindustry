@@ -30,6 +30,9 @@ final class MissileDataGen extends AreaDataGen {
         block("rocket_warhead", "Rocket Warhead", "Ojiva de cohete");
         block("silo_controller", "Silo Controller", "Controlador de silo");
         block("silo_wall", "Silo Wall", "Pared de silo");
+        block("silo_fuel_port", "Silo Fuel Port", "Puerto de combustible de silo");
+        LangEntries.fluid("rocket_fuel", "Rocket Fuel", "Combustible de cohete");
+        LangEntries.fluid("liquid_oxygen", "Liquid Oxygen", "Oxígeno líquido");
         item("propellant_cartridge", "Propellant Cartridge", "Cartucho de propelente");
         item("star_tracker", "Star Tracker", "Rastreador estelar");
     }
@@ -45,9 +48,10 @@ final class MissileDataGen extends AreaDataGen {
         var parts = provider.tagFor(MultiblockTags.MULTIBLOCK_PARTS);
         pickaxe.add(RadarRegistry.RADAR.get());
         for (var block : List.of(SiloRegistry.ENGINE, SiloRegistry.TANK, SiloRegistry.GUIDANCE, SiloRegistry.WARHEAD,
-                SiloRegistry.CONTROLLER, SiloRegistry.WALL)) {
+                SiloRegistry.CONTROLLER, SiloRegistry.WALL, SiloRegistry.FUEL_PORT)) {
             pickaxe.add(block.get());
             parts.add(block.get());
         }
+        provider.tagFor(SiloRegistry.SILO_WALLS).add(SiloRegistry.WALL.get(), SiloRegistry.FUEL_PORT.get());
     }
 }

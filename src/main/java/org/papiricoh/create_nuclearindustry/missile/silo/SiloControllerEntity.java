@@ -27,6 +27,8 @@ import java.util.*;
 
 public class SiloControllerEntity extends KineticBlockEntity implements MultiblockController {
     public enum State { INCOMPLETE, UNPREPARED, READY, ARMED, COUNTDOWN, LAUNCHED }
+    /** The tallest rocket a silo takes, in sections. */
+    public static final int MAX_ROCKET = 17;
     private State state = State.INCOMPLETE;
     private BlockPos target;
     private boolean airburst;
@@ -89,9 +91,41 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (state == State.ARMED || state == State.COUNTDOWN) state = State.UNPREPARED;
         setChanged();
     }
-    @Override public void initialize() { super.initialize(); if (level != null && !level.isClientSide) MultiblockRegistry.register(this); dirty = true; }
+    @Override public void initialize() { super.initialize(); if (level != null && !level.isClientSide) { MultiblockRegistry.register(this); invalidatePorts(); } dirty = true; }
     // setRemoved is final in SmartBlockEntity; invalidate runs on both a replacement and a chunk unload.
-    @Override public void invalidate() { if (level != null && !level.isClientSide) MultiblockRegistry.unregister(this); super.invalidate(); }
+    @Override public void invalidate() { if (level != null && !level.isClientSide) { MultiblockRegistry.unregister(this); invalidatePorts(); } super.invalidate(); }
+    /** Whether {@code pos} is in its floor or walls (where a fuel port may sit), up to the tallest rocket a silo takes. */
+    public boolean isWall(BlockPos pos) {
+        BlockPos f = floor();
+        int dx = pos.getX() - f.getX(), dy = pos.getY() - f.getY(), dz = pos.getZ() - f.getZ();
+        return Math.abs(dx) <= 2 && Math.abs(dz) <= 2 && dy >= 0 && dy <= MAX_ROCKET + 1 && (dy == 0 || Math.abs(dx) == 2 || Math.abs(dz) == 2);
+    }
+    /** The tanks of the column standing on its floor, bottom to top, complete rocket or not; nothing loads chunks. */
+    public List<RocketSectionEntity> columnTanks() {
+        List<RocketSectionEntity> tanks = new ArrayList<>();
+        if (level == null) return tanks;
+        BlockPos base = floor().above();
+        for (int i = 0; i < MAX_ROCKET; i++) {
+            BlockPos p = base.above(i);
+            if (!level.isLoaded(p) || !(level.getBlockEntity(p) instanceof RocketSectionEntity part)) break;
+            if (part.section() == RocketComposition.Section.TANK) tanks.add(part);
+        }
+        return tanks;
+    }
+    /** Whether its fuel ports move propellant: not once armed, nor on a ship, nor while it is gone. */
+    public boolean acceptsPropellant() {
+        return !isRemoved() && state != State.ARMED && state != State.COUNTDOWN && (level == null || ShipSpace.shipAt(level, worldPosition) == null);
+    }
+    /** Pipes cache what a fuel port exposes; tells them to look again (the silo came, went or changed state). */
+    private void invalidatePorts() {
+        if (level == null) return;
+        BlockPos f = floor();
+        for (int y = 0; y <= MAX_ROCKET + 1; y++) for (int x = -2; x <= 2; x++) for (int z = -2; z <= 2; z++) {
+            if (y != 0 && Math.abs(x) != 2 && Math.abs(z) != 2) continue;
+            BlockPos p = f.offset(x, y, z);
+            if (level.isLoaded(p) && level.getBlockState(p).is(SiloRegistry.FUEL_PORT.get())) level.invalidateCapabilities(p);
+        }
+    }
     @Override public BoundingBox interestBounds() {
         BlockPos f = floor();
         return new BoundingBox(f.getX()-2, f.getY(), f.getZ()-2, f.getX()+2, level == null ? f.getY()+18 : level.getMaxBuildHeight()-1, f.getZ()+2);
@@ -148,7 +182,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (!(level instanceof ServerLevel server)) return;
         if (ShipSpace.shipAt(level, worldPosition) != null) { fail("static", worldPosition, State.INCOMPLETE); return; }
         RocketValidator.Result result = RocketValidator.validate(level, floor().above());
-        if (!result.valid()) { rocket = null; rocketHeight = 0; fail(result.error(), result.position(), result.error().equals("fuel") ? State.UNPREPARED : State.INCOMPLETE); return; }
+        if (!result.valid()) { rocket = null; rocketHeight = 0; fail(result.error(), result.position(), result.error().equals("fuel") || result.error().equals("mixed_propellant") ? State.UNPREPARED : State.INCOMPLETE); return; }
         AssembledRocket next = result.rocket();
         // A stale chunk restored after a launch is reconciled against the dimension's launch ledger.
         if (FlightTracker.get(server).hasLaunched(next.launchId())) {
@@ -184,6 +218,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
             validate(); // Full final server-side validation before consuming anything.
             if (state == State.COUNTDOWN) launch(server);
         }
+        if (before != state) invalidatePorts();
         if (before != state || level.getGameTime() % 20 == 0) sendData();
     }
     private void launch(ServerLevel server) {

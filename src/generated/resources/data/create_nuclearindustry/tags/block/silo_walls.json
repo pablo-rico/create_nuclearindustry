@@ -1,0 +1,6 @@
+{
+  "values": [
+    "create_nuclearindustry:silo_wall",
+    "create_nuclearindustry:silo_fuel_port"
+  ]
+}

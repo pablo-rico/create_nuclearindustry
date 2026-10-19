@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "item": "create:fluid_pipe"
+    },
+    "V": {
+      "item": "create:fluid_valve"
+    },
+    "W": {
+      "item": "create_nuclearindustry:silo_wall"
+    }
+  },
+  "pattern": [
+    " P ",
+    " W ",
+    " V "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:silo_fuel_port"
+  }
+}

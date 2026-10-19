@@ -12,6 +12,12 @@ final class SiloLang {
         LangEntries.add("silo.create_nuclearindustry.guidance.basic", "Dead reckoning", "Navegación a estima");
         LangEntries.add("silo.create_nuclearindustry.guidance.inertial", "Inertial", "Inercial");
         LangEntries.add("silo.create_nuclearindustry.guidance.stellar", "Stellar-inertial", "Astroinercial");
+        LangEntries.add("silo.create_nuclearindustry.tank.liquid", "%s mB fuel, %s mB LOX", "%s mB combustible, %s mB LOX");
+        LangEntries.add("silo.create_nuclearindustry.tank.solid", "Solid propellant cartridge", "Cartucho de propelente sólido");
+        LangEntries.add("silo.create_nuclearindustry.tank.fuel", "Rocket fuel: %s / %s mB", "Combustible: %s / %s mB");
+        LangEntries.add("silo.create_nuclearindustry.tank.oxidizer", "Liquid oxygen: %s / %s mB", "Oxígeno líquido: %s / %s mB");
+        LangEntries.add("silo.create_nuclearindustry.tank.fill", "Burnable: %s%%", "Utilizable: %s%%");
+        LangEntries.add("silo.create_nuclearindustry.error.mixed_propellant", "Stage mixes solid and liquid propellant (%s, %s, %s)", "La etapa mezcla propelente sólido y líquido (%s, %s, %s)");
         LangEntries.add("silo.create_nuclearindustry.goggles.target", "Target: %s %s %s", "Objetivo: %s %s %s");
         LangEntries.add("silo.create_nuclearindustry.state.incomplete", "Incomplete", "Incompleto");
         LangEntries.add("silo.create_nuclearindustry.state.unprepared", "Unprepared", "Sin preparar");
