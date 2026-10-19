@@ -13,7 +13,13 @@ public final class MissileClient implements NuclearFeatureClient {
     private MissileClient() {}
 
     @Override
+    public void init(net.neoforged.bus.api.IEventBus modEventBus) {
+        org.papiricoh.create_nuclearindustry.missile.rocket.client.RocketClient.init(modEventBus);
+    }
+
+    @Override
     public void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        org.papiricoh.create_nuclearindustry.missile.rocket.client.RocketClient.registerRenderers(event);
         org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.registerRenderers(event);
         event.registerEntityRenderer(MissileRegistry.MISSILE.get(), MissileRenderer::new);
         event.registerBlockEntityRenderer(MissileRegistry.LAUNCH_PAD_ENTITY.get(), LaunchPadRenderer::new);

@@ -24,6 +24,7 @@ public final class MissileConfig {
     public static int fxRange = 2048;
     public static int fxFarUpdateTicks = 4;
     public static double cepScale = 1.0;
+    public static double extraBlockMass = 0.05;
     public static double maxRange = 0.0;
     public static int protectedSpawnRadius = 0;
     public static List<String> allowedDimensions = List.of();
@@ -41,6 +42,7 @@ public final class MissileConfig {
     private static ModConfigSpec.IntValue fxRangeValue;
     private static ModConfigSpec.IntValue fxFarUpdateTicksValue;
     private static ModConfigSpec.DoubleValue cepScaleValue;
+    private static ModConfigSpec.DoubleValue extraBlockMassValue;
     private static ModConfigSpec.DoubleValue maxRangeValue;
     private static ModConfigSpec.IntValue protectedSpawnRadiusValue;
     private static ModConfigSpec.ConfigValue<List<? extends String>> allowedDimensionsValue;
@@ -88,6 +90,10 @@ public final class MissileConfig {
                 .comment("Multiplier on every rocket's circular error probable (the radius half its shots land within), which depends on its",
                         "guidance module: empty, a precision mechanism or a star tracker. 0 makes every rocket land exactly on its target.")
                 .defineInRange("missile.guidance.cepScale", 1.0, 0.0, 10.0);
+        extraBlockMassValue = builder
+                .comment("Dry mass (rocket units; a tank weighs 0.1, a full one 2.1) each block glued or attached to a silo rocket beyond its",
+                        "column adds to the stage it falls with, or to the payload.")
+                .defineInRange("missile.rocket.extraBlockMass", 0.05, 0.0, 10.0);
         maxRangeValue = builder
                 .comment("Furthest target, blocks (horizontally) from the launch pad, a missile may be launched at; 0 leaves only",
                         "the missile's own reach.")
@@ -125,6 +131,7 @@ public final class MissileConfig {
         fxRange = fxRangeValue.get();
         fxFarUpdateTicks = fxFarUpdateTicksValue.get();
         cepScale = cepScaleValue.get();
+        extraBlockMass = extraBlockMassValue.get();
         maxRange = maxRangeValue.get();
         protectedSpawnRadius = protectedSpawnRadiusValue.get();
         allowedDimensions = List.copyOf(allowedDimensionsValue.get());

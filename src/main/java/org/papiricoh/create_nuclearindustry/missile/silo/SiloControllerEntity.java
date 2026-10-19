@@ -20,7 +20,11 @@ import org.papiricoh.create_nuclearindustry.missile.flight.*;
 import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
 import org.papiricoh.create_nuclearindustry.missile.physics.AccuracyModel;
 import org.papiricoh.create_nuclearindustry.missile.physics.GuidanceTier;
+import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
+import org.papiricoh.create_nuclearindustry.missile.physics.RocketAttitude;
+import org.papiricoh.create_nuclearindustry.missile.rocket.RocketContraption;
+import org.papiricoh.create_nuclearindustry.missile.rocket.RocketScan;
 import org.papiricoh.create_nuclearindustry.missile.physics.V3;
 import org.papiricoh.create_nuclearindustry.multiblock.*;
 import java.util.*;
@@ -43,6 +47,10 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     /** Sections in the rocket standing in it, 0 if none is complete; for the client's countdown and launch effects. */
     private int rocketHeight;
     private GuidanceTier syncedGuidance = GuidanceTier.BASIC;
+    /** The dry run of assembling the rocket standing in it, from its last validation. */
+    private RocketScan scan;
+    /** Create's reason the rocket cannot be assembled, for the {@code assembly} error. */
+    private Component assemblyMessage;
     private double syncedCep;
     private final MultiblockMessenger messenger = new MultiblockMessenger("silo");
 
@@ -56,6 +64,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     public double flightTicks() { return flightTicks; }
     public int rocketHeight() { return rocketHeight; }
     public Component status() {
+        if (error.equals("assembly") && assemblyMessage != null) return Component.translatable("silo.create_nuclearindustry.error.assembly_reason", assemblyMessage);
         return error.isEmpty() ? Component.translatable("silo.create_nuclearindustry.state." + state.name().toLowerCase(Locale.ROOT))
                 : MultiblockText.text(errorMessage());
     }
@@ -188,8 +197,13 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (FlightTracker.get(server).hasLaunched(next.launchId())) {
             consume(next); rocket = null; pendingLaunch = null; state = State.LAUNCHED; error = ""; setChanged(); return;
         }
-        SiloValidator.Result geometry = SiloValidator.validate(level, floor(), worldPosition, next.height());
+        RocketScan dryRun = RocketScan.scan(level, floor(), next);
+        SiloValidator.Result geometry = SiloValidator.validate(level, floor(), worldPosition, next.height(), dryRun.valid() ? dryRun.captured() : Set.of());
+        // A missing wall explains more than anything the rocket captures through the gap, so it is reported first.
+        boolean structural = !geometry.valid() && (geometry.error().equals("wall") || geometry.error().equals("unloaded"));
+        if (!structural && !dryRun.valid()) { rocket = null; scan = null; assemblyMessage = dryRun.message(); fail(dryRun.error(), dryRun.errorPos(), State.INCOMPLETE); return; }
         if (!geometry.valid()) { fail(geometry.error(), geometry.position(), State.INCOMPLETE); return; }
+        scan = dryRun;
         boolean same = next.equals(rocket);
         rocket = next;
         rocketHeight = next.height();
@@ -197,7 +211,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (!powered()) { fail("speed", worldPosition, State.UNPREPARED); return; }
         LaunchRules.Refusal refusal = checkLimits(server);
         if (refusal != LaunchRules.Refusal.NONE) { fail(refusal.name().toLowerCase(Locale.ROOT), worldPosition, State.UNPREPARED); return; }
-        var prediction = MissileFlight.predict(rocket.design(), Flight.v3(Vec3.atBottomCenterOf(rocket.base())), Flight.v3(aim()), Flight.v3(Vec3.ZERO), MissileConfig.flightParams());
+        var prediction = MissileFlight.predict(design(), Flight.v3(Vec3.atBottomCenterOf(rocket.base())), Flight.v3(aim()), Flight.v3(Vec3.ZERO), MissileConfig.flightParams());
         flightTicks = prediction.ticks();
         if (!prediction.onTarget()) { fail("range", worldPosition, State.UNPREPARED); return; }
         error = "";
@@ -226,8 +240,21 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         pendingLaunch = assembled.launchId(); setChanged();
         // Server ticks serialize both redstone activations. A deterministic id survives stale chunk saves.
         if (!FlightTracker.get(server).hasLaunched(pendingLaunch)) {
-            FlightTracker.get(server).launchModular(server, pendingLaunch, assembled.design(cep()), Vec3.atBottomCenterOf(assembled.base()), aim(), target,
-                    assembled.warhead(), operator, assembled.visuals(), assembled.composition().stageStarts());
+            Vec3 start = Vec3.atBottomCenterOf(assembled.base()), aim = aim();
+            MissileDesign design = design();
+            // Assembled for real, emptied (the flight carries the warhead and propellant), then lifted out of the world.
+            RocketScan live = RocketScan.scan(server, floor(), assembled);
+            RocketContraption contraption = live.valid() ? live.contraption() : null;
+            RocketShape shape = live.valid() ? live.shape(assembled) : RocketShape.column(assembled.height(), assembled.composition().stageStarts());
+            emptySections(assembled);
+            CompoundTag cargo = null;
+            if (contraption != null) {
+                contraption.sanitize();
+                contraption.removeBlocksFromWorld(server, BlockPos.ZERO);
+                cargo = contraption.writeNBT(server.registryAccess(), false);
+            }
+            FlightTracker.get(server).launchModular(server, pendingLaunch, design, start, aim, target, assembled.warhead(), operator, shape, cargo,
+                    (float) RocketAttitude.heading(aim.x - start.x, aim.z - start.z));
             if (operator != null) LaunchCooldowns.get(server.getServer()).record(operator, LaunchCooldowns.now(server.getServer()));
             NuclearAdvancements.awardMachine(server, worldPosition, operator == null ? null : server.getServer().getPlayerList().getPlayer(operator),
                     NuclearEvent.MISSILE_LAUNCHED);
@@ -235,13 +262,31 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         consume(assembled);
         pendingLaunch = null; rocket = null; rocketHeight = 0; countdown = -1; state = State.LAUNCHED; error = ""; dirty = false; setChanged();
     }
+    /** Takes the rocket (and what it captures) out of the silo without dropping anything: it has flown already. */
     private void consume(AssembledRocket assembled) {
+        RocketScan live = RocketScan.scan(level, floor(), assembled);
+        emptySections(assembled);
+        if (live.valid() && live.contraption() != null) {
+            live.contraption().removeBlocksFromWorld(level, BlockPos.ZERO);
+            return;
+        }
         for (int i = 0; i < assembled.height(); i++) {
             BlockPos pos = assembled.base().above(i);
-            if (level.getBlockEntity(pos) instanceof RocketSectionEntity section && section.identity().equals(assembled.identities().get(i))) {
-                section.consume(); level.removeBlock(pos, false);
-            }
+            if (level.getBlockEntity(pos) instanceof RocketSectionEntity section && section.identity().equals(assembled.identities().get(i))) level.removeBlock(pos, false);
         }
+    }
+    private void emptySections(AssembledRocket assembled) {
+        for (int i = 0; i < assembled.height(); i++) {
+            BlockPos pos = assembled.base().above(i);
+            if (level.getBlockEntity(pos) instanceof RocketSectionEntity section && section.identity().equals(assembled.identities().get(i))) section.consume();
+        }
+    }
+    /** The dry run of assembling its rocket from its last validation, or null; for tests and screens. */
+    public RocketScan lastScan() { return scan; }
+    /** The rocket standing in it as it would fly: its stages and payload, what it captures and its guidance's spread. */
+    private MissileDesign design() {
+        MissileDesign design = rocket.design(cep());
+        return scan != null ? scan.apply(design) : design;
     }
     @Override protected void write(CompoundTag tag, HolderLookup.Provider provider, boolean clientPacket) {
         super.write(tag, provider, clientPacket);
@@ -253,6 +298,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
             tag.putString("State", state.name()); tag.putString("Error", error); tag.putLong("ErrorPos", errorPos.asLong());
             tag.putInt("Countdown", countdown); tag.putDouble("FlightTicks", flightTicks); tag.putInt("RocketHeight", rocketHeight);
             tag.putInt("Guidance", guidance().ordinal()); tag.putDouble("Cep", cep());
+            if (error.equals("assembly") && assemblyMessage != null) tag.putString("AssemblyText", Component.Serializer.toJson(assemblyMessage, provider));
         }
     }
     @Override protected void read(CompoundTag tag, HolderLookup.Provider provider, boolean clientPacket) {
@@ -265,6 +311,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
             try { state = State.valueOf(tag.getString("State")); } catch (IllegalArgumentException ignored) { state = State.INCOMPLETE; }
             error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks"); rocketHeight = tag.getInt("RocketHeight");
             syncedGuidance = GuidanceTier.byOrdinal(tag.getInt("Guidance")); syncedCep = tag.getDouble("Cep");
+            assemblyMessage = tag.contains("AssemblyText") ? Component.Serializer.fromJson(tag.getString("AssemblyText"), provider) : null;
         } else { state = State.UNPREPARED; countdown = -1; initializedSignal = false; rocket = null; dirty = true; }
     }
     @Override public boolean addToGoggleTooltip(List<Component> tooltip, boolean sneaking) {

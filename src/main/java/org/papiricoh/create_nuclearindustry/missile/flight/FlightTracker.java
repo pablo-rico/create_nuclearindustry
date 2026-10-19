@@ -26,6 +26,7 @@ import org.papiricoh.create_nuclearindustry.missile.physics.BallisticModel;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
 import org.papiricoh.create_nuclearindustry.missile.physics.RocketAttitude;
+import org.papiricoh.create_nuclearindustry.missile.rocket.RocketContraptionEntity;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -37,7 +38,8 @@ import java.util.UUID;
 /**
  * Everything flying in a level, saved with it. Each flight is worked out here every tick from its
  * {@link MissileFlight}, with no entity and no chunks loaded, so a missile crosses the world without
- * dragging its chunks along. Near players it shows as a puppet {@link MissileEntity}; where its chunk
+ * dragging its chunks along. Near players it shows as a puppet: the {@link RocketContraptionEntity} a silo rocket was
+ * assembled into, or a {@link MissileEntity} for flights without one; where its chunk
  * is loaded it can hit the ground on the way; in its last moments it forces the chunk it comes down in,
  * so the impact always lands. Only operational radars expose flights to players.
  */
@@ -233,10 +235,26 @@ public final class FlightTracker extends SavedData {
             flight.puppet = null;
             return;
         }
+        // A silo rocket shows as the contraption it was built from; older flights, and any whose cargo cannot be read, as a missile.
+        if (flight.cargo() != null && !flight.cargoUnreadable) {
+            if (puppet instanceof RocketContraptionEntity rocket) {
+                rocket.follow(flight);
+                return;
+            }
+            if (puppet != null) puppet.discard();
+            RocketContraptionEntity rocket = RocketContraptionEntity.create(level, flight);
+            if (rocket != null) {
+                flight.puppet = level.addFreshEntity(rocket) ? rocket.getUUID() : null;
+                return;
+            }
+            flight.cargoUnreadable = true;
+            puppet = null;
+        }
         if (puppet instanceof MissileEntity missile) {
             missile.follow(flight);
             return;
         }
+        if (puppet != null) puppet.discard();
         MissileEntity missile = new MissileEntity(MissileRegistry.MISSILE.get(), level);
         missile.follow(flight);
         if (level.addFreshEntity(missile)) {

@@ -40,6 +40,13 @@ final class SiloTestBuilder {
     private boolean liquid;
     private boolean fueled = true;
     private boolean port;
+    private int stages = 1;
+
+    /** Stages of {@link #tanks} tanks each. */
+    SiloTestBuilder stages(int stages) {
+        this.stages = stages;
+        return this;
+    }
 
     /** Tanks full of rocket fuel and liquid oxygen instead of cartridges. */
     SiloTestBuilder liquid() {
@@ -71,7 +78,7 @@ final class SiloTestBuilder {
 
     /** The rocket's height in sections. */
     int height() {
-        return tanks + 3;
+        return stages * (tanks + 1) + 2;
     }
 
     SiloControllerEntity build(GameTestHelper helper) {
@@ -85,8 +92,10 @@ final class SiloTestBuilder {
             }
         }
         List<Block> column = new ArrayList<>();
-        column.add(SiloRegistry.ENGINE.get());
-        for (int i = 0; i < tanks; i++) column.add(SiloRegistry.TANK.get());
+        for (int stage = 0; stage < stages; stage++) {
+            column.add(SiloRegistry.ENGINE.get());
+            for (int i = 0; i < tanks; i++) column.add(SiloRegistry.TANK.get());
+        }
         column.add(SiloRegistry.GUIDANCE.get());
         column.add(SiloRegistry.WARHEAD.get());
         for (int i = 0; i < column.size(); i++) {

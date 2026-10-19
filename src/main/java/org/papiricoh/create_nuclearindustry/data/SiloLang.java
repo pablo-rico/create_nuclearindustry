@@ -18,6 +18,11 @@ final class SiloLang {
         LangEntries.add("silo.create_nuclearindustry.tank.oxidizer", "Liquid oxygen: %s / %s mB", "Oxígeno líquido: %s / %s mB");
         LangEntries.add("silo.create_nuclearindustry.tank.fill", "Burnable: %s%%", "Utilizable: %s%%");
         LangEntries.add("silo.create_nuclearindustry.error.mixed_propellant", "Stage mixes solid and liquid propellant (%s, %s, %s)", "La etapa mezcla propelente sólido y líquido (%s, %s, %s)");
+        LangEntries.add("silo.create_nuclearindustry.error.assembly", "Rocket cannot be assembled (%s, %s, %s)", "El cohete no se puede ensamblar (%s, %s, %s)");
+        LangEntries.add("silo.create_nuclearindustry.error.assembly_reason", "Rocket cannot be assembled: %s", "El cohete no se puede ensamblar: %s");
+        LangEntries.add("silo.create_nuclearindustry.error.oversize", "Rocket sticks out of the shaft (%s, %s, %s)", "El cohete sobresale del pozo (%s, %s, %s)");
+        LangEntries.add("silo.create_nuclearindustry.error.glued_to_silo", "Rocket glued to the silo (%s, %s, %s)", "Cohete pegado al silo (%s, %s, %s)");
+        LangEntries.add("silo.create_nuclearindustry.error.cargo_not_empty", "Attached block holds items or fluids (%s, %s, %s)", "Un bloque acoplado guarda objetos o fluidos (%s, %s, %s)");
         LangEntries.add("silo.create_nuclearindustry.goggles.target", "Target: %s %s %s", "Objetivo: %s %s %s");
         LangEntries.add("silo.create_nuclearindustry.state.incomplete", "Incomplete", "Incompleto");
         LangEntries.add("silo.create_nuclearindustry.state.unprepared", "Unprepared", "Sin preparar");
