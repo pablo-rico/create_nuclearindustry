@@ -38,6 +38,7 @@ final class ExplosiveDataGen extends AreaDataGen {
     void lang() {
         RadarLang.add();
         SiloLang.add();
+        RocketFxLang.add();
         block("rocket_engine", "Rocket Engine", "Motor de cohete");
         block("rocket_tank", "Rocket Propellant Tank", "Depósito de propelente");
         block("rocket_guidance", "Rocket Guidance Module", "Módulo de guiado");

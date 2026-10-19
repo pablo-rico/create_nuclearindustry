@@ -1,6 +1,5 @@
 package org.papiricoh.create_nuclearindustry.missile.entity;
 
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -44,7 +43,6 @@ public class MissileEntity extends Entity {
 
     private static final EntityDataAccessor<CompoundTag> VISUALS = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Integer> FIRST_SECTION = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.INT);
-    private int lastVisibleSection;
 
     public java.util.List<String> visualSections() {
         return entityData.get(VISUALS).getList("Sections", net.minecraft.nbt.Tag.TAG_STRING)
@@ -141,14 +139,7 @@ public class MissileEntity extends Entity {
         super.tick();
 
         if (level().isClientSide) {
-            int first = firstVisualSection();
-            if (first > lastVisibleSection && tickCount > 1) {
-                for (int i = 0; i < 18; i++) level().addParticle(ParticleTypes.POOF,
-                        getX(), getY(), getZ(), (random.nextDouble() - .5) * .3,
-                        -random.nextDouble() * .25, (random.nextDouble() - .5) * .3);
-            }
-            lastVisibleSection = first;
-            spawnTrail();
+            // Smoke, flame and staging are the rocket effects' (missile.fx), drawn from the flight itself.
             return;
         }
         if (flightId != null) {
@@ -256,21 +247,6 @@ public class MissileEntity extends Entity {
         }
         setYRot((float) (Mth.atan2(-velocity.x, velocity.z) * (180.0 / Math.PI)));
         setXRot((float) (-Mth.atan2(velocity.y, horizontal) * (180.0 / Math.PI)));
-    }
-
-    private void spawnTrail() {
-        if (!entityData.get(BURNING)) {
-            return;
-        }
-        // From the tail, blown back along the way it flies (the model is drawn centred on the entity).
-        Vec3 back = getViewVector(1.0f).scale(-1.0);
-        Vec3 pos = position().add(back.scale(0.7));
-        for (int i = 0; i < 2; i++) {
-            double ox = (random.nextDouble() - 0.5) * 0.3;
-            double oz = (random.nextDouble() - 0.5) * 0.3;
-            level().addParticle(ParticleTypes.SMOKE, pos.x + ox, pos.y, pos.z + oz, back.x * 0.02, back.y * 0.02, back.z * 0.02);
-        }
-        level().addParticle(ParticleTypes.FLAME, pos.x, pos.y, pos.z, back.x * 0.05, back.y * 0.05, back.z * 0.05);
     }
 
     /** A dirty warhead: no fissile core, only {@code load} rad/s of radioactive material. */

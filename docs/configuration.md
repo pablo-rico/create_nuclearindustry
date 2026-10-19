@@ -1761,6 +1761,10 @@ minRange = 64.0
 atmosphereTop = 400.0
 terminalTicks = 100
 showDistance = 256
+
+[missile.fx]
+range = 2048
+farUpdateTicks = 4
 ```
 
 El lanzamiento usa un cohete modular construido dentro de un silo de 5×5.
@@ -1789,6 +1793,27 @@ llegar a esa velocidad, el objetivo está fuera de su alcance y cae corto. El al
   estalle siempre.
 - Los misiles guardados en vuelo por versiones anteriores terminan su vuelo como
   antes.
+
+**Efectos a distancia** (`missile.fx.*`): los jugadores a menos de `range`
+bloques (en horizontal) de un misil reciben su posición para dibujar su pluma,
+su estela y sus sonidos aunque esté mucho más lejos que `showDistance`. Los que
+están a más de 256 bloques la reciben cada `farUpdateTicks` ticks; los más
+cercanos, en cada tick. Nunca se envía el objetivo.
+
+### Cliente: efectos de cohetes
+
+En la config del cliente:
+
+- `rocket.effects`: plumas, estelas de humo, separación de etapas, reentrada y
+  sus sonidos.
+- `rocket.detail` (0,25 a 2): cuánto humo y cuántas capas de pluma se dibujan.
+- `rocket.farTrails`: sigue dibujando la estela y el brillo de un cohete más
+  allá de la distancia a la que se ven las entidades.
+- `rocket.trailSeconds` (5 a 120): segundos que dura la estela en el cielo.
+- `rocket.shake`: sacudida de cámara cerca de un despegue.
+- `radar.sounds`: pitidos del barrido, tonos de traza nueva y claxon del radar.
+- `radar.phosphor`: pantallas de radar como un fósforo, con ecos que brillan al
+  pasar el barrido y se apagan hasta la siguiente vuelta.
 
 **Límites para servidores** (`missile.*`). El controlador comprueba los límites
 al preparar y al despegar; rechaza un lanzamiento no permitido e indica el

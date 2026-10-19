@@ -1534,3 +1534,5 @@ import tex_energy  # noqa: E402,F401
 import tex_isotopes  # noqa: E402,F401
 import tex_maintenance  # noqa: E402,F401
 import tex_propulsion  # noqa: E402,F401
+import tex_missile  # noqa: E402,F401
+import tex_rocketfx  # noqa: E402,F401

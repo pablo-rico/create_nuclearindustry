@@ -889,6 +889,15 @@ below for what changes in existing worlds.
   explosions out. Radiation and fallout still reach them
   (`explosive.respectClaims`, on by default).
 
+### Missiles, radar and command table
+
+### Rocket effects
+- Missiles can be seen from much further away: players within
+  `missile.fx.range` blocks (2048 by default) are told where each one is, so
+  its effects show kilometres off. Missiles further than 256 blocks update
+  every `missile.fx.farUpdateTicks` ticks. Only positions are sent, never a
+  target.
+
 ### Nuclear weapons: the explosion
 - A nuclear detonation is now worked out from its warhead and the height it goes
   off at. A ground burst digs a real crater, about a third as wide as the

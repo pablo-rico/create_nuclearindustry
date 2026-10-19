@@ -25,6 +25,7 @@ import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 import org.papiricoh.create_nuclearindustry.missile.physics.BallisticModel;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
+import org.papiricoh.create_nuclearindustry.missile.physics.RocketAttitude;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -56,13 +57,33 @@ public final class FlightTracker extends SavedData {
     public Flight launchModular(ServerLevel level, UUID launchId, MissileDesign design, Vec3 start, Vec3 aim,
                                 BlockPos target, Warhead warhead, @Nullable UUID owner,
                                 List<String> sections, List<Integer> stageStarts) {
+        return launchModular(level, launchId, design, start, aim, target, warhead, owner, RocketShape.column(sections.size(), stageStarts),
+                null, (float) RocketAttitude.heading(aim.x - start.x, aim.z - start.z), sections, stageStarts);
+    }
+
+    /**
+     * Launches a silo rocket of outline {@code shape}, assembled from {@code cargo} (a saved contraption, or null), heading
+     * {@code heading} radians over the ground. Returns the existing flight on replay, or null if that launch already finished.
+     */
+    @Nullable
+    public Flight launchModular(ServerLevel level, UUID launchId, MissileDesign design, Vec3 start, Vec3 aim,
+                                BlockPos target, Warhead warhead, @Nullable UUID owner, RocketShape shape,
+                                @Nullable CompoundTag cargo, float heading) {
+        return launchModular(level, launchId, design, start, aim, target, warhead, owner, shape, cargo, heading, List.of(), List.of());
+    }
+
+    @Nullable
+    private Flight launchModular(ServerLevel level, UUID launchId, MissileDesign design, Vec3 start, Vec3 aim, BlockPos target,
+                                 Warhead warhead, @Nullable UUID owner, RocketShape shape, @Nullable CompoundTag cargo, float heading,
+                                 List<String> sections, List<Integer> stageStarts) {
         if (hasLaunched(launchId)) return flights.get(launchId);
         Flight launched = new Flight(launchId, Flight.Kind.MISSILE,
                 new MissileFlight(design, Flight.v3(start), Flight.v3(aim), Flight.v3(Vec3.ZERO)),
-                warhead, target, owner, level.getGameTime(), BlockPos.containing(start), sections, stageStarts);
+                warhead, target, owner, level.getGameTime(), BlockPos.containing(start), sections, stageStarts, shape, cargo, heading);
         flights.put(launchId, launched);
         launchedIds.add(launchId);
         setDirty();
+        FlightEvents.fire(level, launched, FlightFxEvent.LAUNCH, 0);
         return launched;
     }
 
@@ -92,16 +113,19 @@ public final class FlightTracker extends SavedData {
     public Flight launch(ServerLevel level, MissileDesign design, Vec3 start, Vec3 velocity, Vec3 aim, BlockPos target,
                          Warhead warhead, @Nullable UUID owner) {
         MissileFlight flight = new MissileFlight(design, Flight.v3(start), Flight.v3(aim), Flight.v3(velocity));
-        Flight launched = new Flight(UUID.randomUUID(), Flight.Kind.MISSILE, flight, warhead, target, owner, level.getGameTime(), BlockPos.containing(start), List.of(), List.of());
+        Flight launched = new Flight(UUID.randomUUID(), Flight.Kind.MISSILE, flight, warhead, target, owner, level.getGameTime(),
+                BlockPos.containing(start), List.of(), List.of(), RocketShape.LEGACY, null, Flight.headingOf(flight));
         flights.put(launched.id(), launched);
         launchedIds.add(launched.id());
         setDirty();
+        FlightEvents.fire(level, launched, FlightFxEvent.LAUNCH, 0);
         return launched;
     }
 
     /** Takes a flight out without it landing: its threat, puppet and forced chunk go with it. */
     public void remove(ServerLevel level, Flight flight) {
         if (flights.remove(flight.id()) != null) {
+            FlightEvents.fire(level, flight, FlightFxEvent.ABORT, flight.flight().stage());
             release(level, flight);
             setDirty();
         }
@@ -126,8 +150,10 @@ public final class FlightTracker extends SavedData {
             if (impact == null && !flight.flight().rising(params)) {
                 impact = groundHit(level, from, flight.position());
             }
+            fireStepEvents(level, flight, step, params);
             if (impact != null) {
                 flights.remove(flight.id());
+                FlightEvents.fire(level, flight, FlightFxEvent.IMPACT, flight.flight().stage(), impact, flight.velocity());
                 release(level, flight);
                 flight.warhead().detonate(level, impact);
                 continue;
@@ -135,7 +161,28 @@ public final class FlightTracker extends SavedData {
             forceImpactChunk(level, flight, params);
             showPuppet(level, flight);
         }
+        FlightFxBroadcaster.tick(level, flights.values());
         setDirty();
+    }
+
+    /** The moments of this tick's step: stages dropping and lighting, burnout, and the phases the effects mark. */
+    private static void fireStepEvents(ServerLevel level, Flight flight, MissileFlight.Step step, BallisticModel.Params params) {
+        MissileFlight f = flight.flight();
+        int stages = f.design().stages().size();
+        if (step.stageDropped()) {
+            FlightEvents.fire(level, flight, FlightFxEvent.STAGE_SEPARATION, f.stage() - 1);
+            if (!f.burnedOut() && f.stage() < stages) FlightEvents.fire(level, flight, FlightFxEvent.STAGE_IGNITION, f.stage());
+        }
+        if (step.burnout()) {
+            FlightEvents.fire(level, flight, FlightFxEvent.BURNOUT, f.stage());
+            if (f.stage() < stages) FlightEvents.fire(level, flight, FlightFxEvent.PAYLOAD_SEPARATION, f.stage());
+        }
+        MissileFlight.Phase phase = f.phase(params);
+        if (phase != flight.lastPhase && flight.lastPhase != null) {
+            if (phase == MissileFlight.Phase.REENTRY) FlightEvents.fire(level, flight, FlightFxEvent.REENTRY, f.stage());
+            else if (phase == MissileFlight.Phase.TERMINAL) FlightEvents.fire(level, flight, FlightFxEvent.TERMINAL, f.stage());
+        }
+        flight.lastPhase = phase;
     }
 
     private static void forceImpactChunk(ServerLevel level, Flight flight, BallisticModel.Params params) {

@@ -65,6 +65,7 @@ public final class MissileRegistry implements NuclearFeature {
     @Override
     public void register(IEventBus modEventBus) {
         NeoForge.EVENT_BUS.addListener(FlightTracker::onLevelTick);
+        org.papiricoh.create_nuclearindustry.missile.flight.FlightFxNetwork.register(modEventBus);
         org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.register(modEventBus);
         org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.register(modEventBus);
     }

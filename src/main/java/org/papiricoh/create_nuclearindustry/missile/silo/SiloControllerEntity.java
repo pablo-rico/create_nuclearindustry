@@ -32,6 +32,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private String error = "height";
     private BlockPos errorPos;
     private double flightTicks;
+    /** Sections in the rocket standing in it, 0 if none is complete; for the client's countdown and launch effects. */
+    private int rocketHeight;
 
     public SiloControllerEntity(BlockPos pos, BlockState state) { super(SiloRegistry.CONTROLLER_ENTITY.get(), pos, state); errorPos = pos; }
     public BlockPos floor() { return worldPosition.relative(getBlockState().getValue(SiloControllerBlock.FACING).getOpposite(), 2); }
@@ -41,6 +43,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     public BlockPos target() { return target; }
     public int countdown() { return countdown; }
     public double flightTicks() { return flightTicks; }
+    public int rocketHeight() { return rocketHeight; }
     public Component status() {
         return error.isEmpty() ? Component.translatable("silo.create_nuclearindustry.state." + state.name().toLowerCase(Locale.ROOT))
                 : Component.translatable("silo.create_nuclearindustry.error." + error, errorPos.getX(), errorPos.getY(), errorPos.getZ());
@@ -105,7 +108,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (!(level instanceof ServerLevel server)) return;
         if (ShipSpace.shipAt(level, worldPosition) != null) { fail("static", worldPosition, State.INCOMPLETE); return; }
         RocketValidator.Result result = RocketValidator.validate(level, floor().above());
-        if (!result.valid()) { rocket = null; fail(result.error(), result.position(), result.error().equals("fuel") ? State.UNPREPARED : State.INCOMPLETE); return; }
+        if (!result.valid()) { rocket = null; rocketHeight = 0; fail(result.error(), result.position(), result.error().equals("fuel") ? State.UNPREPARED : State.INCOMPLETE); return; }
         AssembledRocket next = result.rocket();
         // A stale chunk restored after a launch is reconciled against the dimension's launch ledger.
         if (FlightTracker.get(server).hasLaunched(next.launchId())) {
@@ -115,6 +118,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (!geometry.valid()) { fail(geometry.error(), geometry.position(), State.INCOMPLETE); return; }
         boolean same = next.equals(rocket);
         rocket = next;
+        rocketHeight = next.height();
         if (target == null) { fail("target", worldPosition, State.UNPREPARED); return; }
         if (!powered()) { fail("speed", worldPosition, State.UNPREPARED); return; }
         LaunchRules.Refusal refusal = checkLimits(server);
@@ -152,8 +156,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
             if (operator != null) LaunchCooldowns.get(server.getServer()).record(operator, LaunchCooldowns.now(server.getServer()));
         }
         consume(assembled);
-        pendingLaunch = null; rocket = null; countdown = -1; state = State.LAUNCHED; error = ""; dirty = false; setChanged();
-        server.playSound(null, worldPosition, net.minecraft.sounds.SoundEvents.FIREWORK_ROCKET_LAUNCH, net.minecraft.sounds.SoundSource.BLOCKS, 2, .5f);
+        pendingLaunch = null; rocket = null; rocketHeight = 0; countdown = -1; state = State.LAUNCHED; error = ""; dirty = false; setChanged();
     }
     private void consume(AssembledRocket assembled) {
         for (int i = 0; i < assembled.height(); i++) {
@@ -171,7 +174,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         tag.putBoolean("Airburst", airburst);
         if (clientPacket) {
             tag.putString("State", state.name()); tag.putString("Error", error); tag.putLong("ErrorPos", errorPos.asLong());
-            tag.putInt("Countdown", countdown); tag.putDouble("FlightTicks", flightTicks);
+            tag.putInt("Countdown", countdown); tag.putDouble("FlightTicks", flightTicks); tag.putInt("RocketHeight", rocketHeight);
         }
     }
     @Override protected void read(CompoundTag tag, HolderLookup.Provider provider, boolean clientPacket) {
@@ -182,7 +185,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         airburst = tag.getBoolean("Airburst");
         if (clientPacket) {
             try { state = State.valueOf(tag.getString("State")); } catch (IllegalArgumentException ignored) { state = State.INCOMPLETE; }
-            error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks");
+            error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks"); rocketHeight = tag.getInt("RocketHeight");
         } else { state = State.UNPREPARED; countdown = -1; initializedSignal = false; rocket = null; dirty = true; }
     }
     @Override public boolean addToGoggleTooltip(List<Component> tooltip, boolean sneaking) { super.addToGoggleTooltip(tooltip, sneaking); tooltip.add(status()); return true; }

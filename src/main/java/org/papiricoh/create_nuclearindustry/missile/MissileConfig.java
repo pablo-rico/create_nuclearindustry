@@ -21,6 +21,8 @@ public final class MissileConfig {
     public static double atmosphereTop = BallisticModel.Params.DEFAULT.atmosphereTop();
     public static int terminalTicks = BallisticModel.Params.DEFAULT.terminalTicks();
     public static int showDistance = 256;
+    public static int fxRange = 2048;
+    public static int fxFarUpdateTicks = 4;
     public static double maxRange = 0.0;
     public static int protectedSpawnRadius = 0;
     public static List<String> allowedDimensions = List.of();
@@ -35,6 +37,8 @@ public final class MissileConfig {
     private static ModConfigSpec.DoubleValue atmosphereTopValue;
     private static ModConfigSpec.IntValue terminalTicksValue;
     private static ModConfigSpec.IntValue showDistanceValue;
+    private static ModConfigSpec.IntValue fxRangeValue;
+    private static ModConfigSpec.IntValue fxFarUpdateTicksValue;
     private static ModConfigSpec.DoubleValue maxRangeValue;
     private static ModConfigSpec.IntValue protectedSpawnRadiusValue;
     private static ModConfigSpec.ConfigValue<List<? extends String>> allowedDimensionsValue;
@@ -71,6 +75,13 @@ public final class MissileConfig {
                 .comment("Players within this many blocks (horizontally) of a missile see it fly. Further away it flies on",
                         "without an entity or loaded chunks.")
                 .defineInRange("missile.flight.showDistance", 256, 16, 4096);
+        fxRangeValue = builder
+                .comment("Players within this many blocks (horizontally) of a missile are sent where it is, to draw its plume, trail",
+                        "and sounds from afar. Positions only, never its target.")
+                .defineInRange("missile.fx.range", 2048, 256, 8192);
+        fxFarUpdateTicksValue = builder
+                .comment("Ticks between updates for missiles further than 256 blocks from a player; nearer ones update every tick.")
+                .defineInRange("missile.fx.farUpdateTicks", 4, 1, 20);
         maxRangeValue = builder
                 .comment("Furthest target, blocks (horizontally) from the launch pad, a missile may be launched at; 0 leaves only",
                         "the missile's own reach.")
@@ -105,6 +116,8 @@ public final class MissileConfig {
         atmosphereTop = atmosphereTopValue.get();
         terminalTicks = terminalTicksValue.get();
         showDistance = showDistanceValue.get();
+        fxRange = fxRangeValue.get();
+        fxFarUpdateTicks = fxFarUpdateTicksValue.get();
         maxRange = maxRangeValue.get();
         protectedSpawnRadius = protectedSpawnRadiusValue.get();
         allowedDimensions = List.copyOf(allowedDimensionsValue.get());

@@ -8,6 +8,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
+import org.papiricoh.create_nuclearindustry.missile.physics.RocketAttitude;
 import org.papiricoh.create_nuclearindustry.missile.physics.V3;
 
 import java.util.ArrayList;
@@ -47,6 +48,16 @@ public final class Flight {
     @Nullable private final BlockPos origin;
     private final List<String> visualSections;
     private final List<Integer> visualStageStarts;
+    /** Its outline for the client effects, in its own frame. */
+    private final RocketShape shape;
+    /** What a silo assembled it from (a saved Create contraption), to show it as it was built; null for older flights. */
+    @Nullable
+    private final CompoundTag cargo;
+    /** Radians, the way it was launched over the ground (0 is +Z): its heading while it climbs straight up. */
+    private final float heading;
+    /** The phase it was in last tick, to tell when it changes; not saved. */
+    @Nullable
+    MissileFlight.Phase lastPhase;
     /** The chunk forced so the impact lands in a loaded world, or {@link #NO_CHUNK}. */
     long forcedChunk = NO_CHUNK;
     /** The puppet entity showing it, while one is shown; never saved. */
@@ -54,11 +65,16 @@ public final class Flight {
     UUID puppet;
 
     Flight(UUID id, Kind kind, MissileFlight flight, Warhead warhead, BlockPos target, @Nullable UUID owner, long launchedAt) {
-        this(id, kind, flight, warhead, target, owner, launchedAt, null, List.of(), List.of());
+        this(id, kind, flight, warhead, target, owner, launchedAt, null, List.of(), List.of(), RocketShape.LEGACY, null,
+                headingOf(flight));
     }
 
     Flight(UUID id, Kind kind, MissileFlight flight, Warhead warhead, BlockPos target, @Nullable UUID owner,
-           long launchedAt, @Nullable BlockPos origin, List<String> sections, List<Integer> stageStarts) {
+           long launchedAt, @Nullable BlockPos origin, List<String> sections, List<Integer> stageStarts,
+           RocketShape shape, @Nullable CompoundTag cargo, float heading) {
+        this.shape = shape;
+        this.cargo = cargo;
+        this.heading = heading;
         this.origin = origin == null ? null : origin.immutable();
         this.visualSections = List.copyOf(sections);
         this.visualStageStarts = List.copyOf(stageStarts);
@@ -72,6 +88,14 @@ public final class Flight {
     }
 
     @Nullable public BlockPos origin() { return origin; }
+    public RocketShape shape() { return shape; }
+    @Nullable public CompoundTag cargo() { return cargo; }
+    public float heading() { return heading; }
+
+    /** The heading from where a flight is towards its aim, radians (0 is +Z). */
+    static float headingOf(MissileFlight flight) {
+        return (float) RocketAttitude.heading(flight.aim().x() - flight.position().x(), flight.aim().z() - flight.position().z());
+    }
     public List<String> visualSections() { return visualSections; }
     public List<Integer> visualStageStarts() { return visualStageStarts; }
 
@@ -140,6 +164,9 @@ public final class Flight {
         visualSections.forEach(section -> visuals.add(net.minecraft.nbt.StringTag.valueOf(section)));
         tag.put("VisualSections", visuals);
         tag.putIntArray("VisualStageStarts", visualStageStarts);
+        tag.put("Shape", RocketShapeCodec.save(shape));
+        if (cargo != null) tag.put("Cargo", cargo);
+        tag.putFloat("Heading", heading);
         tag.putUUID("Id", id);
         tag.putString("Kind", kind.name().toLowerCase(Locale.ROOT));
         tag.put("Design", saveDesign(flight.design()));
@@ -174,11 +201,16 @@ public final class Flight {
                 getV3(tag, "Vel"), tag.getInt("Stage"), tag.getDouble("StagePropellant"), tag.getInt("Tick"),
                 tag.getBoolean("BurnedOut"), tag.getBoolean("Guided"), tag.getInt("BurnoutTick"), getV3(tag, "BurnoutPos"),
                 getV3(tag, "BurnoutVel"), tag.getDouble("FallTicks"), tag.getBoolean("Impacted"));
+        List<String> sections = tag.getList("VisualSections", Tag.TAG_STRING).stream().map(Tag::getAsString).limit(17).toList();
+        List<Integer> starts = java.util.Arrays.stream(tag.getIntArray("VisualStageStarts")).filter(i -> i >= 0 && i < 17).limit(3).boxed().toList();
+        // Flights saved before shapes were: a silo column from its sections, else the old pad missile.
+        RocketShape shape = tag.contains("Shape", Tag.TAG_COMPOUND) ? RocketShapeCodec.load(tag.getCompound("Shape"))
+                : sections.isEmpty() ? RocketShape.LEGACY : RocketShape.column(sections.size(), starts);
         Flight loaded = new Flight(tag.getUUID("Id"), Kind.byName(tag.getString("Kind")), flight, Warhead.load(tag.getCompound("Warhead")),
                 BlockPos.of(tag.getLong("Target")), tag.hasUUID("Owner") ? tag.getUUID("Owner") : null, tag.getLong("LaunchedAt"),
-                tag.contains("Origin", Tag.TAG_LONG) ? BlockPos.of(tag.getLong("Origin")) : null,
-                tag.getList("VisualSections", Tag.TAG_STRING).stream().map(Tag::getAsString).limit(17).toList(),
-                java.util.Arrays.stream(tag.getIntArray("VisualStageStarts")).filter(i -> i >= 0 && i < 17).limit(3).boxed().toList());
+                tag.contains("Origin", Tag.TAG_LONG) ? BlockPos.of(tag.getLong("Origin")) : null, sections, starts, shape,
+                tag.contains("Cargo", Tag.TAG_COMPOUND) ? tag.getCompound("Cargo") : null,
+                tag.contains("Heading", Tag.TAG_FLOAT) ? tag.getFloat("Heading") : headingOf(flight));
         loaded.forcedChunk = tag.contains("ForcedChunk") ? tag.getLong("ForcedChunk") : NO_CHUNK;
         return loaded;
     }
