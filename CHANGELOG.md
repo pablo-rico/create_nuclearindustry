@@ -870,6 +870,24 @@ below for what changes in existing worlds.
 - Missiles in flight in an older save finish their flight as before.
 - Config: `missile.flight.*` (gravity, rise height, shortest range, top of the
   atmosphere, terminal phase, show distance).
+- Missiles now point the way they fly: nose up on the climb, level at the top
+  of the arc and nose down as they fall. Their exhaust comes from the tail.
+- Server limits for launch pads: a maximum range (`missile.maxRange`), a
+  protected area around the world spawn (`missile.protectedSpawnRadius`), the
+  dimensions pads work in (`missile.allowedDimensions`), the permission level
+  needed to launch (`missile.launchPermissionLevel`) and a per-player cooldown
+  between launches (`missile.launchCooldownSeconds`). All are off by default.
+  The player who answers for a pad is the last one to load it, or else whoever
+  placed it. A refused pad doesn't count down: its screen says why and the
+  player is told in chat. It launches by itself once allowed again.
+- Launch warnings: players near where a missile will come down get a chat
+  message with the impact point and the time left
+  (`missile.launchBroadcast`: `NONE`, `IMPACT_AREA` by default, or `SERVER`
+  to warn everyone).
+- Nuclear detonations leave claimed land alone when Open Parties and Claims or
+  FTB Chunks is installed: the crater and blast skip chunks whose claim keeps
+  explosions out. Radiation and fallout still reach them
+  (`explosive.respectClaims`, on by default).
 
 ### Nuclear weapons: the explosion
 - A nuclear detonation is now worked out from its warhead and the height it goes

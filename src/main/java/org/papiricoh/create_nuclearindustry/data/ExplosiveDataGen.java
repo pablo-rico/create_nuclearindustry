@@ -105,6 +105,19 @@ final class ExplosiveDataGen extends AreaDataGen {
         add(pad + "no_target", "No target set", "Sin objetivo");
         add(pad + "launching", "Launching: %ss", "Lanzamiento: %s s");
         add(pad + "not_ready", "Not ready", "No está listo");
+        add(pad + "refused", "Launch refused", "Lanzamiento denegado");
+        add(pad + "refused.dimension", "No launches in this dimension", "No se lanza en esta dimensión");
+        add(pad + "refused.out_of_range", "Target beyond maximum range", "Fuera del alcance máximo");
+        add(pad + "refused.spawn_protected", "Target too close to spawn", "Objetivo muy cerca del spawn");
+        add(pad + "refused.no_permission", "Its player lacks permission", "Su jugador no tiene permiso");
+        add(pad + "refused.cooldown", "Its player launched recently", "Su jugador lanzó hace poco");
+        add(pad + "refused.cooldown.seconds", "Its player launched recently: %s s left", "Su jugador lanzó hace poco: faltan %s s");
+        add("message.create_nuclearindustry.launch_refused", "Launch pad at %s %s %s will not launch: %s",
+                "La plataforma de %s %s %s no lanza: %s");
+        add("message.create_nuclearindustry.missile_launch.area", "Incoming missile! It comes down near %s, %s in %s s",
+                "¡Misil en camino! Cae cerca de %s, %s dentro de %s s");
+        add("message.create_nuclearindustry.missile_launch.server", "Missile launched: it comes down near %s, %s (%s) in %s s",
+                "Misil lanzado: cae cerca de %s, %s (%s) dentro de %s s");
     }
 
     @Override

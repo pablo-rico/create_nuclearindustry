@@ -97,7 +97,8 @@ public final class FlightTracker extends SavedData {
         }
     }
 
-    void tick(ServerLevel level) {
+    /** Flies everything one tick on. Public for tests and benchmarks; the level ticks it itself. */
+    public void tick(ServerLevel level) {
         BallisticModel.Params params = MissileConfig.flightParams();
         for (Flight flight : List.copyOf(flights.values())) {
             Vec3 from = flight.position();

@@ -22,6 +22,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
+import org.papiricoh.create_nuclearindustry.missile.flight.Flight;
+import org.papiricoh.create_nuclearindustry.missile.flight.FlightTracker;
 import org.papiricoh.create_nuclearindustry.multiblock.SealedVolume;
 import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitter;
@@ -241,6 +243,34 @@ public class PerformanceBenchmarks {
         helper.runAfterDelay(2, () -> emitters.forEach(RadiationEmitters::register));
         timeUpdates(helper, "in the open", 3, () -> emitters.forEach(RadiationEmitters::unregister));
     }
+
+    /**
+     * The tick of a level's flight tracker with {@link #FLIGHTS} missiles in the air far from every
+     * player, the way a war looks to the server: no entities, no chunks, only the flights worked out.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, required = false, timeoutTicks = 100)
+    public static void flightTrackerTick(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        FlightTracker tracker = new FlightTracker();
+        List<Flight> flights = MissileFlightTests.launchFar(level, tracker, helper.absolutePos(BlockPos.ZERO), FLIGHTS);
+        Timer timer = new Timer("flight tracker tick");
+        int[] left = {0};
+        try {
+            for (int i = 0; i < WARMUP * 20; i++) {
+                tracker.tick(level);
+            }
+            for (int i = 0; i < 400; i++) {
+                timer.time(() -> tracker.tick(level));
+            }
+            left[0] = tracker.flights().size();
+        } finally {
+            flights.forEach(flight -> tracker.remove(level, flight));
+        }
+        timer.log(FLIGHTS + " flights (" + left[0] + " still flying at the end), " + String.format("%.2f", timer.meanMicros() / FLIGHTS) + " us each");
+        helper.succeed();
+    }
+
+    private static final int FLIGHTS = 64;
 
     @BeforeBatch(batch = RADIATION_BATCH)
     public static void beforeRadiationBatch(ServerLevel level) {

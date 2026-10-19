@@ -5,6 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
@@ -59,6 +60,16 @@ public class LaunchPadMenu extends AbstractContainerMenu {
         }
         for (int col = 0; col < 9; col++) {
             addSlot(new Slot(playerInventory, col, 8 + col * 18, startY + 58));
+        }
+    }
+
+    @Override
+    public void clicked(int slotId, int button, ClickType clickType, Player player) {
+        super.clicked(slotId, button, clickType, player);
+        // Whoever loads the pad answers for its launch (missile.launchPermissionLevel, missile.launchCooldownSeconds).
+        boolean padSlot = slotId >= 0 && slotId < LaunchPadBlockEntity.SLOT_COUNT;
+        if (pad != null && !player.level().isClientSide && (padSlot || clickType == ClickType.QUICK_MOVE)) {
+            pad.setOperator(player.getUUID());
         }
     }
 

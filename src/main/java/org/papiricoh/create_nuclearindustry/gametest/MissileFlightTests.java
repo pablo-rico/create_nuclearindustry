@@ -25,6 +25,12 @@ import org.papiricoh.create_nuclearindustry.missile.flight.Warhead;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Missiles fly in their level's {@link FlightTracker}: they warn the sirens of their target all the
  * way, land when their flight says, survive a save and are what a launch pad now fires. Live warheads
@@ -112,5 +118,53 @@ public class MissileFlightTests {
             helper.assertTrue(!pad.hasMissile(), "and the pad is empty");
             helper.assertTrue(ThreatRegistry.find(level, at) == null, "its countdown warning handed over");
         });
+    }
+
+    /**
+     * Many missiles flying at once far from everyone: the tracker flies them on without loading a chunk
+     * on their way or forcing one before their last moments. A tracker of its own, ticked by hand, so
+     * the level's flights are not touched.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void distantFlightsLoadNoChunks(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        FlightTracker tracker = new FlightTracker();
+        List<Flight> flights = launchFar(level, tracker, helper.absolutePos(BlockPos.ZERO), 32);
+        LongSet forcedBefore = new LongOpenHashSet(level.getForcedChunks());
+        List<Vec3> starts = flights.stream().map(Flight::position).toList();
+        boolean loadedAny = false;
+        try {
+            for (int t = 0; t < 200; t++) {
+                tracker.tick(level);
+                for (Flight flight : flights) {
+                    Vec3 at = flight.position();
+                    loadedAny |= level.hasChunk(Mth.floor(at.x) >> 4, Mth.floor(at.z) >> 4);
+                }
+            }
+        } finally {
+            flights.forEach(flight -> tracker.remove(level, flight));
+        }
+        helper.assertTrue(!loadedAny, "no chunk under a distant flight is loaded");
+        helper.assertTrue(level.getForcedChunks().equals(forcedBefore), "and none is forced");
+        for (int i = 0; i < flights.size(); i++) {
+            helper.assertTrue(flights.get(i).position().distanceTo(starts.get(i)) > 50, "every flight flies on");
+        }
+        helper.assertTrue(flights.stream().allMatch(f -> ThreatRegistry.find(level, f.id()) == null), "their warnings go with them");
+        helper.succeed();
+    }
+
+    /**
+     * {@code count} inert missiles launched into {@code tracker} some 20,000 blocks from {@code origin},
+     * each on its own heading towards a target 3,000 blocks off, so all fly long and apart.
+     */
+    static List<Flight> launchFar(ServerLevel level, FlightTracker tracker, BlockPos origin, int count) {
+        List<Flight> flights = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            double heading = 2 * Math.PI * i / count;
+            Vec3 start = new Vec3(origin.getX() + 20_000.5 + 200 * i, 120, origin.getZ() + 20_000.5);
+            BlockPos target = BlockPos.containing(start.add(3000 * Math.cos(heading), -56, 3000 * Math.sin(heading)));
+            flights.add(tracker.launch(level, MissileDesign.LEGACY_PAD, start, Vec3.ZERO, Vec3.atCenterOf(target), target, Warhead.INERT, null));
+        }
+        return flights;
     }
 }

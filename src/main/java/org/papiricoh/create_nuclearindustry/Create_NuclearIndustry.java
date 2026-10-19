@@ -80,6 +80,7 @@ public class Create_NuclearIndustry {
 
         CBCNuclearIntegration.init(modEventBus);
         org.papiricoh.create_nuclearindustry.integration.sable.SableCompat.init(modEventBus);
+        org.papiricoh.create_nuclearindustry.integration.claims.ClaimGuards.init();
         NuclearFeatures.register(modEventBus);
 
         AllNuclearFluids.FLUID_TYPES.register(modEventBus);

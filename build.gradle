@@ -95,6 +95,12 @@ repositories {
     maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
     maven { url = "https://maven.neoforged.net/releases" } // NeoForge dependencies
     maven { url = "https://maven.realrobotix.me/createbigcannons" } // Create Big Cannons
+    maven {
+        url = "https://maven.ftb.dev/releases" // FTB Chunks (optional claims)
+        content {
+            includeGroup "dev.ftb.mods"
+        }
+    }
     exclusiveContent {
         forRepository {
             maven {
@@ -180,6 +186,11 @@ dependencies {
         runtimeOnly("dev.eriksonn.aeronautics:aeronautics-neoforge-${minecraft_version}:${aeronautics_version}") { transitive = false }
         runtimeOnly("dev.ryanhcode.offroad:offroad-neoforge-${minecraft_version}:${aeronautics_version}") { transitive = false }
     }
+
+    // Land claims: optional. Compiled against only; nuclear detonations respect claims when either mod is present.
+    compileOnly("maven.modrinth:open-parties-and-claims:${opac_version}") { transitive = false }
+    compileOnly("dev.ftb.mods:ftb-chunks-neoforge:${ftb_chunks_version}") { transitive = false }
+    compileOnly("dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}") { transitive = false }
 
     // Distant Horizons: optional, client rendering only. On the dev runtime only with dev_distant_horizons=true
     // (gradle.properties, or -Pdev_distant_horizons=true), so the dev client, server and game tests stay light.

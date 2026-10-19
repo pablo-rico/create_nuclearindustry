@@ -245,13 +245,15 @@ public class MissileEntity extends Entity {
         if (!entityData.get(BURNING)) {
             return;
         }
-        Vec3 pos = position();
+        // From the tail, blown back along the way it flies (the model is drawn centred on the entity).
+        Vec3 back = getViewVector(1.0f).scale(-1.0);
+        Vec3 pos = position().add(back.scale(0.7));
         for (int i = 0; i < 2; i++) {
             double ox = (random.nextDouble() - 0.5) * 0.3;
             double oz = (random.nextDouble() - 0.5) * 0.3;
-            level().addParticle(ParticleTypes.SMOKE, pos.x + ox, pos.y, pos.z + oz, 0.0, -0.02, 0.0);
+            level().addParticle(ParticleTypes.SMOKE, pos.x + ox, pos.y, pos.z + oz, back.x * 0.02, back.y * 0.02, back.z * 0.02);
         }
-        level().addParticle(ParticleTypes.FLAME, pos.x, pos.y, pos.z, 0.0, -0.05, 0.0);
+        level().addParticle(ParticleTypes.FLAME, pos.x, pos.y, pos.z, back.x * 0.05, back.y * 0.05, back.z * 0.05);
     }
 
     /** A dirty warhead: no fissile core, only {@code load} rad/s of radioactive material. */

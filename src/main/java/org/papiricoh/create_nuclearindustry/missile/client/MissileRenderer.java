@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
@@ -28,8 +29,10 @@ public class MissileRenderer extends EntityRenderer<MissileEntity> {
     public void render(MissileEntity entity, float entityYaw, float partialTicks, PoseStack poseStack,
                        MultiBufferSource buffer, int packedLight) {
         poseStack.pushPose();
+        // The model's nose is +Y: tilted forward onto +Z by 90 degrees plus the pitch (-90 when climbing
+        // straight up), then turned to the heading, it points along the flight.
         poseStack.mulPose(Axis.YP.rotationDegrees(-entityYaw));
-        poseStack.mulPose(Axis.XP.rotationDegrees(entity.getXRot()));
+        poseStack.mulPose(Axis.XP.rotationDegrees(Mth.lerp(partialTicks, entity.xRotO, entity.getXRot()) + 90.0f));
         poseStack.scale(1.35f, 1.35f, 1.35f);
         itemRenderer.renderStatic(
                 missileStack,

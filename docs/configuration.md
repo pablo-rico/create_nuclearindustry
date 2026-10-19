@@ -1602,6 +1602,7 @@ maxFalling = 1500
 [explosive]
 airburstHeight = 2.0
 visualRange = 4096
+respectClaims = true
 
 [explosive.thermonuclear]
 enabled = true
@@ -1614,6 +1615,19 @@ countdownSeconds = 15
 tamperFalloutReach = 0.5
 tamperHotSpot = 150.0
 ```
+
+**Protecciones (claims)**: con `explosive.respectClaims` (activado por
+defecto), el cráter, las zonas de daño, el destello y los incendios de
+cualquier detonación nuclear no tocan los bloques de los chunks protegidos por
+**Open Parties and Claims** o **FTB Chunks**, si alguno de los dos está
+instalado. Cuenta como protegido un chunk reclamado cuyo dueño no deja que las
+explosiones rompan bloques (en Open Parties and Claims, la opción de proteger
+los bloques de explosiones; en FTB Chunks, la de equipo «las explosiones dañan
+el terreno» desactivada). Esos chunks ni se cargan para el cráter, y el borde o
+la eyecta de al lado tampoco caen dentro. La radiación, la lluvia radiactiva y
+el daño a las entidades siguen llegando. Los dos mods son opcionales: sin
+ellos, o con una versión cuya API no encaje (sale un aviso en el log), no se
+respeta ningún claim.
 
 Cada detonación nuclear (bomba, misil, proyectil de cañón) calcula sus zonas a
 partir del radio de destrucción `R` de la cabeza (de 80 a 250 bloques en una
@@ -1732,6 +1746,14 @@ explosión en superficie y explosión aérea; en aérea el misil estalla
 `airburstHeight ×` su radio de bola de fuego por encima del objetivo.
 
 ```toml
+[missile]
+maxRange = 0.0
+protectedSpawnRadius = 0
+allowedDimensions = []
+launchPermissionLevel = 0
+launchCooldownSeconds = 0
+launchBroadcast = "IMPACT_AREA"
+
 [missile.launch]
 countdownSeconds = 10
 
@@ -1770,6 +1792,35 @@ tarda unos 50 segundos en recorrer 2000 (apogeo de unos 600 bloques). Bajar
   estalle siempre.
 - Los misiles guardados en vuelo por versiones anteriores terminan su vuelo como
   antes.
+
+**Límites para servidores** (`missile.*`). La plataforma los comprueba antes de
+empezar la cuenta atrás y otra vez en el despegue. Si alguno lo impide, no
+cuenta ni avisa a las sirenas: su pantalla pone «Lanzamiento denegado» con el
+motivo, y el jugador responsable, si está conectado, recibe el motivo por chat.
+La plataforma lo vuelve a comprobar cada segundo y lanza en cuanto se puede
+(por ejemplo, al acabar el enfriamiento).
+
+- `maxRange`: distancia máxima en horizontal, en bloques, entre la plataforma y
+  el objetivo. 0 no pone más límite que el propio alcance del misil.
+- `protectedSpawnRadius`: no se puede apuntar a menos de este radio del spawn
+  del mundo (solo en el Overworld). 0 no protege nada.
+- `allowedDimensions`: dimensiones donde funcionan las plataformas, como
+  `["minecraft:overworld"]`. Vacía, todas.
+- `launchPermissionLevel`: nivel de permiso (de 0 a 4, como en los comandos; 2
+  es operador) que necesita el jugador responsable de la plataforma: el último
+  que la cargó desde su menú o, si nadie lo ha hecho, quien la colocó. Se
+  comprueba aunque no esté conectado. Una plataforma sin responsable (colocada
+  y cargada antes de esta versión) no lanza si se pide algún nivel; basta con
+  volver a cargarla.
+- `launchCooldownSeconds`: segundos que tiene que esperar un jugador después de
+  que una de sus plataformas dispare para que otra suya pueda hacerlo. Se
+  guarda con el mundo y se mide con el reloj del Overworld, así que no se
+  reinicia al reiniciar el servidor ni al cambiar de dimensión.
+- `launchBroadcast`: a quién se avisa en el chat de cada lanzamiento, con el
+  punto de impacto y el tiempo de vuelo. `NONE`, nadie; `IMPACT_AREA` (por
+  defecto), los jugadores de esa dimensión a menos de `max(2 × radio de aviso
+  de la cabeza, 128)` bloques del punto de impacto; `SERVER`, todos los
+  jugadores del servidor (el mensaje incluye la dimensión).
 
 Lo que se ve (solo en el cliente): los jugadores a menos de `visualRange`
 bloques reciben la detonación y ven un destello blanco (más fuerte mirando

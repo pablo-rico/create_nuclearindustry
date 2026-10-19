@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.explosive;
 
+import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -30,6 +31,7 @@ import org.papiricoh.create_nuclearindustry.explosive.blast.BlastHash;
 import org.papiricoh.create_nuclearindustry.explosive.blast.CraterShape;
 import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationProfile;
 import org.papiricoh.create_nuclearindustry.explosive.blast.ThermalPulse;
+import org.papiricoh.create_nuclearindustry.integration.claims.ClaimGuards;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.radiation.cache.RadiationCaches;
 
@@ -55,6 +57,10 @@ import java.util.List;
  * <p>
  * Blocks change without neighbour updates, so after each tick's work the job tells what it changed
  * itself: the radiation caches of every chunk it touched and the multiblock controllers its box reaches.
+ * <p>
+ * Chunks a land claim keeps explosions out of ({@link ClaimGuards}, with {@code explosive.respectClaims})
+ * are left as they are: their columns are skipped without loading them, and nothing the blast throws
+ * from next door (rim, ejecta) lands in them.
  */
 public final class NuclearBlastManager {
     /**
@@ -229,6 +235,8 @@ public final class NuclearBlastManager {
         private int fallenThisTick;
         private int firesThisTick;
         private final LongOpenHashSet dugChunks = new LongOpenHashSet();
+        /** Whether a claim protects each chunk looked at so far; asked once per chunk per job. */
+        private final Long2BooleanOpenHashMap claimed = new Long2BooleanOpenHashMap();
         private int dugMinX, dugMinY, dugMinZ, dugMaxX, dugMaxY, dugMaxZ;
         @Nullable
         private BoundingBox lastDug;
@@ -457,6 +465,9 @@ public final class NuclearBlastManager {
             int x = centre.getX() + dx;
             int z = centre.getZ() + dz;
             long chunkKey = ChunkPos.asLong(x >> 4, z >> 4);
+            if (claimed(chunkKey)) {
+                return 0;
+            }
             LevelChunk chunk = deferred.contains(chunkKey) ? null : level.getChunkSource().getChunkNow(x >> 4, z >> 4);
             if (chunk == null) {
                 deferred.add(chunkKey);
@@ -699,12 +710,13 @@ public final class NuclearBlastManager {
         }
 
         /**
-         * Changes a block in a loaded chunk; false where the chunk is not loaded. A block entity still
-         * waiting in its chunk's data is taken out first, or the chunk would try to save it for the new block.
+         * Changes a block in a loaded chunk; false where the chunk is not loaded or a claim protects it. A
+         * block entity still waiting in its chunk's data is taken out first, or the chunk would try to save it
+         * for the new block.
          */
         private boolean set(BlockPos pos, BlockState from, BlockState to) {
             LevelChunk chunk = chunkAt(pos);
-            if (chunk == null) {
+            if (chunk == null || claimed(ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4))) {
                 return false;
             }
             if (from.hasBlockEntity()) {
@@ -712,6 +724,16 @@ public final class NuclearBlastManager {
             }
             level.setBlock(pos, to, QUIET);
             return true;
+        }
+
+        /** Whether a land claim keeps this job out of chunk {@code key}. */
+        private boolean claimed(long key) {
+            if (claimed.containsKey(key)) {
+                return claimed.get(key);
+            }
+            boolean protectedChunk = ClaimGuards.protectsFromExplosions(level, ChunkPos.getX(key), ChunkPos.getZ(key));
+            claimed.put(key, protectedChunk);
+            return protectedChunk;
         }
 
         private boolean blastProof(BlockPos pos, BlockState state) {

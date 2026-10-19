@@ -14,6 +14,7 @@ import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationProfile;
 public final class ExplosiveConfig {
     public static boolean crater = true;
     public static boolean craterLoadsChunks = true;
+    public static boolean respectClaims = true;
     public static int chunksAtOnce = 8;
     public static double severeOverpressure = 35.0;
     public static double moderateOverpressure = 12.0;
@@ -40,6 +41,7 @@ public final class ExplosiveConfig {
 
     private static ModConfigSpec.BooleanValue craterValue;
     private static ModConfigSpec.BooleanValue craterLoadsChunksValue;
+    private static ModConfigSpec.BooleanValue respectClaimsValue;
     private static ModConfigSpec.IntValue chunksAtOnceValue;
     private static ModConfigSpec.DoubleValue severeOverpressureValue;
     private static ModConfigSpec.DoubleValue moderateOverpressureValue;
@@ -76,6 +78,10 @@ public final class ExplosiveConfig {
                         "so a detonation far from every player still leaves its mark. Off, those chunks wait until something",
                         "else loads them.")
                 .define("explosive.crater.loadChunks", true);
+        respectClaimsValue = builder
+                .comment("Whether nuclear detonations leave the ground of claimed chunks alone (Open Parties and Claims, FTB Chunks)",
+                        "where the claim keeps explosions out. They still hurt, irradiate and contaminate there.")
+                .define("explosive.respectClaims", true);
         chunksAtOnceValue = builder
                 .comment("Most chunks one detonation waits on to load or generate at once; each is let go once the crater is",
                         "done with it. Lower spares the world generator, higher finishes far-reaching craters sooner.")
@@ -164,6 +170,7 @@ public final class ExplosiveConfig {
     public static void bake() {
         crater = craterValue.get();
         craterLoadsChunks = craterLoadsChunksValue.get();
+        respectClaims = respectClaimsValue.get();
         chunksAtOnce = chunksAtOnceValue.get();
         blastProofResistance = blastProofResistanceValue.get();
         severeOverpressure = severeOverpressureValue.get();

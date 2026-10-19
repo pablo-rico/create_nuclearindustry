@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadLoad;
+import org.papiricoh.create_nuclearindustry.missile.LaunchRules;
 import org.papiricoh.create_nuclearindustry.missile.blockentity.LaunchPadBlockEntity;
 
 public class LaunchPadScreen extends AbstractContainerScreen<LaunchPadMenu> {
@@ -57,10 +58,17 @@ public class LaunchPadScreen extends AbstractContainerScreen<LaunchPadMenu> {
                     pad.getEstimatedRadius(), pad.getEstimatedCraterRadius()), leftPos + 14, topPos + 100 + 24, 0xFFAA77);
 
             int countdown = pad.getCountdown();
+            LaunchRules.Refusal refusal = pad.getRefusal();
             Component state = countdown >= 0 ? Component.translatable(KEY + "launching", String.format("%.1f", countdown / 20.0f))
+                    : refusal != LaunchRules.Refusal.NONE ? Component.translatable(KEY + "refused")
                     : Component.translatable(pad.isReadyToLaunch() ? "gui.create_nuclearindustry.bomb.waiting" : KEY + "not_ready");
             guiGraphics.drawString(font, state, leftPos + 80, topPos + 30 + 24,
-                    countdown >= 0 ? 0xFF4444 : (pad.isReadyToLaunch() ? 0x88FF88 : 0xFFAA55));
+                    countdown >= 0 || refusal != LaunchRules.Refusal.NONE ? 0xFF4444 : (pad.isReadyToLaunch() ? 0x88FF88 : 0xFFAA55));
+            if (countdown < 0 && refusal != LaunchRules.Refusal.NONE) {
+                // Why, right under the title.
+                String reason = font.plainSubstrByWidth(Component.translatable(refusal.key()).getString(), imageWidth - 12);
+                guiGraphics.drawCenteredString(font, reason, leftPos + imageWidth / 2, topPos + 20, 0xFF7777);
+            }
         }
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);

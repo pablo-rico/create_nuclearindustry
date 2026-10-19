@@ -1,10 +1,15 @@
 package org.papiricoh.create_nuclearindustry.missile.blockentity;
 
+import com.mojang.authlib.GameProfile;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.item.ItemStack;
@@ -24,6 +29,9 @@ import org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry;
 import org.papiricoh.create_nuclearindustry.explosive.DirtyWarheadStats;
 import org.papiricoh.create_nuclearindustry.explosive.FissileMaterial;
 import org.papiricoh.create_nuclearindustry.explosive.WarheadStats;
+import org.papiricoh.create_nuclearindustry.missile.LaunchCooldowns;
+import org.papiricoh.create_nuclearindustry.missile.LaunchRules;
+import org.papiricoh.create_nuclearindustry.missile.LaunchWarnings;
 import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
 import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.flight.Flight;
@@ -33,6 +41,14 @@ import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
 
+import java.util.UUID;
+
+/**
+ * A launch pad: loaded through its menu and powered with redstone, it counts down and fires its missile
+ * into the level's {@link FlightTracker}. Before counting down, and again at lift-off, it checks the
+ * server's limits ({@link LaunchRules}); a refused pad says why on its screen and to the player who
+ * answers for it: the last one to load it, or else whoever placed it.
+ */
 public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
     public static final int MISSILE_SLOT = 0;
     public static final int DESIGNATOR_SLOT = 1;
@@ -63,6 +79,14 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         }
     };
     private int countdown = -1;
+    /** Whoever placed the pad, if known. */
+    @Nullable
+    private UUID owner;
+    /** The last player to load it through its menu, if any. */
+    @Nullable
+    private UUID operator;
+    /** Why it will not launch, if it is powered and loaded but the server's limits forbid it. */
+    private LaunchRules.Refusal refusal = LaunchRules.Refusal.NONE;
     /** Whether what it holds has been checked against what it takes now, once after loading. */
     private boolean legacyChecked;
 
@@ -103,8 +127,9 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
 
         boolean powered = level.hasNeighborSignal(getBlockPos());
         if (!powered || !isReadyToLaunch()) {
-            if (countdown >= 0) {
+            if (countdown >= 0 || refusal != LaunchRules.Refusal.NONE) {
                 countdown = -1;
+                refusal = LaunchRules.Refusal.NONE;
                 ThreatRegistry.withdraw(level, getBlockPos());
                 markDirtyAndSync();
             }
@@ -112,6 +137,10 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         }
 
         if (countdown < 0) {
+            // A refused pad looks again once a second, so it starts when a cooldown runs out.
+            if (refusal != LaunchRules.Refusal.NONE && level.getGameTime() % 20 != 0 || refuse()) {
+                return;
+            }
             countdown = MissileConfig.launchCountdownTicks();
             reportThreat();
             markDirtyAndSync();
@@ -167,6 +196,108 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
             return;
         }
         ThreatRegistry.report(level, getBlockPos(), BlockPos.containing(aim), warhead().threatRadius(), countdown + predictedFlightTicks());
+    }
+
+    /**
+     * Checks the server's limits; a refusal stops any countdown, is shown on the pad and told to its player
+     * once. Returns whether the pad is refused.
+     */
+    private boolean refuse() {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return false;
+        }
+        LaunchRules.Refusal now = checkLimits(serverLevel);
+        if (now != refusal) {
+            refusal = now;
+            if (now != LaunchRules.Refusal.NONE) {
+                tellAnswerable(serverLevel.getServer(), now);
+            }
+            markDirtyAndSync();
+        }
+        if (now != LaunchRules.Refusal.NONE && countdown >= 0) {
+            countdown = -1;
+            ThreatRegistry.withdraw(level, getBlockPos());
+            markDirtyAndSync();
+        }
+        return now != LaunchRules.Refusal.NONE;
+    }
+
+    /** What, if anything, the server's limits ({@code missile.*}) say against launching now. Public for tests. */
+    public LaunchRules.Refusal checkLimits(ServerLevel level) {
+        if (!LaunchRules.dimensionAllowed(level.dimension().location().toString(), MissileConfig.allowedDimensions)) {
+            return LaunchRules.Refusal.DIMENSION;
+        }
+        Vec3 aim = aimPoint();
+        if (aim != null) {
+            Vec3 start = ShipSpace.toWorld(level, launchPoint());
+            if (LaunchRules.outOfRange(start.x, start.z, aim.x, aim.z, MissileConfig.maxRange)) {
+                return LaunchRules.Refusal.OUT_OF_RANGE;
+            }
+            BlockPos spawn = level.getSharedSpawnPos();
+            if (level.dimension() == Level.OVERWORLD
+                    && LaunchRules.nearSpawn(aim.x, aim.z, spawn.getX() + 0.5, spawn.getZ() + 0.5, MissileConfig.protectedSpawnRadius)) {
+                return LaunchRules.Refusal.SPAWN_PROTECTED;
+            }
+        }
+        UUID player = answerable();
+        MinecraftServer server = level.getServer();
+        if (MissileConfig.launchPermissionLevel > 0 && permissionLevel(server, player) < MissileConfig.launchPermissionLevel) {
+            return LaunchRules.Refusal.NO_PERMISSION;
+        }
+        if (player != null && LaunchCooldowns.get(server).ticksLeft(server, player) > 0) {
+            return LaunchRules.Refusal.COOLDOWN;
+        }
+        return LaunchRules.Refusal.NONE;
+    }
+
+    /** The permission level of {@code player}, online or not; 0 for nobody. */
+    private static int permissionLevel(MinecraftServer server, @Nullable UUID player) {
+        if (player == null) {
+            return 0;
+        }
+        ServerPlayer online = server.getPlayerList().getPlayer(player);
+        if (online != null) {
+            return server.getProfilePermissions(online.getGameProfile());
+        }
+        GameProfile profile = server.getProfileCache() == null ? null : server.getProfileCache().get(player).orElse(null);
+        return server.getProfilePermissions(profile != null ? profile : new GameProfile(player, ""));
+    }
+
+    private void tellAnswerable(MinecraftServer server, LaunchRules.Refusal why) {
+        UUID player = answerable();
+        ServerPlayer online = player == null ? null : server.getPlayerList().getPlayer(player);
+        if (online == null) {
+            return;
+        }
+        Component reason = why == LaunchRules.Refusal.COOLDOWN
+                ? Component.translatable(why.key() + ".seconds", Mth.ceil(LaunchCooldowns.get(server).ticksLeft(server, player) / 20.0))
+                : Component.translatable(why.key());
+        BlockPos pos = getBlockPos();
+        online.sendSystemMessage(Component.translatable("message.create_nuclearindustry.launch_refused", pos.getX(), pos.getY(),
+                pos.getZ(), reason).withStyle(ChatFormatting.GOLD));
+    }
+
+    /** The player who answers for this pad's launches: the last to load it, or whoever placed it. */
+    @Nullable
+    public UUID answerable() {
+        return operator != null ? operator : owner;
+    }
+
+    public void setOwner(@Nullable UUID owner) {
+        this.owner = owner;
+        setChanged();
+    }
+
+    /** Called when {@code player} loads the pad through its menu: from now on they answer for it. */
+    public void setOperator(UUID player) {
+        if (!player.equals(operator)) {
+            operator = player;
+            setChanged();
+        }
+    }
+
+    public LaunchRules.Refusal getRefusal() {
+        return refusal;
     }
 
     private Vec3 launchPoint() {
@@ -309,14 +440,23 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
             countdown = -1;
             return;
         }
+        if (refuse()) {
+            return;
+        }
         Warhead warhead = warhead();
         Vec3 velocity = launchVelocity();
+        int flightTicks = predictedFlightTicks();
+        UUID player = answerable();
         consumeFuel();
         markDirtyAndSync();
 
         // A pad aboard a ship launches from where the ship really is.
         Vec3 start = ShipSpace.toWorld(serverLevel, launchPoint());
-        FlightTracker.get(serverLevel).launch(serverLevel, MissileDesign.LEGACY_PAD, start, velocity, aim, target, warhead, null);
+        FlightTracker.get(serverLevel).launch(serverLevel, MissileDesign.LEGACY_PAD, start, velocity, aim, target, warhead, player);
+        if (player != null) {
+            LaunchCooldowns.get(serverLevel.getServer()).record(player, LaunchCooldowns.now(serverLevel.getServer()));
+        }
+        LaunchWarnings.announce(serverLevel, aim, warhead.threatRadius(), flightTicks);
         NuclearAdvancements.awardNearby(serverLevel, worldPosition, NuclearAdvancements.WITNESS_RADIUS, NuclearEvent.MISSILE_LAUNCHED);
     }
 
@@ -350,6 +490,12 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         super.saveAdditional(tag, provider);
         tag.put("inventory", inventory.serializeNBT(provider));
         tag.putInt("countdown", countdown);
+        if (owner != null) {
+            tag.putUUID("owner", owner);
+        }
+        if (operator != null) {
+            tag.putUUID("operator", operator);
+        }
     }
 
     @Override
@@ -359,6 +505,10 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
             inventory.deserializeNBT(provider, tag.getCompound("inventory"));
         }
         countdown = tag.contains("countdown") ? tag.getInt("countdown") : -1;
+        owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
+        operator = tag.hasUUID("operator") ? tag.getUUID("operator") : null;
+        // Only in client updates (block entity packets land here too); a save has none and reads as none.
+        refusal = LaunchRules.Refusal.byOrdinal(tag.getInt("refusal"));
     }
 
     @Override
@@ -366,6 +516,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
         CompoundTag tag = super.getUpdateTag(provider);
         tag.put("inventory", inventory.serializeNBT(provider));
         tag.putInt("countdown", countdown);
+        tag.putInt("refusal", refusal.ordinal());
         return tag;
     }
 
@@ -381,5 +532,6 @@ public class LaunchPadBlockEntity extends BlockEntity implements Clearable {
             inventory.deserializeNBT(provider, tag.getCompound("inventory"));
         }
         countdown = tag.contains("countdown") ? tag.getInt("countdown") : -1;
+        refusal = LaunchRules.Refusal.byOrdinal(tag.getInt("refusal"));
     }
 }
