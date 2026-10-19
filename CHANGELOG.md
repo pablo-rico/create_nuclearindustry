@@ -892,6 +892,33 @@ below for what changes in existing worlds.
 ### Missiles, radar and command table
 
 ### Rocket effects
+- Rockets now have real exhaust plumes: layered cones of flame at each nozzle of
+  the burning stage, smoky orange for solid motors and a cleaner blue-white
+  core for liquid engines, with shock diamonds near the ground. The plume
+  balloons out as the air thins on the way up.
+- Long smoke trails stay in the sky (40 seconds by default), spreading,
+  drifting with the wind and lit by the sun: dark at night except where the
+  flame lights them, glowing high up after sunset.
+- Launch from a silo: steam vents from the shaft in the last 3 seconds of the
+  countdown, a flash fills the shaft at ignition, exhaust billows out of the
+  3×3 opening as the rocket climbs it and a ring of dust races out across the
+  ground. No blocks are changed.
+- Staging: a flash and a ring when a stage drops away, ullage puffs and then
+  the next stage lighting; falling stages trail smoke; a puff when the warhead
+  is released.
+- Re-entry: a glowing plasma sheath that grows with speed and a brief
+  incandescent streak behind the warhead. Inert warheads and falling stages
+  throw up dust when they land; a nuclear warhead's glow just fades as the
+  detonation takes over.
+- Sounds: ignition, a near roar and a distant rumble that crossfade with
+  distance and arrive late (sound travels at 17 blocks a tick), staging bangs,
+  the hiss of re-entry, crashing wreckage and a silo's steam vent. A warhead
+  passing within 64 blocks faster than 4 blocks a tick cracks a sonic boom.
+- The view shakes near a lift-off (`rocket.shake` in the client config).
+- Far away, past the render distance, a rocket still shows as a glowing point
+  with its outline and its trail (`rocket.farTrails`). Effects are budgeted
+  (at most 2000 rocket particles and 16 trails) and scale with
+  `rocket.detail`; with a shader pack they switch to a simpler look.
 - Missiles can be seen from much further away: players within
   `missile.fx.range` blocks (2048 by default) are told where each one is, so
   its effects show kilometres off. Missiles further than 256 blocks update
