@@ -358,21 +358,27 @@ public final class FlightTracker extends SavedData {
         } else remove(level, interceptor, FlightFxEvent.INTERCEPTOR_MISS, interceptor.position(), interceptor.velocity());
     }
 
+    /**
+     * A satellite crosses an interceptor's point in a fraction of a tick, and the game's tick need not line up with the one the
+     * shot was planned on: it is a hit if the satellite passes within the fuse of where the interceptor is, a few ticks either
+     * way, as straight flight or wrapped round the border, and however much lower its orbit has decayed since the shot.
+     */
     private void resolveSatellite(ServerLevel level, Flight interceptor, Satellite satellite, BallisticModel.Params params) {
         Flight.Intercept intercept = interceptor.intercept();
         double distance = Double.POSITIVE_INFINITY;
         Vec3 point = Flight.vec(satellite.orbit().position(level.getGameTime()));
-        for (int offset = -1; offset <= 1; offset++) {
-            MissileFlight flight = interceptor.flight();
-            V3 at = flight.burnedOut()
-                    ? BallisticModel.position(flight.burnoutPosition(), flight.burnoutVelocity(),
-                            flight.tick() - flight.burnoutTick() + offset, params.gravity())
-                    : BallisticModel.position(flight.position(), flight.velocity(), offset, params.gravity());
-            double tick = level.getGameTime() + offset;
+        V3 at = Flight.v3(interceptor.position());
+        long now = level.getGameTime();
+        // The orbit kept decaying while the interceptor flew to where it was going to be.
+        double sag = satellite.orbit().geostationary() ? 0 : OrbitConfig.leoDecayPerDay / 24000 * interceptor.flight().tick() + 1;
+        for (double offset = -3; offset <= 3; offset += 0.25) {
+            double tick = now + offset;
             V3 unwrapped = satellite.orbit().unwrapped(tick, interceptor.launchedAt());
             V3 wrapped = satellite.orbit().position(tick);
             V3 nearest = at.distance(unwrapped) < at.distance(wrapped) ? unwrapped : wrapped;
-            double miss = at.distance(nearest);
+            double dx = at.x() - nearest.x(), dz = at.z() - nearest.z();
+            double dy = Math.max(0, Math.abs(at.y() - nearest.y()) - sag);
+            double miss = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (miss < distance) { distance = miss; point = Flight.vec(nearest); }
         }
         if (distance <= DefenseConfig.fuseRadius && new Random(intercept.seed()).nextDouble() < intercept.pk()) {

@@ -52,6 +52,42 @@ public class AsatTests {
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
     public static void siloZeroPkMissesSatellite(GameTestHelper h) { siloEngagement(h, false); }
 
+    /**
+     * The whole engagement on the game's own clock, a satellite at full speed: the shot is planned on one tick and judged on
+     * whichever the tracker runs, which need not line up.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH + "_live", timeoutTicks = 1600)
+    public static void liveEngagementDestroysFastSatellite(GameTestHelper h) {
+        h.runAfterDelay(1, () -> {
+            var builder = new SiloTestBuilder().liquid().tanks(4).stages(3);
+            var silo = builder.build(h);
+            h.setBlock(SiloTestBuilder.FLOOR.above(builder.height()), SiloRegistry.KILL_VEHICLE.get());
+            silo.setSpeed((float) MissileConfig.minimumRpm);
+            silo.validate();
+            var level = h.getLevel();
+            long now = level.getGameTime();
+            var launch = silo.launchPoint();
+            Orbit.Bounds bounds = new Orbit.Bounds(launch.x() - 30000, launch.z() - 30000, launch.x() + 30000, launch.z() + 30000);
+            // Coming from the west towards the silo, passing 800 blocks north of it about now + 650 ticks: an interceptor takes hundreds of ticks to climb.
+            Orbit orbit = Orbit.leo(launch.x(), launch.z() - 800, Math.PI / 2, 1600, now + 650, OrbitConfig.leoSpeed, bounds);
+            Satellite sat = new Satellite(UUID.randomUUID(), "EW-LV", "S3LV", SatelliteKind.EARLY_WARNING, orbit, null, now);
+            var satellites = SatelliteTracker.get(level);
+            satellites.add(level, sat);
+            double scale = DefenseConfig.pkScale, max = DefenseConfig.maxPk, base = OrbitConfig.satelliteBasePk;
+            DefenseConfig.pkScale = 100; DefenseConfig.maxPk = 1; OrbitConfig.satelliteBasePk = 1;
+            var result = silo.order(level, sat.id(), org.papiricoh.create_nuclearindustry.missile.defense.EngagementSource.MANUAL_TABLE);
+            // The chance is fixed when the interceptor leaves; put the settings back once it has.
+            h.runAfterDelay(DefenseConfig.siloLaunchDelayTicks + 20, () -> {
+                DefenseConfig.pkScale = scale; DefenseConfig.maxPk = max; OrbitConfig.satelliteBasePk = base;
+            });
+            h.succeedWhen(() -> {
+                h.assertTrue(result == org.papiricoh.create_nuclearindustry.missile.defense.FireResult.QUEUED, "the silo takes the order: " + result);
+                h.assertTrue(satellites.get(sat.id()) == null, "the satellite is destroyed");
+                h.assertTrue(FlightTracker.get(level).interceptorsToward(sat.id()) == 0, "the interceptor is gone");
+            });
+        });
+    }
+
     private static void siloEngagement(GameTestHelper h, boolean kill) {
         h.runAfterDelay(1, () -> {
             var builder = new SiloTestBuilder().liquid().tanks(4).stages(3);
