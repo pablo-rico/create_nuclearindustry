@@ -80,7 +80,8 @@ public final class ClientFlights {
         Vec3 pos = new Vec3(payload.x(), payload.y(), payload.z());
         Vec3 vel = new Vec3(payload.vx(), payload.vy(), payload.vz());
         for (FlightFxListener listener : LISTENERS) listener.onEvent(flight, event, payload.stage(), pos, vel, payload.flags());
-        if (event == FlightFxEvent.IMPACT || event == FlightFxEvent.ABORT) FLIGHTS.remove(payload.id());
+        if (event == FlightFxEvent.IMPACT || event == FlightFxEvent.ABORT || event == FlightFxEvent.INTERCEPT
+                || event == FlightFxEvent.INTERCEPTOR_MISS) FLIGHTS.remove(payload.id());
     }
 
     private static void tick() {

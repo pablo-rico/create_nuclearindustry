@@ -23,11 +23,23 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-/** Commands are checked against the open table and its links; none can fire a controller. */
+/**
+ * Commands are checked against the open table and its links. None fires a missile: missiles launch only on their controller's
+ * redstone. Interceptors are the exception: {@link #ENGAGE} launches them at a tracked missile, from the table's batteries and
+ * interceptor controllers. Actions and {@link Command}s are sent by number: add new ones at the end.
+ */
 public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, int x, int z, int arg,
                                  @Nullable UUID flight, List<BlockPos> silos) implements CustomPacketPayload {
     public static final byte SELECT = 0, DESIGNATE = 1, ARM = 2, DISARM = 3, SALVO = 4, ABORT = 5, UNLINK_SILO = 6, UNLINK_RADAR = 7;
-    public enum Command { OK, TOO_FAR, BROKEN, NOT_LINKED, UNLOADED, REFUSED, NO_TARGET, TOO_LONG, NOT_OWN, GONE }
+    /**
+     * Missile defence. {@code ENGAGE}: {@code flight} the missile, {@code arg} -1 for the best launcher, 0-7 a battery, 100 + i
+     * silo i. {@code SET_AUTO}: {@code arg} 1 on, 0 off. {@code SET_DOCTRINE}: {@code arg} a {@code Doctrine} ordinal.
+     * {@code SET_ZONE}: {@code x, z} the centre, {@code arg} the radius. {@code UNLINK_BATTERY}: {@code silo} the battery's place.
+     * {@code CEASE}: automatic off and every order dropped.
+     */
+    public static final byte ENGAGE = 8, SET_AUTO = 9, SET_DOCTRINE = 10, SET_ZONE = 11, UNLINK_BATTERY = 12, CEASE = 13;
+    public enum Command { OK, TOO_FAR, BROKEN, NOT_LINKED, UNLOADED, REFUSED, NO_TARGET, TOO_LONG, NOT_OWN, GONE,
+        NO_SHOOTER, NOT_TRACKED, NO_SOLUTION, FRIENDLY, NO_AMMO, ALREADY_ENGAGED }
     public static final Type<HoloCommandPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "holo_command"));
     public static final StreamCodec<ByteBuf, HoloCommandPayload> CODEC = StreamCodec.of(HoloCommandPayload::write, HoloCommandPayload::read);
 

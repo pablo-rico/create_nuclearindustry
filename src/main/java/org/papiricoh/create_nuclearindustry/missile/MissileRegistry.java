@@ -72,11 +72,13 @@ public final class MissileRegistry implements NuclearFeature {
         org.papiricoh.create_nuclearindustry.missile.terrain.TerrainRequestPayload.register(modEventBus);
         org.papiricoh.create_nuclearindustry.missile.terrain.TerrainSurvey.register();
         org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry.register(modEventBus);
+        org.papiricoh.create_nuclearindustry.missile.defense.DefenseRegistry.register(modEventBus);
     }
 
     @Override
     public void registerCapabilities(net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent event) {
         org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.registerCapabilities(event);
+        org.papiricoh.create_nuclearindustry.missile.defense.DefenseRegistry.registerCapabilities(event);
     }
 
     @Override
@@ -85,6 +87,7 @@ public final class MissileRegistry implements NuclearFeature {
         org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.fillCreativeTab(output);
         org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.fillCreativeTab(output);
         org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry.fillCreativeTab(output);
+        org.papiricoh.create_nuclearindustry.missile.defense.DefenseRegistry.fillCreativeTab(output);
         output.accept(TARGET_DESIGNATOR.get());
     }
 }

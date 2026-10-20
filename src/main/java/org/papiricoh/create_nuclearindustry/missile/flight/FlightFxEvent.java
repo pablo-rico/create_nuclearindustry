@@ -23,9 +23,13 @@ public enum FlightFxEvent {
     /** A falling spent stage reaches the ground. */
     DEBRIS_IMPACT(8),
     /** Taken out of the sky without landing. */
-    ABORT(9);
+    ABORT(9),
+    /** Destroyed by an interceptor: the event's position is where, its velocity the missile's. */
+    INTERCEPT(10),
+    /** An interceptor that reached its point without a kill destroys itself. */
+    INTERCEPTOR_MISS(11);
 
-    private static final FlightFxEvent[] BY_ID = new FlightFxEvent[10];
+    private static final FlightFxEvent[] BY_ID = new FlightFxEvent[12];
 
     static {
         for (FlightFxEvent e : values()) BY_ID[e.id] = e;

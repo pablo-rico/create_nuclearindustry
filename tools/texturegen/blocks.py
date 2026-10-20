@@ -1537,3 +1537,4 @@ import tex_propulsion  # noqa: E402,F401
 import tex_missile  # noqa: E402,F401
 import tex_rocketfx  # noqa: E402,F401
 import tex_launch  # noqa: E402,F401
+import tex_defense  # noqa: E402,F401

@@ -15,12 +15,19 @@ import java.util.UUID;
 
 /**
  * What a command table shows, sent every half second to players near it: the tracks of its linked radars (each with up to
- * {@link #HISTORY} plotted points, positions relative to the table), the radars' own places and reach, and up to sixteen silos. Bounded:
- * {@link #MAX_TRACKS} tracks, {@link #MAX_RADARS} radars.
+ * {@link #HISTORY} plotted points, positions relative to the table), the radars' own places and reach, up to sixteen silos, and its
+ * missile defence: the launchers that fire interceptors, the interceptors in flight and how it defends. Bounded:
+ * {@link #MAX_TRACKS} tracks, {@link #MAX_RADARS} radars, {@link #MAX_SHOOTERS} launchers, {@link #MAX_INTERCEPTS} interceptors.
  */
-public record HoloTracksPayload(BlockPos centre, long sample, float gravity, List<Track> tracks, List<Radar> radars, List<Silo> silos, Board board)
+public record HoloTracksPayload(BlockPos centre, long sample, float gravity, List<Track> tracks, List<Radar> radars, List<Silo> silos, Board board,
+                                List<Shooter> shooters, List<Intercept> intercepts, Defense defense)
         implements CustomPacketPayload {
-    public static final int MAX_TRACKS = 32, HISTORY = 24, MAX_RADARS = 4;
+    public static final int MAX_TRACKS = 32, HISTORY = 24, MAX_RADARS = 4, MAX_SHOOTERS = 24, MAX_INTERCEPTS = 32;
+
+    /** A picture without missile defence. */
+    public HoloTracksPayload(BlockPos centre, long sample, float gravity, List<Track> tracks, List<Radar> radars, List<Silo> silos, Board board) {
+        this(centre, sample, gravity, tracks, radars, silos, board, List.of(), List.of(), Defense.OFF);
+    }
     public static final Type<HoloTracksPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "holo_tracks"));
 
     /**
@@ -63,6 +70,34 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
     /** The linked silo: where, how far its rocket reaches, its spread, its state (ordinal) and its target if it has one. */
     public record Silo(byte index, boolean loaded, int dx, int dz, float reach, float cep, byte state, boolean targeted, int tx, int tz,
                        String error, int countdown, int delay, float flightSeconds, @Nullable UUID flight) {
+    }
+
+    /**
+     * A launcher that fires interceptors for the table: a battery or a launch controller topped by a kill vehicle.
+     *
+     * @param type     a {@code ShooterType} ordinal
+     * @param link     its index in the table's battery list, or in its silo list for a launch controller
+     * @param state    a battery's {@code Status} ordinal, or a launch controller's {@code State} ordinal
+     * @param ready    interceptors it could launch now
+     * @param capacity most it holds
+     * @param range    furthest over the ground it meets a missile
+     * @param yaw      where a battery's turret points, degrees from north
+     */
+    public record Shooter(byte index, byte type, byte link, boolean loaded, int dx, int dz, byte state, byte ready, byte capacity, float range,
+                          float yaw, float pitch, boolean auto) {
+    }
+
+    /**
+     * An interceptor in flight for the table, relative to it (y absolute): where it is and goes, the point it is to meet its target
+     * at, ticks until then and its chance to kill.
+     */
+    public record Intercept(UUID interceptor, UUID target, float x, float y, float z, float vx, float vy, float vz, float px, float py, float pz,
+                            int tti, float pk) {
+    }
+
+    /** How the table defends: automatically or not, its doctrine (ordinal) and its zone, relative to it (radius 0 the default). */
+    public record Defense(boolean auto, byte doctrine, int zoneDx, int zoneDz, int zoneRadius) {
+        public static final Defense OFF = new Defense(false, (byte) 0, 0, 0, 0);
     }
 
     @Nullable
@@ -176,6 +211,27 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
             b.writeByte(board.mark.result);
             b.writeLong(board.mark.at);
         }
+        if (p.shooters.size() > MAX_SHOOTERS) throw new IllegalArgumentException("Too many holo shooters");
+        b.writeVarInt(p.shooters.size());
+        for (Shooter s : p.shooters) {
+            b.writeByte(s.index); b.writeByte(s.type); b.writeByte(s.link); b.writeBoolean(s.loaded);
+            b.writeVarInt(s.dx); b.writeVarInt(s.dz);
+            b.writeByte(s.state); b.writeByte(s.ready); b.writeByte(s.capacity);
+            b.writeFloat(s.range); b.writeFloat(s.yaw); b.writeFloat(s.pitch); b.writeBoolean(s.auto);
+        }
+        int intercepts = Math.min(MAX_INTERCEPTS, p.intercepts.size());
+        b.writeVarInt(intercepts);
+        for (int i = 0; i < intercepts; i++) {
+            Intercept x = p.intercepts.get(i);
+            UUIDUtil.STREAM_CODEC.encode(b, x.interceptor);
+            UUIDUtil.STREAM_CODEC.encode(b, x.target);
+            for (float f : new float[]{x.x, x.y, x.z, x.vx, x.vy, x.vz, x.px, x.py, x.pz}) b.writeFloat(f);
+            b.writeVarInt(x.tti);
+            b.writeFloat(x.pk);
+        }
+        Defense d = p.defense;
+        b.writeBoolean(d.auto); b.writeByte(d.doctrine);
+        b.writeVarInt(d.zoneDx); b.writeVarInt(d.zoneDz); b.writeVarInt(d.zoneRadius);
     }
 
     private static HoloTracksPayload read(RegistryFriendlyByteBuf b) {
@@ -224,7 +280,28 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
         if (selectedSilo < 0 || selectedSilo >= Math.max(1, siloCount)) throw new IllegalArgumentException("Unknown selected silo");
         UUID selected = b.readBoolean() ? UUIDUtil.STREAM_CODEC.decode(b) : null;
         Mark mark = b.readBoolean() ? new Mark(b.readVarInt(), b.readVarInt(), b.readByte(), b.readLong()) : null;
-        return new HoloTracksPayload(centre, sample, gravity, List.copyOf(tracks), List.copyOf(radars), List.copyOf(silos), new Board(view, ox, oz, zoom, selectedSilo, selected, mark));
+        int shooterCount = b.readVarInt();
+        if (shooterCount < 0 || shooterCount > MAX_SHOOTERS) throw new IllegalArgumentException("Too many holo shooters");
+        List<Shooter> shooters = new ArrayList<>(shooterCount);
+        for (int i = 0; i < shooterCount; i++) {
+            byte index = b.readByte();
+            if (index != i) throw new IllegalArgumentException("Unknown holo shooter index");
+            shooters.add(new Shooter(index, b.readByte(), b.readByte(), b.readBoolean(), b.readVarInt(), b.readVarInt(), b.readByte(),
+                    b.readByte(), b.readByte(), b.readFloat(), b.readFloat(), b.readFloat(), b.readBoolean()));
+        }
+        int interceptCount = b.readVarInt();
+        if (interceptCount < 0 || interceptCount > MAX_INTERCEPTS) throw new IllegalArgumentException("Too many holo intercepts");
+        List<Intercept> intercepts = new ArrayList<>(interceptCount);
+        for (int i = 0; i < interceptCount; i++) {
+            UUID interceptor = UUIDUtil.STREAM_CODEC.decode(b);
+            UUID target = UUIDUtil.STREAM_CODEC.decode(b);
+            float[] f = new float[9];
+            for (int k = 0; k < f.length; k++) f[k] = b.readFloat();
+            intercepts.add(new Intercept(interceptor, target, f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], b.readVarInt(), b.readFloat()));
+        }
+        Defense defense = new Defense(b.readBoolean(), b.readByte(), b.readVarInt(), b.readVarInt(), b.readVarInt());
+        return new HoloTracksPayload(centre, sample, gravity, List.copyOf(tracks), List.copyOf(radars), List.copyOf(silos),
+                new Board(view, ox, oz, zoom, selectedSilo, selected, mark), List.copyOf(shooters), List.copyOf(intercepts), defense);
     }
 
     @Override

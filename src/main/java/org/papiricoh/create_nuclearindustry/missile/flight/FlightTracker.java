@@ -89,6 +89,42 @@ public final class FlightTracker extends SavedData {
         return launched;
     }
 
+    /**
+     * Launches an interceptor from {@code start}, leaving at {@code ejectVelocity} and climbing {@code rise} blocks before it turns,
+     * to meet {@code intercept.target()} at {@code intercept.point()} on tick {@code intercept.arrivalTick()} of its flight. It
+     * carries no warhead: what happens when it gets there is drawn from {@code intercept.pk()}. Returns the existing flight on
+     * replay, or null if that launch already finished.
+     */
+    @Nullable
+    public Flight launchInterceptor(ServerLevel level, UUID launchId, MissileDesign design, Vec3 start, Vec3 ejectVelocity, double rise,
+                                    Flight.Intercept intercept, @Nullable UUID owner, RocketShape shape, @Nullable CompoundTag cargo) {
+        if (hasLaunched(launchId)) return flights.get(launchId);
+        MissileFlight flight = MissileFlight.timed(design, Flight.v3(start), intercept.point(), Flight.v3(ejectVelocity),
+                intercept.arrivalTick(), rise);
+        Vec3 point = Flight.vec(intercept.point());
+        Flight launched = new Flight(launchId, Flight.Kind.INTERCEPTOR, flight, Warhead.INERT, BlockPos.containing(point), owner,
+                level.getGameTime(), BlockPos.containing(start), List.of(), List.of(), shape, cargo,
+                (float) RocketAttitude.heading(point.x - start.x, point.z - start.z), intercept);
+        flights.put(launchId, launched);
+        launchedIds.add(launchId);
+        setDirty();
+        FlightEvents.fire(level, launched, FlightFxEvent.LAUNCH, 0);
+        return launched;
+    }
+
+    /** How many interceptors are flying at flight {@code target}. */
+    public int interceptorsToward(UUID target) {
+        int count = 0;
+        for (Flight flight : flights.values())
+            if (flight.intercept() != null && flight.intercept().target().equals(target)) count++;
+        return count;
+    }
+
+    /** Every interceptor in flight, in launch order. */
+    public List<Flight> interceptors() {
+        return flights.values().stream().filter(flight -> flight.kind() == Flight.Kind.INTERCEPTOR).toList();
+    }
+
     public static FlightTracker get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(new Factory<>(FlightTracker::new, FlightTracker::load, null), NAME);
     }
@@ -159,6 +195,8 @@ public final class FlightTracker extends SavedData {
     public void tick(ServerLevel level) {
         BallisticModel.Params params = MissileConfig.flightParams();
         for (Flight flight : List.copyOf(flights.values())) {
+            // Taken out earlier this tick (an interceptor's kill): it must not fly on, or land.
+            if (!flights.containsKey(flight.id())) continue;
             Vec3 from = flight.position();
             MissileFlight.Step step = flight.flight().step(params);
             Vec3 impact = step.impact() ? flight.position() : null;

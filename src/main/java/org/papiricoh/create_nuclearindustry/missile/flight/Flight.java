@@ -6,6 +6,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.missile.defense.ShooterType;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
 import org.papiricoh.create_nuclearindustry.missile.physics.RocketAttitude;
@@ -22,8 +23,11 @@ import java.util.UUID;
  */
 public final class Flight {
 
+    /** Saved by name: add new kinds at the end, never rename one. */
     public enum Kind {
-        MISSILE;
+        MISSILE,
+        /** Sent to meet a missile in the air; never detonates and is never shown on radar. */
+        INTERCEPTOR;
 
         static Kind byName(String name) {
             try {
@@ -35,6 +39,36 @@ public final class Flight {
     }
 
     public static final long NO_CHUNK = Long.MIN_VALUE;
+
+    /**
+     * What an interceptor is sent to do: meet flight {@code target} at {@code point} on tick {@code arrivalTick} of its own flight,
+     * and destroy it with chance {@code pk}, drawn from {@code seed} when it gets there.
+     *
+     * @param launcher     the battery or launch controller that fired it, or null
+     * @param launcherType which of the two
+     */
+    public record Intercept(UUID target, double pk, V3 point, int arrivalTick, @Nullable BlockPos launcher, ShooterType launcherType,
+                            long seed) {
+        CompoundTag save() {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("Target", target);
+            tag.putDouble("Pk", pk);
+            putV3(tag, "Point", point);
+            tag.putInt("Arrival", arrivalTick);
+            if (launcher != null) tag.putLong("Launcher", launcher.asLong());
+            tag.putString("LauncherType", launcherType.name().toLowerCase(Locale.ROOT));
+            tag.putLong("Seed", seed);
+            return tag;
+        }
+
+        @Nullable
+        static Intercept load(CompoundTag tag) {
+            if (!tag.hasUUID("Target")) return null;
+            return new Intercept(tag.getUUID("Target"), tag.getDouble("Pk"), getV3(tag, "Point"), tag.getInt("Arrival"),
+                    tag.contains("Launcher", Tag.TAG_LONG) ? BlockPos.of(tag.getLong("Launcher")) : null,
+                    ShooterType.byName(tag.getString("LauncherType")), tag.getLong("Seed"));
+        }
+    }
 
     private final UUID id;
     private final Kind kind;
@@ -55,6 +89,9 @@ public final class Flight {
     private final CompoundTag cargo;
     /** Radians, the way it was launched over the ground (0 is +Z): its heading while it climbs straight up. */
     private final float heading;
+    /** What an interceptor is sent to meet; null for a missile. */
+    @Nullable
+    private final Intercept intercept;
     /** The phase it was in last tick, to tell when it changes; not saved. */
     @Nullable
     MissileFlight.Phase lastPhase;
@@ -76,6 +113,13 @@ public final class Flight {
     Flight(UUID id, Kind kind, MissileFlight flight, Warhead warhead, BlockPos target, @Nullable UUID owner,
            long launchedAt, @Nullable BlockPos origin, List<String> sections, List<Integer> stageStarts,
            RocketShape shape, @Nullable CompoundTag cargo, float heading) {
+        this(id, kind, flight, warhead, target, owner, launchedAt, origin, sections, stageStarts, shape, cargo, heading, null);
+    }
+
+    Flight(UUID id, Kind kind, MissileFlight flight, Warhead warhead, BlockPos target, @Nullable UUID owner,
+           long launchedAt, @Nullable BlockPos origin, List<String> sections, List<Integer> stageStarts,
+           RocketShape shape, @Nullable CompoundTag cargo, float heading, @Nullable Intercept intercept) {
+        this.intercept = intercept;
         this.shape = shape;
         this.cargo = cargo;
         this.heading = heading;
@@ -92,6 +136,8 @@ public final class Flight {
     }
 
     @Nullable public BlockPos origin() { return origin; }
+    /** What an interceptor is sent to meet; null for a missile. */
+    @Nullable public Intercept intercept() { return intercept; }
     public RocketShape shape() { return shape; }
     @Nullable public CompoundTag cargo() { return cargo; }
     public float heading() { return heading; }
@@ -162,7 +208,10 @@ public final class Flight {
 
     CompoundTag save() {
         CompoundTag tag = new CompoundTag();
-        tag.putInt("FormatVersion", 2);
+        tag.putInt("FormatVersion", 3);
+        if (intercept != null) tag.put("Intercept", intercept.save());
+        if (flight.timed()) tag.putInt("ArrivalTick", flight.arrivalTick());
+        if (!Double.isNaN(flight.rise())) tag.putDouble("Rise", flight.rise());
         if (origin != null) tag.putLong("Origin", origin.asLong());
         ListTag visuals = new ListTag();
         visualSections.forEach(section -> visuals.add(net.minecraft.nbt.StringTag.valueOf(section)));
@@ -204,7 +253,9 @@ public final class Flight {
         MissileFlight flight = MissileFlight.restore(loadDesign(tag.getCompound("Design")), getV3(tag, "Aim"), tag.getDouble("LaunchY"), getV3(tag, "Pos"),
                 getV3(tag, "Vel"), tag.getInt("Stage"), tag.getDouble("StagePropellant"), tag.getInt("Tick"),
                 tag.getBoolean("BurnedOut"), tag.getBoolean("Guided"), tag.getInt("BurnoutTick"), getV3(tag, "BurnoutPos"),
-                getV3(tag, "BurnoutVel"), tag.getDouble("FallTicks"), tag.getBoolean("Impacted"));
+                getV3(tag, "BurnoutVel"), tag.getDouble("FallTicks"), tag.getBoolean("Impacted"),
+                tag.contains("ArrivalTick", Tag.TAG_INT) ? tag.getInt("ArrivalTick") : -1,
+                tag.contains("Rise", Tag.TAG_DOUBLE) ? tag.getDouble("Rise") : Double.NaN);
         List<String> sections = tag.getList("VisualSections", Tag.TAG_STRING).stream().map(Tag::getAsString).limit(17).toList();
         List<Integer> starts = java.util.Arrays.stream(tag.getIntArray("VisualStageStarts")).filter(i -> i >= 0 && i < 17).limit(3).boxed().toList();
         // Flights saved before shapes were: a silo column from its sections, else the old pad missile.
@@ -214,7 +265,8 @@ public final class Flight {
                 BlockPos.of(tag.getLong("Target")), tag.hasUUID("Owner") ? tag.getUUID("Owner") : null, tag.getLong("LaunchedAt"),
                 tag.contains("Origin", Tag.TAG_LONG) ? BlockPos.of(tag.getLong("Origin")) : null, sections, starts, shape,
                 tag.contains("Cargo", Tag.TAG_COMPOUND) ? tag.getCompound("Cargo") : null,
-                tag.contains("Heading", Tag.TAG_FLOAT) ? tag.getFloat("Heading") : headingOf(flight));
+                tag.contains("Heading", Tag.TAG_FLOAT) ? tag.getFloat("Heading") : headingOf(flight),
+                tag.contains("Intercept", Tag.TAG_COMPOUND) ? Intercept.load(tag.getCompound("Intercept")) : null);
         loaded.forcedChunk = tag.contains("ForcedChunk") ? tag.getLong("ForcedChunk") : NO_CHUNK;
         return loaded;
     }

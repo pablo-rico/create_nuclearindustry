@@ -25,6 +25,10 @@ public record FlightFxState(UUID id, double x, double y, double z, float vx, flo
     public static final int PUPPET = 1 << 3;
     /** Its engines are done: only the warhead is still attached. */
     public static final int BURNED_OUT = 1 << 4;
+    /** An interceptor: its effects are scaled down to its size. */
+    public static final int INTERCEPTOR = 1 << 5;
+    /** Cold-launched from a battery's canister rather than lifting off a launch base. */
+    public static final int CANISTER = 1 << 6;
 
     public static final StreamCodec<ByteBuf, FlightFxState> STREAM_CODEC = StreamCodec.of(FlightFxState::write, FlightFxState::read);
     private static final StreamCodec<ByteBuf, Optional<RocketShape>> SHAPE = ByteBufCodecs.optional(RocketShapeCodec.STREAM_CODEC);

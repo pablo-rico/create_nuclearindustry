@@ -42,7 +42,7 @@ public final class WarheadBay {
     /** How many of the slots {@code section} uses, from slot 0. */
     public static int activeSlots(RocketComposition.Section section) {
         return switch (section) {
-            case ENGINE -> 0;
+            case ENGINE, KILL_VEHICLE -> 0;
             case TANK, GUIDANCE -> 1;
             case WARHEAD -> SLOTS;
         };
@@ -54,7 +54,7 @@ public final class WarheadBay {
         return switch (section) {
             case TANK -> SlotType.PROPELLANT;
             case GUIDANCE -> SlotType.GUIDANCE;
-            case ENGINE -> null;
+            case ENGINE, KILL_VEHICLE -> null;
             case WARHEAD -> slot == BOMB ? SlotType.BOMB : slot >= TAMPER[0] ? SlotType.TAMPER : slot >= SECONDARY[0] ? SlotType.SECONDARY : SlotType.CHARGE;
         };
     }

@@ -1,0 +1,4 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "create_nuclearindustry:blocks/interceptor_battery_part"
+}

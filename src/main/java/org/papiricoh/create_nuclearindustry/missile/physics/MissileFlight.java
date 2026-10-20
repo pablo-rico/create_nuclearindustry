@@ -10,6 +10,11 @@ package org.papiricoh.create_nuclearindustry.missile.physics;
  *
  * <p>Spent stages drop off as they empty, so later stages push less mass. Thrust follows the stage's
  * full rating; the propellant left in the last stage at cutoff is simply not burnt.
+ *
+ * <p>A <em>timed</em> flight ({@link #timed}) is an interceptor's: it must be at its aim point on tick {@link #arrivalTick()}, so
+ * its guidance steers for the velocity that falls there in the ticks left, and its free fall ends at the aim on that tick
+ * (wherever in the air it is) rather than coming down through the aim's height. One still boosting when that tick comes
+ * counts as arrived where it is.
  */
 public final class MissileFlight {
 
@@ -51,6 +56,10 @@ public final class MissileFlight {
     private V3 burnoutVelocity = V3.ZERO;
     private double fallTicks;
     private boolean impacted;
+    /** The tick a timed flight is due at its aim, or -1 for a missile's flight. */
+    private int arrivalTick = -1;
+    /** Blocks a timed flight climbs straight up before it turns, or NaN for the configured rise height. */
+    private double rise = Double.NaN;
 
     public MissileFlight(MissileDesign design, V3 start, V3 aim, V3 initialVelocity) {
         this(design, start, aim, initialVelocity, start.y());
@@ -66,10 +75,30 @@ public final class MissileFlight {
         this.stagePropellant = design.stages().isEmpty() ? 0 : design.stages().get(0).propellant();
     }
 
+    /**
+     * An interceptor's flight: from {@code start} at {@code initialVelocity}, climbing {@code rise} blocks straight up (0 to steer
+     * at once), to be at {@code aim} on tick {@code arrivalTick}.
+     */
+    public static MissileFlight timed(MissileDesign design, V3 start, V3 aim, V3 initialVelocity, int arrivalTick, double rise) {
+        MissileFlight flight = new MissileFlight(design, start, aim, initialVelocity, start.y());
+        flight.arrivalTick = Math.max(1, arrivalTick);
+        flight.rise = Math.max(0, rise);
+        return flight;
+    }
+
     /** A flight restored from a save. */
     public static MissileFlight restore(MissileDesign design, V3 aim, double launchY, V3 position, V3 velocity, int stage,
                                         double stagePropellant, int tick, boolean burnedOut, boolean guidedCutoff, int burnoutTick,
                                         V3 burnoutPosition, V3 burnoutVelocity, double fallTicks, boolean impacted) {
+        return restore(design, aim, launchY, position, velocity, stage, stagePropellant, tick, burnedOut, guidedCutoff, burnoutTick,
+                burnoutPosition, burnoutVelocity, fallTicks, impacted, -1, Double.NaN);
+    }
+
+    /** A flight restored from a save, timed ({@code arrivalTick} ≥ 0) or not. */
+    public static MissileFlight restore(MissileDesign design, V3 aim, double launchY, V3 position, V3 velocity, int stage,
+                                        double stagePropellant, int tick, boolean burnedOut, boolean guidedCutoff, int burnoutTick,
+                                        V3 burnoutPosition, V3 burnoutVelocity, double fallTicks, boolean impacted, int arrivalTick,
+                                        double rise) {
         MissileFlight flight = new MissileFlight(design, position, aim, velocity, launchY);
         flight.stage = stage;
         flight.stagePropellant = stagePropellant;
@@ -81,12 +110,14 @@ public final class MissileFlight {
         flight.burnoutVelocity = burnoutVelocity;
         flight.fallTicks = fallTicks;
         flight.impacted = impacted;
+        flight.arrivalTick = arrivalTick < 0 ? -1 : arrivalTick;
+        flight.rise = rise;
         return flight;
     }
 
     public MissileFlight copy() {
         return restore(design, aim, launchY, position, velocity, stage, stagePropellant, tick, burnedOut, guidedCutoff, burnoutTick,
-                burnoutPosition, burnoutVelocity, fallTicks, impacted);
+                burnoutPosition, burnoutVelocity, fallTicks, impacted, arrivalTick, rise);
     }
 
     /** Advances the flight by one tick. */
@@ -97,6 +128,11 @@ public final class MissileFlight {
         tick++;
         if (burnedOut) {
             return coast(params);
+        }
+        if (timed() && tick >= arrivalTick) {
+            // Still burning when it was due: it is as close as it got.
+            impacted = true;
+            return new Step(false, false, true);
         }
         double g = params.gravity();
         boolean dropped = false;
@@ -117,7 +153,8 @@ public final class MissileFlight {
                 velocity = new V3(velocity.x(), 0, velocity.z());
             }
         } else {
-            V3 wanted = BallisticModel.requiredVelocity(position, aim, params);
+            V3 wanted = timed() ? BallisticModel.requiredVelocity(position, aim, Math.max(1, arrivalTick - tick), g)
+                    : BallisticModel.requiredVelocity(position, aim, params);
             V3 toGain = wanted.sub(velocity).add(gravity);
             double needed = toGain.length();
             if (needed <= accel) {
@@ -135,7 +172,7 @@ public final class MissileFlight {
 
     /** Still climbing straight up out of its silo. */
     public boolean rising(BallisticModel.Params params) {
-        return !burnedOut && position.y() - launchY < params.riseHeight();
+        return !burnedOut && position.y() - launchY < (Double.isNaN(rise) ? params.riseHeight() : rise);
     }
 
     private Step coastAfterBurnout(boolean dropped, BallisticModel.Params params) {
@@ -175,7 +212,7 @@ public final class MissileFlight {
         burnoutTick = tick;
         burnoutPosition = position;
         burnoutVelocity = velocity;
-        fallTicks = BallisticModel.ticksToFloor(position, velocity, aim.y(), params.gravity());
+        fallTicks = timed() ? Math.max(0, arrivalTick - tick) : BallisticModel.ticksToFloor(position, velocity, aim.y(), params.gravity());
         if (fallTicks <= 0) {
             impacted = true;
         }
@@ -224,7 +261,8 @@ public final class MissileFlight {
             ahead.step(params);
         }
         double ticks = ahead.tick - start + ahead.ticksToImpact(params);
-        V3 impact = BallisticModel.position(ahead.burnoutPosition, ahead.burnoutVelocity, ahead.fallTicks, params.gravity());
+        V3 impact = ahead.impacted && !ahead.burnedOut ? ahead.position
+                : BallisticModel.position(ahead.burnoutPosition, ahead.burnoutVelocity, ahead.fallTicks, params.gravity());
         double apogee = Math.max(ahead.burnoutPosition.y(),
                 BallisticModel.apogee(ahead.burnoutPosition, ahead.burnoutVelocity, params.gravity()));
         return new Prediction(ticks, impact, apogee, ahead.guidedCutoff);
@@ -329,5 +367,20 @@ public final class MissileFlight {
 
     public boolean impacted() {
         return impacted;
+    }
+
+    /** Whether it is an interceptor's flight, due at its aim on {@link #arrivalTick()}. */
+    public boolean timed() {
+        return arrivalTick >= 0;
+    }
+
+    /** The tick a timed flight is due at its aim, or -1. */
+    public int arrivalTick() {
+        return arrivalTick;
+    }
+
+    /** Blocks a timed flight climbs straight up first, or NaN for the configured rise height. */
+    public double rise() {
+        return rise;
     }
 }

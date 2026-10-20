@@ -37,7 +37,8 @@ public record LaunchDiagram(List<Cell> column, List<StageInfo> stages, WarheadIn
      * @param flags   {@code ERROR | LIQUID | LOADED | GHOST}
      */
     public record Cell(byte section, byte stage, byte fill, byte flags) {
-        public static final byte FOREIGN = 4, PAYLOAD = 3;
+        /** Past every section kind's ordinal, so new kinds never take it. */
+        public static final byte FOREIGN = 15, PAYLOAD = 3;
         public static final byte ERROR = 1, LIQUID = 2, LOADED = 4, GHOST = 8;
 
         public boolean has(byte flag) {

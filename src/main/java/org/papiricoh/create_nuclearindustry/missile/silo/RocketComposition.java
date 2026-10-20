@@ -6,7 +6,8 @@ import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
 
 /** Pure, immutable grammar for the bottom-to-top column. Indexes in errors are zero based. */
 public record RocketComposition(List<Integer> tanksPerStage) {
-    public enum Section { ENGINE, TANK, GUIDANCE, WARHEAD }
+    /** Sent and stored by ordinal: add new kinds at the end. */
+    public enum Section { ENGINE, TANK, GUIDANCE, WARHEAD, KILL_VEHICLE }
     public RocketComposition {
         tanksPerStage = List.copyOf(tanksPerStage);
         if (tanksPerStage.isEmpty() || tanksPerStage.size() > 3

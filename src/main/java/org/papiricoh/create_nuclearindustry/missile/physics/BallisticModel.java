@@ -43,6 +43,15 @@ public final class BallisticModel {
         return toAim.scale(1.0 / tf).add(V3.UP.scale(0.5 * params.gravity() * tf));
     }
 
+    /**
+     * The velocity that, from {@code position}, falls freely on {@code aim} after exactly {@code ticks}: what an interceptor
+     * steers for, since it must be at its aim point on a given tick rather than by the cheapest arc.
+     */
+    public static V3 requiredVelocity(V3 position, V3 aim, double ticks, double gravity) {
+        double t = Math.max(1e-6, ticks);
+        return aim.sub(position).scale(1.0 / t).add(V3.UP.scale(0.5 * gravity * t));
+    }
+
     /** Where a free flight from {@code start} at {@code velocity} is {@code ticks} later. */
     public static V3 position(V3 start, V3 velocity, double ticks, double gravity) {
         return start.add(velocity.scale(ticks)).sub(V3.UP.scale(0.5 * gravity * ticks * ticks));

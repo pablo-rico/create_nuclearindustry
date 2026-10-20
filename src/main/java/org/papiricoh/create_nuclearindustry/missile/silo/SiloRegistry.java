@@ -19,6 +19,8 @@ public final class SiloRegistry {
     public static final DeferredHolder<Block, RocketSectionBlock> TANK = section("rocket_tank", RocketComposition.Section.TANK);
     public static final DeferredHolder<Block, RocketSectionBlock> GUIDANCE = section("rocket_guidance", RocketComposition.Section.GUIDANCE);
     public static final DeferredHolder<Block, RocketSectionBlock> WARHEAD = section("rocket_warhead", RocketComposition.Section.WARHEAD);
+    /** Tops an interceptor rocket instead of a warhead: its controller launches it at missiles when ordered, never by redstone. */
+    public static final DeferredHolder<Block, RocketSectionBlock> KILL_VEHICLE = section("rocket_kill_vehicle", RocketComposition.Section.KILL_VEHICLE);
     public static final DeferredHolder<Block, Block> WALL = AllNuclearBlocks.BLOCKS.register("silo_wall", () -> new Block(wallProperties()));
     /** A wall block pipes connect to, to pump propellant into the rocket. */
     public static final DeferredHolder<Block, Block> FUEL_PORT = AllNuclearBlocks.BLOCKS.register("silo_fuel_port", () -> new RoleBlock(wallProperties(), "silo_fuel_port"));
@@ -44,12 +46,13 @@ public final class SiloRegistry {
     public static final DeferredHolder<Item, org.papiricoh.create_nuclearindustry.missile.link.TacticalLinkerItem> TACTICAL_LINKER = AllNuclearItems.ITEMS.register("tactical_linker",
             () -> new org.papiricoh.create_nuclearindustry.missile.link.TacticalLinkerItem(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RocketSectionEntity>> SECTION_ENTITY = AllNuclearEntities.ENTITIES.register("rocket_section",
-            () -> BlockEntityType.Builder.of(RocketSectionEntity::new, ENGINE.get(), TANK.get(), GUIDANCE.get(), WARHEAD.get()).build(null));
+            () -> BlockEntityType.Builder.of(RocketSectionEntity::new, ENGINE.get(), TANK.get(), GUIDANCE.get(), WARHEAD.get(),
+                    KILL_VEHICLE.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SiloControllerEntity>> CONTROLLER_ENTITY = AllNuclearEntities.ENTITIES.register("silo_controller",
             () -> BlockEntityType.Builder.of(SiloControllerEntity::new, CONTROLLER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<SiloMenu>> MENU = AllNuclearGUIs.MENUS.register("silo_controller", () -> IMenuTypeExtension.create(SiloMenu::read));
     static {
-        for (var block : java.util.List.of(ENGINE, TANK, GUIDANCE, WARHEAD, WALL, FUEL_PORT, CONTROLLER, LAUNCH_BASE))
+        for (var block : java.util.List.of(ENGINE, TANK, GUIDANCE, WARHEAD, WALL, FUEL_PORT, CONTROLLER, LAUNCH_BASE, KILL_VEHICLE))
             AllNuclearItems.ITEMS.register(block.getId().getPath(), () -> new BlockItem(block.get(), new Item.Properties()));
     }
     /** Reinforced concrete: full, opaque blocks that stand up to more than a rocket's exhaust. */
@@ -79,7 +82,7 @@ public final class SiloRegistry {
                 (level, pos, state, entity, side) -> SiloFuelPort.at(level, pos), FUEL_PORT.get());
     }
     public static void fillCreativeTab(SectionedOutput output) {
-        for (var block : java.util.List.of(CONTROLLER, LAUNCH_BASE, FUEL_PORT, WALL, ENGINE, TANK, GUIDANCE, WARHEAD)) output.accept(block.get());
+        for (var block : java.util.List.of(CONTROLLER, LAUNCH_BASE, FUEL_PORT, WALL, ENGINE, TANK, GUIDANCE, WARHEAD, KILL_VEHICLE)) output.accept(block.get());
         output.accept(TACTICAL_LINKER.get());
         output.accept(PROPELLANT.get());
         output.accept(STAR_TRACKER.get());

@@ -21,9 +21,14 @@ public final class HoloLayout {
     public static final LayoutRect DESIGNATE = new LayoutRect("designate", 72, 236, 70, 15);
     public static final LayoutRect AIRBURST = new LayoutRect("airburst", 144, 236, 74, 15);
 
-    public static final LayoutRect TAB_SILOS = new LayoutRect("tab_silos", 224, 20, 54, 14);
-    public static final LayoutRect TAB_RADARS = new LayoutRect("tab_radars", 280, 20, 54, 14);
-    public static final LayoutRect TAB_TRACKS = new LayoutRect("tab_tracks", 336, 20, 58, 14);
+    public static final LayoutRect TAB_SILOS = new LayoutRect("tab_silos", 224, 20, 41, 14);
+    public static final LayoutRect TAB_RADARS = new LayoutRect("tab_radars", 267, 20, 41, 14);
+    public static final LayoutRect TAB_TRACKS = new LayoutRect("tab_tracks", 310, 20, 41, 14);
+    /**
+     * Missile defence: the linked interceptor batteries and launch controllers in the list, and the rest of the panel reused (the
+     * salvo row sets the doctrine and the defended zone's radius, the buttons engage, toggle automatic, cease fire and abort).
+     */
+    public static final LayoutRect TAB_DEFENSE = new LayoutRect("tab_defense", 353, 20, 41, 14);
     /** A header of {@link #LIST_HEADER} over {@link #LIST_ROWS} rows of {@link #LIST_ROW}. */
     public static final LayoutRect LIST = new LayoutRect("list", 224, 36, 170, 155);
     /** The selected row in more words. */
@@ -40,7 +45,7 @@ public final class HoloLayout {
     public static final LayoutRect ABORT = new LayoutRect("abort", 354, 236, 40, 15);
 
     public static final List<LayoutRect> ALL = List.of(TITLE, MAP_FRAME, ZOOM_OUT, ZOOM_IN, AUTO, DESIGNATE, AIRBURST, TAB_SILOS,
-            TAB_RADARS, TAB_TRACKS, LIST, DETAIL, SALVO_MODE, SPACING_DOWN, SPACING, SPACING_UP, ARM, DISARM, SALVO, ABORT);
+            TAB_RADARS, TAB_TRACKS, TAB_DEFENSE, LIST, DETAIL, SALVO_MODE, SPACING_DOWN, SPACING, SPACING_UP, ARM, DISARM, SALVO, ABORT);
 
     public static final int LIST_HEADER = 11, LIST_ROW = 9, LIST_ROWS = 16;
     /** Column starts in the list, from its left edge: tick box, name, state lamp and word, detail, salvo delay, unlink. */
@@ -56,8 +61,8 @@ public final class HoloLayout {
     public static final LayoutRect SPRITE_UNLINK = new LayoutRect("sprite_unlink", 0, 16, 16, 8);
     /** Buttons 40 × 15 one under another every 16 pixels: normal, hover, disabled, danger. */
     public static final LayoutRect SPRITE_BUTTONS = new LayoutRect("sprite_buttons", 0, 32, 40, 63);
-    /** Tabs 58 × 14: idle over active, 16 pixels apart. */
-    public static final LayoutRect SPRITE_TABS = new LayoutRect("sprite_tabs", 64, 0, 58, 30);
+    /** Tabs 41 × 14: idle over active, 16 pixels apart. */
+    public static final LayoutRect SPRITE_TABS = new LayoutRect("sprite_tabs", 64, 0, 41, 30);
     public static final List<LayoutRect> SPRITES = List.of(SPRITE_LAMPS, SPRITE_CHECKS, SPRITE_UNLINK, SPRITE_BUTTONS, SPRITE_TABS);
 
     private HoloLayout() {

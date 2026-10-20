@@ -130,9 +130,24 @@ class MissileLayoutTest {
     }
 
     @Test
+    void theBatteryStaysOnItsSheetAndApart() {
+        onSheetAndApart(BatteryLayout.ALL, BatteryLayout.WIDTH, BatteryLayout.HEIGHT);
+        assertEquals(BatteryLayout.SLOT_X.length, BatteryLayout.SLOT_Y.length);
+        for (int i = 0; i < BatteryLayout.SLOT_X.length; i++) {
+            LayoutRect frame = new LayoutRect("tube" + i, BatteryLayout.SLOT_X[i] - 1, BatteryLayout.SLOT_Y[i] - 1, 18, 18);
+            assertTrue(BatteryLayout.TUBES.encloses(frame), frame.name() + " in the tube frame");
+        }
+        LayoutRect inventory = new LayoutRect("inventory_slots", BatteryLayout.INV_X - 1, BatteryLayout.INV_Y - 1, 9 * 18,
+                BatteryLayout.HOTBAR_Y + 18 - BatteryLayout.INV_Y + 1);
+        assertTrue(BatteryLayout.INVENTORY.encloses(inventory));
+        assertTrue(BatteryLayout.HOTBAR_Y >= BatteryLayout.INV_Y + 3 * 18);
+    }
+
+    @Test
     void theTextureGeneratorUsesTheSameNumbers() throws IOException, IllegalAccessException {
         Map<String, int[]> python = pythonConstants();
         mirrors(SiloLayout.class, "SILO_", python);
         mirrors(HoloLayout.class, "HOLO_", python);
+        mirrors(BatteryLayout.class, "BATTERY_", python);
     }
 }

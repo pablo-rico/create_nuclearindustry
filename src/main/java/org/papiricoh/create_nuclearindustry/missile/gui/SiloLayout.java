@@ -98,6 +98,8 @@ public final class SiloLayout {
     /** Cells: column = state ({@code CELL_NORMAL…CELL_GHOST}) × {@link #CELL_W}, row = section (engine, tank, guidance, warhead) × {@link #CELL_H}. */
     public static final int CELL_NORMAL = 0, CELL_SELECTED = 1, CELL_ERROR = 2, CELL_GHOST = 3;
     public static final LayoutRect SPRITE_CELLS = new LayoutRect("sprite_cells", 0, 0, 72, 40);
+    /** The kill vehicle's cells, one row like {@link #SPRITE_CELLS}' (a section kind past the four of that block). */
+    public static final LayoutRect SPRITE_CELL_KILL_VEHICLE = new LayoutRect("sprite_cell_kill_vehicle", 80, 0, 72, 10);
     public static final LayoutRect SPRITE_BASE_PLATFORM = new LayoutRect("sprite_base_platform", 0, 40, 54, 8);
     public static final LayoutRect SPRITE_BASE_SILO = new LayoutRect("sprite_base_silo", 0, 48, 54, 8);
     /**
@@ -115,7 +117,7 @@ public final class SiloLayout {
     public static final LayoutRect SPRITE_TOGGLES = new LayoutRect("sprite_toggles", 128, 96, 106, 32);
     /** State lamps, 10 × 10 side by side, one per controller state in order. */
     public static final LayoutRect SPRITE_LAMPS = new LayoutRect("sprite_lamps", 0, 170, 60, 10);
-    public static final List<LayoutRect> SPRITES = List.of(SPRITE_CELLS, SPRITE_BASE_PLATFORM, SPRITE_BASE_SILO, SPRITE_GHOSTS,
+    public static final List<LayoutRect> SPRITES = List.of(SPRITE_CELLS, SPRITE_CELL_KILL_VEHICLE, SPRITE_BASE_PLATFORM, SPRITE_BASE_SILO, SPRITE_GHOSTS,
             SPRITE_TAB_IDLE, SPRITE_TAB_ACTIVE, SPRITE_BUTTONS, SPRITE_TOGGLES, SPRITE_LAMPS);
 
     private SiloLayout() {

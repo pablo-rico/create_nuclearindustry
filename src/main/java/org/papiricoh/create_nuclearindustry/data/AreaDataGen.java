@@ -38,6 +38,7 @@ abstract class AreaDataGen {
             RuinsDataGen.INSTANCE,
             ExplosiveDataGen.INSTANCE,
             MissileDataGen.INSTANCE,
+            DefenseDataGen.INSTANCE,
             PropulsionDataGen.INSTANCE,
             ShutdownDataGen.INSTANCE);
 

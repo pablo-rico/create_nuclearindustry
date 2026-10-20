@@ -27,7 +27,8 @@ import java.util.WeakHashMap;
  * The radar picture of a level, worked out once a second: which loaded, working radar sees which flight ({@link RadarModel}), and
  * the tracks they keep between them ({@link RadarTrack}). Radars that share a four-character link code and stand within
  * {@code missile.radar.networkRange} of each other see what any of them sees; a radar without a code sees only its own. Only
- * numbers: no chunk is loaded and no terrain read. Nothing is saved: after a reload the radars plot again.
+ * numbers: no chunk is loaded and no terrain read. Nothing is saved: after a reload the radars plot again. Interceptors are never
+ * plotted: they are no threat, and their batteries and tables know where they are.
  */
 public final class RadarNetwork {
     /** Seconds a track lost by every radar is kept before it is dropped. */
@@ -90,6 +91,7 @@ public final class RadarNetwork {
             V3 at = radar.antenna();
             Set<UUID> sees = new HashSet<>();
             for (Flight flight : flights) {
+                if (flight.kind() == Flight.Kind.INTERCEPTOR) continue;
                 MissileFlight.Phase phase = flight.flight().phase(params);
                 double reach = RadarModel.range(MissileConfig.radarBaseRange, radar.getSpeed(), MissileConfig.minimumRpm, RadarModel.signature(phase));
                 if (RadarModel.detects(at, Flight.v3(flight.position()), reach, MissileConfig.radarEarthRadius)) sees.add(flight.id());
@@ -137,6 +139,42 @@ public final class RadarNetwork {
         if (range <= 0) return true;
         double dx = a.getBlockPos().getX() - b.getBlockPos().getX(), dz = a.getBlockPos().getZ() - b.getBlockPos().getZ();
         return dx * dx + dz * dz <= range * range;
+    }
+
+    /**
+     * What the working radars on link code {@code code} within {@code missile.radar.networkRange} of {@code near} see between them,
+     * soonest impact first: an interceptor battery's picture. Empty for an incomplete code.
+     */
+    public static List<RadarTrack> networkTracks(ServerLevel level, String code, net.minecraft.core.BlockPos near) {
+        if (!LinkCode.complete(code)) return List.of();
+        update(level);
+        Plot plot = PLOTS.get(level);
+        if (plot == null) return List.of();
+        double range = MissileConfig.radarNetworkRange;
+        Set<UUID> ids = new HashSet<>();
+        for (Map.Entry<RadarBlockEntity, Set<UUID>> entry : plot.seen.entrySet()) {
+            RadarBlockEntity radar = entry.getKey();
+            if (radar.isRemoved() || !code.equals(radar.code())) continue;
+            double dx = radar.getBlockPos().getX() - near.getX(), dz = radar.getBlockPos().getZ() - near.getZ();
+            if (range > 0 && dx * dx + dz * dz > range * range) continue;
+            ids.addAll(entry.getValue());
+        }
+        List<RadarTrack> tracks = new ArrayList<>();
+        for (UUID id : ids) {
+            RadarTrack track = plot.tracks.get(id);
+            if (track != null) tracks.add(track);
+        }
+        tracks.sort(Comparator.comparingInt(RadarTrack::eta).thenComparing(RadarTrack::designation));
+        return tracks;
+    }
+
+    /** How many working radars saw flight {@code flight} at the last plot. */
+    public static int watchers(ServerLevel level, UUID flight) {
+        Plot plot = PLOTS.get(level);
+        if (plot == null) return 0;
+        int count = 0;
+        for (Set<UUID> seen : plot.seen.values()) if (seen.contains(flight)) count++;
+        return count;
     }
 
     /** Every track in {@code level}, by flight; for the command table and tests. */

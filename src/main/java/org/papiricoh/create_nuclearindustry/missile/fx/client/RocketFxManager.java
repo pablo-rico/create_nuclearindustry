@@ -204,7 +204,7 @@ final class RocketFxManager implements FlightFxListener {
                 if (distance < FxBudget.MID) dust(pos, ground, 18, 0.8, water);
                 RocketSounds.oneShot(RocketFxRegistry.DEBRIS_IMPACT.get(), pos, distance, 900, 0.9f, 1.0f, true);
             }
-            case ABORT -> end(fx, now, false);
+            case ABORT, INTERCEPT, INTERCEPTOR_MISS -> end(fx, now, false);
             default -> {
             }
         }

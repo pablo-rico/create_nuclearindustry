@@ -156,6 +156,7 @@ public final class MissileConfig {
                 .comment("Explosion power of a missile its command table aborts in flight, where it is if that is loaded; its warhead never",
                         "goes off. 0 for none.")
                 .defineInRange("missile.salvo.selfDestructPower", 2.0, 0.0, 8.0);
+        org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig.define(builder);
     }
 
     public static void bake() {
@@ -186,6 +187,7 @@ public final class MissileConfig {
         conventionalMaxPower = conventionalMaxPowerValue.get();
         selfDestructPower = selfDestructPowerValue.get();
         launchBroadcast = LaunchBroadcast.NONE; // Legacy option is ignored; radar supplies missile alerts.
+        org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig.bake();
     }
 
     /** The launch countdown, in ticks. */
