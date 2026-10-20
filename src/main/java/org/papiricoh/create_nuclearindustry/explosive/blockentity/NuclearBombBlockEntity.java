@@ -2,6 +2,13 @@ package org.papiricoh.create_nuclearindustry.explosive.blockentity;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.neoforged.neoforge.items.IItemHandler;
+import org.papiricoh.create_nuclearindustry.missile.flight.Warhead;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -69,6 +76,38 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
                 markDirtyAndSync();
             }
         };
+    }
+
+    /** Shared with assembled bomb items and missile bays, including salted fission loads. */
+    public static Warhead charge(IItemHandler contents, boolean dirty) {
+        int slots = Math.min(SLOT_COUNT, contents.getSlots());
+        int units = FissileMaterial.units(contents, 0, slots);
+        float salt = DirtyWarheadStats.load(contents, 0, slots);
+        if (dirty || units == 0) return salt > 0 ? Warhead.dirty(salt) : Warhead.INERT;
+        float enrichment = FissileMaterial.averageEnrichment(contents, 0, slots);
+        return Warhead.fission(WarheadStats.power(units, enrichment), WarheadStats.horizontalRadius(units, enrichment),
+                WarheadStats.intensity(enrichment), salt);
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder components) {
+        super.collectImplicitComponents(components);
+        List<ItemStack> items = new ArrayList<>();
+        for (int i = 0; i < inventory.getSlots(); i++) items.add(inventory.getStackInSlot(i).copy());
+        components.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(items));
+    }
+
+    @Override
+    protected void applyImplicitComponents(DataComponentInput components) {
+        super.applyImplicitComponents(components);
+        ItemContainerContents items = components.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+        for (int i = 0; i < inventory.getSlots(); i++) inventory.setStackInSlot(i, i < items.getSlots() ? items.getStackInSlot(i) : ItemStack.EMPTY);
+    }
+
+    @Override
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        tag.remove("inventory");
     }
 
     public void tick() {
@@ -255,19 +294,10 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
 
     /** Clears the bomb, takes its block away and sets off its warhead. */
     protected void explode(ServerLevel level, BlockPos center) {
-        if (isDirty()) {
-            float load = getRadiologicalLoad();
-            clearContent();
-            level.removeBlock(center, false);
-            NuclearDetonation.detonateDirty(level, center.getCenter(), load);
-            return;
-        }
-        float power = getEstimatedPower();
-        int horizontalRadius = getEstimatedRadius();
-        float intensity = WarheadStats.intensity(getAverageEnrichment());
+        Warhead charge = charge(inventory, isDirty());
         clearContent();
         level.removeBlock(center, false);
-        NuclearDetonation.detonate(level, center.getCenter(), power, horizontalRadius, intensity, 0.0f);
+        charge.detonate(level, center.getCenter());
     }
 
     protected void markDirtyAndSync() {

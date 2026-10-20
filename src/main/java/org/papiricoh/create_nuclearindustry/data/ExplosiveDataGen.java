@@ -1,6 +1,16 @@
 package org.papiricoh.create_nuclearindustry.data;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
+import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import java.util.List;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -119,6 +129,17 @@ final class ExplosiveDataGen extends AreaDataGen {
                 "¡Misil en camino! Cae cerca de %s, %s dentro de %s s");
         add("message.create_nuclearindustry.missile_launch.server", "Missile launched: it comes down near %s, %s (%s) in %s s",
                 "Misil lanzado: cae cerca de %s, %s (%s) dentro de %s s");
+    }
+
+    @Override
+    void blockLoot(NuclearBlockLoot provider) {
+        for (Block block : List.of(AllNuclearBlocks.NUCLEAR_BOMB.get(), AllNuclearBlocks.DIRTY_BOMB.get(),
+                ExplosiveRegistry.THERMONUCLEAR_BOMB.get())) {
+            provider.addTable(block, LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1))
+                    .when(ExplosionCondition.survivesExplosion())
+                    .add(LootItem.lootTableItem(block).apply(CopyComponentsFunction.copyComponents(
+                            CopyComponentsFunction.Source.BLOCK_ENTITY).include(DataComponents.CONTAINER)))));
+        }
     }
 
     @Override

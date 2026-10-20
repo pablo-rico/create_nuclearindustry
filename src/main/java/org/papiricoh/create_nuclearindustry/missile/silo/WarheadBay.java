@@ -1,6 +1,17 @@
 package org.papiricoh.create_nuclearindustry.missile.silo;
 
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
+import org.papiricoh.create_nuclearindustry.AllNuclearItems;
+import org.papiricoh.create_nuclearindustry.AllNuclearTags;
+import org.papiricoh.create_nuclearindustry.explosive.*;
+import org.papiricoh.create_nuclearindustry.explosive.blockentity.*;
+import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
+import org.papiricoh.create_nuclearindustry.missile.physics.ConventionalYield;
+import org.papiricoh.create_nuclearindustry.missile.physics.GuidanceTier;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.missile.flight.Warhead;
@@ -50,12 +61,35 @@ public final class WarheadBay {
 
     /** Whether {@code stack} may go in slot {@code slot} of {@code section}, whatever else it holds. */
     public static boolean accepts(RocketComposition.Section section, int slot, ItemStack stack) {
-        return false;
+        if (stack.isEmpty()) return false;
+        SlotType type = type(section, slot);
+        if (type == null) return false;
+        return switch (type) {
+            case CHARGE -> FissileMaterial.isWarheadCore(stack) || DirtyWarheadStats.isRadiological(stack)
+                    || stack.is(SiloRegistry.CONVENTIONAL_EXPLOSIVES);
+            case SECONDARY -> stack.is(ExplosiveRegistry.LITHIUM_DEUTERIDE.get());
+            case TAMPER -> stack.is(AllNuclearTags.Items.THERMONUCLEAR_TAMPERS);
+            case BOMB -> isBomb(stack);
+            case PROPELLANT -> stack.is(SiloRegistry.PROPELLANT.get());
+            case GUIDANCE -> RocketSectionEntity.tierOf(stack) != GuidanceTier.BASIC;
+        };
+    }
+
+    private static boolean isBomb(ItemStack stack) {
+        return stack.is(AllNuclearBlocks.NUCLEAR_BOMB.get().asItem()) || stack.is(AllNuclearBlocks.DIRTY_BOMB.get().asItem())
+                || stack.is(ExplosiveRegistry.THERMONUCLEAR_BOMB_ITEM.get());
     }
 
     /** How many of {@code stack} slot {@code slot} of {@code section} holds. */
     public static int limit(RocketComposition.Section section, int slot, ItemStack stack) {
-        return 0;
+        if (!accepts(section, slot, stack)) return 0;
+        return switch (type(section, slot)) {
+            case CHARGE -> FissileMaterial.isWarheadCore(stack) ? NuclearBombBlockEntity.CORES_PER_SLOT
+                    : stack.is(SiloRegistry.CONVENTIONAL_EXPLOSIVES) ? 16 : 64;
+            case SECONDARY -> ThermonuclearStats.SECONDARY_FULL / SECONDARY.length;
+            case TAMPER -> ThermonuclearStats.TAMPER_FULL / TAMPER.length;
+            default -> 1;
+        };
     }
 
     /**
@@ -63,26 +97,79 @@ public final class WarheadBay {
      * ({@code silo.create_nuclearindustry.refuse.*}), or null if it can.
      */
     public static @Nullable String refusal(RocketComposition.Section section, int slot, ItemStack stack) {
-        return null;
+        if (type(section, slot) == null) return "wrong_section";
+        return accepts(section, slot, stack) ? null : "not_for_slot";
     }
 
     /** Why a warhead holding {@code contents} cannot go off as loaded ({@code charge_*} error suffix), or null if it can. */
     public static @Nullable String validate(IItemHandler contents) {
+        int cores = 0, tnt = 0, secondary = 0, tamper = 0;
+        boolean other = false, radiological = false;
+        for (int i = 0; i < Math.min(contents.getSlots(), BOMB); i++) {
+            ItemStack stack = contents.getStackInSlot(i);
+            if (stack.isEmpty()) continue;
+            other = true;
+            if (!accepts(RocketComposition.Section.WARHEAD, i, stack)
+                    || stack.getCount() > limit(RocketComposition.Section.WARHEAD, i, stack)) return "charge_invalid";
+            if (i < SECONDARY[0]) {
+                if (FissileMaterial.isWarheadCore(stack)) cores += stack.getCount();
+                else if (stack.is(SiloRegistry.CONVENTIONAL_EXPLOSIVES)) tnt += stack.getCount();
+                else radiological = true;
+            } else if (i < TAMPER[0]) secondary += stack.getCount();
+            else tamper += stack.getCount();
+        }
+        ItemStack bomb = contents.getSlots() > BOMB ? contents.getStackInSlot(BOMB) : ItemStack.EMPTY;
+        if (!bomb.isEmpty()) {
+            if (other) return "charge_bomb_and_loose";
+            if (!isBomb(bomb) || bomb.getCount() != 1) return "charge_invalid";
+        }
+        if (tnt > 0 && (cores > 0 || radiological || secondary > 0 || tamper > 0)) return "charge_mixed_conventional";
+        if ((secondary > 0 || tamper > 0) && (cores != 1 || radiological || tnt > 0)) return "charge_thermo_primary";
+        if (tamper > 0 && secondary == 0) return "charge_tamper_alone";
         return null;
     }
 
     /** The warhead a warhead section holding {@code contents} carries. */
     public static Warhead warhead(IItemHandler contents) {
-        return Warhead.INERT;
+        if (validate(contents) != null) return Warhead.INERT;
+        if (contents.getSlots() > BOMB && !contents.getStackInSlot(BOMB).isEmpty()) return fromBomb(contents.getStackInSlot(BOMB));
+        ItemStackHandler primary = new ItemStackHandler(NuclearBombBlockEntity.SLOT_COUNT);
+        int tnt = 0, secondary = 0, tamper = 0;
+        boolean plutonium = false;
+        for (int i : CHARGE) {
+            ItemStack stack = contents.getStackInSlot(i);
+            primary.setStackInSlot(i, stack);
+            if (stack.is(SiloRegistry.CONVENTIONAL_EXPLOSIVES)) tnt += stack.getCount();
+            plutonium |= stack.is(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get());
+        }
+        for (int i : SECONDARY) secondary += contents.getStackInSlot(i).getCount();
+        for (int i : TAMPER) tamper += contents.getStackInSlot(i).getCount();
+        if (tnt > 0) return Warhead.conventional((float) ConventionalYield.power(tnt, MissileConfig.conventionalMaxPower));
+        if (secondary > 0) return Warhead.thermonuclear(new ThermonuclearLoad(plutonium ? ThermonuclearStats.Primary.PLUTONIUM
+                : ThermonuclearStats.Primary.URANIUM, secondary, tamper));
+        return NuclearBombBlockEntity.charge(primary, false);
     }
 
     /** The warhead a bomb item (with what it holds) makes. */
     public static Warhead fromBomb(ItemStack bomb) {
-        return Warhead.INERT;
+        if (!isBomb(bomb)) return Warhead.INERT;
+        boolean thermo = bomb.is(ExplosiveRegistry.THERMONUCLEAR_BOMB_ITEM.get());
+        ItemStackHandler inventory = new ItemStackHandler(thermo ? ThermonuclearBombBlockEntity.SLOTS : NuclearBombBlockEntity.SLOT_COUNT);
+        ItemContainerContents stored = bomb.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+        for (int i = 0; i < inventory.getSlots(); i++) inventory.setStackInSlot(i, i < stored.getSlots() ? stored.getStackInSlot(i) : ItemStack.EMPTY);
+        return thermo ? Warhead.thermonuclear(ThermonuclearBombBlockEntity.load(inventory))
+                : NuclearBombBlockEntity.charge(inventory, bomb.is(AllNuclearBlocks.DIRTY_BOMB.get().asItem()));
     }
 
     /** The payload's mass, rocket units: 1 for the empty section, and what it holds. */
     public static double payloadMass(IItemHandler contents) {
-        return 1;
+        double mass = 1;
+        for (int i = 0; i < contents.getSlots(); i++) {
+            ItemStack stack = contents.getStackInSlot(i);
+            mass += stack.getCount() * 0.1;
+            if (i == BOMB) for (ItemStack item : stack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY).nonEmptyItems())
+                mass += item.getCount() * 0.1;
+        }
+        return mass;
     }
 }

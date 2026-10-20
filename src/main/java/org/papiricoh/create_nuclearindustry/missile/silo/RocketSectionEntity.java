@@ -20,8 +20,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
-import org.papiricoh.create_nuclearindustry.AllNuclearItems;
-import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.explosive.*;
 import org.papiricoh.create_nuclearindustry.missile.flight.Warhead;
 import org.papiricoh.create_nuclearindustry.missile.physics.GuidanceTier;
@@ -29,6 +27,7 @@ import org.papiricoh.create_nuclearindustry.missile.physics.PropellantModel;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -41,9 +40,12 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
     public static final ResourceLocation PRECISION_MECHANISM = ResourceLocation.fromNamespaceAndPath("create", "precision_mechanism");
 
     private UUID identity = UUID.randomUUID();
-    private final ItemStackHandler contents = new ItemStackHandler(5) {
+    private final List<ItemStack> migrationDrops = new ArrayList<>();
+    private final ItemStackHandler contents = new ItemStackHandler(WarheadBay.SLOTS) {
         @Override public boolean isItemValid(int slot, ItemStack stack) { return accepts(slot, stack); }
-        @Override public int getSlotLimit(int slot) { return slot < 3 ? 1 : slot == 3 ? 4 : 2; }
+        @Override protected int getStackLimit(int slot, ItemStack stack) {
+            return Math.min(stack.getMaxStackSize(), WarheadBay.limit(section(), slot, stack));
+        }
         @Override protected void onContentsChanged(int slot) { changed(); }
     };
     private final FluidTank fuel = tank(true);
@@ -76,12 +78,8 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
     public RocketComposition.Section section() { return ((RocketSectionBlock) getBlockState().getBlock()).section; }
 
     private boolean accepts(int slot, ItemStack stack) {
-        if (section() == RocketComposition.Section.TANK) return slot == 0 && stack.is(SiloRegistry.PROPELLANT.get()) && fuel.isEmpty() && oxidizer.isEmpty();
-        if (section() == RocketComposition.Section.GUIDANCE) return slot == 0 && tierOf(stack) != GuidanceTier.BASIC;
-        if (section() != RocketComposition.Section.WARHEAD) return false;
-        if (slot < 3) return FissileMaterial.isWeaponsFissile(stack) || DirtyWarheadStats.isRadiological(stack);
-        if (slot == 3) return stack.is(ExplosiveRegistry.LITHIUM_DEUTERIDE.get());
-        return stack.is(AllNuclearTags.Items.THERMONUCLEAR_TAMPERS);
+        return WarheadBay.accepts(section(), slot, stack)
+                && (section() != RocketComposition.Section.TANK || fuel.isEmpty() && oxidizer.isEmpty());
     }
 
     /** What a guidance module holding {@code stack} steers by. */
@@ -104,30 +102,9 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
 
     public boolean fueled() { return section() != RocketComposition.Section.TANK || propellant().fill() > 0; }
 
-    public boolean validCharge() {
-        return contents.getStackInSlot(3).isEmpty() && contents.getStackInSlot(4).isEmpty()
-                || FissileMaterial.units(contents, 0, 3) > 0;
-    }
-
-    public Warhead warhead() {
-        if (!contents.getStackInSlot(3).isEmpty()) {
-            boolean plutonium = false;
-            for (int i = 0; i < 3; i++) plutonium |= contents.getStackInSlot(i).is(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get());
-            return Warhead.thermonuclear(new ThermonuclearLoad(plutonium ? ThermonuclearStats.Primary.PLUTONIUM : ThermonuclearStats.Primary.URANIUM,
-                    contents.getStackInSlot(3).getCount(), contents.getStackInSlot(4).getCount()));
-        }
-        int units = FissileMaterial.units(contents, 0, 3);
-        float salt = DirtyWarheadStats.load(contents, 0, 3);
-        if (units == 0) return salt > 0 ? Warhead.dirty(salt) : Warhead.INERT;
-        float enrichment = FissileMaterial.averageEnrichment(contents, 0, 3);
-        return Warhead.fission(WarheadStats.power(units, enrichment), WarheadStats.horizontalRadius(units, enrichment), WarheadStats.intensity(enrichment), salt);
-    }
-
-    public double payloadMass() {
-        double mass = 1;
-        for (int i = 0; i < contents.getSlots(); i++) mass += contents.getStackInSlot(i).getCount() * 0.1;
-        return mass;
-    }
+    public boolean validCharge() { return WarheadBay.validate(contents) == null; }
+    public Warhead warhead() { return WarheadBay.warhead(contents); }
+    public double payloadMass() { return WarheadBay.payloadMass(contents); }
 
     public void insert(Player player, InteractionHand hand) {
         ItemStack held = player.getItemInHand(hand);
@@ -135,7 +112,11 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
             ItemStack rest = contents.insertItem(i, held.copyWithCount(1), false);
             if (rest.isEmpty()) { held.shrink(1); player.displayClientMessage(description(), true); return; }
         }
-        player.displayClientMessage(description(), true);
+        boolean fits = false;
+        for (int i = 0; i < WarheadBay.activeSlots(section()); i++) fits |= WarheadBay.accepts(section(), i, held);
+        String reason = section() == RocketComposition.Section.TANK && (!fuel.isEmpty() || !oxidizer.isEmpty())
+                ? "liquid" : fits ? "full" : "not_for_slot";
+        player.displayClientMessage(Component.translatable("silo.create_nuclearindustry.refuse." + reason), true);
     }
 
     public void unload(Player player) {
@@ -150,27 +131,43 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
 
     public Component description() {
         Object detail = switch (section()) {
-            case WARHEAD -> warhead().kind().name();
+            case WARHEAD -> Component.translatable("silo.create_nuclearindustry.warhead." + warhead().kind().name().toLowerCase(Locale.ROOT));
             case GUIDANCE -> Component.translatable("silo.create_nuclearindustry.guidance." + guidanceTier().name().toLowerCase(Locale.ROOT));
             case TANK -> fuel.isEmpty() && oxidizer.isEmpty() ? (fueled() ? "✓" : "0")
                     : Component.translatable("silo.create_nuclearindustry.tank.liquid", fuel.getFluidAmount(), oxidizer.getFluidAmount());
             default -> "✓";
         };
-        return Component.translatable("silo.create_nuclearindustry.section", section().name(), detail);
+        return Component.translatable("silo.create_nuclearindustry.section", Component.translatable("silo.create_nuclearindustry.section." + section().name().toLowerCase(Locale.ROOT)), detail);
     }
 
     /** Empties it without dropping anything: what goes with a launch. */
     public void consume() {
+        dropMigrationOverflow();
         for (int i = 0; i < contents.getSlots(); i++) contents.setStackInSlot(i, ItemStack.EMPTY);
         fuel.setFluid(FluidStack.EMPTY);
         oxidizer.setFluid(FluidStack.EMPTY);
+        migrationDrops.clear();
     }
 
     /** Drops what can be held in a hand; liquids spill away. */
     public void dropContents() {
         if (level != null && !level.isClientSide) for (int i = 0; i < contents.getSlots(); i++)
             Block.popResource(level, worldPosition, contents.getStackInSlot(i));
+        dropMigrationOverflow();
         consume();
+    }
+
+    /** Deserialization can happen before a level is assigned; keep excess until it can be dropped safely. */
+    @Override public void onLoad() {
+        super.onLoad();
+        dropMigrationOverflow();
+    }
+
+    private void dropMigrationOverflow() {
+        if (level == null || level.isClientSide || migrationDrops.isEmpty()) return;
+        for (ItemStack stack : migrationDrops) Block.popResource(level, worldPosition, stack);
+        migrationDrops.clear();
+        setChanged();
     }
 
     @Override public boolean addToGoggleTooltip(List<Component> tooltip, boolean sneaking) {
@@ -196,6 +193,12 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
         super.saveAdditional(tag, provider);
         tag.putUUID("Identity", identity);
         tag.put("Contents", contents.serializeNBT(provider));
+        tag.putInt("Layout", 2);
+        if (!migrationDrops.isEmpty()) {
+            ItemStackHandler overflow = new ItemStackHandler(migrationDrops.size());
+            for (int i = 0; i < migrationDrops.size(); i++) overflow.setStackInSlot(i, migrationDrops.get(i));
+            tag.put("MigrationDrops", overflow.serializeNBT(provider));
+        }
         if (!fuel.isEmpty()) tag.put("Fuel", fuel.writeToNBT(provider, new CompoundTag()));
         if (!oxidizer.isEmpty()) tag.put("Oxidizer", oxidizer.writeToNBT(provider, new CompoundTag()));
     }
@@ -203,11 +206,37 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
     @Override protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.loadAdditional(tag, provider);
         identity = tag.hasUUID("Identity") ? tag.getUUID("Identity") : UUID.randomUUID();
-        contents.deserializeNBT(provider, tag.getCompound("Contents"));
+        // Never deserialize into the live handler: old saves resize it back to five slots.
+        ItemStackHandler old = new ItemStackHandler();
+        old.deserializeNBT(provider, tag.getCompound("Contents"));
+        for (int i = 0; i < contents.getSlots(); i++) contents.setStackInSlot(i, ItemStack.EMPTY);
+        migrationDrops.clear();
+        if (tag.contains("MigrationDrops")) {
+            ItemStackHandler overflow = new ItemStackHandler();
+            overflow.deserializeNBT(provider, tag.getCompound("MigrationDrops"));
+            for (int i = 0; i < overflow.getSlots(); i++) if (!overflow.getStackInSlot(i).isEmpty())
+                migrationDrops.add(overflow.getStackInSlot(i).copy());
+        }
+        boolean v1 = tag.getInt("Layout") < 2 && section() == RocketComposition.Section.WARHEAD;
+        for (int i = 0; i < old.getSlots(); i++) {
+            int to = v1 ? (i < 3 ? i : i == 3 ? 3 : i == 4 ? 7 : -1) : i;
+            ItemStack stack = old.getStackInSlot(i).copy();
+            if (to < 0 || to >= WarheadBay.SLOTS) continue;
+            if (v1 && i == 3 && stack.is(ExplosiveRegistry.LITHIUM_DEUTERIDE.get())) {
+                for (int target : WarheadBay.SECONDARY) {
+                    int count = Math.min(stack.getCount(), WarheadBay.limit(section(), target, stack));
+                    contents.setStackInSlot(target, stack.copyWithCount(count));
+                    stack.shrink(count);
+                    if (stack.isEmpty()) break;
+                }
+                if (!stack.isEmpty()) migrationDrops.add(stack);
+            } else contents.setStackInSlot(to, stack);
+        }
         fuel.setFluid(FluidStack.EMPTY);
         oxidizer.setFluid(FluidStack.EMPTY);
         if (tag.contains("Fuel")) fuel.readFromNBT(provider, tag.getCompound("Fuel"));
         if (tag.contains("Oxidizer")) oxidizer.readFromNBT(provider, tag.getCompound("Oxidizer"));
+        dropMigrationOverflow();
     }
 
     @Override public CompoundTag getUpdateTag(HolderLookup.Provider provider) { return saveWithoutMetadata(provider); }
