@@ -17,7 +17,7 @@ import java.util.List;
  * history the first time that screen hears of it and only its newest point after. A screen swaps in the new picture once the
  * last page arrives.
  */
-public record RadarPayload(int menu, BlockPos pos, long sample, int status, boolean first, boolean last,
+public record RadarPayload(int menu, BlockPos pos, long sample, int status, boolean first, boolean last, float gravity, int sensors,
                            List<RadarTrack.Snapshot> tracks) implements CustomPacketPayload {
     public static final int PAGE = 64;
     public static final Type<RadarPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "radar_tracks"));
@@ -29,11 +29,13 @@ public record RadarPayload(int menu, BlockPos pos, long sample, int status, bool
             long sample = b.readLong();
             int status = b.readVarInt();
             boolean first = b.readBoolean(), last = b.readBoolean();
+            float gravity = b.readFloat();
+            int sensors = b.readVarInt();
             int size = b.readVarInt();
             if (size < 0 || size > PAGE) throw new IllegalArgumentException("Radar page too large");
             List<RadarTrack.Snapshot> tracks = new ArrayList<>(size);
             for (int i = 0; i < size; i++) tracks.add(RadarTrack.Snapshot.read(b));
-            return new RadarPayload(menu, pos, sample, status, first, last, List.copyOf(tracks));
+            return new RadarPayload(menu, pos, sample, status, first, last, gravity, sensors, List.copyOf(tracks));
         }
 
         @Override
@@ -44,6 +46,8 @@ public record RadarPayload(int menu, BlockPos pos, long sample, int status, bool
             b.writeVarInt(p.status);
             b.writeBoolean(p.first);
             b.writeBoolean(p.last);
+            b.writeFloat(p.gravity);
+            b.writeVarInt(p.sensors);
             b.writeVarInt(p.tracks.size());
             for (RadarTrack.Snapshot track : p.tracks) track.write(b);
         }

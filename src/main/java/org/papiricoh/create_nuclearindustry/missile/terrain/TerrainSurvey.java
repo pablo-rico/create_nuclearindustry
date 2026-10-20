@@ -165,13 +165,31 @@ public final class TerrainSurvey {
         // A superflat world has a sea level but no sea: its ground may lie far below it.
         boolean flat = gen instanceof FlatLevelSource;
         byte[] data = new byte[TerrainTile.BYTES];
-        for (int j = 0; j < TerrainTile.SIDE; j++) {
-            for (int i = 0; i < TerrainTile.SIDE; i++) {
+        // Coarse tiles span whole continents: only every second (or fourth) column is asked of the generator, the rest are
+        // interpolated between them, which a view that wide cannot tell apart and which is four (or sixteen) times quicker.
+        int stride = lod >= 3 ? 4 : lod == 2 ? 2 : 1;
+        int[] heights = new int[TerrainTile.SAMPLES];
+        TerrainKind[] kinds = new TerrainKind[TerrainTile.SAMPLES];
+        for (int j = 0; j < TerrainTile.SIDE; j += stride) {
+            for (int i = 0; i < TerrainTile.SIDE; i += stride) {
                 int x = ox + i * step, z = oz + j * step;
                 int h = gen.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, level, rs);
                 Holder<Biome> biome = gen.getBiomeSource().getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(Math.max(h, sea)),
                         QuartPos.fromBlock(z), rs.sampler());
-                TerrainTile.set(data, i, j, h, TerrainTile.surface(kind(biome), !flat && h < sea, false));
+                heights[TerrainTile.index(i, j)] = h;
+                kinds[TerrainTile.index(i, j)] = kind(biome);
+            }
+        }
+        for (int j = 0; j < TerrainTile.SIDE; j++) {
+            for (int i = 0; i < TerrainTile.SIDE; i++) {
+                int i0 = i / stride * stride, j0 = j / stride * stride;
+                int i1 = Math.min(TerrainTile.SIZE, i0 + stride), j1 = Math.min(TerrainTile.SIZE, j0 + stride);
+                float fx = i1 == i0 ? 0 : (float) (i - i0) / (i1 - i0), fz = j1 == j0 ? 0 : (float) (j - j0) / (j1 - j0);
+                float top = heights[TerrainTile.index(i0, j0)] + (heights[TerrainTile.index(i1, j0)] - heights[TerrainTile.index(i0, j0)]) * fx;
+                float bottom = heights[TerrainTile.index(i0, j1)] + (heights[TerrainTile.index(i1, j1)] - heights[TerrainTile.index(i0, j1)]) * fx;
+                int h = Math.round(top + (bottom - top) * fz);
+                TerrainKind kind = kinds[TerrainTile.index(fx < 0.5f ? i0 : i1, fz < 0.5f ? j0 : j1)];
+                TerrainTile.set(data, i, j, h, TerrainTile.surface(kind, !flat && h < sea, false));
             }
         }
         return data;

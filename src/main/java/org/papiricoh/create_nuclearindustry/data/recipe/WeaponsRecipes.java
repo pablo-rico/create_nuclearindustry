@@ -196,6 +196,8 @@ public final class WeaponsRecipes implements DataProvider {
             part(output, SiloRegistry.PROPELLANT.get(), " I ", " B ", " I ", 'I', CreateItems.get("iron_sheet"), 'B', CreateItems.get("blaze_cake"));
             part(output, SiloRegistry.FUEL_PORT.get(), " P ", " W ", " V ", 'P', CreateItems.get("fluid_pipe"), 'W', SiloRegistry.WALL.get(),
                     'V', CreateItems.get("fluid_valve"));
+            part(output, org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.SCOPE.get(), "IGI", "ECE", "IRI", 'I', CreateItems.get("iron_sheet"),
+                    'G', Items.GLASS_PANE, 'E', CreateItems.get("electron_tube"), 'C', CreateItems.get("brass_casing"), 'R', Items.REDSTONE);
             part(output, SiloRegistry.STAR_TRACKER.get(), " G ", "EPE", " B ", 'G', Items.SPYGLASS, 'E', CreateItems.get("electron_tube"),
                     'P', CreateItems.get("precision_mechanism"), 'B', CreateItems.get("brass_sheet"));
             ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, SiloRegistry.ENGINE.get())

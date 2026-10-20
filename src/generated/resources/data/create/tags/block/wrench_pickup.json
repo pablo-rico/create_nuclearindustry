@@ -146,6 +146,7 @@
     "create_nuclearindustry:silo_fuel_port",
     "create_nuclearindustry:silo_controller",
     "create_nuclearindustry:missile_radar",
+    "create_nuclearindustry:radar_scope",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

@@ -39,6 +39,9 @@ public class RadarMenu extends AbstractContainerMenu {
     /** When the picture last changed, game time (client). */
     public long sample;
     public int status;
+    /** Gravity on flights, and how many working radars feed this picture (client). */
+    public float gravity = 0.005f;
+    public int sensors;
 
     public RadarMenu(int id, Inventory inventory, RadarBlockEntity radar, BlockPos pos) {
         super(RadarRegistry.MENU.get(), id);
@@ -69,6 +72,9 @@ public class RadarMenu extends AbstractContainerMenu {
         sentAt = now;
         sentStatus = status;
         List<RadarTrack> tracks = status == 1 ? radar.tracks() : List.of();
+        int sensors = 0;
+        for (RadarBlockEntity other : RadarNetwork.radars(radar.getLevel()))
+            if (other.operational() && (other == radar || RadarNetwork.peers(radar, other))) sensors++;
         Set<UUID> present = new HashSet<>();
         List<RadarTrack.Snapshot> snapshots = new ArrayList<>(tracks.size());
         for (RadarTrack track : tracks) {
@@ -80,6 +86,7 @@ public class RadarMenu extends AbstractContainerMenu {
         int pages = Math.max(1, (snapshots.size() + RadarPayload.PAGE - 1) / RadarPayload.PAGE);
         for (int page = 0; page < pages; page++) {
             PacketDistributor.sendToPlayer(server, new RadarPayload(containerId, pos, now, status, page == 0, page == pages - 1,
+                    (float) org.papiricoh.create_nuclearindustry.missile.MissileConfig.gravity, sensors,
                     snapshots.subList(page * RadarPayload.PAGE, Math.min(snapshots.size(), (page + 1) * RadarPayload.PAGE))));
         }
     }
@@ -100,6 +107,8 @@ public class RadarMenu extends AbstractContainerMenu {
             incoming.put(snapshot.id(), snapshot);
         }
         status = payload.status();
+        gravity = payload.gravity();
+        sensors = payload.sensors();
         if (payload.last()) {
             tracks = incoming;
             incoming = new LinkedHashMap<>();

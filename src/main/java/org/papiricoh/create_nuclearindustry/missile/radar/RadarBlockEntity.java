@@ -145,8 +145,13 @@ public class RadarBlockEntity extends KineticBlockEntity implements PlantReadabl
         super.invalidate();
     }
 
+    /** What clients do with a radar each tick (its klaxon); set by the client side. */
+    public static java.util.function.Consumer<RadarBlockEntity> clientTick = radar -> {
+    };
+
     @Override public void tick() {
         super.tick();
+        if (level != null && level.isClientSide) clientTick.accept(this);
         if (!(level instanceof ServerLevel server)) return;
         if (operational()) RadarNetwork.update(server);
         if (level.getGameTime() % 20 == 0 || operational() != (status == 1)) refresh();

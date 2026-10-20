@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-20T01:26:23.082898	Loot Tables
+// 1.21.1	2026-10-20T02:29:58.40533	Loot Tables
 eaeb1a44ee986afa29b73bd40bcd6ecd94187e44 data/create_nuclearindustry/loot_table/blocks/accelerator_cryo_feed.json
 64315f2829f1110e8eef7a6c1c5c4d2310efebd1 data/create_nuclearindustry/loot_table/blocks/advanced_redstone_link.json
 13c05f487af479a2691bf45b4d60b1e69d36ac47 data/create_nuclearindustry/loot_table/blocks/air_raid_siren.json
@@ -93,6 +93,7 @@ bc43d3cfad79db3809218fead1d7554ca21cce6a data/create_nuclearindustry/loot_table/
 4676ae8bfc12d4a5d51b8f8675732ed57d742c34 data/create_nuclearindustry/loot_table/blocks/pool_cooler.json
 74f6d3b3155304df6366b2f0cf56b883b4daeec0 data/create_nuclearindustry/loot_table/blocks/pressurizer.json
 a82e42bb826d7f7c2bb4445cc5019e55e8eb0d55 data/create_nuclearindustry/loot_table/blocks/pressurizer_heater_port.json
+b1b31f10d3dc955455394c51522df56acb711d56 data/create_nuclearindustry/loot_table/blocks/radar_scope.json
 b6123d99c64467b8bcc0750a0de79350996883ff data/create_nuclearindustry/loot_table/blocks/radiation_scrubber.json
 d849a4d7437a6950baaee8e74f781cb2b11ae2d6 data/create_nuclearindustry/loot_table/blocks/radioactive_waste_barrel.json
 60789dbb6a52919fce3cb00c8d18278616b39ecf data/create_nuclearindustry/loot_table/blocks/radioactive_waste_cistern.json

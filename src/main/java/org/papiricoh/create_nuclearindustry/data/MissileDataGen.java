@@ -35,6 +35,7 @@ final class MissileDataGen extends AreaDataGen {
         LangEntries.fluid("liquid_oxygen", "Liquid Oxygen", "Oxígeno líquido");
         item("propellant_cartridge", "Propellant Cartridge", "Cartucho de propelente");
         item("star_tracker", "Star Tracker", "Rastreador estelar");
+        block("radar_scope", "Radar Scope", "Pantalla de radar");
     }
 
     @Override
@@ -46,7 +47,7 @@ final class MissileDataGen extends AreaDataGen {
     void blockTags(NuclearBlockTagsProvider provider, HolderLookup.Provider lookup) {
         var pickaxe = provider.tagFor(BlockTags.MINEABLE_WITH_PICKAXE);
         var parts = provider.tagFor(MultiblockTags.MULTIBLOCK_PARTS);
-        pickaxe.add(RadarRegistry.RADAR.get());
+        pickaxe.add(RadarRegistry.RADAR.get(), RadarRegistry.SCOPE.get());
         for (var block : List.of(SiloRegistry.ENGINE, SiloRegistry.TANK, SiloRegistry.GUIDANCE, SiloRegistry.WARHEAD,
                 SiloRegistry.CONTROLLER, SiloRegistry.WALL, SiloRegistry.FUEL_PORT)) {
             pickaxe.add(block.get());

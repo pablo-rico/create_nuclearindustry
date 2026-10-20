@@ -16,6 +16,7 @@ public final class MissileClient implements NuclearFeatureClient {
     public void init(net.neoforged.bus.api.IEventBus modEventBus) {
         org.papiricoh.create_nuclearindustry.missile.rocket.client.RocketClient.init(modEventBus);
         org.papiricoh.create_nuclearindustry.missile.terrain.client.ClientTerrain.init();
+        org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.init();
     }
 
     @Override
