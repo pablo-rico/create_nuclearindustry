@@ -239,6 +239,17 @@ public class RocketContraptionEntity extends AbstractContraptionEntity {
         return false;
     }
 
+    /** Nothing stands on it or is pushed by it: Create's contraption collider would shove players about as it flies. */
+    @Override
+    public boolean collisionEnabled() {
+        return false;
+    }
+
+    @Override
+    protected boolean canAddPassenger(Entity passenger) {
+        return false;
+    }
+
     @Override
     public boolean handlePlayerInteraction(Player player, BlockPos localPos, Direction side, InteractionHand hand) {
         return false;

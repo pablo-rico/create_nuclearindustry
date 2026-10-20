@@ -166,6 +166,7 @@ public class RocketContraptionTests {
             helper.assertTrue(debris[0] != null, "the first stage can fall away");
             if (debris[0] != null) helper.getLevel().addFreshEntity(debris[0]);
             helper.assertTrue(debris[0] != null && !debris[0].shouldBeSaved(), "a falling stage is never saved");
+            helper.assertTrue(debris[0] != null && !debris[0].collisionEnabled(), "nor shoves anyone it falls past");
         });
         helper.succeedWhen(() -> {
             helper.assertTrue(debris[0] != null && debris[0].isRemoved(), "the stage is still falling");
@@ -191,6 +192,7 @@ public class RocketContraptionTests {
             if (puppet == null) return;
             helper.assertTrue(!puppet.shouldBeSaved() && !RocketRegistry.ROCKET.get().canSerialize(), "a puppet is never saved");
             helper.assertTrue(puppet.isReadyForRender(), "it is ready to draw from its first packet");
+            helper.assertTrue(!puppet.collisionEnabled(), "nothing collides with a flying rocket, so it never shoves a player");
             Vec3 pivot = puppet.toGlobalVector(new Vec3(0.5, 1, 0.5), 1);
             helper.assertTrue(pivot.distanceTo(flight.position()) < 1e-3, "its tail sits on the flight, off by " + pivot.distanceTo(flight.position()));
             // Fly until the first stage drops.
