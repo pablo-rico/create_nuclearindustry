@@ -5,6 +5,25 @@
 Worlds from 1.1.0 load: every item and block keeps its id. See "Upgrading"
 below for what changes in existing worlds.
 
+### Missiles: launch platforms, console and command table
+- A launch controller can use a 3×3 launch base with walls left open. Existing
+  concrete silos still work, and fuel ports can feed tanks from beside or
+  beneath the base.
+- The launch controller opens a cutaway console showing the rocket's stages,
+  tank fill, reach and flight advice. Select a section to load its warhead bay
+  with capped core and secondary loads, conventional TNT, or a whole bomb.
+  Conventional TNT warheads now launch too, and breaking or moving a bomb keeps
+  its contents.
+- The tactical command table can link up to 16 silos. Arm them remotely, set a
+  salvo for time-on-target or a sequence, and abort a missile flight that
+  belongs to one of the linked controllers.
+- The Tactical Linker connects launch controllers to command tables. The
+  controller is now called the **Launch Controller**, and **Silo Concrete** is
+  the renamed silo wall block.
+- Breaking change: a loaded rocket with lithium and more than one core now
+  reports `charge_thermo_primary` and cannot launch. Reload the bay with exactly
+  one primary core to use its thermonuclear secondary again.
+
 ### Safe shutdown and loss of cooling
 - A fission reactor can now really be shut down. With at least as many
   inserted control rod blocks as fuel rod blocks, any core stays subcritical

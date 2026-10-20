@@ -31,6 +31,7 @@ final class MissileDataGen extends AreaDataGen {
         WarheadLang.add();
         LaunchScreenLang.add();
         TacticalLang.add();
+        LaunchPolishLang.add();
         block("rocket_engine", "Rocket Engine", "Motor de cohete");
         block("rocket_tank", "Rocket Propellant Tank", "Depósito de propelente");
         block("rocket_guidance", "Rocket Guidance Module", "Módulo de guiado");

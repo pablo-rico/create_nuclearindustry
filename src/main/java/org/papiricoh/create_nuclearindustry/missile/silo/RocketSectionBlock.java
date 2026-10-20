@@ -4,7 +4,10 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -12,12 +15,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard;
 
+import java.util.List;
+
 public class RocketSectionBlock extends BaseEntityBlock {
     public final RocketComposition.Section section;
     public RocketSectionBlock(Properties properties, RocketComposition.Section section) { super(properties); this.section = section; }
     @Override protected MapCodec<? extends BaseEntityBlock> codec() { return simpleCodec(p -> new RocketSectionBlock(p, section)); }
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new RocketSectionEntity(pos, state); }
     @Override protected RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
+    @Override public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        tooltip.add(Component.translatable("item.create_nuclearindustry.rocket_section." + section.name().toLowerCase(java.util.Locale.ROOT)));
+    }
     @Override protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.isClientSide) return ItemInteractionResult.SUCCESS;
         if (ServerPayloadGuard.check(player, pos) && level.getBlockEntity(pos) instanceof RocketSectionEntity part) {

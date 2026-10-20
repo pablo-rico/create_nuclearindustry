@@ -42,6 +42,8 @@ public class AllNuclearDisplaySources {
             DISPLAY_SOURCES.register("missile_radar_tracks", org.papiricoh.create_nuclearindustry.missile.radar.RadarDisplaySource::tracks);
     public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.missile.radar.RadarDisplaySource> MISSILE_RADAR_THREATS =
             DISPLAY_SOURCES.register("missile_radar_threats", org.papiricoh.create_nuclearindustry.missile.radar.RadarDisplaySource::threats);
+    public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.missile.silo.LaunchControllerDisplaySource> LAUNCH_CONTROLLER =
+            DISPLAY_SOURCES.register("launch_controller", org.papiricoh.create_nuclearindustry.missile.silo.LaunchControllerDisplaySource::new);
 
     /** One source per reactor reading, in {@link ReactorReadout} order. */
     public static final Map<ReactorReadout, DeferredHolder<DisplaySource, SingleLineDisplaySource>> REACTOR_READOUTS = readouts();
@@ -64,6 +66,7 @@ public class AllNuclearDisplaySources {
             DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.ENTITY.get(), MISSILE_RADAR.get());
             DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.ENTITY.get(), MISSILE_RADAR_TRACKS.get());
             DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.ENTITY.get(), MISSILE_RADAR_THREATS.get());
+            DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.CONTROLLER_ENTITY.get(), LAUNCH_CONTROLLER.get());
             DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_TEMPERATURE_SENSOR.get(), REACTOR_TEMPERATURE_SENSOR.get());
             for (DeferredHolder<DisplaySource, SingleLineDisplaySource> source : REACTOR_READOUTS.values()) {
                 DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR.get(), source.get());

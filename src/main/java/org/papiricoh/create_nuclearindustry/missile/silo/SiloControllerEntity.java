@@ -460,6 +460,11 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         tooltip.add(Component.literal("     ").append(status()).withStyle(colour));
         if (state == State.COUNTDOWN) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.countdown", (countdown + 19) / 20)).withStyle(ChatFormatting.RED));
         if (target != null) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.target", target.getX(), target.getY(), target.getZ())).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.reach", Math.round(reach()))).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.salvo_delay", (launchDelay + 19) / 20)).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.site",
+                Component.translatable(shaftHeight >= rocketHeight ? "silo.create_nuclearindustry.goggles.silo"
+                        : "silo.create_nuclearindustry.goggles.open_platform"))).withStyle(ChatFormatting.GRAY));
         if (sneaking) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.site.instructions")).withStyle(ChatFormatting.GRAY));
         if (rocketHeight > 0) tooltip.add(Component.literal("     ").append(guidanceLine()).withStyle(ChatFormatting.GRAY));
         return true;
