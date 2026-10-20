@@ -67,6 +67,11 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     /** Ticks a command table's salvo holds the countdown back by, so its impacts line up; 0 normally. */
     private int launchDelay;
     private UUID pendingTarget;
+    /**
+     * The satellite network it fights for: the link code of the ground station of the command table it is linked to, set by the
+     * table; empty when none. Its missiles use that network's communications satellites for guidance.
+     */
+    private String network = "";
     private final MultiblockMessenger messenger = new MultiblockMessenger("silo");
 
     public SiloControllerEntity(BlockPos pos, BlockState state) { super(SiloRegistry.CONTROLLER_ENTITY.get(), pos, state); errorPos = pos; }
@@ -83,6 +88,17 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     public int rocketHeight() { return rocketHeight; }
     /** Ticks the next countdown is held back by (a salvo's offset); cleared when disarmed or retargeted. */
     public int launchDelay() { return launchDelay; }
+
+    public String network() { return network; }
+
+    /** Set by the command table it is linked to: its ground station's link code. */
+    public void setNetwork(String code) {
+        String sanitized = org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode.sanitize(code);
+        if (!sanitized.equals(network)) {
+            network = sanitized;
+            setChanged();
+        }
+    }
     /** Sets {@link #launchDelay}, clamped to the configured longest; a command table's salvo calls it once armed. */
     public void setLaunchDelay(int ticks) {
         launchDelay = Math.max(0, Math.min(ticks, MissileConfig.maxLaunchDelaySeconds * 20));
@@ -487,6 +503,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (pendingLaunch != null) tag.putUUID("PendingLaunch", pendingLaunch);
         tag.putBoolean("Airburst", airburst);
         if (launchDelay > 0) tag.putInt("LaunchDelay", launchDelay);
+        if (!network.isEmpty()) tag.putString("Network", network);
         if (clientPacket) {
             tag.putString("State", state.name()); tag.putString("Error", error); tag.putLong("ErrorPos", errorPos.asLong()); if (errorArgs != null) tag.putIntArray("ErrorArgs", errorArgs);
             tag.putInt("Countdown", countdown); tag.putDouble("FlightTicks", flightTicks); tag.putInt("RocketHeight", rocketHeight);
@@ -503,6 +520,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         pendingLaunch = tag.hasUUID("PendingLaunch") ? tag.getUUID("PendingLaunch") : null;
         airburst = tag.getBoolean("Airburst");
         launchDelay = tag.getInt("LaunchDelay");
+        network = org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode.sanitize(tag.getString("Network"));
         if (clientPacket) {
             try { state = State.valueOf(tag.getString("State")); } catch (IllegalArgumentException ignored) { state = State.INCOMPLETE; }
             error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); errorArgs = tag.contains("ErrorArgs") ? tag.getIntArray("ErrorArgs") : null; countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks"); rocketHeight = tag.getInt("RocketHeight");

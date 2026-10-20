@@ -11,12 +11,15 @@ public final class OrbitInsertion {
     }
 
     /** What {@code design} reaches: {@link OrbitType#GEO}, {@link OrbitType#LEO}, or null if neither. */
+    @org.jetbrains.annotations.Nullable
     public static OrbitType reach(MissileDesign design, double leoDeltaV, double geoDeltaV) {
-        throw new UnsupportedOperationException("orbit stream");
+        double dv = design.deltaV();
+        return dv >= geoDeltaV ? OrbitType.GEO : dv >= leoDeltaV ? OrbitType.LEO : null;
     }
 
     /** Whether {@code design} can put its satellite in an orbit of {@code type}. */
     public static boolean reaches(MissileDesign design, OrbitType type, double leoDeltaV, double geoDeltaV) {
-        throw new UnsupportedOperationException("orbit stream");
+        OrbitType best = reach(design, leoDeltaV, geoDeltaV);
+        return best != null && best.ordinal() >= type.ordinal();
     }
 }

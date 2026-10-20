@@ -121,6 +121,18 @@ public final class FlightTracker extends SavedData {
         return launched;
     }
 
+    /**
+     * Launches a launch vehicle from {@code start}, heading {@code heading} radians over the ground, to climb to the insertion
+     * altitude and put {@code satellite} in orbit when it gets there ({@link Flight.Kind#SATELLITE}). It carries no warhead and never
+     * comes down. Returns the existing flight on replay, or null if that launch already finished.
+     */
+    @Nullable
+    public Flight launchSatellite(ServerLevel level, UUID launchId, MissileDesign design, Vec3 start, float heading,
+                                  org.papiricoh.create_nuclearindustry.missile.orbit.Satellite satellite, @Nullable UUID owner,
+                                  RocketShape shape, @Nullable CompoundTag cargo) {
+        throw new UnsupportedOperationException("orbit stream");
+    }
+
     /** How many interceptors are flying at flight {@code target}. */
     public int interceptorsToward(UUID target) {
         int count = 0;
