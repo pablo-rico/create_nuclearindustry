@@ -1,0 +1,251 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "create_nuclearindustry:block/interceptor_round_nose",
+    "nose": "create_nuclearindustry:block/interceptor_round_nose",
+    "body": "create_nuclearindustry:block/interceptor_round_body"
+  },
+  "elements": [
+    {
+      "name": "obturator",
+      "from": [
+        13.25,
+        20.25,
+        0.4
+      ],
+      "to": [
+        18.75,
+        25.75,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            0,
+            9,
+            5.5,
+            10.5
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            0,
+            9,
+            5.5,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            0,
+            9,
+            5.5,
+            10.5
+          ]
+        },
+        "up": {
+          "texture": "#body",
+          "uv": [
+            0,
+            9,
+            5.5,
+            10.5
+          ]
+        },
+        "down": {
+          "texture": "#body",
+          "uv": [
+            0,
+            9,
+            5.5,
+            10.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "radome_base",
+      "from": [
+        14,
+        21,
+        -0.4
+      ],
+      "to": [
+        18,
+        25,
+        0.4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#nose",
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#nose",
+          "uv": [
+            6,
+            11,
+            10,
+            12
+          ]
+        },
+        "west": {
+          "texture": "#nose",
+          "uv": [
+            6,
+            11,
+            10,
+            12
+          ]
+        },
+        "up": {
+          "texture": "#nose",
+          "uv": [
+            6,
+            11,
+            10,
+            12
+          ]
+        },
+        "down": {
+          "texture": "#nose",
+          "uv": [
+            6,
+            11,
+            10,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "name": "radome_mid",
+      "from": [
+        14.6,
+        21.6,
+        -1
+      ],
+      "to": [
+        17.4,
+        24.4,
+        -0.4
+      ],
+      "faces": {
+        "east": {
+          "texture": "#nose",
+          "uv": [
+            6,
+            6,
+            9,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#nose",
+          "uv": [
+            6,
+            6,
+            9,
+            7
+          ]
+        },
+        "up": {
+          "texture": "#nose",
+          "uv": [
+            6,
+            6,
+            9,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#nose",
+          "uv": [
+            6,
+            6,
+            9,
+            7
+          ]
+        },
+        "north": {
+          "texture": "#nose",
+          "uv": [
+            6,
+            4,
+            9,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "radome_tip",
+      "from": [
+        15.3,
+        22.3,
+        -1.4
+      ],
+      "to": [
+        16.7,
+        23.7,
+        -1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#nose",
+          "uv": [
+            7,
+            1,
+            8.5,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#nose",
+          "uv": [
+            7,
+            1,
+            8.5,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#nose",
+          "uv": [
+            7,
+            1,
+            8.5,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#nose",
+          "uv": [
+            7,
+            1,
+            8.5,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#nose",
+          "uv": [
+            7,
+            1,
+            8.5,
+            2
+          ]
+        }
+      }
+    }
+  ]
+}

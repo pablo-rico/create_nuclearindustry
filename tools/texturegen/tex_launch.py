@@ -34,6 +34,8 @@ STATE_LAMPS = (LAMP_RED, LAMP_AMBER, LAMP_GREEN, LAMP_ORANGE, LAMP_HOT, LAMP_GRE
 
 # Neutral light metal for the diagram's cells, so the screen can tint them by stage.
 CELL = Ramp("#3a3c3c", "#7c7f7e", "#a3a6a4", "#c0c3c0", "#d8dad6", "#e9eae6", "#fafaf6")
+# The kill vehicle's seeker glass in its cell.
+KV_SEEKER = Ramp("#06222c", "#0b3a4a", "#14627a", "#2a90a8", "#5cc8dc", "#a6ecf6", "#eafcff")
 
 YELLOW = WARN[5]
 BLACK_PAINT = DARK[0]
@@ -674,7 +676,7 @@ def launch_controller_launch():
 # ======================================================================================
 
 def _cell(t, ox, oy, section, state):
-    """One section of the cutaway, CELL_W x CELL_H: 0 engine, 1 tank, 2 guidance, 3 warhead."""
+    """One section of the cutaway, CELL_W x CELL_H: 0 engine, 1 tank, 2 guidance, 3 warhead, 4 kill vehicle."""
     w, h = L.SILO_CELL_W, L.SILO_CELL_H
     lo, hi = 1, w - 2  # body columns (the outermost columns stay clear for the selection outline)
     ghost = state == L.SILO_CELL_GHOST
@@ -694,7 +696,7 @@ def _cell(t, ox, oy, section, state):
     if ghost:
         # Only a dashed outline of the section's shape, half clear.
         dash = _rgba(CELL[6], 200)
-        if section == 3:
+        if section in (3, 4):
             for y in range(h):
                 half = 1 + (hi - lo) * (y + 1) / (2 * h)
                 for x in (int(round(w / 2 - half)), int(round(w / 2 + half - 1))):
@@ -757,6 +759,26 @@ def _cell(t, ox, oy, section, state):
             t.set(ox + x, oy + 4, CELL[3] if x < hi - 5 else CELL[2])
         t.set(ox + 5, oy + 8, CELL[0])
         t.set(ox + 6, oy + 8, CELL[1])
+    elif section == 4:
+        # Kill vehicle: a short body with divert thrusters either side, a shoulder, and the seeker's glass dome on top;
+        # no warhead stripe.
+        for y in range(h):
+            half = (3, 5, 6, 7, 7)[y] if y < 5 else (hi - lo + 1) // 2
+            x0, x1 = w // 2 - half, w // 2 + half - 1
+            glass = y < 3
+            for x in range(x0, x1 + 1):
+                v = cyl(x, x0, x1) + (0.3 if not glass else 0.0)
+                t.set(ox + x, oy + y, (KV_SEEKER if glass else CELL)[int(round(max(1, min(6, v))))])
+            t.set(ox + x0, oy + y, KV_SEEKER[0] if glass else CELL[0])
+            t.set(ox + x1, oy + y, KV_SEEKER[0] if glass else CELL[0])
+        t.set(ox + w // 2 - 2, oy + 1, (255, 255, 255, 255))
+        t.set(ox + w // 2 - 3, oy + 2, KV_SEEKER[6])
+        t.hline(ox + w // 2 - 7, ox + w // 2 + 6, oy + 3, CELL[2])
+        t.hline(ox + lo, ox + hi, oy + 5, CELL[1])
+        # The divert thrusters: dark nozzles at the body's edges.
+        for x in (lo, lo + 1, hi - 1, hi):
+            t.set(ox + x, oy + 7, CELL[0])
+            t.set(ox + x, oy + 8, CELL[1])
     else:
         # Warhead: the nose cone, its point at the top row and its base the body's full width.
         for y in range(h):
@@ -987,6 +1009,9 @@ def launch_controller_widgets():
     for section in range(4):
         for state in (L.SILO_CELL_NORMAL, L.SILO_CELL_SELECTED, L.SILO_CELL_ERROR, L.SILO_CELL_GHOST):
             _cell(t, cx + state * L.SILO_CELL_W, cy + section * L.SILO_CELL_H, section, state)
+    kx, ky, _, _ = L.SILO_SPRITE_CELL_KILL_VEHICLE
+    for state in (L.SILO_CELL_NORMAL, L.SILO_CELL_SELECTED, L.SILO_CELL_ERROR, L.SILO_CELL_GHOST):
+        _cell(t, kx + state * L.SILO_CELL_W, ky, 4, state)
     _base_platform(t, L.SILO_SPRITE_BASE_PLATFORM[0], L.SILO_SPRITE_BASE_PLATFORM[1])
     _base_silo(t, L.SILO_SPRITE_BASE_SILO[0], L.SILO_SPRITE_BASE_SILO[1])
     _ghosts(t, L.SILO_SPRITE_GHOSTS[0], L.SILO_SPRITE_GHOSTS[1])
@@ -1192,7 +1217,7 @@ def holo_table_screen():
     for r in (L.HOLO_AUTO, L.HOLO_DESIGNATE, L.HOLO_AIRBURST):
         _holo_button(t, *r, 0)
     # Tabs.
-    for r in (L.HOLO_TAB_SILOS, L.HOLO_TAB_RADARS, L.HOLO_TAB_TRACKS):
+    for r in (L.HOLO_TAB_SILOS, L.HOLO_TAB_RADARS, L.HOLO_TAB_TRACKS, L.HOLO_TAB_DEFENSE):
         _holo_sunk(t, r)
         _holo_tab(t, *r, False)
     # The list: header band, sixteen faint alternating rows and column rules.

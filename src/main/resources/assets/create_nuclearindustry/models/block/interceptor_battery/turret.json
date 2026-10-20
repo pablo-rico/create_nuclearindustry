@@ -1,0 +1,931 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "create_nuclearindustry:block/interceptor_battery_turret",
+    "turret": "create_nuclearindustry:block/interceptor_battery_turret",
+    "ring": "create_nuclearindustry:block/interceptor_battery_ring"
+  },
+  "elements": [
+    {
+      "name": "table_n",
+      "from": [
+        5,
+        16,
+        5
+      ],
+      "to": [
+        27,
+        18,
+        7
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            1,
+            16,
+            3
+          ],
+          "rotation": 0
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            12,
+            16,
+            14
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    {
+      "name": "table_s",
+      "from": [
+        5,
+        16,
+        25
+      ],
+      "to": [
+        27,
+        18,
+        27
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            1,
+            16,
+            3
+          ],
+          "rotation": 0
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            12,
+            16,
+            14
+          ],
+          "rotation": 0
+        }
+      }
+    },
+    {
+      "name": "table_w",
+      "from": [
+        5,
+        16,
+        7
+      ],
+      "to": [
+        7,
+        18,
+        25
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            1,
+            16,
+            3
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            12,
+            16,
+            14
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "table_e",
+      "from": [
+        25,
+        16,
+        7
+      ],
+      "to": [
+        27,
+        18,
+        25
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            9,
+            16,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            1,
+            16,
+            3
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            12,
+            16,
+            14
+          ],
+          "rotation": 90
+        }
+      }
+    },
+    {
+      "name": "foot_w",
+      "from": [
+        5,
+        18,
+        10
+      ],
+      "to": [
+        8,
+        20,
+        22
+      ],
+      "faces": {
+        "north": {
+          "texture": "#turret",
+          "uv": [
+            8,
+            0,
+            11,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            0,
+            8,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#turret",
+          "uv": [
+            0,
+            0,
+            12,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#turret",
+          "uv": [
+            4,
+            0,
+            16,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            4,
+            8,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            0,
+            8,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "name": "arm_w",
+      "from": [
+        5,
+        20,
+        12
+      ],
+      "to": [
+        8,
+        28,
+        20
+      ],
+      "faces": {
+        "north": {
+          "texture": "#turret",
+          "uv": [
+            8,
+            0,
+            11,
+            8
+          ]
+        },
+        "south": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            0,
+            8,
+            8
+          ]
+        },
+        "east": {
+          "texture": "#turret",
+          "uv": [
+            4,
+            0,
+            12,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#turret",
+          "uv": [
+            4,
+            0,
+            12,
+            8
+          ]
+        },
+        "up": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            4,
+            8,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "name": "arm_top_w",
+      "from": [
+        5,
+        28,
+        13
+      ],
+      "to": [
+        8,
+        30,
+        19
+      ],
+      "faces": {
+        "north": {
+          "texture": "#turret",
+          "uv": [
+            8,
+            0,
+            11,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            0,
+            8,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            0,
+            11,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            0,
+            11,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            5,
+            8,
+            11
+          ]
+        }
+      }
+    },
+    {
+      "name": "bearing_w",
+      "from": [
+        4,
+        21,
+        14
+      ],
+      "to": [
+        5,
+        25,
+        18
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "name": "foot_e",
+      "from": [
+        24,
+        18,
+        10
+      ],
+      "to": [
+        27,
+        20,
+        22
+      ],
+      "faces": {
+        "north": {
+          "texture": "#turret",
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#turret",
+          "uv": [
+            13,
+            0,
+            16,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#turret",
+          "uv": [
+            0,
+            0,
+            12,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#turret",
+          "uv": [
+            4,
+            0,
+            16,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#turret",
+          "uv": [
+            13,
+            4,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#turret",
+          "uv": [
+            13,
+            0,
+            16,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "name": "arm_e",
+      "from": [
+        24,
+        20,
+        12
+      ],
+      "to": [
+        27,
+        28,
+        20
+      ],
+      "faces": {
+        "north": {
+          "texture": "#turret",
+          "uv": [
+            0,
+            0,
+            3,
+            8
+          ]
+        },
+        "south": {
+          "texture": "#turret",
+          "uv": [
+            13,
+            0,
+            16,
+            8
+          ]
+        },
+        "east": {
+          "texture": "#turret",
+          "uv": [
+            4,
+            0,
+            12,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#turret",
+          "uv": [
+            4,
+            0,
+            12,
+            8
+          ]
+        },
+        "up": {
+          "texture": "#turret",
+          "uv": [
+            13,
+            4,
+            16,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "name": "arm_top_e",
+      "from": [
+        24,
+        28,
+        13
+      ],
+      "to": [
+        27,
+        30,
+        19
+      ],
+      "faces": {
+        "north": {
+          "texture": "#turret",
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#turret",
+          "uv": [
+            13,
+            0,
+            16,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            0,
+            11,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#turret",
+          "uv": [
+            5,
+            0,
+            11,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#turret",
+          "uv": [
+            13,
+            5,
+            16,
+            11
+          ]
+        }
+      }
+    },
+    {
+      "name": "bearing_e",
+      "from": [
+        27,
+        21,
+        14
+      ],
+      "to": [
+        28,
+        25,
+        18
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2,
+            8,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "name": "slew_drive",
+      "from": [
+        1.5,
+        16,
+        13
+      ],
+      "to": [
+        5,
+        21,
+        19
+      ],
+      "faces": {
+        "north": {
+          "texture": "#turret",
+          "uv": [
+            11,
+            0,
+            14.5,
+            5
+          ]
+        },
+        "south": {
+          "texture": "#turret",
+          "uv": [
+            1.5,
+            0,
+            5,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#turret",
+          "uv": [
+            10,
+            0,
+            16,
+            5
+          ]
+        },
+        "up": {
+          "texture": "#turret",
+          "uv": [
+            1.5,
+            10,
+            5,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#turret",
+          "uv": [
+            1.5,
+            0,
+            5,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "name": "elevation_drive",
+      "from": [
+        28,
+        21.5,
+        15
+      ],
+      "to": [
+        30,
+        24.5,
+        21
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ]
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            14,
+            0,
+            16,
+            3
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            0,
+            0,
+            6,
+            3
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            14,
+            10,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            14,
+            0,
+            16,
+            6
+          ]
+        }
+      }
+    }
+  ]
+}

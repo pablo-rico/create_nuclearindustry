@@ -1,0 +1,588 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "create_nuclearindustry:block/interceptor_battery_side",
+    "side": "create_nuclearindustry:block/interceptor_battery_side",
+    "deck": "create_nuclearindustry:block/interceptor_battery_deck",
+    "well": "create_nuclearindustry:block/interceptor_battery_well"
+  },
+  "elements": [
+    {
+      "name": "plinth_0_0",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        9,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#side",
+          "uv": [
+            16,
+            7,
+            0,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            0,
+            7,
+            16,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck_z_0_0",
+      "from": [
+        0,
+        9,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        7
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0,
+            0,
+            16,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ]
+        },
+        "north": {
+          "texture": "#side",
+          "uv": [
+            16,
+            0,
+            0,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck_x_0_0",
+      "from": [
+        0,
+        9,
+        7
+      ],
+      "to": [
+        7,
+        16,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0,
+            7,
+            7,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            7,
+            0,
+            16,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            9,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "plinth_0_1",
+      "from": [
+        0,
+        0,
+        16
+      ],
+      "to": [
+        16,
+        9,
+        32
+      ],
+      "faces": {
+        "down": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            0,
+            7,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            16,
+            7,
+            0,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck_z_0_1",
+      "from": [
+        0,
+        9,
+        25
+      ],
+      "to": [
+        16,
+        16,
+        32
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0,
+            7,
+            16,
+            0
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            7,
+            0,
+            0,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            16,
+            7
+          ]
+        },
+        "north": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck_x_0_1",
+      "from": [
+        0,
+        9,
+        16
+      ],
+      "to": [
+        7,
+        16,
+        25
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            0,
+            16,
+            7,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            16,
+            0,
+            7,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            9,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "plinth_1_0",
+      "from": [
+        16,
+        0,
+        0
+      ],
+      "to": [
+        32,
+        9,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#side",
+          "uv": [
+            0,
+            7,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            16,
+            7,
+            0,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck_z_1_0",
+      "from": [
+        16,
+        9,
+        0
+      ],
+      "to": [
+        32,
+        16,
+        7
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            16,
+            0,
+            0,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            7,
+            0,
+            0,
+            7
+          ]
+        },
+        "north": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            16,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck_x_1_0",
+      "from": [
+        25,
+        9,
+        7
+      ],
+      "to": [
+        32,
+        16,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            7,
+            7,
+            0,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            16,
+            0,
+            7,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#well",
+          "uv": [
+            7,
+            0,
+            16,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "plinth_1_1",
+      "from": [
+        16,
+        0,
+        16
+      ],
+      "to": [
+        32,
+        9,
+        32
+      ],
+      "faces": {
+        "down": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            16,
+            7,
+            0,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            0,
+            7,
+            16,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck_z_1_1",
+      "from": [
+        16,
+        9,
+        25
+      ],
+      "to": [
+        32,
+        16,
+        32
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            16,
+            7,
+            0,
+            0
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            7,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            16,
+            0,
+            0,
+            7
+          ]
+        },
+        "north": {
+          "texture": "#well",
+          "uv": [
+            0,
+            0,
+            16,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "deck_x_1_1",
+      "from": [
+        25,
+        9,
+        16
+      ],
+      "to": [
+        32,
+        16,
+        25
+      ],
+      "faces": {
+        "up": {
+          "texture": "#deck",
+          "uv": [
+            7,
+            16,
+            0,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            7,
+            0,
+            16,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#well",
+          "uv": [
+            7,
+            0,
+            16,
+            7
+          ]
+        }
+      }
+    }
+  ]
+}

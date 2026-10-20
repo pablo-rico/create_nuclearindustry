@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "create_nuclearindustry:block/interceptor_battery/base"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/interceptor_battery/base"
+    },
+    "facing=east": {
+      "model": "create_nuclearindustry:block/interceptor_battery/base"
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/interceptor_battery/base"
+    }
+  }
+}

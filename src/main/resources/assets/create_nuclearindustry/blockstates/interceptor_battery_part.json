@@ -1,0 +1,25 @@
+{
+  "variants": {
+    "offset=1": {
+      "model": "create_nuclearindustry:block/interceptor_battery/part_empty"
+    },
+    "offset=2": {
+      "model": "create_nuclearindustry:block/interceptor_battery/part_empty"
+    },
+    "offset=3": {
+      "model": "create_nuclearindustry:block/interceptor_battery/part_empty"
+    },
+    "offset=4": {
+      "model": "create_nuclearindustry:block/interceptor_battery/part_empty"
+    },
+    "offset=5": {
+      "model": "create_nuclearindustry:block/interceptor_battery/part_empty"
+    },
+    "offset=6": {
+      "model": "create_nuclearindustry:block/interceptor_battery/part_empty"
+    },
+    "offset=7": {
+      "model": "create_nuclearindustry:block/interceptor_battery/part_empty"
+    }
+  }
+}

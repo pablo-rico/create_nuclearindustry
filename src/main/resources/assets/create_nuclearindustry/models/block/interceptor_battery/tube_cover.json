@@ -1,0 +1,79 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "create_nuclearindustry:block/interceptor_battery_tube_cover",
+    "cover": "create_nuclearindustry:block/interceptor_battery_tube_cover"
+  },
+  "elements": [
+    {
+      "name": "cover",
+      "from": [
+        12.6,
+        19.6,
+        -1.9
+      ],
+      "to": [
+        19.4,
+        26.4,
+        -1.4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#cover",
+          "uv": [
+            4.6,
+            4.6,
+            11.4,
+            11.4
+          ]
+        },
+        "south": {
+          "texture": "#cover",
+          "uv": [
+            4.6,
+            4.6,
+            11.4,
+            11.4
+          ]
+        },
+        "east": {
+          "texture": "#cover",
+          "uv": [
+            4.6,
+            4.6,
+            5.1,
+            11.4
+          ]
+        },
+        "west": {
+          "texture": "#cover",
+          "uv": [
+            4.6,
+            4.6,
+            5.1,
+            11.4
+          ]
+        },
+        "up": {
+          "texture": "#cover",
+          "uv": [
+            4.6,
+            4.6,
+            11.4,
+            5.1
+          ]
+        },
+        "down": {
+          "texture": "#cover",
+          "uv": [
+            4.6,
+            4.6,
+            11.4,
+            5.1
+          ]
+        }
+      }
+    }
+  ]
+}
