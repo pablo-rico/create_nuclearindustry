@@ -24,6 +24,12 @@
 - New advancements "Beep, Beep" (put a satellite in orbit) and "Kessler Syndrome" (shoot one down). Settings under
   `missile.orbit.*`.
 
+### Fixes
+- The link code boxes of the missile radar, the interceptor battery and the ground station screens take typing again:
+  clicking them focused the box but keys never reached it.
+- A command table whose ground station has no code, or is not turning, now says so on its Satellites tab instead of
+  "No ground station".
+
 ## 2.0.0 (beta): nuclear chain rewrite
 
 Released as a beta: back up your world before updating. Worlds from 1.1.0 load: every item and block keeps its id. See "Upgrading"

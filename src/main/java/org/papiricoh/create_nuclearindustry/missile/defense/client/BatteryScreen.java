@@ -84,10 +84,10 @@ public class BatteryScreen extends AbstractContainerScreen<InterceptorBatteryMen
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (code.isMouseOver(mx, my) || over(CODE, mx, my)) {
-            code.setFocused(true);
+            setFocused(code);
             return true;
         }
-        code.setFocused(false);
+        setFocused(null);
         InterceptorBatteryEntity battery = battery();
         if (button == 0 && battery != null) {
             DefenseSettings settings = battery.settings();
@@ -114,7 +114,7 @@ public class BatteryScreen extends AbstractContainerScreen<InterceptorBatteryMen
     public boolean keyPressed(int key, int scan, int modifiers) {
         if (code.isFocused()) {
             if (key == GLFW.GLFW_KEY_ESCAPE || key == GLFW.GLFW_KEY_ENTER) {
-                code.setFocused(false);
+                setFocused(null);
                 return true;
             }
             return code.keyPressed(key, scan, modifiers) || true;

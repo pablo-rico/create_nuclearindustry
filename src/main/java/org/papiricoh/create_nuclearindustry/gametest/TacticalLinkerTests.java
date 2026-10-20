@@ -67,6 +67,31 @@ public class TacticalLinkerTests {
         helper.succeed();
     }
 
+    /**
+     * A ground station linked by hand reaches the table and shows on its picture even before it has a network code; with one, and
+     * turning, it gives the table its network.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void tacticalLinkerLinksGroundStationToTable(GameTestHelper helper) {
+        HoloTableBlockEntity table = HoloTableTests.table(helper);
+        BlockPos stationPos = new BlockPos(9, 1, 8);
+        helper.setBlock(stationPos, org.papiricoh.create_nuclearindustry.missile.orbit.OrbitRegistry.GROUND_STATION.get());
+        ItemStack linker = new ItemStack(SiloRegistry.TACTICAL_LINKER.get());
+        Player player = player(helper, linker);
+        click(helper, player, linker, stationPos);
+        helper.assertTrue(TacticalLinkerItem.getLink(linker) != null && TacticalLinkerItem.getLink(linker).kind() == TacticalLink.Kind.GROUND_STATION,
+                "stores ground station kind");
+        click(helper, player, linker, HoloTableTests.CENTRE);
+        helper.assertTrue(table.stations().size() == 1, "the station links to the table without a code");
+        helper.assertTrue(table.picture().orbital().stations().size() == 1 && table.network().isEmpty(),
+                "the picture lists the codeless station, which gives no network");
+        var station = (org.papiricoh.create_nuclearindustry.missile.orbit.GroundStationBlockEntity) helper.getBlockEntity(stationPos);
+        station.setCode("LNK1");
+        station.setSpeed((float) org.papiricoh.create_nuclearindustry.missile.MissileConfig.minimumRpm);
+        helper.assertTrue(table.network().equals("LNK1"), "a turning station with a code gives the table its network");
+        helper.succeed();
+    }
+
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, timeoutTicks = 100)
     public static void linkerOnLaunchBaseStoresItsController(GameTestHelper helper) {
         var controller = new SiloTestBuilder().build(helper);

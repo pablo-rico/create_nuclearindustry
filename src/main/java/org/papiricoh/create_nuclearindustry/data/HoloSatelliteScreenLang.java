@@ -18,6 +18,8 @@ final class HoloSatelliteScreenLang {
         String key = "holo_table.create_nuclearindustry.screen.sat.";
         // The list's header band and sections.
         LangEntries.add(key + "no_station", "No ground station", "Sin estación terrestre");
+        LangEntries.add(key + "station_no_code", "Station has no code", "Estación sin código");
+        LangEntries.add(key + "station_offline", "Station not turning", "Estación parada");
         LangEntries.add(key + "network", "NET %s", "RED %s");
         LangEntries.add(key + "station", "GS%s", "ET%s");
         LangEntries.add(key + "station.online", "Ground station %s: online", "Estación terrestre %s: operativa");

@@ -688,7 +688,10 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
         if (p == null) return;
         HoloTracksPayload.Orbital o = p.orbital();
         // The header band: the network and its ground stations.
-        if (o.code().isEmpty()) small(g, text("sat.no_station"), LIST.x() + 3, LIST.y() + 2, 74, AMBER);
+        // A table takes its network from a working station with a complete code: say which of the three is missing.
+        if (o.code().isEmpty()) small(g, text(o.stations().isEmpty() ? "sat.no_station"
+                : o.stations().stream().anyMatch(st -> st.code().length() == 4) ? "sat.station_offline" : "sat.station_no_code"),
+                LIST.x() + 3, LIST.y() + 2, 74, AMBER);
         else small(g, Component.translatable(KEY + "sat.network", o.code()), LIST.x() + 3, LIST.y() + 2, 74, CYAN);
         for (int i = 0; i < o.stations().size(); i++) {
             HoloTracksPayload.Station st = o.stations().get(i);

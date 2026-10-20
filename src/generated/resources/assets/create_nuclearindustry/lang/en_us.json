@@ -2682,6 +2682,8 @@
   "holo_table.create_nuclearindustry.screen.sat.station.offline": "Ground station %s: offline",
   "holo_table.create_nuclearindustry.screen.sat.station.online": "Ground station %s: online",
   "holo_table.create_nuclearindustry.screen.sat.station.where": "At %s, %s, %s; click the cross to unlink it",
+  "holo_table.create_nuclearindustry.screen.sat.station_no_code": "Station has no code",
+  "holo_table.create_nuclearindustry.screen.sat.station_offline": "Station not turning",
   "holo_table.create_nuclearindustry.screen.sat.stays": "stays up",
   "holo_table.create_nuclearindustry.screen.sat.unreachable": "This rocket cannot reach that orbit",
   "holo_table.create_nuclearindustry.screen.sat.uplink": "UPLINK",

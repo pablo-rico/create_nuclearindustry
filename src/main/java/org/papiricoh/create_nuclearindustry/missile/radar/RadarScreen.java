@@ -585,10 +585,10 @@ public class RadarScreen extends AbstractContainerScreen<RadarMenu> {
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (code.isMouseOver(mx, my) || over(CODE, mx, my)) {
-            code.setFocused(true);
+            setFocused(code);
             return true;
         }
-        code.setFocused(false);
+        setFocused(null);
         if (button == 0) {
             if (over(ZOOM_OUT, mx, my)) return zoom(1, leftPos + PPI_CX, topPos + PPI_CY);
             if (over(ZOOM_IN, mx, my)) return zoom(-1, leftPos + PPI_CX, topPos + PPI_CY);
@@ -702,7 +702,7 @@ public class RadarScreen extends AbstractContainerScreen<RadarMenu> {
     public boolean keyPressed(int key, int scan, int modifiers) {
         if (code.isFocused()) {
             if (key == GLFW.GLFW_KEY_ESCAPE || key == GLFW.GLFW_KEY_ENTER) {
-                code.setFocused(false);
+                setFocused(null);
                 return true;
             }
             return code.keyPressed(key, scan, modifiers) || true;

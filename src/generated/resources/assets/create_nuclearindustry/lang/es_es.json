@@ -2682,6 +2682,8 @@
   "holo_table.create_nuclearindustry.screen.sat.station.offline": "Estación terrestre %s: desconectada",
   "holo_table.create_nuclearindustry.screen.sat.station.online": "Estación terrestre %s: operativa",
   "holo_table.create_nuclearindustry.screen.sat.station.where": "En %s, %s, %s; pulsa la cruz para desenlazarla",
+  "holo_table.create_nuclearindustry.screen.sat.station_no_code": "Estación sin código",
+  "holo_table.create_nuclearindustry.screen.sat.station_offline": "Estación parada",
   "holo_table.create_nuclearindustry.screen.sat.stays": "no decae",
   "holo_table.create_nuclearindustry.screen.sat.unreachable": "Este cohete no alcanza esa órbita",
   "holo_table.create_nuclearindustry.screen.sat.uplink": "ENLACE",
