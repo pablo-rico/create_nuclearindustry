@@ -2,11 +2,24 @@
 
 ## Unreleased
 
-- Command tables link two ground stations, share their network with launch controllers, show catalogued satellites, and order satellite launches, deorbits and manual low-orbit interceptions from kill-vehicle silos. Communications satellites extend tactical links.
-
-- Satellite launch vehicles climb and separate their stages before inserting their payload into orbit. Failed climbs abort safely.
-- Low satellites gradually lose altitude and burn up; working radars permanently catalogue foreign satellites for their network. Orbit displays refresh when joining or changing dimensions.
-- Launch satellite payloads from command tables, control their network through kinetic ground stations, and use orbital early warning, communications relay, and GPS guidance.
+### Satellites
+- New **Rocket Satellite Fairing**: top a rocket with it instead of a warhead, with an **Early Warning Satellite** or a
+  **Communications Satellite** inside (both made by sequenced assembly). Its launch controller is ready without a target
+  and launches only on a command table's order: two full liquid stages reach a low orbit, three a geostationary one. The
+  launch vehicle climbs, drops its stages and lets the satellite go high above.
+- Low satellites fly straight and come back in over the far side of the world border, so over time they pass over the
+  whole world; they lose altitude every day and burn up. Geostationary ones stay over the place you chose.
+- New **Satellite Ground Station**: a dish driven by a shaft from below that takes your satellites' network (a link
+  code, like radars) and points at the one in view. Link up to two to a Holographic Command Table: it passes the network
+  on to its launch controllers. Goggles and Display Links show the network, its satellites and the next pass.
+- Early warning satellites put launches under them on their network's radar picture, beyond any radar's horizon.
+  Communications satellites relay radars and table links past their ranges and narrow the spread of missiles whose
+  launch site and target they both see.
+- The command table has a **Satellites** tab to launch into either orbit, deorbit your own satellites and send an
+  interceptor silo at foreign ones your radars have catalogued (low orbit only, never automatically). Satellites passing
+  near show on its hologram, and low ones cross the night sky.
+- New advancements "Beep, Beep" (put a satellite in orbit) and "Kessler Syndrome" (shoot one down). Settings under
+  `missile.orbit.*`.
 
 ## 2.0.0 (beta): nuclear chain rewrite
 

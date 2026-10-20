@@ -19,7 +19,13 @@ public class GroundStationDisplaySource extends DisplaySource {
                 Component.translatable("ground_station.create_nuclearindustry.code", LinkCode.complete(station.code()) ? station.code() : "----"),
                 Component.translatable("ground_station.create_nuclearindustry.satellites", station.satelliteCount()),
                 station.nextPass() < 0 ? Component.translatable("ground_station.create_nuclearindustry.no_pass")
-                        : Component.translatable("ground_station.create_nuclearindustry.next_pass", (station.nextPass() + 19) / 20));
+                        : station.nextPass() == 0 ? Component.translatable("ground_station.create_nuclearindustry.overhead")
+                        : Component.translatable("ground_station.create_nuclearindustry.next_pass", clock((station.nextPass() + 19) / 20)));
     }
     @Override public int getPassiveRefreshTicks() { return 20; }
+
+    /** Seconds as {@code m:ss}. */
+    static String clock(long seconds) {
+        return String.format(java.util.Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
+    }
 }

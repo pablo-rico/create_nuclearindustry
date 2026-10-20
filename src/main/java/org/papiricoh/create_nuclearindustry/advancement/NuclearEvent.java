@@ -66,7 +66,12 @@ public enum NuclearEvent {
     HYDROGEN_EXPLOSION,
     // Missile defence
     /** An interceptor destroyed a missile in flight. */
-    MISSILE_INTERCEPTED;
+    MISSILE_INTERCEPTED,
+    // Satellites
+    /** A launch vehicle put its satellite in orbit. */
+    SATELLITE_IN_ORBIT,
+    /** An interceptor destroyed a satellite in orbit. */
+    SATELLITE_DESTROYED;
 
     public String id() {
         return name().toLowerCase(Locale.ROOT);

@@ -143,6 +143,62 @@ autodestruye y, si queda tiempo, la doctrina de uno en uno lanza otro. Un misil 
 estalla en el aire y sus restos caen al suelo: su ojiva nunca detona ni contamina. Los
 valores se ajustan en `missile.defense.*` (ver [configuración](configuration.md)).
 
+## Satélites
+
+Un cohete puede llevar un satélite en lugar de una ojiva: `(Motor + Depósitos)×1..3 +
+Guiado + Cofia de satélite`. Mete en la cofia un **Satélite de alerta temprana** o un
+**Satélite de comunicaciones** a mano, con embudo o con brazo mecánico; los dos salen de un
+montaje secuencial sobre un mecanismo de precisión. Su Controlador de lanzamiento queda
+listo sin blanco, no hace caso a la redstone y solo despega cuando una mesa de mando le
+ordena poner el satélite en órbita.
+
+**Órbitas.** Dos etapas líquidas llenas bastan para la **órbita baja**; para la
+**geoestacionaria** hacen falta tres (la consola indica la más alta a la que llega el
+cohete).
+
+- Un satélite en órbita baja vuela en línea recta a gran velocidad. Al salir por un lado
+  del borde del mundo vuelve a entrar por el contrario, así que con el tiempo pasa por
+  todo el mapa.
+- Cada día de Minecraft pierde algo de altura, y al final se quema al entrar en la
+  atmósfera.
+- Uno geoestacionario se queda para siempre sobre el punto que elegiste, más alto y
+  viendo más lejos.
+- Cuanto más alto está un satélite, más terreno ve: hasta su horizonte.
+
+**Estación terrestre.** Cada red de satélites es un **código de enlace** de cuatro
+caracteres, como el de los radares. La Estación terrestre de satélites lleva ese código y
+necesita un eje por debajo que gire al menos a 32 RPM; su antena se orienta sola hacia el
+satélite de su red que tenga a la vista. Enlázala a una mesa de mando con el Enlazador
+táctico (hasta dos por mesa): la red de la primera estación que funcione es la de la mesa,
+y la mesa se la pasa a sus controladores de lanzamiento. Las gafas y un Display Link
+muestran su red, cuántos satélites tiene y cuándo pasa el próximo.
+
+**Lo que hacen.**
+
+- **Alerta temprana:** ve los cohetes que acaban de despegar bajo él aunque ningún radar
+  llegue, y los pone en la imagen de los radares, baterías y mesas de su red.
+- **Comunicaciones:**
+  - Hace de repetidor: une radares de su red que estén demasiado lejos para compartir
+    trazas y deja enlazar a la mesa lanzadores más allá del alcance del enlazador.
+  - Hace de GPS: si ve a la vez el lanzador y el blanco de un misil, reduce mucho su
+    dispersión. La consola lo indica.
+
+**Desde la mesa.** La pestaña **Satélites** lista los satélites de la red de la mesa, con
+su órbita, su vida y su próximo paso sobre la zona, y debajo los satélites ajenos que tus
+radares han visto pasar: quedan catalogados para siempre.
+
+- Para **lanzar**, elige un controlador con cofia y la órbita, y marca en el mapa el punto
+  sobre el que pasará (en órbita baja, también hacia dónde va). Tiene que estar dentro del
+  borde del mundo.
+- Puedes **desorbitar** un satélite propio.
+- Puedes **derribar** uno ajeno catalogado con un silo interceptor enlazado. Solo los de
+  órbita baja: los geoestacionarios quedan fuera de alcance. Ninguna defensa automática
+  dispara a satélites.
+
+El holograma de la mesa muestra los satélites que pasan cerca, su traza y su huella. De
+noche, los de órbita baja se ven cruzar el cielo como puntos de luz. Los valores se
+ajustan en `missile.orbit.*` (ver [configuración](configuration.md)).
+
 ## Radar
 
 Haz girar un radar al menos a 32 RPM. Ve cuerpos de cohete dentro de su alcance y por

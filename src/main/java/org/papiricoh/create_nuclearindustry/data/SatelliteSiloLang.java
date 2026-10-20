@@ -21,6 +21,7 @@ final class SatelliteSiloLang {
         LangEntries.add(station + "code_label", "Network code", "Código de red");
         LangEntries.add(station + "satellites", "Satellites: %s", "Satélites: %s");
         LangEntries.add(station + "no_pass", "No pass in the next day", "Sin paso durante el próximo día");
-        LangEntries.add(station + "next_pass", "Next pass: %s s", "Próximo paso: %s s");
+        LangEntries.add(station + "next_pass", "Next pass in %s", "Próximo paso en %s");
+        LangEntries.add(station + "overhead", "Satellite overhead", "Satélite a la vista");
     }
 }

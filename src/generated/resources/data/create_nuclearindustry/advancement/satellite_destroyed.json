@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:satellite_in_orbit",
+  "criteria": {
+    "satellite_destroyed": {
+      "conditions": {
+        "event": "satellite_destroyed"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.satellite_destroyed.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:early_warning_satellite"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.satellite_destroyed.title"
+    }
+  },
+  "requirements": [
+    [
+      "satellite_destroyed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

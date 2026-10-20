@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:missile_launched",
+  "criteria": {
+    "satellite_in_orbit": {
+      "conditions": {
+        "event": "satellite_in_orbit"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.satellite_in_orbit.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:comms_satellite"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.satellite_in_orbit.title"
+    }
+  },
+  "requirements": [
+    [
+      "satellite_in_orbit"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

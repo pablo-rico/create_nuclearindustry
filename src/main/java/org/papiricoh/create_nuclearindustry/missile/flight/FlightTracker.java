@@ -296,6 +296,10 @@ public final class FlightTracker extends SavedData {
         Orbit arrived = new Orbit(orbit.type(), orbit.anchorX(), orbit.anchorZ(), orbit.heading(), orbit.altitude(),
                 level.getGameTime(), orbit.speed(), orbit.bounds());
         SatelliteTracker.get(level).add(level, satellite.withOrbit(arrived));
+        org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level,
+                flight.origin() != null ? flight.origin() : BlockPos.containing(flight.position()),
+                flight.owner() == null ? null : level.getServer().getPlayerList().getPlayer(flight.owner()),
+                org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.SATELLITE_IN_ORBIT);
         remove(level, flight, FlightFxEvent.ORBIT_INSERTION, flight.position(), flight.velocity());
     }
 
@@ -373,6 +377,10 @@ public final class FlightTracker extends SavedData {
         }
         if (distance <= DefenseConfig.fuseRadius && new Random(intercept.seed()).nextDouble() < intercept.pk()) {
             SatelliteTracker.get(level).remove(level, satellite.id(), SatelliteTracker.Removal.DESTROYED);
+            BlockPos launcher = intercept.launcher() != null ? intercept.launcher() : BlockPos.containing(interceptor.position());
+            org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, launcher,
+                    interceptor.owner() == null ? null : level.getServer().getPlayerList().getPlayer(interceptor.owner()),
+                    org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.SATELLITE_DESTROYED);
             FlightFxBroadcaster.event(level, satellite.id(), FlightFxEvent.SATELLITE_KILLED, 0, point,
                     Flight.vec(satellite.orbit().velocity(level.getGameTime())));
             remove(level, interceptor);
