@@ -20,6 +20,9 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.missile.LaunchRules;
+import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
+import org.papiricoh.create_nuclearindustry.missile.orbit.*;
+import org.papiricoh.create_nuclearindustry.missile.radar.RadarNetwork;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.missile.link.TacticalDevice;
@@ -51,7 +54,7 @@ import java.util.WeakHashMap;
  * player can send the silo a new target ({@link #designate}), checked here.
  */
 public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice, TerrainViewer {
-    public static final int MAX_RADARS = 4, MAX_SILOS = 16, MAX_BATTERIES = 8;
+    public static final int MAX_RADARS = 4, MAX_SILOS = 16, MAX_BATTERIES = 8, MAX_STATIONS = 2;
     /** Players this close see the hologram and are sent its picture. */
     public static final double SIGHT = 32;
     /** Players this close may use the table: its screen, its terrain, designating. */
@@ -69,6 +72,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
     private final List<GlobalPos> radars = new ArrayList<>();
     private final List<GlobalPos> silos = new ArrayList<>();
     private final List<GlobalPos> batteries = new ArrayList<>();
+    private final List<GlobalPos> stations = new ArrayList<>();
     private DefenseSettings defense;
     private byte selectedSilo;
     private int counter;
@@ -88,6 +92,39 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
     public List<GlobalPos> radars() { return Collections.unmodifiableList(radars); }
     public List<GlobalPos> silos() { return Collections.unmodifiableList(silos); }
     public List<GlobalPos> batteries() { return Collections.unmodifiableList(batteries); }
+    public List<GlobalPos> stations() { return Collections.unmodifiableList(stations); }
+
+    @Nullable
+    private GroundStationBlockEntity station(GlobalPos pos) {
+        return level != null && level.dimension().equals(pos.dimension()) && level.isLoaded(pos.pos())
+                && level.getBlockEntity(pos.pos()) instanceof GroundStationBlockEntity station ? station : null;
+    }
+
+    public String network() {
+        for (GlobalPos pos : stations) {
+            GroundStationBlockEntity station = station(pos);
+            if (station != null && station.operational() && LinkCode.complete(station.code())) return station.code();
+        }
+        return "";
+    }
+
+    /** A relay extends device links without loading either endpoint. */
+    public boolean inLinkRange(BlockPos pos) {
+        if (level == null) return false;
+        if (ShipSpace.closerThan(level, worldPosition, pos, MissileConfig.tacticalLinkRange)) return true;
+        if (!(level instanceof ServerLevel server)) return false;
+        BlockPos a = ShipSpace.worldBlock(level, worldPosition), b = ShipSpace.worldBlock(level, pos);
+        return SatelliteServices.relays(server, network(), a.getX(), a.getZ(), b.getX(), b.getZ());
+    }
+
+    private void updateNetworks() {
+        String code = network();
+        for (GlobalPos pos : silos) {
+            SiloControllerEntity silo = siloEntity(pos);
+            if (silo != null) silo.setNetwork(code);
+        }
+    }
+
     public DefenseSettings defense() { return defense; }
     public void setDefense(DefenseSettings settings) { defense = settings; changed(); }
     public byte selectedSilo() { return selectedSilo; }
@@ -134,7 +171,8 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
 
     @Nullable
     public GlobalPos getTarget() {
-        return silo() != null ? silo() : !radars.isEmpty() ? radars.getFirst() : batteries.isEmpty() ? null : batteries.getFirst();
+        return silo() != null ? silo() : !radars.isEmpty() ? radars.getFirst()
+                : !batteries.isEmpty() ? batteries.getFirst() : stations.isEmpty() ? null : stations.getFirst();
     }
 
     /** Compatibility entry point for old callers and saves. */
@@ -147,13 +185,14 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
     public Result toggleLink(GlobalPos target) {
         if (links().contains(target)) { unlink(target); return Result.REMOVED; }
         if (level == null || !level.dimension().equals(target.dimension())
-                || !ShipSpace.closerThan(level, worldPosition, target.pos(), MissileConfig.tacticalLinkRange)) return Result.OUT_OF_RANGE;
+                || !inLinkRange(target.pos())) return Result.OUT_OF_RANGE;
         if (!level.isLoaded(target.pos())) return Result.UNSUPPORTED;
         BlockEntity at = level.getBlockEntity(target.pos());
         List<GlobalPos> list;
         int max;
         if (at instanceof RadarBlockEntity) { list = radars; max = MAX_RADARS; }
         else if (at instanceof SiloControllerEntity) { list = silos; max = MAX_SILOS; }
+        else if (at instanceof GroundStationBlockEntity) { list = stations; max = MAX_STATIONS; }
         else if (at instanceof InterceptorBatteryEntity) { list = batteries; max = MAX_BATTERIES; }
         else return Result.UNSUPPORTED;
         if (list.size() >= max) return Result.FULL;
@@ -165,7 +204,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
     @Override
     public boolean unlink(GlobalPos target) {
         GlobalPos selected = silo();
-        boolean removed = radars.remove(target) | silos.remove(target) | batteries.remove(target);
+        boolean removed = radars.remove(target) | silos.remove(target) | batteries.remove(target) | stations.remove(target);
         if (removed) {
             selectedSilo = (byte) Math.max(0, selected == null ? 0 : silos.indexOf(selected));
             mark = null;
@@ -176,7 +215,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
 
     @Override
     public void clearLinks() {
-        radars.clear(); silos.clear(); batteries.clear(); selectedSilo = 0; mark = null;
+        radars.clear(); silos.clear(); batteries.clear(); stations.clear(); selectedSilo = 0; mark = null;
         changed();
     }
 
@@ -185,6 +224,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
         List<GlobalPos> all = new ArrayList<>(radars);
         all.addAll(silos);
         all.addAll(batteries);
+        all.addAll(stations);
         return List.copyOf(all);
     }
 
@@ -219,6 +259,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
             DefenseCommand.autoEngage(server, tracks(), shooters(-1), settings, this::own, EngagementSource.AUTO_TABLE);
         }
         if (counter % 10 != 0) return;
+        updateNetworks();
         List<ServerPlayer> watching = new ArrayList<>();
         for (ServerPlayer player : server.players()) {
             if (player.distanceToSqr(worldPosition.getCenter()) <= SIGHT * SIGHT) watching.add(player);
@@ -273,6 +314,8 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
             if (radar != null) for (RadarTrack track : radar.tracks())
                 if (tracks.size() < HoloTracksPayload.MAX_TRACKS || tracks.containsKey(track.id())) tracks.putIfAbsent(track.id(), track);
         }
+        if (level instanceof ServerLevel server) for (RadarTrack track : RadarNetwork.networkTracks(server, network(), worldPosition))
+            if (tracks.size() < HoloTracksPayload.MAX_TRACKS) tracks.putIfAbsent(track.id(), track);
         return List.copyOf(tracks.values());
     }
 
@@ -329,6 +372,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
 
     /** What the table shows now. Public for tests. */
     public HoloTracksPayload picture() {
+        updateNetworks();
         double cx = worldPosition.getX() + 0.5, cz = worldPosition.getZ() + 0.5;
         Map<BlockPos, UUID> origins = new LinkedHashMap<>();
         FlightTracker tracker = level instanceof ServerLevel server ? FlightTracker.getIfPresent(server) : null;
@@ -364,6 +408,8 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
                 tracks.put(track.id(), track(track, threat, own.contains(track.id()), cx, cz));
             }
         }
+        for (RadarTrack t : tracks()) if (tracks.size() < HoloTracksPayload.MAX_TRACKS)
+            tracks.putIfAbsent(t.id(), track(t, t.threatens(defense.zoneX(), defense.zoneZ(), defense.zoneRadius()), own.contains(t.id()), cx, cz));
         List<HoloTracksPayload.Silo> siloInfo = new ArrayList<>();
         for (int i = 0; i < silos.size(); i++) {
             GlobalPos link = silos.get(i);
@@ -430,7 +476,45 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
             oz = Math.round(pinned.z() / step) * step;
         }
         return new HoloTracksPayload(worldPosition, now, (float) MissileConfig.gravity, list, radarInfo, siloInfo,
-                new HoloTracksPayload.Board(view, (float) ox, (float) oz, zoom, selectedSilo, selected, mark), shooterInfo, interceptInfo, defenseInfo);
+                new HoloTracksPayload.Board(view, (float) ox, (float) oz, zoom, selectedSilo, selected, mark), shooterInfo, interceptInfo, defenseInfo, orbital(now, cx, cz));
+    }
+
+    private HoloTracksPayload.Orbital orbital(long now, double cx, double cz) {
+        List<HoloTracksPayload.SatLauncher> launchers = new ArrayList<>();
+        for (int i = 0; i < silos.size(); i++) {
+            SiloControllerEntity silo = siloEntity(silos.get(i));
+            if (silo != null && silo.satelliteMode()) launchers.add(new HoloTracksPayload.SatLauncher((byte) i,
+                    (byte) (silo.satelliteKind() == null ? -1 : silo.satelliteKind().ordinal()),
+                    (byte) (silo.orbitReach() == null ? -1 : silo.orbitReach().ordinal()), (byte) silo.state().ordinal()));
+        }
+        String code = network();
+        List<HoloTracksPayload.Station> stationInfo = new ArrayList<>();
+        for (GlobalPos pos : stations) {
+            GroundStationBlockEntity station = station(pos);
+            stationInfo.add(new HoloTracksPayload.Station(pos.pos().getX() - worldPosition.getX(), pos.pos().getY(),
+                    pos.pos().getZ() - worldPosition.getZ(), station != null && station.operational(), station == null ? "" : station.code()));
+        }
+        List<HoloTracksPayload.Sat> sats = new ArrayList<>();
+        if (level instanceof ServerLevel server && LinkCode.complete(code)) {
+            FlightTracker flights = FlightTracker.get(server);
+            for (Satellite sat : SatelliteTracker.get(server).knownTo(code)) {
+                if (sats.size() >= HoloTracksPayload.MAX_SATELLITES) break;
+                Orbit orbit = sat.orbit();
+                var at = orbit.position(now);
+                var velocity = orbit.velocity(now);
+                long pass = orbit.nextPass(defense.zoneRadius() > 0 ? defense.zoneX() : cx,
+                        defense.zoneRadius() > 0 ? defense.zoneZ() : cz, now, 24000, MissileConfig.radarEarthRadius, 20);
+                int life = orbit.geostationary() || OrbitConfig.leoDecayPerDay <= 0 ? -1
+                        : (int) Math.min(Integer.MAX_VALUE, Math.max(0, Math.floor((orbit.altitude() - OrbitConfig.leoMinAltitude)
+                        * 24000 / OrbitConfig.leoDecayPerDay) + 1));
+                sats.add(new HoloTracksPayload.Sat(sat.id(), sat.designation(), (byte) sat.kind().ordinal(), (byte) orbit.type().ordinal(),
+                        sat.code().equals(code), (float) (at.x() - cx), (float) at.y(), (float) (at.z() - cz),
+                        (float) velocity.x(), (float) velocity.z(), (float) orbit.footprint(MissileConfig.radarEarthRadius),
+                        pass < 0 ? -1 : (int) (pass - now), life, (float) flights.interceptorPkToward(sat.id())));
+            }
+        }
+        if (stations.isEmpty() && launchers.isEmpty()) return HoloTracksPayload.Orbital.NONE;
+        return new HoloTracksPayload.Orbital(code, stationInfo, sats, launchers);
     }
 
     private static HoloTracksPayload.Track track(RadarTrack track, boolean threat, boolean own, double cx, double cz) {
@@ -603,6 +687,9 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
         ListTag savedBatteries = new ListTag();
         for (GlobalPos pos : batteries) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).result().ifPresent(savedBatteries::add);
         tag.put("Batteries", savedBatteries);
+        ListTag savedStations = new ListTag();
+        for (GlobalPos pos : stations) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).result().ifPresent(savedStations::add);
+        tag.put("Stations", savedStations);
         tag.put("Defense", defense.save());
         tag.putByte("Zoom", zoom);
         ListTag savedSilos = new ListTag();
@@ -614,6 +701,11 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        stations.clear();
+        for (Tag t : tag.getList("Stations", Tag.TAG_COMPOUND)) {
+            if (stations.size() < MAX_STATIONS) GlobalPos.CODEC.parse(NbtOps.INSTANCE, t).result()
+                    .filter(p -> !stations.contains(p)).ifPresent(stations::add);
+        }
         batteries.clear();
         for (Tag t : tag.getList("Batteries", Tag.TAG_COMPOUND)) {
             if (batteries.size() < MAX_BATTERIES) GlobalPos.CODEC.parse(NbtOps.INSTANCE, t).result()

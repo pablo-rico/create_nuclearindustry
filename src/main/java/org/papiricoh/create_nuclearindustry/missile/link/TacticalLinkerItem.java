@@ -62,7 +62,8 @@ public class TacticalLinkerItem extends Item {
             if (stored == null) { message(player, "empty"); return InteractionResult.SUCCESS; }
             GlobalPos target = stored.target();
             if (!level.dimension().equals(target.dimension())
-                    || !ShipSpace.closerThan(level, clicked, target.pos(), MissileConfig.tacticalLinkRange)) {
+                    || !(device instanceof org.papiricoh.create_nuclearindustry.missile.holo.HoloTableBlockEntity table
+                        ? table.inLinkRange(target.pos()) : ShipSpace.closerThan(level, clicked, target.pos(), MissileConfig.tacticalLinkRange))) {
                 message(player, "out_of_range"); return InteractionResult.SUCCESS;
             }
             message(player, device.toggleLink(target).name().toLowerCase(Locale.ROOT));

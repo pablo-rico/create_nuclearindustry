@@ -510,13 +510,17 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private void launchInterceptor(ServerLevel server) {
         Flight targetFlight = pendingTarget == null ? null : FlightTracker.get(server).get(pendingTarget);
         // Checked before anything is lifted out of the world: only then can the launch itself not fail.
-        if (targetFlight == null || rocket == null || !DefenseConfig.enabled) { state = State.READY; countdown = -1; pendingTarget = null; return; }
-        Optional<InterceptSolution> solution = DefenseCommand.solve(server, targetFlight, this, 0);
+        Satellite targetSatellite = targetFlight == null && pendingTarget != null ? SatelliteTracker.get(server).get(pendingTarget) : null;
+        if ((targetFlight == null && targetSatellite == null) || rocket == null || !DefenseConfig.enabled) { state = State.READY; countdown = -1; pendingTarget = null; return; }
+        Optional<InterceptSolution> solution = targetFlight != null ? DefenseCommand.solve(server, targetFlight, this, 0)
+                : AsatCommand.solve(server, targetSatellite, this, 0);
         if (solution.isEmpty()) { state = State.READY; countdown = -1; pendingTarget = null; return; }
         AssembledRocket assembled = rocket;
         MissileDesign design = InterceptorDesigns.killVehicle(design(), DefenseConfig.siloKillVehicleMass);
         Cargo cargo = assembleCargo(server, assembled);
-        if (DefenseCommand.launch(server, this, targetFlight, solution.get(), design, cargo.shape(), cargo.tag()) != null) {
+        Flight launched = targetFlight != null ? DefenseCommand.launch(server, this, targetFlight, solution.get(), design, cargo.shape(), cargo.tag())
+                : AsatCommand.launch(server, this, targetSatellite, network(), solution.get(), design, cargo.shape(), cargo.tag());
+        if (launched != null) {
             consume(assembled); rocket = null; rocketHeight = 0; state = State.LAUNCHED; error = "";
         } else { state = State.READY; }
         countdown = -1; pendingTarget = null; setChanged();

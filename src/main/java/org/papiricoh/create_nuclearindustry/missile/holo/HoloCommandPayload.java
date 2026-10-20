@@ -1,6 +1,10 @@
 package org.papiricoh.create_nuclearindustry.missile.holo;
 
 import io.netty.buffer.ByteBuf;
+import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
+import org.papiricoh.create_nuclearindustry.missile.orbit.*;
+import org.papiricoh.create_nuclearindustry.missile.flight.FlightFxBroadcaster;
+import org.papiricoh.create_nuclearindustry.missile.flight.FlightFxEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -26,9 +30,9 @@ import java.util.Locale;
 import java.util.UUID;
 
 /**
- * Commands are checked against the open table and its links. None fires a missile: missiles launch only on their controller's
- * redstone. Interceptors are the exception: {@link #ENGAGE} launches them at a tracked missile, from the table's batteries and
- * interceptor controllers. Actions and {@link Command}s are sent by number: add new ones at the end.
+ * Commands are checked against the open table and its links. Ground-target missiles launch only on their controller's redstone.
+ * The table orders interceptors and satellite launch vehicles directly. Actions and {@link Command}s are sent by number:
+ * add new ones at the end.
  */
 public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, int x, int z, int arg,
                                  @Nullable UUID flight, List<BlockPos> silos) implements CustomPacketPayload {
@@ -95,6 +99,18 @@ public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, in
         if (p.action == ABORT) return abort(level, table, p.flight);
         if (p.action == SALVO) return salvo(player, table, p.silos, p.arg);
         switch (p.action) {
+            case DEORBIT -> {
+                SatelliteTracker tracker = SatelliteTracker.get(level);
+                Satellite satellite = p.flight == null ? null : tracker.get(p.flight);
+                if (satellite == null) return Command.NO_SATELLITE;
+                if (!LinkCode.complete(table.network()) || !satellite.code().equals(table.network())) return Command.NOT_OWN;
+                tracker.remove(level, satellite.id(), SatelliteTracker.Removal.DEORBITED);
+                long now = level.getGameTime();
+                FlightFxBroadcaster.event(level, satellite.id(), FlightFxEvent.SATELLITE_REENTRY, 0,
+                        Flight.vec(satellite.orbit().position(now)), Flight.vec(satellite.orbit().velocity(now)));
+                return Command.OK;
+            }
+            case ENGAGE_SAT -> { return engageSatellite(level, table, p.flight, p.arg); }
             case ENGAGE -> {
                 if (p.flight == null || table.tracks().stream().noneMatch(t -> t.id().equals(p.flight))) return Command.NOT_TRACKED;
                 Flight target = FlightTracker.get(level).get(p.flight);
@@ -118,6 +134,8 @@ public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, in
             case CEASE -> { table.cease(); return Command.OK; }
         }
         GlobalPos link = GlobalPos.of(level.dimension(), p.silo);
+        if (p.action == UNLINK_STATION) return table.stations().contains(link) && table.unlink(link) ? Command.OK : Command.NOT_LINKED;
+        if (p.action == LAUNCH_SAT && !LinkCode.complete(table.network())) return Command.NO_STATION;
         if (p.action == UNLINK_BATTERY) return table.batteries().contains(link) && table.unlink(link) ? Command.OK : Command.NOT_LINKED;
         if (p.action == UNLINK_RADAR) return table.radars().contains(link) && table.unlink(link) ? Command.OK : Command.NOT_LINKED;
         if (!table.silos().contains(link)) return Command.NOT_LINKED;
@@ -127,6 +145,21 @@ public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, in
         if (problem != Command.OK) return problem;
         SiloControllerEntity controller = (SiloControllerEntity) level.getBlockEntity(p.silo);
         switch (p.action) {
+            case LAUNCH_SAT -> {
+                if (!controller.satelliteMode()) return Command.REFUSED;
+                Orbit.Bounds bounds = OrbitConfig.bounds(level.getWorldBorder());
+                if (!bounds.contains(p.x, p.z)) return Command.OUT_OF_BOUNDS;
+                long now = level.getGameTime();
+                Orbit orbit = (p.arg & 1) == 0 ? OrbitConfig.leo(p.x, p.z, Math.toRadians(p.arg >> 1), now, bounds)
+                        : OrbitConfig.geo(p.x, p.z, now, bounds);
+                return switch (controller.launchSatellite(player.getUUID(), orbit, table.network())) {
+                    case OK -> Command.OK;
+                    case NOT_READY -> Command.REFUSED;
+                    case NO_SATELLITE -> Command.NO_SATELLITE;
+                    case NO_ORBIT -> Command.NO_ORBIT;
+                    case FULL -> Command.ORBIT_FULL;
+                };
+            }
             case SELECT -> table.selectSilo(p.silo);
             case DESIGNATE -> {
                 table.selectSilo(p.silo);
@@ -148,6 +181,37 @@ public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, in
         if (!table.silos().contains(GlobalPos.of(level.dimension(), pos))) return Command.NOT_LINKED;
         if (!level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof SiloControllerEntity)) return Command.UNLOADED;
         return Command.OK;
+    }
+
+    private static Command engageSatellite(ServerLevel level, HoloTableBlockEntity table, @Nullable UUID id, int choice) {
+        String code = table.network();
+        SatelliteTracker tracker = SatelliteTracker.get(level);
+        if (id == null || !LinkCode.complete(code) || !tracker.known(id, code)) return Command.NOT_TRACKED;
+        Satellite target = tracker.get(id);
+        if (target.code().equals(code)) return Command.FRIENDLY;
+        if (target.orbit().geostationary() || target.orbit().altitude() > OrbitConfig.asatCeiling) return Command.NO_SOLUTION;
+        if (FlightTracker.get(level).interceptorsToward(id) > 0 || EngagementBoard.reserved(level, id) > 0) return Command.ALREADY_ENGAGED;
+        if (!DefenseConfig.enabled) return Command.NO_SHOOTER;
+        List<SiloControllerEntity> shooters = table.shooters(choice).stream().filter(s -> s instanceof SiloControllerEntity)
+                .map(s -> (SiloControllerEntity) s).toList();
+        if (shooters.stream().noneMatch(SiloControllerEntity::operational)) return Command.NO_SHOOTER;
+        if (shooters.stream().noneMatch(s -> s.operational() && s.readyRounds() > 0)) return Command.NO_AMMO;
+        SiloControllerEntity best = null;
+        double earliest = Double.POSITIVE_INFINITY;
+        for (SiloControllerEntity shooter : shooters) {
+            if (!shooter.operational() || shooter.readyRounds() <= 0) continue;
+            int delay = shooter.reactionTicks(target.orbit().position(level.getGameTime()).sub(shooter.launchPoint()).normalize());
+            var solution = AsatCommand.solve(level, target, shooter, delay);
+            if (solution.isPresent() && solution.get().arrivalTicks() + delay < earliest) {
+                best = shooter;
+                earliest = solution.get().arrivalTicks() + delay;
+            }
+        }
+        if (best == null) return Command.NO_SOLUTION;
+        best.setNetwork(code);
+        FireResult result = best.order(level, id, EngagementSource.MANUAL_TABLE);
+        if (result == FireResult.QUEUED) EngagementBoard.reserve(level, id, best.shooterPos(), level.getGameTime() + DefenseConfig.orderExpireTicks);
+        return result == FireResult.QUEUED || result == FireResult.LAUNCHED ? Command.OK : Command.REFUSED;
     }
 
     private static Command salvo(ServerPlayer player, HoloTableBlockEntity table, List<BlockPos> positions, int spacing) {

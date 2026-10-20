@@ -17,6 +17,7 @@ final class OrbitDataGen extends AreaDataGen {
     void lang() {
         OrbitLang.add();
         SatelliteSiloLang.add();
+        HoloSatelliteLang.add();
     }
 
     @Override

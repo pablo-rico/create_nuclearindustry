@@ -4,8 +4,8 @@ import static org.papiricoh.create_nuclearindustry.data.LangEntries.block;
 import static org.papiricoh.create_nuclearindustry.data.LangEntries.item;
 
 /**
- * Names shared by the satellites' pieces: the ground station, the satellites and their fairing, the Tactical Linker's new kind, the
- * command table's satellites tab and its new command results. Each piece's own vocabulary lives in its own class.
+ * Names shared by satellites, their fairing, ground stations and the Tactical Linker.
+ * Table commands live in HoloSatelliteLang.
  */
 final class OrbitLang {
     private OrbitLang() {
@@ -25,12 +25,5 @@ final class OrbitLang {
         LangEntries.add("satellite.create_nuclearindustry.kind.comms", "Communications", "Comunicaciones");
         LangEntries.add("satellite.create_nuclearindustry.orbit.leo", "Low orbit", "Órbita baja");
         LangEntries.add("satellite.create_nuclearindustry.orbit.geo", "Geostationary", "Geoestacionaria");
-        LangEntries.add("holo_table.create_nuclearindustry.screen.satellites", "SATELLITES", "SATÉLITES");
-        String command = "holo_table.create_nuclearindustry.command.";
-        LangEntries.add(command + "no_station", "No working ground station linked", "Ninguna estación terrestre operativa enlazada");
-        LangEntries.add(command + "no_satellite", "No such satellite", "No existe ese satélite");
-        LangEntries.add(command + "no_orbit", "That rocket cannot reach that orbit", "Ese cohete no alcanza esa órbita");
-        LangEntries.add(command + "orbit_full", "Too many satellites on this network", "Demasiados satélites en esta red");
-        LangEntries.add(command + "out_of_bounds", "Beyond the world border", "Fuera del borde del mundo");
     }
 }

@@ -43,7 +43,7 @@ public final class Flight {
     public static final long NO_CHUNK = Long.MIN_VALUE;
 
     /**
-     * What an interceptor is sent to do: meet flight {@code target} at {@code point} on tick {@code arrivalTick} of its own flight,
+     * What an interceptor is sent to do: meet missile or satellite {@code target} at {@code point} on tick {@code arrivalTick} of its own flight,
      * and destroy it with chance {@code pk}, drawn from {@code seed} when it gets there.
      *
      * @param launcher     the battery or launch controller that fired it, or null

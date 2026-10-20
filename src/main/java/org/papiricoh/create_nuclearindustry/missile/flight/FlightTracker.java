@@ -156,6 +156,13 @@ public final class FlightTracker extends SavedData {
         return count;
     }
 
+    /** Chance of the first interceptor flying at a target, or -1 when none is in flight. */
+    public double interceptorPkToward(UUID target) {
+        for (Flight flight : flights.values())
+            if (flight.intercept() != null && flight.intercept().target().equals(target)) return flight.intercept().pk();
+        return -1;
+    }
+
     /** Every interceptor in flight, in launch order. */
     public List<Flight> interceptors() {
         return flights.values().stream().filter(flight -> flight.kind() == Flight.Kind.INTERCEPTOR).toList();
@@ -296,6 +303,14 @@ public final class FlightTracker extends SavedData {
     private void resolve(ServerLevel level, Flight interceptor, BallisticModel.Params params) {
         Flight.Intercept intercept = interceptor.intercept();
         Flight target = intercept == null ? null : flights.get(intercept.target());
+        if (target == null && intercept != null) {
+            SatelliteTracker satellites = SatelliteTracker.getIfPresent(level);
+            Satellite satellite = satellites == null ? null : satellites.get(intercept.target());
+            if (satellite != null) {
+                resolveSatellite(level, interceptor, satellite, params);
+                return;
+            }
+        }
         if (target == null || target.kind() != Flight.Kind.MISSILE || target.flight().impacted()) {
             remove(level, interceptor, FlightFxEvent.INTERCEPTOR_MISS, interceptor.position(), interceptor.velocity());
             return;
@@ -335,6 +350,31 @@ public final class FlightTracker extends SavedData {
                             scattered, velocity.scale(0.5), i));
                 }
             }
+            remove(level, interceptor);
+        } else remove(level, interceptor, FlightFxEvent.INTERCEPTOR_MISS, interceptor.position(), interceptor.velocity());
+    }
+
+    private void resolveSatellite(ServerLevel level, Flight interceptor, Satellite satellite, BallisticModel.Params params) {
+        Flight.Intercept intercept = interceptor.intercept();
+        double distance = Double.POSITIVE_INFINITY;
+        Vec3 point = Flight.vec(satellite.orbit().position(level.getGameTime()));
+        for (int offset = -1; offset <= 1; offset++) {
+            MissileFlight flight = interceptor.flight();
+            V3 at = flight.burnedOut()
+                    ? BallisticModel.position(flight.burnoutPosition(), flight.burnoutVelocity(),
+                            flight.tick() - flight.burnoutTick() + offset, params.gravity())
+                    : BallisticModel.position(flight.position(), flight.velocity(), offset, params.gravity());
+            double tick = level.getGameTime() + offset;
+            V3 unwrapped = satellite.orbit().unwrapped(tick, interceptor.launchedAt());
+            V3 wrapped = satellite.orbit().position(tick);
+            V3 nearest = at.distance(unwrapped) < at.distance(wrapped) ? unwrapped : wrapped;
+            double miss = at.distance(nearest);
+            if (miss < distance) { distance = miss; point = Flight.vec(nearest); }
+        }
+        if (distance <= DefenseConfig.fuseRadius && new Random(intercept.seed()).nextDouble() < intercept.pk()) {
+            SatelliteTracker.get(level).remove(level, satellite.id(), SatelliteTracker.Removal.DESTROYED);
+            FlightFxBroadcaster.event(level, satellite.id(), FlightFxEvent.SATELLITE_KILLED, 0, point,
+                    Flight.vec(satellite.orbit().velocity(level.getGameTime())));
             remove(level, interceptor);
         } else remove(level, interceptor, FlightFxEvent.INTERCEPTOR_MISS, interceptor.position(), interceptor.velocity());
     }
