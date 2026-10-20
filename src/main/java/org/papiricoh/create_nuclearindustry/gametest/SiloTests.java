@@ -256,4 +256,16 @@ public class SiloTests {
             helper.succeed();
         });
     }
+
+    /** A single solid tank only lifts its rocket out of the silo: it says so rather than that it reaches 0 blocks. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void aRocketThatReachesNothingSaysWhy(GameTestHelper helper) {
+        SiloControllerEntity silo = aimed(helper, new SiloTestBuilder().tanks(1), helper.makeMockPlayer(GameType.SURVIVAL));
+        helper.runAfterDelay(10, () -> {
+            silo.validate();
+            helper.assertTrue(silo.reach() < 1, "one solid tank reaches nothing, got " + silo.reach());
+            helper.assertTrue("range_none".equals(silo.error()), "and says why, got " + silo.error() + " " + silo.errorMessage());
+            helper.succeed();
+        });
+    }
 }

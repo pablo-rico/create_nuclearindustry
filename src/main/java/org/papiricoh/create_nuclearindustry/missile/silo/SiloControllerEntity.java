@@ -248,7 +248,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         flightTicks = prediction.ticks();
         if (!prediction.onTarget()) {
             Vec3 start = Vec3.atBottomCenterOf(rocket.base()), at = designatedAim();
-            failWith("range", State.UNPREPARED, (int) Math.round(Math.hypot(at.x - start.x, at.z - start.z)), (int) Math.floor(reach));
+            if (reach < 1) failWith("range_none", State.UNPREPARED);
+            else failWith("range", State.UNPREPARED, (int) Math.round(Math.hypot(at.x - start.x, at.z - start.z)), (int) Math.floor(reach));
             return;
         }
         error = "";

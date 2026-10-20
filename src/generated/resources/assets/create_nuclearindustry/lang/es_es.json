@@ -2894,6 +2894,7 @@
   "silo.create_nuclearindustry.error.overstressed_detail": "Red cinética sobrecargada: el silo necesita %s SU",
   "silo.create_nuclearindustry.error.range": "Objetivo inalcanzable con este cohete (%s, %s, %s)",
   "silo.create_nuclearindustry.error.range_detail": "Objetivo fuera de alcance: está a %s bloques y este cohete llega a %s",
+  "silo.create_nuclearindustry.error.range_none_detail": "Este cohete no alcanza ningún objetivo: gasta el propelente en salir del silo. Añade depósitos o una etapa",
   "silo.create_nuclearindustry.error.spawn_protected": "Objetivo dentro del spawn protegido (%s, %s, %s)",
   "silo.create_nuclearindustry.error.speed": "Rotación insuficiente (%s, %s, %s)",
   "silo.create_nuclearindustry.error.speed_detail": "Necesita %s RPM por el eje de su cara exterior (gira a %s RPM)",

@@ -54,6 +54,9 @@ final class SiloLang {
         LangEntries.add("silo.create_nuclearindustry.error.range", "Target unreachable with this rocket (%s, %s, %s)", "Objetivo inalcanzable con este cohete (%s, %s, %s)");
         LangEntries.add("silo.create_nuclearindustry.error.range_detail", "Target out of reach: %s blocks away, this rocket reaches %s",
                 "Objetivo fuera de alcance: está a %s bloques y este cohete llega a %s");
+        LangEntries.add("silo.create_nuclearindustry.error.range_none_detail",
+                "This rocket reaches no target: it burns its propellant climbing out of the silo. Add tanks or a stage",
+                "Este cohete no alcanza ningún objetivo: gasta el propelente en salir del silo. Añade depósitos o una etapa");
         LangEntries.add("silo.create_nuclearindustry.error.speed_detail", "Needs %s RPM through the shaft on its outer face (turning at %s RPM)",
                 "Necesita %s RPM por el eje de su cara exterior (gira a %s RPM)");
         LangEntries.add("silo.create_nuclearindustry.error.overstressed_detail", "Kinetic network overstressed: the silo needs %s SU",

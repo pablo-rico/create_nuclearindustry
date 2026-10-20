@@ -236,16 +236,23 @@ public final class MissileFlight {
     }
 
     /**
-     * The furthest {@code design} can reach on level ground, blocks: the longest shot its guidance still
-     * cuts off on, found by halving the gap between what it reaches and what it does not.
+     * The furthest {@code design} can reach on level ground, blocks: the longest shot its guidance still cuts off on, or 0 if it
+     * reaches nothing. Shots are tried at ranges growing by a tenth from {@link #SHORTEST_TRY}, since a rocket may fail the
+     * shortest (lobbed high) yet reach far, then the gap after the furthest that lands is halved down to a block.
      */
     public static double maxRange(MissileDesign design, BallisticModel.Params params) {
         double low = 0;
-        double high = 1;
-        while (high < 1.0e6 && reaches(design, high, params)) {
-            low = high;
-            high *= 2;
+        double high = 0;
+        for (double range = SHORTEST_TRY; range <= LONGEST_TRY; range *= 1.1) {
+            if (reaches(design, range, params)) {
+                low = range;
+                high = 0;
+            } else if (low > 0 && high == 0) {
+                high = range;
+            }
         }
+        if (low == 0) return 0;
+        if (high == 0) return low;
         for (int i = 0; i < 30 && high - low > 1; i++) {
             double mid = (low + high) / 2;
             if (reaches(design, mid, params)) {
@@ -256,6 +263,9 @@ public final class MissileFlight {
         }
         return low;
     }
+
+    static final double SHORTEST_TRY = 8;
+    static final double LONGEST_TRY = 1.0e6;
 
     private static boolean reaches(MissileDesign design, double range, BallisticModel.Params params) {
         return predict(design, V3.ZERO, new V3(range, 0, 0), V3.ZERO, params).onTarget();

@@ -2894,6 +2894,7 @@
   "silo.create_nuclearindustry.error.overstressed_detail": "Kinetic network overstressed: the silo needs %s SU",
   "silo.create_nuclearindustry.error.range": "Target unreachable with this rocket (%s, %s, %s)",
   "silo.create_nuclearindustry.error.range_detail": "Target out of reach: %s blocks away, this rocket reaches %s",
+  "silo.create_nuclearindustry.error.range_none_detail": "This rocket reaches no target: it burns its propellant climbing out of the silo. Add tanks or a stage",
   "silo.create_nuclearindustry.error.spawn_protected": "Target inside protected spawn (%s, %s, %s)",
   "silo.create_nuclearindustry.error.speed": "Insufficient rotation (%s, %s, %s)",
   "silo.create_nuclearindustry.error.speed_detail": "Needs %s RPM through the shaft on its outer face (turning at %s RPM)",

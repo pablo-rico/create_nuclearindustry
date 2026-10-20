@@ -162,4 +162,15 @@ class MissileFlightTest {
         assertEquals(AccuracyModel.miss(cep, 7), AccuracyModel.miss(cep, 7), "a seed always misses the same way");
         assertEquals(V3.ZERO, AccuracyModel.miss(0, 7));
     }
+
+    @Test
+    void aRocketThatCannotLobShortStillReportsItsReach() {
+        // Too little propellant to lob a shot a block away, yet enough for a few hundred blocks.
+        MissileDesign design = new MissileDesign(List.of(new MissileDesign.Stage(1.0, 3.0, 0.24, 4.0)), 2.0, 0);
+        assertFalse(MissileFlight.predict(design, V3.ZERO, new V3(1, 0, 0), V3.ZERO, P).onTarget(), "the shortest shot fails");
+        double reach = MissileFlight.maxRange(design, P);
+        assertTrue(reach > 300, "but it reaches " + reach);
+        assertTrue(MissileFlight.predict(design, V3.ZERO, new V3(reach, 0, 0), V3.ZERO, P).onTarget(), "and lands at its reach");
+        assertFalse(MissileFlight.predict(design, V3.ZERO, new V3(reach + 5, 0, 0), V3.ZERO, P).onTarget(), "not past it");
+    }
 }
