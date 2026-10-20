@@ -6,8 +6,14 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 
 /**
  * The interceptor battery's moving parts and the interceptor round, drawn by their renderers. Must be created before models load
- * (mod constructor). Pivots are in blocks from the battery master's lowest corner; the canister's frame has the tubes along its
- * local +z, pointing up as its pitch rises.
+ * (mod constructor).
+ *
+ * <p>The battery's partials are modelled in the master block's frame (pixels, 16 a block, from its lowest corner) at rest: turret
+ * facing north and canister level, its tubes pointing north (-z). The renderer turns the turret and canister by the battery's yaw
+ * (degrees clockwise from north) about the vertical through {@link #TURRET_PIVOT}, and raises the canister by its pitch about the
+ * east-west axis through {@link #CANISTER_PIVOT}. {@link #TUBE_ROUND} and {@link #TUBE_COVER} are modelled for a tube on the
+ * canister's axis, at its mouth; the renderer shifts them by {@link #TUBE_OFFSETS}. The base under the turret is the master's
+ * block model, the same whichever way the battery faces. The round in flight is modelled two blocks long up +y, centred on x = z = 8.
  */
 public final class DefensePartials {
     /** The turret: turns about the vertical axis through {@link #TURRET_PIVOT}, modelled facing north. */
@@ -23,9 +29,9 @@ public final class DefensePartials {
 
     public static final float[] TURRET_PIVOT = {1.0f, 1.0f, 1.0f};
     public static final float[] CANISTER_PIVOT = {1.0f, 1.4375f, 1.0f};
-    /** Each tube's centre across the canister's face, (x, y) in the canister's frame, blocks. */
+    /** Each tube's centre across the canister's face, (x, y) in the canister's frame (x east, y up at rest), blocks. */
     public static final float[][] TUBE_OFFSETS = {{-0.25f, 0.25f}, {0.25f, 0.25f}, {-0.25f, -0.25f}, {0.25f, -0.25f}};
-    /** How far along the canister from its pivot a tube's mouth is, blocks. */
+    /** How far north of its pivot (at rest) a tube's mouth is, blocks. */
     public static final float TUBE_MOUTH = 1.1f;
 
     private DefensePartials() {
