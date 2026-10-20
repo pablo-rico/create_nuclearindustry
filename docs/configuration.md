@@ -1805,15 +1805,58 @@ cercanos, en cada tick. Nunca se envía el objetivo.
 En la config del cliente:
 
 - `rocket.effects`: plumas, estelas de humo, separación de etapas, reentrada y
-  sus sonidos.
+  sus sonidos. Apagado, el cliente no dibuja ni suena nada de los cohetes.
 - `rocket.detail` (0,25 a 2): cuánto humo y cuántas capas de pluma se dibujan.
+  Por debajo de 0,5 la pluma pierde su capa intermedia.
 - `rocket.farTrails`: sigue dibujando la estela y el brillo de un cohete más
-  allá de la distancia a la que se ven las entidades.
+  allá de la distancia a la que se ven las entidades. Apagado, no se dibuja nada
+  de un cohete a más de 768 bloques.
 - `rocket.trailSeconds` (5 a 120): segundos que dura la estela en el cielo.
 - `rocket.shake`: sacudida de cámara cerca de un despegue.
 - `radar.sounds`: pitidos del barrido, tonos de traza nueva y claxon del radar.
 - `radar.phosphor`: pantallas de radar como un fósforo, con ecos que brillan al
   pasar el barrido y se apagan hasta la siguiente vuelta.
+
+Qué se ve y se oye:
+
+- **Cuenta atrás**: en los últimos 3 segundos sale vapor por la boca del silo,
+  con su silbido.
+- **Despegue**: un destello llena el pozo, el humo sale a borbotones por la boca
+  de 3×3 mientras el cohete sube por él y un anillo de polvo se abre por el
+  suelo de 6 a 24 bloques. Ningún efecto cambia bloques.
+- **Pluma**: conos de llama en cada tobera de la etapa que arde. Un motor sólido
+  da una llama naranja y humeante; uno líquido, un núcleo blanco azulado más
+  limpio. A menos de 120 bloques sobre el lugar del lanzamiento se ven diamantes
+  de choque; al subir, el aire se enrarece y la pluma se abre hasta el techo de
+  la atmósfera (`missile.flight.atmosphereTop`).
+- **Estela**: una cinta de humo que se ensancha, deriva con el viento (más fuerte
+  en altura) y se desvanece en `rocket.trailSeconds`. De noche solo brilla el
+  tramo que ilumina la llama; al anochecer, la estela alta sigue iluminada por el
+  sol.
+- **Etapas**: destello y anillo al separarse, soplos de los motores de ullage y
+  encendido de la etapa siguiente; las etapas que caen echan humo. Al soltar la
+  ojiva, un soplo.
+- **Reentrada**: una vaina de plasma en la punta que crece con la velocidad y una
+  estela incandescente. Al caer una cabeza nuclear, solo se apaga su brillo: la
+  detonación tiene sus propios efectos. Una cabeza inerte o una etapa que cae
+  levantan polvo.
+- **Sonido**: la ignición y los demás golpes llegan tarde con la distancia (17,15
+  bloques por tick, como las explosiones). El rugido cercano y el retumbar lejano
+  se mezclan según la distancia y se oyen hasta unos 2,4 km.
+- **Estampido sónico**: los cohetes vuelan a unos pocos bloques por tick, por
+  debajo de la velocidad del sonido del juego, así que se usa un umbral propio:
+  una cabeza en reentrada o en fase terminal que pasa a menos de 64 bloques a más
+  de 4 bloques por tick suena una vez, en su punto más cercano.
+- **Lejos**: más allá de la distancia de renderizado, la estela, el brillo de la
+  llama y la silueta del cohete se siguen dibujando. Sin entidad cerca (más allá
+  de `missile.flight.showDistance`), se dibuja la silueta del cohete.
+- Con un shaderpack (Iris u Oculus) los efectos usan un aspecto más sencillo que
+  no depende de sus propios shaders.
+
+Para no frenar el cliente: como mucho 2000 partículas de cohete vivas, estelas
+para los 16 vuelos más cercanos y un punto de estela cada 5 ticks (256 por
+vuelo). A menos de 192 bloques, todo el detalle; hasta 768, una pluma y un humo
+más simples; más lejos, solo el brillo, la silueta y la estela.
 
 **Límites para servidores** (`missile.*`). El controlador comprueba los límites
 al preparar y al despegar; rechaza un lanzamiento no permitido e indica el

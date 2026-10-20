@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.missile.fx;
 
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -19,6 +20,16 @@ public final class RocketFxRegistry implements NuclearFeature {
 
     public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(Registries.PARTICLE_TYPE, Create_NuclearIndustry.MODID);
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registries.SOUND_EVENT, Create_NuclearIndustry.MODID);
+
+    /** A puff of a rocket's exhaust smoke, or of steam and dust round a launch; drawn and tinted by the rocket effects. */
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> ROCKET_SMOKE =
+            PARTICLES.register("rocket_smoke", () -> new SimpleParticleType(true));
+    /** A thick, billowing cloud of exhaust, as boils out of a silo at lift-off. */
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> ROCKET_SMOKE_DENSE =
+            PARTICLES.register("rocket_smoke_dense", () -> new SimpleParticleType(true));
+    /** A glowing fleck thrown from a solid motor's flame. */
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> EMBER =
+            PARTICLES.register("ember", () -> new SimpleParticleType(true));
 
     /** The engines lighting at lift-off, heard later the further off. */
     public static final DeferredHolder<SoundEvent, SoundEvent> ROCKET_IGNITION = sound("rocket_ignition");

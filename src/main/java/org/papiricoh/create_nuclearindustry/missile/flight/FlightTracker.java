@@ -180,9 +180,19 @@ public final class FlightTracker extends SavedData {
             if (f.stage() < stages) FlightEvents.fire(level, flight, FlightFxEvent.PAYLOAD_SEPARATION, f.stage());
         }
         MissileFlight.Phase phase = f.phase(params);
-        if (phase != flight.lastPhase && flight.lastPhase != null) {
-            if (phase == MissileFlight.Phase.REENTRY) FlightEvents.fire(level, flight, FlightFxEvent.REENTRY, f.stage());
-            else if (phase == MissileFlight.Phase.TERMINAL) FlightEvents.fire(level, flight, FlightFxEvent.TERMINAL, f.stage());
+        // Re-entry is coming back down into the air, not burning out below its top on the way up.
+        boolean inAir = f.burnedOut() && f.velocity().y() < 0 && f.position().y() <= params.atmosphereTop();
+        if (flight.lastPhase == null) {
+            // First tick after a launch or a load: take things as they are without firing.
+            flight.reentered = inAir;
+        } else {
+            if (inAir && !flight.reentered) {
+                flight.reentered = true;
+                FlightEvents.fire(level, flight, FlightFxEvent.REENTRY, f.stage());
+            }
+            if (phase == MissileFlight.Phase.TERMINAL && flight.lastPhase != MissileFlight.Phase.TERMINAL) {
+                FlightEvents.fire(level, flight, FlightFxEvent.TERMINAL, f.stage());
+            }
         }
         flight.lastPhase = phase;
     }

@@ -297,5 +297,122 @@
         "stream": false
       }
     ]
+  },
+  "rocket_ignition": {
+    "subtitle": "subtitle.create_nuclearindustry.rocket_ignition",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:rocket_ignition",
+        "stream": false
+      }
+    ]
+  },
+  "rocket_roar": {
+    "subtitle": "subtitle.create_nuclearindustry.rocket_roar",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:rocket_roar",
+        "stream": false
+      }
+    ]
+  },
+  "rocket_roar_distant": {
+    "subtitle": "subtitle.create_nuclearindustry.rocket_roar_distant",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:rocket_roar_distant",
+        "stream": false
+      }
+    ]
+  },
+  "stage_separation": {
+    "subtitle": "subtitle.create_nuclearindustry.stage_separation",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:stage_separation",
+        "stream": false
+      }
+    ]
+  },
+  "sonic_boom": {
+    "subtitle": "subtitle.create_nuclearindustry.sonic_boom",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:sonic_boom",
+        "stream": false
+      }
+    ]
+  },
+  "reentry_hiss": {
+    "subtitle": "subtitle.create_nuclearindustry.reentry_hiss",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:reentry_hiss",
+        "stream": false
+      }
+    ]
+  },
+  "debris_impact": {
+    "subtitle": "subtitle.create_nuclearindustry.debris_impact",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:debris_impact",
+        "stream": false
+      }
+    ]
+  },
+  "silo_vent": {
+    "subtitle": "subtitle.create_nuclearindustry.silo_vent",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:silo_vent",
+        "stream": false
+      }
+    ]
+  },
+  "radar_ping": {
+    "subtitle": "subtitle.create_nuclearindustry.radar_ping",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:radar_ping",
+        "stream": false
+      }
+    ]
+  },
+  "radar_new_track": {
+    "subtitle": "subtitle.create_nuclearindustry.radar_new_track",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:radar_new_track",
+        "stream": false
+      }
+    ]
+  },
+  "radar_klaxon": {
+    "subtitle": "subtitle.create_nuclearindustry.radar_klaxon",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:radar_klaxon",
+        "stream": false
+      }
+    ]
+  },
+  "radar_ack": {
+    "subtitle": "subtitle.create_nuclearindustry.radar_ack",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:radar_ack",
+        "stream": false
+      }
+    ]
+  },
+  "holo_blip": {
+    "subtitle": "subtitle.create_nuclearindustry.holo_blip",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:holo_blip",
+        "stream": false
+      }
+    ]
   }
 }
