@@ -7,8 +7,8 @@ issueTrackerURL="https://github.com/papiricoh/create_nuclearindustry/issues"
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-authors="${mod_authors}"
 logoFile="logo.png"
+authors="${mod_authors}"
 displayURL="https://github.com/papiricoh/create_nuclearindustry"
 description='''${mod_description}'''
 

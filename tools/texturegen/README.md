@@ -38,6 +38,7 @@ preserved, including the two-pixel tube shading period.
 | `fluids.py` | animated steam still/flow (+ `.mcmeta`) |
 | `gui.py` | container screen backgrounds (reactor and tokamak panels) |
 | `armor.py` | hazmat armor layers (64x32 humanoid UV) and mob effect icons |
+| `tex_logo.py` | mod icon (`src/main/resources/logo.png`, 64x64 painted, x8) and README banner (`docs/banner.png`) |
 
 `blocks.CUTOUT_BLOCKS` lists textures with transparent pixels: the reinforced turbine
 glass and its 64x64 connected-texture sheet (Create's RECTANGLE layout, 4x4 tiles,

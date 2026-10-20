@@ -5,6 +5,10 @@
 Released as a beta: back up your world before updating. Worlds from 1.1.0 load: every item and block keeps its id. See "Upgrading"
 below for what changes in existing worlds.
 
+### Mod icon
+- The mod now has its own icon in the mods list: a brass cogwheel around a
+  glowing core with a radiation trefoil.
+
 ### Missile defence
 - New **Interceptor Battery**: placed whole as a 2×2×2, driven by a shaft from
   below. Load its four tubes with **Interceptor Missiles** (made by sequenced

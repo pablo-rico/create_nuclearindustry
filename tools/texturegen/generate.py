@@ -22,6 +22,7 @@ import fluids  # noqa: E402
 import gui  # noqa: E402
 import items  # noqa: E402
 import particles  # noqa: E402
+import tex_logo  # noqa: E402
 
 DEFAULT_OUT = os.path.join("src", "main", "resources", "assets",
                            "create_nuclearindustry", "textures")
@@ -75,6 +76,10 @@ def main():
             json.dump(meta, fh, indent=2)
             fh.write("\n")
         made.append((p, im.crop((0, 0, 16, 16))))
+
+    # The mod icon (logoFile, Modrinth) and the README banner live outside the assets.
+    for parts, fn in sorted(tex_logo.LOGOS.items()):
+        write(os.path.join(*parts), fn())
 
     print("generated %d textures -> %s" % (len(made), args.out))
 
