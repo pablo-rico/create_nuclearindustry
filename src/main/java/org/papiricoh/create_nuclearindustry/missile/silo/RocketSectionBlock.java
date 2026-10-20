@@ -35,7 +35,8 @@ public class RocketSectionBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
     @Override protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState next, boolean moving) {
-        if (!state.is(next.getBlock()) && level.getBlockEntity(pos) instanceof RocketSectionEntity part) part.dropContents();
+        // A contraption moving the section takes its contents with it; only a section broken in place spills them.
+        if (!moving && !state.is(next.getBlock()) && level.getBlockEntity(pos) instanceof RocketSectionEntity part) part.dropContents();
         super.onRemove(state, level, pos, next, moving);
     }
 }

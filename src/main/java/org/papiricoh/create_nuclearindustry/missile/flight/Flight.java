@@ -62,6 +62,8 @@ public final class Flight {
     boolean reentered;
     /** The chunk forced so the impact lands in a loaded world, or {@link #NO_CHUNK}. */
     long forcedChunk = NO_CHUNK;
+    /** Its cargo could not be read back into a contraption (a removed block, say): shown as a missile instead; not saved. */
+    boolean cargoUnreadable;
     /** The puppet entity showing it, while one is shown; never saved. */
     @Nullable
     UUID puppet;

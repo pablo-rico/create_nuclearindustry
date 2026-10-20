@@ -278,7 +278,18 @@ public enum MonitorRow {
             r.value(E_STORED) <= 0 ? Tone.WARN : Tone.TEXT)),
     ANTIMATTER_BURN(TargetKind.ANTIMATTER_ENGINE, "eng_burn", r -> line(fmt("%.2f ng/min", r.value(E_FLOW)), -1, Tone.TEXT)),
     ANTIMATTER_FIELD(TargetKind.ANTIMATTER_ENGINE, "eng_field", r -> line(fmt("%.0f%%", r.value(E_ENERGY) * 100), r.value(E_ENERGY),
-            r.value(E_ENERGY) < 0.1f ? Tone.BAD : r.value(E_ENERGY) < 0.3f ? Tone.WARN : Tone.TEXT));
+            r.value(E_ENERGY) < 0.1f ? Tone.BAD : r.value(E_ENERGY) < 0.3f ? Tone.WARN : Tone.TEXT)),
+
+    // ------------------------------------------------------------------ missile radars
+    RADAR_TRACKS(TargetKind.RADAR, "radar_tracks", r -> !r.flag(MonitorReading.D_ONLINE) ? translated("radar_offline", Tone.DIM)
+            : line(fmt("%.0f", r.value(MonitorReading.D_TRACKS)), Math.min(1, r.value(MonitorReading.D_TRACKS) / 8f),
+            r.value(MonitorReading.D_TRACKS) > 0 ? Tone.WARN : Tone.GOOD)),
+    RADAR_THREATS(TargetKind.RADAR, "radar_threats", r -> line(fmt("%.0f", r.value(MonitorReading.D_THREATS)), -1,
+            r.value(MonitorReading.D_THREATS) > 0 ? Tone.BAD : Tone.GOOD)),
+    RADAR_ETA(TargetKind.RADAR, "radar_eta", r -> r.value(MonitorReading.D_TRACKS) <= 0 ? null
+            : line(fmt("%.0f s", r.value(MonitorReading.D_ETA)), -1, r.value(MonitorReading.D_THREATS) > 0 ? Tone.BAD : Tone.TEXT)),
+    RADAR_RANGE(TargetKind.RADAR, "radar_range", r -> r.value(MonitorReading.D_RANGE) <= 0 ? translated("radar_all", Tone.TEXT)
+            : line(fmt("%.0f m", r.value(MonitorReading.D_RANGE)), -1, Tone.TEXT));
 
     private static Line engineThrust(MonitorReading r) {
         if (r.flag(E_FAILED)) {

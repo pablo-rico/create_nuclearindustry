@@ -10,6 +10,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
+import org.papiricoh.create_nuclearindustry.missile.physics.PropellantModel;
 import org.papiricoh.create_nuclearindustry.missile.silo.RocketSectionEntity;
 import org.papiricoh.create_nuclearindustry.missile.silo.SiloControllerBlock;
 import org.papiricoh.create_nuclearindustry.missile.silo.SiloControllerEntity;
@@ -28,8 +32,39 @@ final class SiloTestBuilder {
     static final BlockPos CONTROLLER = FLOOR.north(2);
     static final BlockPos MOTOR = CONTROLLER.north();
 
+    /** Where {@link #port()} puts a fuel port in the wall: the middle of the east wall, one block up. */
+    static final BlockPos PORT = FLOOR.offset(2, 1, 0);
+
     private int tanks = 1;
     private int rpm = 64;
+    private boolean liquid;
+    private boolean fueled = true;
+    private boolean port;
+    private int stages = 1;
+
+    /** Stages of {@link #tanks} tanks each. */
+    SiloTestBuilder stages(int stages) {
+        this.stages = stages;
+        return this;
+    }
+
+    /** Tanks full of rocket fuel and liquid oxygen instead of cartridges. */
+    SiloTestBuilder liquid() {
+        this.liquid = true;
+        return this;
+    }
+
+    /** Empty tanks. */
+    SiloTestBuilder dry() {
+        this.fueled = false;
+        return this;
+    }
+
+    /** A fuel port at {@link #PORT} instead of a wall block. */
+    SiloTestBuilder port() {
+        this.port = true;
+        return this;
+    }
 
     SiloTestBuilder tanks(int tanks) {
         this.tanks = tanks;
@@ -43,7 +78,7 @@ final class SiloTestBuilder {
 
     /** The rocket's height in sections. */
     int height() {
-        return tanks + 3;
+        return stages * (tanks + 1) + 2;
     }
 
     SiloControllerEntity build(GameTestHelper helper) {
@@ -57,18 +92,22 @@ final class SiloTestBuilder {
             }
         }
         List<Block> column = new ArrayList<>();
-        column.add(SiloRegistry.ENGINE.get());
-        for (int i = 0; i < tanks; i++) column.add(SiloRegistry.TANK.get());
+        for (int stage = 0; stage < stages; stage++) {
+            column.add(SiloRegistry.ENGINE.get());
+            for (int i = 0; i < tanks; i++) column.add(SiloRegistry.TANK.get());
+        }
         column.add(SiloRegistry.GUIDANCE.get());
         column.add(SiloRegistry.WARHEAD.get());
         for (int i = 0; i < column.size(); i++) {
             BlockPos pos = FLOOR.above(i + 1);
             helper.setBlock(pos, column.get(i));
-            if (column.get(i) == SiloRegistry.TANK.get()) {
+            if (column.get(i) == SiloRegistry.TANK.get() && fueled) {
                 RocketSectionEntity tank = helper.getBlockEntity(pos);
-                tank.contents().setStackInSlot(0, new ItemStack(SiloRegistry.PROPELLANT.get()));
+                if (liquid) fill(tank);
+                else tank.contents().setStackInSlot(0, new ItemStack(SiloRegistry.PROPELLANT.get()));
             }
         }
+        if (port) helper.setBlock(PORT, SiloRegistry.FUEL_PORT.get());
         helper.setBlock(CONTROLLER, SiloRegistry.CONTROLLER.get().defaultBlockState().setValue(SiloControllerBlock.FACING, Direction.NORTH));
         Block motor = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("create", "creative_motor"));
         helper.setBlock(MOTOR, motor.defaultBlockState().setValue(BlockStateProperties.FACING, Direction.SOUTH));
@@ -76,6 +115,12 @@ final class SiloTestBuilder {
         motorEntity.generatedSpeed.setValue(rpm);
         clearExit(helper, height);
         return helper.getBlockEntity(CONTROLLER);
+    }
+
+    /** Fills a tank with both liquids. */
+    static void fill(RocketSectionEntity tank) {
+        tank.fuel().fill(new FluidStack(AllNuclearFluids.ROCKET_FUEL.get(), PropellantModel.TANK_CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.oxidizer().fill(new FluidStack(AllNuclearFluids.LIQUID_OXYGEN.get(), PropellantModel.TANK_CAPACITY), IFluidHandler.FluidAction.EXECUTE);
     }
 
     /** The test is encased in barriers: opens the 3×3 shaft above the nose up to the build limit, as a silo needs. */

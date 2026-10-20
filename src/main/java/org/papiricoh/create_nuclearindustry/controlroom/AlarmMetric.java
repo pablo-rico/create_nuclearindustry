@@ -707,6 +707,41 @@ public enum AlarmMetric implements INamedIconOptions {
             return reactorFormed(sample) && sample.value(MonitorReading.R_SHUTDOWN_STATE) != ShutdownState.OPERATING.ordinal()
                     && sample.value(MonitorReading.R_DECAY_HEAT) >= DECAY_HEAT_WATCHED;
         }
+    },
+    // Missile radars. Saved by ordinal: new metrics go after these.
+    /** A radar tracks at least one flight, wherever it is going. */
+    RADAR_TRACK(AllIcons.I_TARGET, TargetKind.RADAR) {
+        @Override
+        public String format(int setting) {
+            return "-";
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.D_TRACKS);
+        }
+
+        @Override
+        boolean tripped(float reading, int setting) {
+            return reading > 0;
+        }
+    },
+    /** A tracked flight is predicted to come down in the radar's defended zone. */
+    RADAR_THREAT(AllIcons.I_PRIORITY_VERY_HIGH, TargetKind.RADAR) {
+        @Override
+        public String format(int setting) {
+            return "-";
+        }
+
+        @Override
+        float reading(MonitorReading reading) {
+            return reading.value(MonitorReading.D_THREATS);
+        }
+
+        @Override
+        boolean tripped(float reading, int setting) {
+            return reading > 0;
+        }
     };
 
     /** Decay heat below this, MW, is too little for {@link #DECAY_HEAT_UNREMOVED} to watch. */
@@ -821,6 +856,7 @@ public enum AlarmMetric implements INamedIconOptions {
             case FUSION_GAIN_LOW -> TokamakScales.formatGain(value);
             case SHUTDOWN_MARGIN_LOW -> formatted("%.0f pcm", value);
             case SCRAM, RELIEF_OPEN, CONTAINMENT_OPEN, TOKAMAK_TRIP, COLD_SHUTDOWN -> value > 0 ? "1" : "0";
+            case RADAR_TRACK, RADAR_THREAT -> formatted("%.0f", value);
             default -> formatted("%.0f%%", value);
         };
     }

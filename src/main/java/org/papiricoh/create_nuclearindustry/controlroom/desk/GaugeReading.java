@@ -77,7 +77,10 @@ public enum GaugeReading {
     // Safe shutdown. Saved by name; new readings go last anyway.
     /** The cold shutdown margin with every rod in, up to {@link MonitorReading#SHUTDOWN_MARGIN_MAX}; a negative one reads 0. */
     REACTOR_SHUTDOWN_MARGIN(TargetKind.REACTOR, r -> r.value(R_COLD_MARGIN) / SHUTDOWN_MARGIN_MAX),
-    REACTOR_BORON(TargetKind.REACTOR, r -> r.value(R_BORON_PPM) / BORON_MAX);
+    REACTOR_BORON(TargetKind.REACTOR, r -> r.value(R_BORON_PPM) / BORON_MAX),
+    // Missile radars. Saved by name; new readings go last anyway.
+    RADAR_TRACKS(TargetKind.RADAR, r -> r.value(MonitorReading.D_TRACKS) / 8.0),
+    RADAR_THREATS(TargetKind.RADAR, r -> r.value(MonitorReading.D_THREATS) / 4.0);
 
     private final TargetKind kind;
     private final ToDoubleFunction<MonitorReading> fraction;

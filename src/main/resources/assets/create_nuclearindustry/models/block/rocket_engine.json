@@ -1,18 +1,17 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "body": "create_nuclearindustry:item/missile_body",
-    "top": "create_nuclearindustry:item/missile_top",
-    "dark": "create_nuclearindustry:block/launch_pad_rail",
-    "panel": "create_nuclearindustry:block/launch_pad_panel",
-    "base": "create_nuclearindustry:block/launch_pad_base",
-    "particle": "create_nuclearindustry:item/missile_body"
+    "particle": "create_nuclearindustry:block/rocket_engine_hull",
+    "hull": "create_nuclearindustry:block/rocket_engine_hull",
+    "nozzle": "create_nuclearindustry:block/rocket_engine_nozzle",
+    "ring": "create_nuclearindustry:block/rocket_ring"
   },
   "elements": [
     {
+      "name": "bay",
       "from": [
         3,
-        5,
+        6,
         3
       ],
       "to": [
@@ -21,119 +20,404 @@
         13
       ],
       "faces": {
-        "up": {
-          "texture": "#body"
-        },
-        "down": {
-          "texture": "#body"
-        },
         "north": {
-          "texture": "#body"
+          "texture": "#hull",
+          "uv": [
+            3,
+            0,
+            13,
+            10
+          ]
         },
         "south": {
-          "texture": "#body"
-        },
-        "east": {
-          "texture": "#body"
+          "texture": "#hull",
+          "uv": [
+            3,
+            0,
+            13,
+            10
+          ]
         },
         "west": {
-          "texture": "#body"
+          "texture": "#hull",
+          "uv": [
+            3,
+            0,
+            13,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            0,
+            13,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
         }
       }
     },
     {
+      "name": "ring",
       "from": [
-        4,
-        0,
-        4
+        2.5,
+        14.5,
+        2.5
       ],
       "to": [
-        12,
-        5,
-        12
+        13.5,
+        16,
+        13.5
       ],
       "faces": {
-        "up": {
-          "texture": "#dark"
-        },
-        "down": {
-          "texture": "#dark"
-        },
         "north": {
-          "texture": "#dark"
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            0,
+            13.5,
+            1.5
+          ]
         },
         "south": {
-          "texture": "#dark"
-        },
-        "east": {
-          "texture": "#dark"
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            0,
+            13.5,
+            1.5
+          ]
         },
         "west": {
-          "texture": "#dark"
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            0,
+            13.5,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            0,
+            13.5,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            13.5
+          ]
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            13.5
+          ]
         }
       }
     },
     {
+      "name": "throat",
+      "from": [
+        5,
+        4,
+        5
+      ],
+      "to": [
+        11,
+        6,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#nozzle",
+          "uv": [
+            5,
+            10,
+            11,
+            12
+          ]
+        },
+        "south": {
+          "texture": "#nozzle",
+          "uv": [
+            5,
+            10,
+            11,
+            12
+          ]
+        },
+        "west": {
+          "texture": "#nozzle",
+          "uv": [
+            5,
+            10,
+            11,
+            12
+          ]
+        },
+        "east": {
+          "texture": "#nozzle",
+          "uv": [
+            5,
+            10,
+            11,
+            12
+          ]
+        },
+        "up": {
+          "texture": "#nozzle",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "down": {
+          "texture": "#nozzle",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        }
+      }
+    },
+    {
+      "name": "bell",
+      "from": [
+        3.5,
+        0,
+        3.5
+      ],
+      "to": [
+        12.5,
+        4,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#nozzle",
+          "uv": [
+            3.5,
+            12,
+            12.5,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#nozzle",
+          "uv": [
+            3.5,
+            12,
+            12.5,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#nozzle",
+          "uv": [
+            3.5,
+            12,
+            12.5,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#nozzle",
+          "uv": [
+            3.5,
+            12,
+            12.5,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#nozzle",
+          "uv": [
+            3.5,
+            3.5,
+            12.5,
+            12.5
+          ]
+        },
+        "down": {
+          "texture": "#nozzle",
+          "uv": [
+            3.5,
+            3.5,
+            12.5,
+            12.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "fin_x",
       "from": [
         0,
         0,
-        7
+        7.5
       ],
       "to": [
         16,
-        8,
-        9
+        7,
+        8.5
       ],
       "faces": {
-        "up": {
-          "texture": "#dark"
-        },
-        "down": {
-          "texture": "#dark"
-        },
         "north": {
-          "texture": "#dark"
+          "texture": "#nozzle",
+          "uv": [
+            0,
+            9,
+            16,
+            16
+          ]
         },
         "south": {
-          "texture": "#dark"
-        },
-        "east": {
-          "texture": "#dark"
+          "texture": "#nozzle",
+          "uv": [
+            0,
+            9,
+            16,
+            16
+          ]
         },
         "west": {
-          "texture": "#dark"
+          "texture": "#nozzle",
+          "uv": [
+            7.5,
+            9,
+            8.5,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#nozzle",
+          "uv": [
+            7.5,
+            9,
+            8.5,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#nozzle",
+          "uv": [
+            0,
+            7.5,
+            16,
+            8.5
+          ]
+        },
+        "down": {
+          "texture": "#nozzle",
+          "uv": [
+            0,
+            7.5,
+            16,
+            8.5
+          ]
         }
       }
     },
     {
+      "name": "fin_z",
       "from": [
-        7,
+        7.5,
         0,
         0
       ],
       "to": [
-        9,
-        8,
+        8.5,
+        7,
         16
       ],
       "faces": {
-        "up": {
-          "texture": "#dark"
-        },
-        "down": {
-          "texture": "#dark"
-        },
         "north": {
-          "texture": "#dark"
+          "texture": "#nozzle",
+          "uv": [
+            7.5,
+            9,
+            8.5,
+            16
+          ]
         },
         "south": {
-          "texture": "#dark"
-        },
-        "east": {
-          "texture": "#dark"
+          "texture": "#nozzle",
+          "uv": [
+            7.5,
+            9,
+            8.5,
+            16
+          ]
         },
         "west": {
-          "texture": "#dark"
+          "texture": "#nozzle",
+          "uv": [
+            0,
+            9,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#nozzle",
+          "uv": [
+            0,
+            9,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#nozzle",
+          "uv": [
+            7.5,
+            0,
+            8.5,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#nozzle",
+          "uv": [
+            7.5,
+            0,
+            8.5,
+            16
+          ]
         }
       }
     }

@@ -75,6 +75,13 @@
     "create_nuclearindustry:accelerator_cryo_feed",
     "create_nuclearindustry:beam_interlock",
     "create_nuclearindustry:antiproton_injector",
-    "create_nuclearindustry:reactor_irradiation_channel"
+    "create_nuclearindustry:reactor_irradiation_channel",
+    "create_nuclearindustry:rocket_engine",
+    "create_nuclearindustry:rocket_tank",
+    "create_nuclearindustry:rocket_guidance",
+    "create_nuclearindustry:rocket_warhead",
+    "create_nuclearindustry:silo_controller",
+    "create_nuclearindustry:silo_wall",
+    "create_nuclearindustry:silo_fuel_port"
   ]
 }

@@ -172,6 +172,7 @@ final class MonitorDraw {
             case ANNIHILATION_GENERATOR -> new String[]{"gen_output", "antimatter"};
             case THERMAL_ENGINE -> new String[]{"eng_thrust", "eng_nozzle"};
             case ANTIMATTER_ENGINE -> new String[]{"eng_thrust", "antimatter"};
+            case RADAR -> new String[]{"radar_tracks", "radar_threats"};
             default -> new String[]{"exposure", "ground"};
         };
         return new Component[]{label(keys[0]), label(keys[1])};
@@ -211,6 +212,7 @@ final class MonitorDraw {
             case ANNIHILATION_GENERATOR -> "AG";
             case THERMAL_ENGINE -> "NTR";
             case ANTIMATTER_ENGINE -> "AMR";
+            case RADAR -> "RDR";
             default -> "RAD";
         };
     }

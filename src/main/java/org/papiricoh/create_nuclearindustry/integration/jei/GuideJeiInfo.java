@@ -45,7 +45,7 @@ public final class GuideJeiInfo {
         pages.add(items("warhead_parts", ExplosiveRegistry.EXPLOSIVE_LENS, ExplosiveRegistry.IMPLOSION_ASSEMBLY,
                 ExplosiveRegistry.FIRING_SET, ExplosiveRegistry.NEUTRON_INITIATOR, ExplosiveRegistry.BOMB_CASING,
                 ExplosiveRegistry.THERMONUCLEAR_CASING));
-        pages.add(new PlantJeiInfo.Page("missile_launch", Stream.of("silo_controller", "silo_wall", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead", "propellant_cartridge", "target_designator", "missile_radar")
+        pages.add(new PlantJeiInfo.Page("missile_launch", Stream.of("silo_controller", "silo_wall", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead", "propellant_cartridge", "silo_fuel_port", "star_tracker", "target_designator", "missile_radar", "radar_scope", "holo_table")
                 .map(path -> BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path)))
                 .map(ItemStack::new).toList(), List.of()));
         item(NUCLEAR_CANNON_SHELL).ifPresent(shell ->

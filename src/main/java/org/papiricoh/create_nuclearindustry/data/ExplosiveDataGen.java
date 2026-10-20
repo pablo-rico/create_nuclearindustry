@@ -36,16 +36,7 @@ final class ExplosiveDataGen extends AreaDataGen {
 
     @Override
     void lang() {
-        RadarLang.add();
-        SiloLang.add();
         RocketFxLang.add();
-        block("rocket_engine", "Rocket Engine", "Motor de cohete");
-        block("rocket_tank", "Rocket Propellant Tank", "Depósito de propelente");
-        block("rocket_guidance", "Rocket Guidance Module", "Módulo de guiado");
-        block("rocket_warhead", "Rocket Warhead", "Ojiva de cohete");
-        block("silo_controller", "Silo Controller", "Controlador de silo");
-        block("silo_wall", "Silo Wall", "Pared de silo");
-        item("propellant_cartridge", "Propellant Cartridge", "Cartucho de propelente");
         block("trinitite", "Trinitite", "Trinitita");
         block("charred_log", "Charred Log", "Tronco carbonizado");
         add("death.attack.create_nuclearindustry.nuclear_flash", "%1$s was burnt by a nuclear flash",
@@ -170,16 +161,7 @@ final class ExplosiveDataGen extends AreaDataGen {
 
     @Override
     void blockTags(NuclearBlockTagsProvider provider, HolderLookup.Provider lookup) {
-        provider.tagFor(BlockTags.MINEABLE_WITH_PICKAXE).add(ExplosiveRegistry.TRINITITE.get(),
-                org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.RADAR.get());
-        for (var block : java.util.List.of(
-                org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.ENGINE,
-                org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.TANK,
-                org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.GUIDANCE,
-                org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WARHEAD,
-                org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.CONTROLLER,
-                org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WALL))
-            provider.tagFor(BlockTags.MINEABLE_WITH_PICKAXE).add(block.get());
+        provider.tagFor(BlockTags.MINEABLE_WITH_PICKAXE).add(ExplosiveRegistry.TRINITITE.get());
         provider.tagFor(BlockTags.MINEABLE_WITH_AXE).add(ExplosiveRegistry.CHARRED_LOG.get());
     }
 

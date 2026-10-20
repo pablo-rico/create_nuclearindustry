@@ -23,7 +23,9 @@ public enum TargetKind {
     /** A {@link PlantReadable} nuclear thermal engine. */
     THERMAL_ENGINE,
     /** A {@link PlantReadable} antimatter engine. */
-    ANTIMATTER_ENGINE;
+    ANTIMATTER_ENGINE,
+    /** A {@link PlantReadable} missile radar. Stored by ordinal elsewhere: new kinds go last. */
+    RADAR;
 
     public String translationKey() {
         return "create_nuclearindustry.control_room.kind." + name().toLowerCase(java.util.Locale.ROOT);

@@ -54,7 +54,7 @@ public enum AnnunciatorPreset {
     public static AnnunciatorSeverity defaultSeverity(String metric) {
         return switch (metric) {
             case "SCRAM", "CORE_DAMAGE", "TOKAMAK_TRIP", "CONTAINMENT_PRESSURE", "CONTAINMENT_ACTIVITY", "CONTAINMENT_OPEN", "HYDROGEN",
-                 "SHUTDOWN_MARGIN_LOW", "CORE_LEVEL_LOW", "DECAY_HEAT_UNREMOVED" -> ALARM;
+                 "SHUTDOWN_MARGIN_LOW", "CORE_LEVEL_LOW", "DECAY_HEAT_UNREMOVED", "RADAR_THREAT" -> ALARM;
             case "COLD_SHUTDOWN" -> STATUS;
             default -> WARNING;
         };

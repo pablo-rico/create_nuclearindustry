@@ -128,6 +128,11 @@ public class AllNuclearFluids {
     public static final NuclearFluid THORIUM_FUEL_SOLUTION_FLUID = liquid("thorium_fuel_solution", 0xE08A8F4E, 1400, 1300, 320);
     public static final NuclearFluid URANIUM_233_NITRATE_FLUID = liquid("uranium_233_nitrate", 0xE0D8D24A, 1600, 1300, 320);
 
+    // ---------------------------------------------------------------- rocket propellants, pumped into a silo's rocket through its fuel port
+    // A refined kerosene-like fuel, and the oxygen it burns with, boiled off liquid air.
+    public static final NuclearFluid ROCKET_FUEL_FLUID = liquid("rocket_fuel", 0xE8D9B25C, 810, 1200, 300);
+    public static final NuclearFluid LIQUID_OXYGEN_FLUID = liquid("liquid_oxygen", 0xC88CC8FF, 1140, 190, 90);
+
     // ---------------------------------------------------------------- short accessors used across the mod
     public static final Supplier<FluidType> STEAM_TYPE = STEAM_FLUID.type();
     public static final Supplier<FluidType> HEAVY_WATER_TYPE = HEAVY_WATER_FLUID.type();
@@ -174,6 +179,8 @@ public class AllNuclearFluids {
     public static final Supplier<FlowingFluid> BRINE = BRINE_FLUID.source();
     public static final Supplier<FlowingFluid> THORIUM_FUEL_SOLUTION = THORIUM_FUEL_SOLUTION_FLUID.source();
     public static final Supplier<FlowingFluid> URANIUM_233_NITRATE = URANIUM_233_NITRATE_FLUID.source();
+    public static final Supplier<FlowingFluid> ROCKET_FUEL = ROCKET_FUEL_FLUID.source();
+    public static final Supplier<FlowingFluid> LIQUID_OXYGEN = LIQUID_OXYGEN_FLUID.source();
 
     // ---------------------------------------------------------------- world block and bucket (steam only)
     public static final Supplier<LiquidBlock> STEAM_BLOCK = BLOCKS.register("steam", () -> new LiquidBlock(

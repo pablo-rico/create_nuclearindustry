@@ -1765,6 +1765,17 @@ showDistance = 256
 [missile.fx]
 range = 2048
 farUpdateTicks = 4
+
+[missile.guidance]
+cepScale = 1.0
+
+[missile.rocket]
+extraBlockMass = 0.05
+
+[missile.radar]
+baseRange = 3000.0
+earthRadius = 16000.0
+networkRange = 4096.0
 ```
 
 El lanzamiento usa un cohete modular construido dentro de un silo de 5×5.
@@ -1793,6 +1804,21 @@ llegar a esa velocidad, el objetivo está fuera de su alcance y cae corto. El al
   estalle siempre.
 - Los misiles guardados en vuelo por versiones anteriores terminan su vuelo como
   antes.
+
+**Guiado** (`missile.guidance.cepScale`): multiplica el error circular probable
+de cada nivel de guiado (básico, inercial, estelar). 0 hace que todo cohete caiga
+exactamente en su blanco.
+
+**Cohete** (`missile.rocket.extraBlockMass`): masa que añade cada bloque que no es
+una sección del cohete (aletas y lo que vaya pegado), en las mismas unidades que
+las secciones.
+
+**Radar** (`missile.radar.*`): `baseRange` es el alcance, en bloques, contra un
+cuerpo de cohete desnudo con el radar a las RPM mínimas (crece con la raíz cuarta
+de las RPM y de la firma; 0 ve todo). `earthRadius` es el radio con el que se
+calcula el horizonte (0 lo quita). `networkRange` es la distancia máxima entre
+radares con el mismo código para compartir trazas (0 sin límite). La mesa
+holográfica usa lo que ven sus radares enlazados.
 
 **Efectos a distancia** (`missile.fx.*`): los jugadores a menos de `range`
 bloques (en horizontal) de un misil reciben su posición para dibujar su pluma,

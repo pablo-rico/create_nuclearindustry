@@ -92,6 +92,10 @@ public record MonitorReading(TargetKind kind, String status, float[] values, flo
     public static final int E_THRUST = 0, E_THROTTLE = 1, E_TEMPERATURE = 2, E_LIMIT = 3, E_WEAR = 4, E_FUEL = 5, E_FLOW = 6,
             E_FAILED = 7, E_STORED = 8, E_ENERGY = 9;
     public static final int ENGINE_VALUES = 10;
+    // Missile radars: tracks it sees, threats to its defended zone, seconds to the soonest impact (0 with none), working flag,
+    // threats not yet acknowledged, and its reach at the antenna's speed for a bare rocket body (blocks, or 0 when it sees all)
+    public static final int D_TRACKS = 0, D_THREATS = 1, D_ETA = 2, D_ONLINE = 3, D_UNACKED = 4, D_RANGE = 5;
+    public static final int RADAR_VALUES = 6;
 
     /** Graph ceiling for area exposure, in rad/s. */
     public static final float AREA_GRAPH_MAX = 10.0f;

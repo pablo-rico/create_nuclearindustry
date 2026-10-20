@@ -18,9 +18,15 @@ public final class RadarRegistry {
             () -> new BlockItem(RADAR.get(), new Item.Properties()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RadarBlockEntity>> ENTITY = AllNuclearEntities.ENTITIES.register("missile_radar",
             () -> BlockEntityType.Builder.of(RadarBlockEntity::new, RADAR.get()).build(null));
+    public static final DeferredHolder<Block, RadarScopeBlock> SCOPE = AllNuclearBlocks.BLOCKS.register("radar_scope",
+            () -> new RadarScopeBlock(BlockBehaviour.Properties.of().strength(3, 6).lightLevel(state -> 3)));
+    public static final DeferredHolder<Item, BlockItem> SCOPE_ITEM = AllNuclearItems.ITEMS.register("radar_scope",
+            () -> new BlockItem(SCOPE.get(), new Item.Properties()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RadarScopeBlockEntity>> SCOPE_ENTITY = AllNuclearEntities.ENTITIES.register("radar_scope",
+            () -> BlockEntityType.Builder.of((pos, state) -> new RadarScopeBlockEntity(RadarRegistry.SCOPE_ENTITY.get(), pos, state), SCOPE.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<RadarMenu>> MENU = AllNuclearGUIs.MENUS.register("missile_radar",
             () -> IMenuTypeExtension.create(RadarMenu::fromNetwork));
-    public static void register(IEventBus bus) { RadarPayload.register(bus); }
-    public static void fillCreativeTab(SectionedOutput output) { output.accept(ITEM.get()); }
+    public static void register(IEventBus bus) { RadarPayload.register(bus); RadarConfigurePayload.register(bus); }
+    public static void fillCreativeTab(SectionedOutput output) { output.accept(ITEM.get()); output.accept(SCOPE_ITEM.get()); }
     private RadarRegistry() {}
 }
