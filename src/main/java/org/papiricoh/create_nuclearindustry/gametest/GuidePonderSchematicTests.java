@@ -186,6 +186,40 @@ public class GuidePonderSchematicTests {
         helper.succeed();
     }
 
+    @GameTest(template = "gametest/orbit_ground_station_ponder", batch = BATCH)
+    public static void groundStationSchematicLoads(GameTestHelper helper) {
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.orbit.OrbitRegistry.GROUND_STATION.get(), new BlockPos(2, 2, 2));
+        helper.assertBlockPresent(createBlock("creative_motor"), new BlockPos(2, 1, 2));
+        for (int i = 0; i < 9; i++) {
+            BlockPos pos = new BlockPos(3 + i % 3, 2, 3 + i / 3);
+            helper.assertBlockPresent(HoloRegistry.TABLE.get(), pos);
+            helper.assertTrue(helper.getBlockState(pos).getValue(HoloTableBlock.PART) == HoloPart.of(i), "command table part " + i + " is formed");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/orbit_satellite_launch_ponder", batch = BATCH)
+    public static void satelliteLaunchSchematicLoads(GameTestHelper helper) {
+        for (int x = 2; x <= 4; x++) for (int z = 2; z <= 4; z++)
+            helper.assertBlockPresent(SiloRegistry.LAUNCH_BASE.get(), new BlockPos(x, 1, z));
+        helper.assertBlockPresent(SiloRegistry.CONTROLLER.get(), new BlockPos(5, 1, 3));
+        helper.assertBlockPresent(SiloRegistry.SATELLITE_FAIRING.get(), new BlockPos(3, 9, 3));
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.orbit.OrbitRegistry.GROUND_STATION.get(), new BlockPos(5, 2, 7));
+        java.util.List<RocketComposition.Section> column = new java.util.ArrayList<>();
+        for (int y = 2; y <= 9; y++)
+            if (helper.getBlockState(new BlockPos(3, y, 3)).getBlock() instanceof RocketSectionBlock section)
+                column.add(section.section);
+        boolean valid;
+        try {
+            RocketComposition composition = RocketComposition.parse(column);
+            valid = composition.satellite() && composition.stageStarts().size() == 2;
+        } catch (RocketComposition.Invalid e) { valid = false; }
+        helper.assertTrue(valid, "the scene's rocket is a valid two-stage launch vehicle: " + column);
+        for (int i = 0; i < 9; i++)
+            helper.assertBlockPresent(HoloRegistry.TABLE.get(), new BlockPos(1 + i % 3, 2, 6 + i / 3));
+        helper.succeed();
+    }
+
     @GameTest(template = "gametest/weapons_holo_table_ponder", batch = BATCH)
     public static void holoTableSchematicLoads(GameTestHelper helper) {
         var centre = helper.getBlockState(new BlockPos(2, 2, 2));

@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class GuidePonderTextTest {
     private static final Path SCENE_DIR = Path.of("src/main/java/org/papiricoh/create_nuclearindustry/infrastructure/ponder/scenes");
-    private static final List<String> SCENE_CLASSES = List.of("CivilDefenseScenes", "WeaponsScenes", "DefenseScenes", "FuelCycleScenes", "FanTreatmentScenes",
+    private static final List<String> SCENE_CLASSES = List.of("CivilDefenseScenes", "WeaponsScenes", "DefenseScenes", "OrbitScenes", "FuelCycleScenes", "FanTreatmentScenes",
             "AcceleratorScenes", "AntimatterScenes", "IsotopeScenes", "MaintenanceScenes", "ControlRoomScenes", "PropulsionScenes");
     private static final Path REGISTRATION = Path.of("src/main/java/org/papiricoh/create_nuclearindustry/infrastructure/ponder/GuidePonderScenes.java");
     private static final Path LANG = Path.of("src/generated/resources/assets/create_nuclearindustry/lang");

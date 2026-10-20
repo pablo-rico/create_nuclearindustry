@@ -53,6 +53,8 @@ public final class GuidePonderScenes {
         boards.put(GuidePonderText.HOLO_TABLE, WeaponsScenes::holoTable);
         boards.put(GuidePonderText.INTERCEPTOR_BATTERY, DefenseScenes::interceptorBattery);
         boards.put(GuidePonderText.INTERCEPTOR_SILO, DefenseScenes::interceptorSilo);
+        boards.put(GuidePonderText.GROUND_STATION, org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.OrbitScenes::groundStation);
+        boards.put(GuidePonderText.SATELLITE_LAUNCH, org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.OrbitScenes::satelliteLaunch);
         boards.put(GuidePonderText.FUEL_CYCLE, FuelCycleScenes::oreToFuel);
         boards.put(GuidePonderText.ACID_LEACHING, FanTreatmentScenes::acidLeaching);
         boards.put(GuidePonderText.IRRADIATION, FanTreatmentScenes::irradiation);

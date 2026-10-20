@@ -210,6 +210,36 @@ public final class GuidePonderText {
                             "El interceptor sale al encuentro de misiles por encima de la atmósfera y vuela una sola vez. Tras el lanzamiento, reconstruye el cohete sobre la base para la próxima interceptación.")),
             List.of("rocket_kill_vehicle", "interceptor_battery", "interceptor", "silo_controller", "holo_table", "tactical_linker"));
 
+    public static final Scene GROUND_STATION = new Scene("ground_station", "orbit_ground_station",
+            line("Satellite Ground Station", "Estación terrestre de satélites"),
+            List.of(
+                    line("A Satellite Ground Station talks to the satellites of its network. Drive it with a shaft from below at 32 RPM or more.",
+                            "Una Estación terrestre de satélites habla con los satélites de su red. Muévela con un eje desde abajo a 32 RPM o más."),
+                    line("Right-click it to set its network: a four-character link code, like a radar's. A satellite belongs to the network of the table that launches it.",
+                            "Haz clic derecho para fijar su red: un código de enlace de cuatro caracteres, como el de un radar. Un satélite es de la red de la mesa que lo lanza."),
+                    line("While it turns, its dish follows the satellite of its network in view, and sweeps the sky when there is none.",
+                            "Mientras gira, su antena sigue al satélite de su red que tenga a la vista, y barre el cielo cuando no hay ninguno."),
+                    line("Link it to a Holographic Command Table with the Tactical Linker. The table takes the network of its first working station and passes it on to its launch controllers.",
+                            "Enlázala a una Mesa holográfica de mando con el Enlazador táctico. La mesa toma la red de su primera estación que funcione y se la pasa a sus controladores de lanzamiento."),
+                    line("Goggles and Display Links show its network, how many satellites it has and when the next one passes over.",
+                            "Las gafas y un Display Link muestran su red, cuántos satélites tiene y cuándo pasa el próximo.")),
+            List.of("ground_station", "early_warning_satellite", "comms_satellite"));
+
+    public static final Scene SATELLITE_LAUNCH = new Scene("satellite_launch", "orbit_satellite_launch",
+            line("Putting a Satellite in Orbit", "Poner un satélite en órbita"),
+            List.of(
+                    line("Top a rocket with a Satellite Fairing instead of a warhead, and put an Early Warning or a Communications Satellite in it by hand, funnel or arm.",
+                            "Remata un cohete con una Cofia de satélite en lugar de una ojiva y mete en ella un Satélite de alerta temprana o de comunicaciones a mano, con embudo o con brazo."),
+                    line("Two full liquid stages reach a low orbit; three, a geostationary one. The controller's console shows the highest orbit its rocket reaches.",
+                            "Dos etapas líquidas llenas llegan a la órbita baja; tres, a la geoestacionaria. La consola del controlador muestra la órbita más alta que alcanza su cohete."),
+                    line("It stands READY without a target and ignores redstone: only a command table with a ground station can launch it.",
+                            "Queda LISTO sin blanco e ignora la redstone: solo una mesa de mando con estación terrestre puede lanzarlo."),
+                    line("Link the controller and a ground station to the table. On its Satellites tab, choose the orbit, mark on the map where the satellite will pass, and launch.",
+                            "Enlaza el controlador y una estación terrestre a la mesa. En su pestaña Satélites elige la órbita, marca en el mapa por dónde pasará el satélite y lánzalo."),
+                    line("The rocket climbs, drops its stages and lets the satellite go far above. Low satellites cross the whole world and slowly come down; geostationary ones stay put.",
+                            "El cohete sube, suelta sus etapas y deja el satélite muy arriba. Los de órbita baja cruzan todo el mundo y van bajando poco a poco; los geoestacionarios se quedan fijos.")),
+            List.of("rocket_satellite_fairing", "silo_controller", "holo_table"));
+
     // ------------------------------------------------------------------ fuel cycle and fan treatments
 
     public static final Scene FUEL_CYCLE = new Scene("fuel_cycle", "fuel_cycle",
@@ -573,7 +603,7 @@ public final class GuidePonderText {
             List.of("antimatter_engine", "magnetic_coil", "magnetic_nozzle"));
 
     /** Every guide scene, in the order they are registered. */
-    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, LAUNCH_BASE, MISSILE, SILO_LAUNCH, RADAR, HOLO_TABLE, INTERCEPTOR_BATTERY, INTERCEPTOR_SILO, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
+    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, LAUNCH_BASE, MISSILE, SILO_LAUNCH, RADAR, HOLO_TABLE, INTERCEPTOR_BATTERY, INTERCEPTOR_SILO, GROUND_STATION, SATELLITE_LAUNCH, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
             ACCELERATOR_LINAC, ACCELERATOR_SYNCHROTRON, ANTIMATTER_CONTAINMENT, ANTIMATTER_GENERATOR, ANTIPROTON_INJECTOR,
             ISOTOPES, MAINTENANCE, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO,
             THERMAL_ENGINE, ANTIMATTER_ENGINE);
