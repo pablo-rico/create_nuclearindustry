@@ -1787,6 +1787,38 @@ selfDestructPower = 2.0
 
 [missile.warhead]
 conventionalMaxPower = 16.0
+
+[missile.defense]
+enabled = true
+autoIntervalTicks = 10
+trackMinSeconds = 2
+engageOwnMissiles = false
+fuseRadius = 6.0
+pkScale = 1.0
+maxPk = 0.95
+killExplosionPower = 1.5
+debris = true
+solverStepTicks = 4
+orderExpireTicks = 100
+
+[missile.defense.battery]
+range = 600.0
+minAltitude = 48.0
+ceiling = 480.0
+deltaV = 9.0
+acceleration = 0.5
+ejectSpeed = 0.6
+reloadSeconds = 3
+slewDegreesPerRpm = 0.05
+stressImpact = 16.0
+basePk = 0.75
+terminalPkFactor = 0.7
+
+[missile.defense.silo]
+basePk = 0.85
+killVehicleMass = 0.4
+launchDelayTicks = 40
+maxRange = 8000.0
 ```
 
 El lanzamiento usa un cohete modular construido dentro de un silo de 5×5.
@@ -1843,6 +1875,36 @@ si su posición está cargada; la ojiva nunca estalla.
 **Ojiva convencional** (`missile.warhead.conventionalMaxPower`): potencia máxima
 de la explosión de una ojiva cargada con TNT (la de un bloque de TNT es 4). Crece
 con la raíz cúbica de la TNT cargada.
+
+**Defensa antimisiles** (`missile.defense.*`): los interceptores salen de una
+batería de interceptores o de un controlador de lanzamiento cuyo cohete lleva un
+vehículo de intercepción. Nunca atacan un misil que aún acelera. `enabled` los
+desactiva todos.
+
+- Modo automático: cada `autoIntervalTicks` ticks la batería o la mesa busca
+  misiles que lleven al menos `trackMinSeconds` segundos rastreados, que no sean
+  propios (salvo con `engageOwnMissiles`) y cuyo impacto previsto caiga en su zona
+  defendida. Una orden que su lanzador no cumple en `orderExpireTicks` ticks se
+  descarta.
+- El rumbo del interceptor se busca probando puntos de encuentro cada
+  `solverStepTicks` ticks y se queda con el más temprano. Al llegar, si pasa a
+  menos de `fuseRadius` bloques del misil, tira su probabilidad de destrucción:
+  la base de su lanzador multiplicada por `pkScale` y por lo que la reduzca (fase
+  terminal, encuentro de lado, límite de alcance, pocos radares o una traza
+  reciente), y nunca mayor que `maxPk`.
+- Un misil destruido estalla en el aire con potencia `killExplosionPower` si esa
+  zona está cargada (0 ninguna) y, con `debris`, sus restos caen al suelo. Su
+  ojiva nunca estalla ni contamina.
+- Batería (`battery.*`): intercepta dentro de la atmósfera, a menos de `range`
+  bloques en horizontal y entre `minAltitude` y `ceiling` bloques sobre ella. Su
+  interceptor sale del tubo a `ejectSpeed` bloques/tick y su motor le da
+  `deltaV` bloques/tick con una aceleración inicial de `acceleration`. Cada tubo
+  tarda `reloadSeconds` segundos en estar listo tras cargarlo. Gira
+  `slewDegreesPerRpm` grados por tick por cada RPM, consume `stressImpact` y su
+  probabilidad base es `basePk` (`terminalPkFactor` de ella en fase terminal).
+- Silo interceptor (`silo.*`): intercepta por encima de la atmósfera hasta
+  `maxRange` bloques, cuenta `launchDelayTicks` ticks antes de lanzar, su vehículo
+  de intercepción pesa `killVehicleMass` y su probabilidad base es `basePk`.
 
 **Efectos a distancia** (`missile.fx.*`): los jugadores a menos de `range`
 bloques (en horizontal) de un misil reciben su posición para dibujar su pluma,
