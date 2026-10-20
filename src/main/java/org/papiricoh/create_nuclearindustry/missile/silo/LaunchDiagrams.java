@@ -13,8 +13,10 @@ import static org.papiricoh.create_nuclearindustry.missile.silo.LaunchDiagram.*;
 /** Server snapshot for an open controller; expensive reach estimates live only as long as the rocket. */
 public final class LaunchDiagrams {
     private record ReachKey(MissileDesign design, BallisticModel.Params params) {}
-    private record CachedReach(ReachKey key, List<Double> ranges) {}
-    private static final Map<AssembledRocket, CachedReach> REACH = new WeakHashMap<>();
+    /** Reach per design, most recent last; a few dozen designs cover every console open at once. */
+    private static final Map<ReachKey, List<Double>> REACH = new LinkedHashMap<>(16, 0.75f, true) {
+        @Override protected boolean removeEldestEntry(Map.Entry<ReachKey, List<Double>> eldest) { return size() > 32; }
+    };
 
     private LaunchDiagrams() {}
 
@@ -74,6 +76,12 @@ public final class LaunchDiagrams {
         }
         AssembledRocket rocket = controller.rocket();
         MissileDesign design = controller.currentDesign();
+        if (rocket == null && composition != null && error.startsWith("charge")) {
+            // Only the warhead is wrong: the stages still fly as built, which helps more than an empty table.
+            RocketValidator.Result preview = RocketValidator.preview(level, base);
+            rocket = preview.rocket();
+            design = rocket == null ? null : rocket.design(0);
+        }
         List<StageInfo> stages = new ArrayList<>();
         if (rocket != null && design != null && composition != null) {
             List<StageStats> stats = StageStats.of(design, MissileConfig.gravity);
@@ -106,13 +114,13 @@ public final class LaunchDiagrams {
 
     private static List<Double> ranges(AssembledRocket rocket, MissileDesign design) {
         ReachKey key = new ReachKey(design, MissileConfig.flightParams());
-        CachedReach cached = REACH.get(rocket);
-        if (cached != null && cached.key.equals(key)) return cached.ranges;
+        List<Double> cached = REACH.get(key);
+        if (cached != null) return cached;
         List<Double> ranges = new ArrayList<>();
         for (int k = 1; k <= design.stages().size(); k++) ranges.add(MissileFlight.maxRange(
                 new MissileDesign(design.stages().subList(0, k), design.payloadMass(), design.cep()), key.params));
         List<Double> result = List.copyOf(ranges);
-        REACH.put(rocket, new CachedReach(key, result));
+        REACH.put(key, result);
         return result;
     }
 

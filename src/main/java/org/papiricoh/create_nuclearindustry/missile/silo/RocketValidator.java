@@ -15,6 +15,16 @@ public final class RocketValidator {
         public boolean valid() { return rocket != null; }
     }
     public static Result validate(Level level, BlockPos base) {
+        return validate(level, base, false);
+    }
+    /**
+     * As {@link #validate(Level, BlockPos)}, but a warhead loaded wrongly still yields the rocket (with that error), so the
+     * console can show how its stages would fly while the player fixes the charge. Never launch from it.
+     */
+    public static Result preview(Level level, BlockPos base) {
+        return validate(level, base, true);
+    }
+    private static Result validate(Level level, BlockPos base, boolean previewOnly) {
         List<RocketSectionEntity> parts = new ArrayList<>();
         List<RocketComposition.Section> sections = new ArrayList<>();
         List<String> visuals = new ArrayList<>();
@@ -47,6 +57,10 @@ public final class RocketValidator {
             } catch (PropellantModel.Invalid e) { return new Result(null, e.reason, base.above(first + e.tank)); }
         }
         String why = payload == null ? "warhead" : WarheadBay.validate(payload.contents());
+        if (why != null && why.startsWith("charge") && previewOnly)
+            return new Result(new AssembledRocket(UUID.nameUUIDFromBytes(identities.toString().getBytes(StandardCharsets.UTF_8)), base, composition,
+                    new MissileDesign(stages.stream().map(PropellantModel.Stage::design).toList(), payload.payloadMass(), 0), payload.warhead(), visuals,
+                    identities, guidance, stages.stream().map(PropellantModel.Stage::kind).toList()), why, payload.getBlockPos());
         if (why != null) return new Result(null, why, payload == null ? base.above(sections.size() - 1) : payload.getBlockPos());
         UUID id = UUID.nameUUIDFromBytes(identities.toString().getBytes(StandardCharsets.UTF_8));
         MissileDesign design = new MissileDesign(stages.stream().map(PropellantModel.Stage::design).toList(), payload.payloadMass(), 0);
