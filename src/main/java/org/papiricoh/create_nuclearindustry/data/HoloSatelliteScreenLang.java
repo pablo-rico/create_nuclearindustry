@@ -103,6 +103,7 @@ final class HoloSatelliteScreenLang {
         LangEntries.add(key + "empty", "empty", "vacía");
         LangEntries.add(key + "reach", "Highest orbit: %s", "Órbita más alta: %s");
         LangEntries.add(key + "reach_none", "none, too little delta-v", "ninguna, poco delta-v");
+        LangEntries.add(key + "delta_v", "Delta-v %s: low orbit %s, geostationary %s", "Delta-v %s: baja %s, geoestacionaria %s");
         LangEntries.add(key + "launch_hint", "Launched from a command table's SATELLITES tab: anchor and orbit are chosen there.",
                 "Se lanza desde la pestaña SATÉLITES de una mesa de mando: allí se eligen el anclaje y la órbita.");
         LangEntries.add(key + "gps", "GPS", "GPS");

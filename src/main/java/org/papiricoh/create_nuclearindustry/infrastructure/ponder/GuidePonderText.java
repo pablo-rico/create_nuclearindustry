@@ -230,8 +230,8 @@ public final class GuidePonderText {
             List.of(
                     line("Top a rocket with a Satellite Fairing instead of a warhead, and put an Early Warning or a Communications Satellite in it by hand, funnel or arm.",
                             "Remata un cohete con una Cofia de satélite en lugar de una ojiva y mete en ella un Satélite de alerta temprana o de comunicaciones a mano, con embudo o con brazo."),
-                    line("Two full liquid stages reach a low orbit; three, a geostationary one. The controller's console shows the highest orbit its rocket reaches.",
-                            "Dos etapas líquidas llenas llegan a la órbita baja; tres, a la geoestacionaria. La consola del controlador muestra la órbita más alta que alcanza su cohete."),
+                    line("Three full solid stages or two liquid ones reach a low orbit; a geostationary one takes three stages with liquid. The controller's console shows its rocket's delta-v and the highest orbit it reaches.",
+                            "Tres etapas sólidas llenas o dos líquidas llegan a la órbita baja; la geoestacionaria pide tres etapas con líquido. La consola del controlador muestra el delta-v de su cohete y la órbita más alta que alcanza."),
                     line("It stands READY without a target and ignores redstone: only a command table with a ground station can launch it.",
                             "Queda LISTO sin blanco e ignora la redstone: solo una mesa de mando con estación terrestre puede lanzarlo."),
                     line("Link the controller and a ground station to the table. On its Satellites tab, choose the orbit, mark on the map where the satellite will pass, and launch.",

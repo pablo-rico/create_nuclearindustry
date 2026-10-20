@@ -1823,8 +1823,8 @@ maxRange = 8000.0
 [missile.orbit]
 enabled = true
 satelliteMass = 1.0
-leoDeltaV = 10.5
-geoDeltaV = 12.5
+leoDeltaV = 9.5
+geoDeltaV = 11.5
 insertionAltitude = 1200.0
 leoAltitude = 1600.0
 geoAltitude = 12000.0
@@ -1930,7 +1930,8 @@ en órbita. `enabled` los desactiva todos.
 
 - Órbita: la cofia y su satélite pesan `satelliteMass`. El cohete necesita poder
   darle `leoDeltaV` bloques/tick para la órbita baja y `geoDeltaV` para la
-  geoestacionaria (dos etapas líquidas llenas dan unos 11; tres, unos 13).
+  geoestacionaria (tres etapas sólidas llenas dan unos 10; dos líquidas, unos 11;
+  tres líquidas, unos 13).
 - Órbita baja: va a `leoAltitude` bloques sobre el mar y avanza `leoSpeed`
   bloques/tick en línea recta. Al salir por un lado del borde del mundo vuelve a
   entrar por el contrario, así que con el tiempo pasa por todo el mapa. Si el

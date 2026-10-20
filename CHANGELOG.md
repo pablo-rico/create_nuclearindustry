@@ -5,7 +5,8 @@
 ### Satellites
 - New **Rocket Satellite Fairing**: top a rocket with it instead of a warhead, with an **Early Warning Satellite** or a
   **Communications Satellite** inside (both made by sequenced assembly). Its launch controller is ready without a target
-  and launches only on a command table's order: two full liquid stages reach a low orbit, three a geostationary one. The
+  and launches only on a command table's order: three full solid stages or two liquid ones reach a low orbit, three stages
+  with liquid a geostationary one; its console shows the rocket's delta-v against what each orbit needs. The
   launch vehicle climbs, drops its stages and lets the satellite go high above.
 - Low satellites fly straight and come back in over the far side of the world border, so over time they pass over the
   whole world; they lose altitude every day and burn up. Geostationary ones stay over the place you chose.

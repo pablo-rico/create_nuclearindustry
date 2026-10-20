@@ -79,6 +79,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private SatelliteKind pendingKind;
     private boolean syncedSatellite, syncedGps;
     private OrbitType syncedOrbitReach;
+    private double syncedDeltaV, syncedLeoDeltaV, syncedGeoDeltaV;
     private SatelliteKind syncedSatelliteKind;
     private final MultiblockMessenger messenger = new MultiblockMessenger("silo");
 
@@ -121,6 +122,14 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     @Nullable public OrbitType orbitReach() {
         return level != null && level.isClientSide ? syncedOrbitReach : satelliteMode() ? OrbitInsertion.reach(design(), OrbitConfig.leoDeltaV, OrbitConfig.geoDeltaV) : null;
     }
+    /** The speed the rocket can give its satellite, against what {@link OrbitInsertion} asks of each orbit; 0 without a satellite rocket. */
+    public double orbitDeltaV() {
+        return level != null && level.isClientSide ? syncedDeltaV : satelliteMode() ? design().deltaV() : 0;
+    }
+    /** What low orbit needs, as the server is set up (clients get it with the rest). */
+    public double leoDeltaV() { return level != null && level.isClientSide ? syncedLeoDeltaV : OrbitConfig.leoDeltaV; }
+    /** What geostationary orbit needs, as the server is set up. */
+    public double geoDeltaV() { return level != null && level.isClientSide ? syncedGeoDeltaV : OrbitConfig.geoDeltaV; }
     @Nullable public SatelliteKind satelliteKind() {
         if (level != null && level.isClientSide) return syncedSatelliteKind;
         if (!satelliteMode()) return null;
@@ -594,6 +603,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (clientPacket) {
             tag.putBoolean("SatelliteMode", satelliteMode()); tag.putBoolean("GpsGuided", gpsGuided());
             if (orbitReach() != null) tag.putString("OrbitReach", orbitReach().name());
+            if (satelliteMode()) { tag.putDouble("OrbitDeltaV", orbitDeltaV()); tag.putDouble("LeoDeltaV", leoDeltaV()); tag.putDouble("GeoDeltaV", geoDeltaV()); }
             if (satelliteKind() != null) tag.putString("FairingKind", satelliteKind().name());
             tag.putString("State", state.name()); tag.putString("Error", error); tag.putLong("ErrorPos", errorPos.asLong()); if (errorArgs != null) tag.putIntArray("ErrorArgs", errorArgs);
             tag.putInt("Countdown", countdown); tag.putDouble("FlightTicks", flightTicks); tag.putInt("RocketHeight", rocketHeight);
@@ -617,6 +627,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (clientPacket) {
             syncedSatellite = tag.getBoolean("SatelliteMode"); syncedGps = tag.getBoolean("GpsGuided");
             syncedOrbitReach = tag.contains("OrbitReach") ? OrbitType.byName(tag.getString("OrbitReach").toLowerCase(Locale.ROOT)) : null;
+            syncedDeltaV = tag.getDouble("OrbitDeltaV"); syncedLeoDeltaV = tag.getDouble("LeoDeltaV"); syncedGeoDeltaV = tag.getDouble("GeoDeltaV");
             syncedSatelliteKind = tag.contains("FairingKind") ? SatelliteKind.byName(tag.getString("FairingKind").toLowerCase(Locale.ROOT)) : null;
             try { state = State.valueOf(tag.getString("State")); } catch (IllegalArgumentException ignored) { state = State.INCOMPLETE; }
             error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); errorArgs = tag.contains("ErrorArgs") ? tag.getIntArray("ErrorArgs") : null; countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks"); rocketHeight = tag.getInt("RocketHeight");

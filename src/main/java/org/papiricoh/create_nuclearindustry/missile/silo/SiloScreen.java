@@ -351,6 +351,12 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
                 : Component.translatable("satellite.create_nuclearindustry.orbit." + reach.name().toLowerCase(Locale.ROOT)));
     }
 
+    /** The rocket's delta-v against what each orbit needs, so a player sees how far off it is. */
+    private static Component deltaV(SiloControllerEntity c) {
+        return satelliteText("delta_v", String.format(Locale.ROOT, "%.1f", c.orbitDeltaV()), String.format(Locale.ROOT, "%.1f", c.leoDeltaV()),
+                String.format(Locale.ROOT, "%.1f", c.geoDeltaV()));
+    }
+
     private static Component adviceText(LaunchDiagram.Advice a) {
         return Component.translatable("silo.create_nuclearindustry.advice." + a.key(), a.arg());
     }
@@ -360,7 +366,7 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
             // No target here: the fairing's satellite goes up from a command table, which picks its orbit and where.
             small(g, Component.translatable("silo.create_nuclearindustry.satellite.controlled"), TARGET.x() + 5, TARGET.y() + 3, TARGET.w() - 10, MUTED);
             ConsoleDraw.wrap(g, font, satelliteText("launch_hint"), TARGET.x() + 5, TARGET.y() + 16, TARGET.w() - 10, TEXT, ConsoleDraw.SMALL, 4);
-            List<Component> lines = List.of(c.satelliteStatus(), fairing(c), orbitReach(c), text("reach", ConsoleNumbers.number(d.reach())));
+            List<Component> lines = List.of(c.satelliteStatus(), fairing(c), orbitReach(c), deltaV(c), text("reach", ConsoleNumbers.number(d.reach())));
             for (int i = 0; i < lines.size(); i++)
                 small(g, lines.get(i), READOUT.x() + 5, READOUT.y() + 5 + i * 11, READOUT.w() - 10, i == 0 ? ACCENT : c.orbitReach() == null && i == 2 ? ERROR_COLOUR : TEXT);
             countdown(g, c);

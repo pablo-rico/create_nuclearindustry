@@ -10,8 +10,8 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class OrbitConfig {
     public static boolean enabled = true;
     public static double satelliteMass = 1.0;
-    public static double leoDeltaV = 10.5;
-    public static double geoDeltaV = 12.5;
+    public static double leoDeltaV = 9.5;
+    public static double geoDeltaV = 11.5;
     public static double insertionAltitude = 1200;
     public static double leoAltitude = 1600;
     public static double geoAltitude = 12000;
@@ -38,10 +38,10 @@ public final class OrbitConfig {
         enabledValue = builder.comment("Whether satellites can be launched at all.").define("missile.orbit.enabled", true);
         satelliteMassValue = builder.comment("Mass of a satellite and its fairing, in the rockets' units (a warhead is about 1).")
                 .defineInRange("missile.orbit.satelliteMass", 1.0, 0.1, 10.0);
-        leoDeltaVValue = builder.comment("Speed a rocket must be able to give its satellite to reach low orbit, blocks per tick (two full liquid stages are about 11).")
-                .defineInRange("missile.orbit.leoDeltaV", 10.5, 1.0, 100.0);
-        geoDeltaVValue = builder.comment("Speed a rocket must be able to give its satellite to reach geostationary orbit, blocks per tick (three full liquid stages are about 13).")
-                .defineInRange("missile.orbit.geoDeltaV", 12.5, 1.0, 100.0);
+        leoDeltaVValue = builder.comment("Speed a rocket must be able to give its satellite to reach low orbit, blocks per tick (three full solid stages are about 10, two full liquid ones about 11).")
+                .defineInRange("missile.orbit.leoDeltaV", 9.5, 1.0, 100.0);
+        geoDeltaVValue = builder.comment("Speed a rocket must be able to give its satellite to reach geostationary orbit, blocks per tick (three full liquid stages are about 13, two full liquid ones about 11).")
+                .defineInRange("missile.orbit.geoDeltaV", 11.5, 1.0, 100.0);
         insertionAltitudeValue = builder.comment("Blocks above sea level a launch climbs to before the satellite counts as in orbit and the rocket is gone.")
                 .defineInRange("missile.orbit.insertionAltitude", 1200.0, 300.0, 20000.0);
         leoAltitudeValue = builder.comment("Blocks above sea level of a new low orbit: the higher, the wider it sees.")

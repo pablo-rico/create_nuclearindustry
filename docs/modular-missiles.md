@@ -152,9 +152,10 @@ montaje secuencial sobre un mecanismo de precisión. Su Controlador de lanzamien
 listo sin blanco, no hace caso a la redstone y solo despega cuando una mesa de mando le
 ordena poner el satélite en órbita.
 
-**Órbitas.** Dos etapas líquidas llenas bastan para la **órbita baja**; para la
-**geoestacionaria** hacen falta tres (la consola indica la más alta a la que llega el
-cohete).
+**Órbitas.** Tres etapas sólidas llenas, o dos líquidas, bastan para la **órbita baja**;
+para la **geoestacionaria** hacen falta tres etapas con líquido. La consola indica el
+delta-v del cohete, el que pide cada órbita y la más alta a la que llega. Las aletas y
+lo que vaya pegado al cohete pesan y le quitan delta-v.
 
 - Un satélite en órbita baja vuela en línea recta a gran velocidad. Al salir por un lado
   del borde del mundo vuelve a entrar por el contrario, así que con el tiempo pasa por

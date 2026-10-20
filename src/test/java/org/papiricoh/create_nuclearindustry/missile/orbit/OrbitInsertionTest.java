@@ -9,9 +9,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** The default thresholds against the rockets players build: two full liquid stages reach low orbit, three geostationary. */
+/**
+ * The default thresholds against the rockets players build: three full solid stages or two liquid ones reach low orbit, three
+ * stages with liquid geostationary.
+ */
 class OrbitInsertionTest {
-    private static final double LEO = 10.5, GEO = 12.5, SATELLITE = 1.0;
+    private static final double LEO = 9.5, GEO = 11.5, SATELLITE = 1.0;
 
     private static MissileDesign rocket(int stages, int tanks, boolean liquid) {
         List<MissileDesign.Stage> list = new ArrayList<>();
@@ -42,7 +45,17 @@ class OrbitInsertionTest {
     }
 
     @Test
-    void solidStagesFallShortOfOrbit() {
-        assertNull(OrbitInsertion.reach(rocket(3, 4, false), LEO, GEO));
+    void threeFullSolidStagesReachLowOrbitOnly() {
+        assertEquals(OrbitType.LEO, OrbitInsertion.reach(rocket(3, 4, false), LEO, GEO));
+    }
+
+    @Test
+    void twoSolidStagesFallShortOfOrbit() {
+        assertNull(OrbitInsertion.reach(rocket(2, 4, false), LEO, GEO));
+    }
+
+    @Test
+    void halfFilledLiquidStagesFallShort() {
+        assertNull(OrbitInsertion.reach(rocket(2, 2, true), LEO, GEO));
     }
 }
