@@ -80,4 +80,18 @@ class PropellantModelTest {
         assertTrue(liquidRange > solidRange * 1.1, "liquid " + liquidRange + " vs solid " + solidRange);
         assertTrue(MissileFlight.maxRange(halfLiquid, params) < liquidRange, "half full reaches less");
     }
+
+    @Test
+    void aLongRangeLiquidIcbmComesBackFastEnoughToGlow() {
+        // The rocket effects start heating a reentry vehicle at 1.5 blocks a tick and glow fully near 7.
+        BallisticModel.Params params = BallisticModel.Params.DEFAULT;
+        MissileDesign.Stage stage = PropellantModel.stage(List.of(FULL, FULL)).design();
+        MissileDesign icbm = new MissileDesign(List.of(stage, stage, stage), 1.3, 0);
+        double range = MissileFlight.maxRange(icbm, params);
+        assertTrue(range > 10000, "a three-stage liquid rocket crosses ten kilometres, got " + range);
+        MissileFlight flight = new MissileFlight(icbm, V3.ZERO, new V3(range * 0.95, 0, 0), V3.ZERO);
+        for (int i = 0; i < 100000 && !flight.burnedOut(); i++) flight.step(params);
+        double speed = flight.burnoutVelocity().length();
+        assertTrue(speed >= 6 && speed <= 9, "and comes back at 6 to 9 blocks a tick, got " + speed);
+    }
 }

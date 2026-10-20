@@ -5,38 +5,58 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
-import java.util.*;
 
-public record RadarPayload(int menu, BlockPos pos, long sample, int status, boolean first, List<RadarContacts.Contact> contacts) implements CustomPacketPayload {
-    public static final Type<RadarPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "radar_contacts"));
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * One page of what a radar's open screen shows, sent once a second: up to {@link #PAGE} tracks, with a track's whole plotted
+ * history the first time that screen hears of it and only its newest point after. A screen swaps in the new picture once the
+ * last page arrives.
+ */
+public record RadarPayload(int menu, BlockPos pos, long sample, int status, boolean first, boolean last,
+                           List<RadarTrack.Snapshot> tracks) implements CustomPacketPayload {
+    public static final int PAGE = 64;
+    public static final Type<RadarPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "radar_tracks"));
     public static final StreamCodec<RegistryFriendlyByteBuf, RadarPayload> CODEC = new StreamCodec<>() {
+        @Override
         public RadarPayload decode(RegistryFriendlyByteBuf b) {
-            int menu = b.readVarInt(); BlockPos pos = b.readBlockPos(); long sample = b.readLong(); int status = b.readVarInt(); boolean first = b.readBoolean();
-            int size = b.readVarInt(); if (size < 0 || size > 128) throw new IllegalArgumentException("Radar packet too large");
-            List<RadarContacts.Contact> contacts = new ArrayList<>();
-            for (int i = 0; i < size; i++) contacts.add(new RadarContacts.Contact(b.readUUID(), b.readBoolean() ? b.readBlockPos() : null,
-                    readVec(b), readVec(b), readVec(b), b.readVarInt()));
-            return new RadarPayload(menu, pos, sample, status, first, List.copyOf(contacts));
+            int menu = b.readVarInt();
+            BlockPos pos = b.readBlockPos();
+            long sample = b.readLong();
+            int status = b.readVarInt();
+            boolean first = b.readBoolean(), last = b.readBoolean();
+            int size = b.readVarInt();
+            if (size < 0 || size > PAGE) throw new IllegalArgumentException("Radar page too large");
+            List<RadarTrack.Snapshot> tracks = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) tracks.add(RadarTrack.Snapshot.read(b));
+            return new RadarPayload(menu, pos, sample, status, first, last, List.copyOf(tracks));
         }
+
+        @Override
         public void encode(RegistryFriendlyByteBuf b, RadarPayload p) {
-            b.writeVarInt(p.menu); b.writeBlockPos(p.pos); b.writeLong(p.sample); b.writeVarInt(p.status); b.writeBoolean(p.first); b.writeVarInt(p.contacts.size());
-            for (var c : p.contacts) { b.writeUUID(c.id()); b.writeBoolean(c.origin() != null); if (c.origin() != null) b.writeBlockPos(c.origin());
-                writeVec(b, c.position()); writeVec(b, c.velocity()); writeVec(b, c.impact()); b.writeVarInt(c.ticks()); }
+            b.writeVarInt(p.menu);
+            b.writeBlockPos(p.pos);
+            b.writeLong(p.sample);
+            b.writeVarInt(p.status);
+            b.writeBoolean(p.first);
+            b.writeBoolean(p.last);
+            b.writeVarInt(p.tracks.size());
+            for (RadarTrack.Snapshot track : p.tracks) track.write(b);
         }
     };
-    private static Vec3 readVec(RegistryFriendlyByteBuf b) { return new Vec3(b.readDouble(), b.readDouble(), b.readDouble()); }
-    private static void writeVec(RegistryFriendlyByteBuf b, Vec3 v) { b.writeDouble(v.x); b.writeDouble(v.y); b.writeDouble(v.z); }
-    @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     public static void register(IEventBus bus) {
-        bus.addListener(RegisterPayloadHandlersEvent.class, e -> e.registrar("1").playToClient(TYPE, CODEC, (p, ctx) -> ctx.enqueueWork(() -> {
-            if (ctx.player().containerMenu instanceof RadarMenu m && m.containerId == p.menu && m.pos.equals(p.pos)) {
-                if (p.first) m.contacts = new ArrayList<>();
-                m.contacts.addAll(p.contacts); m.status = p.status;
-            }
+        bus.addListener(RegisterPayloadHandlersEvent.class, e -> e.registrar("2").playToClient(TYPE, CODEC, (p, ctx) -> ctx.enqueueWork(() -> {
+            if (ctx.player().containerMenu instanceof RadarMenu m && m.containerId == p.menu && m.pos.equals(p.pos)) m.accept(p);
         })));
     }
 }

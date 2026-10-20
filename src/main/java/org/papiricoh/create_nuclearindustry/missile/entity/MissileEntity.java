@@ -43,6 +43,45 @@ public class MissileEntity extends Entity {
 
     private static final EntityDataAccessor<CompoundTag> VISUALS = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Integer> FIRST_SECTION = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.INT);
+    /** The flight a puppet shows, so clients can place it from their own flight state. */
+    private static final EntityDataAccessor<java.util.Optional<UUID>> FLIGHT = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    /** Puppets on this client, placed each client tick from their flights. */
+    private static final java.util.Set<MissileEntity> CLIENT = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
+
+    /** Puppets on this client. */
+    public static java.util.List<MissileEntity> clientPuppets() {
+        return new java.util.ArrayList<>(CLIENT);
+    }
+
+    /** The flight this puppet shows, on either side; null for an old save's missile. */
+    @Nullable
+    public UUID shownFlight() {
+        return level().isClientSide ? entityData.get(FLIGHT).orElse(null) : flightId;
+    }
+
+    /** Places it from the client's own flight state: at {@code previous} at the start of this tick, {@code now} at its end. */
+    public void placeOnClient(Vec3 previous, Vec3 now, Vec3 velocity) {
+        setPos(now.x, now.y, now.z);
+        xo = xOld = previous.x;
+        yo = yOld = previous.y;
+        zo = zOld = previous.z;
+        float yRot = getYRot(), xRot = getXRot();
+        updateRotation(velocity);
+        yRotO = yRot;
+        xRotO = xRot;
+    }
+
+    @Override
+    public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
+        // A puppet is placed from the client's flight state; only an old save's missile follows the server.
+        if (entityData.get(FLIGHT).isEmpty()) super.lerpTo(x, y, z, yRot, xRot, steps);
+    }
+
+    @Override
+    public void onClientRemoval() {
+        super.onClientRemoval();
+        CLIENT.remove(this);
+    }
 
     public java.util.List<String> visualSections() {
         return entityData.get(VISUALS).getList("Sections", net.minecraft.nbt.Tag.TAG_STRING)
@@ -76,6 +115,7 @@ public class MissileEntity extends Entity {
         super(type, level);
         this.noPhysics = true;
         setNoGravity(true);
+        if (level.isClientSide) CLIENT.add(this);
     }
 
     /** Sets the flight and the warhead when a pad launches it (server side). */
@@ -115,6 +155,7 @@ public class MissileEntity extends Entity {
         }
         entityData.set(FIRST_SECTION, flight.firstVisualSection());
         this.flightId = flight.id();
+        entityData.set(FLIGHT, java.util.Optional.of(flight.id()));
         Vec3 previous = position();
         Vec3 next = flight.position();
         setPos(next.x, next.y, next.z);
@@ -305,6 +346,7 @@ public class MissileEntity extends Entity {
         builder.define(BURNING, true);
         builder.define(VISUALS, new CompoundTag());
         builder.define(FIRST_SECTION, 0);
+        builder.define(FLIGHT, java.util.Optional.empty());
     }
 
     @Override

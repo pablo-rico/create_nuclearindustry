@@ -37,7 +37,11 @@ public class AllNuclearDisplaySources {
             DISPLAY_SOURCES.register("annunciator", org.papiricoh.create_nuclearindustry.controlroom.annunciator.AnnunciatorDisplaySource::new);
 
     public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.missile.radar.RadarDisplaySource> MISSILE_RADAR =
-            DISPLAY_SOURCES.register("missile_radar", org.papiricoh.create_nuclearindustry.missile.radar.RadarDisplaySource::new);
+            DISPLAY_SOURCES.register("missile_radar", org.papiricoh.create_nuclearindustry.missile.radar.RadarDisplaySource::summary);
+    public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.missile.radar.RadarDisplaySource> MISSILE_RADAR_TRACKS =
+            DISPLAY_SOURCES.register("missile_radar_tracks", org.papiricoh.create_nuclearindustry.missile.radar.RadarDisplaySource::tracks);
+    public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.missile.radar.RadarDisplaySource> MISSILE_RADAR_THREATS =
+            DISPLAY_SOURCES.register("missile_radar_threats", org.papiricoh.create_nuclearindustry.missile.radar.RadarDisplaySource::threats);
 
     /** One source per reactor reading, in {@link ReactorReadout} order. */
     public static final Map<ReactorReadout, DeferredHolder<DisplaySource, SingleLineDisplaySource>> REACTOR_READOUTS = readouts();
@@ -58,6 +62,8 @@ public class AllNuclearDisplaySources {
     private static void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.ENTITY.get(), MISSILE_RADAR.get());
+            DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.ENTITY.get(), MISSILE_RADAR_TRACKS.get());
+            DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.ENTITY.get(), MISSILE_RADAR_THREATS.get());
             DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR_TEMPERATURE_SENSOR.get(), REACTOR_TEMPERATURE_SENSOR.get());
             for (DeferredHolder<DisplaySource, SingleLineDisplaySource> source : REACTOR_READOUTS.values()) {
                 DisplaySource.BY_BLOCK_ENTITY.add(AllNuclearEntities.REACTOR.get(), source.get());

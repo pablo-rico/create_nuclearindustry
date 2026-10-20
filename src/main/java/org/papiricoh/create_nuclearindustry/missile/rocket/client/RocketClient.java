@@ -12,6 +12,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import org.joml.Quaternionf;
+import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 import org.papiricoh.create_nuclearindustry.missile.flight.client.ClientFlight;
 import org.papiricoh.create_nuclearindustry.missile.flight.client.ClientFlights;
 import org.papiricoh.create_nuclearindustry.missile.physics.RocketAttitude;
@@ -48,6 +49,7 @@ public final class RocketClient {
 
     private static void placeRockets() {
         if (Minecraft.getInstance().level == null) return;
+        placeMissiles();
         for (RocketContraptionEntity rocket : RocketContraptionEntity.clientRockets()) {
             if (rocket.isRemoved() || rocket.level() != Minecraft.getInstance().level) continue;
             ClientFlight flight = rocket.flightId() == null ? null : ClientFlights.get(rocket.flightId());
@@ -58,6 +60,15 @@ public final class RocketClient {
             Quaternionf q = flight.attitude(1);
             RocketAttitude.Quat attitude = new RocketAttitude.Quat(q.x, q.y, q.z, q.w);
             rocket.placeOnClient(RocketPose.anchor(v3(flight.position(0)), attitude), RocketPose.anchor(v3(flight.position(1)), attitude), q);
+        }
+    }
+
+    /** The legacy missile puppet too: placed on its flight, not behind it. */
+    private static void placeMissiles() {
+        for (MissileEntity missile : MissileEntity.clientPuppets()) {
+            if (missile.isRemoved() || missile.level() != Minecraft.getInstance().level || missile.shownFlight() == null) continue;
+            ClientFlight flight = ClientFlights.get(missile.shownFlight());
+            if (flight != null) missile.placeOnClient(flight.position(0), flight.position(1), flight.velocity());
         }
     }
 

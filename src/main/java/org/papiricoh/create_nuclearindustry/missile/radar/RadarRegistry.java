@@ -20,7 +20,7 @@ public final class RadarRegistry {
             () -> BlockEntityType.Builder.of(RadarBlockEntity::new, RADAR.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<RadarMenu>> MENU = AllNuclearGUIs.MENUS.register("missile_radar",
             () -> IMenuTypeExtension.create(RadarMenu::fromNetwork));
-    public static void register(IEventBus bus) { RadarPayload.register(bus); }
+    public static void register(IEventBus bus) { RadarPayload.register(bus); RadarConfigurePayload.register(bus); }
     public static void fillCreativeTab(SectionedOutput output) { output.accept(ITEM.get()); }
     private RadarRegistry() {}
 }

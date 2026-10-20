@@ -25,6 +25,9 @@ public final class MissileConfig {
     public static int fxFarUpdateTicks = 4;
     public static double cepScale = 1.0;
     public static double extraBlockMass = 0.05;
+    public static double radarBaseRange = 3000;
+    public static double radarEarthRadius = 16000;
+    public static double radarNetworkRange = 4096;
     public static double maxRange = 0.0;
     public static int protectedSpawnRadius = 0;
     public static List<String> allowedDimensions = List.of();
@@ -43,6 +46,7 @@ public final class MissileConfig {
     private static ModConfigSpec.IntValue fxFarUpdateTicksValue;
     private static ModConfigSpec.DoubleValue cepScaleValue;
     private static ModConfigSpec.DoubleValue extraBlockMassValue;
+    private static ModConfigSpec.DoubleValue radarBaseRangeValue, radarEarthRadiusValue, radarNetworkRangeValue;
     private static ModConfigSpec.DoubleValue maxRangeValue;
     private static ModConfigSpec.IntValue protectedSpawnRadiusValue;
     private static ModConfigSpec.ConfigValue<List<? extends String>> allowedDimensionsValue;
@@ -94,6 +98,19 @@ public final class MissileConfig {
                 .comment("Dry mass (rocket units; a tank weighs 0.1, a full one 2.1) each block glued or attached to a silo rocket beyond its",
                         "column adds to the stage it falls with, or to the payload.")
                 .defineInRange("missile.rocket.extraBlockMass", 0.05, 0.0, 10.0);
+        radarBaseRangeValue = builder
+                .comment("Blocks a missile radar turning at the minimum speed sees a bare rocket body at. It grows with the fourth root of the",
+                        "speed and of the target's signature: a rocket burning shows much further, a lone reentry vehicle less far.",
+                        "0 sees every flight in the dimension.")
+                .defineInRange("missile.radar.baseRange", 3000.0, 0.0, 1.0e6);
+        radarEarthRadiusValue = builder
+                .comment("Radius, blocks, of the round world radars see over: nothing below their horizon shows, so a launch far off appears",
+                        "only once it climbs. 0 for no horizon.")
+                .defineInRange("missile.radar.earthRadius", 16000.0, 0.0, 1.0e8);
+        radarNetworkRangeValue = builder
+                .comment("Radars with the same link code share what they see if they stand within this many blocks of each other. 0 for any",
+                        "distance.")
+                .defineInRange("missile.radar.networkRange", 4096.0, 0.0, 1.0e6);
         maxRangeValue = builder
                 .comment("Furthest target, blocks (horizontally) from the launch pad, a missile may be launched at; 0 leaves only",
                         "the missile's own reach.")
@@ -132,6 +149,9 @@ public final class MissileConfig {
         fxFarUpdateTicks = fxFarUpdateTicksValue.get();
         cepScale = cepScaleValue.get();
         extraBlockMass = extraBlockMassValue.get();
+        radarBaseRange = radarBaseRangeValue.get();
+        radarEarthRadius = radarEarthRadiusValue.get();
+        radarNetworkRange = radarNetworkRangeValue.get();
         maxRange = maxRangeValue.get();
         protectedSpawnRadius = protectedSpawnRadiusValue.get();
         allowedDimensions = List.copyOf(allowedDimensionsValue.get());

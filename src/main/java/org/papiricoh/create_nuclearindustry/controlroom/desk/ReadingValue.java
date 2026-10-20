@@ -84,6 +84,8 @@ public final class ReadingValue {
             case ANTIMATTER_CHAMBER -> of(E_STORED, "ng", 2);
             case REACTOR_SHUTDOWN_MARGIN -> of(R_COLD_MARGIN, "pcm", 0);
             case REACTOR_BORON -> of(R_BORON_PPM, "ppm", 0);
+            case RADAR_TRACKS -> of(MonitorReading.D_TRACKS, "trk", 0);
+            case RADAR_THREATS -> of(MonitorReading.D_THREATS, "trk", 0);
         };
     }
 
