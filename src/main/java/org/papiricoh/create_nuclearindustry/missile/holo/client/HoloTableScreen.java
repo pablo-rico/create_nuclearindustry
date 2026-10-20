@@ -20,6 +20,7 @@ import org.papiricoh.create_nuclearindustry.missile.holo.HoloView;
 import org.papiricoh.create_nuclearindustry.missile.radar.RadarModel;
 import org.papiricoh.create_nuclearindustry.missile.radar.client.ScopeDraw;
 import org.papiricoh.create_nuclearindustry.missile.silo.SiloControllerEntity;
+import org.papiricoh.create_nuclearindustry.missile.silo.client.ConsoleDraw;
 import org.papiricoh.create_nuclearindustry.missile.terrain.TerrainTile;
 import org.papiricoh.create_nuclearindustry.missile.terrain.client.ClientTerrain;
 
@@ -255,21 +256,40 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
         g.pose().popPose();
     }
 
+    private void small(GuiGraphics g, Component text, int x, int y, int width, int colour) {
+        ConsoleDraw.line(g, font, text, x, y, width, colour, ConsoleDraw.DENSE);
+    }
+
+    private Component rowInfo(HoloTracksPayload.Silo silo) {
+        if (!silo.loaded()) return Component.literal("—");
+        if (!silo.error().isEmpty()) return error(silo);
+        if (silo.state() == SiloControllerEntity.State.COUNTDOWN.ordinal())
+            return Component.translatable(KEY + "row.countdown", String.format(Locale.ROOT, "%.1f", Math.max(0, silo.countdown()) / 20.0));
+        if (silo.targeted() && (silo.state() == SiloControllerEntity.State.READY.ordinal() || silo.state() == SiloControllerEntity.State.ARMED.ordinal())) {
+            double distance = Math.hypot(silo.tx() - silo.dx(), silo.tz() - silo.dz());
+            String metres = distance >= 1000 ? String.format(Locale.ROOT, "%.1fk", distance / 1000) : Long.toString(Math.round(distance));
+            return Component.translatable(KEY + "row.flight", metres, Math.round(silo.flightSeconds()));
+        }
+        return Component.literal("—");
+    }
+
     private void button(GuiGraphics g, LayoutRect rect, Component label, boolean active, boolean enabled, boolean danger, int mx, int my) {
         boolean hover = over(rect, mx, my);
         g.fill(rect.x(), rect.y(), rect.right(), rect.bottom(), enabled ? active ? 0xFF24606A : 0xFF15333C : 0xFF102029);
         sprite(g, SPRITE_BUTTONS, 0, (!enabled ? 2 : danger ? 3 : hover ? 1 : 0) * 16,
                 rect.x(), rect.y(), rect.w(), rect.h(), 40, 15);
         g.renderOutline(rect.x(), rect.y(), rect.w(), rect.h(), !enabled ? FAINT : hover ? WHITE : DIM);
-        fit(g, label, rect.x() + 3, rect.y() + 4, rect.w() - 6, enabled ? active ? WHITE : CYAN : DIM);
+        float scale = Math.min(1, (rect.w() - 6) / (float) Math.max(1, font.width(label)));
+        int labelWidth = (int) Math.ceil(font.width(label) * scale);
+        fit(g, label, rect.x() + (rect.w() - labelWidth) / 2, rect.y() + 4, rect.w() - 6, enabled ? active ? WHITE : CYAN : DIM);
     }
 
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
         HoloTracksPayload p = picture();
-        g.drawString(font, title, TITLE.x() + 2, TITLE.y() + 2, CYAN, false);
+        ConsoleDraw.line(g, font, title, TITLE.x() + 2, TITLE.y() + 2, 290, CYAN, 1);
         String scale = view >= 1000 ? (view / 1000) + " km" : view + " m";
-        g.drawString(font, scale, 170, TITLE.y() + 2, DIM, false);
+        small(g, Component.literal(scale), TITLE.right() - 86, TITLE.y() + 3, 50, DIM);
         HoloTracksPayload.Silo silo = p == null ? null : p.silo();
         boolean loaded = silo != null && silo.loaded() && controller(silo) != null;
         if (minecraft.level != null && minecraft.level.getBlockEntity(menu.centre) instanceof HoloTableBlockEntity table)
@@ -287,7 +307,16 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
             sprite(g, SPRITE_TABS, 0, tab == i ? 16 : 0, rect.x(), rect.y(), rect.w(), rect.h(), 58, 14);
             fit(g, text(names[i]), rect.x() + 3, rect.y() + 3, rect.w() - 6, CYAN);
         }
-        fit(g, text(tab == 0 ? "silo_header" : tab == 1 ? "radar_header" : "track_header"), LIST.x() + 2, LIST.y() + 1, LIST.w() - 4, DIM);
+        if (tab == 0) {
+            int[] columns = {COL_NAME, COL_STATE, COL_INFO, COL_DELAY};
+            String[] labels = {"silo", "state", "info", "delay"};
+            for (int i = 0; i < columns.length; i++)
+                small(g, text("column." + labels[i]), LIST.x() + columns[i], LIST.y() + 2,
+                        (i + 1 < columns.length ? columns[i + 1] : COL_UNLINK) - columns[i] - 2, DIM);
+        } else {
+            small(g, text("column." + (tab == 1 ? "radar" : "track")), LIST.x() + COL_NAME, LIST.y() + 2, COL_INFO - COL_NAME - 2, DIM);
+            small(g, text("column." + (tab == 1 ? "network" : "eta")), LIST.x() + COL_INFO, LIST.y() + 2, COL_UNLINK - COL_INFO - 2, DIM);
+        }
         if (p != null) {
             int count = tab == 0 ? p.silos().size() : tab == 1 ? p.radars().size() : p.tracks().size();
             scroll = Mth.clamp(scroll, 0, Math.max(0, count - LIST_ROWS));
@@ -303,21 +332,21 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
                     g.renderOutline(x + COL_CHECK, y, 8, 8, checked ? GREEN : DIM);
                     if (checked) g.fill(x + COL_CHECK + 2, y + 2, x + COL_CHECK + 6, y + 6, GREEN);
                     sprite(g, SPRITE_CHECKS, checked ? 8 : 0, 0, x + COL_CHECK, y, 8, 8, 8, 8);
-                    g.drawString(font, "S" + (s.index() + 1), x + COL_NAME, y, AMBER, false);
+                    small(g, Component.literal("S" + (s.index() + 1)), x + COL_NAME, y + 1, COL_STATE - COL_NAME - 2, AMBER);
                     int lamp = s.loaded() ? Mth.clamp(s.state(), 0, 5) : 0;
                     g.fill(x + COL_STATE, y, x + COL_STATE + 7, y + 7, lamp >= 3 ? GREEN : AMBER);
                     sprite(g, SPRITE_LAMPS, lamp * 8, 0, x + COL_STATE, y, 7, 7, 7, 7);
-                    g.drawString(font, font.plainSubstrByWidth(state(s).getString(), COL_INFO - COL_STATE - 10), x + COL_STATE + 9, y, WHITE, false);
-                    Component info = s.countdown() >= 0 ? Component.literal(String.format(Locale.ROOT, "%.1fs", s.countdown() / 20.0)) : error(s);
-                    g.drawString(font, font.plainSubstrByWidth(info.getString(), COL_DELAY - COL_INFO - 2), x + COL_INFO, y, s.error().isEmpty() ? CYAN : RED, false);
-                    fit(g, Component.literal(String.format(Locale.ROOT, "%.1fs", s.delay() / 20.0)), x + COL_DELAY, y, COL_UNLINK - COL_DELAY - 2, DIM);
+                    small(g, state(s), x + COL_STATE + 9, y + 1, COL_INFO - COL_STATE - 11, WHITE);
+                    small(g, rowInfo(s), x + COL_INFO, y + 1, COL_DELAY - COL_INFO - 2, s.error().isEmpty() ? CYAN : RED);
+                    small(g, Component.literal(String.format(Locale.ROOT, "%.1fs", s.delay() / 20.0)), x + COL_DELAY, y + 1, COL_UNLINK - COL_DELAY - 2, DIM);
                 } else if (tab == 1) {
                     var r = p.radars().get(i);
-                    fit(g, Component.literal("R" + (i + 1) + " " + r.code()), x + COL_NAME, y, 105, r.online() ? GREEN : RED);
+                    small(g, Component.literal("R" + (i + 1)), x + COL_NAME, y + 1, COL_INFO - COL_NAME - 2, r.online() ? GREEN : RED);
+                    small(g, Component.literal(r.code()), x + COL_INFO, y + 1, COL_UNLINK - COL_INFO - 2, CYAN);
                 } else {
                     var t = p.tracks().get(i);
-                    fit(g, Component.literal(t.designation()), x + COL_NAME, y, 82, t.own() ? GREEN : t.threat() ? RED : CYAN);
-                    fit(g, Component.literal(Math.max(0, t.eta() / 20) + " s"), x + COL_INFO, y, 43, CYAN);
+                    small(g, Component.literal(t.designation()), x + COL_NAME, y + 1, COL_INFO - COL_NAME - 2, t.own() ? GREEN : t.threat() ? RED : CYAN);
+                    small(g, Component.literal(Math.max(0, t.eta() / 20) + " s"), x + COL_INFO, y + 1, COL_UNLINK - COL_INFO - 2, CYAN);
                 }
                 if (tab < 2) {
                     g.drawString(font, "×", x + COL_UNLINK, y, RED, false);
@@ -326,23 +355,24 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
                 }
             }
             if (tab == 0 && silo != null) {
-                fit(g, error(silo), DETAIL.x() + 2, DETAIL.y() + 2, DETAIL.w() - 4, silo.error().isEmpty() ? WHITE : RED);
-                fit(g, Component.translatable(KEY + "flight_delay", Math.round(silo.flightSeconds()), String.format(Locale.ROOT, "%.1f", silo.delay() / 20.0)),
+                Component target = silo.targeted() ? Component.translatable(KEY + "target", menu.centre.getX() + silo.tx(), menu.centre.getZ() + silo.tz()) : text("target.none");
+                small(g, Component.translatable(KEY + "selected_target", state(silo), target), DETAIL.x() + 2, DETAIL.y() + 3, DETAIL.w() - 4, silo.error().isEmpty() ? WHITE : RED);
+                small(g, Component.translatable(KEY + "flight_delay", String.format(Locale.ROOT, "%.1f", silo.flightSeconds()), String.format(Locale.ROOT, "%.1f", silo.delay() / 20.0)),
                         DETAIL.x() + 2, DETAIL.y() + 13, DETAIL.w() - 4, DIM);
             } else if (tab == 1 && radarRow >= 0 && radarRow < p.radars().size()) {
                 var r = p.radars().get(radarRow);
-                fit(g, Component.literal((menu.centre.getX() + r.dx()) + ", " + r.dy() + ", " + (menu.centre.getZ() + r.dz())), DETAIL.x() + 2, DETAIL.y() + 3, 166, WHITE);
-                fit(g, text(r.online() ? "online" : "unloaded"), DETAIL.x() + 2, DETAIL.y() + 13, 166, CYAN);
+                small(g, Component.literal((menu.centre.getX() + r.dx()) + ", " + r.dy() + ", " + (menu.centre.getZ() + r.dz())), DETAIL.x() + 2, DETAIL.y() + 3, 166, WHITE);
+                small(g, text(r.online() ? "online" : "unloaded"), DETAIL.x() + 2, DETAIL.y() + 13, 166, CYAN);
             } else if (tab == 2 && selectedTrack() != null) {
-                fit(g, Component.translatable(KEY + "track_detail", selectedTrack().designation(), Math.round(selectedTrack().y())), DETAIL.x() + 2, DETAIL.y() + 3, 166, WHITE);
-                fit(g, text(selectedTrack().own() ? "own" : "foreign"), DETAIL.x() + 2, DETAIL.y() + 13, 166, CYAN);
+                small(g, Component.translatable(KEY + "track_detail", selectedTrack().designation(), Math.round(selectedTrack().y())), DETAIL.x() + 2, DETAIL.y() + 3, 166, WHITE);
+                small(g, text(selectedTrack().own() ? "own" : "foreign"), DETAIL.x() + 2, DETAIL.y() + 13, 166, CYAN);
             }
         }
         button(g, SALVO_MODE, text(sequence ? "sequence" : "time_on_target"), sequence, true, false, mouseX, mouseY);
         button(g, SPACING_DOWN, Component.literal("−"), false, sequence, false, mouseX, mouseY);
         button(g, SPACING, Component.literal(spacing + " s"), false, sequence, false, mouseX, mouseY);
         button(g, SPACING_UP, Component.literal("+"), false, sequence, false, mouseX, mouseY);
-        button(g, ARM, text("arm"), false, loaded, true, mouseX, mouseY);
+        button(g, ARM, text("arm"), false, loaded, false, mouseX, mouseY);
         button(g, DISARM, text("disarm"), false, loaded, false, mouseX, mouseY);
         button(g, SALVO, text("salvo"), false, !salvo.isEmpty(), false, mouseX, mouseY);
         button(g, ABORT, text("abort"), false, selectedTrack() != null && selectedTrack().own(), true, mouseX, mouseY);
@@ -354,6 +384,15 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
         renderTooltip(g, mouseX, mouseY);
         if (over(SALVO, mouseX, mouseY) || over(ARM, mouseX, mouseY))
             g.renderTooltip(font, font.split(text("redstone"), 240), mouseX, mouseY);
+        if (over(LIST, mouseX, mouseY) && tab == 0 && picture() != null) {
+            int localY = mouseY - topPos - LIST.y() - LIST_HEADER;
+            int row = localY / LIST_ROW + scroll;
+            if (localY < 0) g.renderTooltip(font, font.split(text("row.hint"), 220), mouseX, mouseY);
+            else if (row < picture().silos().size()) {
+                var silo = picture().silos().get(row);
+                g.renderComponentTooltip(font, List.of(state(silo), rowInfo(silo)), mouseX, mouseY);
+            }
+        }
         if (over(DETAIL, mouseX, mouseY) && tab == 0 && picture() != null && picture().silo() != null) {
             var silo = picture().silo();
             List<Component> lines = new ArrayList<>();

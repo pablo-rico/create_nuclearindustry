@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.missile.link;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
@@ -87,11 +88,16 @@ public class TacticalLinkerItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
         TacticalLink link = getLink(stack);
-        if (link == null) { tooltip.add(Component.translatable(KEY + "empty").withStyle(ChatFormatting.GRAY)); return; }
-        BlockPos pos = link.target().pos();
-        tooltip.add(Component.translatable(KEY + "target", Component.translatable(KEY + "kind." + link.kind().getSerializedName()),
-                pos.getX(), pos.getY(), pos.getZ(), link.target().dimension().location().toString()).withStyle(ChatFormatting.AQUA));
+        if (link == null) tooltip.add(Component.translatable(KEY + "empty").withStyle(ChatFormatting.GRAY));
+        else {
+            BlockPos pos = link.target().pos();
+            tooltip.add(Component.translatable(KEY + "target", Component.translatable(KEY + "kind." + link.kind().getSerializedName()),
+                    pos.getX(), pos.getY(), pos.getZ(), link.target().dimension().location().toString()).withStyle(ChatFormatting.AQUA));
+        }
+        tooltip.add(Component.translatable(Screen.hasShiftDown() ? KEY + "tooltip" : "silo.create_nuclearindustry.screen.tooltip.expand").withStyle(ChatFormatting.GRAY));
+        if (Screen.hasShiftDown()) tooltip.add(Component.translatable("silo.create_nuclearindustry.screen.tooltip.linker_use").withStyle(ChatFormatting.DARK_GRAY));
     }
 
     private static void message(Player player, String suffix) {
