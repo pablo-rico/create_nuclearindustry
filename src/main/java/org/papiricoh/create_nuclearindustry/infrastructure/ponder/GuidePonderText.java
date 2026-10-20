@@ -103,17 +103,18 @@ public final class GuidePonderText {
     public static final Scene MISSILE = new Scene("weapons_missile", "weapons_missile",
             line("Building a Modular Rocket", "Montaje de un cohete modular"),
             List.of(
-                    line("Build a 5×5 silo floor and perimeter walls, leaving a 3×3 interior. Put its controller at the middle of a base wall.",
-                            "Construye un suelo de 5×5 y paredes perimetrales con un interior de 3×3. Pon el controlador en el centro de una pared de la base."),
-                    line("Stack one to three stages at the centre: each engine supports one to four tanks. Finish with guidance and one warhead. Height: 4–17 blocks.",
-                            "Apila de una a tres etapas en el centro: cada motor lleva de uno a cuatro depósitos. Termina con guiado y una ojiva. Altura: 4–17 bloques."),
-                    line("Load one propellant cartridge into every tank. Configure the warhead; an inert load tests the entire flight without an explosion.",
-                            "Carga un cartucho de propelente en cada depósito. Configura la ojiva; una carga inerte prueba todo el vuelo sin explosión."),
-                    line("Set coordinates or use a Target Designator. The controller checks range, the complete silo and the open exit above the rocket.",
-                            "Introduce coordenadas o usa el Designador. El controlador comprueba alcance, estructura completa y salida libre sobre el cohete."),
-                    line("Extend the walls to the rocket tip. Silos remain after launch. These installations must stay in the world, outside ships and contraptions.",
-                            "Extiende las paredes hasta la punta. El silo permanece tras lanzar. Estas instalaciones deben estar en el mundo, fuera de naves y contraptions.")),
-            List.of("silo_controller", "silo_wall", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead", "propellant_cartridge", "target_designator"));
+                    line("Build a 5×5 floor and perimeter walls of Silo Walls, leaving a 3×3 interior. Put the controller at the middle of a base wall.",
+                            "Construye un suelo de 5×5 y paredes perimetrales de Pared de silo, con un interior de 3×3. Pon el controlador en el centro de una pared de la base."),
+                    line("Stack one to three stages at the centre: each engine carries one to four tanks, then guidance and one warhead (4–17 blocks). Fins glued to the rocket fly with it.",
+                            "Apila de una a tres etapas en el centro: cada motor lleva de uno a cuatro depósitos, luego guiado y una ojiva (4–17 bloques). Las aletas pegadas al cohete vuelan con él."),
+                    line("Fill each tank with a propellant cartridge, or pump Rocket Fuel and Liquid Oxygen into a Silo Fuel Port in the wall: liquid stages push harder and longer. A stage cannot mix both.",
+                            "Llena cada depósito con un cartucho, o bombea Combustible de cohete y Oxígeno líquido a un Puerto de combustible de silo en la pared: las etapas líquidas empujan más y más tiempo. Una etapa no puede mezclar ambos."),
+                    line("The guidance sets the accuracy: empty it is basic, with a Precision Mechanism inertial, with a Star Tracker stellar. The controller shows the expected miss.",
+                            "El guiado decide la precisión: vacío es básico, con un Mecanismo de precisión inercial, con un Rastreador estelar estelar. El controlador muestra el error esperado."),
+                    line("Set coordinates, use a Target Designator or a Holographic Command Table. Extend the walls to the tip; the silo stays after launch.",
+                            "Introduce coordenadas, usa el Designador o una Mesa holográfica de mando. Extiende las paredes hasta la punta; el silo permanece tras lanzar.")),
+            List.of("silo_controller", "silo_wall", "silo_fuel_port", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead", "propellant_cartridge",
+                    "star_tracker", "target_designator"));
 
     public static final Scene SILO_LAUNCH = new Scene("silo_launch", "weapons_missile",
             line("Arming and Launching", "Armado y lanzamiento"),
@@ -124,22 +125,35 @@ public final class GuidePonderText {
                             "Aplica un nuevo flanco de redstone para iniciar los diez segundos de cuenta atrás. Una señal permanente no lanza el siguiente cohete."),
                     line("Losing rotation, modifying the rocket or blocking the exit cancels the countdown. Loading the world also disarms it: arm again before retrying.",
                             "Perder rotación, modificar el cohete u obstruir la salida cancela la cuenta. Recargar el mundo también lo desarma: vuelve a armar antes de reintentar."),
-                    line("The rocket and its contents are consumed on liftoff. Missiles do not warn sirens or broadcast messages: connect a powered radar for alerts.",
-                            "El cohete y su contenido se consumen al despegar. Los misiles no avisan a sirenas ni emiten mensajes: conecta un radar operativo para recibir alertas.")),
+                    line("The rocket lifts off whole and drops its spent stages as falling debris. Missiles warn no one by themselves: radars do.",
+                            "El cohete despega entero y suelta sus etapas agotadas, que caen como restos. Los misiles no avisan a nadie por sí mismos: lo hacen los radares.")),
             List.of("silo_controller", "rocket_guidance", "target_designator"));
 
     public static final Scene RADAR = new Scene("missile_radar", "weapons_missile",
             line("Radar and Missile Alerts", "Radar y alertas de misiles"),
             List.of(
-                    line("Drive the radar at 32 RPM or more and open its screen. It detects every flight in its dimension, including your own and inert test rockets.",
-                            "Acciona el radar a 32 RPM o más y abre su pantalla. Detecta todos los vuelos de su dimensión, incluidos los propios y las pruebas inertes."),
-                    line("The map and contact list update each second without loading terrain. Select a contact to see its origin, trajectory, predicted impact and remaining time.",
-                            "El mapa y la lista se actualizan cada segundo sin cargar terreno. Selecciona un contacto para ver origen, trayectoria, impacto previsto y tiempo restante."),
-                    line("The radar outputs redstone level 15 while flights exist. Wire it to sirens or Create Redstone Links. A Display Link shows contacts and the nearest impact time.",
-                            "El radar emite redstone 15 mientras haya vuelos. Conéctalo a sirenas o enlaces de Create. Un Display Link muestra contactos y tiempo al impacto más próximo."),
-                    line("A stopped or unloaded radar loses its alarm. Preparations and countdowns are invisible; detection starts at liftoff and ends at impact.",
-                            "Un radar parado o descargado pierde su alarma. Los preparativos y las cuentas atrás son invisibles; la detección empieza al despegar y termina al impactar.")),
-            List.of("missile_radar", "air_raid_siren"));
+                    line("Turn the radar at 32 RPM or more. It sees a rocket body about 3 km away, further when it turns faster and much further while a booster burns. Its dish turns with the sweep.",
+                            "Haz girar el radar a 32 RPM o más. Ve un cuerpo de cohete a unos 3 km, más lejos si gira más rápido y mucho más mientras arde un propulsor. Su antena gira con el barrido."),
+                    line("The Earth curves: far, low flights hide below the horizon, so build radars high. Radars that share a four-character link code share what they see.",
+                            "La Tierra es curva: los vuelos lejanos y bajos quedan bajo el horizonte, así que pon los radares altos. Los radares con el mismo código de cuatro caracteres comparten lo que ven."),
+                    line("Set a defended zone on its screen. Its redstone output and klaxon come on for flights predicted to land in it; acknowledging silences only the klaxon.",
+                            "Fija una zona defendida en su pantalla. Su salida de redstone y su claxon se encienden con los vuelos que caerán en ella; reconocer solo calla el claxon."),
+                    line("Link a Radar Scope to it with a Control Room Linker for a live scope on the wall, or link it to a Holographic Command Table. Display Links and control room monitors read it too.",
+                            "Enlaza una Pantalla de radar con el enlazador de sala de control para ver su barrido en la pared, o enlázalo a una Mesa holográfica de mando. También lo leen los Display Link y los monitores.")),
+            List.of("missile_radar", "radar_scope", "air_raid_siren"));
+
+    public static final Scene HOLO_TABLE = new Scene("holo_table", "weapons_holo_table",
+            line("The Holographic Command Table", "La mesa holográfica de mando"),
+            List.of(
+                    line("Place nine Holographic Command Table pieces in a 3×3: they fuse into one table, with its projector under the middle.",
+                            "Coloca nueve piezas de Mesa holográfica de mando en un 3×3: se funden en una sola mesa, con el proyector bajo el centro."),
+                    line("With a Control Room Linker, link up to four radars and one silo controller to any piece. The table shows their tracks in 3D over a map of the land.",
+                            "Con el enlazador de sala de control, enlaza hasta cuatro radares y un controlador de silo a cualquier pieza. La mesa muestra sus trazas en 3D sobre un mapa del terreno."),
+                    line("Look at a missile, a silo or a radar for its label. Right-click a missile to pin it for everyone at the table, or the frame to change the zoom.",
+                            "Mira un misil, un silo o un radar para ver su etiqueta. Clic derecho en un misil lo fija para todos los que miran la mesa; en el marco, cambia el zoom."),
+                    line("Sneak and right-click the glass to mark a target, then again on the mark to send the silo there. Right-click bare glass for the table's screen.",
+                            "Agachado, haz clic derecho en el cristal para marcar un blanco y otra vez sobre la marca para enviárselo al silo. Clic derecho en el cristal vacío abre su pantalla.")),
+            List.of("holo_table"));
 
     // ------------------------------------------------------------------ fuel cycle and fan treatments
 
@@ -504,7 +518,7 @@ public final class GuidePonderText {
             List.of("antimatter_engine", "magnetic_coil", "magnetic_nozzle"));
 
     /** Every guide scene, in the order they are registered. */
-    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, MISSILE, SILO_LAUNCH, RADAR, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
+    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, MISSILE, SILO_LAUNCH, RADAR, HOLO_TABLE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
             ACCELERATOR_LINAC, ACCELERATOR_SYNCHROTRON, ANTIMATTER_CONTAINMENT, ANTIMATTER_GENERATOR, ANTIPROTON_INJECTOR,
             ISOTOPES, MAINTENANCE, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO,
             THERMAL_ENGINE, ANTIMATTER_ENGINE);

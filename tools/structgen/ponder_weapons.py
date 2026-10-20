@@ -10,9 +10,11 @@ lose the block without that mod.
 - weapons_bombs, 7x3x5: a Nuclear Bomb (2,1,2) and a Dirty Bomb (4,1,2), each with a lever on
   its north face, towards the camera.
 - weapons_thermonuclear, 5x3x5: a Thermonuclear Bomb (2,1,2) with a lever on its north face (2,1,1).
-- weapons_missile, 5x8x5: a cutaway silo and four-section modular rocket.
+- weapons_missile, 5x8x5: a cutaway silo with a fuel port (0,1,2) and a four-section modular rocket.
+- weapons_holo_table, 5x3x5: a formed command table (1..3, 1, 1..3), a radar (4,1,0) and a silo
+  controller (0,1,4) on a smooth stone floor.
 """
-from ponder_plant_parts import NS, floor, put, write
+from ponder_plant_parts import NS, floor, put, replace, write
 
 LEVER = {"face": "wall", "facing": "north", "powered": "false"}
 
@@ -46,16 +48,32 @@ def missile():
             if x == 0 or z == 4:
                 for y in range(1, 5):
                     put(blocks, (x, y, z), NS + "silo_wall")
-    put(blocks, (2, 0, 0), NS + "silo_controller")
+    replace(blocks, (2, 0, 0), NS + "silo_controller")
+    replace(blocks, (0, 1, 2), NS + "silo_fuel_port")
     for y, name in enumerate(("rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead"), 1):
         put(blocks, (2, y, 2), NS + name)
     write("weapons_missile", size, blocks)
+
+
+PARTS = ("nw", "n", "ne", "w", "center", "e", "sw", "s", "se")
+
+
+def holo_table():
+    size = (5, 3, 5)
+    blocks = {}
+    floor(blocks, size)
+    for i, part in enumerate(PARTS):
+        put(blocks, (1 + i % 3, 1, 1 + i // 3), NS + "holo_table", {"part": part})
+    put(blocks, (4, 1, 0), NS + "missile_radar")
+    put(blocks, (0, 1, 4), NS + "silo_controller", {"facing": "north"})
+    write("weapons_holo_table", size, blocks)
 
 
 def main():
     bombs()
     thermonuclear()
     missile()
+    holo_table()
 
 
 if __name__ == "__main__":

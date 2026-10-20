@@ -175,7 +175,9 @@ public class WeaponsScenes {
                 scene.world().setBlock(util.grid().at(x, y, z), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WALL.get().defaultBlockState(), false);
         }
         BlockPos controller = util.grid().at(2, 0, 0);
+        BlockPos port = util.grid().at(0, 1, 2);
         scene.world().setBlock(controller, org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.CONTROLLER.get().defaultBlockState(), false);
+        scene.world().setBlock(port, org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.FUEL_PORT.get().defaultBlockState(), false);
         scene.world().setBlock(util.grid().at(2, 1, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.ENGINE.get().defaultBlockState(), false);
         scene.world().setBlock(util.grid().at(2, 2, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.TANK.get().defaultBlockState(), false);
         scene.world().setBlock(util.grid().at(2, 3, 2), org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.GUIDANCE.get().defaultBlockState(), false);
@@ -185,11 +187,11 @@ public class WeaponsScenes {
         scene.idle(20);
         scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
-        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().centerOf(2, 2, 2)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
-        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().blockSurface(port, Direction.WEST)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
-        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().centerOf(2, 3, 2)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
         scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
@@ -238,7 +240,9 @@ public class WeaponsScenes {
         scene.configureBasePlate(0, 0, 5);
         scene.world().setBlocks(util.select().fromTo(0, 1, 0, 4, 5, 4), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), false);
         BlockPos radar = util.grid().at(2, 1, 2);
+        BlockPos scope = util.grid().at(3, 1, 4);
         scene.world().setBlock(radar, org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.RADAR.get().defaultBlockState(), false);
+        scene.world().setBlock(scope, org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.SCOPE.get().defaultBlockState(), false);
         scene.showBasePlate();
         scene.world().showSection(util.select().position(radar), Direction.DOWN);
         scene.world().setKineticSpeed(util.select().position(radar), 32);
@@ -248,7 +252,53 @@ public class WeaponsScenes {
         scene.idle(110);
         scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(radar)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
+        scene.world().showSection(util.select().position(scope), Direction.DOWN);
+        scene.idle(10);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().blockSurface(scope, Direction.NORTH)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+    }
+
+    /** The command table: nine pieces fuse into one, then a radar and a silo controller are linked to it. */
+    public static void holoTable(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        PlantPonderText.Scene text = GuidePonderText.HOLO_TABLE;
+        Script lines = text.script();
+        scene.title(text.id(), text.title().english());
+        scene.configureBasePlate(0, 0, 5);
+        BlockPos centre = util.grid().at(2, 1, 2);
+        BlockPos radar = util.grid().at(4, 1, 0);
+        BlockPos controller = util.grid().at(0, 1, 4);
+        var table = org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry.TABLE.get().defaultBlockState();
+        scene.showBasePlate();
+        scene.idle(10);
+        // Loose pieces first, then the fused table. The schematic's centre holds the table's block entity, which a loose
+        // piece may not: clear it first.
+        scene.world().setBlock(centre, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), false);
+        for (int i = 0; i < org.papiricoh.create_nuclearindustry.missile.holo.HoloGrid.PARTS; i++) {
+            BlockPos at = centre.offset(org.papiricoh.create_nuclearindustry.missile.holo.HoloGrid.dx(i), 0,
+                    org.papiricoh.create_nuclearindustry.missile.holo.HoloGrid.dz(i));
+            scene.world().setBlock(at, table, false);
+            scene.world().showSection(util.select().position(at), Direction.DOWN);
+            scene.idle(3);
+        }
+        scene.overlay().showText(90).text(lines.next()).pointAt(util.vector().topOf(centre)).placeNearTarget().attachKeyFrame();
+        scene.idle(30);
+        for (int i = 0; i < org.papiricoh.create_nuclearindustry.missile.holo.HoloGrid.PARTS; i++) {
+            BlockPos at = centre.offset(org.papiricoh.create_nuclearindustry.missile.holo.HoloGrid.dx(i), 0,
+                    org.papiricoh.create_nuclearindustry.missile.holo.HoloGrid.dz(i));
+            scene.world().setBlock(at, table.setValue(org.papiricoh.create_nuclearindustry.missile.holo.HoloTableBlock.PART,
+                    org.papiricoh.create_nuclearindustry.missile.holo.HoloPart.of(i)), true);
+        }
+        scene.idle(70);
+        scene.world().showSection(util.select().position(radar), Direction.DOWN);
+        scene.world().showSection(util.select().position(controller), Direction.DOWN);
+        scene.world().setKineticSpeed(util.select().position(radar), 32);
+        scene.idle(10);
         scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(radar)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(centre)).placeNearTarget().attachKeyFrame();
+        scene.idle(110);
+        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(centre.offset(-1, 0, 1))).placeNearTarget().attachKeyFrame();
         scene.idle(110);
     }
 

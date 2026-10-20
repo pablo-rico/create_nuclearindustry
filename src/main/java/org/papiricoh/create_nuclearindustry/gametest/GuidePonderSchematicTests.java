@@ -95,6 +95,18 @@ public class GuidePonderSchematicTests {
         helper.succeed();
     }
 
+    @GameTest(template = "gametest/weapons_holo_table_ponder", batch = BATCH)
+    public static void holoTableSchematicLoads(GameTestHelper helper) {
+        var centre = helper.getBlockState(new BlockPos(2, 2, 2));
+        helper.assertTrue(centre.is(org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry.TABLE.get())
+                && centre.getValue(org.papiricoh.create_nuclearindustry.missile.holo.HoloTableBlock.PART) == org.papiricoh.create_nuclearindustry.missile.holo.HoloPart.CENTER,
+                "the table's centre piece is in the middle, formed");
+        helper.assertTrue(org.papiricoh.create_nuclearindustry.missile.holo.HoloTable.intact(helper.getLevel(), helper.absolutePos(new BlockPos(2, 2, 2))),
+                "and the nine pieces make a whole table");
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.RADAR.get(), new BlockPos(4, 2, 0));
+        helper.succeed();
+    }
+
     /** The acid in the scene is a leaching catalyst, stays put, and is no irradiation catalyst. */
     @GameTest(template = "gametest/fan_acid_leaching_ponder", batch = BATCH)
     public static void acidLeachingSchematicLeaches(GameTestHelper helper) {
