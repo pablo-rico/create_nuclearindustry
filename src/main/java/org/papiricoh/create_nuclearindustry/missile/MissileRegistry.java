@@ -69,6 +69,8 @@ public final class MissileRegistry implements NuclearFeature {
         org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.register(modEventBus);
         org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.register(modEventBus);
         org.papiricoh.create_nuclearindustry.missile.rocket.RocketRegistry.register(modEventBus);
+        org.papiricoh.create_nuclearindustry.missile.terrain.TerrainRequestPayload.register(modEventBus);
+        org.papiricoh.create_nuclearindustry.missile.terrain.TerrainSurvey.register();
     }
 
     @Override

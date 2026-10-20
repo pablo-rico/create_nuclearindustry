@@ -18,6 +18,7 @@ import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
 import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
 import org.papiricoh.create_nuclearindustry.missile.physics.V3;
+import org.papiricoh.create_nuclearindustry.missile.terrain.TerrainViewer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,7 +32,7 @@ import java.util.UUID;
  * predicted to come down in the zone (any flight at all with no zone set); acknowledging the alarm only silences its klaxon. Its
  * counts reach clients for goggles, screens and scopes, and the control room reads it as a {@link TargetKind#RADAR}.
  */
-public class RadarBlockEntity extends KineticBlockEntity implements PlantReadable {
+public class RadarBlockEntity extends KineticBlockEntity implements PlantReadable, TerrainViewer {
     /** Largest defended zone radius, blocks. */
     public static final int MAX_ZONE = 20000;
 
@@ -190,6 +191,11 @@ public class RadarBlockEntity extends KineticBlockEntity implements PlantReadabl
         lines.add(Component.literal("     ").append(LinkCode.complete(code) ? Component.translatable("radar.create_nuclearindustry.network", code)
                 : Component.translatable("radar.create_nuclearindustry.no_network")).withStyle(ChatFormatting.DARK_GRAY));
         return true;
+    }
+
+    /** Its screen draws the land round it: only for a player who has that screen open. */
+    @Override public boolean showsTerrainTo(net.minecraft.server.level.ServerPlayer player) {
+        return player.containerMenu instanceof RadarMenu menu && menu.pos.equals(worldPosition) && menu.stillValid(player);
     }
 
     // ------------------------------------------------------------------ control room
