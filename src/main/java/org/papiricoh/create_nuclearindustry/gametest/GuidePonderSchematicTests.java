@@ -105,7 +105,16 @@ public class GuidePonderSchematicTests {
         helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.FUEL_PORT.get(), new BlockPos(3, 1, 1));
         helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.ENGINE.get(), new BlockPos(3, 2, 3));
         helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.ENGINE.get(), new BlockPos(3, 4, 3));
-        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WARHEAD.get(), new BlockPos(3, 6, 3));
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WARHEAD.get(), new BlockPos(3, 7, 3));
+        // The scene builds a rocket the controller would take: two stages, each an engine with its tank, then guidance and warhead.
+        java.util.List<org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition.Section> column = new java.util.ArrayList<>();
+        for (int y = 2; y <= 7; y++)
+            if (helper.getBlockState(new BlockPos(3, y, 3)).getBlock() instanceof org.papiricoh.create_nuclearindustry.missile.silo.RocketSectionBlock section)
+                column.add(section.section);
+        boolean valid;
+        try { valid = org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition.parse(column).stageStarts().size() == 2; }
+        catch (org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition.Invalid e) { valid = false; }
+        helper.assertTrue(valid, "the scene's rocket is a valid two-stage rocket: " + column);
         helper.succeed();
     }
 

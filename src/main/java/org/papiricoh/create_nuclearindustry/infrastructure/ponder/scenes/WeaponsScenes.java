@@ -247,10 +247,10 @@ public class WeaponsScenes {
         BlockPos engine = util.grid().at(3, 1, 3);
         BlockPos firstTank = util.grid().at(3, 2, 3);
         BlockPos secondEngine = util.grid().at(3, 3, 3);
-        BlockPos guidance = util.grid().at(3, 4, 3);
-        BlockPos warhead = util.grid().at(3, 5, 3);
+        BlockPos secondTank = util.grid().at(3, 4, 3);
+        BlockPos guidance = util.grid().at(3, 5, 3);
+        BlockPos warhead = util.grid().at(3, 6, 3);
 
-        scene.world().hideSection(util.select().fromTo(0, 0, 0, 6, 5, 6), Direction.UP);
         scene.showBasePlate();
         scene.idle(10);
         scene.world().showSection(util.select().fromTo(2, 0, 2, 4, 0, 4), Direction.DOWN);
@@ -276,6 +276,8 @@ public class WeaponsScenes {
         scene.world().showSection(util.select().position(firstTank), Direction.DOWN);
         scene.idle(25);
         scene.world().showSection(util.select().position(secondEngine), Direction.DOWN);
+        scene.idle(25);
+        scene.world().showSection(util.select().position(secondTank), Direction.DOWN);
         scene.idle(25);
         scene.world().showSection(util.select().position(guidance), Direction.DOWN);
         scene.world().showSection(util.select().position(warhead), Direction.DOWN);
@@ -306,7 +308,7 @@ public class WeaponsScenes {
                 .attachKeyFrame();
         scene.idle(130);
 
-        scene.world().hideSection(util.select().fromTo(3, 1, 3, 3, 5, 3), Direction.UP);
+        scene.world().hideSection(util.select().fromTo(3, 1, 3, 3, 6, 3), Direction.UP);
         scene.effects().emitParticles(util.vector().centerOf(engine),
                 scene.effects().simpleParticleEmitter(ParticleTypes.LARGE_SMOKE, new Vec3(0, 0.25, 0)), 8, 25);
         scene.overlay().showText(100)

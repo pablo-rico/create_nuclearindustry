@@ -58,19 +58,18 @@ def missile():
 
 
 def launch_base():
-    size = (7, 6, 7)
+    size = (7, 7, 7)
     blocks = {}
     for x in range(2, 5):
         for z in range(2, 5):
             put(blocks, (x, 0, z), NS + "launch_base")
     # East is deliberately not the legacy north side: the controller can sit on any side of a base.
     put(blocks, (5, 0, 3), NS + "silo_controller", {"facing": "east"})
-    put(blocks, (6, 0, 3), "create:shaft", {"axis": "x", "waterlogged": "false"})
-    put(blocks, (6, 0, 4), "create:creative_motor", {"facing": "north"})
+    put(blocks, (6, 0, 3), "create:creative_motor", {"facing": "west"})
     put(blocks, (5, 1, 3), "minecraft:lever", {"face": "floor", "facing": "north", "powered": "false"})
     put(blocks, (3, 0, 1), NS + "silo_fuel_port")
     pipe(blocks, (3, 0, 0), "north", "south")
-    for y, name in enumerate(("rocket_engine", "rocket_tank", "rocket_engine", "rocket_guidance", "rocket_warhead"), 1):
+    for y, name in enumerate(("rocket_engine", "rocket_tank", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead"), 1):
         put(blocks, (3, y, 3), NS + name)
     write("weapons_launch_base", size, blocks)
 
