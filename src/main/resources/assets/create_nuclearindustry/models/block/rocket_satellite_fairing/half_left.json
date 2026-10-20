@@ -1,0 +1,381 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/rocket_satellite_fairing",
+    "plain": "create_nuclearindustry:block/rocket_satellite_fairing",
+    "seam": "create_nuclearindustry:block/rocket_satellite_fairing_side",
+    "top": "create_nuclearindustry:block/rocket_satellite_fairing_top",
+    "inner": "create_nuclearindustry:block/rocket_satellite_fairing_inner"
+  },
+  "elements": [
+    {
+      "name": "body",
+      "from": [
+        3,
+        1.5,
+        3
+      ],
+      "to": [
+        8,
+        8,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#seam",
+          "uv": [
+            8,
+            8,
+            13,
+            14.5
+          ]
+        },
+        "south": {
+          "texture": "#seam",
+          "uv": [
+            3,
+            8,
+            8,
+            14.5
+          ]
+        },
+        "east": {
+          "texture": "#inner",
+          "uv": [
+            3,
+            8,
+            13,
+            14.5
+          ]
+        },
+        "west": {
+          "texture": "#plain",
+          "uv": [
+            3,
+            8,
+            13,
+            14.5
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            3,
+            3,
+            8,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#inner",
+          "uv": [
+            3,
+            3,
+            8,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "shoulder",
+      "from": [
+        3.5,
+        8,
+        3.5
+      ],
+      "to": [
+        8,
+        10,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#seam",
+          "uv": [
+            8,
+            6,
+            12.5,
+            8
+          ]
+        },
+        "south": {
+          "texture": "#seam",
+          "uv": [
+            3.5,
+            6,
+            8,
+            8
+          ]
+        },
+        "east": {
+          "texture": "#inner",
+          "uv": [
+            3.5,
+            6,
+            12.5,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#plain",
+          "uv": [
+            3.5,
+            6,
+            12.5,
+            8
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            3.5,
+            3.5,
+            8,
+            12.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "ogive_1",
+      "from": [
+        4.5,
+        10,
+        4.5
+      ],
+      "to": [
+        8,
+        12,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#seam",
+          "uv": [
+            8,
+            4,
+            11.5,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#seam",
+          "uv": [
+            4.5,
+            4,
+            8,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#inner",
+          "uv": [
+            4.5,
+            4,
+            11.5,
+            6
+          ]
+        },
+        "west": {
+          "texture": "#plain",
+          "uv": [
+            4.5,
+            4,
+            11.5,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            4.5,
+            4.5,
+            8,
+            11.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "ogive_2",
+      "from": [
+        5.5,
+        12,
+        5.5
+      ],
+      "to": [
+        8,
+        13.5,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#seam",
+          "uv": [
+            8,
+            2.5,
+            10.5,
+            4
+          ]
+        },
+        "south": {
+          "texture": "#seam",
+          "uv": [
+            5.5,
+            2.5,
+            8,
+            4
+          ]
+        },
+        "east": {
+          "texture": "#inner",
+          "uv": [
+            5.5,
+            2.5,
+            10.5,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#plain",
+          "uv": [
+            5.5,
+            2.5,
+            10.5,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            5.5,
+            5.5,
+            8,
+            10.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "ogive_3",
+      "from": [
+        6.5,
+        13.5,
+        6.5
+      ],
+      "to": [
+        8,
+        15,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#seam",
+          "uv": [
+            8,
+            1,
+            9.5,
+            2.5
+          ]
+        },
+        "south": {
+          "texture": "#seam",
+          "uv": [
+            6.5,
+            1,
+            8,
+            2.5
+          ]
+        },
+        "east": {
+          "texture": "#inner",
+          "uv": [
+            6.5,
+            1,
+            9.5,
+            2.5
+          ]
+        },
+        "west": {
+          "texture": "#plain",
+          "uv": [
+            6.5,
+            1,
+            9.5,
+            2.5
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            6.5,
+            6.5,
+            8,
+            9.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "nose",
+      "from": [
+        7.25,
+        15,
+        7.25
+      ],
+      "to": [
+        8,
+        16,
+        8.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#seam",
+          "uv": [
+            8,
+            0,
+            8.75,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#seam",
+          "uv": [
+            7.25,
+            0,
+            8,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#inner",
+          "uv": [
+            7.25,
+            0,
+            8.75,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#plain",
+          "uv": [
+            7.25,
+            0,
+            8.75,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            7.25,
+            7.25,
+            8,
+            8.75
+          ]
+        }
+      }
+    }
+  ]
+}

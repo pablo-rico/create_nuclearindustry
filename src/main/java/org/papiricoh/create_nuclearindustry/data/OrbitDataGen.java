@@ -40,6 +40,16 @@ final class OrbitDataGen extends AreaDataGen {
     }
 
     @Override
+    void blockStates(NuclearBlockStateProvider provider) {
+        OrbitArtData.blockStates(provider);
+    }
+
+    @Override
+    void itemModels(NuclearItemModelProvider provider) {
+        OrbitArtData.itemModels(provider);
+    }
+
+    @Override
     void blockTags(NuclearBlockTagsProvider provider, HolderLookup.Provider lookup) {
         provider.tagFor(BlockTags.MINEABLE_WITH_PICKAXE).add(OrbitRegistry.GROUND_STATION.get(), SiloRegistry.SATELLITE_FAIRING.get());
         provider.tagFor(MultiblockTags.MULTIBLOCK_PARTS).add(SiloRegistry.SATELLITE_FAIRING.get());

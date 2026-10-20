@@ -1,0 +1,399 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/ground_station_mount",
+    "mount": "create_nuclearindustry:block/ground_station_mount",
+    "table": "create_nuclearindustry:block/ground_station_turntable",
+    "brass": "create_nuclearindustry:block/ground_station_brass",
+    "housing": "create_nuclearindustry:block/ground_station_housing"
+  },
+  "elements": [
+    {
+      "name": "turntable",
+      "from": [
+        3,
+        9,
+        3
+      ],
+      "to": [
+        13,
+        10.5,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#table",
+          "uv": [
+            3,
+            0,
+            13,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#table",
+          "uv": [
+            3,
+            0,
+            13,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#table",
+          "uv": [
+            3,
+            0,
+            13,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#table",
+          "uv": [
+            3,
+            0,
+            13,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#table",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#table",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "arm_west",
+      "from": [
+        3,
+        10.5,
+        6.5
+      ],
+      "to": [
+        4.5,
+        17.5,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mount",
+          "uv": [
+            11.5,
+            0.0,
+            13,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#mount",
+          "uv": [
+            3,
+            0.0,
+            4.5,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#mount",
+          "uv": [
+            6.5,
+            0.0,
+            9.5,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#mount",
+          "uv": [
+            6.5,
+            0.0,
+            9.5,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#mount",
+          "uv": [
+            3,
+            6.5,
+            4.5,
+            9.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "arm_east",
+      "from": [
+        11.5,
+        10.5,
+        6.5
+      ],
+      "to": [
+        13,
+        17.5,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#mount",
+          "uv": [
+            3,
+            0.0,
+            4.5,
+            7.0
+          ]
+        },
+        "south": {
+          "texture": "#mount",
+          "uv": [
+            11.5,
+            0.0,
+            13,
+            7.0
+          ]
+        },
+        "east": {
+          "texture": "#mount",
+          "uv": [
+            6.5,
+            0.0,
+            9.5,
+            7.0
+          ]
+        },
+        "west": {
+          "texture": "#mount",
+          "uv": [
+            6.5,
+            0.0,
+            9.5,
+            7.0
+          ]
+        },
+        "up": {
+          "texture": "#mount",
+          "uv": [
+            11.5,
+            6.5,
+            13,
+            9.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap_west",
+      "from": [
+        2.5,
+        15,
+        7
+      ],
+      "to": [
+        3,
+        17,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#brass",
+          "uv": [
+            13,
+            0.5,
+            13.5,
+            2.5
+          ]
+        },
+        "south": {
+          "texture": "#brass",
+          "uv": [
+            2.5,
+            0.5,
+            3,
+            2.5
+          ]
+        },
+        "east": {
+          "texture": "#brass",
+          "uv": [
+            7,
+            0.5,
+            9,
+            2.5
+          ]
+        },
+        "west": {
+          "texture": "#brass",
+          "uv": [
+            7,
+            0.5,
+            9,
+            2.5
+          ]
+        },
+        "up": {
+          "texture": "#brass",
+          "uv": [
+            2.5,
+            7,
+            3,
+            9
+          ]
+        },
+        "down": {
+          "texture": "#brass",
+          "uv": [
+            2.5,
+            7,
+            3,
+            9
+          ]
+        }
+      }
+    },
+    {
+      "name": "cap_east",
+      "from": [
+        13,
+        15,
+        7
+      ],
+      "to": [
+        13.5,
+        17,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#brass",
+          "uv": [
+            2.5,
+            0.5,
+            3,
+            2.5
+          ]
+        },
+        "south": {
+          "texture": "#brass",
+          "uv": [
+            13,
+            0.5,
+            13.5,
+            2.5
+          ]
+        },
+        "east": {
+          "texture": "#brass",
+          "uv": [
+            7,
+            0.5,
+            9,
+            2.5
+          ]
+        },
+        "west": {
+          "texture": "#brass",
+          "uv": [
+            7,
+            0.5,
+            9,
+            2.5
+          ]
+        },
+        "up": {
+          "texture": "#brass",
+          "uv": [
+            13,
+            7,
+            13.5,
+            9
+          ]
+        },
+        "down": {
+          "texture": "#brass",
+          "uv": [
+            13,
+            7,
+            13.5,
+            9
+          ]
+        }
+      }
+    },
+    {
+      "name": "drive",
+      "from": [
+        6,
+        10.5,
+        10
+      ],
+      "to": [
+        10,
+        12.5,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#housing",
+          "uv": [
+            6,
+            3.5,
+            10,
+            5.5
+          ]
+        },
+        "south": {
+          "texture": "#housing",
+          "uv": [
+            6,
+            3.5,
+            10,
+            5.5
+          ]
+        },
+        "east": {
+          "texture": "#housing",
+          "uv": [
+            3.5,
+            3.5,
+            6,
+            5.5
+          ]
+        },
+        "west": {
+          "texture": "#housing",
+          "uv": [
+            10,
+            3.5,
+            12.5,
+            5.5
+          ]
+        },
+        "up": {
+          "texture": "#housing",
+          "uv": [
+            6,
+            10,
+            10,
+            12.5
+          ]
+        }
+      }
+    }
+  ]
+}
