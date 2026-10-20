@@ -18,6 +18,7 @@ public final class MissileClient implements NuclearFeatureClient {
         org.papiricoh.create_nuclearindustry.missile.terrain.client.ClientTerrain.init();
         org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.init();
         org.papiricoh.create_nuclearindustry.missile.holo.client.ClientHolo.init();
+        org.papiricoh.create_nuclearindustry.missile.silo.SiloDiagramPayload.client = org.papiricoh.create_nuclearindustry.missile.silo.client.ClientLaunchDiagrams::accept;
     }
 
     @Override
