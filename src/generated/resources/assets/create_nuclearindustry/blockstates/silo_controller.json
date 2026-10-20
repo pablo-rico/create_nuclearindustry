@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "create_nuclearindustry:block/silo_controller/body",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/silo_controller/body"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/silo_controller/body",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/silo_controller/body",
+      "y": 270
+    }
+  }
+}

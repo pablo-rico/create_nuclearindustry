@@ -9,7 +9,7 @@ coordinates and adds a command table to the south.
 """
 from nbtwriter import Float
 from ponder_plant_parts import NS, floor, pipe, put, replace, write
-from ponder_weapons import PARTS
+from ponder_weapons import PARTS, launch_site
 
 
 def interceptor_battery():
@@ -43,13 +43,13 @@ def interceptor_silo():
         for z in range(2, 5):
             put(blocks, (x, 0, z), NS + "launch_base")
     put(blocks, (5, 0, 3), NS + "silo_controller", {"facing": "east"})
-    put(blocks, (6, 0, 3), "create:creative_motor", {"facing": "west"})
     put(blocks, (5, 1, 3), "minecraft:lever", {"face": "floor", "facing": "north", "powered": "false"})
-    put(blocks, (3, 0, 1), NS + "silo_fuel_port")
+    put(blocks, (3, 0, 1), NS + "silo_fuel_port", {"facing": "north"})
     pipe(blocks, (3, 0, 0), "north", "south")
     for y, name in enumerate(("rocket_engine", "rocket_tank", "rocket_engine", "rocket_tank",
                               "rocket_guidance", "rocket_kill_vehicle"), 1):
         put(blocks, (3, y, 3), NS + name)
+    launch_site(blocks, (3, 0, 3))
     for i, part in enumerate(PARTS):
         x, z = 1 + i % 3, 6 + i // 3
         put(blocks, (x, 0, z), "minecraft:smooth_stone")

@@ -1,0 +1,76 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_warhead/body_empty"
+      },
+      "when": {
+        "charge": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_warhead/body_conventional"
+      },
+      "when": {
+        "charge": "conventional"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_warhead/body_fission"
+      },
+      "when": {
+        "charge": "fission"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_warhead/body_dirty"
+      },
+      "when": {
+        "charge": "dirty"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_warhead/body_thermonuclear"
+      },
+      "when": {
+        "charge": "thermonuclear"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_warhead/top_cap"
+      },
+      "when": {
+        "top": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_warhead/top_joint"
+      },
+      "when": {
+        "top": "other"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_warhead/bottom_cap"
+      },
+      "when": {
+        "bottom": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_warhead/bottom_joint"
+      },
+      "when": {
+        "bottom": "other"
+      }
+    }
+  ]
+}

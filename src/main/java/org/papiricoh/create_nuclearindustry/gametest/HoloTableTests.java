@@ -374,7 +374,7 @@ public class HoloTableTests {
     /** A second, independently assembled site seven blocks east; keep exits open through the arena roof. */
     private static SiloControllerEntity secondSite(GameTestHelper helper) {
         var level = helper.getLevel();
-        for (int x = 4; x <= 8; x++) for (int z = 3; z <= 8; z++) for (int y = 1; y <= 7; y++) {
+        for (int x = 4; x <= 8; x++) for (int z = 3; z <= 8; z++) for (int y = 0; y <= 7; y++) {
             BlockPos from = helper.absolutePos(new BlockPos(x, y, z)), to = from.east(7);
             level.setBlockAndUpdate(to, level.getBlockState(from));
             if (level.getBlockEntity(from) instanceof RocketSectionEntity source && level.getBlockEntity(to) instanceof RocketSectionEntity copy)

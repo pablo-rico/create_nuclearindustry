@@ -199,7 +199,7 @@ public class LaunchBaseTests {
         helper.runAfterDelay(10, () -> {
             silo.arm(player);
             helper.assertTrue(silo.state() == SiloControllerEntity.State.ARMED, "platform arms, got " + silo.error());
-            helper.setBlock(builder.controllerPos().below(), Blocks.REDSTONE_BLOCK);
+            helper.setBlock(builder.controllerPos().above(), Blocks.REDSTONE_BLOCK);
         });
         helper.succeedWhen(() -> {
             Flight flight = tracker.flights().stream().filter(f -> helper.absolutePos(SiloTestBuilder.FLOOR).above().equals(f.origin())).findFirst().orElse(null);
@@ -209,7 +209,7 @@ public class LaunchBaseTests {
             for (int x = -1; x <= 1; x++) for (int z = -1; z <= 1; z++)
                 helper.assertTrue(helper.getBlockState(SiloTestBuilder.FLOOR.offset(x, 0, z)).is(SiloRegistry.LAUNCH_BASE.get()), "base block stays");
             tracker.remove(helper.getLevel(), flight);
-            helper.setBlock(builder.controllerPos().below(), Blocks.AIR);
+            helper.setBlock(builder.controllerPos().above(), Blocks.AIR);
         });
     }
 

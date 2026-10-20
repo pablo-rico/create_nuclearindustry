@@ -1,0 +1,41 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_kill_vehicle/body"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_kill_vehicle/top_cap"
+      },
+      "when": {
+        "top": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_kill_vehicle/top_joint"
+      },
+      "when": {
+        "top": "other"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_kill_vehicle/bottom_cap"
+      },
+      "when": {
+        "bottom": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_kill_vehicle/bottom_joint"
+      },
+      "when": {
+        "bottom": "other"
+      }
+    }
+  ]
+}

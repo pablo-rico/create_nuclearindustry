@@ -1,0 +1,41 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_guidance/body"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_guidance/top_cap"
+      },
+      "when": {
+        "top": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_guidance/top_joint"
+      },
+      "when": {
+        "top": "other"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_guidance/bottom_cap"
+      },
+      "when": {
+        "bottom": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_guidance/bottom_joint"
+      },
+      "when": {
+        "bottom": "other"
+      }
+    }
+  ]
+}

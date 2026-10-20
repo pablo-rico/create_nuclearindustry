@@ -30,7 +30,7 @@ import java.util.List;
 final class SiloTestBuilder {
     static final BlockPos FLOOR = new BlockPos(6, 1, 6);
     static final BlockPos CONTROLLER = FLOOR.north(2);
-    static final BlockPos MOTOR = CONTROLLER.north();
+    static final BlockPos MOTOR = CONTROLLER.below();
 
     /** Where {@link #port()} puts a fuel port in the wall: the middle of the east wall, one block up. */
     static final BlockPos PORT = FLOOR.offset(2, 1, 0);
@@ -57,7 +57,8 @@ final class SiloTestBuilder {
     }
 
     BlockPos controllerPos() { return FLOOR.relative(side, 2).relative(side.getClockWise(), lateral); }
-    BlockPos motorPos() { return controllerPos().relative(side); }
+    /** The creative motor driving the controller, from below. */
+    BlockPos motorPos() { return controllerPos().below(); }
 
     /** Stages of {@link #tanks} tanks each. */
     SiloTestBuilder stages(int stages) {
@@ -129,7 +130,7 @@ final class SiloTestBuilder {
         if (port) helper.setBlock(PORT, SiloRegistry.FUEL_PORT.get());
         helper.setBlock(controllerPos(), SiloRegistry.CONTROLLER.get().defaultBlockState().setValue(SiloControllerBlock.FACING, side));
         Block motor = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("create", "creative_motor"));
-        helper.setBlock(motorPos(), motor.defaultBlockState().setValue(BlockStateProperties.FACING, side.getOpposite()));
+        helper.setBlock(motorPos(), motor.defaultBlockState().setValue(BlockStateProperties.FACING, Direction.UP));
         CreativeMotorBlockEntity motorEntity = helper.getBlockEntity(motorPos());
         motorEntity.generatedSpeed.setValue(rpm);
         clearExit(helper, height);

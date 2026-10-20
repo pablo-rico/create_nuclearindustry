@@ -72,6 +72,7 @@ final class MissileDataGen extends AreaDataGen {
                 case W -> builder.modelFile(edge).rotationY(270).build();
             };
         });
+        MissileArtData.blockStates(provider);
     }
 
     @Override

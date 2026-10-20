@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "create_nuclearindustry:block/silo_fuel_port/body",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "create_nuclearindustry:block/silo_fuel_port/body",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/silo_fuel_port/body"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/silo_fuel_port/body",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "create_nuclearindustry:block/silo_fuel_port/body",
+      "x": 270
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/silo_fuel_port/body",
+      "y": 270
+    }
+  }
+}

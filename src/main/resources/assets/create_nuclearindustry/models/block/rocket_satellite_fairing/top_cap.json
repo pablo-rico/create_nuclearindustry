@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/rocket_satellite_fairing"
+  },
+  "elements": []
+}

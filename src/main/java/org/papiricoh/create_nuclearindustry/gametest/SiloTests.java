@@ -105,7 +105,7 @@ public class SiloTests {
     public static void aSteadySignalDoesNotLaunch(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         SiloControllerEntity silo = aimed(helper, new SiloTestBuilder().tanks(2), player);
-        BlockPos redstone = SiloTestBuilder.CONTROLLER.below();
+        BlockPos redstone = SiloTestBuilder.CONTROLLER.north();
         helper.setBlock(redstone, Blocks.REDSTONE_BLOCK);
         helper.runAfterDelay(10, () -> {
             silo.arm(player);
@@ -130,7 +130,7 @@ public class SiloTests {
         SiloControllerEntity silo = aimed(helper, new SiloTestBuilder().tanks(2), player);
         helper.runAfterDelay(10, () -> {
             silo.arm(player);
-            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.REDSTONE_BLOCK);
+            helper.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.REDSTONE_BLOCK);
         });
         boolean[] stopped = {false};
         helper.runAfterDelay(15, () -> {
@@ -143,7 +143,7 @@ public class SiloTests {
             helper.assertTrue(silo.state() == SiloControllerEntity.State.UNPREPARED, "without rotation it stands down, got " + silo.state());
             helper.assertTrue("speed".equals(silo.error()), "for want of rotation, got " + silo.error());
             helper.assertTrue(silo.countdown() < 0, "and its countdown is cancelled");
-            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.AIR);
+            helper.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.AIR);
         });
     }
 
@@ -157,7 +157,7 @@ public class SiloTests {
         FlightTracker tracker = FlightTracker.get(level);
         helper.runAfterDelay(10, () -> {
             silo.arm(player);
-            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.REDSTONE_BLOCK);
+            helper.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.REDSTONE_BLOCK);
         });
         helper.succeedWhen(() -> {
             Flight launched = tracker.flights().stream().filter(f -> f.target().equals(target)).findFirst().orElse(null);
@@ -174,7 +174,7 @@ public class SiloTests {
             }
             helper.assertTrue(level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
                     new net.minecraft.world.phys.AABB(helper.absolutePos(SiloTestBuilder.FLOOR)).inflate(8)).isEmpty(), "and dropped nothing");
-            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.AIR);
+            helper.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.AIR);
         });
     }
 

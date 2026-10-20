@@ -1,0 +1,96 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/body_empty"
+      },
+      "when": {
+        "propellant": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/body_solid"
+      },
+      "when": {
+        "propellant": "solid"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/body_liquid"
+      },
+      "when": {
+        "propellant": "liquid"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/frost_1"
+      },
+      "when": {
+        "fill": "1",
+        "propellant": "liquid"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/frost_2"
+      },
+      "when": {
+        "fill": "2",
+        "propellant": "liquid"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/frost_3"
+      },
+      "when": {
+        "fill": "3",
+        "propellant": "liquid"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/frost_4"
+      },
+      "when": {
+        "fill": "4",
+        "propellant": "liquid"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/top_cap"
+      },
+      "when": {
+        "top": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/top_joint"
+      },
+      "when": {
+        "top": "other"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/bottom_cap"
+      },
+      "when": {
+        "bottom": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_tank/bottom_joint"
+      },
+      "when": {
+        "bottom": "other"
+      }
+    }
+  ]
+}

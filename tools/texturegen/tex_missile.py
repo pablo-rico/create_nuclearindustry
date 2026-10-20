@@ -46,23 +46,6 @@ def silo_wall():
     return t
 
 
-@block("silo_fuel_port")
-def silo_fuel_port():
-    t = Tex(seed=911)
-    _silo_concrete(t, 911)
-    outline(t, 0, 0, 15, 15, DARK)
-    # A steel plate set in the wall, a flanged inlet and the yellow-black of a fuelling point.
-    t.rect(2, 2, 13, 13, STEEL[3])
-    bevel(t, 2, 2, 13, 13, STEEL)
-    outline(t, 2, 2, 13, 13, STEEL[0])
-    hazard(t, 3, 3, 12, 4, WARN[5], DARK[0], period=4, seed=911)
-    hazard(t, 3, 11, 12, 12, WARN[5], DARK[0], period=4, seed=912)
-    flange(t, STEEL, IN_ACCENT, cx=8.0, cy=8.0, r=3.6)
-    t.set(8, 8, IN_ACCENT[5])
-    t.set(7, 7, IN_ACCENT[6])
-    return t
-
-
 # ======================================================================================
 # guidance: the star tracker, a small brass-bound telescope on a gimballed steel base
 # ======================================================================================
@@ -207,42 +190,6 @@ def rocket_warhead_cone():
     t.hline(0, 15, 13, DANGER[3])
     t.hline(0, 15, 14, DANGER[1])
     t.hline(2, 9, 9, WARN[4])
-    return t
-
-
-@block("silo_controller_casing")
-def silo_controller_casing():
-    """The controller's housing: concrete set in a steel frame, like the silo's walls."""
-    t = Tex(seed=937)
-    _silo_concrete(t, 937)
-    outline(t, 0, 0, 15, 15, DARK)
-    t.hline(1, 14, 1, STEEL[4])
-    t.vline(1, 1, 14, STEEL[4])
-    t.hline(1, 14, 14, STEEL[1])
-    t.vline(14, 1, 14, STEEL[1])
-    for x, y in ((2, 2), (12, 2), (2, 12), (12, 12)):
-        bolt(t, x, y, STEEL)
-    hazard(t, 3, 13, 12, 13, WARN[4], DARK[0])
-    return t
-
-
-@block("silo_controller_panel")
-def silo_controller_panel():
-    """The launch console set in its front: a green status screen, three lamps and a key switch."""
-    t = Tex(seed=938)
-    t.rect(0, 0, 15, 15, DARK[1])
-    # The panel sits on pixels 2..13 x 3..12 of the face.
-    t.rect(2, 3, 13, 12, DARK[2])
-    outline(t, 2, 3, 13, 12, DARK[0])
-    t.rect(3, 4, 12, 7, RADIUM[0])
-    for x in range(4, 11, 2):
-        t.set(x, 5, RADIUM[4])
-    t.hline(4, 9, 6, RADIUM[3])
-    for x, c in ((4, DANGER[4]), (6, WARN[4]), (8, RADIUM[4])):
-        t.set(x, 9, c)
-        t.set(x, 10, shade(c, 0.7))
-    t.rect(10, 9, 11, 10, STEEL[4])
-    t.set(11, 10, STEEL[1])
     return t
 
 

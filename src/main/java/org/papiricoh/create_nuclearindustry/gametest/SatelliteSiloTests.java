@@ -78,7 +78,7 @@ public class SatelliteSiloTests {
     public static void redstoneCannotLaunch(GameTestHelper h) {
         var controller = satellite(h, 2, true);
         controller.arm(h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL));
-        h.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.REDSTONE_BLOCK);
+        h.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.REDSTONE_BLOCK);
         long start = h.getLevel().getGameTime();
         h.succeedWhen(() -> {
             h.assertTrue(h.getLevel().getGameTime() >= start + 30, "wait for redstone");

@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "part=c": {
+      "model": "create_nuclearindustry:block/launch_base/formed_c"
+    },
+    "part=e": {
+      "model": "create_nuclearindustry:block/launch_base/formed_e"
+    },
+    "part=n": {
+      "model": "create_nuclearindustry:block/launch_base/formed_n"
+    },
+    "part=ne": {
+      "model": "create_nuclearindustry:block/launch_base/formed_ne"
+    },
+    "part=none": {
+      "model": "create_nuclearindustry:block/launch_base/single"
+    },
+    "part=nw": {
+      "model": "create_nuclearindustry:block/launch_base/formed_nw"
+    },
+    "part=s": {
+      "model": "create_nuclearindustry:block/launch_base/formed_s"
+    },
+    "part=se": {
+      "model": "create_nuclearindustry:block/launch_base/formed_se"
+    },
+    "part=sw": {
+      "model": "create_nuclearindustry:block/launch_base/formed_sw"
+    },
+    "part=w": {
+      "model": "create_nuclearindustry:block/launch_base/formed_w"
+    }
+  }
+}

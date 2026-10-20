@@ -539,9 +539,11 @@ CUTOUT_BLOCKS = {
     "reinforced_turbine_glass_connected": (64, 64),
 }
 
-# Opaque textures larger than 16x16 (connected-texture sheets); validate.py checks their size and
-# that every pixel is opaque.
-SHEET_BLOCKS = {}
+# Opaque textures larger than 16x16 (connected-texture sheets and the 32x launch-site textures); validate.py
+# checks their size and that every pixel is opaque.
+SHEET_BLOCKS = {
+    "launch_base_formed": (96, 96),
+}
 
 
 def _glass_tile(t, ox, oy, left, right, top, bottom):
@@ -1539,3 +1541,5 @@ import tex_rocketfx  # noqa: E402,F401
 import tex_launch  # noqa: E402,F401
 import tex_defense  # noqa: E402,F401
 import tex_orbit  # noqa: E402,F401
+import tex_silo_controller  # noqa: E402,F401
+import tex_launch_base  # noqa: E402,F401

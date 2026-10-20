@@ -175,13 +175,13 @@ public class MissileLimitsTests {
             silo.arm(mock);
             helper.assertTrue(silo.state() == SiloControllerEntity.State.ARMED,
                     "a complete, turning, aimed silo arms, got " + silo.state() + " " + silo.error());
-            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.REDSTONE_BLOCK);
+            helper.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.REDSTONE_BLOCK);
         });
         helper.succeedWhen(() -> {
             Flight launched = tracker.flights().stream().filter(f -> f.target().equals(target)).findFirst().orElse(null);
             helper.assertTrue(launched != null, "the silo launches, state " + silo.state() + " " + silo.error());
             tracker.remove(level, launched);
-            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.AIR);
+            helper.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.AIR);
             helper.assertTrue(player.equals(launched.owner()), "the flight belongs to the player who armed the silo");
             long last = cooldowns.lastLaunch(player);
             int saved = MissileConfig.launchCooldownSeconds;

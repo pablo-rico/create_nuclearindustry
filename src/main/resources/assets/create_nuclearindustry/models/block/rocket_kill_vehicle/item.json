@@ -1,0 +1,702 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/rocket_kill_vehicle_hull",
+    "hull": "create_nuclearindustry:block/rocket_kill_vehicle_hull",
+    "seeker": "create_nuclearindustry:block/rocket_kill_vehicle_seeker",
+    "ring": "create_nuclearindustry:block/rocket_ring",
+    "nozzle": "create_nuclearindustry:block/rocket_engine_nozzle"
+  },
+  "elements": [
+    {
+      "name": "ring",
+      "from": [
+        2.5,
+        0,
+        2.5
+      ],
+      "to": [
+        13.5,
+        1.5,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            14.5,
+            13.5,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            14.5,
+            13.5,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            14.5,
+            13.5,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            14.5,
+            13.5,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            13.5
+          ]
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            13.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "body",
+      "from": [
+        3,
+        1.5,
+        3
+      ],
+      "to": [
+        13,
+        9,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            8,
+            13,
+            15.5
+          ]
+        },
+        "south": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            8,
+            13,
+            15.5
+          ]
+        },
+        "east": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            8,
+            13,
+            15.5
+          ]
+        },
+        "west": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            8,
+            13,
+            15.5
+          ]
+        },
+        "up": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            8,
+            13,
+            15.5
+          ]
+        },
+        "down": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            8,
+            13,
+            15.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "thruster_0",
+      "from": [
+        7,
+        4.5,
+        2
+      ],
+      "to": [
+        9,
+        6.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "texture": "#seeker",
+          "uv": [
+            0,
+            14,
+            2,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "up": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "thruster_1",
+      "from": [
+        7,
+        4.5,
+        13
+      ],
+      "to": [
+        9,
+        6.5,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#seeker",
+          "uv": [
+            0,
+            14,
+            2,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "up": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "thruster_2",
+      "from": [
+        2,
+        4.5,
+        7
+      ],
+      "to": [
+        3,
+        6.5,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#seeker",
+          "uv": [
+            0,
+            14,
+            2,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "thruster_3",
+      "from": [
+        13,
+        4.5,
+        7
+      ],
+      "to": [
+        14,
+        6.5,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#seeker",
+          "uv": [
+            0,
+            14,
+            2,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "up": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#nozzle",
+          "uv": [
+            6,
+            6,
+            8,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "shoulder",
+      "from": [
+        3.5,
+        9,
+        3.5
+      ],
+      "to": [
+        12.5,
+        11.5,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#hull",
+          "uv": [
+            3.5,
+            2.5,
+            12.5,
+            5
+          ]
+        },
+        "south": {
+          "texture": "#hull",
+          "uv": [
+            3.5,
+            2.5,
+            12.5,
+            5
+          ]
+        },
+        "east": {
+          "texture": "#hull",
+          "uv": [
+            3.5,
+            2.5,
+            12.5,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#hull",
+          "uv": [
+            3.5,
+            2.5,
+            12.5,
+            5
+          ]
+        },
+        "up": {
+          "texture": "#hull",
+          "uv": [
+            3.5,
+            0,
+            12.5,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#hull",
+          "uv": [
+            3.5,
+            0,
+            12.5,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "dome_base",
+      "from": [
+        4.5,
+        11.5,
+        4.5
+      ],
+      "to": [
+        11.5,
+        13.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#seeker",
+          "uv": [
+            4.5,
+            2.5,
+            11.5,
+            4.5
+          ]
+        },
+        "south": {
+          "texture": "#seeker",
+          "uv": [
+            4.5,
+            2.5,
+            11.5,
+            4.5
+          ]
+        },
+        "east": {
+          "texture": "#seeker",
+          "uv": [
+            4.5,
+            2.5,
+            11.5,
+            4.5
+          ]
+        },
+        "west": {
+          "texture": "#seeker",
+          "uv": [
+            4.5,
+            2.5,
+            11.5,
+            4.5
+          ]
+        },
+        "up": {
+          "texture": "#seeker",
+          "uv": [
+            4.5,
+            4.5,
+            11.5,
+            11.5
+          ]
+        },
+        "down": {
+          "texture": "#seeker",
+          "uv": [
+            4.5,
+            4.5,
+            11.5,
+            11.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "dome_mid",
+      "from": [
+        5.5,
+        13.5,
+        5.5
+      ],
+      "to": [
+        10.5,
+        15,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#seeker",
+          "uv": [
+            5.5,
+            1,
+            10.5,
+            2.5
+          ]
+        },
+        "south": {
+          "texture": "#seeker",
+          "uv": [
+            5.5,
+            1,
+            10.5,
+            2.5
+          ]
+        },
+        "east": {
+          "texture": "#seeker",
+          "uv": [
+            5.5,
+            1,
+            10.5,
+            2.5
+          ]
+        },
+        "west": {
+          "texture": "#seeker",
+          "uv": [
+            5.5,
+            1,
+            10.5,
+            2.5
+          ]
+        },
+        "up": {
+          "texture": "#seeker",
+          "uv": [
+            5.5,
+            5.5,
+            10.5,
+            10.5
+          ]
+        },
+        "down": {
+          "texture": "#seeker",
+          "uv": [
+            5.5,
+            5.5,
+            10.5,
+            10.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "dome_top",
+      "from": [
+        6.5,
+        15,
+        6.5
+      ],
+      "to": [
+        9.5,
+        16,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#seeker",
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#seeker",
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#seeker",
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#seeker",
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#seeker",
+          "uv": [
+            6.5,
+            6.5,
+            9.5,
+            9.5
+          ]
+        },
+        "down": {
+          "texture": "#seeker",
+          "uv": [
+            6.5,
+            6.5,
+            9.5,
+            9.5
+          ]
+        }
+      }
+    }
+  ]
+}

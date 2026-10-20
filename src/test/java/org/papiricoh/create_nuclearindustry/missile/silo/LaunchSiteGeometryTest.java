@@ -67,4 +67,15 @@ class LaunchSiteGeometryTest {
             assertEquals(8 * height, count);
         }
     }
+
+    @Test
+    void basePartsNumberTheNinePadsRowByRowFromTheNorthWest() {
+        assertEquals(0, LaunchSiteGeometry.part(-1, -1));
+        assertEquals(1, LaunchSiteGeometry.part(0, -1));
+        assertEquals(4, LaunchSiteGeometry.part(0, 0));
+        assertEquals(5, LaunchSiteGeometry.part(1, 0));
+        assertEquals(8, LaunchSiteGeometry.part(1, 1));
+        for (int x = -2; x <= 2; x++) for (int z = -2; z <= 2; z++)
+            if (Math.abs(x) == 2 || Math.abs(z) == 2) assertEquals(-1, LaunchSiteGeometry.part(x, z), x + "," + z);
+    }
 }

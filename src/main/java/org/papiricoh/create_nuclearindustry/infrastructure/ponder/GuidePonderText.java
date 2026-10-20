@@ -160,8 +160,8 @@ public final class GuidePonderText {
             List.of(
                     line("Start with a 3×3 square of Launch Base blocks. It is the complete launch site floor; Silo Concrete walls are optional decoration.",
                             "Empieza con un cuadrado de 3×3 de bloques de Base de lanzamiento. Es el suelo completo del sitio de lanzamiento; las paredes de Hormigón de silo son decoración opcional."),
-                    line("Place the Launch Controller beside any side of the base, drive it with shafts from a Creative Motor or cogs, and put a Silo Fuel Port touching the base with a pipe.",
-                            "Coloca el Controlador de lanzamiento junto a cualquier lado de la base, muévelo con ejes desde un Motor creativo o engranajes y pon un Puerto de combustible de silo tocando la base con una tubería."),
+                    line("Place the Launch Controller beside any side of the base, drive it with a shaft from below, and put a Silo Fuel Port touching the base with a pipe.",
+                            "Coloca el Controlador de lanzamiento junto a cualquier lado de la base, muévelo con un eje desde abajo y pon un Puerto de combustible de silo tocando la base con una tubería."),
                     line("Build upward: engine and tanks make stage 1; the next engine starts stage 2. Finish with guidance and a warhead—every engine begins a new stage.",
                             "Construye hacia arriba: motor y depósitos forman la etapa 1; el siguiente motor inicia la etapa 2. Termina con guiado y una ojiva: cada motor empieza una nueva etapa."),
                     line("Right-click the controller. Its console cutaway shows the stages; load the warhead there with cores, TNT, or a complete bomb.",

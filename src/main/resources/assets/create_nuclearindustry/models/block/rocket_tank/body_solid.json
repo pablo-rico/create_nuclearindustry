@@ -1,0 +1,217 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/rocket_tank_hull",
+    "hull": "create_nuclearindustry:block/rocket_tank_hull",
+    "ring": "create_nuclearindustry:block/rocket_ring"
+  },
+  "elements": [
+    {
+      "name": "body",
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        16,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            0,
+            13,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            0,
+            13,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            0,
+            13,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            0,
+            13,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#hull",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "ring_low",
+      "from": [
+        2.5,
+        0,
+        2.5
+      ],
+      "to": [
+        13.5,
+        1.5,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            14.5,
+            13.5,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            14.5,
+            13.5,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            14.5,
+            13.5,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            14.5,
+            13.5,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            13.5
+          ]
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            13.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "ring_high",
+      "from": [
+        2.5,
+        14.5,
+        2.5
+      ],
+      "to": [
+        13.5,
+        16,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            0,
+            13.5,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            0,
+            13.5,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            0,
+            13.5,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            0,
+            13.5,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            13.5
+          ]
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            13.5
+          ]
+        }
+      }
+    }
+  ]
+}

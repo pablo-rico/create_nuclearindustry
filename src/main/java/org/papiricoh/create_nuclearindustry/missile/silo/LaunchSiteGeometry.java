@@ -28,6 +28,14 @@ public final class LaunchSiteGeometry {
                 || dy >= 1 && dy <= maxRocket + 1 && radius == 2;
     }
 
+    /**
+     * Which ninth of a formed 3×3 base a block {@code (dx, dz)} from its centre is, row by row from the north-west corner
+     * (0 = north-west, 4 = centre, 8 = south-east); -1 outside the base.
+     */
+    public static int part(int dx, int dz) {
+        return Math.abs(dx) <= 1 && Math.abs(dz) <= 1 ? (dz + 1) * 3 + dx + 1 : -1;
+    }
+
     public static boolean clearanceOffset(int dx, int dy, int dz, int height) {
         return dy >= 1 && dy <= height && Math.abs(dx) <= 1 && Math.abs(dz) <= 1 && (dx != 0 || dz != 0);
     }

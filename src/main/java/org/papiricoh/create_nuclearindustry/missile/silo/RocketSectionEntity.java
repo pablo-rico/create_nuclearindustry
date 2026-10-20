@@ -67,7 +67,15 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
         if (level != null && !level.isClientSide) {
             MultiblockRegistry.affecting(level, worldPosition).forEach(c -> c.requestStructureRevalidation(null));
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+            refreshLook();
         }
+    }
+
+    /** Has the block show what it holds next tick: never set from here, as contents also change while it loads. */
+    private void refreshLook() {
+        if (level != null && !level.isClientSide && getBlockState().getBlock() instanceof RocketSectionBlock block
+                && block.look(getBlockState(), this) != getBlockState())
+            level.scheduleTick(worldPosition, block, 1);
     }
 
     public UUID identity() { return identity; }
@@ -173,6 +181,7 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
     @Override public void onLoad() {
         super.onLoad();
         dropMigrationOverflow();
+        refreshLook();
     }
 
     private void dropMigrationOverflow() {

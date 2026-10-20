@@ -8,7 +8,7 @@ motor so its shaft is driven from below; the launch keeps weapons_launch_base's
 coordinates, with a command table and a ground station to the south.
 """
 from ponder_plant_parts import NS, floor, put, replace, write
-from ponder_weapons import PARTS
+from ponder_weapons import PARTS, launch_site
 
 
 def ground_station():
@@ -29,11 +29,11 @@ def satellite_launch():
         for z in range(2, 5):
             put(blocks, (x, 0, z), NS + "launch_base")
     put(blocks, (5, 0, 3), NS + "silo_controller", {"facing": "east"})
-    put(blocks, (6, 0, 3), "create:creative_motor", {"facing": "west"})
     put(blocks, (5, 1, 3), "minecraft:lever", {"face": "floor", "facing": "north", "powered": "false"})
     for y, name in enumerate(("rocket_engine", "rocket_tank", "rocket_tank", "rocket_engine", "rocket_tank", "rocket_tank",
                               "rocket_guidance", "rocket_satellite_fairing"), 1):
         put(blocks, (3, y, 3), NS + name)
+    launch_site(blocks, (3, 0, 3))
     for i, part in enumerate(PARTS):
         x, z = 1 + i % 3, 6 + i // 3
         put(blocks, (x, 0, z), "minecraft:smooth_stone")

@@ -221,7 +221,7 @@ public class RocketContraptionTests {
         BlockPos target = SiloTests.target(helper);
         helper.runAfterDelay(10, () -> {
             silo.arm(player);
-            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.REDSTONE_BLOCK);
+            helper.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.REDSTONE_BLOCK);
         });
         helper.succeedWhen(() -> {
             Flight launched = FlightTracker.get(level).flights().stream().filter(f -> f.target().equals(target)).findFirst().orElse(null);
@@ -232,7 +232,7 @@ public class RocketContraptionTests {
             helper.assertTrue(launched.shape().radius() >= 1.5f, "and widens its outline");
             helper.assertTrue(level.getEntitiesOfClass(SuperGlueEntity.class, new AABB(helper.absolutePos(SiloTestBuilder.FLOOR)).inflate(4)).isEmpty(),
                     "its glue went too");
-            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.AIR);
+            helper.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.AIR);
         });
     }
 }

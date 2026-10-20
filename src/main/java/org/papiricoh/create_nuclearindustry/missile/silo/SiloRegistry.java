@@ -1,8 +1,5 @@
 package org.papiricoh.create_nuclearindustry.missile.silo;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -16,21 +13,21 @@ import org.papiricoh.create_nuclearindustry.creativetab.SectionedOutput;
 
 public final class SiloRegistry {
     public static final DeferredHolder<Block, RocketSectionBlock> ENGINE = section("rocket_engine", RocketComposition.Section.ENGINE);
-    public static final DeferredHolder<Block, RocketSectionBlock> TANK = section("rocket_tank", RocketComposition.Section.TANK);
+    public static final DeferredHolder<Block, RocketSectionBlock> TANK = AllNuclearBlocks.BLOCKS.register("rocket_tank", () -> new RocketTankBlock(properties()));
     public static final DeferredHolder<Block, RocketSectionBlock> GUIDANCE = section("rocket_guidance", RocketComposition.Section.GUIDANCE);
-    public static final DeferredHolder<Block, RocketSectionBlock> WARHEAD = section("rocket_warhead", RocketComposition.Section.WARHEAD);
+    public static final DeferredHolder<Block, RocketSectionBlock> WARHEAD = AllNuclearBlocks.BLOCKS.register("rocket_warhead", () -> new RocketWarheadBlock(properties()));
     /** Tops an interceptor rocket instead of a warhead: its controller launches it at missiles when ordered, never by redstone. */
     public static final DeferredHolder<Block, RocketSectionBlock> KILL_VEHICLE = section("rocket_kill_vehicle", RocketComposition.Section.KILL_VEHICLE);
     /** Tops a launch vehicle with a satellite inside: its controller sends it to orbit when a command table orders, never by redstone. */
     public static final DeferredHolder<Block, RocketSectionBlock> SATELLITE_FAIRING = section("rocket_satellite_fairing", RocketComposition.Section.SATELLITE);
     public static final DeferredHolder<Block, Block> WALL = AllNuclearBlocks.BLOCKS.register("silo_wall", () -> new Block(wallProperties()));
     /** A wall block pipes connect to, to pump propellant into the rocket. */
-    public static final DeferredHolder<Block, Block> FUEL_PORT = AllNuclearBlocks.BLOCKS.register("silo_fuel_port", () -> new RoleBlock(wallProperties(), "silo_fuel_port"));
+    public static final DeferredHolder<Block, SiloFuelPortBlock> FUEL_PORT = AllNuclearBlocks.BLOCKS.register("silo_fuel_port", () -> new SiloFuelPortBlock(wallProperties()));
     /** What a silo's floor and walls may be built of. */
     public static final net.minecraft.tags.TagKey<Block> SILO_WALLS = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK,
             net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "silo_walls"));
     /** The pad a rocket stands on: a 3×3 of these under it, with the launch controller and fuel ports beside it. */
-    public static final DeferredHolder<Block, Block> LAUNCH_BASE = AllNuclearBlocks.BLOCKS.register("launch_base", () -> new RoleBlock(wallProperties(), "launch_base"));
+    public static final DeferredHolder<Block, LaunchBaseBlock> LAUNCH_BASE = AllNuclearBlocks.BLOCKS.register("launch_base", () -> new LaunchBaseBlock(wallProperties()));
     /** What the 3×3 a rocket stands on may be built of: launch bases, or a silo's concrete floor. */
     public static final net.minecraft.tags.TagKey<Block> LAUNCH_BASES = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK,
             net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "launch_bases"));
@@ -60,21 +57,6 @@ public final class SiloRegistry {
     /** Reinforced concrete: full, opaque blocks that stand up to more than a rocket's exhaust. */
     private static BlockBehaviour.Properties wallProperties() { return BlockBehaviour.Properties.of().strength(5, 600).requiresCorrectToolForDrops(); }
     private static BlockBehaviour.Properties properties() { return BlockBehaviour.Properties.of().strength(4, 12).noOcclusion(); }
-    private static final class RoleBlock extends Block {
-        private final String role;
-
-        private RoleBlock(BlockBehaviour.Properties properties, String role) {
-            super(properties);
-            this.role = role;
-        }
-
-        @Override
-        public void appendHoverText(ItemStack stack, Item.TooltipContext context, java.util.List<Component> tooltip, TooltipFlag flag) {
-            super.appendHoverText(stack, context, tooltip, flag);
-            tooltip.add(Component.translatable(Screen.hasShiftDown() ? "item.create_nuclearindustry." + role + ".tooltip"
-                    : "silo.create_nuclearindustry.screen.tooltip.expand").withStyle(ChatFormatting.GRAY));
-        }
-    }
     private static DeferredHolder<Block, RocketSectionBlock> section(String name, RocketComposition.Section section) {
         return AllNuclearBlocks.BLOCKS.register(name, () -> new RocketSectionBlock(properties(), section));
     }

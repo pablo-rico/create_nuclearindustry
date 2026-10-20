@@ -10,7 +10,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.ChatFormatting;
@@ -356,10 +358,36 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private void setBase(@Nullable BlockPos next) {
         if (Objects.equals(base, next)) return;
         BlockPos old = floor();
+        if (base != null) formBase(base, false);
         base = next;
+        if (base != null) formBase(base, true);
         invalidatePorts(old);
         invalidatePorts(floor());
         setChanged(); sendData();
+    }
+
+    /** Sets (or clears) the parts of the launch base blocks of the 3×3 round {@code centre}, so they draw one launch table. */
+    private void formBase(BlockPos centre, boolean formed) {
+        if (level == null || level.isClientSide) return;
+        for (int x = -1; x <= 1; x++) for (int z = -1; z <= 1; z++) {
+            BlockPos p = centre.offset(x, 0, z);
+            if (!level.isLoaded(p)) continue;
+            BlockState block = level.getBlockState(p);
+            if (!block.hasProperty(LaunchBaseBlock.PART)) continue;
+            LaunchBaseBlock.Part part = formed ? LaunchBaseBlock.Part.of(LaunchSiteGeometry.part(x, z)) : LaunchBaseBlock.Part.NONE;
+            if (block.getValue(LaunchBaseBlock.PART) != part) level.setBlock(p, block.setValue(LaunchBaseBlock.PART, part), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /** Covers its base too: its renderer draws the base's hold-down clamps. */
+    @Override protected AABB createRenderBoundingBox() {
+        return new AABB(worldPosition).minmax(new AABB(floor()).inflate(1, 0, 1).expandTowards(0, 1, 0));
+    }
+
+    /** Broken (not unloaded): its base goes back to loose pads. */
+    @Override public void destroy() {
+        if (base != null) formBase(base, false);
+        super.destroy();
     }
 
     private record BaseCheck(int blocks, @Nullable BlockPos missing, @Nullable BlockPos unloaded) {
@@ -384,7 +412,10 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         List<BlockPos> candidates = new ArrayList<>();
         for (int[] offset : LaunchSiteGeometry.candidates(facing.getStepX(), facing.getStepZ()))
             candidates.add(worldPosition.offset(offset[0], 0, offset[1]));
-        if (base != null && candidates.contains(base) && checkBase(base).valid()) return true;
+        if (base != null && candidates.contains(base) && checkBase(base).valid()) {
+            formBase(base, true); // pads replaced since, or a base formed before pads had parts
+            return true;
+        }
         BlockPos first = null, bestMissing = null, unloaded = null;
         int mostBlocks = -1;
         for (BlockPos candidate : candidates) {

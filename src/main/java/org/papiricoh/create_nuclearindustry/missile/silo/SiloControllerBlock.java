@@ -18,14 +18,16 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
 import org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard;
 
+/** The launch controller: a rack cabinet that faces its operator, driven by a shaft from below. */
 public class SiloControllerBlock extends KineticBlock implements IBE<SiloControllerEntity> {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public SiloControllerBlock(Properties properties) { super(properties); registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH)); }
     @Override protected MapCodec<? extends SiloControllerBlock> codec() { return simpleCodec(SiloControllerBlock::new); }
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> b) { super.createBlockStateDefinition(b); b.add(FACING); }
     @Override public BlockState getStateForPlacement(BlockPlaceContext c) { return defaultBlockState().setValue(FACING, c.getHorizontalDirection().getOpposite()); }
-    @Override public Direction.Axis getRotationAxis(BlockState s) { return s.getValue(FACING).getAxis(); }
-    @Override public boolean hasShaftTowards(LevelReader l, BlockPos p, BlockState s, Direction d) { return d == s.getValue(FACING); }
+    /** Driven from below, through the generator in its plinth; {@link #FACING} is only where its front and its base lie. */
+    @Override public Direction.Axis getRotationAxis(BlockState s) { return Direction.Axis.Y; }
+    @Override public boolean hasShaftTowards(LevelReader l, BlockPos p, BlockState s, Direction d) { return d == Direction.DOWN; }
     @Override public Class<SiloControllerEntity> getBlockEntityClass() { return SiloControllerEntity.class; }
     @Override public BlockEntityType<? extends SiloControllerEntity> getBlockEntityType() { return SiloRegistry.CONTROLLER_ENTITY.get(); }
     @Override protected InteractionResult useWithoutItem(BlockState s, Level level, BlockPos p, Player player, BlockHitResult hit) {

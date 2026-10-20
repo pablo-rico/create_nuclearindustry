@@ -21,6 +21,7 @@ public final class MissileClient implements NuclearFeatureClient {
         org.papiricoh.create_nuclearindustry.missile.defense.client.DefenseClient.init(modEventBus);
         org.papiricoh.create_nuclearindustry.missile.orbit.client.ClientSatellites.init();
         org.papiricoh.create_nuclearindustry.missile.orbit.client.OrbitClient.init(modEventBus);
+        org.papiricoh.create_nuclearindustry.missile.silo.client.SiloPartials.init();
         org.papiricoh.create_nuclearindustry.missile.orbit.OrbitRegistry.clientSync = org.papiricoh.create_nuclearindustry.missile.orbit.client.ClientSatellites::accept;
         org.papiricoh.create_nuclearindustry.missile.silo.SiloDiagramPayload.client = org.papiricoh.create_nuclearindustry.missile.silo.client.ClientLaunchDiagrams::accept;
     }
@@ -33,6 +34,8 @@ public final class MissileClient implements NuclearFeatureClient {
         org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.registerRenderers(event);
         org.papiricoh.create_nuclearindustry.missile.defense.client.DefenseClient.registerRenderers(event);
         org.papiricoh.create_nuclearindustry.missile.orbit.client.OrbitClient.registerRenderers(event);
+        event.registerBlockEntityRenderer(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.CONTROLLER_ENTITY.get(),
+                org.papiricoh.create_nuclearindustry.missile.silo.client.SiloControllerRenderer::new);
         event.registerEntityRenderer(MissileRegistry.MISSILE.get(), MissileRenderer::new);
         event.registerBlockEntityRenderer(MissileRegistry.LAUNCH_PAD_ENTITY.get(), LaunchPadRenderer::new);
     }

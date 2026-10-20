@@ -159,7 +159,6 @@ public class GuidePonderSchematicTests {
             helper.assertBlockPresent(SiloRegistry.LAUNCH_BASE.get(), new BlockPos(x, 1, z));
         helper.assertBlockPresent(SiloRegistry.CONTROLLER.get(), new BlockPos(5, 1, 3));
         helper.assertBlockPresent(SiloRegistry.FUEL_PORT.get(), new BlockPos(3, 1, 1));
-        helper.assertBlockPresent(createBlock("creative_motor"), new BlockPos(6, 1, 3));
         helper.assertBlockPresent(net.minecraft.world.level.block.Blocks.LEVER, new BlockPos(5, 2, 3));
         helper.assertBlockPresent(SiloRegistry.ENGINE.get(), new BlockPos(3, 2, 3));
         helper.assertBlockPresent(SiloRegistry.TANK.get(), new BlockPos(3, 3, 3));

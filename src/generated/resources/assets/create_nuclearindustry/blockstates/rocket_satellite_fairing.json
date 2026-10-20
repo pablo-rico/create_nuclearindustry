@@ -1,7 +1,41 @@
 {
-  "variants": {
-    "": {
-      "model": "create_nuclearindustry:block/rocket_satellite_fairing"
+  "multipart": [
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_satellite_fairing/body"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_satellite_fairing/top_cap"
+      },
+      "when": {
+        "top": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_satellite_fairing/top_joint"
+      },
+      "when": {
+        "top": "other"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_satellite_fairing/bottom_cap"
+      },
+      "when": {
+        "bottom": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/rocket_satellite_fairing/bottom_joint"
+      },
+      "when": {
+        "bottom": "other"
+      }
     }
-  }
+  ]
 }

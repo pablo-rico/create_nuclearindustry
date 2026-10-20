@@ -66,13 +66,13 @@ public class InterceptorSiloTests {
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
     public static void redstoneDoesNotLaunchAnInterceptor(GameTestHelper helper) {
         SiloControllerEntity controller = interceptor(helper);
-        helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.REDSTONE_BLOCK);
+        helper.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.REDSTONE_BLOCK);
         helper.runAfterDelay(30, () -> {
             helper.assertTrue(controller.state() == SiloControllerEntity.State.READY, "redstone leaves an interceptor standing by");
             BlockPos floor = helper.absolutePos(SiloTestBuilder.FLOOR);
             helper.assertTrue(FlightTracker.get(helper.getLevel()).flights().stream()
                     .noneMatch(f -> f.origin() != null && f.origin().closerThan(floor, 8)), "redstone creates no flight");
-            helper.setBlock(SiloTestBuilder.CONTROLLER.below(), Blocks.AIR);
+            helper.setBlock(SiloTestBuilder.CONTROLLER.north(), Blocks.AIR);
             helper.succeed();
         });
     }
