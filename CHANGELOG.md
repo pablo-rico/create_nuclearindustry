@@ -25,6 +25,20 @@
 - New advancements "Beep, Beep" (put a satellite in orbit) and "Kessler Syndrome" (shoot one down). Settings under
   `missile.orbit.*`.
 
+### Launch site art
+- Every block of the launch site has new models and textures, modelled on Cold War rockets and pads. Stacked rocket
+  sections now make one continuous fuselage, with joint rings only where two kinds of section meet; first-stage engines
+  show their nozzle and fins, upper stages an open interstage round a vacuum nozzle.
+- Sections show what they hold: a tank looks different with a solid cartridge or with liquids, and frosts up as liquid
+  oxygen goes in; a warhead's reentry vehicle shows whether it is conventional, fission, dirty or thermonuclear. A rocket
+  keeps these looks in flight.
+- A launch controller now forms its 3×3 base into one launch table, with a flame grate under the rocket and hold-down
+  clamps that close on a rocket standing ready and swing back as it lifts off.
+- The Launch Controller is a rack cabinet that faces whoever places it, with status lamps (green ready, amber armed,
+  red when it cannot launch) and a generator turning in its plinth. **It is now driven by a shaft from below**: in
+  existing worlds, move its shaft under it.
+- The Silo Fuel Port has fuel and liquid-oxygen valves on the face turned to whoever places it.
+
 ### Fixes
 - The link code boxes of the missile radar, the interceptor battery and the ground station screens take typing again:
   clicking them focused the box but keys never reached it.

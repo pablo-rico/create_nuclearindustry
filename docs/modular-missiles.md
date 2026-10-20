@@ -10,10 +10,16 @@ no hace falta para lanzar desde una plataforma abierta.
 1. Coloca una cuadrícula completa de **3×3 Bases de lanzamiento**. Usa un controlador
    por base.
 2. Coloca el **Controlador de lanzamiento** junto a cualquiera de los cuatro lados de
-   la base, no encima de ella. Dale al menos 32 RPM mediante ejes, engranajes o un
-   motor creativo; su impacto inicial es 8 SU/RPM.
+   la base, no encima de ella; su frente mira hacia quien lo coloca. Dale al menos
+   32 RPM con un **eje desde abajo** (el generador de su zócalo); su impacto inicial
+   es 8 SU/RPM. Cuando encuentra la base, los nueve bloques forman una sola mesa de
+   lanzamiento con la rejilla del foso de llamas bajo el cohete y cuatro abrazaderas
+   que se cierran sobre un cohete listo y se abren al despegar. Sus luces dicen su
+   estado: verde listo, ámbar armado (parpadea en la cuenta atrás), rojo si no puede
+   lanzar.
 3. Pon un **Puerto de combustible de silo** tocando la base, en un lateral, debajo o
-   junto a ella, y conecta una tubería si vas a cargar propelente líquido.
+   junto a ella, y conecta una tubería si vas a cargar propelente líquido. Sus
+   válvulas miran hacia quien lo coloca, pero las tuberías conectan por cualquier cara.
 4. Construye la columna en el bloque central de la base. La gramática es
    `(Motor + 1–4 Depósitos){1–3} + Guiado + Ojiva`: cada motor inicia una etapa nueva.
    Por tanto, una etapa es motor, depósitos, guiado y ojiva; dos etapas añaden otro
@@ -21,7 +27,9 @@ no hace falta para lanzar desde una plataforma abierta.
    4 a 17 bloques.
 
 El controlador comprueba la base, que la columna sea continua, que haya espacio de
-salida y que la combinación de secciones sea válida. Las aletas y otros bloques
+salida y que la combinación de secciones sea válida. Las secciones apiladas forman un
+solo fuselaje: un depósito muestra si lleva un cartucho sólido o líquidos (y se
+escarcha al cargar oxígeno líquido) y la ojiva muestra su tipo de carga. Las aletas y otros bloques
 pegados con pegamento viajan con el cohete. Una carcasa de Hormigón de silo puede
 rodear el conjunto hasta la punta para darle aspecto de silo; no mejora el lanzamiento.
 
