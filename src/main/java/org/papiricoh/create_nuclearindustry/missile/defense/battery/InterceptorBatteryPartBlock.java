@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.missile.defense.battery;
 
+import com.simibubi.create.api.equipment.goggles.IProxyHoveringInformation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,7 +23,7 @@ import org.papiricoh.create_nuclearindustry.missile.defense.DefenseRegistry;
  * One of the seven blocks of an interceptor battery besides its master. {@link #OFFSET} says where it lies from the master, in
  * world axes: bit 0 is +x, bit 1 is +y, bit 2 is +z.
  */
-public class InterceptorBatteryPartBlock extends Block {
+public class InterceptorBatteryPartBlock extends Block implements IProxyHoveringInformation {
     public static final IntegerProperty OFFSET = IntegerProperty.create("offset", 1, 7);
 
     public InterceptorBatteryPartBlock(Properties properties) {
@@ -32,6 +33,12 @@ public class InterceptorBatteryPartBlock extends Block {
 
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(OFFSET);
+    }
+
+    /** Goggles on any part read the battery: its master holds everything. */
+    @Override
+    public BlockPos getInformationSource(Level level, BlockPos pos, BlockState state) {
+        return master(pos, state);
     }
 
     /** Where the master of the part {@code state} at {@code pos} is. */

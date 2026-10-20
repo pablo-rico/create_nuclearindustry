@@ -60,7 +60,9 @@ public class InterceptorBatteryEntity extends KineticBlockEntity implements Inte
 
         @Override
         protected void onContentsChanged(int slot) {
-            // A round just loaded has to be seated before it can fly; an emptied tube has nothing to wait for.
+            // A round just loaded has to be seated before it can fly; an emptied tube has nothing to wait for. Only the server
+            // times it: a client's copy of the tubes is refilled by every sync, and is told the time left with the rest.
+            if (level == null || level.isClientSide) return;
             loading[slot] = getStackInSlot(slot).isEmpty() ? 0 : DefenseConfig.batteryReloadSeconds * 20;
             changed();
         }
