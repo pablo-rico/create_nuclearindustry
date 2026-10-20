@@ -8,6 +8,8 @@
     "create_nuclearindustry:penning_trap",
     "create_nuclearindustry:large_penning_trap",
     "create_nuclearindustry:annihilation_generator",
-    "create_nuclearindustry:antiproton_injector"
+    "create_nuclearindustry:antiproton_injector",
+    "create_nuclearindustry:interceptor_battery",
+    "create_nuclearindustry:interceptor_battery_part"
   ]
 }

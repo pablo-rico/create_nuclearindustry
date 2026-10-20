@@ -10,6 +10,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.missile.defense.Doctrine;
+import org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard;
 
 /**
  * What an operator changes on a battery's screen: its radar link code, automatic mode, doctrine and defended zone. Checked on the
@@ -41,6 +43,17 @@ public record BatteryConfigurePayload(BlockPos pos, byte action, int arg, String
 
     /** Applies {@code p} for {@code player} if they may; public for tests. Returns whether anything changed. */
     public static boolean apply(ServerPlayer player, BatteryConfigurePayload p) {
-        return false;
+        if (!(player.containerMenu instanceof InterceptorBatteryMenu menu) || !menu.pos.equals(p.pos) || !menu.stillValid(player)
+                || !ServerPayloadGuard.check(player, p.pos) || menu.battery == null) return false;
+        InterceptorBatteryEntity battery = menu.battery;
+        switch (p.action) {
+            case SET_CODE -> battery.setCode(p.code);
+            case SET_AUTO -> battery.setSettings(battery.settings().withAuto(p.arg != 0));
+            case SET_DOCTRINE -> battery.setSettings(battery.settings().withDoctrine(Doctrine.byOrdinal(p.arg)));
+            case SET_ZONE_RADIUS -> battery.setSettings(battery.settings().withZone(battery.settings().zoneX(), battery.settings().zoneZ(), p.arg));
+            case ZONE_HERE -> battery.setSettings(battery.settings().withZone(battery.getBlockPos().getX(), battery.getBlockPos().getZ(), battery.settings().zoneRadius()));
+            default -> { return false; }
+        }
+        return true;
     }
 }

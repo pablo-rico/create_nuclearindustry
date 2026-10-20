@@ -1,0 +1,77 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:iron_sheet"
+  },
+  "results": [
+    {
+      "id": "create_nuclearindustry:interceptor"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_interceptor"
+        },
+        {
+          "item": "create_nuclearindustry:propellant_cartridge"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_interceptor"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_interceptor"
+        },
+        {
+          "item": "create:precision_mechanism"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_interceptor"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_interceptor"
+        },
+        {
+          "item": "create:electron_tube"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_interceptor"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_interceptor"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_interceptor"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "create_nuclearindustry:incomplete_interceptor"
+  }
+}

@@ -3,6 +3,7 @@ package org.papiricoh.create_nuclearindustry.missile.defense.client;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.missile.defense.battery.BatteryGeometry;
 
 /**
  * The interceptor battery's moving parts and the interceptor round, drawn by their renderers. Must be created before models load
@@ -27,12 +28,12 @@ public final class DefensePartials {
     /** An interceptor in flight, for its puppet entity. */
     public static final PartialModel INTERCEPTOR_ROUND = of("entity/interceptor_round");
 
-    public static final float[] TURRET_PIVOT = {1.0f, 1.0f, 1.0f};
-    public static final float[] CANISTER_PIVOT = {1.0f, 1.4375f, 1.0f};
+    public static final float[] TURRET_PIVOT = BatteryGeometry.TURRET_PIVOT;
+    public static final float[] CANISTER_PIVOT = BatteryGeometry.CANISTER_PIVOT;
     /** Each tube's centre across the canister's face, (x, y) in the canister's frame (x east, y up at rest), blocks. */
-    public static final float[][] TUBE_OFFSETS = {{-0.25f, 0.25f}, {0.25f, 0.25f}, {-0.25f, -0.25f}, {0.25f, -0.25f}};
+    public static final float[][] TUBE_OFFSETS = BatteryGeometry.TUBE_OFFSETS;
     /** How far north of its pivot (at rest) a tube's mouth is, blocks. */
-    public static final float TUBE_MOUTH = 1.1f;
+    public static final float TUBE_MOUTH = BatteryGeometry.TUBE_MOUTH;
 
     private DefensePartials() {
     }
