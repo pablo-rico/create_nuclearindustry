@@ -272,7 +272,7 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
     /**
      * Sends the linked silo a new target at ({@code x, z}), its height read from the ground there if it is loaded, else foretold
      * from the world's generator. The player must stand at the table, the table be whole, the silo be linked, in this dimension and
-     * loaded, and the target lie within the table's view and the silo's reach (with a 5% margin).
+     * loaded, and the target lie within the table's view and the silo's reach.
      */
     public Designation designate(ServerPlayer player, int x, int z, boolean airburst) {
         Designation check = check(player, x, z);
@@ -282,7 +282,10 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
         int y = level.hasChunk(x >> 4, z >> 4) ? level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z)
                 : ((ServerLevel) level).getChunkSource().getGenerator().getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, level,
                 ((ServerLevel) level).getChunkSource().randomState());
-        controller.configure(player, new BlockPos(x, y, z), airburst);
+        BlockPos target = new BlockPos(x, y, z);
+        // The ring is drawn for level ground: the silo's own flight check has the last word on hills and valleys.
+        if (!controller.canReach(target)) return Designation.OUT_OF_REACH;
+        controller.configure(player, target, airburst);
         return Designation.OK;
     }
 
@@ -299,7 +302,7 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
         BlockPos floor = controller.floor();
         double distance = Math.hypot(x + 0.5 - floor.getX() - 0.5, z + 0.5 - floor.getZ() - 0.5);
         double reach = controller.reach();
-        if (reach <= 0 || distance > reach * 1.05) return Designation.OUT_OF_REACH;
+        if (reach <= 0 || distance > reach) return Designation.OUT_OF_REACH;
         // The server's limits, as the silo will check them again when it launches.
         if (!LaunchRules.dimensionAllowed(level.dimension().location().toString(), MissileConfig.allowedDimensions)
                 || LaunchRules.outOfRange(floor.getX() + 0.5, floor.getZ() + 0.5, x + 0.5, z + 0.5, MissileConfig.maxRange)) return Designation.LIMITS;

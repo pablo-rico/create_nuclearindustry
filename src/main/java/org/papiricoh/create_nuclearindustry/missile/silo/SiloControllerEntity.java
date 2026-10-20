@@ -42,6 +42,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private boolean dirty = true, lastSignal, initializedSignal;
     private int countdown = -1;
     private String error = "height";
+    /** What the error's message shows instead of where it lies (distances, speeds), or null for its position. */
+    private int[] errorArgs;
     private BlockPos errorPos;
     private double flightTicks;
     /** Sections in the rocket standing in it, 0 if none is complete; for the client's countdown and launch effects. */
@@ -72,7 +74,10 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     }
     /** Why it is not ready, with where, as a {@link MultiblockText} message; empty when nothing is wrong. */
     public String errorMessage() {
-        return error.isEmpty() ? "" : MultiblockText.message("silo.create_nuclearindustry.error." + error, errorPos.getX(), errorPos.getY(), errorPos.getZ());
+        if (error.isEmpty()) return "";
+        if (errorArgs != null) return MultiblockText.message("silo.create_nuclearindustry.error." + error + "_detail",
+                java.util.Arrays.stream(errorArgs).boxed().toArray());
+        return MultiblockText.message("silo.create_nuclearindustry.error." + error, errorPos.getX(), errorPos.getY(), errorPos.getZ());
     }
     /** Where the reason it is not ready lies (the controller when it is not a place). */
     public BlockPos errorPos() { return errorPos; }
@@ -153,7 +158,21 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         Vec3 aim = designatedAim();
         if (rocket == null) return aim;
         V3 miss = AccuracyModel.miss(cep(), rocket.missSeed());
-        return aim.add(miss.x(), 0, miss.z());
+        // A miss never carries a target it can reach out of its reach: it is shortened until the rocket gets there.
+        Vec3 start = Vec3.atBottomCenterOf(rocket.base());
+        for (int i = 0; i < 6; i++) {
+            Vec3 missed = aim.add(miss.x(), 0, miss.z());
+            if (reaches(start, missed)) return missed;
+            miss = miss.scale(0.5);
+        }
+        return aim;
+    }
+    private boolean reaches(Vec3 start, Vec3 aim) {
+        return MissileFlight.predict(design(), Flight.v3(start), Flight.v3(aim), Flight.v3(Vec3.ZERO), MissileConfig.flightParams()).onTarget();
+    }
+    /** Whether the rocket standing in it can be guided onto {@code target} (as a ground burst); false without a rocket. Server side. */
+    public boolean canReach(BlockPos target) {
+        return rocket != null && reaches(Vec3.atBottomCenterOf(rocket.base()), Vec3.atCenterOf(target));
     }
     /** The circular error probable, blocks, of the rocket standing in it at its target; 0 without either. */
     public double cep() {
@@ -186,7 +205,17 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         return LaunchRules.Refusal.NONE;
     }
     private void fail(String reason, BlockPos pos, State state) {
-        error = reason; errorPos = pos; this.state = state; countdown = -1;
+        error = reason; errorPos = pos; errorArgs = null; this.state = state; countdown = -1;
+    }
+    /** As {@link #fail(String, BlockPos, State)}, its message showing {@code args} ({@code ..._detail} lang key). */
+    private void failWith(String reason, State state, int... args) {
+        fail(reason, worldPosition, state);
+        errorArgs = args;
+    }
+    /** Not turning fast enough, or the network overstressed: says which, and how fast it turns. */
+    private void failSpeed() {
+        if (isOverStressed()) failWith("overstressed", State.UNPREPARED, Math.round(calculateStressApplied() * Math.max((float) MissileConfig.minimumRpm, Math.abs(getSpeed()))));
+        else failWith("speed", State.UNPREPARED, (int) Math.ceil(MissileConfig.minimumRpm), Math.round(Math.abs(getSpeed())));
     }
     public void validate() {
         dirty = false;
@@ -211,12 +240,17 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (!same || reach <= 0) reach = MissileFlight.maxRange(design(), MissileConfig.flightParams());
         rocketHeight = next.height();
         if (target == null) { fail("target", worldPosition, State.UNPREPARED); return; }
-        if (!powered()) { fail("speed", worldPosition, State.UNPREPARED); return; }
+        if (!powered()) { failSpeed(); return; }
         LaunchRules.Refusal refusal = checkLimits(server);
         if (refusal != LaunchRules.Refusal.NONE) { fail(refusal.name().toLowerCase(Locale.ROOT), worldPosition, State.UNPREPARED); return; }
-        var prediction = MissileFlight.predict(design(), Flight.v3(Vec3.atBottomCenterOf(rocket.base())), Flight.v3(aim()), Flight.v3(Vec3.ZERO), MissileConfig.flightParams());
+        // Reach is judged on the target as designated: the guidance's miss is where it lands, not whether it can get there.
+        var prediction = MissileFlight.predict(design(), Flight.v3(Vec3.atBottomCenterOf(rocket.base())), Flight.v3(designatedAim()), Flight.v3(Vec3.ZERO), MissileConfig.flightParams());
         flightTicks = prediction.ticks();
-        if (!prediction.onTarget()) { fail("range", worldPosition, State.UNPREPARED); return; }
+        if (!prediction.onTarget()) {
+            Vec3 start = Vec3.atBottomCenterOf(rocket.base()), at = designatedAim();
+            failWith("range", State.UNPREPARED, (int) Math.round(Math.hypot(at.x - start.x, at.z - start.z)), (int) Math.floor(reach));
+            return;
+        }
         error = "";
         if (!same || state != State.ARMED && state != State.COUNTDOWN) { countdown = -1; state = State.READY; }
     }
@@ -227,7 +261,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         boolean rising = initializedSignal && signal && !lastSignal;
         initializedSignal = true; lastSignal = signal;
         State before = state;
-        if (!powered() && (state == State.ARMED || state == State.COUNTDOWN)) { fail("speed", worldPosition, State.UNPREPARED); dirty = true; }
+        if (!powered() && (state == State.ARMED || state == State.COUNTDOWN)) { failSpeed(); dirty = true; }
         // Events invalidate immediately; a slow audit also catches chunk unloads and raw world edits.
         if (dirty || level.getGameTime() % 20 == 0) validate();
         if (state == State.ARMED && rising) { countdown = MissileConfig.launchCountdownTicks(); state = State.COUNTDOWN; setChanged(); }
@@ -300,7 +334,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (pendingLaunch != null) tag.putUUID("PendingLaunch", pendingLaunch);
         tag.putBoolean("Airburst", airburst);
         if (clientPacket) {
-            tag.putString("State", state.name()); tag.putString("Error", error); tag.putLong("ErrorPos", errorPos.asLong());
+            tag.putString("State", state.name()); tag.putString("Error", error); tag.putLong("ErrorPos", errorPos.asLong()); if (errorArgs != null) tag.putIntArray("ErrorArgs", errorArgs);
             tag.putInt("Countdown", countdown); tag.putDouble("FlightTicks", flightTicks); tag.putInt("RocketHeight", rocketHeight);
             tag.putInt("Guidance", guidance().ordinal()); tag.putDouble("Cep", cep());
             if (error.equals("assembly") && assemblyMessage != null) tag.putString("AssemblyText", Component.Serializer.toJson(assemblyMessage, provider));
@@ -314,7 +348,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         airburst = tag.getBoolean("Airburst");
         if (clientPacket) {
             try { state = State.valueOf(tag.getString("State")); } catch (IllegalArgumentException ignored) { state = State.INCOMPLETE; }
-            error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks"); rocketHeight = tag.getInt("RocketHeight");
+            error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); errorArgs = tag.contains("ErrorArgs") ? tag.getIntArray("ErrorArgs") : null; countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks"); rocketHeight = tag.getInt("RocketHeight");
             syncedGuidance = GuidanceTier.byOrdinal(tag.getInt("Guidance")); syncedCep = tag.getDouble("Cep");
             assemblyMessage = tag.contains("AssemblyText") ? Component.Serializer.fromJson(tag.getString("AssemblyText"), provider) : null;
         } else { state = State.UNPREPARED; countdown = -1; initializedSignal = false; rocket = null; dirty = true; }

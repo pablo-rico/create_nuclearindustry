@@ -225,4 +225,35 @@ public class SiloTests {
             helper.succeed();
         });
     }
+
+    /**
+     * Reach is judged on the target as designated: one near the edge of the rocket's reach is ready even though its guidance
+     * misses by hundreds of blocks, and one beyond says how far it is and how far the rocket reaches.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void reachIsJudgedOnTheDesignatedTarget(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        SiloControllerEntity silo = aimed(helper, new SiloTestBuilder().tanks(2), player);
+        helper.runAfterDelay(10, () -> {
+            silo.validate();
+            double reach = silo.reach();
+            helper.assertTrue(reach > 200, "the rocket reaches somewhere, got " + reach);
+            BlockPos floor = helper.absolutePos(SiloTestBuilder.FLOOR);
+            BlockPos edge = floor.offset((int) (reach * 0.97), 0, 0);
+            silo.configure(player, edge, false);
+            silo.validate();
+            helper.assertTrue(silo.canReach(edge), "97% of its reach can be reached");
+            helper.assertTrue(silo.state() == SiloControllerEntity.State.READY,
+                    "so it is ready whatever its guidance misses by (CEP " + Math.round(silo.cep()) + "), got " + silo.state() + " " + silo.error());
+            BlockPos beyond = floor.offset((int) (reach * 1.3), 0, 0);
+            silo.configure(player, beyond, false);
+            silo.validate();
+            helper.assertTrue(!silo.canReach(beyond), "130% of its reach cannot");
+            helper.assertTrue("range".equals(silo.error()), "so it is out of range, got " + silo.error());
+            String message = silo.errorMessage();
+            helper.assertTrue(message.contains("range_detail") && message.contains(String.valueOf((int) Math.floor(reach))),
+                    "and says how far the rocket reaches: " + message);
+            helper.succeed();
+        });
+    }
 }

@@ -191,7 +191,7 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
     private boolean inReach(HoloTracksPayload picture, double dx, double dz) {
         if (picture == null || picture.silo() == null || picture.silo().reach() <= 0) return false;
         HoloTracksPayload.Silo s = picture.silo();
-        return Math.hypot(dx - s.dx(), dz - s.dz()) <= s.reach() * 1.05;
+        return Math.hypot(dx - s.dx(), dz - s.dz()) <= s.reach();
     }
 
     @Override
