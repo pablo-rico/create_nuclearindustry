@@ -91,7 +91,7 @@ public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, in
                 controller.arm(player);
                 if (controller.state() != SiloControllerEntity.State.ARMED) return Command.REFUSED;
             }
-            case DISARM -> controller.disarm();
+            case DISARM -> { controller.disarm(); controller.sendData(); }
             default -> { return Command.REFUSED; }
         }
         return Command.OK;
@@ -136,7 +136,7 @@ public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, in
         for (GlobalPos link : table.silos()) {
             if (controllerProblem(level, table, link.pos()) == Command.OK
                     && level.getBlockEntity(link.pos()) instanceof SiloControllerEntity controller
-                    && flight.origin().equals(controller.floor().above())) {
+                    && controller.floor().above().equals(flight.origin())) {
                 return tracker.abort(level, id) ? Command.OK : Command.GONE;
             }
         }

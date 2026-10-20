@@ -140,7 +140,7 @@ public final class FlightTracker extends SavedData {
         Vec3 position = flight.position();
         remove(level, flight);
         BlockPos block = BlockPos.containing(position);
-        if (!level.isOutsideBuildHeight(block) && level.isLoaded(block))
+        if (MissileConfig.selfDestructPower > 0 && !level.isOutsideBuildHeight(block) && level.isLoaded(block))
             level.explode(null, position.x, position.y, position.z, (float) MissileConfig.selfDestructPower,
                     net.minecraft.world.level.Level.ExplosionInteraction.TNT);
         return true;
