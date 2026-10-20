@@ -10,7 +10,7 @@ from blocks import block  # noqa: F401
 from common import bolt, casing, flange
 from gui import gui
 from items import item, mask_from, sculpt
-from palette import BRASS, CONCRETE, CYAN, DANGER, DARK, IN_ACCENT, RADIUM, STEEL, WARN, WHITE
+from palette import BRASS, CONCRETE, COPPER, CYAN, DANGER, DARK, IN_ACCENT, RADIUM, STEEL, WARN, WHITE
 from pixelkit import Ramp, Tex, bevel, brushed, fbm, glow, hazard, item_outline, mix, outline, shade
 
 
@@ -85,6 +85,165 @@ STAR_TRACKER = [
     "..########......",
     "................",
 ]
+
+
+# ======================================================================================
+# the silo controller and the rocket's sections: a painted hull, dark engine metal, a
+# concrete-and-steel console
+# ======================================================================================
+
+HULL = Ramp("#6f7473", "#8c918e", "#a7aba6", "#c0c3bc", "#d6d8d0", "#e7e8e0", "#f5f5ee")
+
+
+def _hull(t, seed):
+    """White-painted rocket skin: faint streaks down it, a seam either side."""
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, seed, 16, 16, octaves=2, scale=4.0)
+            t.set(x, y, HULL.t(0.62 + 0.18 * n))
+    for x in (0, 15):
+        t.vline(x, 0, 15, HULL[2])
+    for x in (4, 11):
+        t.vline(x, 0, 15, HULL[3])
+
+
+@block("rocket_tank_hull")
+def rocket_tank_hull():
+    """A propellant tank: painted skin, a welded belt with rivets and a black and white roll pattern."""
+    t = Tex(seed=930)
+    _hull(t, 930)
+    t.hline(0, 15, 7, HULL[2])
+    t.hline(0, 15, 8, HULL[5])
+    for x in range(1, 16, 3):
+        t.set(x, 7, HULL[1])
+    for y in range(1, 4):
+        for x in range(11, 14):
+            t.set(x, y, DARK[1])
+    for y in range(12, 15):
+        for x in range(2, 5):
+            t.set(x, y, DARK[1])
+    return t
+
+
+@block("rocket_engine_hull")
+def rocket_engine_hull():
+    """The engine bay: bare steel going blue and bronze with heat towards the nozzle."""
+    t = Tex(seed=931)
+    brushed(t, STEEL, base=3.0, amp=0.7, seed=931, axis="v")
+    for y in range(9, 16):
+        f = (y - 9) / 6
+        for x in range(16):
+            t.set(x, y, mix(t.get(x, y), BRASS[2] if (x + y) % 5 else COPPER[1], 0.25 + 0.35 * f))
+    t.hline(0, 15, 0, DARK[1])
+    t.hline(0, 15, 1, STEEL[5])
+    for x in (2, 7, 12):
+        bolt(t, x, 3, STEEL)
+    return t
+
+
+@block("rocket_engine_nozzle")
+def rocket_engine_nozzle():
+    """Nozzle and fins' metal: dark, sooty, scorched."""
+    t = Tex(seed=932)
+    brushed(t, DARK, base=1.8, amp=0.6, seed=932)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 932, 16, 16, octaves=2, scale=3.0)
+            if n > 0.62:
+                t.set(x, y, shade(t.get(x, y), 0.7))
+    outline(t, 0, 0, 15, 15, DARK[0])
+    return t
+
+
+@block("rocket_ring")
+def rocket_ring():
+    """The joint rings between sections: dark steel bolted all round."""
+    t = Tex(seed=933)
+    brushed(t, DARK, base=2.6, amp=0.5, seed=933)
+    t.hline(0, 15, 0, DARK[5])
+    t.hline(0, 15, 15, DARK[0])
+    for x in range(1, 16, 4):
+        bolt(t, x, 6, DARK)
+    return t
+
+
+@block("rocket_guidance_hull")
+def rocket_guidance_hull():
+    """The guidance bay: painted skin with an access hatch and a small star window."""
+    t = Tex(seed=934)
+    _hull(t, 934)
+    outline(t, 3, 2, 12, 13, HULL[1])
+    t.hline(4, 11, 3, HULL[6])
+    for x, y in ((4, 4), (11, 4), (4, 12), (11, 12)):
+        t.set(x, y, STEEL[2])
+    t.rect(6, 6, 9, 9, DARK[0])
+    t.set(7, 7, CYAN[5])
+    t.set(8, 8, CYAN[3])
+    return t
+
+
+@block("rocket_guidance_band")
+def rocket_guidance_band():
+    """The avionics band round the guidance bay: dark panels and status lights."""
+    t = Tex(seed=935)
+    brushed(t, DARK, base=2.2, amp=0.4, seed=935)
+    t.hline(0, 15, 4, DARK[5])
+    t.hline(0, 15, 11, DARK[0])
+    for i, x in enumerate(range(1, 16, 3)):
+        t.set(x, 7, (CYAN[5], WARN[4], CYAN[4], DANGER[4], CYAN[5], WARN[3])[i % 6])
+        t.set(x, 8, DARK[0])
+    return t
+
+
+@block("rocket_warhead_cone")
+def rocket_warhead_cone():
+    """The re-entry body: olive-grey ablative skin, a red band and a yellow stencil line."""
+    t = Tex(seed=936)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 936, 16, 16, octaves=2, scale=4.0)
+            t.set(x, y, mix(CONCRETE.t(0.45 + 0.2 * n), RADIUM[1], 0.25))
+    t.hline(0, 15, 12, DANGER[2])
+    t.hline(0, 15, 13, DANGER[3])
+    t.hline(0, 15, 14, DANGER[1])
+    t.hline(2, 9, 9, WARN[4])
+    return t
+
+
+@block("silo_controller_casing")
+def silo_controller_casing():
+    """The controller's housing: concrete set in a steel frame, like the silo's walls."""
+    t = Tex(seed=937)
+    _silo_concrete(t, 937)
+    outline(t, 0, 0, 15, 15, DARK)
+    t.hline(1, 14, 1, STEEL[4])
+    t.vline(1, 1, 14, STEEL[4])
+    t.hline(1, 14, 14, STEEL[1])
+    t.vline(14, 1, 14, STEEL[1])
+    for x, y in ((2, 2), (12, 2), (2, 12), (12, 12)):
+        bolt(t, x, y, STEEL)
+    hazard(t, 3, 13, 12, 13, WARN[4], DARK[0])
+    return t
+
+
+@block("silo_controller_panel")
+def silo_controller_panel():
+    """The launch console set in its front: a green status screen, three lamps and a key switch."""
+    t = Tex(seed=938)
+    t.rect(0, 0, 15, 15, DARK[1])
+    # The panel sits on pixels 2..13 x 3..12 of the face.
+    t.rect(2, 3, 13, 12, DARK[2])
+    outline(t, 2, 3, 13, 12, DARK[0])
+    t.rect(3, 4, 12, 7, RADIUM[0])
+    for x in range(4, 11, 2):
+        t.set(x, 5, RADIUM[4])
+    t.hline(4, 9, 6, RADIUM[3])
+    for x, c in ((4, DANGER[4]), (6, WARN[4]), (8, RADIUM[4])):
+        t.set(x, 9, c)
+        t.set(x, 10, shade(c, 0.7))
+    t.rect(10, 9, 11, 10, STEEL[4])
+    t.set(11, 10, STEEL[1])
+    return t
 
 
 @item("star_tracker")

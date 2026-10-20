@@ -1,15 +1,13 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "body": "create_nuclearindustry:item/missile_body",
-    "top": "create_nuclearindustry:item/missile_top",
-    "dark": "create_nuclearindustry:block/launch_pad_rail",
-    "panel": "create_nuclearindustry:block/launch_pad_panel",
-    "base": "create_nuclearindustry:block/launch_pad_base",
-    "particle": "create_nuclearindustry:item/missile_body"
+    "particle": "create_nuclearindustry:block/silo_controller_casing",
+    "casing": "create_nuclearindustry:block/silo_controller_casing",
+    "panel": "create_nuclearindustry:block/silo_controller_panel"
   },
   "elements": [
     {
+      "name": "housing",
       "from": [
         0,
         0,
@@ -21,27 +19,64 @@
         16
       ],
       "faces": {
-        "up": {
-          "texture": "#base"
-        },
-        "down": {
-          "texture": "#base"
-        },
         "north": {
-          "texture": "#base"
+          "texture": "#casing",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
         },
         "south": {
-          "texture": "#base"
-        },
-        "east": {
-          "texture": "#base"
+          "texture": "#casing",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
         },
         "west": {
-          "texture": "#base"
+          "texture": "#casing",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#casing",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#casing",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#casing",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
         }
       }
     },
     {
+      "name": "console",
       "from": [
         2,
         3,
@@ -53,23 +88,50 @@
         0
       ],
       "faces": {
-        "up": {
-          "texture": "#panel"
-        },
-        "down": {
-          "texture": "#panel"
-        },
         "north": {
-          "texture": "#panel"
-        },
-        "south": {
-          "texture": "#panel"
-        },
-        "east": {
-          "texture": "#panel"
+          "texture": "#panel",
+          "uv": [
+            2,
+            3,
+            14,
+            13
+          ]
         },
         "west": {
-          "texture": "#panel"
+          "texture": "#panel",
+          "uv": [
+            -0.1,
+            3,
+            0,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#panel",
+          "uv": [
+            16,
+            3,
+            16.1,
+            13
+          ]
+        },
+        "up": {
+          "texture": "#panel",
+          "uv": [
+            2,
+            -0.1,
+            14,
+            0
+          ]
+        },
+        "down": {
+          "texture": "#panel",
+          "uv": [
+            2,
+            16,
+            14,
+            16.1
+          ]
         }
       }
     }
