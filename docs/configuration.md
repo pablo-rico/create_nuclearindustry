@@ -1819,6 +1819,24 @@ basePk = 0.85
 killVehicleMass = 0.4
 launchDelayTicks = 40
 maxRange = 8000.0
+
+[missile.orbit]
+enabled = true
+satelliteMass = 1.0
+leoDeltaV = 10.5
+geoDeltaV = 12.5
+insertionAltitude = 1200.0
+leoAltitude = 1600.0
+geoAltitude = 12000.0
+leoSpeed = 12.0
+maxOrbitSize = 65536.0
+leoDecayPerDay = 100.0
+leoMinAltitude = 800.0
+maxSatellitesPerCode = 8
+gpsCepFactor = 0.4
+satelliteBasePk = 0.7
+asatCeiling = 4000.0
+syncSeconds = 10
 ```
 
 El lanzamiento usa un cohete modular construido dentro de un silo de 5×5.
@@ -1905,6 +1923,33 @@ desactiva todos.
 - Silo interceptor (`silo.*`): intercepta por encima de la atmósfera hasta
   `maxRange` bloques, cuenta `launchDelayTicks` ticks antes de lanzar, su vehículo
   de intercepción pesa `killVehicleMass` y su probabilidad base es `basePk`.
+
+**Satélites** (`missile.orbit.*`): un cohete rematado con una cofia de satélite
+sube hasta `insertionAltitude` bloques sobre el nivel del mar y deja su satélite
+en órbita. `enabled` los desactiva todos.
+
+- Órbita: la cofia y su satélite pesan `satelliteMass`. El cohete necesita poder
+  darle `leoDeltaV` bloques/tick para la órbita baja y `geoDeltaV` para la
+  geoestacionaria (dos etapas líquidas llenas dan unos 11; tres, unos 13).
+- Órbita baja: va a `leoAltitude` bloques sobre el mar y avanza `leoSpeed`
+  bloques/tick en línea recta. Al salir por un lado del borde del mundo vuelve a
+  entrar por el contrario, así que con el tiempo pasa por todo el mapa. Si el
+  borde mide más de `maxOrbitSize` bloques (como el de serie), da la vuelta en un
+  cuadrado de ese lado centrado en el centro del borde. Pierde `leoDecayPerDay`
+  bloques de altura por día de Minecraft y se quema al bajar de `leoMinAltitude`.
+- Órbita geoestacionaria: se queda fija a `geoAltitude` bloques sobre el punto
+  elegido, dentro del borde.
+- Cada satélite ve el suelo hasta su horizonte, calculado con
+  `missile.radar.earthRadius`: cuanto más alto, más lejos. Una red (código de
+  enlace) puede tener como mucho `maxSatellitesPerCode` satélites.
+- Los de alerta temprana detectan los lanzamientos que ven aunque ningún radar
+  llegue. Los de comunicaciones enlazan radares y mesas de su red más allá de los
+  alcances de enlace, y multiplican por `gpsCepFactor` la dispersión de un misil
+  si ven tanto su lanzador como su blanco.
+- Antisatélite: un silo interceptor alcanza satélites hasta `asatCeiling` bloques
+  sobre el mar (los geoestacionarios quedan fuera), con probabilidad base
+  `satelliteBasePk`.
+- Los clientes reciben las órbitas cuando cambian y cada `syncSeconds` segundos.
 
 **Efectos a distancia** (`missile.fx.*`): los jugadores a menos de `range`
 bloques (en horizontal) de un misil reciben su posición para dibujar su pluma,
