@@ -48,9 +48,15 @@ public final class HoloLayout {
     public static final LayoutRect SALVO = new LayoutRect("salvo", 308, 236, 44, 15);
     /** Self-destructs one of the table's own missiles in flight; painted as a guarded switch. */
     public static final LayoutRect ABORT = new LayoutRect("abort", 354, 236, 40, 15);
+    /** The table's satellite network on every tab: an uplink lamp (lit while a ground station works) over its link code. */
+    public static final LayoutRect NETWORK = new LayoutRect("network", 396, 220, 41, 31);
 
     public static final List<LayoutRect> ALL = List.of(TITLE, MAP_FRAME, ZOOM_OUT, ZOOM_IN, AUTO, DESIGNATE, AIRBURST, TAB_SILOS,
-            TAB_RADARS, TAB_TRACKS, TAB_DEFENSE, TAB_SATELLITES, LIST, DETAIL, SALVO_MODE, SPACING_DOWN, SPACING, SPACING_UP, ARM, DISARM, SALVO, ABORT);
+            TAB_RADARS, TAB_TRACKS, TAB_DEFENSE, TAB_SATELLITES, LIST, DETAIL, SALVO_MODE, SPACING_DOWN, SPACING, SPACING_UP, ARM, DISARM, SALVO, ABORT,
+            NETWORK);
+
+    /** The map's scale readout, a window in the title strip: it starts {@code SCALE_INSET} pixels left of the strip's right end. */
+    public static final int SCALE_INSET = 92, SCALE_W = 54;
 
     public static final int LIST_HEADER = 11, LIST_ROW = 9, LIST_ROWS = 16;
     /** Column starts in the list, from its left edge: tick box, name, state lamp and word, detail, salvo delay, unlink. */
@@ -68,7 +74,16 @@ public final class HoloLayout {
     public static final LayoutRect SPRITE_BUTTONS = new LayoutRect("sprite_buttons", 0, 32, 40, 63);
     /** Tabs 41 × 14: idle over active, 16 pixels apart. */
     public static final LayoutRect SPRITE_TABS = new LayoutRect("sprite_tabs", 64, 0, 41, 30);
-    public static final List<LayoutRect> SPRITES = List.of(SPRITE_LAMPS, SPRITE_CHECKS, SPRITE_UNLINK, SPRITE_BUTTONS, SPRITE_TABS);
+    /** Satellite icons 8 × 8: column the kind (early warning, communications), row the table's own (cyan) over foreign (amber). */
+    public static final LayoutRect SPRITE_SAT_KINDS = new LayoutRect("sprite_sat_kinds", 112, 0, 16, 16);
+    /** Orbit glyphs 8 × 8: low (a track round the Earth), geostationary (parked over it). */
+    public static final LayoutRect SPRITE_ORBITS = new LayoutRect("sprite_orbits", 112, 16, 16, 8);
+    /** Ground station icons 8 × 8: working, not working. */
+    public static final LayoutRect SPRITE_STATIONS = new LayoutRect("sprite_stations", 128, 0, 16, 8);
+    /** Satellite launcher icons 8 × 8: a rocket under its fairing, with a satellite in it, empty. */
+    public static final LayoutRect SPRITE_FAIRINGS = new LayoutRect("sprite_fairings", 128, 8, 16, 8);
+    public static final List<LayoutRect> SPRITES = List.of(SPRITE_LAMPS, SPRITE_CHECKS, SPRITE_UNLINK, SPRITE_BUTTONS, SPRITE_TABS,
+            SPRITE_SAT_KINDS, SPRITE_ORBITS, SPRITE_STATIONS, SPRITE_FAIRINGS);
 
     private HoloLayout() {
     }

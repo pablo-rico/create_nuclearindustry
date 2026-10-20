@@ -2,6 +2,8 @@ package org.papiricoh.create_nuclearindustry.missile.holo.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
+import net.createmod.catnip.render.CachedBuffers;
 import net.minecraft.Util;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -26,6 +28,7 @@ import org.papiricoh.create_nuclearindustry.missile.holo.HoloTable;
 import org.papiricoh.create_nuclearindustry.missile.holo.HoloTableBlockEntity;
 import org.papiricoh.create_nuclearindustry.missile.holo.HoloTracksPayload;
 import org.papiricoh.create_nuclearindustry.missile.holo.HoloView;
+import org.papiricoh.create_nuclearindustry.missile.orbit.client.OrbitPartials;
 import org.papiricoh.create_nuclearindustry.missile.physics.RocketAttitude;
 import org.papiricoh.create_nuclearindustry.missile.physics.V3;
 import org.papiricoh.create_nuclearindustry.missile.radar.RadarModel;
@@ -44,7 +47,9 @@ import java.util.Locale;
  * vehicle once it falls), solid where the radars plotted it and dashed where it is still to fly; impact ellipses, the silo and
  * the launch sites as silos, the radars as turning antennas with their coverage, the silo's reach and target, a marked target
  * and rings where a weapon went off. Looking at the hologram from close by picks what is under the eye: it lights up and
- * gets a label; on bare glass a cursor shows the place. A pinned track gets a panel over the table. Coloured shapes go through
+ * gets a label; on bare glass a cursor shows the place. A pinned track gets a panel over the table. Satellites float over the
+ * glass as small turning models above the ground under them, tied to it by a thin line, with their footprint and (in low orbit)
+ * dashed ground track on the glass: the table's own cyan, foreign ones amber. Coloured shapes go through
  * {@link MonitorRenderTypes#FLAT}, asked for just before each shape; the text goes last.
  */
 public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEntity> {
@@ -96,6 +101,7 @@ public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEnti
                 track(pose, buffers, p, picture, track, since, millis, lit || held);
             }
             defense(pose, buffers, p, picture, since, texts);
+            satellites(table, pose, buffers, p, picture, time, since, millis, texts);
             mark(m, buffers, p, picture, centre, texts, pose);
             if (pinned != null) panel(pose, buffers, picture, pinned, since, texts);
         }
@@ -453,6 +459,65 @@ public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEnti
             long count = picture.intercepts().stream().filter(i -> i.target().equals(track.id())).count();
             if (count == 0 || !p.shows(track.x(), track.z())) continue;
             texts.add(() -> label(pose, buffers, p.x(track.x()), p.y(track.y()) + 0.15f, p.z(track.z()), Component.literal("×" + count), AMBER));
+        }
+    }
+
+    /** How high over the glass the satellites float, and their models' scale (they are about 0.85 blocks across the wings). */
+    static final float SAT_HEIGHT = 1.35f, SAT_SCALE = 0.25f;
+
+    /**
+     * The ground stations as small dishes on the glass and each satellite over the view: its footprint and ground track on the
+     * glass, a ring under it and a thin line up to its model, turning slowly, tinted by whose it is; its name over it and, while
+     * an interceptor is after it, the chance it is killed. The models go in their own buffer, asked for just before each.
+     */
+    private void satellites(HoloTableBlockEntity table, PoseStack pose, MultiBufferSource buffers, HoloProjection p, HoloTracksPayload picture,
+                            double time, double since, long millis, List<Runnable> texts) {
+        Matrix4f m = pose.last().pose();
+        HoloTracksPayload.Orbital orbital = picture.orbital();
+        BlockPos centre = picture.centre();
+        for (HoloTracksPayload.Station station : orbital.stations()) {
+            if (!p.shows(station.dx() + 0.5, station.dz() + 0.5)) continue;
+            radarIcon(flat(buffers), m, p.x(station.dx() + 0.5), p.z(station.dz() + 0.5), 135, station.online() ? CYAN : 0xFF607060, false);
+        }
+        for (HoloTracksPayload.Sat sat : orbital.satellites()) {
+            double[] at = SatelliteViews.offset(sat, centre, time, since);
+            if (!p.shows(at[0], at[1])) continue;
+            float x = p.x(at[0]), z = p.z(at[1]), top = Y + SAT_HEIGHT;
+            int colour = sat.own() ? CYAN : AMBER;
+            if (SatelliteViews.hasFootprint(sat) && sat.footprint() * p.scale() < SIZE * 4)
+                ring(flat(buffers), m, x, z, sat.footprint() * p.scale(), Y + 0.013f, 0.008f, alpha(colour, 0.45f), true);
+            VertexConsumer v = flat(buffers);
+            for (double[] seg : SatelliteViews.track(sat, centre, time, since, 48)) {
+                float x0 = p.x(seg[0]), z0 = p.z(seg[1]), x1 = p.x(seg[2]), z1 = p.z(seg[3]);
+                if (inGlass(x0, z0) && inGlass(x1, z1)) strip(v, m, x0, z0, x1, z1, Y + 0.012f, 0.007f, alpha(colour, 0.55f), alpha(colour, 0.55f));
+            }
+            // Under it a ring and a soft spot; a thin line up to it, crossed so it shows from every side.
+            v = flat(buffers);
+            ring(v, m, x, z, 0.03f, Y + 0.014f, 0.006f, alpha(colour, 0.85f), false);
+            quad(v, m, new float[]{x - 0.003f, Y + 0.01f, z}, new float[]{x - 0.003f, top, z}, new float[]{x + 0.003f, top, z},
+                    new float[]{x + 0.003f, Y + 0.01f, z}, alpha(colour, 0.5f), alpha(colour, 0.08f));
+            quad(v, m, new float[]{x, Y + 0.01f, z - 0.003f}, new float[]{x, top, z - 0.003f}, new float[]{x, top, z + 0.003f},
+                    new float[]{x, Y + 0.01f, z + 0.003f}, alpha(colour, 0.5f), alpha(colour, 0.08f));
+            float halo = 0.13f;
+            quad(v, m, new float[]{x - halo, top, z}, new float[]{x, top + halo, z}, new float[]{x + halo, top, z}, new float[]{x, top - halo, z},
+                    alpha(colour, 0.16f), alpha(colour, 0.0f));
+            // The model, turning about its own vertical, each at its own phase.
+            float spin = ((millis + (sat.id().getLeastSignificantBits() & 0xFFFF) * 7) % 16000) / 16000f * 360;
+            pose.pushPose();
+            pose.translate(x, top, z);
+            pose.mulPose(Axis.YP.rotationDegrees(spin));
+            pose.scale(SAT_SCALE, SAT_SCALE, SAT_SCALE);
+            pose.translate(-0.5f, -0.5f, -0.5f);
+            int r = sat.own() ? 0x90 : 0xFF, g = sat.own() ? 0xF4 : 0xC8, b = sat.own() ? 0xFF : 0x78;
+            CachedBuffers.partial(sat.kind() == 1 ? OrbitPartials.SATELLITE_COMMS : OrbitPartials.SATELLITE_EARLY_WARNING, table.getBlockState())
+                    .color(r, g, b, 0xE6).light(LIGHT).renderInto(pose, buffers.getBuffer(RenderType.translucent()));
+            pose.popPose();
+            Component name = Component.literal(sat.designation());
+            texts.add(() -> label(pose, buffers, x, top + 0.17f, z, name, colour));
+            if (sat.pk() >= 0) {
+                Component pk = Component.translatable(KEY + "screen.defense.pk", Math.round(sat.pk() * 100));
+                texts.add(() -> label(pose, buffers, x, top + 0.3f, z, pk, RED));
+            }
         }
     }
 

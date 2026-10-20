@@ -144,10 +144,28 @@ class MissileLayoutTest {
     }
 
     @Test
+    void theGroundStationStaysOnItsSheetAndApart() {
+        onSheetAndApart(StationLayout.ALL, StationLayout.WIDTH, StationLayout.HEIGHT);
+        LayoutRect sky = new LayoutRect("sky_plot", StationLayout.SKY_CX - StationLayout.SKY_RADIUS - 2, StationLayout.SKY_CY - StationLayout.SKY_RADIUS - 2,
+                2 * StationLayout.SKY_RADIUS + 4, 2 * StationLayout.SKY_RADIUS + 4);
+        assertTrue(StationLayout.SKY.encloses(sky), "the sky plot in its window");
+    }
+
+    @Test
+    void theTableKeepsItsSatelliteSprites() {
+        assertEquals(HoloLayout.SPRITE_SAT_KINDS.w(), 2 * 8);
+        assertEquals(HoloLayout.SPRITE_SAT_KINDS.h(), 2 * 8);
+        assertTrue(HoloLayout.SCALE_INSET > HoloLayout.SCALE_W && HoloLayout.SCALE_INSET < HoloLayout.TITLE.w() / 2, "the scale window in the title strip");
+        assertEquals(SiloLayout.SPRITE_CELL_SATELLITE.w(), 4 * SiloLayout.CELL_W);
+        assertEquals(SiloLayout.SPRITE_GHOSTS.w(), 16 * (SiloLayout.GHOST_SATELLITE + 1));
+    }
+
+    @Test
     void theTextureGeneratorUsesTheSameNumbers() throws IOException, IllegalAccessException {
         Map<String, int[]> python = pythonConstants();
         mirrors(SiloLayout.class, "SILO_", python);
         mirrors(HoloLayout.class, "HOLO_", python);
         mirrors(BatteryLayout.class, "BATTERY_", python);
+        mirrors(StationLayout.class, "STATION_", python);
     }
 }

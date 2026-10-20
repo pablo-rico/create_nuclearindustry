@@ -16,8 +16,10 @@ from items import item
 from palette import BRASS, CONCRETE, COPPER, CYAN, DANGER, DARK, LITHIUM, MIMIC_BLUE, STEEL, WARN
 from pixelkit import Ramp, Tex, bevel, brushed, fbm, item_outline, outline, shade
 
-from tex_launch import LAMP_GREEN
-from tex_missile import HULL
+import missile_layouts as L
+from gui import gui
+from tex_launch import LAMP_GREEN, _brackets, _groove, _lamp, _louvres, _olive_panel, _phosphor, _stripes, _sunk
+from tex_missile import HULL, OLIVE, PHOSPHOR, _box
 
 # Gold multi-layer insulation, crinkled; and the deep blue of solar cells.
 FOIL = Ramp("#5a3a0c", "#8a5c14", "#b8861f", "#d9a933", "#efc759", "#fbe08c", "#fff4c8")
@@ -487,3 +489,71 @@ def incomplete_satellite():
     item_outline(t, DARK[0])
     return t
 
+
+# ======================================================================================
+# the ground station's screen: an olive console like the battery's (StationLayout.java holds the same numbers)
+# ======================================================================================
+
+def _sky(t):
+    """The sky plot: a phosphor window looking up, the zenith at the centre and the horizon the outer ring; rings every 30
+    degrees of elevation, bearing ticks and north at the top. The screen draws the network's satellites over it."""
+    _phosphor(t, L.STATION_SKY, 1151, lo=0.22, hi=0.26)
+    cx, cy, radius = L.STATION_SKY_CX + 0.5, L.STATION_SKY_CY + 0.5, L.STATION_SKY_RADIUS
+    for frac, solid in ((1 / 3, False), (2 / 3, False), (1.0, True)):
+        r = radius * frac
+        steps = int(2 * math.pi * r * 2)
+        for k in range(steps):
+            ang = 2 * math.pi * k / steps
+            if not solid and (k // 3) % 2:
+                continue
+            t.set(int(cx + math.cos(ang) * r), int(cy + math.sin(ang) * r), PHOSPHOR[6] if solid else PHOSPHOR[5])
+    for k in range(int(cx - radius) + 2, int(cx + radius) - 1, 2):
+        t.set(k, int(cy), PHOSPHOR[4])
+    for k in range(int(cy - radius) + 2, int(cy + radius) - 1, 2):
+        t.set(int(cx), k, PHOSPHOR[4])
+    for deg in range(0, 360, 45):
+        a = math.radians(deg)
+        for k in range(3):
+            r = radius - 1 - k
+            t.set(int(cx + math.sin(a) * r), int(cy - math.cos(a) * r), RADIUM_TICK if deg % 90 == 0 else PHOSPHOR[6])
+    # The zenith: a small cross.
+    t.set(int(cx), int(cy), RADIUM_TICK)
+    _brackets(t, L.STATION_SKY, PHOSPHOR[5], arm=4)
+
+
+RADIUM_TICK = (231, 249, 193, 255)
+
+
+@gui("ground_station_screen")
+def ground_station_screen():
+    t = _olive_panel(L.STATION_WIDTH, L.STATION_HEIGHT, 1150)
+    # Title strip, a short hazard block at its right end: the dish turns.
+    x0, y0, x1, y1 = _box(L.STATION_TITLE)
+    t.rect(x0, y0, x1, y1, OLIVE[1])
+    for x in range(x0, x1 + 1, 4):
+        t.set(x, y1, OLIVE[2])
+    outline(t, x0 - 1, y0 - 1, x1 + 1, y1 + 1, OLIVE[0])
+    t.hline(x0 - 1, x1 + 1, y1 + 2, OLIVE[5])
+    _stripes(t, x1 - 10, y0 + 1, x1 - 1, y1 - 1, period=4)
+    outline(t, x1 - 11, y0, x1, y1, OLIVE[0])
+    _sky(t)
+    sx0, sy0, sx1, sy1 = _box(L.STATION_SKY)
+    _groove(t, sx1 + 2, sy0, sx1 + 2, sy1)
+    # Link code, its lamp and the dish's speed.
+    _phosphor(t, L.STATION_CODE, 1152)
+    lx, ly, lw, lh = L.STATION_CODE_LAMP
+    _sunk(t, L.STATION_CODE_LAMP, fill=OLIVE[1])
+    _lamp(t, lx + 1, ly + 1, lw - 2, LAMP_GREEN, lit=False)
+    _phosphor(t, L.STATION_RPM, 1153)
+    rx0, ry0, rx1, ry1 = _box(L.STATION_RPM)
+    # A dial's arc along the foot of the speed readout.
+    for x in range(rx0 + 3, rx1 - 2, 2):
+        t.set(x, ry1 - 2, PHOSPHOR[4])
+    # Status and the network, with a faint rule between the network's two lines.
+    _phosphor(t, L.STATION_STATUS, 1154)
+    _brackets(t, L.STATION_STATUS, PHOSPHOR[5], arm=3, inset=2)
+    _phosphor(t, L.STATION_NETWORK, 1155)
+    nx0, ny0, nx1, ny1 = _box(L.STATION_NETWORK)
+    for x in range(nx0 + 3, nx1 - 1, 2):
+        t.set(x, (ny0 + ny1) // 2, PHOSPHOR[4])
+    return t

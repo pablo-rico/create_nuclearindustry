@@ -100,15 +100,17 @@ public final class SiloLayout {
     public static final LayoutRect SPRITE_CELLS = new LayoutRect("sprite_cells", 0, 0, 72, 40);
     /** The kill vehicle's cells, one row like {@link #SPRITE_CELLS}' (a section kind past the four of that block). */
     public static final LayoutRect SPRITE_CELL_KILL_VEHICLE = new LayoutRect("sprite_cell_kill_vehicle", 80, 0, 72, 10);
+    /** The satellite fairing's cells, one row like {@link #SPRITE_CELL_KILL_VEHICLE}'s. */
+    public static final LayoutRect SPRITE_CELL_SATELLITE = new LayoutRect("sprite_cell_satellite", 80, 10, 72, 10);
     public static final LayoutRect SPRITE_BASE_PLATFORM = new LayoutRect("sprite_base_platform", 0, 40, 54, 8);
     public static final LayoutRect SPRITE_BASE_SILO = new LayoutRect("sprite_base_silo", 0, 48, 54, 8);
     /**
      * Ghost icons for empty slots, 16 × 16 side by side: core, radiological, TNT, lithium deuteride, tamper, bomb,
-     * propellant cartridge, star tracker.
+     * propellant cartridge, star tracker, satellite.
      */
-    public static final LayoutRect SPRITE_GHOSTS = new LayoutRect("sprite_ghosts", 0, 64, 128, 16);
+    public static final LayoutRect SPRITE_GHOSTS = new LayoutRect("sprite_ghosts", 0, 64, 144, 16);
     public static final int GHOST_CORE = 0, GHOST_RADIOLOGICAL = 1, GHOST_TNT = 2, GHOST_LITHIUM = 3, GHOST_TAMPER = 4,
-            GHOST_BOMB = 5, GHOST_PROPELLANT = 6, GHOST_TRACKER = 7;
+            GHOST_BOMB = 5, GHOST_PROPELLANT = 6, GHOST_TRACKER = 7, GHOST_SATELLITE = 8;
     public static final LayoutRect SPRITE_TAB_IDLE = new LayoutRect("sprite_tab_idle", 0, 80, 64, 14);
     public static final LayoutRect SPRITE_TAB_ACTIVE = new LayoutRect("sprite_tab_active", 64, 80, 64, 14);
     /** Buttons the size of {@link #ARM}: normal, hover, disabled and armed, one under another. */
@@ -117,7 +119,7 @@ public final class SiloLayout {
     public static final LayoutRect SPRITE_TOGGLES = new LayoutRect("sprite_toggles", 128, 96, 106, 32);
     /** State lamps, 10 × 10 side by side, one per controller state in order. */
     public static final LayoutRect SPRITE_LAMPS = new LayoutRect("sprite_lamps", 0, 170, 60, 10);
-    public static final List<LayoutRect> SPRITES = List.of(SPRITE_CELLS, SPRITE_CELL_KILL_VEHICLE, SPRITE_BASE_PLATFORM, SPRITE_BASE_SILO, SPRITE_GHOSTS,
+    public static final List<LayoutRect> SPRITES = List.of(SPRITE_CELLS, SPRITE_CELL_KILL_VEHICLE, SPRITE_CELL_SATELLITE, SPRITE_BASE_PLATFORM, SPRITE_BASE_SILO, SPRITE_GHOSTS,
             SPRITE_TAB_IDLE, SPRITE_TAB_ACTIVE, SPRITE_BUTTONS, SPRITE_TOGGLES, SPRITE_LAMPS);
 
     private SiloLayout() {

@@ -36,6 +36,8 @@ STATE_LAMPS = (LAMP_RED, LAMP_AMBER, LAMP_GREEN, LAMP_ORANGE, LAMP_HOT, LAMP_GRE
 CELL = Ramp("#3a3c3c", "#7c7f7e", "#a3a6a4", "#c0c3c0", "#d8dad6", "#e9eae6", "#fafaf6")
 # The kill vehicle's seeker glass in its cell.
 KV_SEEKER = Ramp("#06222c", "#0b3a4a", "#14627a", "#2a90a8", "#5cc8dc", "#a6ecf6", "#eafcff")
+# The blue band painted round the satellite fairing (the block's own).
+FAIRING_BAND = Ramp("#0a1630", "#13244c", "#1d3772", "#2a4f9c", "#3f6cc0", "#6e94dc", "#b4c8f2")
 
 YELLOW = WARN[5]
 BLACK_PAINT = DARK[0]
@@ -676,7 +678,7 @@ def launch_controller_launch():
 # ======================================================================================
 
 def _cell(t, ox, oy, section, state):
-    """One section of the cutaway, CELL_W x CELL_H: 0 engine, 1 tank, 2 guidance, 3 warhead, 4 kill vehicle."""
+    """One section of the cutaway, CELL_W x CELL_H: 0 engine, 1 tank, 2 guidance, 3 warhead, 4 kill vehicle, 5 satellite fairing."""
     w, h = L.SILO_CELL_W, L.SILO_CELL_H
     lo, hi = 1, w - 2  # body columns (the outermost columns stay clear for the selection outline)
     ghost = state == L.SILO_CELL_GHOST
@@ -696,7 +698,7 @@ def _cell(t, ox, oy, section, state):
     if ghost:
         # Only a dashed outline of the section's shape, half clear.
         dash = _rgba(CELL[6], 200)
-        if section in (3, 4):
+        if section in (3, 4, 5):
             for y in range(h):
                 half = 1 + (hi - lo) * (y + 1) / (2 * h)
                 for x in (int(round(w / 2 - half)), int(round(w / 2 + half - 1))):
@@ -779,6 +781,25 @@ def _cell(t, ox, oy, section, state):
         for x in (lo, lo + 1, hi - 1, hi):
             t.set(ox + x, oy + 7, CELL[0])
             t.set(ox + x, oy + 8, CELL[1])
+    elif section == 5:
+        # Satellite fairing: a blunt ogive split down the middle, a coloured band above the joint ring it parts from.
+        for y in range(h):
+            half = (2, 4, 5, 6, 7)[y] if y < 5 else (hi - lo + 1) // 2
+            x0, x1 = w // 2 - half, w // 2 + half - 1
+            band = y in (h - 4, h - 3)
+            for x in range(x0, x1 + 1):
+                v = cyl(x, x0, x1) + 0.3
+                t.set(ox + x, oy + y, (FAIRING_BAND if band else CELL)[int(round(max(1, min(6, v - (0.4 if band else 0)))))])
+            t.set(ox + x0, oy + y, CELL[0])
+            t.set(ox + x1, oy + y, CELL[0])
+        # The split plane: a dark seam with a lit edge beside it.
+        for y in range(2, h - 1):
+            t.set(ox + w // 2, oy + y, CELL[1])
+            t.set(ox + w // 2 + 1, oy + y, CELL[5] if y not in (h - 4, h - 3) else FAIRING_BAND[5])
+        # The joint ring at the foot.
+        for x in range(lo, hi + 1):
+            t.set(ox + x, oy + h - 1, CELL[int(round(max(1, min(6, cyl(x, lo, hi) - 2.0))))])
+        t.set(ox + w // 2 - 2, oy + 1, CELL[6])
     else:
         # Warhead: the nose cone, its point at the top row and its base the body's full width.
         for y in range(h):
@@ -993,6 +1014,14 @@ def _ghosts(t, ox, oy):
     star = {(8, y) for y in range(3, 13)} | {(x, 8) for x in range(3, 13)} | {(7, 7), (9, 7), (7, 9), (9, 9)}
     star |= {(7, 8), (9, 8), (8, 7), (8, 9)}
     icons.append((lens | star, [((8, 8), GHOST_HI)]))
+    # Satellite: a bus between two solar wings, an antenna dish under it.
+    sat = {(x, y) for x in range(6, 10) for y in range(4, 10)}
+    sat |= {(x, y) for x in list(range(0, 5)) + list(range(11, 16)) for y in range(5, 9)}
+    sat |= {(5, 6), (5, 7), (10, 6), (10, 7)}
+    sat |= {(7, 2), (7, 3), (8, 3)}
+    sat |= {(x, 11) for x in range(5, 11)} | {(x, 12) for x in range(6, 10)} | {(7, 10), (8, 10)}
+    cells = [((x, y), GHOST_LO) for x in (2, 13) for y in range(5, 9)] + [((x, 7), GHOST_LO) for x in range(0, 16) if (x, 7) in sat and not 6 <= x <= 9]
+    icons.append((sat, cells))
     for i, (pts, marks) in enumerate(icons):
         x0 = ox + i * 16
         _ghost_fill(t, x0, oy, pts)
@@ -1012,6 +1041,9 @@ def launch_controller_widgets():
     kx, ky, _, _ = L.SILO_SPRITE_CELL_KILL_VEHICLE
     for state in (L.SILO_CELL_NORMAL, L.SILO_CELL_SELECTED, L.SILO_CELL_ERROR, L.SILO_CELL_GHOST):
         _cell(t, kx + state * L.SILO_CELL_W, ky, 4, state)
+    fx, fy, _, _ = L.SILO_SPRITE_CELL_SATELLITE
+    for state in (L.SILO_CELL_NORMAL, L.SILO_CELL_SELECTED, L.SILO_CELL_ERROR, L.SILO_CELL_GHOST):
+        _cell(t, fx + state * L.SILO_CELL_W, fy, 5, state)
     _base_platform(t, L.SILO_SPRITE_BASE_PLATFORM[0], L.SILO_SPRITE_BASE_PLATFORM[1])
     _base_silo(t, L.SILO_SPRITE_BASE_SILO[0], L.SILO_SPRITE_BASE_SILO[1])
     _ghosts(t, L.SILO_SPRITE_GHOSTS[0], L.SILO_SPRITE_GHOSTS[1])
@@ -1173,6 +1205,27 @@ def holo_table_screen():
         t.rect(lx, y0 + 4, lx + 3, y0 + 7, shade(c, 0.55))
         t.hline(lx, lx + 2, y0 + 4, c)
         t.set(lx, y0 + 5, c)
+    # The map's scale readout: a window of glass with a scale bar glyph at its left; the screen writes the distance after it.
+    sx0 = x1 + 1 - L.HOLO_SCALE_INSET
+    sx1 = sx0 + L.HOLO_SCALE_W - 1
+    for x in range(sx0, sx1 + 1):
+        for y in range(y0 + 1, y1):
+            t.set(x, y, mix(HOLO[1], HOLO[2], 0.25 + 0.3 * fbm(x, y, 1035, 444, 32, octaves=2, scale=2.0)))
+    t.hline(sx0, sx1, y0 + 1, HOLO[0])
+    t.hline(sx0, sx1, y1 - 1, HOLO[3])
+    t.vline(sx0 - 1, y0 + 1, y1 - 1, DARK[2])
+    t.vline(sx1 + 1, y0 + 1, y1 - 1, DARK[2])
+    by = (y0 + y1) // 2
+    t.hline(sx0 + 3, sx0 + 10, by, HOLO[6])
+    t.vline(sx0 + 3, by - 2, by + 1, HOLO[6])
+    t.vline(sx0 + 10, by - 2, by + 1, HOLO[6])
+    t.vline(sx0 + 6, by - 1, by, HOLO[4])
+    # Where the console side begins, a notch in the strip's rule over the divider.
+    gx = L.HOLO_MAP_FRAME[0] + L.HOLO_MAP_FRAME[2] + 2
+    for x in (gx, gx + 1):
+        t.vline(x, y0 + 2, y1 - 2, DARK[2] if x == gx else DARK[0])
+    t.set(gx, y1, BRASS[4])
+    t.set(gx + 1, y1, BRASS[4])
     # The map's bezel: brass rim round dark steel, a graduated scale all round, and the dark map window.
     fx0, fy0, fx1, fy1 = _box(L.HOLO_MAP_FRAME)
     mx0, my0, mx1, my1 = _box(L.HOLO_MAP)
@@ -1253,10 +1306,35 @@ def holo_table_screen():
     ax0, ay0, ax1, ay1 = _box(L.HOLO_ARM)
     t.rect(ax0 + 2, ay0 + 2, ax0 + 3, ay1 - 3, LAMP_AMBER[3])
     _holo_button(t, *L.HOLO_ABORT, 3)
-    # Divider between the map and the console side.
+    # The network panel: glass with the uplink lamp's socket at its top left and a dotted rule over the code.
+    _holo_glass(t, L.HOLO_NETWORK, 1036)
+    nx0, ny0, nx1, ny1 = _box(L.HOLO_NETWORK)
+    t.rect(nx0 + 2, ny0 + 2, nx0 + 10, ny0 + 10, DARK[0])
+    t.hline(nx0 + 2, nx0 + 10, ny0 + 10, DARK[4])
+    t.vline(nx0 + 10, ny0 + 2, ny0 + 10, DARK[4])
+    for x in range(nx0 + 2, nx1 - 1, 2):
+        t.set(x, ny0 + 12, HOLO[4])
+    # A dish glyph at its top right: the ground station it speaks through.
+    _icon(t, nx1 - 9, ny0 + 2, STATION_ICON, HOLO, halo=False)
+    # A vent between the salvo row and the network panel, where the narrower keys leave the plate bare.
+    vx0 = L.HOLO_SPACING_UP[0] + L.HOLO_SPACING_UP[2] + 2
+    vx1 = nx0 - 3
+    for y in range(L.HOLO_SPACING_UP[1] + 1, L.HOLO_SPACING_UP[1] + L.HOLO_SPACING_UP[3] - 1, 3):
+        t.hline(vx0, vx1, y, DARK[0])
+        t.hline(vx0, vx1, y + 1, DARK[4])
+    # Divider between the map and the console side: an engraved groove held by brass cable clamps.
     gx = L.HOLO_MAP_FRAME[0] + L.HOLO_MAP_FRAME[2] + 2
-    t.vline(gx, L.HOLO_MAP_FRAME[1], L.HOLO_HEIGHT - 6, DARK[0])
-    t.vline(gx + 1, L.HOLO_MAP_FRAME[1], L.HOLO_HEIGHT - 6, DARK[4])
+    top, bottom = L.HOLO_MAP_FRAME[1], L.HOLO_HEIGHT - 6
+    t.vline(gx, top, bottom, DARK[0])
+    t.vline(gx + 1, top, bottom, DARK[4])
+    for cy in range(top + 14, bottom - 6, 36):
+        t.rect(gx - 1, cy, gx + 2, cy + 3, BRASS[3])
+        t.hline(gx - 1, gx + 2, cy, BRASS[5])
+        t.hline(gx - 1, gx + 2, cy + 3, BRASS[1])
+        t.set(gx, cy + 1, BRASS[6])
+        outline(t, gx - 2, cy - 1, gx + 3, cy + 4, DARK[0])
+    for y in (top, bottom - 1):
+        bolt(t, gx, y, BRASS)
     return t
 
 
@@ -1278,4 +1356,108 @@ def holo_table_widgets():
     tx, ty, tw, th = L.HOLO_SPRITE_TABS
     _holo_tab(t, tx, ty, tw, 14, False)
     _holo_tab(t, tx, ty + 16, tw, 14, True)
+    kx, ky, _, _ = L.HOLO_SPRITE_SAT_KINDS
+    for row, ramp in enumerate((HOLO_ICON, LAMP_AMBER)):
+        for kind, art in enumerate((SAT_EARLY_WARNING, SAT_COMMS)):
+            _icon(t, kx + kind * 8, ky + row * 8, art, ramp)
+    ox, oy, _, _ = L.HOLO_SPRITE_ORBITS
+    _icon(t, ox, oy, ORBIT_LEO, HOLO_ICON)
+    _icon(t, ox + 8, oy, ORBIT_GEO, HOLO_ICON)
+    sx, sy, _, _ = L.HOLO_SPRITE_STATIONS
+    _icon(t, sx, sy, STATION_ICON, LAMP_GREEN)
+    _icon(t, sx + 8, sy, STATION_ICON, LAMP_GREY)
+    fx, fy, _, _ = L.HOLO_SPRITE_FAIRINGS
+    _icon(t, fx, fy, FAIRING_LOADED, HOLO_ICON)
+    _icon(t, fx + 8, fy, FAIRING_EMPTY, HOLO_ICON)
     return t
+
+
+# Icon glass for the table's own: the projection's cyan.
+HOLO_ICON = Ramp("#05161a", "#0a242a", "#1a4e58", "#2a7480", "#4ab4c4", "#6ff4ff", "#d8ffff")
+
+# 8 x 8 icons, each letter a shade of the icon's ramp: H lit, M mid, L shadow, D dark, W a solar wing's cell.
+SAT_EARLY_WARNING = [
+    "........",
+    "WW.HM.WW",
+    "WWHHMMWW",
+    "WW.HM.WW",
+    "..LDDL..",
+    "..LDDL..",
+    "..LLLL..",
+    "........",
+]
+SAT_COMMS = [
+    "...H....",
+    "...M....",
+    "WW.HM.WW",
+    "WWHHMMWW",
+    "WW.HM.WW",
+    ".L....L.",
+    "..LLLL..",
+    "........",
+]
+ORBIT_LEO = [
+    "......H.",
+    "....MMHH",
+    "..ML..M.",
+    ".M.DD.M.",
+    ".MDDDDM.",
+    ".M.DD.M.",
+    "HHM.ML..",
+    ".H......",
+]
+ORBIT_GEO = [
+    "...HH...",
+    "...HH...",
+    "...L....",
+    "........",
+    "...L....",
+    "........",
+    ".DDDDDD.",
+    "DDDDDDDD",
+]
+STATION_ICON = [
+    "H.....H.",
+    "HH...M..",
+    "HHH.M...",
+    ".HHHM...",
+    "..HHHH..",
+    "...M....",
+    "..LLL...",
+    ".LLLLL..",
+]
+FAIRING_LOADED = [
+    "...HM...",
+    "..HHMM..",
+    "..HWWM..",
+    "..HWWM..",
+    "..HHMM..",
+    "..LLLL..",
+    "..HHMM..",
+    ".LH..ML.",
+]
+FAIRING_EMPTY = [
+    "...HM...",
+    "..H..M..",
+    "..H..M..",
+    "..H..M..",
+    "..H..M..",
+    "..LLLL..",
+    "..HHMM..",
+    ".LH..ML.",
+]
+
+
+def _icon(t, x, y, art, ramp, halo=True):
+    """An 8 x 8 icon from string art in shades of `ramp`, with a dark halo round it so it reads over the map's land."""
+    shades = {"H": ramp[6], "M": ramp[5], "L": ramp[3], "D": ramp[2], "W": ramp[4]}
+    filled = {(i, j) for j, row in enumerate(art) for i, ch in enumerate(row) if ch in shades}
+    if halo:
+        for j in range(8):
+            for i in range(8):
+                if (i, j) not in filled and any((i + di, j + dj) in filled for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                    t.set(x + i, y + j, _rgba(ramp[0], 170))
+    for j, row in enumerate(art):
+        for i, ch in enumerate(row):
+            if ch in shades:
+                t.set(x + i, y + j, shades[ch])

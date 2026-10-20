@@ -132,8 +132,11 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
     private void updateControls() {
         SiloControllerEntity c = controller();
         boolean editable = c != null && !menu.locked() && !c.interceptorMode() && !c.satelliteMode();
-        for (EditBox box : List.of(x, y, z)) box.setEditable(editable);
+        boolean satellite = c != null && c.satelliteMode();
+        for (EditBox box : List.of(x, y, z)) { box.setEditable(editable); box.visible = launch && !satellite; }
         for (ConsoleButton button : List.of(set, airburst, arm, disarm)) button.visible = launch;
+        // A satellite's fairing has no target: the table aims it.
+        set.visible = airburst.visible = launch && !satellite;
         set.active = airburst.active = editable && enteredTarget() != null;
         airburst.setMessage(text(c != null && c.airburst() ? "airburst.on" : "airburst.off"));
         arm.active = c != null && !c.interceptorMode() && !c.satelliteMode() && c.state() == SiloControllerEntity.State.READY;
@@ -210,6 +213,8 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
             int tint = state == CELL_ERROR || state == CELL_SELECTED ? 0xFFFFFFFF : ghost ? GHOST_COLOUR : colour;
             if (c.section() == RocketComposition.Section.KILL_VEHICLE.ordinal()) tintedSprite(g, x, y,
                     SPRITE_CELL_KILL_VEHICLE.x() + state * CELL_W, SPRITE_CELL_KILL_VEHICLE.y(), CELL_W, CELL_H, tint);
+            else if (c.section() == RocketComposition.Section.SATELLITE.ordinal()) tintedSprite(g, x, y,
+                    SPRITE_CELL_SATELLITE.x() + state * CELL_W, SPRITE_CELL_SATELLITE.y(), CELL_W, CELL_H, tint);
             else tintedSprite(g, x, y, SPRITE_CELLS.x() + state * CELL_W, SPRITE_CELLS.y() + c.section() * CELL_H, CELL_W, CELL_H, tint);
             if (!widgetsAvailable) {
                 // Distinct silhouettes keep the cutaway legible before the sprite sheet arrives.
@@ -280,8 +285,7 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
             case BOMB -> GHOST_BOMB;
             case PROPELLANT -> GHOST_PROPELLANT;
             case GUIDANCE -> GHOST_TRACKER;
-            // Until the fairing has its own ghost (GUI stream).
-            case SATELLITE -> GHOST_BOMB;
+            case SATELLITE -> GHOST_SATELLITE;
         };
         if (widgetsAvailable) tintedSprite(g, x, y, SPRITE_GHOSTS.x() + ghost * 16, SPRITE_GHOSTS.y(), 16, 16, 0x4D888888);
         else {
@@ -292,6 +296,16 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
 
     private void drawSectionStats(GuiGraphics g, LaunchDiagram d, RocketComposition.Section selected) {
         List<Component> lines = new ArrayList<>();
+        SiloControllerEntity c = controller();
+        if (selected == RocketComposition.Section.SATELLITE) {
+            lines.add(sectionName(selected.ordinal()));
+            lines.add(fairing(c));
+            lines.add(orbitReach(c));
+            for (int i = 0; i < lines.size(); i++) small(g, lines.get(i), SECTION_STATS.x() + 2, SECTION_STATS.y() + 2 + i * 8, SECTION_STATS.w() - 4, i == 0 ? ACCENT : TEXT);
+            ConsoleDraw.wrap(g, font, satelliteText("launch_hint"), SECTION_STATS.x() + 2, SECTION_STATS.y() + 2 + lines.size() * 8, SECTION_STATS.w() - 4, MUTED,
+                    ConsoleDraw.DENSE, 3);
+            return;
+        }
         if (selected == RocketComposition.Section.KILL_VEHICLE) {
             lines.add(text("kill_vehicle"));
             lines.add(text("mass", ConsoleNumbers.number(d.warhead().mass())));
@@ -319,14 +333,37 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
         for (int i = 0; i < lines.size(); i++) small(g, lines.get(i), SECTION_STATS.x() + 2, SECTION_STATS.y() + 2 + i * 8, SECTION_STATS.w() - 4, i == 0 ? ACCENT : TEXT);
     }
 
+    private static Component satelliteText(String key, Object... args) {
+        return text("satellite." + key, args);
+    }
+
+    /** What the fairing holds: the satellite's kind, or empty. */
+    private static Component fairing(@Nullable SiloControllerEntity c) {
+        org.papiricoh.create_nuclearindustry.missile.orbit.SatelliteKind kind = c == null ? null : c.satelliteKind();
+        return satelliteText("fairing", kind == null ? satelliteText("empty")
+                : Component.translatable("satellite.create_nuclearindustry.kind." + kind.name().toLowerCase(Locale.ROOT)));
+    }
+
+    /** The highest orbit the rocket reaches. */
+    private static Component orbitReach(@Nullable SiloControllerEntity c) {
+        org.papiricoh.create_nuclearindustry.missile.orbit.OrbitType reach = c == null ? null : c.orbitReach();
+        return satelliteText("reach", reach == null ? satelliteText("reach_none")
+                : Component.translatable("satellite.create_nuclearindustry.orbit." + reach.name().toLowerCase(Locale.ROOT)));
+    }
+
     private static Component adviceText(LaunchDiagram.Advice a) {
         return Component.translatable("silo.create_nuclearindustry.advice." + a.key(), a.arg());
     }
 
     private void drawLaunch(GuiGraphics g, LaunchDiagram d, @Nullable SiloControllerEntity c) {
         if (c != null && c.satelliteMode()) {
-            ConsoleDraw.wrap(g, font, Component.translatable("silo.create_nuclearindustry.satellite.controlled"), TARGET.x() + 5, TARGET.y() + 3, TARGET.w() - 10, MUTED, ConsoleDraw.SMALL, 2);
-            small(g, c.satelliteStatus(), READOUT.x() + 5, READOUT.y() + 5, READOUT.w() - 10, ACCENT);
+            // No target here: the fairing's satellite goes up from a command table, which picks its orbit and where.
+            small(g, Component.translatable("silo.create_nuclearindustry.satellite.controlled"), TARGET.x() + 5, TARGET.y() + 3, TARGET.w() - 10, MUTED);
+            ConsoleDraw.wrap(g, font, satelliteText("launch_hint"), TARGET.x() + 5, TARGET.y() + 16, TARGET.w() - 10, TEXT, ConsoleDraw.SMALL, 4);
+            List<Component> lines = List.of(c.satelliteStatus(), fairing(c), orbitReach(c), text("reach", ConsoleNumbers.number(d.reach())));
+            for (int i = 0; i < lines.size(); i++)
+                small(g, lines.get(i), READOUT.x() + 5, READOUT.y() + 5 + i * 11, READOUT.w() - 10, i == 0 ? ACCENT : c.orbitReach() == null && i == 2 ? ERROR_COLOUR : TEXT);
+            countdown(g, c);
             return;
         }
         if (c != null && c.interceptorMode()) {
@@ -336,7 +373,7 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
                     READOUT.x() + 5, READOUT.y() + 5, READOUT.w() - 10, ACCENT);
             return;
         }
-        small(g, text("target"), TARGET.x() + 5, TARGET.y() + 3, TARGET.w() - 30, MUTED);
+        small(g, text("target"), TARGET.x() + 5, TARGET.y() + 3, TARGET.w() - GPS_W - 8, MUTED);
         LayoutRect[] boxes = {BOX_X, BOX_Y, BOX_Z};
         String[] axes = {"X", "Y", "Z"};
         for (int i = 0; i < boxes.length; i++) line(g, Component.literal(axes[i]), boxes[i].right() - 9, TARGET.y() + 4, 8, ACCENT);
@@ -346,6 +383,24 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
                 c == null || c.target() == null ? text("target.none") : text("target.xyz", c.target().getX(), c.target().getY(), c.target().getZ()),
                 text("delay", ConsoleNumbers.number(d.launchDelay() / 20.0)));
         for (int i = 0; i < lines.size(); i++) small(g, lines.get(i), READOUT.x() + 5, READOUT.y() + 5 + i * 11, READOUT.w() - 10, i == 0 ? ACCENT : TEXT);
+        if (c != null && c.gpsGuided()) gps(g);
+        countdown(g, c);
+        if (!launchAvailable) g.renderItem(Items.LEVER.getDefaultInstance(), REDSTONE.x() + 4, REDSTONE.y() + 10);
+        ConsoleDraw.wrap(g, font, text("redstone"), REDSTONE.x() + 80, REDSTONE.y() + 3, REDSTONE.w() - 85, TEXT, ConsoleDraw.SMALL, 4);
+    }
+
+    /** Where the GPS badge sits: the target panel's top right corner, beside its heading. */
+    private static final int GPS_W = 26;
+
+    /** The GPS badge: a lit lamp and the word, while the network's communications satellites narrow the spread. */
+    private void gps(GuiGraphics g) {
+        int x = TARGET.right() - GPS_W - 2, y = TARGET.y() + 2;
+        g.fill(x, y, x + 10, y + 10, LAMPS[2]);
+        sprite(g, x, y, SPRITE_LAMPS.x() + 2 * 10, SPRITE_LAMPS.y(), 10, 10);
+        small(g, satelliteText("gps"), x + 12, y + 2, GPS_W - 12, ACCENT);
+    }
+
+    private void countdown(GuiGraphics g, @Nullable SiloControllerEntity c) {
         small(g, text("countdown"), COUNTDOWN.x() + 5, COUNTDOWN.y() + 3, COUNTDOWN.w() - 10, MUTED);
         boolean counting = c != null && c.state() == SiloControllerEntity.State.COUNTDOWN;
         // The synced countdown already includes the salvo delay; do not add it twice.
@@ -355,8 +410,6 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
         g.pose().scale(2, 2, 1);
         line(g, seconds, 0, 0, (COUNTDOWN.w() - 12) / 2, counting ? ERROR_COLOUR : 0xFFFFB347);
         g.pose().popPose();
-        if (!launchAvailable) g.renderItem(Items.LEVER.getDefaultInstance(), REDSTONE.x() + 4, REDSTONE.y() + 10);
-        ConsoleDraw.wrap(g, font, text("redstone"), REDSTONE.x() + 80, REDSTONE.y() + 3, REDSTONE.w() - 85, TEXT, ConsoleDraw.SMALL, 4);
     }
 
     private void panel(GuiGraphics g, LayoutRect r) {
@@ -439,6 +492,9 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
         LaunchDiagram d = ClientLaunchDiagrams.at(menu.pos);
         List<Component> lines = new ArrayList<>();
         if (STATUS.contains(mx, my) && controller() != null) lines.add(controller().status());
+        if (launch && controller() != null && controller().gpsGuided() && !controller().satelliteMode()
+                && mx >= TARGET.right() - GPS_W - 2 && mx < TARGET.right() && my >= TARGET.y() && my < TARGET.y() + 14)
+            lines.add(Component.translatable("silo.create_nuclearindustry.satellite.gps"));
         int index = ConsoleNumbers.cellAt(mx, my, d.column().size());
         if (index >= 0) {
             LaunchDiagram.Cell cell = d.column().get(index);
