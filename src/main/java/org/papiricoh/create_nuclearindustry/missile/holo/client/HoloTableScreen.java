@@ -2,12 +2,18 @@ package org.papiricoh.create_nuclearindustry.missile.holo.client;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.papiricoh.create_nuclearindustry.missile.holo.HoloDesignatePayload;
+import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
+import org.papiricoh.create_nuclearindustry.missile.gui.HoloLayout;
+import org.papiricoh.create_nuclearindustry.missile.gui.LayoutRect;
+import org.papiricoh.create_nuclearindustry.missile.holo.HoloCommandPayload;
+import org.papiricoh.create_nuclearindustry.missile.holo.HoloTableBlockEntity;
 import org.papiricoh.create_nuclearindustry.missile.holo.HoloTableMenu;
 import org.papiricoh.create_nuclearindustry.missile.holo.HoloTracksPayload;
 import org.papiricoh.create_nuclearindustry.missile.holo.HoloView;
@@ -17,18 +23,20 @@ import org.papiricoh.create_nuclearindustry.missile.silo.SiloControllerEntity;
 import org.papiricoh.create_nuclearindustry.missile.terrain.TerrainTile;
 import org.papiricoh.create_nuclearindustry.missile.terrain.client.ClientTerrain;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
-/**
- * The command table's screen: its map from above with the land, the tracks (flown, still to fly, where they come down), the radars
- * and the silo's reach; the list of tracks; the silo's state. In designate mode a click on the map sends the silo there, as a
- * ground or air burst; the server checks the table, the silo and its reach before it takes.
- */
+import static org.papiricoh.create_nuclearindustry.missile.gui.HoloLayout.*;
+
+/** The shared tactical map and tabbed device lists. Commands refer to linked controllers, never a launch trigger. */
 public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
-    private static final int W = 320, H = 222, MAP = 200, MX = 8, MY = 16;
-    private static final int PX = 216, PW = 96;
+    private static final int W = WIDTH, H = HEIGHT, MAP_SIZE = HoloLayout.MAP.w(), MX = HoloLayout.MAP.x(), MY = HoloLayout.MAP.y();
+    private static final ResourceLocation SCREEN = ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "textures/gui/holo_table_screen.png");
+    private static final ResourceLocation WIDGETS = ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "textures/gui/holo_table_widgets.png");
     private static final int CYAN = 0xFF6FF4FF, DIM = 0xFF2C7C88, FAINT = 0xFF1A4850, RED = 0xFFFF4A3A, AMBER = 0xFFFFB347, GREEN = 0xFF7DFF9A,
             WHITE = 0xFFE8FFFF;
     private static final String KEY = "holo_table.create_nuclearindustry.screen.";
@@ -37,6 +45,9 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
     private boolean auto = true, designate, airburst, dragging;
     private double cx, cz;
     private UUID selected;
+    private int tab, scroll, radarRow = -1, spacing;
+    private boolean sequence;
+    private final Set<BlockPos> salvo = new LinkedHashSet<>();
 
     public HoloTableScreen(HoloTableMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -55,28 +66,53 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
     // ------------------------------------------------------------------ geometry (offsets from the table's centre)
 
     private float sx(double dx) {
-        return (float) (leftPos + MX + MAP / 2.0 + (dx - cx) / view * MAP);
+        return (float) (leftPos + MX + MAP_SIZE / 2.0 + (dx - cx) / view * MAP_SIZE);
     }
 
     private float sy(double dz) {
-        return (float) (topPos + MY + MAP / 2.0 + (dz - cz) / view * MAP);
+        return (float) (topPos + MY + MAP_SIZE / 2.0 + (dz - cz) / view * MAP_SIZE);
     }
 
     private double dx(double screenX) {
-        return cx + (screenX - leftPos - MX - MAP / 2.0) / MAP * view;
+        return cx + (screenX - leftPos - MX - MAP_SIZE / 2.0) / MAP_SIZE * view;
     }
 
     private double dz(double screenY) {
-        return cz + (screenY - topPos - MY - MAP / 2.0) / MAP * view;
+        return cz + (screenY - topPos - MY - MAP_SIZE / 2.0) / MAP_SIZE * view;
     }
 
     private boolean overMap(double mx, double my) {
-        return mx >= leftPos + MX && mx < leftPos + MX + MAP && my >= topPos + MY && my < topPos + MY + MAP;
+        return mx >= leftPos + MX && mx < leftPos + MX + MAP_SIZE && my >= topPos + MY && my < topPos + MY + MAP_SIZE;
     }
 
-    private boolean overButton(int index, double mx, double my) {
-        int y = topPos + MY + MAP - 3 * 16 + index * 16;
-        return mx >= leftPos + PX && mx < leftPos + PX + PW && my >= y && my < y + 14;
+    private boolean over(LayoutRect rect, double mx, double my) {
+        return rect.contains(mx - leftPos, my - topPos);
+    }
+
+    private boolean hasTexture(ResourceLocation texture) {
+        return minecraft.getResourceManager().getResource(texture).isPresent();
+    }
+
+    private void sprite(GuiGraphics g, LayoutRect source, int offsetX, int offsetY, int x, int y, int w, int h, int sourceW, int sourceH) {
+        if (hasTexture(WIDGETS)) g.blit(WIDGETS, x, y, w, h, source.x() + offsetX, source.y() + offsetY, sourceW, sourceH, WIDGETS_W, WIDGETS_H);
+    }
+
+    private BlockPos controller(HoloTracksPayload.Silo silo) {
+        if (silo == null || minecraft.level == null) return null;
+        if (minecraft.level.getBlockEntity(menu.centre) instanceof HoloTableBlockEntity table && silo.index() >= 0 && silo.index() < table.silos().size()) {
+            var link = table.silos().get(silo.index());
+            if (link.dimension().equals(minecraft.level.dimension())) return link.pos();
+        }
+        return null;
+    }
+
+    private void command(byte action, BlockPos pos, int x, int z, int arg, UUID flight, List<BlockPos> silos) {
+        PacketDistributor.sendToServer(new HoloCommandPayload(menu.centre, action, pos == null ? BlockPos.ZERO : pos, x, z, arg, flight, silos));
+    }
+
+    private HoloTracksPayload.Track selectedTrack() {
+        HoloTracksPayload p = picture();
+        return p == null ? null : p.tracks().stream().filter(t -> t.id().equals(selected)).findFirst().orElse(null);
     }
 
     // ------------------------------------------------------------------ drawing
@@ -90,17 +126,21 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
             cz = picture.board().oz();
         }
         g.fill(leftPos, topPos, leftPos + W, topPos + H, 0xF0081418);
-        g.renderOutline(leftPos, topPos, W, H, DIM);
-        g.fill(leftPos + MX - 1, topPos + MY - 1, leftPos + MX + MAP + 1, topPos + MY + MAP + 1, FAINT);
-        g.fill(leftPos + MX, topPos + MY, leftPos + MX + MAP, topPos + MY + MAP, 0xFF030C10);
-        g.enableScissor(leftPos + MX, topPos + MY, leftPos + MX + MAP, topPos + MY + MAP);
+        if (hasTexture(SCREEN)) g.blit(SCREEN, leftPos, topPos, 0, 0, W, H, W, H);
+        else for (LayoutRect rect : HoloLayout.ALL) {
+            g.fill(leftPos + rect.x(), topPos + rect.y(), leftPos + rect.right(), topPos + rect.bottom(), 0xFF102830);
+            g.renderOutline(leftPos + rect.x(), topPos + rect.y(), rect.w(), rect.h(), DIM);
+        }
+        g.fill(leftPos + MX - 1, topPos + MY - 1, leftPos + MX + MAP_SIZE + 1, topPos + MY + MAP_SIZE + 1, FAINT);
+        g.fill(leftPos + MX, topPos + MY, leftPos + MX + MAP_SIZE, topPos + MY + MAP_SIZE, 0xFF030C10);
+        g.enableScissor(leftPos + MX, topPos + MY, leftPos + MX + MAP_SIZE, topPos + MY + MAP_SIZE);
         terrain(g);
         double now = now(partial);
         try (ScopeDraw d = ScopeDraw.begin(g, true)) {
             for (int i = 1; i < 8; i++) {
-                float t = leftPos + MX + MAP * i / 8f, u = topPos + MY + MAP * i / 8f;
-                d.line(t, topPos + MY, t, topPos + MY + MAP, 0.5f, 0x2240E0FF);
-                d.line(leftPos + MX, u, leftPos + MX + MAP, u, 0.5f, 0x2240E0FF);
+                float t = leftPos + MX + MAP_SIZE * i / 8f, u = topPos + MY + MAP_SIZE * i / 8f;
+                d.line(t, topPos + MY, t, topPos + MY + MAP_SIZE, 0.5f, 0x2240E0FF);
+                d.line(leftPos + MX, u, leftPos + MX + MAP_SIZE, u, 0.5f, 0x2240E0FF);
             }
             d.circle(sx(0), sy(0), 2.5f, 1, WHITE, false);
             if (picture != null) draw(d, picture, now);
@@ -133,18 +173,18 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
     }
 
     private void draw(ScopeDraw d, HoloTracksPayload picture, double now) {
-        float scale = (float) MAP / view;
+        float scale = (float) MAP_SIZE / view;
         for (HoloTracksPayload.Radar radar : picture.radars()) {
             float x = sx(radar.dx() + 0.5), y = sy(radar.dz() + 0.5);
             int c = radar.online() ? GREEN : 0xFF607060;
             d.rect(x - 1.5f, y - 1.5f, x + 1.5f, y + 1.5f, c);
             if (radar.reach() > 0) d.circle(x, y, radar.reach() * scale, 0.7f, ScopeDraw.alpha(c, 0.45f), true);
         }
-        HoloTracksPayload.Silo silo = picture.silo();
-        if (silo != null) {
+        for (HoloTracksPayload.Silo silo : picture.silos()) {
+            if (!silo.loaded()) continue;
             float x = sx(silo.dx() + 0.5), y = sy(silo.dz() + 0.5);
             d.circle(x, y, 3, 1.2f, AMBER, false);
-            if (silo.reach() > 0) d.circle(x, y, silo.reach() * scale, 0.9f, ScopeDraw.alpha(AMBER, 0.6f), false);
+            if (silo.index() == picture.board().selectedSilo() && silo.reach() > 0) d.circle(x, y, silo.reach() * scale, 0.9f, ScopeDraw.alpha(AMBER, 0.6f), false);
             if (silo.targeted()) {
                 float tx = sx(silo.tx() + 0.5), ty = sy(silo.tz() + 0.5);
                 d.line(x, y, tx, ty, 0.7f, ScopeDraw.alpha(RED, 0.6f));
@@ -156,7 +196,7 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
         double since = Math.max(0, Math.min(20, now - picture.sample()));
         float g = Math.max(1e-5f, picture.gravity());
         for (HoloTracksPayload.Track t : picture.tracks()) {
-            int c = t.id().equals(selected) ? WHITE : t.threat() ? RED : CYAN;
+            int c = t.id().equals(selected) ? WHITE : t.own() ? GREEN : t.threat() ? RED : CYAN;
             float[] h = t.history();
             for (int i = 3; i + 2 < h.length; i += 3) d.line(sx(h[i - 3]), sy(h[i - 1]), sx(h[i]), sy(h[i + 2]), 1, ScopeDraw.alpha(c, 0.3f + 0.6f * i / h.length));
             double px = t.x() + t.vx() * since, pz = t.z() + t.vz() * since, py = t.y() + t.vy() * since - 0.5 * g * since * since;
@@ -194,61 +234,135 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
         return Math.hypot(dx - s.dx(), dz - s.dz()) <= s.reach();
     }
 
+    private Component text(String suffix) { return Component.translatable(KEY + suffix); }
+
+    private Component state(HoloTracksPayload.Silo silo) {
+        if (!silo.loaded()) return text("unloaded");
+        var values = SiloControllerEntity.State.values();
+        return Component.translatable("silo.create_nuclearindustry.state." + values[Mth.clamp(silo.state(), 0, values.length - 1)].name().toLowerCase(Locale.ROOT));
+    }
+
+    private Component error(HoloTracksPayload.Silo silo) {
+        return !silo.loaded() ? text("unloaded") : silo.error().isEmpty() ? state(silo)
+                : Component.translatable("silo.create_nuclearindustry.error." + silo.error(), "?", "?", "?");
+    }
+
+    private void fit(GuiGraphics g, Component text, int x, int y, int width, int colour) {
+        float scale = Math.min(1, width / (float) Math.max(1, font.width(text)));
+        g.pose().pushPose();
+        g.pose().translate(x, y, 0); g.pose().scale(scale, scale, 1);
+        g.drawString(font, text, 0, 0, colour, false);
+        g.pose().popPose();
+    }
+
+    private void button(GuiGraphics g, LayoutRect rect, Component label, boolean active, boolean enabled, boolean danger, int mx, int my) {
+        boolean hover = over(rect, mx, my);
+        g.fill(rect.x(), rect.y(), rect.right(), rect.bottom(), enabled ? active ? 0xFF24606A : 0xFF15333C : 0xFF102029);
+        sprite(g, SPRITE_BUTTONS, 0, (!enabled ? 2 : danger ? 3 : hover ? 1 : 0) * 16,
+                rect.x(), rect.y(), rect.w(), rect.h(), 40, 15);
+        g.renderOutline(rect.x(), rect.y(), rect.w(), rect.h(), !enabled ? FAINT : hover ? WHITE : DIM);
+        fit(g, label, rect.x() + 3, rect.y() + 4, rect.w() - 6, enabled ? active ? WHITE : CYAN : DIM);
+    }
+
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-        HoloTracksPayload picture = picture();
-        g.drawString(font, title, MX, 5, CYAN, false);
+        HoloTracksPayload p = picture();
+        g.drawString(font, title, TITLE.x() + 2, TITLE.y() + 2, CYAN, false);
         String scale = view >= 1000 ? (view / 1000) + " km" : view + " m";
-        String corner = scale + (auto ? " · " + Component.translatable(KEY + "auto").getString() : "");
-        g.drawString(font, corner, MX + MAP - font.width(corner), 5, DIM, false);
-        int y = MY;
-        g.drawString(font, Component.translatable(KEY + "tracks"), PX, y, CYAN, false);
-        y += 11;
-        double now = now(0);
-        if (picture == null || picture.tracks().isEmpty()) {
-            g.drawString(font, Component.translatable(KEY + "none"), PX, y, FAINT, false);
-            y += 10;
-        } else {
-            List<HoloTracksPayload.Track> tracks = picture.tracks();
-            for (int i = 0; i < Math.min(7, tracks.size()); i++) {
-                HoloTracksPayload.Track t = tracks.get(i);
-                int c = t.id().equals(selected) ? WHITE : t.threat() ? RED : CYAN;
-                double eta = Math.max(0, (t.eta() - (now - picture.sample())) / 20);
-                g.drawString(font, t.designation(), PX, y, c, false);
-                g.drawString(font, String.format(Locale.ROOT, "%d:%02d", (int) eta / 60, (int) eta % 60), PX + 62, y, c, false);
-                y += 10;
+        g.drawString(font, scale, 170, TITLE.y() + 2, DIM, false);
+        HoloTracksPayload.Silo silo = p == null ? null : p.silo();
+        boolean loaded = silo != null && silo.loaded() && controller(silo) != null;
+        if (minecraft.level != null && minecraft.level.getBlockEntity(menu.centre) instanceof HoloTableBlockEntity table)
+            salvo.removeIf(pos -> !table.silos().contains(net.minecraft.core.GlobalPos.of(minecraft.level.dimension(), pos)));
+        button(g, ZOOM_OUT, Component.literal("−"), false, true, false, mouseX, mouseY);
+        button(g, ZOOM_IN, Component.literal("+"), false, true, false, mouseX, mouseY);
+        button(g, AUTO, text("auto"), auto, true, false, mouseX, mouseY);
+        button(g, DESIGNATE, text(designate ? "designate_on" : "designate"), designate, loaded, false, mouseX, mouseY);
+        button(g, AIRBURST, text(airburst ? "airburst" : "groundburst"), airburst, true, false, mouseX, mouseY);
+        LayoutRect[] tabs = {TAB_SILOS, TAB_RADARS, TAB_TRACKS};
+        String[] names = {"silos", "radars", "tracks"};
+        for (int i = 0; i < tabs.length; i++) {
+            LayoutRect rect = tabs[i];
+            g.fill(rect.x(), rect.y(), rect.right(), rect.bottom(), tab == i ? 0xFF24606A : 0xFF15333C);
+            sprite(g, SPRITE_TABS, 0, tab == i ? 16 : 0, rect.x(), rect.y(), rect.w(), rect.h(), 58, 14);
+            fit(g, text(names[i]), rect.x() + 3, rect.y() + 3, rect.w() - 6, CYAN);
+        }
+        fit(g, text(tab == 0 ? "silo_header" : tab == 1 ? "radar_header" : "track_header"), LIST.x() + 2, LIST.y() + 1, LIST.w() - 4, DIM);
+        if (p != null) {
+            int count = tab == 0 ? p.silos().size() : tab == 1 ? p.radars().size() : p.tracks().size();
+            scroll = Mth.clamp(scroll, 0, Math.max(0, count - LIST_ROWS));
+            for (int row = 0; row < Math.min(LIST_ROWS, count - scroll); row++) {
+                int i = row + scroll, x = LIST.x(), y = LIST.y() + LIST_HEADER + row * LIST_ROW;
+                boolean chosen = tab == 0 ? p.silos().get(i).index() == p.board().selectedSilo()
+                        : tab == 1 ? i == radarRow : p.tracks().get(i).id().equals(selected);
+                if (chosen) g.fill(x, y, x + LIST.w(), y + LIST_ROW, 0xFF234A52);
+                if (tab == 0) {
+                    HoloTracksPayload.Silo s = p.silos().get(i);
+                    BlockPos at = controller(s);
+                    boolean checked = at != null && salvo.contains(at);
+                    g.renderOutline(x + COL_CHECK, y, 8, 8, checked ? GREEN : DIM);
+                    if (checked) g.fill(x + COL_CHECK + 2, y + 2, x + COL_CHECK + 6, y + 6, GREEN);
+                    sprite(g, SPRITE_CHECKS, checked ? 8 : 0, 0, x + COL_CHECK, y, 8, 8, 8, 8);
+                    g.drawString(font, "S" + (s.index() + 1), x + COL_NAME, y, AMBER, false);
+                    int lamp = s.loaded() ? Mth.clamp(s.state(), 0, 5) : 0;
+                    g.fill(x + COL_STATE, y, x + COL_STATE + 7, y + 7, lamp >= 3 ? GREEN : AMBER);
+                    sprite(g, SPRITE_LAMPS, lamp * 8, 0, x + COL_STATE, y, 7, 7, 7, 7);
+                    g.drawString(font, font.plainSubstrByWidth(state(s).getString(), COL_INFO - COL_STATE - 10), x + COL_STATE + 9, y, WHITE, false);
+                    Component info = s.countdown() >= 0 ? Component.literal(String.format(Locale.ROOT, "%.1fs", s.countdown() / 20.0)) : error(s);
+                    g.drawString(font, font.plainSubstrByWidth(info.getString(), COL_DELAY - COL_INFO - 2), x + COL_INFO, y, s.error().isEmpty() ? CYAN : RED, false);
+                    fit(g, Component.literal(String.format(Locale.ROOT, "%.1fs", s.delay() / 20.0)), x + COL_DELAY, y, COL_UNLINK - COL_DELAY - 2, DIM);
+                } else if (tab == 1) {
+                    var r = p.radars().get(i);
+                    fit(g, Component.literal("R" + (i + 1) + " " + r.code()), x + COL_NAME, y, 105, r.online() ? GREEN : RED);
+                } else {
+                    var t = p.tracks().get(i);
+                    fit(g, Component.literal(t.designation()), x + COL_NAME, y, 82, t.own() ? GREEN : t.threat() ? RED : CYAN);
+                    fit(g, Component.literal(Math.max(0, t.eta() / 20) + " s"), x + COL_INFO, y, 43, CYAN);
+                }
+                if (tab < 2) {
+                    g.drawString(font, "×", x + COL_UNLINK, y, RED, false);
+                    boolean hover = mouseX - leftPos >= x + COL_UNLINK && mouseY - topPos >= y && mouseY - topPos < y + LIST_ROW;
+                    sprite(g, SPRITE_UNLINK, hover ? 8 : 0, 0, x + COL_UNLINK, y, 8, 8, 8, 8);
+                }
+            }
+            if (tab == 0 && silo != null) {
+                fit(g, error(silo), DETAIL.x() + 2, DETAIL.y() + 2, DETAIL.w() - 4, silo.error().isEmpty() ? WHITE : RED);
+                fit(g, Component.translatable(KEY + "flight_delay", Math.round(silo.flightSeconds()), String.format(Locale.ROOT, "%.1f", silo.delay() / 20.0)),
+                        DETAIL.x() + 2, DETAIL.y() + 13, DETAIL.w() - 4, DIM);
+            } else if (tab == 1 && radarRow >= 0 && radarRow < p.radars().size()) {
+                var r = p.radars().get(radarRow);
+                fit(g, Component.literal((menu.centre.getX() + r.dx()) + ", " + r.dy() + ", " + (menu.centre.getZ() + r.dz())), DETAIL.x() + 2, DETAIL.y() + 3, 166, WHITE);
+                fit(g, text(r.online() ? "online" : "unloaded"), DETAIL.x() + 2, DETAIL.y() + 13, 166, CYAN);
+            } else if (tab == 2 && selectedTrack() != null) {
+                fit(g, Component.translatable(KEY + "track_detail", selectedTrack().designation(), Math.round(selectedTrack().y())), DETAIL.x() + 2, DETAIL.y() + 3, 166, WHITE);
+                fit(g, text(selectedTrack().own() ? "own" : "foreign"), DETAIL.x() + 2, DETAIL.y() + 13, 166, CYAN);
             }
         }
-        y = MY + 110;
-        g.drawString(font, Component.translatable(KEY + "silo"), PX, y, AMBER, false);
-        HoloTracksPayload.Silo silo = picture == null ? null : picture.silo();
-        if (silo == null) g.drawString(font, Component.translatable(KEY + "no_silo"), PX, y + 11, FAINT, false);
-        else {
-            SiloControllerEntity.State[] states = SiloControllerEntity.State.values();
-            String state = states[Math.max(0, Math.min(states.length - 1, silo.state()))].name().toLowerCase(Locale.ROOT);
-            g.drawString(font, Component.translatable("silo.create_nuclearindustry.state." + state), PX, y + 11, WHITE, false);
-            if (silo.reach() > 0) g.drawString(font, Component.translatable(KEY + "reach", Math.round(silo.reach())), PX, y + 21, AMBER, false);
-            if (silo.reach() > 0) g.drawString(font, Component.translatable(KEY + "cep", Math.round(silo.cep())), PX, y + 31, AMBER, false);
-        }
-        String[] buttons = {designate ? "designate_on" : "designate", airburst ? "airburst" : "groundburst", "auto_view"};
-        for (int i = 0; i < 3; i++) {
-            int by = MY + MAP - 3 * 16 + i * 16;
-            boolean lit = i == 0 && designate || i == 1 && airburst || i == 2 && auto;
-            g.fill(PX, by, PX + PW, by + 14, lit ? 0x6040E0FF : 0x30204850);
-            g.renderOutline(PX, by, PW, 14, overButton(i, mouseX, mouseY) ? WHITE : DIM);
-            g.drawCenteredString(font, Component.translatable(KEY + buttons[i]), PX + PW / 2, by + 3, lit ? WHITE : CYAN);
-        }
-        if (designate && overMap(mouseX, mouseY)) {
-            int bx = menu.centre.getX(), bz = menu.centre.getZ();
-            String at = (int) Math.floor(bx + 0.5 + dx(mouseX)) + ", " + (int) Math.floor(bz + 0.5 + dz(mouseY));
-            g.drawString(font, at, mouseX - leftPos + 8, mouseY - topPos - 10, inReach(picture, dx(mouseX), dz(mouseY)) ? GREEN : RED, false);
-        }
+        button(g, SALVO_MODE, text(sequence ? "sequence" : "time_on_target"), sequence, true, false, mouseX, mouseY);
+        button(g, SPACING_DOWN, Component.literal("−"), false, sequence, false, mouseX, mouseY);
+        button(g, SPACING, Component.literal(spacing + " s"), false, sequence, false, mouseX, mouseY);
+        button(g, SPACING_UP, Component.literal("+"), false, sequence, false, mouseX, mouseY);
+        button(g, ARM, text("arm"), false, loaded, true, mouseX, mouseY);
+        button(g, DISARM, text("disarm"), false, loaded, false, mouseX, mouseY);
+        button(g, SALVO, text("salvo"), false, !salvo.isEmpty(), false, mouseX, mouseY);
+        button(g, ABORT, text("abort"), false, selectedTrack() != null && selectedTrack().own(), true, mouseX, mouseY);
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
         super.render(g, mouseX, mouseY, partial);
         renderTooltip(g, mouseX, mouseY);
+        if (over(SALVO, mouseX, mouseY) || over(ARM, mouseX, mouseY))
+            g.renderTooltip(font, font.split(text("redstone"), 240), mouseX, mouseY);
+        if (over(DETAIL, mouseX, mouseY) && tab == 0 && picture() != null && picture().silo() != null) {
+            var silo = picture().silo();
+            List<Component> lines = new ArrayList<>();
+            lines.add(error(silo));
+            lines.add(Component.translatable(KEY + "reach", Math.round(silo.reach())));
+            lines.add(Component.translatable(KEY + "cep", Math.round(silo.cep())));
+            if (silo.targeted()) lines.add(Component.translatable(KEY + "target", menu.centre.getX() + silo.tx(), menu.centre.getZ() + silo.tz()));
+            g.renderComponentTooltip(font, lines, mouseX, mouseY);
+        }
     }
 
     // ------------------------------------------------------------------ input
@@ -256,22 +370,62 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (button == 0) {
-            if (overButton(0, mx, my)) {
-                designate = !designate;
+            HoloTracksPayload p = picture();
+            HoloTracksPayload.Silo s = p == null ? null : p.silo();
+            BlockPos at = controller(s);
+            if (over(DESIGNATE, mx, my)) { if (at != null && s.loaded()) designate = !designate; return true; }
+            if (over(AIRBURST, mx, my)) { airburst = !airburst; return true; }
+            if (over(AUTO, mx, my)) { auto = true; return true; }
+            if (over(ZOOM_IN, mx, my) || over(ZOOM_OUT, mx, my)) {
+                auto = false;
+                int index = 0;
+                for (int i = 0; i < HoloView.VIEWS.length; i++) if (HoloView.VIEWS[i] == view) index = i;
+                view = HoloView.VIEWS[Mth.clamp(index + (over(ZOOM_IN, mx, my) ? -1 : 1), 0, HoloView.VIEWS.length - 1)];
                 return true;
             }
-            if (overButton(1, mx, my)) {
-                airburst = !airburst;
+            LayoutRect[] tabs = {TAB_SILOS, TAB_RADARS, TAB_TRACKS};
+            for (int i = 0; i < tabs.length; i++) if (over(tabs[i], mx, my)) { tab = i; scroll = 0; return true; }
+            if (over(SALVO_MODE, mx, my)) { sequence = !sequence; return true; }
+            if (over(SPACING_DOWN, mx, my) || over(SPACING_UP, mx, my)) {
+                if (sequence) spacing = Mth.clamp(spacing + (over(SPACING_UP, mx, my) ? 1 : -1), 0, MissileConfig.salvoMaxSpacingSeconds);
                 return true;
             }
-            if (overButton(2, mx, my)) {
-                auto = true;
+            if (over(ARM, mx, my) || over(DISARM, mx, my)) {
+                if (at != null && s.loaded()) command(over(ARM, mx, my) ? HoloCommandPayload.ARM : HoloCommandPayload.DISARM, at, 0, 0, 0, null, List.of());
+                return true;
+            }
+            if (over(SALVO, mx, my)) {
+                if (!salvo.isEmpty()) command(HoloCommandPayload.SALVO, null, 0, 0, sequence ? spacing * 20 : 0, null, List.copyOf(salvo));
+                return true;
+            }
+            if (over(ABORT, mx, my)) {
+                var track = selectedTrack();
+                if (track != null && track.own()) command(HoloCommandPayload.ABORT, null, 0, 0, 0, track.id(), List.of());
+                return true;
+            }
+            if (over(LIST, mx, my) && p != null) {
+                int row = (int) (my - topPos - LIST.y() - LIST_HEADER);
+                if (row < 0) return true;
+                row = row / LIST_ROW + scroll;
+                double x = mx - leftPos - LIST.x();
+                if (tab == 0 && row < p.silos().size()) {
+                    BlockPos pos = controller(p.silos().get(row));
+                    if (pos != null) {
+                        if (x >= COL_UNLINK) { salvo.remove(pos); command(HoloCommandPayload.UNLINK_SILO, pos, 0, 0, 0, null, List.of()); }
+                        else if (x < COL_NAME) { if (!salvo.remove(pos)) salvo.add(pos); }
+                        else command(HoloCommandPayload.SELECT, pos, 0, 0, 0, null, List.of());
+                    }
+                } else if (tab == 1 && row < p.radars().size()) {
+                    radarRow = row;
+                    var radar = p.radars().get(row);
+                    if (x >= COL_UNLINK) command(HoloCommandPayload.UNLINK_RADAR, menu.centre.offset(radar.dx(), radar.dy() - menu.centre.getY(), radar.dz()), 0, 0, 0, null, List.of());
+                } else if (tab == 2 && row < p.tracks().size()) selected = p.tracks().get(row).id();
                 return true;
             }
             if (overMap(mx, my)) {
                 if (designate) {
                     int x = (int) Math.floor(menu.centre.getX() + 0.5 + dx(mx)), z = (int) Math.floor(menu.centre.getZ() + 0.5 + dz(my));
-                    PacketDistributor.sendToServer(new HoloDesignatePayload(menu.centre, x, z, airburst));
+                    if (at != null) command(HoloCommandPayload.DESIGNATE, at, x, z, airburst ? 1 : 0, null, List.of());
                     designate = false;
                     return true;
                 }
@@ -303,8 +457,8 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
         if (dragging && button == 0 && !designate) {
             auto = false;
-            cx -= dx / MAP * view;
-            cz -= dy / MAP * view;
+            cx -= dx / MAP_SIZE * view;
+            cz -= dy / MAP_SIZE * view;
             double limit = HoloView.VIEWS[HoloView.VIEWS.length - 1] / 2.0;
             cx = Mth.clamp(cx, -limit, limit);
             cz = Mth.clamp(cz, -limit, limit);
@@ -315,6 +469,7 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
 
     @Override
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
+        if (over(LIST, mx, my)) { scroll += scrollY > 0 ? -1 : 1; return true; }
         if (overMap(mx, my)) {
             auto = false;
             int index = 0;
@@ -322,8 +477,8 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
             int next = Mth.clamp(index + (scrollY > 0 ? -1 : 1), 0, HoloView.VIEWS.length - 1);
             double wx = dx(mx), wz = dz(my);
             view = HoloView.VIEWS[next];
-            cx = wx - (mx - leftPos - MX - MAP / 2.0) / MAP * view;
-            cz = wz - (my - topPos - MY - MAP / 2.0) / MAP * view;
+            cx = wx - (mx - leftPos - MX - MAP_SIZE / 2.0) / MAP_SIZE * view;
+            cz = wz - (my - topPos - MY - MAP_SIZE / 2.0) / MAP_SIZE * view;
             return true;
         }
         return super.mouseScrolled(mx, my, scrollX, scrollY);

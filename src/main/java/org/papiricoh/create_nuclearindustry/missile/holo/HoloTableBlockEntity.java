@@ -22,7 +22,10 @@ import net.minecraft.world.phys.Vec3;
 import org.papiricoh.create_nuclearindustry.missile.LaunchRules;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
-import org.papiricoh.create_nuclearindustry.controlroom.ControlRoomDevice;
+import org.papiricoh.create_nuclearindustry.missile.link.TacticalDevice;
+import org.papiricoh.create_nuclearindustry.missile.flight.Flight;
+import org.papiricoh.create_nuclearindustry.missile.flight.FlightTracker;
+import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
 import org.papiricoh.create_nuclearindustry.missile.radar.RadarBlockEntity;
 import org.papiricoh.create_nuclearindustry.missile.radar.RadarTrack;
@@ -40,13 +43,13 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 
 /**
- * The heart of a holographic command table, on its centre piece: the radars (up to {@link #MAX_RADARS}) and the silo it is linked
- * to with a Control Room Linker. Every half second it tells players within {@link #SIGHT} blocks what its radars track, where they
- * stand, and its silo's state ({@link HoloTracksPayload}); the hologram and the screen are drawn from that. From its screen a
+ * The heart of a holographic command table, on its centre piece: the radars (up to {@link #MAX_RADARS}) and launch controllers (up to {@link #MAX_SILOS}) linked
+ * to it with a Tactical Linker. Every half second it tells players within {@link #SIGHT} blocks what its radars track, where they
+ * stand, and the controllers' states ({@link HoloTracksPayload}); the hologram and the screen are drawn from that. From its screen a
  * player can send the silo a new target ({@link #designate}), checked here.
  */
-public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevice, TerrainViewer {
-    public static final int MAX_RADARS = 4;
+public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice, TerrainViewer {
+    public static final int MAX_RADARS = 4, MAX_SILOS = 16;
     /** Players this close see the hologram and are sent its picture. */
     public static final double SIGHT = 32;
     /** Players this close may use the table: its screen, its terrain, designating. */
@@ -62,8 +65,8 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
     public static final int MARK_TICKS = 100;
 
     private final List<GlobalPos> radars = new ArrayList<>();
-    @Nullable
-    private GlobalPos silo;
+    private final List<GlobalPos> silos = new ArrayList<>();
+    private byte selectedSilo;
     private int counter;
     /** The zoom chosen: 0 automatic, else an index into {@link HoloView#VIEWS} plus one. Saved. */
     private byte zoom;
@@ -78,7 +81,19 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
     }
 
     public List<GlobalPos> radars() { return Collections.unmodifiableList(radars); }
-    @Nullable public GlobalPos silo() { return silo; }
+    public List<GlobalPos> silos() { return Collections.unmodifiableList(silos); }
+    public byte selectedSilo() { return selectedSilo; }
+    @Nullable public GlobalPos silo() { return selectedSilo >= 0 && selectedSilo < silos.size() ? silos.get(selectedSilo) : null; }
+
+    public boolean selectSilo(BlockPos pos) {
+        if (level == null) return false;
+        int index = silos.indexOf(GlobalPos.of(level.dimension(), pos));
+        if (index < 0) return false;
+        selectedSilo = (byte) index;
+        mark = null;
+        changed();
+        return true;
+    }
 
     /** The block entity outlives a change of its block's state: this one belongs to the centre only. */
     @Override
@@ -109,35 +124,64 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
 
     // ------------------------------------------------------------------ linking
 
-    @Override
     @Nullable
     public GlobalPos getTarget() {
-        return silo != null ? silo : radars.isEmpty() ? null : radars.get(0);
+        return silo() != null ? silo() : radars.isEmpty() ? null : radars.getFirst();
     }
 
-    /**
-     * A linker's click: a radar is added (or taken off if it is already linked), a silo controller becomes the table's silo (or is
-     * unlinked if it already was), anything else is ignored. A null target unlinks everything.
-     */
-    @Override
+    /** Compatibility entry point for old callers and saves. */
     public void setTarget(@Nullable GlobalPos target) {
-        if (target == null) {
-            radars.clear();
-            silo = null;
-        } else if (level != null && level.dimension().equals(target.dimension()) && level.isLoaded(target.pos())) {
-            BlockEntity at = level.getBlockEntity(target.pos());
-            if (at instanceof RadarBlockEntity) {
-                if (!radars.remove(target) && radars.size() < MAX_RADARS) radars.add(target);
-            } else if (at instanceof SiloControllerEntity) {
-                silo = target.equals(silo) ? null : target;
-            }
+        if (target == null) clearLinks();
+        else toggleLink(target);
+    }
+
+    @Override
+    public Result toggleLink(GlobalPos target) {
+        if (links().contains(target)) { unlink(target); return Result.REMOVED; }
+        if (level == null || !level.dimension().equals(target.dimension())
+                || !ShipSpace.closerThan(level, worldPosition, target.pos(), MissileConfig.tacticalLinkRange)) return Result.OUT_OF_RANGE;
+        if (!level.isLoaded(target.pos())) return Result.UNSUPPORTED;
+        BlockEntity at = level.getBlockEntity(target.pos());
+        List<GlobalPos> list;
+        int max;
+        if (at instanceof RadarBlockEntity) { list = radars; max = MAX_RADARS; }
+        else if (at instanceof SiloControllerEntity) { list = silos; max = MAX_SILOS; }
+        else return Result.UNSUPPORTED;
+        if (list.size() >= max) return Result.FULL;
+        list.add(target);
+        changed();
+        return Result.ADDED;
+    }
+
+    @Override
+    public boolean unlink(GlobalPos target) {
+        GlobalPos selected = silo();
+        boolean removed = radars.remove(target) | silos.remove(target);
+        if (removed) {
+            selectedSilo = (byte) Math.max(0, selected == null ? 0 : silos.indexOf(selected));
+            mark = null;
+            changed();
         }
+        return removed;
+    }
+
+    @Override
+    public void clearLinks() {
+        radars.clear(); silos.clear(); selectedSilo = 0; mark = null;
         changed();
     }
 
-    /** Links {@code silo} as it is, unchecked: for tests of what designating refuses. */
+    @Override
+    public List<GlobalPos> links() {
+        List<GlobalPos> all = new ArrayList<>(radars);
+        all.addAll(silos);
+        return List.copyOf(all);
+    }
+
+    /** Adds an unchecked link for tests of unavailable and other-dimension controllers. */
     public void linkSiloUnchecked(@Nullable GlobalPos silo) {
-        this.silo = silo;
+        if (silo == null) { silos.clear(); selectedSilo = 0; }
+        else if (!silos.contains(silo) && silos.size() < MAX_SILOS) silos.add(silo);
         changed();
     }
 
@@ -190,18 +234,37 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
 
     @Nullable
     public SiloControllerEntity siloEntity() {
-        return silo != null && level != null && level.dimension().equals(silo.dimension()) && level.isLoaded(silo.pos())
-                && level.getBlockEntity(silo.pos()) instanceof SiloControllerEntity controller ? controller : null;
+        return siloEntity(silo());
+    }
+
+    @Nullable
+    private SiloControllerEntity siloEntity(@Nullable GlobalPos pos) {
+        return pos != null && level != null && level.dimension().equals(pos.dimension()) && level.isLoaded(pos.pos())
+                && level.getBlockEntity(pos.pos()) instanceof SiloControllerEntity controller ? controller : null;
     }
 
     /** What the table shows now. Public for tests. */
     public HoloTracksPayload picture() {
         double cx = worldPosition.getX() + 0.5, cz = worldPosition.getZ() + 0.5;
+        Map<BlockPos, UUID> origins = new LinkedHashMap<>();
+        FlightTracker tracker = level instanceof ServerLevel server ? FlightTracker.getIfPresent(server) : null;
+        if (tracker != null) for (Flight flight : tracker.flights()) {
+            if (flight.kind() == Flight.Kind.MISSILE) origins.put(flight.origin(), flight.id());
+        }
+        Set<UUID> own = new java.util.HashSet<>();
+        for (GlobalPos pos : silos) {
+            SiloControllerEntity controller = siloEntity(pos);
+            if (controller != null && origins.containsKey(controller.floor().above())) own.add(origins.get(controller.floor().above()));
+        }
         Map<UUID, HoloTracksPayload.Track> tracks = new LinkedHashMap<>();
         List<HoloTracksPayload.Radar> radarInfo = new ArrayList<>();
         for (GlobalPos pos : radars) {
             RadarBlockEntity radar = radar(pos);
-            if (radar == null) continue;
+            if (radar == null) {
+                radarInfo.add(new HoloTracksPayload.Radar(pos.pos().getX() - worldPosition.getX(), pos.pos().getY(),
+                        pos.pos().getZ() - worldPosition.getZ(), 0, false, ""));
+                continue;
+            }
             BlockPos at = radar.getBlockPos();
             radarInfo.add(new HoloTracksPayload.Radar(at.getX() - worldPosition.getX(), at.getY(), at.getZ() - worldPosition.getZ(),
                     (float) radar.reach(), radar.status() == 1, radar.code()));
@@ -210,20 +273,27 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
                 boolean threat = radar.threats().contains(track);
                 HoloTracksPayload.Track old = tracks.get(track.id());
                 if (old != null) {
-                    if (threat && !old.threat()) tracks.put(track.id(), track(track, true, cx, cz));
+                    if (threat && !old.threat()) tracks.put(track.id(), track(track, true, own.contains(track.id()), cx, cz));
                     continue;
                 }
-                tracks.put(track.id(), track(track, threat, cx, cz));
+                tracks.put(track.id(), track(track, threat, own.contains(track.id()), cx, cz));
             }
         }
-        HoloTracksPayload.Silo siloInfo = null;
-        SiloControllerEntity controller = siloEntity();
-        if (controller != null) {
-            BlockPos at = controller.floor();
-            BlockPos target = controller.target();
-            siloInfo = new HoloTracksPayload.Silo(at.getX() - worldPosition.getX(), at.getZ() - worldPosition.getZ(), (float) controller.reach(),
-                    (float) controller.cep(), (byte) controller.state().ordinal(), target != null,
-                    target == null ? 0 : target.getX() - worldPosition.getX(), target == null ? 0 : target.getZ() - worldPosition.getZ());
+        List<HoloTracksPayload.Silo> siloInfo = new ArrayList<>();
+        for (int i = 0; i < silos.size(); i++) {
+            GlobalPos link = silos.get(i);
+            SiloControllerEntity controller = siloEntity(link);
+            BlockPos at = controller == null ? link.pos() : controller.floor();
+            BlockPos target = controller == null ? null : controller.target();
+            String error = controller == null ? "unloaded" : controller.error();
+            siloInfo.add(new HoloTracksPayload.Silo((byte) i, controller != null,
+                    at.getX() - worldPosition.getX(), at.getZ() - worldPosition.getZ(),
+                    controller == null ? 0 : (float) controller.reach(), controller == null ? 0 : (float) controller.cep(),
+                    controller == null ? (byte) 0 : (byte) controller.state().ordinal(), target != null,
+                    target == null ? 0 : target.getX() - worldPosition.getX(), target == null ? 0 : target.getZ() - worldPosition.getZ(),
+                    error.substring(0, Math.min(32, error.length())), controller == null ? -1 : controller.countdown(),
+                    controller == null ? 0 : controller.launchDelay(), controller == null ? 0 : (float) (controller.flightTicks() / 20),
+                    controller == null ? null : origins.get(controller.floor().above())));
         }
         long now = level == null ? 0 : level.getGameTime();
         List<HoloTracksPayload.Track> list = List.copyOf(tracks.values());
@@ -242,10 +312,10 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
             oz = Math.round(pinned.z() / step) * step;
         }
         return new HoloTracksPayload(worldPosition, now, (float) MissileConfig.gravity, list, radarInfo, siloInfo,
-                new HoloTracksPayload.Board(view, (float) ox, (float) oz, zoom, selected, mark));
+                new HoloTracksPayload.Board(view, (float) ox, (float) oz, zoom, selectedSilo, selected, mark));
     }
 
-    private static HoloTracksPayload.Track track(RadarTrack track, boolean threat, double cx, double cz) {
+    private static HoloTracksPayload.Track track(RadarTrack track, boolean threat, boolean own, double cx, double cz) {
         RadarTrack.Snapshot s = track.snapshot(true);
         List<org.papiricoh.create_nuclearindustry.missile.physics.V3> history = s.history();
         int from = Math.max(0, history.size() - HoloTracksPayload.HISTORY);
@@ -258,7 +328,7 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
             points[i * 3 + 1] = (float) p.y();
             points[i * 3 + 2] = (float) (p.z() - cz);
         }
-        return new HoloTracksPayload.Track(s.id(), s.designation(), s.phase(), threat, s.eta(), (float) (s.position().x() - cx), (float) s.position().y(),
+        return new HoloTracksPayload.Track(s.id(), s.designation(), s.phase(), threat, own, s.eta(), (float) (s.position().x() - cx), (float) s.position().y(),
                 (float) (s.position().z() - cz), (float) s.velocity().x(), (float) s.velocity().y(), (float) s.velocity().z(),
                 (float) (s.impact().x() - cx), (float) (s.impact().z() - cz), s.along(), s.across(), s.heading(),
                 (float) (s.firstSeen().x() - cx), (float) s.firstSeen().y(), (float) (s.firstSeen().z() - cz), points);
@@ -293,11 +363,12 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
     public Designation check(ServerPlayer player, int x, int z) {
         if (!near(player)) return Designation.TOO_FAR;
         if (!HoloTable.intact(level, worldPosition)) return Designation.BROKEN;
+        GlobalPos silo = silo();
         if (silo == null) return Designation.NO_SILO;
         if (!silo.dimension().equals(level.dimension())) return Designation.OTHER_DIMENSION;
         SiloControllerEntity controller = siloEntity();
         if (controller == null) return Designation.UNLOADED;
-        if (Math.abs(x - worldPosition.getX()) > VIEW / 2 || Math.abs(z - worldPosition.getZ()) > VIEW / 2 || !level.getWorldBorder().isWithinBounds(x, z))
+        if (Math.abs((long) x - worldPosition.getX()) > VIEW / 2 || Math.abs((long) z - worldPosition.getZ()) > VIEW / 2 || !level.getWorldBorder().isWithinBounds(x, z))
             return Designation.OFF_TABLE;
         BlockPos floor = controller.floor();
         double distance = Math.hypot(x + 0.5 - floor.getX() - 0.5, z + 0.5 - floor.getZ() - 0.5);
@@ -315,7 +386,7 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
     // ------------------------------------------------------------------ using it in the world
 
     /** What a right click on the table did. */
-    public enum Click { NONE, TOO_FAR, SELECTED, RELEASED, ZOOM, OPEN, MARKED, CONFIRMED, REFUSED }
+    public enum Click { NONE, TOO_FAR, SELECTED, RELEASED, ZOOM, OPEN, MARKED, CONFIRMED, REFUSED, SILO_SELECTED }
 
     /** The last designation tried by a click, for the message the block shows. */
     @Nullable
@@ -346,6 +417,19 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
         double bx = worldPosition.getX(), by = worldPosition.getY(), bz = worldPosition.getZ();
         double[] from = {eye.x - bx, eye.y - by, eye.z - bz}, along = {look.x, look.y, look.z};
         if (!sneaking) {
+            List<HoloTracksPayload.Silo> visible = picture.silos().stream().filter(s -> s.loaded() && projection.shows(s.dx() + 0.5, s.dz() + 0.5)).toList();
+            double[] siloMarks = new double[visible.size() * 3];
+            for (int i = 0; i < visible.size(); i++) {
+                siloMarks[i * 3] = projection.x(visible.get(i).dx() + 0.5);
+                siloMarks[i * 3 + 1] = HoloProjection.Y + 0.03;
+                siloMarks[i * 3 + 2] = projection.z(visible.get(i).dz() + 0.5);
+            }
+            int siloPick = HoloProjection.pick(from, along, siloMarks, PICK);
+            if (siloPick >= 0) {
+                selectSilo(silos.get(visible.get(siloPick).index()).pos());
+                broadcast();
+                return Click.SILO_SELECTED;
+            }
             int picked = HoloProjection.pick(from, along, picture.marks(projection, 0), PICK);
             if (picked >= 0) {
                 UUID id = picture.tracks().get(picked).id();
@@ -399,7 +483,10 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
         for (GlobalPos pos : radars) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).result().ifPresent(list::add);
         tag.put("Radars", list);
         tag.putByte("Zoom", zoom);
-        if (silo != null) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, silo).result().ifPresent(t -> tag.put("Silo", t));
+        ListTag savedSilos = new ListTag();
+        for (GlobalPos pos : silos) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).result().ifPresent(savedSilos::add);
+        tag.put("Silos", savedSilos);
+        tag.putByte("SelectedSilo", selectedSilo);
     }
 
     @Override
@@ -410,7 +497,12 @@ public class HoloTableBlockEntity extends BlockEntity implements ControlRoomDevi
             if (radars.size() < MAX_RADARS) GlobalPos.CODEC.parse(NbtOps.INSTANCE, t).result().ifPresent(radars::add);
         }
         zoom = (byte) Math.max(0, Math.min(HoloView.VIEWS.length, tag.getByte("Zoom")));
-        silo = tag.contains("Silo") ? GlobalPos.CODEC.parse(NbtOps.INSTANCE, tag.get("Silo")).result().orElse(null) : null;
+        silos.clear();
+        for (Tag t : tag.getList("Silos", Tag.TAG_COMPOUND)) {
+            if (silos.size() < MAX_SILOS) GlobalPos.CODEC.parse(NbtOps.INSTANCE, t).result().filter(p -> !silos.contains(p)).ifPresent(silos::add);
+        }
+        if (!tag.contains("Silos") && tag.contains("Silo")) GlobalPos.CODEC.parse(NbtOps.INSTANCE, tag.get("Silo")).result().ifPresent(silos::add);
+        selectedSilo = (byte) Math.max(0, Math.min(Math.max(0, silos.size() - 1), tag.getByte("SelectedSilo")));
     }
 
     @Override

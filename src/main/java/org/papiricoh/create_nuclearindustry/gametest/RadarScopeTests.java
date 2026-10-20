@@ -34,13 +34,17 @@ public class RadarScopeTests {
         for (int x = 3; x <= 4; x++) for (int y = 1; y <= 2; y++)
             helper.setBlock(new BlockPos(x, y, 3), RadarRegistry.SCOPE.get().defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, Direction.SOUTH));
         RadarScopeBlockEntity scope = helper.getBlockEntity(new BlockPos(4, 2, 3));
-        scope.setTarget(GlobalPos.of(level.dimension(), helper.absolutePos(radarPos)));
+        net.minecraft.world.item.ItemStack linker = new net.minecraft.world.item.ItemStack(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.TACTICAL_LINKER.get());
+        var player = TacticalLinkerTests.player(helper, linker);
+        TacticalLinkerTests.click(helper, player, linker, radarPos);
+        TacticalLinkerTests.click(helper, player, linker, new BlockPos(4, 2, 3));
         BlockPos at = helper.absolutePos(radarPos);
         Flight flight = FlightTracker.get(level).launch(level, MissileDesign.LEGACY_PAD, new Vec3(at.getX() + 100, at.getY() + 50, at.getZ()), Vec3.ZERO,
                 new Vec3(at.getX() - 500, at.getY(), at.getZ()), at, Warhead.INERT, null);
         helper.succeedWhen(() -> {
             radar.setSpeed((float) MissileConfig.minimumRpm);
             RadarScopeBlockEntity origin = helper.getBlockEntity(new BlockPos(3, 1, 3));
+            helper.assertTrue(origin != null, "scope origin exists");
             helper.assertTrue(origin.isOrigin() && origin.screenWidth() == 2 && origin.screenHeight() == 2,
                     "four scopes make one 2×2 screen from the bottom-left one, got " + origin.screenWidth() + "×" + origin.screenHeight());
             helper.assertTrue(origin.getTarget() != null, "the screen keeps the link made on one of its scopes");

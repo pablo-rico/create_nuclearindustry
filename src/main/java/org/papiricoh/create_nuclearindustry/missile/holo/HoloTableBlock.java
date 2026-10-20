@@ -114,7 +114,9 @@ public class HoloTableBlock extends BaseEntityBlock {
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
                                               BlockHitResult hit) {
         BlockPos centre = HoloTable.centre(pos, state);
-        if (!(stack.getItem() instanceof ControlRoomLinkerItem) || centre == null || centre.equals(pos) || !HoloTable.intact(level, centre))
+        boolean linker = stack.getItem() instanceof ControlRoomLinkerItem
+                || stack.getItem() instanceof org.papiricoh.create_nuclearindustry.missile.link.TacticalLinkerItem;
+        if (!linker || centre == null || !HoloTable.intact(level, centre))
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         stack.useOn(new UseOnContext(level, player, hand, stack, hit.withPosition(centre)));
         return ItemInteractionResult.sidedSuccess(level.isClientSide);

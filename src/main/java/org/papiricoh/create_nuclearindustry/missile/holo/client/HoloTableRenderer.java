@@ -385,33 +385,36 @@ public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEnti
             for (float[] s : sites) known |= Math.abs(s[0] - fx) < 0.03f && Math.abs(s[1] - fz) < 0.03f;
             if (!known && inGlass(fx, fz)) sites.add(new float[]{fx, fz});
         }
-        HoloTracksPayload.Silo silo = picture.silo();
-        float sx = silo == null ? 0 : p.x(silo.dx() + 0.5), sz = silo == null ? 0 : p.z(silo.dz() + 0.5);
+        HoloTracksPayload.Silo selectedSilo = picture.silo();
+        float sx = selectedSilo == null ? 0 : p.x(selectedSilo.dx() + 0.5), sz = selectedSilo == null ? 0 : p.z(selectedSilo.dz() + 0.5);
         for (float[] s : sites) {
-            if (silo != null && Math.abs(s[0] - sx) < 0.03f && Math.abs(s[1] - sz) < 0.03f) continue;
+            if (selectedSilo != null && Math.abs(s[0] - sx) < 0.03f && Math.abs(s[1] - sz) < 0.03f) continue;
             siloIcon(flat(buffers), m, s[0], s[1], 0.045f, alpha(GREEN, 0.85f), false);
         }
-        if (silo == null) return;
-        boolean lit = hover != null && hover.key().equals("silo");
-        VertexConsumer v = flat(buffers);
-        if (inGlass(sx, sz)) siloIcon(v, m, sx, sz, 0.06f, AMBER, lit);
-        if (silo.reach() > 0) ring(flat(buffers), m, sx, sz, silo.reach() * p.scale(), Y + 0.011f, lit ? 0.014f : 0.01f, alpha(AMBER, lit ? 0.95f : 0.6f), false);
-        if (silo.targeted()) {
-            float tx = p.x(silo.tx() + 0.5), tz = p.z(silo.tz() + 0.5);
-            if (inGlass(tx, tz)) {
-                float pulse = (millis % 1200) / 1200f;
-                v = flat(buffers);
-                ring(v, m, tx, tz, 0.03f + pulse * 0.08f, Y + 0.012f, 0.01f, alpha(RED, 1 - pulse), false);
-                strip(v, m, tx - 0.04f, tz - 0.04f, tx + 0.04f, tz + 0.04f, Y + 0.012f, 0.012f, RED, RED);
-                strip(v, m, tx - 0.04f, tz + 0.04f, tx + 0.04f, tz - 0.04f, Y + 0.012f, 0.012f, RED, RED);
-                if (silo.cep() > 0) ring(v, m, tx, tz, Math.max(0.01f, silo.cep() * p.scale()), Y + 0.012f, 0.006f, alpha(RED, 0.6f), true);
-                v = flat(buffers);
-                int dashes = 24;
-                for (int i = 0; i < dashes; i += 2) {
-                    float a = (float) i / dashes, b = (float) (i + 1) / dashes;
-                    if (!inGlass(sx + (tx - sx) * a, sz + (tz - sz) * a)) continue;
-                    strip(v, m, clamp(sx + (tx - sx) * a), clamp(sz + (tz - sz) * a), clamp(sx + (tx - sx) * b), clamp(sz + (tz - sz) * b), Y + 0.011f, 0.008f,
-                            alpha(RED, 0.7f), alpha(RED, 0.7f));
+        for (HoloTracksPayload.Silo silo : picture.silos()) {
+            if (!silo.loaded()) continue;
+            sx = p.x(silo.dx() + 0.5); sz = p.z(silo.dz() + 0.5);
+            boolean lit = hover != null && hover.key().equals("silo" + silo.index());
+            VertexConsumer v = flat(buffers);
+            if (inGlass(sx, sz)) siloIcon(v, m, sx, sz, 0.06f, AMBER, lit);
+            if (silo.index() == picture.board().selectedSilo() && silo.reach() > 0) ring(flat(buffers), m, sx, sz, silo.reach() * p.scale(), Y + 0.011f, lit ? 0.014f : 0.01f, alpha(AMBER, lit ? 0.95f : 0.6f), false);
+            if (silo.targeted()) {
+                float tx = p.x(silo.tx() + 0.5), tz = p.z(silo.tz() + 0.5);
+                if (inGlass(tx, tz)) {
+                    float pulse = (millis % 1200) / 1200f;
+                    v = flat(buffers);
+                    ring(v, m, tx, tz, 0.03f + pulse * 0.08f, Y + 0.012f, 0.01f, alpha(RED, 1 - pulse), false);
+                    strip(v, m, tx - 0.04f, tz - 0.04f, tx + 0.04f, tz + 0.04f, Y + 0.012f, 0.012f, RED, RED);
+                    strip(v, m, tx - 0.04f, tz + 0.04f, tx + 0.04f, tz - 0.04f, Y + 0.012f, 0.012f, RED, RED);
+                    if (silo.cep() > 0) ring(v, m, tx, tz, Math.max(0.01f, silo.cep() * p.scale()), Y + 0.012f, 0.006f, alpha(RED, 0.6f), true);
+                    v = flat(buffers);
+                    int dashes = 24;
+                    for (int i = 0; i < dashes; i += 2) {
+                        float a = (float) i / dashes, b = (float) (i + 1) / dashes;
+                        if (!inGlass(sx + (tx - sx) * a, sz + (tz - sz) * a)) continue;
+                        strip(v, m, clamp(sx + (tx - sx) * a), clamp(sz + (tz - sz) * a), clamp(sx + (tx - sx) * b), clamp(sz + (tz - sz) * b), Y + 0.011f, 0.008f,
+                                alpha(RED, 0.7f), alpha(RED, 0.7f));
+                    }
                 }
             }
         }
@@ -420,7 +423,7 @@ public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEnti
     private void track(PoseStack pose, MultiBufferSource buffers, HoloProjection p, HoloTracksPayload picture, HoloTracksPayload.Track t, double since,
                        long millis, boolean lit) {
         Matrix4f m = pose.last().pose();
-        int colour = t.threat() ? RED : CYAN;
+        int colour = t.own() ? GREEN : t.threat() ? RED : CYAN;
         float g = Math.max(1e-5f, picture.gravity());
         double ground = Math.min(RadarModel.SEA_LEVEL, t.fy());
         double[] at = t.at(since, g);
@@ -565,15 +568,14 @@ public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEnti
                     Component.translatable(KEY + "label.altitude", Math.round(at[1])),
                     Component.translatable(KEY + "label.speed", Math.round(speed), Math.round(eta)));
             return new Hover(t.id().toString(), (float) marks[picked * 3], (float) marks[picked * 3 + 1], (float) marks[picked * 3 + 2], lines,
-                    t.threat() ? RED : CYAN, t);
+                    t.own() ? GREEN : t.threat() ? RED : CYAN, t);
         }
         // The silo, the radars and the launch sites, each a point a little over the glass.
         List<double[]> spots = new ArrayList<>();
         List<String> keys = new ArrayList<>();
-        HoloTracksPayload.Silo silo = picture.silo();
-        if (silo != null && p.shows(silo.dx() + 0.5, silo.dz() + 0.5)) {
+        for (HoloTracksPayload.Silo silo : picture.silos()) if (silo.loaded() && p.shows(silo.dx() + 0.5, silo.dz() + 0.5)) {
             spots.add(new double[]{p.x(silo.dx() + 0.5), Y + 0.03, p.z(silo.dz() + 0.5)});
-            keys.add("silo");
+            keys.add("silo" + silo.index());
         }
         for (int i = 0; i < picture.radars().size(); i++) {
             HoloTracksPayload.Radar r = picture.radars().get(i);
@@ -593,7 +595,8 @@ public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEnti
         if (spot >= 0) {
             String key = keys.get(spot);
             float x = (float) flatSpots[spot * 3], y = (float) flatSpots[spot * 3 + 1], z = (float) flatSpots[spot * 3 + 2];
-            if (key.equals("silo") && silo != null) {
+            if (key.startsWith("silo")) {
+                HoloTracksPayload.Silo silo = picture.silos().get(Integer.parseInt(key.substring(4)));
                 SiloControllerEntity.State[] states = SiloControllerEntity.State.values();
                 String state = states[Math.max(0, Math.min(states.length - 1, silo.state()))].name().toLowerCase(Locale.ROOT);
                 List<Component> lines = silo.reach() > 0
@@ -632,7 +635,7 @@ public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEnti
                 Component.translatable(KEY + "label.altitude", Math.round(at[1])),
                 Component.translatable(KEY + "label.speed", Math.round(speed), Math.round(eta)),
                 Component.translatable(KEY + "label.impact", Math.round(c.getX() + 0.5 + t.ix()), Math.round(c.getZ() + 0.5 + t.iz())));
-        int colour = t.threat() ? RED : CYAN;
+        int colour = t.own() ? GREEN : t.threat() ? RED : CYAN;
         for (int i = 0; i < lines.size(); i++) {
             Component line = lines.get(i);
             float y = Y + 2.05f - i * 0.13f;

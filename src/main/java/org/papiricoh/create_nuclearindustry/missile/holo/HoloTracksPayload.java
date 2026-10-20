@@ -15,10 +15,10 @@ import java.util.UUID;
 
 /**
  * What a command table shows, sent every half second to players near it: the tracks of its linked radars (each with up to
- * {@link #HISTORY} plotted points, positions relative to the table), the radars' own places and reach, and its silo. Bounded:
+ * {@link #HISTORY} plotted points, positions relative to the table), the radars' own places and reach, and up to sixteen silos. Bounded:
  * {@link #MAX_TRACKS} tracks, {@link #MAX_RADARS} radars.
  */
-public record HoloTracksPayload(BlockPos centre, long sample, float gravity, List<Track> tracks, List<Radar> radars, @Nullable Silo silo, Board board)
+public record HoloTracksPayload(BlockPos centre, long sample, float gravity, List<Track> tracks, List<Radar> radars, List<Silo> silos, Board board)
         implements CustomPacketPayload {
     public static final int MAX_TRACKS = 32, HISTORY = 24, MAX_RADARS = 4;
     public static final Type<HoloTracksPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "holo_tracks"));
@@ -27,7 +27,7 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
      * A track: where it is and goes, where it comes down and how sure, relative to the table's centre; its history oldest first,
      * as {@code x, y, z} triples (y absolute).
      */
-    public record Track(UUID id, String designation, byte phase, boolean threat, int eta, float x, float y, float z, float vx, float vy, float vz,
+    public record Track(UUID id, String designation, byte phase, boolean threat, boolean own, int eta, float x, float y, float z, float vx, float vy, float vz,
                         float ix, float iz, float along, float across, float heading, float fx, float fy, float fz, float[] history) {
         /** Where it is {@code since} ticks (at most a second) after the picture, flown on in free fall. */
         public double[] at(double since, float gravity) {
@@ -52,8 +52,8 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
      * What everyone at the table shares: the view (blocks across) and where it is centred, the zoom chosen (0 automatic, else an
      * index into {@link HoloView#VIEWS} plus one), the track pinned and the target marked but not yet confirmed.
      */
-    public record Board(int view, float ox, float oz, byte zoom, @Nullable UUID selected, @Nullable Mark mark) {
-        public static final Board EMPTY = new Board(HoloView.VIEWS[0], 0, 0, (byte) 0, null, null);
+    public record Board(int view, float ox, float oz, byte zoom, byte selectedSilo, @Nullable UUID selected, @Nullable Mark mark) {
+        public static final Board EMPTY = new Board(HoloView.VIEWS[0], 0, 0, (byte) 0, (byte) 0, null, null);
     }
 
     /** A target marked on the glass: where (relative to the table), how designating there would go (a {@code Designation} ordinal) and since when. */
@@ -61,7 +61,14 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
     }
 
     /** The linked silo: where, how far its rocket reaches, its spread, its state (ordinal) and its target if it has one. */
-    public record Silo(int dx, int dz, float reach, float cep, byte state, boolean targeted, int tx, int tz) {
+    public record Silo(byte index, boolean loaded, int dx, int dz, float reach, float cep, byte state, boolean targeted, int tx, int tz,
+                       String error, int countdown, int delay, float flightSeconds, @Nullable UUID flight) {
+    }
+
+    @Nullable
+    public Silo silo() {
+        for (Silo silo : silos) if (silo.index == board.selectedSilo) return silo;
+        return null;
     }
 
     /** How far (along x or z) from the table the farthest thing worth showing lies: tracks, where they fly from and to, radars, the silo and its target. */
@@ -73,7 +80,7 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
             far = Math.max(far, Math.max(Math.abs(t.fx), Math.abs(t.fz)));
         }
         for (Radar r : radars) far = Math.max(far, Math.max(Math.abs(r.dx), Math.abs(r.dz)));
-        if (silo != null) {
+        for (Silo silo : silos) {
             far = Math.max(far, Math.max(Math.abs(silo.dx), Math.abs(silo.dz)));
             if (silo.targeted) far = Math.max(far, Math.max(Math.abs(silo.tx), Math.abs(silo.tz)));
         }
@@ -120,6 +127,7 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
             b.writeUtf(t.designation, 16);
             b.writeByte(t.phase);
             b.writeBoolean(t.threat);
+            b.writeBoolean(t.own);
             b.writeVarInt(t.eta);
             for (float f : new float[]{t.x, t.y, t.z, t.vx, t.vy, t.vz, t.ix, t.iz, t.along, t.across, t.heading, t.fx, t.fy, t.fz}) b.writeFloat(f);
             int points = Math.min(HISTORY, t.history.length / 3);
@@ -141,23 +149,24 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
             b.writeBoolean(r.online);
             b.writeUtf(r.code, 8);
         }
-        b.writeBoolean(p.silo != null);
-        if (p.silo != null) {
-            Silo s = p.silo;
-            b.writeVarInt(s.dx);
-            b.writeVarInt(s.dz);
-            b.writeFloat(s.reach);
-            b.writeFloat(s.cep);
-            b.writeByte(s.state);
-            b.writeBoolean(s.targeted);
-            b.writeVarInt(s.tx);
-            b.writeVarInt(s.tz);
+        if (p.silos.size() > HoloTableBlockEntity.MAX_SILOS) throw new IllegalArgumentException("Too many holo silos");
+        b.writeVarInt(p.silos.size());
+        for (Silo s : p.silos) {
+            b.writeByte(s.index); b.writeBoolean(s.loaded);
+            b.writeVarInt(s.dx); b.writeVarInt(s.dz);
+            b.writeFloat(s.reach); b.writeFloat(s.cep);
+            b.writeByte(s.state); b.writeBoolean(s.targeted);
+            b.writeVarInt(s.tx); b.writeVarInt(s.tz);
+            b.writeUtf(s.error, 32); b.writeVarInt(s.countdown); b.writeVarInt(s.delay); b.writeFloat(s.flightSeconds);
+            b.writeBoolean(s.flight != null);
+            if (s.flight != null) b.writeUUID(s.flight);
         }
         Board board = p.board;
         b.writeVarInt(board.view);
         b.writeFloat(board.ox);
         b.writeFloat(board.oz);
         b.writeByte(board.zoom);
+        b.writeByte(board.selectedSilo);
         b.writeBoolean(board.selected != null);
         if (board.selected != null) UUIDUtil.STREAM_CODEC.encode(b, board.selected);
         b.writeBoolean(board.mark != null);
@@ -181,28 +190,41 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
             String designation = b.readUtf(16);
             byte phase = b.readByte();
             boolean threat = b.readBoolean();
+            boolean own = b.readBoolean();
             int eta = b.readVarInt();
             float[] f = new float[14];
             for (int k = 0; k < f.length; k++) f[k] = b.readFloat();
-            int points = Math.min(HISTORY, b.readUnsignedByte());
+            int points = b.readUnsignedByte();
+            if (points > HISTORY) throw new IllegalArgumentException("Too much holo history");
             float[] history = new float[points * 3];
             for (int k = 0; k < history.length; k++) history[k] = b.readFloat();
-            tracks.add(new Track(id, designation, phase, threat, eta, f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9], f[10], f[11], f[12], f[13], history));
+            tracks.add(new Track(id, designation, phase, threat, own, eta, f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9], f[10], f[11], f[12], f[13], history));
         }
         int radarCount = b.readVarInt();
         if (radarCount < 0 || radarCount > MAX_RADARS) throw new IllegalArgumentException("Too many holo radars");
         List<Radar> radars = new ArrayList<>(radarCount);
         for (int i = 0; i < radarCount; i++) radars.add(new Radar(b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readFloat(), b.readBoolean(), b.readUtf(8)));
-        Silo silo = b.readBoolean() ? new Silo(b.readVarInt(), b.readVarInt(), b.readFloat(), b.readFloat(), b.readByte(), b.readBoolean(), b.readVarInt(), b.readVarInt()) : null;
+        int siloCount = b.readVarInt();
+        if (siloCount < 0 || siloCount > HoloTableBlockEntity.MAX_SILOS) throw new IllegalArgumentException("Too many holo silos");
+        List<Silo> silos = new ArrayList<>(siloCount);
+        for (int i = 0; i < siloCount; i++) {
+            byte index = b.readByte();
+            if (index != i) throw new IllegalArgumentException("Unknown holo silo index");
+            silos.add(new Silo(index, b.readBoolean(), b.readVarInt(), b.readVarInt(), b.readFloat(), b.readFloat(),
+                    b.readByte(), b.readBoolean(), b.readVarInt(), b.readVarInt(), b.readUtf(32), b.readVarInt(), b.readVarInt(),
+                    b.readFloat(), b.readBoolean() ? b.readUUID() : null));
+        }
         int view = b.readVarInt();
         boolean known = false;
         for (int v : HoloView.VIEWS) known |= v == view;
         if (!known) throw new IllegalArgumentException("Unknown holo view");
         float ox = b.readFloat(), oz = b.readFloat();
         byte zoom = b.readByte();
+        byte selectedSilo = b.readByte();
+        if (selectedSilo < 0 || selectedSilo >= Math.max(1, siloCount)) throw new IllegalArgumentException("Unknown selected silo");
         UUID selected = b.readBoolean() ? UUIDUtil.STREAM_CODEC.decode(b) : null;
         Mark mark = b.readBoolean() ? new Mark(b.readVarInt(), b.readVarInt(), b.readByte(), b.readLong()) : null;
-        return new HoloTracksPayload(centre, sample, gravity, List.copyOf(tracks), List.copyOf(radars), silo, new Board(view, ox, oz, zoom, selected, mark));
+        return new HoloTracksPayload(centre, sample, gravity, List.copyOf(tracks), List.copyOf(radars), List.copyOf(silos), new Board(view, ox, oz, zoom, selectedSilo, selected, mark));
     }
 
     @Override
