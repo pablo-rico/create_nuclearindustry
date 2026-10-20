@@ -38,6 +38,10 @@ public final class OrbitRegistry {
     public static final DeferredHolder<Item, SequencedAssemblyItem> INCOMPLETE_SATELLITE = AllNuclearItems.ITEMS.register("incomplete_satellite",
             () -> new SequencedAssemblyItem(new Item.Properties().stacksTo(1)));
 
+    public static final DeferredHolder<net.minecraft.world.inventory.MenuType<?>, net.minecraft.world.inventory.MenuType<GroundStationMenu>> MENU =
+            org.papiricoh.create_nuclearindustry.AllNuclearGUIs.MENUS.register("ground_station",
+                    () -> net.neoforged.neoforge.common.extensions.IMenuTypeExtension.create(GroundStationMenu::fromNetwork));
+
     /** Where satellite lists go on a client; set by the client side. */
     public static Consumer<OrbitSyncPayload> clientSync = p -> {
     };
@@ -48,6 +52,9 @@ public final class OrbitRegistry {
     public static void register(IEventBus bus) {
         bus.addListener(RegisterPayloadHandlersEvent.class, e -> {
             var registrar = e.registrar("1");
+            registrar.playToServer(GroundStationConfigurePayload.TYPE, GroundStationConfigurePayload.CODEC, (p, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof net.minecraft.server.level.ServerPlayer player) GroundStationConfigurePayload.apply(player, p);
+            }));
             registrar.playToClient(OrbitSyncPayload.TYPE, OrbitSyncPayload.CODEC, (p, ctx) -> ctx.enqueueWork(() -> clientSync.accept(p)));
         });
         NeoForge.EVENT_BUS.addListener(SatelliteTracker::onLevelTick);

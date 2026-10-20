@@ -16,6 +16,27 @@ final class OrbitDataGen extends AreaDataGen {
     @Override
     void lang() {
         OrbitLang.add();
+        SatelliteSiloLang.add();
+    }
+
+    @Override
+    void addProviders(net.neoforged.neoforge.data.event.GatherDataEvent event, net.minecraft.data.DataGenerator generator,
+            net.minecraft.data.PackOutput output, java.util.concurrent.CompletableFuture<HolderLookup.Provider> lookup,
+            net.neoforged.neoforge.common.data.ExistingFileHelper existingFiles) {
+        generator.addProvider(event.includeServer(), new Named("Satellite recipes", new org.papiricoh.create_nuclearindustry.data.recipe.OrbitRecipes(output, lookup)));
+        generator.addProvider(event.includeServer(), new Named("Satellite assembly", org.papiricoh.create_nuclearindustry.data.recipe.OrbitRecipes.assembly(output, lookup)));
+    }
+
+    private record Named(String name, net.minecraft.data.DataProvider provider) implements net.minecraft.data.DataProvider {
+        @Override
+        public java.util.concurrent.CompletableFuture<?> run(net.minecraft.data.CachedOutput output) {
+            return provider.run(output);
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
     }
 
     @Override

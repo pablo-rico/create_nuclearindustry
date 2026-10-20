@@ -1,6 +1,8 @@
 package org.papiricoh.create_nuclearindustry.missile.silo;
 
 import com.mojang.authlib.GameProfile;
+import org.papiricoh.create_nuclearindustry.missile.orbit.*;
+import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.*;
 import net.minecraft.nbt.CompoundTag;
@@ -72,6 +74,12 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
      * table; empty when none. Its missiles use that network's communications satellites for guidance.
      */
     private String network = "";
+    private Orbit pendingOrbit;
+    private String pendingCode = "";
+    private SatelliteKind pendingKind;
+    private boolean syncedSatellite, syncedGps;
+    private OrbitType syncedOrbitReach;
+    private SatelliteKind syncedSatelliteKind;
     private final MultiblockMessenger messenger = new MultiblockMessenger("silo");
 
     public SiloControllerEntity(BlockPos pos, BlockState state) { super(SiloRegistry.CONTROLLER_ENTITY.get(), pos, state); errorPos = pos; }
@@ -96,7 +104,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         String sanitized = org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode.sanitize(code);
         if (!sanitized.equals(network)) {
             network = sanitized;
-            setChanged();
+            notifyUpdate();
         }
     }
     /** Sets {@link #launchDelay}, clamped to the configured longest; a command table's salvo calls it once armed. */
@@ -109,6 +117,39 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     /** The rocket standing on the base as last validated, or null; server side. */
     public AssembledRocket rocket() { return rocket; }
     public boolean interceptorMode() { return rocket != null && rocket.composition().interceptor(); }
+    public boolean satelliteMode() { return level != null && level.isClientSide ? syncedSatellite : rocket != null && rocket.composition().satellite(); }
+    @Nullable public OrbitType orbitReach() {
+        return level != null && level.isClientSide ? syncedOrbitReach : satelliteMode() ? OrbitInsertion.reach(design(), OrbitConfig.leoDeltaV, OrbitConfig.geoDeltaV) : null;
+    }
+    @Nullable public SatelliteKind satelliteKind() {
+        if (level != null && level.isClientSide) return syncedSatelliteKind;
+        if (!satelliteMode()) return null;
+        return level.getBlockEntity(rocket.base().above(rocket.height() - 1)) instanceof RocketSectionEntity section
+                ? SatelliteItem.kindOf(section.contents().getStackInSlot(0)) : null;
+    }
+    public enum SatLaunchResult { OK, NOT_READY, NO_SATELLITE, NO_ORBIT, FULL }
+    public SatLaunchResult launchSatellite(@Nullable UUID operator, Orbit orbit, String code) {
+        if (!(level instanceof ServerLevel server)) return SatLaunchResult.NOT_READY;
+        validate();
+        if (state != State.READY || !satelliteMode()) return SatLaunchResult.NOT_READY;
+        SatelliteKind kind = satelliteKind();
+        if (kind == null) return SatLaunchResult.NO_SATELLITE;
+        if (orbit == null || !OrbitInsertion.reaches(design(), orbit.type(), OrbitConfig.leoDeltaV, OrbitConfig.geoDeltaV)) return SatLaunchResult.NO_ORBIT;
+        code = LinkCode.sanitize(code);
+        if (!LinkCode.complete(code)) return SatLaunchResult.NOT_READY;
+        if (SatelliteTracker.get(server).count(code) >= OrbitConfig.maxSatellitesPerCode) return SatLaunchResult.FULL;
+        this.operator = operator;
+        pendingLaunch = rocket.launchId();
+        pendingOrbit = orbit; pendingCode = code; pendingKind = kind;
+        countdown = MissileConfig.launchCountdownTicks(); state = State.COUNTDOWN;
+        notifyUpdate();
+        return SatLaunchResult.OK;
+    }
+    public Component satelliteStatus() {
+        if (state == State.COUNTDOWN) return Component.translatable("silo.create_nuclearindustry.satellite.countdown", (countdown + 19) / 20);
+        OrbitType reach = orbitReach();
+        return Component.translatable("silo.create_nuclearindustry.satellite." + (reach == null ? "no_orbit" : reach.name().toLowerCase(Locale.ROOT)));
+    }
     @Override public BlockPos shooterPos() { return worldPosition; }
     @Override public ShooterType shooterType() { return ShooterType.SILO; }
     @Override public UUID shooterOwner() { return operator; }
@@ -130,6 +171,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     /** How the rocket standing on the base would fly (stages, payload, captured blocks, spread), or null without one; server side. */
     public MissileDesign currentDesign() { return rocket == null ? null : design(); }
     public Component status() {
+        if (error.isEmpty() && satelliteMode()) return satelliteStatus();
         if (error.equals("assembly") && assemblyMessage != null) return Component.translatable("silo.create_nuclearindustry.error.assembly_reason", assemblyMessage);
         return error.isEmpty() ? Component.translatable("silo.create_nuclearindustry.state." + state.name().toLowerCase(Locale.ROOT))
                 : MultiblockText.text(errorMessage());
@@ -146,18 +188,18 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     public boolean powered() { return !isOverStressed() && Math.abs(getSpeed()) >= MissileConfig.minimumRpm; }
     @Override public float calculateStressApplied() { return lastStressApplied = (float) MissileConfig.stressImpact; }
     public void configure(Player player, BlockPos target, boolean airburst) {
-        if (interceptorMode()) return;
+        if (interceptorMode() || satelliteMode()) return;
         if (!(level instanceof ServerLevel) || target == null || !level.getWorldBorder().isWithinBounds(target)
                 || target.getY() < level.getMinBuildHeight() || target.getY() >= level.getMaxBuildHeight()) return;
         this.target = target.immutable(); this.airburst = airburst; this.operator = player.getUUID();
         disarm(); launchDelay = 0; dirty = true; setChanged(); sendData();
     }
     public void arm(Player player) {
-        if (interceptorMode()) return;
+        if (interceptorMode() || satelliteMode()) return;
         if (!(level instanceof ServerLevel)) return;
         operator = player.getUUID();
         disarm(); validate();
-        if (state == State.READY) state = State.ARMED;
+        if (state == State.READY && !satelliteMode()) state = State.ARMED;
         // Arming with a high input cannot count as an edge.
         lastSignal = level.hasNeighborSignal(worldPosition); initializedSignal = true;
         setChanged(); sendData();
@@ -168,7 +210,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     public UUID operator() { return operator; }
     public void disarm() {
         if (interceptorMode()) { if (state == State.ARMED) state = State.READY; return; }
-        countdown = -1; launchDelay = 0;
+        if (pendingOrbit != null) pendingLaunch = null;
+        countdown = -1; launchDelay = 0; pendingOrbit = null; pendingKind = null; pendingCode = "";
         if (state == State.ARMED || state == State.COUNTDOWN) state = State.UNPREPARED;
         setChanged();
     }
@@ -252,7 +295,14 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (level != null && level.isClientSide) return syncedCep;
         if (rocket == null || target == null) return 0;
         Vec3 start = Vec3.atBottomCenterOf(floor().above()), aim = designatedAim();
-        return rocket.guidance().cep(Math.hypot(aim.x - start.x, aim.z - start.z)) * MissileConfig.cepScale;
+        return rocket.guidance().cep(Math.hypot(aim.x - start.x, aim.z - start.z)) * MissileConfig.cepScale
+                * (level instanceof ServerLevel server && !satelliteMode() && !interceptorMode() ? SatelliteServices.gpsFactor(server, network(), start.x, start.z, aim.x, aim.z) : 1);
+    }
+    public boolean gpsGuided() {
+        if (level != null && level.isClientSide) return syncedGps;
+        if (!(level instanceof ServerLevel server) || rocket == null || target == null || interceptorMode() || satelliteMode()) return false;
+        Vec3 start = Vec3.atBottomCenterOf(floor().above());
+        return SatelliteServices.gpsFactor(server, network(), start.x, start.z, target.getX() + .5, target.getZ() + .5) < 1;
     }
     /** Its guidance and circular error probable, for screens and goggles. */
     public Component guidanceLine() {
@@ -279,6 +329,9 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     }
     private void fail(String reason, BlockPos pos, State state) {
         error = reason; errorPos = pos; errorArgs = null; this.state = state; countdown = -1;
+        if (pendingOrbit != null) {
+            pendingOrbit = null; pendingKind = null; pendingCode = ""; pendingLaunch = null; setChanged();
+        }
     }
     /** As {@link #fail(String, BlockPos, State)}, its message showing {@code args} ({@code ..._detail} lang key). */
     private void failWith(String reason, State state, int... args) {
@@ -375,13 +428,13 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         rocket = next;
         if (!same || reach <= 0) reach = MissileFlight.maxRange(design(), MissileConfig.flightParams());
         rocketHeight = next.height();
-        if (next.composition().interceptor()) {
+        if (next.composition().interceptor() || next.composition().satellite()) {
             if (!LaunchRules.dimensionAllowed(server.dimension().location().toString(), MissileConfig.allowedDimensions)) {
                 fail("dimension", worldPosition, State.UNPREPARED); return;
             }
             if (!powered()) { failSpeed(); return; }
             error = "";
-            if (!same || state != State.COUNTDOWN) { countdown = -1; state = State.READY; }
+            if (state != State.COUNTDOWN || !same && (pendingOrbit == null || !next.launchId().equals(pendingLaunch))) { countdown = -1; state = State.READY; }
             return;
         }
         if (target == null) { fail("target", worldPosition, State.UNPREPARED); return; }
@@ -410,7 +463,10 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (!powered() && (state == State.ARMED || state == State.COUNTDOWN)) { failSpeed(); dirty = true; }
         // Events invalidate immediately; a slow audit also catches chunk unloads and raw world edits.
         if (dirty || level.getGameTime() % 20 == 0) validate();
-        if (interceptorMode()) {
+        if (satelliteMode()) {
+            if (state == State.COUNTDOWN) setChanged();
+            if (state == State.COUNTDOWN && --countdown <= 0) { validate(); if (state == State.COUNTDOWN) launchSatelliteNow(server); }
+        } else if (interceptorMode()) {
             if (state == State.COUNTDOWN && --countdown <= 0) { validate(); if (state == State.COUNTDOWN) launchInterceptor(server); }
         } else if (state == State.ARMED && rising) { countdown = MissileConfig.launchCountdownTicks() + launchDelay; state = State.COUNTDOWN; setChanged(); }
         else if (state == State.COUNTDOWN && --countdown <= 0) {
@@ -465,6 +521,29 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         } else { state = State.READY; }
         countdown = -1; pendingTarget = null; setChanged();
     }
+    private void launchSatelliteNow(ServerLevel server) {
+        SatelliteKind kind = satelliteKind();
+        if (pendingOrbit == null || kind == null || kind != pendingKind
+                || !OrbitInsertion.reaches(design(), pendingOrbit.type(), OrbitConfig.leoDeltaV, OrbitConfig.geoDeltaV)
+                || SatelliteTracker.get(server).count(pendingCode) >= OrbitConfig.maxSatellitesPerCode) {
+            disarm(); state = State.READY; notifyUpdate(); return;
+        }
+        AssembledRocket assembled = rocket;
+        pendingLaunch = assembled.launchId(); setChanged();
+        if (!FlightTracker.get(server).hasLaunched(pendingLaunch)) {
+            Vec3 start = Vec3.atBottomCenterOf(assembled.base());
+            MissileDesign design = design();
+            Satellite satellite = new Satellite(UUID.randomUUID(), SatelliteTracker.get(server).designate(kind), pendingCode,
+                    kind, pendingOrbit, operator, server.getGameTime());
+            float heading = (float) (pendingOrbit.type() == OrbitType.LEO ? pendingOrbit.heading()
+                    : RocketAttitude.heading(pendingOrbit.anchorX() - start.x, pendingOrbit.anchorZ() - start.z));
+            Cargo cargo = assembleCargo(server, assembled);
+            FlightTracker.get(server).launchSatellite(server, pendingLaunch, design, start, heading, satellite, operator, cargo.shape(), cargo.tag());
+        }
+        consume(assembled);
+        pendingLaunch = null; pendingOrbit = null; pendingKind = null; pendingCode = "";
+        rocket = null; rocketHeight = 0; countdown = -1; state = State.LAUNCHED; error = ""; dirty = false; notifyUpdate();
+    }
     /** Takes the rocket (and what it captures) out of the silo without dropping anything: it has flown already. */
     private void consume(AssembledRocket assembled) {
         RocketScan live = RocketScan.scan(level, floor(), assembled);
@@ -504,7 +583,14 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         tag.putBoolean("Airburst", airburst);
         if (launchDelay > 0) tag.putInt("LaunchDelay", launchDelay);
         if (!network.isEmpty()) tag.putString("Network", network);
+        if (pendingOrbit != null && pendingKind != null) {
+            tag.put("SatelliteOrbit", pendingOrbit.save()); tag.putString("SatelliteCode", pendingCode);
+            tag.putString("SatelliteKind", pendingKind.name()); tag.putInt("SatelliteCountdown", countdown);
+        }
         if (clientPacket) {
+            tag.putBoolean("SatelliteMode", satelliteMode()); tag.putBoolean("GpsGuided", gpsGuided());
+            if (orbitReach() != null) tag.putString("OrbitReach", orbitReach().name());
+            if (satelliteKind() != null) tag.putString("FairingKind", satelliteKind().name());
             tag.putString("State", state.name()); tag.putString("Error", error); tag.putLong("ErrorPos", errorPos.asLong()); if (errorArgs != null) tag.putIntArray("ErrorArgs", errorArgs);
             tag.putInt("Countdown", countdown); tag.putDouble("FlightTicks", flightTicks); tag.putInt("RocketHeight", rocketHeight);
             tag.putInt("Guidance", guidance().ordinal()); tag.putDouble("Cep", cep());
@@ -521,12 +607,18 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         airburst = tag.getBoolean("Airburst");
         launchDelay = tag.getInt("LaunchDelay");
         network = org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode.sanitize(tag.getString("Network"));
+        pendingOrbit = tag.contains("SatelliteOrbit") ? Orbit.load(tag.getCompound("SatelliteOrbit")) : null;
+        pendingCode = LinkCode.sanitize(tag.getString("SatelliteCode"));
+        pendingKind = pendingOrbit != null ? SatelliteKind.byName(tag.getString("SatelliteKind").toLowerCase(Locale.ROOT)) : null;
         if (clientPacket) {
+            syncedSatellite = tag.getBoolean("SatelliteMode"); syncedGps = tag.getBoolean("GpsGuided");
+            syncedOrbitReach = tag.contains("OrbitReach") ? OrbitType.byName(tag.getString("OrbitReach").toLowerCase(Locale.ROOT)) : null;
+            syncedSatelliteKind = tag.contains("FairingKind") ? SatelliteKind.byName(tag.getString("FairingKind").toLowerCase(Locale.ROOT)) : null;
             try { state = State.valueOf(tag.getString("State")); } catch (IllegalArgumentException ignored) { state = State.INCOMPLETE; }
             error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); errorArgs = tag.contains("ErrorArgs") ? tag.getIntArray("ErrorArgs") : null; countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks"); rocketHeight = tag.getInt("RocketHeight");
             syncedGuidance = GuidanceTier.byOrdinal(tag.getInt("Guidance")); syncedCep = tag.getDouble("Cep");
             assemblyMessage = tag.contains("AssemblyText") ? Component.Serializer.fromJson(tag.getString("AssemblyText"), provider) : null;
-        } else { state = State.UNPREPARED; countdown = -1; initializedSignal = false; rocket = null; dirty = true; }
+        } else { state = pendingOrbit == null ? State.UNPREPARED : State.COUNTDOWN; countdown = pendingOrbit == null ? -1 : Math.max(0, tag.getInt("SatelliteCountdown")); initializedSignal = false; rocket = null; dirty = true; }
     }
     @Override public boolean addToGoggleTooltip(List<Component> tooltip, boolean sneaking) {
         super.addToGoggleTooltip(tooltip, sneaking);
@@ -534,10 +626,14 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         ChatFormatting colour = !error.isEmpty() ? (state == State.INCOMPLETE ? ChatFormatting.RED : ChatFormatting.YELLOW)
                 : state == State.LAUNCHED ? ChatFormatting.GRAY : ChatFormatting.GREEN;
         tooltip.add(Component.literal("     ").append(status()).withStyle(colour));
+        if (satelliteMode()) {
+            tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.satellite.controlled")).withStyle(ChatFormatting.GRAY));
+        }
+        if (gpsGuided()) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.satellite.gps")).withStyle(ChatFormatting.AQUA));
         if (interceptorMode()) tooltip.add(Component.literal("     ").append(pendingTarget == null
                 ? Component.translatable("silo.create_nuclearindustry.goggles.interceptor_standby")
                 : Component.translatable("silo.create_nuclearindustry.goggles.engaging", RadarModel.designation(pendingTarget))).withStyle(ChatFormatting.AQUA));
-        else if (state == State.COUNTDOWN) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.countdown", (countdown + 19) / 20)).withStyle(ChatFormatting.RED));
+        else if (!satelliteMode() && state == State.COUNTDOWN) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.countdown", (countdown + 19) / 20)).withStyle(ChatFormatting.RED));
         if (target != null) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.target", target.getX(), target.getY(), target.getZ())).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.reach", Math.round(reach()))).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.salvo_delay", (launchDelay + 19) / 20)).withStyle(ChatFormatting.GRAY));

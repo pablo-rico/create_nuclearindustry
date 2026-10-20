@@ -80,6 +80,9 @@ public final class SiloRegistry {
     }
     public static void register(IEventBus bus) { SiloControlPayload.register(bus); SiloDiagramPayload.register(bus); }
     public static void registerCapabilities(net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent event) {
+        event.registerBlock(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK,
+                (level, pos, state, entity, side) -> entity instanceof RocketSectionEntity section ? section.contents() : null,
+                SATELLITE_FAIRING.get());
         event.registerBlock(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK,
                 (level, pos, state, entity, side) -> SiloFuelPort.at(level, pos), FUEL_PORT.get());
     }

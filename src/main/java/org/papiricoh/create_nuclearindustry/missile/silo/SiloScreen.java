@@ -131,13 +131,13 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
 
     private void updateControls() {
         SiloControllerEntity c = controller();
-        boolean editable = c != null && !menu.locked() && !c.interceptorMode();
+        boolean editable = c != null && !menu.locked() && !c.interceptorMode() && !c.satelliteMode();
         for (EditBox box : List.of(x, y, z)) box.setEditable(editable);
         for (ConsoleButton button : List.of(set, airburst, arm, disarm)) button.visible = launch;
         set.active = airburst.active = editable && enteredTarget() != null;
         airburst.setMessage(text(c != null && c.airburst() ? "airburst.on" : "airburst.off"));
-        arm.active = c != null && !c.interceptorMode() && c.state() == SiloControllerEntity.State.READY;
-        disarm.active = c != null && !c.interceptorMode() && (c.state() == SiloControllerEntity.State.ARMED || c.state() == SiloControllerEntity.State.COUNTDOWN);
+        arm.active = c != null && !c.interceptorMode() && !c.satelliteMode() && c.state() == SiloControllerEntity.State.READY;
+        disarm.active = c != null && !c.interceptorMode() && !c.satelliteMode() && (c.state() == SiloControllerEntity.State.ARMED || c.state() == SiloControllerEntity.State.COUNTDOWN);
     }
 
     @Override
@@ -324,6 +324,11 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
     }
 
     private void drawLaunch(GuiGraphics g, LaunchDiagram d, @Nullable SiloControllerEntity c) {
+        if (c != null && c.satelliteMode()) {
+            ConsoleDraw.wrap(g, font, Component.translatable("silo.create_nuclearindustry.satellite.controlled"), TARGET.x() + 5, TARGET.y() + 3, TARGET.w() - 10, MUTED, ConsoleDraw.SMALL, 2);
+            small(g, c.satelliteStatus(), READOUT.x() + 5, READOUT.y() + 5, READOUT.w() - 10, ACCENT);
+            return;
+        }
         if (c != null && c.interceptorMode()) {
             ConsoleDraw.wrap(g, font, text("interceptor_controlled"), TARGET.x() + 5, TARGET.y() + 3, TARGET.w() - 10, MUTED, ConsoleDraw.SMALL, 2);
             small(g, c.pendingTarget() == null ? text("target.none") : Component.translatable(

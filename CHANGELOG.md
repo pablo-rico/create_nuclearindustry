@@ -4,6 +4,7 @@
 
 - Satellite launch vehicles climb and separate their stages before inserting their payload into orbit. Failed climbs abort safely.
 - Low satellites gradually lose altitude and burn up; working radars permanently catalogue foreign satellites for their network. Orbit displays refresh when joining or changing dimensions.
+- Launch satellite payloads from command tables, control their network through kinetic ground stations, and use orbital early warning, communications relay, and GPS guidance.
 
 ## 2.0.0 (beta): nuclear chain rewrite
 

@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.missile.radar;
 
 import net.minecraft.server.level.ServerLevel;
+import org.papiricoh.create_nuclearindustry.missile.orbit.*;
 import net.minecraft.world.level.Level;
 import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
 import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
@@ -41,6 +42,7 @@ public final class RadarNetwork {
         long second = Long.MIN_VALUE;
         final Map<UUID, RadarTrack> tracks = new LinkedHashMap<>();
         final Map<RadarBlockEntity, Set<UUID>> seen = new HashMap<>();
+        final Map<String, Set<UUID>> satelliteSeen = new HashMap<>();
     }
 
     private RadarNetwork() {
@@ -81,6 +83,7 @@ public final class RadarNetwork {
 
     private static void plot(ServerLevel level, Plot plot) {
         plot.seen.clear();
+        plot.satelliteSeen.clear();
         FlightTracker tracker = FlightTracker.getIfPresent(level);
         Collection<Flight> flights = tracker == null ? List.of() : tracker.flights();
         BallisticModel.Params params = MissileConfig.flightParams();
@@ -98,6 +101,18 @@ public final class RadarNetwork {
             }
             plot.seen.put(radar, sees);
             detected.addAll(sees);
+        }
+        SatelliteTracker satellites = SatelliteTracker.getIfPresent(level);
+        if (satellites != null) for (Satellite satellite : satellites.all()) {
+            if (satellite.kind() != SatelliteKind.EARLY_WARNING || !LinkCode.complete(satellite.code())) continue;
+            for (Flight flight : flights) {
+                if (flight.kind() == Flight.Kind.INTERCEPTOR || flight.flight().phase(params) != MissileFlight.Phase.BOOST) continue;
+                var at = flight.position();
+                if (satellite.orbit().covers(at.x, at.z, tick, MissileConfig.radarEarthRadius)) {
+                    plot.satelliteSeen.computeIfAbsent(satellite.code(), code -> new HashSet<>()).add(flight.id());
+                    detected.add(flight.id());
+                }
+            }
         }
         Map<UUID, Flight> byId = new HashMap<>();
         flights.forEach(flight -> byId.put(flight.id(), flight));
@@ -119,7 +134,7 @@ public final class RadarNetwork {
         if (!(radar.getLevel() instanceof ServerLevel level) || !radar.operational()) return List.of();
         Plot plot = PLOTS.get(level);
         if (plot == null) return List.of();
-        Set<UUID> ids = new HashSet<>();
+        Set<UUID> ids = new HashSet<>(plot.satelliteSeen.getOrDefault(radar.code(), Set.of()));
         for (Map.Entry<RadarBlockEntity, Set<UUID>> entry : plot.seen.entrySet()) {
             if (entry.getKey() == radar || peers(radar, entry.getKey())) ids.addAll(entry.getValue());
         }
@@ -138,7 +153,8 @@ public final class RadarNetwork {
         double range = MissileConfig.radarNetworkRange;
         if (range <= 0) return true;
         double dx = a.getBlockPos().getX() - b.getBlockPos().getX(), dz = a.getBlockPos().getZ() - b.getBlockPos().getZ();
-        return dx * dx + dz * dz <= range * range;
+        return dx * dx + dz * dz <= range * range || a.getLevel() instanceof ServerLevel level
+                && SatelliteServices.relays(level, a.code(), a.getBlockPos().getX(), a.getBlockPos().getZ(), b.getBlockPos().getX(), b.getBlockPos().getZ());
     }
 
     /**
@@ -151,12 +167,13 @@ public final class RadarNetwork {
         Plot plot = PLOTS.get(level);
         if (plot == null) return List.of();
         double range = MissileConfig.radarNetworkRange;
-        Set<UUID> ids = new HashSet<>();
+        Set<UUID> ids = new HashSet<>(plot.satelliteSeen.getOrDefault(code, Set.of()));
         for (Map.Entry<RadarBlockEntity, Set<UUID>> entry : plot.seen.entrySet()) {
             RadarBlockEntity radar = entry.getKey();
             if (radar.isRemoved() || !code.equals(radar.code())) continue;
             double dx = radar.getBlockPos().getX() - near.getX(), dz = radar.getBlockPos().getZ() - near.getZ();
-            if (range > 0 && dx * dx + dz * dz > range * range) continue;
+            if (range > 0 && dx * dx + dz * dz > range * range
+                    && !SatelliteServices.relays(level, code, near.getX(), near.getZ(), radar.getBlockPos().getX(), radar.getBlockPos().getZ())) continue;
             ids.addAll(entry.getValue());
         }
         List<RadarTrack> tracks = new ArrayList<>();
@@ -174,6 +191,7 @@ public final class RadarNetwork {
         if (plot == null) return 0;
         int count = 0;
         for (Set<UUID> seen : plot.seen.values()) if (seen.contains(flight)) count++;
+        for (Set<UUID> seen : plot.satelliteSeen.values()) if (seen.contains(flight)) count++;
         return count;
     }
 

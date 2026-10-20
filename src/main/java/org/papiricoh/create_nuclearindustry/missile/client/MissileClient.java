@@ -37,6 +37,7 @@ public final class MissileClient implements NuclearFeatureClient {
 
     @Override
     public void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(org.papiricoh.create_nuclearindustry.missile.orbit.OrbitRegistry.MENU.get(), org.papiricoh.create_nuclearindustry.missile.orbit.client.GroundStationScreen::new);
         event.register(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.MENU.get(), org.papiricoh.create_nuclearindustry.missile.silo.SiloScreen::new);
         org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.registerScreens(event);
         org.papiricoh.create_nuclearindustry.missile.defense.client.DefenseClient.registerScreens(event);

@@ -1,0 +1,5 @@
+// 1.21.1	2026-10-20T20:15:45.126642	Satellite recipes
+8e60a84ee017109381845e68bf100af214ea6681 data/create_nuclearindustry/advancement/recipes/redstone/crafting/ground_station.json
+f090bcf433fada9e0b0a7f8da56802a26cce34de data/create_nuclearindustry/advancement/recipes/transportation/crafting/rocket_satellite_fairing.json
+61ec5af2c239f2b59b0fa5153a7ecc61ff992744 data/create_nuclearindustry/recipe/crafting/ground_station.json
+d2b8ed260f49294e572b8f9d4df1cf25026fbcd7 data/create_nuclearindustry/recipe/crafting/rocket_satellite_fairing.json

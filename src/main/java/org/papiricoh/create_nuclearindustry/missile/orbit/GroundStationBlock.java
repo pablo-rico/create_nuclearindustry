@@ -26,6 +26,16 @@ public class GroundStationBlock extends KineticBlock implements EntityBlock {
     }
 
     @Override
+    protected net.minecraft.world.InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+            net.minecraft.world.entity.player.Player player, net.minecraft.world.phys.BlockHitResult hit) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof GroundStationBlockEntity station
+                && org.papiricoh.create_nuclearindustry.network.ServerPayloadGuard.check(player, pos))
+            player.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inv, p) -> new GroundStationMenu(id, inv, station, pos),
+                    net.minecraft.network.chat.Component.translatable("block.create_nuclearindustry.ground_station")), buf -> buf.writeBlockPos(pos));
+        return net.minecraft.world.InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
     public Direction.Axis getRotationAxis(BlockState state) {
         return Direction.Axis.Y;
     }

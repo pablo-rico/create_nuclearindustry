@@ -68,6 +68,11 @@ public class TacticalLinkerItem extends Item {
             message(player, device.toggleLink(target).name().toLowerCase(Locale.ROOT));
             return InteractionResult.SUCCESS;
         }
+        if (entity instanceof org.papiricoh.create_nuclearindustry.missile.orbit.GroundStationBlockEntity) {
+            stack.set(AllNuclearDataComponents.TACTICAL_LINK.get(), new TacticalLink(GlobalPos.of(level.dimension(), clicked), TacticalLink.Kind.GROUND_STATION));
+            message(player, "stored");
+            return InteractionResult.SUCCESS;
+        }
         if (entity instanceof InterceptorBatteryEntity) {
             stack.set(AllNuclearDataComponents.TACTICAL_LINK.get(), new TacticalLink(GlobalPos.of(level.dimension(), clicked), TacticalLink.Kind.INTERCEPTOR_BATTERY));
             message(player, "stored");

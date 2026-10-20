@@ -142,6 +142,8 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
     public Component description() {
         Object detail = switch (section()) {
             case WARHEAD -> Component.translatable("silo.create_nuclearindustry.warhead." + warhead().kind().name().toLowerCase(Locale.ROOT));
+            case SATELLITE -> org.papiricoh.create_nuclearindustry.missile.orbit.SatelliteItem.kindOf(contents.getStackInSlot(0)) == null ? "0"
+                    : Component.translatable("satellite.create_nuclearindustry.kind." + org.papiricoh.create_nuclearindustry.missile.orbit.SatelliteItem.kindOf(contents.getStackInSlot(0)).name().toLowerCase(Locale.ROOT));
             case GUIDANCE -> Component.translatable("silo.create_nuclearindustry.guidance." + guidanceTier().name().toLowerCase(Locale.ROOT));
             case TANK -> fuel.isEmpty() && oxidizer.isEmpty() ? (fueled() ? "✓" : "0")
                     : Component.translatable("silo.create_nuclearindustry.tank.liquid", fuel.getFluidAmount(), oxidizer.getFluidAmount());

@@ -1,0 +1,3 @@
+// 1.21.1	2026-10-20T20:15:45.127219	Satellite assembly
+d1327bc680e8c90540875919d643eb8c1359159f data/create_nuclearindustry/recipe/sequenced_assembly/comms_satellite.json
+d610325cf4dde32edf746c8cec73e188053293b4 data/create_nuclearindustry/recipe/sequenced_assembly/early_warning_satellite.json

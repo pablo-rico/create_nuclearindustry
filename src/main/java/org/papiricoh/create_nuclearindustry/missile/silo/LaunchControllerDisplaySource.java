@@ -23,6 +23,11 @@ public class LaunchControllerDisplaySource extends DisplaySource {
     /** Builds the same readout for a controller, also usable by the controller's GameTest. */
     public List<MutableComponent> read(SiloControllerEntity controller) {
         List<MutableComponent> lines = new java.util.ArrayList<>();
+        if (controller.satelliteMode()) {
+            lines.add(controller.status().copy());
+            lines.add(Component.translatable("silo.create_nuclearindustry.satellite.controlled"));
+            return lines;
+        }
         if (controller.interceptorMode()) {
             lines.add(Component.translatable("silo.create_nuclearindustry.display.state",
                     Component.translatable("silo.create_nuclearindustry.state." + controller.state().name().toLowerCase(Locale.ROOT))));

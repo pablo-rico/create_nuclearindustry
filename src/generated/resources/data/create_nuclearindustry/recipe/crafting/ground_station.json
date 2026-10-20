@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "E": {
+      "item": "create_nuclearindustry:controller_module"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    " B ",
+    "BEB",
+    "PSP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:ground_station"
+  }
+}

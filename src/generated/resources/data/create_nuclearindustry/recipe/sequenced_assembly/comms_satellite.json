@@ -1,0 +1,77 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:precision_mechanism"
+  },
+  "results": [
+    {
+      "id": "create_nuclearindustry:comms_satellite"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_satellite"
+        },
+        {
+          "item": "create:brass_sheet"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_satellite"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_satellite"
+        },
+        {
+          "item": "create:electron_tube"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_satellite"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_satellite"
+        },
+        {
+          "item": "minecraft:lightning_rod"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_satellite"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "create_nuclearindustry:incomplete_satellite"
+        }
+      ],
+      "results": [
+        {
+          "id": "create_nuclearindustry:incomplete_satellite"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "create_nuclearindustry:incomplete_satellite"
+  }
+}

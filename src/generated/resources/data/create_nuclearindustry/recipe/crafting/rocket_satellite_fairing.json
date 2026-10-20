@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    }
+  },
+  "pattern": [
+    " S ",
+    "S S",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:rocket_satellite_fairing"
+  }
+}
