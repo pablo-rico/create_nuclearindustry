@@ -28,7 +28,10 @@ public enum FlightFxEvent {
     INTERCEPT(10),
     /** An interceptor that reached its point without a kill destroys itself. */
     INTERCEPTOR_MISS(11),
-    /** A launch vehicle reaches orbit and lets its satellite go: the event's id is the flight's. */
+    /**
+     * A launch vehicle reaches orbit and lets its satellite go: the event's id is the flight's, and the stage the clients are sent
+     * is the satellite's kind ({@code SatelliteKind} ordinal).
+     */
     ORBIT_INSERTION(12),
     /** A satellite destroyed by an interceptor, high up: the event's id is the satellite's. */
     SATELLITE_KILLED(13),

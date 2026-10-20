@@ -29,6 +29,11 @@ public record FlightFxState(UUID id, double x, double y, double z, float vx, flo
     public static final int INTERCEPTOR = 1 << 5;
     /** Cold-launched from a battery's canister rather than lifting off a launch base. */
     public static final int CANISTER = 1 << 6;
+    /**
+     * A launch vehicle taking a satellite to orbit: it climbs far above any missile and its insertion lets the satellite go. The
+     * byte's top bit: read flags as {@code flags & 0xFF}.
+     */
+    public static final int SATELLITE = 1 << 7;
 
     public static final StreamCodec<ByteBuf, FlightFxState> STREAM_CODEC = StreamCodec.of(FlightFxState::write, FlightFxState::read);
     private static final StreamCodec<ByteBuf, Optional<RocketShape>> SHAPE = ByteBufCodecs.optional(RocketShapeCodec.STREAM_CODEC);

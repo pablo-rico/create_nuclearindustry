@@ -18,6 +18,9 @@
 - The command table has a **Satellites** tab to launch into either orbit, deorbit your own satellites and send an
   interceptor silo at foreign ones your radars have catalogued (low orbit only, never automatically). Satellites passing
   near show on its hologram, and low ones cross the night sky.
+- A launch ends with the fairing opening and the satellite drifting away high above; a satellite shot down breaks up in
+  a bright flash and a cloud of glittering debris, and one that decays burns up as a fireball across the sky. Satellites
+  in orbit show as moving points of light in the night sky (client setting `rocket.satellites`).
 - New advancements "Beep, Beep" (put a satellite in orbit) and "Kessler Syndrome" (shoot one down). Settings under
   `missile.orbit.*`.
 

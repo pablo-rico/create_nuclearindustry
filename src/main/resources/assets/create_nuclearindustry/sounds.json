@@ -334,6 +334,24 @@
       }
     ]
   },
+  "fairing_separation": {
+    "subtitle": "subtitle.create_nuclearindustry.fairing_separation",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:stage_separation",
+        "stream": false
+      }
+    ]
+  },
+  "satellite_breakup": {
+    "subtitle": "subtitle.create_nuclearindustry.satellite_breakup",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:sonic_boom",
+        "stream": false
+      }
+    ]
+  },
   "sonic_boom": {
     "subtitle": "subtitle.create_nuclearindustry.sonic_boom",
     "sounds": [

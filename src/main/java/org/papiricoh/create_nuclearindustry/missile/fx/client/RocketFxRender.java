@@ -54,7 +54,8 @@ final class RocketFxRender {
     static void onRenderLevel(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_WEATHER || !ClientConfig.rocketEffects) return;
         RocketFxManager fx = RocketFxManager.INSTANCE;
-        if (fx.flights.isEmpty() && fx.bursts.isEmpty() && !fx.debrisNear) return;
+        OrbitFx orbit = OrbitFx.INSTANCE;
+        if (fx.flights.isEmpty() && fx.bursts.isEmpty() && !fx.debrisNear && orbit.isEmpty()) return;
         Minecraft mc = Minecraft.getInstance();
         ClientLevel level = mc.level;
         if (level == null) return;
@@ -69,6 +70,8 @@ final class RocketFxRender {
         Sky sky = Sky.of(level, partial);
         long now = level.getGameTime();
         double time = now + partial;
+        // The fairing halves and satellites as models first: the light and smoke drawn over them test against their depth.
+        orbit.renderModels(eye, partial, now, limit);
 
         for (FlightFx flight : fx.flights.values()) {
             drawFlight(flight, partial, time, now, eye, sky);
@@ -81,6 +84,7 @@ final class RocketFxRender {
         for (Burst burst : fx.bursts) {
             drawBurst(burst, now, partial, eye, sky);
         }
+        orbit.draw(GLOW, SMOKE, partial, now, eye, sky);
         SMOKE.sortFarToNear();
         SMOKE.draw(RocketRenderTypes.smoke(shaded));
         GLOW.draw(RocketRenderTypes.glow(shaded));
@@ -111,6 +115,9 @@ final class RocketFxRender {
                 impostor(fx, pivot, axis, distance, sky);
             }
             sheath(fx, pivot, axis, distance, 1, sky);
+            if (fx.has(org.papiricoh.create_nuclearindustry.missile.flight.FlightFxState.SATELLITE) && lod != FxBudget.Lod.NEAR) {
+                climbGlint(fx, pivot, axis, distance, sky, time);
+            }
         } else if (fx.nuclearEnd && now - fx.endedTick < 10) {
             // The detonation takes over: the warhead's glow only goes out.
             sheath(fx, pivot, axis, distance, 1 - (now - fx.endedTick + partial) / 10.0, sky);
@@ -271,6 +278,20 @@ final class RocketFxRender {
         SMOKE.solidStrip(a.x, a.y, a.z, b.x, b.y, b.z, radius, radius, colour, colour);
     }
 
+    /**
+     * A launch vehicle high up catches the sun: a steady point of light on it, so it can be followed from the pad through the
+     * long coast to orbit with its engines off, brighter the darker the sky.
+     */
+    private static void climbGlint(FlightFx fx, Vec3 pivot, Vec3 axis, double distance, Sky sky, double time) {
+        Vec3 at = pivot.add(axis.scale(fx.shape.height() * 0.7));
+        double high = FxCurves.smoothstep(150, 500, at.y - fx.launchY);
+        double a = high * (0.3 + 0.5 * (1 - sky.day()) + 0.3 * sky.twilight()) * (fx.plume > 0.3f ? 0.4 : 1);
+        if (a <= 0.01) return;
+        double twinkle = 0.9 + 0.1 * Math.sin(time * 0.37 + fx.seed);
+        GLOW.disc(at.x, at.y, at.z, Math.max(fx.shape.radius() * 1.5, distance * 0.0035), argb(a * twinkle, 0xF2F5FF), fx.seed + 5);
+        GLOW.disc(at.x, at.y, at.z, Math.max(fx.shape.radius() * 4, distance * 0.011), argb(0.18 * a, 0xD8E4FF), fx.seed + 6);
+    }
+
     // ------------------------------------------------------------------ re-entry
 
     /**
@@ -332,7 +353,7 @@ final class RocketFxRender {
         TrailModel trail = fx.trail;
         int n = trail.size();
         if (n == 0) return;
-        double life = ClientConfig.rocketTrailSeconds * 20.0;
+        double life = fx.trailTicks();
         double dayTicks = Minecraft.getInstance().level.getDayTime();
         boolean liquid = RocketFxManager.liquid(fx);
         int base = liquid ? 0xF2F4F8 : 0xDCD9D3;
@@ -438,6 +459,8 @@ final class RocketFxRender {
 
     private static void drawBurst(Burst burst, long now, float partial, Vec3 eye, Sky sky) {
         double seconds = burst.seconds(now, partial);
+        // Some are set to go off a moment later (a fairing's bolts after the engine cuts off).
+        if (seconds < 0) return;
         double length = burst.ticks() / 20.0;
         double t = Math.min(1, seconds / length);
         Vec3 at = burst.at();
@@ -463,6 +486,16 @@ final class RocketFxRender {
                         argb(0.6 * a, burst.colour()), 0, (float) burst.height());
                 Vec3 mouth = at.add(0, burst.height() - 2, 0);
                 GLOW.disc(mouth.x, mouth.y, mouth.z, 3.5 + 3 * t, argb(0.7 * a, burst.colour()), burst.start());
+            }
+            case CLOUD -> {
+                double a = (1 - t) * (1 - t) * Math.min(1, seconds * 8);
+                if (a <= 0.01) return;
+                double r = Math.max(burst.size() * (0.25 + 0.75 * Math.sqrt(t)), distance * 0.006);
+                // High enough to stay in sunlight a while after it has set below.
+                double sunlit = Math.min(1, sky.day() + sky.twilight() * 0.8 + 0.15);
+                int colour = shade(burst.colour(), sunlit);
+                SMOKE.disc(at.x, at.y, at.z, r, argb(0.5 * a, colour), burst.start());
+                SMOKE.disc(at.x, at.y + r * 0.15, at.z, r * 0.7, argb(0.35 * a, colour), burst.start() + 2);
             }
             case DUST_RING -> {
                 double a = FxCurves.dustAlpha(seconds);
@@ -506,16 +539,16 @@ final class RocketFxRender {
     // ------------------------------------------------------------------ colours
 
     /** {@code rgb} as smoke lit by the sky. */
-    private static int lit(int rgb, Sky sky, double strength) {
+    static int lit(int rgb, Sky sky, double strength) {
         if (sky == null) return rgb;
         return shade(rgb, 1 - strength + strength * (0.15 + 0.85 * sky.day()));
     }
 
-    private static int shade(int rgb, double light) {
+    static int shade(int rgb, double light) {
         return rgb(((rgb >> 16) & 0xFF) / 255.0 * light, ((rgb >> 8) & 0xFF) / 255.0 * light, (rgb & 0xFF) / 255.0 * light);
     }
 
-    private static int mix(int a, int b, double t) {
+    static int mix(int a, int b, double t) {
         double s = 1 - t;
         return rgb((((a >> 16) & 0xFF) * s + ((b >> 16) & 0xFF) * t) / 255.0, (((a >> 8) & 0xFF) * s + ((b >> 8) & 0xFF) * t) / 255.0,
                 ((a & 0xFF) * s + (b & 0xFF) * t) / 255.0);

@@ -29,6 +29,7 @@ import org.papiricoh.create_nuclearindustry.missile.fx.PlumeModel;
 import org.papiricoh.create_nuclearindustry.missile.fx.RocketAcoustics;
 import org.papiricoh.create_nuclearindustry.missile.fx.RocketFxRegistry;
 import org.papiricoh.create_nuclearindustry.missile.fx.TrailModel;
+import org.papiricoh.create_nuclearindustry.missile.orbit.SatelliteKind;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -84,6 +85,7 @@ final class RocketFxManager implements FlightFxListener {
         bursts.clear();
         pending.clear();
         silos.clear();
+        OrbitFx.INSTANCE.clear();
         RocketParticles.clear();
         level = null;
     }
@@ -209,6 +211,15 @@ final class RocketFxManager implements FlightFxListener {
             case INTERCEPT -> intercept(fx, flags, pos, vel, now, distance);
             case INTERCEPTOR_MISS -> interceptorMiss(fx, flags, pos, now, distance);
             case ABORT -> end(fx, now, false);
+            case ORBIT_INSERTION -> {
+                // The stage is the satellite's kind here; a flight that was no launch vehicle lets go of an early-warning one.
+                SatelliteKind kind = (flags & FlightFxState.SATELLITE) != 0 ? SatelliteKind.byOrdinal(stage) : SatelliteKind.EARLY_WARNING;
+                OrbitFx.INSTANCE.insertion(level, fx, kind, pos, vel, now, distance, bursts, random);
+                end(fx, now, false);
+            }
+            // A satellite's moments: no flight of this client's, fx is null.
+            case SATELLITE_KILLED -> OrbitFx.INSTANCE.killed(level, pos, vel, now, distance, bursts, random);
+            case SATELLITE_REENTRY -> OrbitFx.INSTANCE.reentry(level, pos, vel, now, distance, bursts, random);
             default -> {
             }
         }
@@ -330,7 +341,7 @@ final class RocketFxManager implements FlightFxListener {
         if (!checkLevel()) return;
         if (mc.isPaused()) return;
         if (!ClientConfig.rocketEffects) {
-            if (!flights.isEmpty() || !bursts.isEmpty()) clear();
+            if (!flights.isEmpty() || !bursts.isEmpty() || !OrbitFx.INSTANCE.isEmpty()) clear();
             level = mc.level;
             return;
         }
@@ -352,8 +363,10 @@ final class RocketFxManager implements FlightFxListener {
             if (!present.contains(fx.id)) end(fx, now, fx.nuclearEnd);
             fx.distance = eye.distanceTo(fx.position);
             fx.lod = FxBudget.lod(fx.distance);
-            // Flights with nothing left to draw of a trail do not take a place.
-            distances[i] = fx.trail.isEmpty() && !fx.burning() ? Double.MAX_VALUE : fx.distance;
+            // Flights with nothing left to draw of a trail do not take a place; a launch vehicle's column, seen from far
+            // below as it climbs to orbit, keeps its place ahead of nearer missiles.
+            distances[i] = fx.trail.isEmpty() && !fx.burning() ? Double.MAX_VALUE
+                    : fx.has(FlightFxState.SATELLITE) ? fx.distance * 0.25 : fx.distance;
         }
         boolean[] trailed = FxBudget.trailed(distances);
         int wanting = 0;
@@ -365,6 +378,7 @@ final class RocketFxManager implements FlightFxListener {
         }
         sounds(list, now);
         debris(eye, now);
+        OrbitFx.INSTANCE.tick(level, now, eye, bursts, random);
         burstsTick(now);
         flights.values().removeIf(fx -> {
             boolean gone = fx.ended() && now - fx.endedTick > 40 && fx.trail.isEmpty() && fx.streak.isEmpty();
@@ -386,7 +400,7 @@ final class RocketFxManager implements FlightFxListener {
             fx.groundY = Math.min(fx.launchY, groundBelow(level, fx.position));
         }
 
-        fx.trail.expire(now, ClientConfig.rocketTrailSeconds * 20);
+        fx.trail.expire(now, fx.trailTicks());
         Vec3 tail = null;
         if (!fx.ended() && fx.plume > 0.05f) {
             Vec3 nozzle = nozzleCentre(fx);

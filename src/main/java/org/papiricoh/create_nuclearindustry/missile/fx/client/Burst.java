@@ -23,7 +23,12 @@ record Burst(Kind kind, Vec3 at, Vec3 axis, long start, int ticks, float size, i
         /** Light pouring up a silo's shaft and out of its mouth. */
         SHAFT,
         /** A curtain of dust racing out along the ground. */
-        DUST_RING
+        DUST_RING,
+        /**
+         * A cloud of vapour or debris swelling out in the high air and thinning away, lit by the sun up there long after dusk
+         * below: a vented engine, a shattered satellite.
+         */
+        CLOUD
     }
 
     double seconds(long now, float partial) {

@@ -2,6 +2,7 @@ package org.papiricoh.create_nuclearindustry.missile.fx.client;
 
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.ClientConfig;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.papiricoh.create_nuclearindustry.missile.flight.FlightFxState;
@@ -27,6 +28,11 @@ final class FlightFx {
     static final int STREAK = 24;
     /** Ticks a stage waits after the last one falls away before it lights: the ullage motors settle its propellant. */
     static final int ULLAGE_TICKS = 7;
+    /**
+     * Seconds a launch vehicle's trail lasts at least: it climbs for a minute or more, and the column it leaves is what shows
+     * from the pad where it went.
+     */
+    static final int SATELLITE_TRAIL_SECONDS = 90;
 
     final UUID id;
     final int seed;
@@ -126,9 +132,15 @@ final class FlightFx {
         stage = flight.stage();
         flags = 0;
         for (int f : new int[]{FlightFxState.BURNING, FlightFxState.RISING, FlightFxState.NUCLEAR_WARHEAD, FlightFxState.PUPPET,
-                FlightFxState.BURNED_OUT, FlightFxState.INTERCEPTOR, FlightFxState.CANISTER}) {
+                FlightFxState.BURNED_OUT, FlightFxState.INTERCEPTOR, FlightFxState.CANISTER, FlightFxState.SATELLITE}) {
             if (flight.has(f)) flags |= f;
         }
+    }
+
+    /** Ticks its smoke trail lingers: the player's setting, longer for a launch vehicle's climb to orbit. */
+    int trailTicks() {
+        int seconds = ClientConfig.rocketTrailSeconds;
+        return 20 * (has(FlightFxState.SATELLITE) ? Math.max(seconds, SATELLITE_TRAIL_SECONDS) : seconds);
     }
 
     /** Records this tick's plume level, for what is heard later. */

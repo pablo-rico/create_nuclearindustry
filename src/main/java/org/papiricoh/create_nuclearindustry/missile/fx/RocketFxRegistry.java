@@ -42,6 +42,10 @@ public final class RocketFxRegistry implements NuclearFeature {
     /** The air tearing past a warhead coming back in, looped. */
     public static final DeferredHolder<SoundEvent, SoundEvent> REENTRY_HISS = sound("reentry_hiss");
     public static final DeferredHolder<SoundEvent, SoundEvent> DEBRIS_IMPACT = sound("debris_impact");
+    /** A satellite's fairing blown open in orbit (the stage separation's sound, its own subtitle). */
+    public static final DeferredHolder<SoundEvent, SoundEvent> FAIRING_SEPARATION = sound("fairing_separation");
+    /** A satellite shot down or burning up, heard long after from far below (the sonic boom's sound, its own subtitle). */
+    public static final DeferredHolder<SoundEvent, SoundEvent> SATELLITE_BREAKUP = sound("satellite_breakup");
     /** Steam venting from a silo in the last seconds of its countdown. */
     public static final DeferredHolder<SoundEvent, SoundEvent> SILO_VENT = sound("silo_vent");
     /** The radar's sweep passing a contact. */

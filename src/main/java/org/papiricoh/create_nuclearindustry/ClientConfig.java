@@ -51,6 +51,9 @@ public class ClientConfig {
     private static final ModConfigSpec.BooleanValue ROCKET_SHAKE = BUILDER
             .comment("Shake the view near a rocket lifting off.")
             .define("rocket.shake", true);
+    private static final ModConfigSpec.BooleanValue ROCKET_SATELLITES = BUILDER
+            .comment("Show satellites in orbit as small points of light in the night sky: low ones cross it, geostationary ones stand still.")
+            .define("rocket.satellites", true);
     private static final ModConfigSpec.BooleanValue RADAR_SOUNDS = BUILDER
             .comment("Play the radar's sweep pings, new-track tones and klaxon in its screen and near radar scopes.")
             .define("radar.sounds", true);
@@ -78,6 +81,7 @@ public class ClientConfig {
     public static boolean rocketFarTrails = true;
     public static int rocketTrailSeconds = 40;
     public static boolean rocketShake = true;
+    public static boolean rocketSatellites = true;
     public static boolean radarSounds = true;
     public static boolean radarPhosphor = true;
 
@@ -118,6 +122,7 @@ public class ClientConfig {
         rocketFarTrails = ROCKET_FAR_TRAILS.get();
         rocketTrailSeconds = ROCKET_TRAIL_SECONDS.get();
         rocketShake = ROCKET_SHAKE.get();
+        rocketSatellites = ROCKET_SATELLITES.get();
         radarSounds = RADAR_SOUNDS.get();
         radarPhosphor = RADAR_PHOSPHOR.get();
         NuclearTab.bannersEnabled = CREATIVE_TAB_SECTIONS.get();

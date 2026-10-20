@@ -79,9 +79,10 @@ public final class ClientFlights {
         ClientFlight flight = FLIGHTS.get(payload.id());
         Vec3 pos = new Vec3(payload.x(), payload.y(), payload.z());
         Vec3 vel = new Vec3(payload.vx(), payload.vy(), payload.vz());
-        for (FlightFxListener listener : LISTENERS) listener.onEvent(flight, event, payload.stage(), pos, vel, payload.flags());
+        // A satellite's moments carry its id, never a flight's: flight is null for them and nothing here is dropped.
+        for (FlightFxListener listener : LISTENERS) listener.onEvent(flight, event, payload.stage(), pos, vel, payload.flags() & 0xFF);
         if (event == FlightFxEvent.IMPACT || event == FlightFxEvent.ABORT || event == FlightFxEvent.INTERCEPT
-                || event == FlightFxEvent.INTERCEPTOR_MISS) FLIGHTS.remove(payload.id());
+                || event == FlightFxEvent.INTERCEPTOR_MISS || event == FlightFxEvent.ORBIT_INSERTION) FLIGHTS.remove(payload.id());
     }
 
     private static void tick() {

@@ -72,6 +72,7 @@ public final class FlightFxBroadcaster {
         if (flight.warhead().nuclear()) flags |= FlightFxState.NUCLEAR_WARHEAD;
         if (flight.puppet != null) flags |= FlightFxState.PUPPET;
         if (f.burnedOut()) flags |= FlightFxState.BURNED_OUT;
+        if (flight.kind() == Flight.Kind.SATELLITE) flags |= FlightFxState.SATELLITE;
         if (flight.kind() == Flight.Kind.INTERCEPTOR) {
             flags |= FlightFxState.INTERCEPTOR;
             if (flight.intercept() != null && flight.intercept().launcherType() == org.papiricoh.create_nuclearindustry.missile.defense.ShooterType.BATTERY)
@@ -81,15 +82,24 @@ public final class FlightFxBroadcaster {
                 (byte) f.stage(), (byte) flags, flight.heading(), withShape ? flight.shape() : null);
     }
 
-    /** Sends a moment of {@code flight} to everyone in range of where it happened. */
+    /**
+     * Sends a moment of {@code flight} to everyone in range of where it happened. An orbit insertion carries the satellite's kind
+     * in place of the stage, so the client lets go of the right one.
+     */
     static void event(ServerLevel level, Flight flight, FlightFxEvent event, int stage, Vec3 pos, Vec3 vel) {
         double range = MissileConfig.fxRange;
         int flags = state(flight, MissileConfig.flightParams(), false).flags();
-        FlightFxEventPayload payload = new FlightFxEventPayload(flight.id(), event.id(), (byte) stage, (byte) flags, pos.x, pos.y, pos.z,
+        FlightFxEventPayload payload = new FlightFxEventPayload(flight.id(), event.id(), (byte) clientStage(flight, event, stage), (byte) flags,
+                pos.x, pos.y, pos.z,
                 (float) vel.x, (float) vel.y, (float) vel.z);
         for (ServerPlayer player : level.players()) {
             if (horizontal(player.position(), pos) <= range) PacketDistributor.sendToPlayer(player, payload);
         }
+    }
+
+    /** The stage a moment is sent to the clients with: for an orbit insertion, the satellite's kind instead. */
+    static int clientStage(Flight flight, FlightFxEvent event, int stage) {
+        return event == FlightFxEvent.ORBIT_INSERTION && flight.satellite() != null ? flight.satellite().kind().ordinal() : stage;
     }
 
     /**

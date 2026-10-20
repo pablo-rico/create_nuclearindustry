@@ -54,7 +54,7 @@ public final class ClientFlight {
         }
         lastLocalTick = localTick;
         if (state.shape() != null) shape = state.shape();
-        flags = state.flags();
+        flags = state.flags() & 0xFF;
         MissileFlight.Phase[] phases = MissileFlight.Phase.values();
         phase = phases[Math.max(0, Math.min(phases.length - 1, state.phase()))];
         stage = state.stage();

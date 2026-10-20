@@ -1970,6 +1970,12 @@ En la config del cliente:
   de un cohete a más de 768 bloques.
 - `rocket.trailSeconds` (5 a 120): segundos que dura la estela en el cielo.
 - `rocket.shake`: sacudida de cámara cerca de un despegue.
+- `rocket.satellites`: los satélites en órbita como puntos de luz en el cielo
+  nocturno. Los bajos lo cruzan en unos segundos y a veces destellan al darles
+  el sol en los paneles; los geoestacionarios están quietos y son más tenues.
+  Solo se ven con el cielo oscuro y despejado (como las estrellas) y por encima
+  del horizonte, con la misma curvatura que los radares
+  (`missile.radar.earthRadius`).
 - `radar.sounds`: pitidos del barrido, tonos de traza nueva y claxon del radar.
 - `radar.phosphor`: pantallas de radar como un fósforo, con ecos que brillan al
   pasar el barrido y se apagan hasta la siguiente vuelta.
@@ -2004,6 +2010,14 @@ Qué se ve y se oye:
   debajo de la velocidad del sonido del juego, así que se usa un umbral propio:
   una cabeza en reentrada o en fase terminal que pasa a menos de 64 bloques a más
   de 4 bloques por tick suena una vez, en su punto más cercano.
+- **Satélites**: el lanzador sube más que cualquier misil; su estela dura al
+  menos 90 s y, ya sin motores, un punto de luz lo sigue hasta la órbita. Al
+  llegar suelta un soplo, la cofia se abre en dos mitades que caen dando vueltas
+  y el satélite sale flotando y se pierde de vista; desde el suelo se ven
+  destellos y brillos. Un satélite derribado da un destello blanco azulado, una
+  nube de fragmentos que brillan al caer y un estruendo que llega mucho después.
+  Uno que reentra cae como una bola de fuego con una larga estela, se parte y se
+  apaga antes de llegar al suelo.
 - **Lejos**: más allá de la distancia de renderizado, la estela, el brillo de la
   llama y la silueta del cohete se siguen dibujando. Sin entidad cerca (más allá
   de `missile.flight.showDistance`), se dibuja la silueta del cohete.
