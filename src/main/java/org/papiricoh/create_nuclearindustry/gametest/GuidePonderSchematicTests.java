@@ -95,6 +95,20 @@ public class GuidePonderSchematicTests {
         helper.succeed();
     }
 
+    /** The open-pad scene is a valid 3x3 base with its controller deliberately on the east side. */
+    @GameTest(template = "gametest/weapons_launch_base_ponder", batch = BATCH)
+    public static void launchBaseSchematicLoads(GameTestHelper helper) {
+        var launchBase = org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.LAUNCH_BASE.get();
+        for (int x = 2; x <= 4; x++) for (int z = 2; z <= 4; z++)
+            helper.assertBlockPresent(launchBase, new BlockPos(x, 1, z));
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.CONTROLLER.get(), new BlockPos(5, 1, 3));
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.FUEL_PORT.get(), new BlockPos(3, 1, 1));
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.ENGINE.get(), new BlockPos(3, 2, 3));
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.ENGINE.get(), new BlockPos(3, 4, 3));
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.WARHEAD.get(), new BlockPos(3, 6, 3));
+        helper.succeed();
+    }
+
     @GameTest(template = "gametest/weapons_holo_table_ponder", batch = BATCH)
     public static void holoTableSchematicLoads(GameTestHelper helper) {
         var centre = helper.getBlockState(new BlockPos(2, 2, 2));

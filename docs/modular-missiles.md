@@ -1,126 +1,112 @@
-# Cohetes modulares, silos y radar
+# Cohetes modulares y lanzamiento táctico
 
-Construye un suelo completo de **5×5** con paredes de silo. Deja un interior de
-**3×3** y coloca el controlador en el centro de una cara lateral de la base.
-Sobre el centro del suelo monta de abajo arriba:
+Un cohete modular se construye sobre una **Base de lanzamiento**, se prepara desde un
+**Controlador de lanzamiento** y despega únicamente con una señal nueva de redstone.
+Un silo de **Hormigón de silo** sigue siendo válido, pero es una envolvente visual:
+no hace falta para lanzar desde una plataforma abierta.
 
-1. Entre una y tres etapas, cada una con un motor y de uno a cuatro depósitos.
-2. Un módulo de guiado.
-3. Una sola ojiva, inerte, sucia, de fisión o termonuclear.
+## Plataforma y cohete
 
-El conjunto mide entre **4 y 17 bloques**. Extiende las paredes perimetrales
-hasta la punta. La parte superior queda abierta: una tapa de Create debe abrirse
-antes de lanzar. El controlador identifica piezas incorrectas, depósitos vacíos,
-estructura incompleta, obstrucciones y blancos fuera de alcance.
+1. Coloca una cuadrícula completa de **3×3 Bases de lanzamiento**. Usa un controlador
+   por base.
+2. Coloca el **Controlador de lanzamiento** junto a cualquiera de los cuatro lados de
+   la base, no encima de ella. Dale al menos 32 RPM mediante ejes, engranajes o un
+   motor creativo; su impacto inicial es 8 SU/RPM.
+3. Pon un **Puerto de combustible de silo** tocando la base, en un lateral, debajo o
+   junto a ella, y conecta una tubería si vas a cargar propelente líquido.
+4. Construye la columna en el bloque central de la base. La gramática es
+   `(Motor + 1–4 Depósitos){1–3} + Guiado + Ojiva`: cada motor inicia una etapa nueva.
+   Por tanto, una etapa es motor, depósitos, guiado y ojiva; dos etapas añaden otro
+   motor y sus depósitos; tres añaden una tercera pareja. La columna completa mide de
+   4 a 17 bloques.
 
-Usa un cartucho sobre cada depósito para cargarlo. Usa los materiales sobre la
-ojiva para insertarlos: tres huecos de un núcleo o material radiactivo cada uno,
-hasta cuatro de deuteruro para el secundario y dos bloques de uranio empobrecido
-para la camisa. Vacía, la ojiva es inerte. Usar una sección agachado con la mano
-vacía retira su último contenido. El controlador queda a la altura del suelo,
-sustituyendo el bloque central de un borde.
-Las etapas, depósitos y masa de carga determinan el alcance. Usa una carga inerte
-para probar la instalación sin explosión. Introduce coordenadas o utiliza el
-Designador de objetivo existente; se mantienen las restricciones administrativas
-de alcance, dimensión, permisos, protección del spawn y enfriamiento.
+El controlador comprueba la base, que la columna sea continua, que haya espacio de
+salida y que la combinación de secciones sea válida. Las aletas y otros bloques
+pegados con pegamento viajan con el cohete. Una carcasa de Hormigón de silo puede
+rodear el conjunto hasta la punta para darle aspecto de silo; no mejora el lanzamiento.
 
-Alimenta el controlador con **32 RPM** como mínimo; el impacto de estrés inicial
-es **8 SU/RPM**. Arma desde la interfaz y aplica un **nuevo flanco de redstone**.
-La cuenta dura **10 segundos** por defecto. Una señal permanente no lanza los
-siguientes cohetes. Perder rotación, modificar el montaje o bloquear la salida
-cancela la cuenta; hay que volver a armar. Descargar el silo o reiniciar también
-cancela la cuenta y lo desarma. Lanzar consume el cohete, combustible y carga;
-el silo permanece. Las etapas agotadas se separan visualmente sin dejar piezas
-recuperables.
+## Depósitos y guiado
 
-## Combustible líquido
+Cada depósito acepta un cartucho de propelente sólido, o 1000 mB de Combustible de
+cohete y 1000 mB de Oxígeno líquido desde el puerto. Una etapa no puede mezclar sus
+cartuchos con líquido. Las etapas líquidas empujan más y durante más tiempo.
 
-Además de los cartuchos sólidos, los depósitos admiten propulsante líquido. Pon un
-**puerto de combustible de silo** en una pared y conéctale tuberías: acepta
-**combustible de cohete** (mezcladora calentada: carbón e hidrógeno) y **oxígeno
-líquido** (mezcladora: aire líquido, que también da nitrógeno líquido) y llena los
-depósitos de abajo arriba, 1000 mB de cada uno por depósito. No acepta nada con el
-silo armado o en cuenta atrás. Una etapa líquida empuja más y durante más tiempo
-que una sólida: un cohete líquido de dos o tres etapas alcanza varios kilómetros.
-Un depósito no puede mezclar cartucho y líquidos.
+El módulo de guiado queda vacío para guiado básico, acepta un Mecanismo de precisión
+para guiado inercial o un Rastreador estelar para guiado estelar. Un nivel superior
+reduce el CEP que muestra el controlador. Fija el blanco con sus coordenadas, con un
+Designador de objetivo o desde una Mesa holográfica de mando.
 
-## Guiado
+## La consola y la bahía de ojiva
 
-El módulo de guiado decide la precisión. Sin nada es **básico** (giróscopo); con
-un mecanismo de precisión de Create es **inercial**; con un **rastreador estelar**
-es **estelar**. El error circular probable (CEP) crece con la distancia y baja con
-cada nivel; el controlador lo muestra. `missile.guidance.cepScale` lo escala (0
-apunta perfecto).
+Haz clic derecho en el Controlador de lanzamiento y elige la sección en el corte de la
+consola. La carga se inserta **en la bahía de la ojiva de esa consola**, no haciendo
+clic sobre el bloque de la ojiva. La consola también muestra las etapas, el llenado,
+el alcance y los errores de montaje.
 
-## El cohete en vuelo
+La ojiva tiene tres huecos de carga, cuatro de secundario, dos de camisa y un hueco
+para una bomba completa:
 
-Al despegar, la columna entera (y lo que lleve pegado con pegamento, como aletas)
-vuela como un contraption de Create. Las etapas agotadas se sueltan y caen dando
-vueltas; arden donde caen. Los bloques extra suman masa
-(`missile.rocket.extraBlockMass`). El cohete no puede estar pegado al silo, ser
-demasiado grande ni llevar cosas en contenedores: el controlador lo indica.
+- Cada hueco de carga admite hasta 2 núcleos de grado militar, 64 materiales
+  radiactivos o 16 TNT. Los núcleos dan fisión; solo material radiactivo da una
+  ojiva sucia; vacía es inerte. El TNT crea una ojiva convencional, sin contaminación;
+  su potencia queda limitada por la configuración del servidor.
+- Los cuatro huecos de secundario admiten hasta 4 Deuteruros de litio-6 cada uno
+  (16 en total). Los dos huecos de camisa admiten hasta 2 bloques de uranio empobrecido
+  cada uno (4 en total).
+- Una carga termonuclear necesita exactamente un núcleo primario y puede llevar
+  secundario y camisa. La camisa no puede ir sin secundario. TNT no se mezcla con
+  núcleos, material radiactivo, secundario ni camisa.
+- El último hueco acepta una Bomba nuclear, Bomba sucia o Bomba termonuclear completa;
+  conserva su contenido, pero no puede mezclarse con ninguna carga suelta.
+
+Las ranuras de depósito y guiado aparecen al seleccionar esas secciones. La consola
+rechaza los objetos incompatibles y bloquea cambios mientras el cohete está armado o
+en cuenta atrás.
+
+## Armado y redstone
+
+En la pestaña **Lanzamiento**, comprueba el blanco, el alcance y la cuenta, y pulsa
+**Armar**. Entonces aplica una señal de redstone nueva al controlador: una palanca que
+se acaba de activar o un botón sirven. Una señal que ya estaba encendida al armar no
+inicia nada, y mantenerla encendida no lanza el siguiente cohete.
+
+La cuenta atrás normal dura diez segundos, más el retraso que pueda asignar una salva.
+Perder rotación, cambiar el cohete, bloquear la salida, descargar el área o reiniciar
+el mundo cancela la cuenta y desarma el controlador. Tras despegar, la base y el silo
+siguen en su sitio; el cohete consume sus secciones, combustible y carga, y separa las
+etapas agotadas como restos.
+
+## Mesa holográfica, Enlazador táctico y salvas
+
+Forma la **Mesa holográfica de mando** con nueve piezas en un 3×3. Usa un
+**Enlazador táctico** de dos clics: haz clic primero en un radar o en un Controlador de
+lanzamiento (también vale una Base de lanzamiento, un puerto o una sección que le
+pertenezca) para guardarlo; después haz clic en la mesa para enlazarlo. Repetir sobre
+un enlace lo elimina y usar el enlazador agachado sobre la mesa borra sus enlaces.
+
+La mesa admite hasta 4 radares y 16 controladores de lanzamiento dentro del alcance
+configurado. En la pestaña **Silos**, selecciona un controlador enlazado para ver su
+estado, fijar su blanco, armarlo o desarmarlo. Marca varios para una salva: la mesa los
+arma todos o desarma todos si uno falla, y calcula retrasos para impacto simultáneo o
+para el espaciado elegido.
+
+La mesa coordina, pero **no dispara**. Después de armar una salva, cada controlador
+debe recibir su propia señal nueva de redstone para iniciar su cuenta y respetar el
+retraso asignado. Desde las trazas de la mesa se puede abortar un vuelo propio que
+salió de un controlador enlazado; el misil se autodestruye con una explosión pequeña
+sin detonar su ojiva.
 
 ## Radar
 
-Construye un radar y hazlo girar (mínimo `missile.machinery.minimumRpm`). Su
-**alcance** contra un cuerpo de cohete desnudo es `missile.radar.baseRange`
-(3000 bloques) a la velocidad mínima; crece con la raíz cuarta de las RPM y es
-mucho mayor contra un propulsor encendido. La Tierra es curva
-(`missile.radar.earthRadius`): un vuelo bajo y lejano queda bajo el horizonte,
-así que conviene poner los radares altos. Los radares con el mismo **código de
-enlace** de cuatro caracteres y a menos de `missile.radar.networkRange` bloques
-comparten lo que ven.
-
-Cada radar vigila una **zona** (centro y radio en su pantalla; sin radio, todo).
-Su salida de redstone y su claxon se encienden con los vuelos cuyo impacto
-previsto cae en ella; **reconocer** la alarma solo calla el claxon.
-
-La pantalla es una consola: barrido con anillos de distancia, ecos con su estela,
-impactos previstos con su elipse de error sobre el terreno, tabla de trazas,
-detalle con perfil de altitud, zoom, recentrado, código y zona. La antena de
-encima gira con el barrido. La **pantalla de radar** (hasta 3×3 en una pared) se
-enlaza a un radar con el enlazador de sala de control y muestra su barrido en
-directo. Los radares sirven además a monitores, indicadores, alarmas y
-anunciadores de la sala de control (trazas y amenazas) y a los Display Link.
-
-## Mesa holográfica de mando
-
-Coloca nueve piezas en un cuadrado de 3×3: se funden en una sola mesa, con un
-marco continuo de acero y latón, patas y el proyector bajo el centro. Con el
-enlazador de sala de control (sobre cualquier pieza) enlaza hasta **cuatro
-radares** y **un silo**; enlazar de nuevo uno ya enlazado lo quita, y agachado se
-borran todos.
-
-Sobre un mapa del terreno (de 1 a 16 km de lado, elegido solo) muestra:
-
-- cada traza como un pequeño misil sobre su arco, con el morro según su rumbo,
-  llama mientras acelera y un vehículo de reentrada al caer; lo volado, lo que le
-  queda (a trazos) y la elipse de impacto;
-- el silo y los lugares de lanzamiento como silos, los radares como antenas que
-  giran con su cobertura, el alcance y el blanco del silo;
-- anillos donde estalla un arma.
-
-**Usarla sin abrir la pantalla** (a menos de 8 bloques):
-
-- Mira un misil, el silo o un radar para ver su etiqueta (fase, altitud,
-  velocidad y tiempo al impacto; alcance y CEP; código y cobertura).
-- Clic derecho en un misil: lo fija (o lo suelta). La traza fijada tiene un panel
-  sobre la mesa y la vista la sigue si sale del mapa. Todos los que miran la mesa
-  ven lo mismo.
-- Clic derecho en el marco: cambia el zoom (automático, 1, 2, 4, 8, 16 km).
-- Agachado + clic derecho en el cristal: marca un blanco provisional, verde si el
-  silo puede alcanzarlo y los límites del servidor lo permiten, rojo con el motivo
-  si no. Repetirlo sobre la marca en menos de 5 segundos se lo envía al silo.
-- Clic derecho en el cristal vacío: abre su pantalla, con el mapa desplazable, las
-  trazas, el estado del silo y un modo de designar con explosión en superficie o
-  en el aire.
+Haz girar un radar al menos a 32 RPM. Ve cuerpos de cohete dentro de su alcance y por
+encima del horizonte, comparte trazas con otros radares de igual código y activa su
+salida de redstone y claxon cuando un impacto previsto entra en su zona protegida.
+Enlázalo con una Pantalla de radar o con la Mesa holográfica usando el Enlazador táctico
+para ver y coordinar esas trazas.
 
 ## Mundos existentes
 
-Las plataformas antiguas permanecen para retirar su contenido, pero no lanzan.
-Convierte una plataforma antigua en un controlador y un misil antiguo en un
-motor mediante recetas de fabricación. Sus recetas anteriores y entradas de
-creativo/JEI se retiran. Los vuelos guardados terminan normalmente.
-
-Los silos y radares montados en naves o contraptions no operan. No hay
-interceptores, múltiples ojivas ni historial de vuelos terminados.
+Los silos antiguos con un suelo de Hormigón de silo continúan funcionando porque ese
+suelo cuenta como base de lanzamiento. Puedes abrirlos o convertirlos en plataformas;
+las paredes no son un requisito estructural. Los vuelos ya guardados terminan con las
+reglas con las que fueron lanzados.

@@ -232,6 +232,92 @@ public class WeaponsScenes {
         scene.idle(30);
     }
 
+    /** An open launch platform: the base, drive and fuel port appear before the staged rocket and its redstone launch. */
+    public static void launchBase(SceneBuilder builder, SceneBuildingUtil util) {
+        CreateSceneBuilder scene = new CreateSceneBuilder(builder);
+        PlantPonderText.Scene text = GuidePonderText.LAUNCH_BASE;
+        Script lines = text.script();
+        scene.title(text.id(), text.title().english());
+        scene.configureBasePlate(0, 0, 7);
+        scene.scaleSceneView(0.8f);
+
+        BlockPos controller = util.grid().at(5, 0, 3);
+        BlockPos lever = util.grid().at(5, 1, 3);
+        BlockPos port = util.grid().at(3, 0, 1);
+        BlockPos engine = util.grid().at(3, 1, 3);
+        BlockPos firstTank = util.grid().at(3, 2, 3);
+        BlockPos secondEngine = util.grid().at(3, 3, 3);
+        BlockPos guidance = util.grid().at(3, 4, 3);
+        BlockPos warhead = util.grid().at(3, 5, 3);
+
+        scene.world().hideSection(util.select().fromTo(0, 0, 0, 6, 5, 6), Direction.UP);
+        scene.showBasePlate();
+        scene.idle(10);
+        scene.world().showSection(util.select().fromTo(2, 0, 2, 4, 0, 4), Direction.DOWN);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(3, 0, 3))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+
+        scene.world().showSection(util.select().fromTo(5, 0, 3, 6, 0, 4), Direction.DOWN);
+        scene.world().showSection(util.select().fromTo(3, 0, 0, 3, 0, 1), Direction.DOWN);
+        scene.world().setKineticSpeed(util.select().fromTo(5, 0, 3, 6, 0, 4), 32);
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .pointAt(util.vector().blockSurface(controller, Direction.EAST))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+
+        scene.world().showSection(util.select().position(engine), Direction.DOWN);
+        scene.idle(25);
+        scene.world().showSection(util.select().position(firstTank), Direction.DOWN);
+        scene.idle(25);
+        scene.world().showSection(util.select().position(secondEngine), Direction.DOWN);
+        scene.idle(25);
+        scene.world().showSection(util.select().position(guidance), Direction.DOWN);
+        scene.world().showSection(util.select().position(warhead), Direction.DOWN);
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .pointAt(util.vector().centerOf(secondEngine))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+
+        scene.overlay().showControls(util.vector().blockSurface(controller, Direction.EAST), Pointing.RIGHT, 70)
+                .rightClick();
+        scene.overlay().showText(110)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(controller))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(120);
+
+        scene.world().showSection(util.select().position(lever), Direction.DOWN);
+        scene.world().toggleRedstonePower(util.select().fromTo(5, 0, 3, 5, 1, 3));
+        scene.effects().indicateRedstone(lever);
+        scene.overlay().showText(120)
+                .text(lines.next())
+                .colored(PonderPalette.RED)
+                .pointAt(util.vector().topOf(lever))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(130);
+
+        scene.world().hideSection(util.select().fromTo(3, 1, 3, 3, 5, 3), Direction.UP);
+        scene.effects().emitParticles(util.vector().centerOf(engine),
+                scene.effects().simpleParticleEmitter(ParticleTypes.LARGE_SMOKE, new Vec3(0, 0.25, 0)), 8, 25);
+        scene.overlay().showText(100)
+                .text(lines.next())
+                .pointAt(util.vector().topOf(3, 0, 3))
+                .placeNearTarget()
+                .attachKeyFrame();
+        scene.idle(110);
+        scene.world().toggleRedstonePower(util.select().fromTo(5, 0, 3, 5, 1, 3));
+    }
+
     public static void radar(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         PlantPonderText.Scene text = GuidePonderText.RADAR;
@@ -258,7 +344,7 @@ public class WeaponsScenes {
         scene.idle(110);
     }
 
-    /** The command table: nine pieces fuse into one, then a radar and a silo controller are linked to it. */
+    /** The command table: nine pieces fuse into one, then the Tactical Linker brings in a radar and a launch controller. */
     public static void holoTable(SceneBuilder builder, SceneBuildingUtil util) {
         CreateSceneBuilder scene = new CreateSceneBuilder(builder);
         PlantPonderText.Scene text = GuidePonderText.HOLO_TABLE;
@@ -294,11 +380,19 @@ public class WeaponsScenes {
         scene.world().showSection(util.select().position(controller), Direction.DOWN);
         scene.world().setKineticSpeed(util.select().position(radar), 32);
         scene.idle(10);
-        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(radar)).placeNearTarget().attachKeyFrame();
+        scene.overlay().showControls(util.vector().topOf(radar), Pointing.DOWN, 70)
+                .withItem(new ItemStack(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.TACTICAL_LINKER.get()))
+                .rightClick();
+        scene.overlay().showText(110).text(lines.next()).pointAt(util.vector().topOf(radar)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
-        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(centre)).placeNearTarget().attachKeyFrame();
+        scene.effects().indicateSuccess(radar);
+        scene.effects().indicateSuccess(controller);
+        scene.effects().indicateSuccess(centre);
+        scene.overlay().showControls(util.vector().topOf(centre), Pointing.DOWN, 60).rightClick();
+        scene.overlay().showText(110).text(lines.next()).pointAt(util.vector().topOf(centre)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
-        scene.overlay().showText(100).text(lines.next()).pointAt(util.vector().topOf(centre.offset(-1, 0, 1))).placeNearTarget().attachKeyFrame();
+        scene.overlay().showText(110).text(lines.next()).colored(PonderPalette.RED)
+                .pointAt(util.vector().topOf(controller)).placeNearTarget().attachKeyFrame();
         scene.idle(110);
     }
 

@@ -103,26 +103,26 @@ public final class GuidePonderText {
     public static final Scene MISSILE = new Scene("weapons_missile", "weapons_missile",
             line("Building a Modular Rocket", "Montaje de un cohete modular"),
             List.of(
-                    line("Build a 5×5 floor and perimeter walls of Silo Walls, leaving a 3×3 interior. Put the controller at the middle of a base wall.",
-                            "Construye un suelo de 5×5 y paredes perimetrales de Pared de silo, con un interior de 3×3. Pon el controlador en el centro de una pared de la base."),
-                    line("Stack one to three stages at the centre: each engine carries one to four tanks, then guidance and one warhead (4–17 blocks). Fins glued to the rocket fly with it.",
-                            "Apila de una a tres etapas en el centro: cada motor lleva de uno a cuatro depósitos, luego guiado y una ojiva (4–17 bloques). Las aletas pegadas al cohete vuelan con él."),
-                    line("Fill each tank with a propellant cartridge, or pump Rocket Fuel and Liquid Oxygen into a Silo Fuel Port in the wall: liquid stages push harder and longer. A stage cannot mix both.",
-                            "Llena cada depósito con un cartucho, o bombea Combustible de cohete y Oxígeno líquido a un Puerto de combustible de silo en la pared: las etapas líquidas empujan más y más tiempo. Una etapa no puede mezclar ambos."),
+                    line("A 3×3 Launch Base is all a rocket needs. Put the Launch Controller beside any side; a Silo Concrete shell is optional, and only changes the look.",
+                            "Un 3×3 de Base de lanzamiento es todo lo que necesita un cohete. Pon el Controlador de lanzamiento junto a cualquier lado; una carcasa de Hormigón de silo es opcional y solo cambia el aspecto."),
+                    line("Stack one to three stages at the centre: an engine and one to four tanks per stage. Every new engine starts the next stage; finish with guidance and one warhead (4–17 blocks).",
+                            "Apila de una a tres etapas en el centro: un motor y de uno a cuatro depósitos por etapa. Cada motor nuevo inicia la siguiente etapa; termina con guiado y una ojiva (4–17 bloques)."),
+                    line("Fill each tank with a propellant cartridge, or pipe Rocket Fuel and Liquid Oxygen into a Silo Fuel Port touching the base: liquid stages push harder and longer. A stage cannot mix both.",
+                            "Llena cada depósito con un cartucho, o lleva por tubería Combustible de cohete y Oxígeno líquido a un Puerto de combustible de silo que toque la base: las etapas líquidas empujan más y más tiempo. Una etapa no puede mezclar ambos."),
                     line("The guidance sets the accuracy: empty it is basic, with a Precision Mechanism inertial, with a Star Tracker stellar. The controller shows the expected miss.",
                             "El guiado decide la precisión: vacío es básico, con un Mecanismo de precisión inercial, con un Rastreador estelar estelar. El controlador muestra el error esperado."),
-                    line("Set coordinates, use a Target Designator or a Holographic Command Table. Extend the walls to the tip; the silo stays after launch.",
-                            "Introduce coordenadas, usa el Designador o una Mesa holográfica de mando. Extiende las paredes hasta la punta; el silo permanece tras lanzar.")),
-            List.of("silo_controller", "silo_wall", "silo_fuel_port", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead", "propellant_cartridge",
-                    "star_tracker", "target_designator"));
+                    line("Open the Launch Controller to load the warhead in its console, set coordinates or use a Target Designator. A Tactical Linker can give a Holographic Command Table control of it.",
+                            "Abre el Controlador de lanzamiento para cargar la ojiva en su consola, introducir coordenadas o usar un Designador de objetivo. Un Enlazador táctico puede dar a una Mesa holográfica de mando control sobre él.")),
+            List.of("silo_controller", "launch_base", "silo_wall", "silo_fuel_port", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead", "propellant_cartridge",
+                    "star_tracker", "target_designator", "tactical_linker"));
 
     public static final Scene SILO_LAUNCH = new Scene("silo_launch", "weapons_missile",
             line("Arming and Launching", "Armado y lanzamiento"),
             List.of(
-                    line("Supply at least 32 RPM to the silo controller. Its default stress impact is 8 SU per RPM. Arm the prepared rocket from the screen.",
-                            "Suministra al menos 32 RPM al controlador. Su impacto de estrés inicial es 8 SU por RPM. Arma el cohete preparado desde la pantalla."),
-                    line("Apply a new redstone rising edge to start the ten-second countdown. A continuously powered wire cannot launch the next rocket.",
-                            "Aplica un nuevo flanco de redstone para iniciar los diez segundos de cuenta atrás. Una señal permanente no lanza el siguiente cohete."),
+                    line("Supply at least 32 RPM to the Launch Controller. Its default stress impact is 8 SU per RPM. Load the warhead in its console, then arm the prepared rocket on the Launch tab.",
+                            "Suministra al menos 32 RPM al Controlador de lanzamiento. Su impacto de estrés inicial es 8 SU por RPM. Carga la ojiva en su consola y arma el cohete preparado en la pestaña Lanzamiento."),
+                    line("A Launch Base works in the open; Silo Concrete is only an optional shell. Apply a new redstone rising edge to start the ten-second countdown. A continuously powered wire cannot launch the next rocket.",
+                            "Una Base de lanzamiento funciona al aire libre; el Hormigón de silo es solo una carcasa opcional. Aplica un nuevo flanco de redstone para iniciar los diez segundos de cuenta atrás. Una señal permanente no lanza el siguiente cohete."),
                     line("Losing rotation, modifying the rocket or blocking the exit cancels the countdown. Loading the world also disarms it: arm again before retrying.",
                             "Perder rotación, modificar el cohete u obstruir la salida cancela la cuenta. Recargar el mundo también lo desarma: vuelve a armar antes de reintentar."),
                     line("The rocket lifts off whole and drops its spent stages as falling debris. Missiles warn no one by themselves: radars do.",
@@ -138,22 +138,39 @@ public final class GuidePonderText {
                             "La Tierra es curva: los vuelos lejanos y bajos quedan bajo el horizonte, así que pon los radares altos. Los radares con el mismo código de cuatro caracteres comparten lo que ven."),
                     line("Set a defended zone on its screen. Its redstone output and klaxon come on for flights predicted to land in it; acknowledging silences only the klaxon.",
                             "Fija una zona defendida en su pantalla. Su salida de redstone y su claxon se encienden con los vuelos que caerán en ella; reconocer solo calla el claxon."),
-                    line("Link a Radar Scope to it with a Control Room Linker for a live scope on the wall, or link it to a Holographic Command Table. Display Links and control room monitors read it too.",
-                            "Enlaza una Pantalla de radar con el enlazador de sala de control para ver su barrido en la pared, o enlázalo a una Mesa holográfica de mando. También lo leen los Display Link y los monitores.")),
-            List.of("missile_radar", "radar_scope", "air_raid_siren"));
+                    line("Link a Radar Scope or a Holographic Command Table with a Tactical Linker for a live scope and coordinated launches. Display Links and control room monitors read it too.",
+                            "Enlaza una Pantalla de radar o una Mesa holográfica de mando con un Enlazador táctico para ver el barrido en directo y coordinar lanzamientos. También lo leen los Display Link y los monitores.")),
+            List.of("missile_radar", "radar_scope", "air_raid_siren", "tactical_linker"));
 
     public static final Scene HOLO_TABLE = new Scene("holo_table", "weapons_holo_table",
             line("The Holographic Command Table", "La mesa holográfica de mando"),
             List.of(
                     line("Place nine Holographic Command Table pieces in a 3×3: they fuse into one table, with its projector under the middle.",
                             "Coloca nueve piezas de Mesa holográfica de mando en un 3×3: se funden en una sola mesa, con el proyector bajo el centro."),
-                    line("With a Control Room Linker, link up to four radars and one silo controller to any piece. The table shows their tracks in 3D over a map of the land.",
-                            "Con el enlazador de sala de control, enlaza hasta cuatro radares y un controlador de silo a cualquier pieza. La mesa muestra sus trazas en 3D sobre un mapa del terreno."),
-                    line("Look at a missile, a silo or a radar for its label. Right-click a missile to pin it for everyone at the table, or the frame to change the zoom.",
-                            "Mira un misil, un silo o un radar para ver su etiqueta. Clic derecho en un misil lo fija para todos los que miran la mesa; en el marco, cambia el zoom."),
-                    line("Sneak and right-click the glass to mark a target, then again on the mark to send the silo there. Right-click bare glass for the table's screen.",
-                            "Agachado, haz clic derecho en el cristal para marcar un blanco y otra vez sobre la marca para enviárselo al silo. Clic derecho en el cristal vacío abre su pantalla.")),
-            List.of("holo_table"));
+                    line("With a Tactical Linker, remember a radar or Launch Controller, then use the table to link it. The table takes four radars and up to sixteen launch controllers.",
+                            "Con un Enlazador táctico, guarda un radar o un Controlador de lanzamiento y úsalo después sobre la mesa para enlazarlo. La mesa admite cuatro radares y hasta dieciséis controladores de lanzamiento."),
+                    line("Choose a linked launcher on the Silos tab, designate its target, and arm it there. Tick several silos to arm a salvo with coordinated delays, or disarm and abort your own flight.",
+                            "Elige un lanzador enlazado en la pestaña Silos, fija su blanco y ármalo allí. Marca varios silos para armar una salva con retardos coordinados, o desarma y aborta tu propio vuelo."),
+                    line("The table never fires a missile: every armed Launch Controller still needs its own new redstone signal. Look at tracks to label or pin them, and right-click bare glass for the screen.",
+                            "La mesa nunca dispara un misil: cada Controlador de lanzamiento armado sigue necesitando su propia señal nueva de redstone. Mira las trazas para ver su etiqueta o fijarlas, y haz clic derecho en el cristal vacío para abrir la pantalla.")),
+            List.of("holo_table", "tactical_linker"));
+
+    public static final Scene LAUNCH_BASE = new Scene("launch_base", "weapons_launch_base",
+            line("Launch Platform and Redstone Launch", "Plataforma de lanzamiento y lanzamiento por redstone"),
+            List.of(
+                    line("Start with a 3×3 square of Launch Base blocks. It is the complete launch site floor; Silo Concrete walls are optional decoration.",
+                            "Empieza con un cuadrado de 3×3 de bloques de Base de lanzamiento. Es el suelo completo del sitio de lanzamiento; las paredes de Hormigón de silo son decoración opcional."),
+                    line("Place the Launch Controller beside any side of the base, drive it with shafts from a Creative Motor or cogs, and put a Silo Fuel Port touching the base with a pipe.",
+                            "Coloca el Controlador de lanzamiento junto a cualquier lado de la base, muévelo con ejes desde un Motor creativo o engranajes y pon un Puerto de combustible de silo tocando la base con una tubería."),
+                    line("Build upward: engine and tanks make stage 1; the next engine starts stage 2. Finish with guidance and a warhead—every engine begins a new stage.",
+                            "Construye hacia arriba: motor y depósitos forman la etapa 1; el siguiente motor inicia la etapa 2. Termina con guiado y una ojiva: cada motor empieza una nueva etapa."),
+                    line("Right-click the controller. Its console cutaway shows the stages; load the warhead there with cores, TNT, or a complete bomb.",
+                            "Haz clic derecho en el controlador. El corte de su consola muestra las etapas; carga allí la ojiva con núcleos, TNT o una bomba completa."),
+                    line("On the Launch tab, arm it. Then flip a lever or press a button beside the controller: only a new redstone signal starts the countdown; one already on does nothing.",
+                            "En la pestaña Lanzamiento, ármalo. Después acciona una palanca o pulsa un botón junto al controlador: solo una señal nueva de redstone inicia la cuenta atrás; una ya encendida no hace nada."),
+                    line("The rocket lifts off in smoke and the Launch Base remains. Build a Silo Concrete shell only when you want the look of a silo.",
+                            "El cohete despega entre humo y la Base de lanzamiento permanece. Construye una carcasa de Hormigón de silo solo si quieres el aspecto de un silo.")),
+            List.of("launch_base", "silo_controller", "silo_fuel_port", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead", "propellant_cartridge"));
 
     // ------------------------------------------------------------------ fuel cycle and fan treatments
 
@@ -518,7 +535,7 @@ public final class GuidePonderText {
             List.of("antimatter_engine", "magnetic_coil", "magnetic_nozzle"));
 
     /** Every guide scene, in the order they are registered. */
-    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, MISSILE, SILO_LAUNCH, RADAR, HOLO_TABLE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
+    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, MISSILE, SILO_LAUNCH, LAUNCH_BASE, RADAR, HOLO_TABLE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
             ACCELERATOR_LINAC, ACCELERATOR_SYNCHROTRON, ANTIMATTER_CONTAINMENT, ANTIMATTER_GENERATOR, ANTIPROTON_INJECTOR,
             ISOTOPES, MAINTENANCE, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO,
             THERMAL_ENGINE, ANTIMATTER_ENGINE);
