@@ -22,7 +22,14 @@ final class LaunchScreenLang {
         entry("select", "Select a section in the cutaway to load it", "Selecciona una sección del cohete para cargarla");
         entry("cell.hint", "Click to inspect and load this section", "Haz clic para inspeccionar y cargar esta sección");
         entry("stage.number", "Stage %s", "Etapa %s");
+        entry("stage.short", "S%s", "S%s");
+        entry("payload.short", "PL", "PL");
+        entry("tooltip.expand", "Hold [Shift] for usage", "Mantén [Mayús] para ver el uso");
+        entry("tooltip.linker_use", "Click a radar or controller, then the table or scope. Sneak-click to unlink; sneak-use in air to clear.",
+                "Haz clic en un radar o controlador y después en la mesa o pantalla. Agáchate y pulsa para desenlazar; úsalo en el aire para borrar.");
         entry("stages.empty", "Build an engine and tanks to see stage figures", "Coloca un motor y depósitos para ver sus datos");
+        entry("stages.estimated", "Stage estimates from tank fill; fix the charge to validate the rocket.",
+                "Estimación según la carga de los depósitos; corrige la ojiva para validar el cohete.");
         entry("table.stage", "Stg.", "Et.");
         entry("table.tanks", "Tanks", "Dep.");
         entry("table.twr", "TWR", "TWR");
@@ -90,5 +97,19 @@ final class LaunchScreenLang {
         entry("standby", "—", "—");
         entry("redstone", "A new redstone signal (lever, button) launches it once armed; a signal already on does not.",
                 "Una señal nueva de redstone (palanca, botón) lo lanza una vez armado; una señal ya encendida no.");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.column.silo", "Silo", "Silo");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.column.state", "State", "Estado");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.column.info", "Info", "Info");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.column.delay", "Delay", "Ret.");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.column.radar", "Radar", "Radar");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.column.network", "Network", "Red");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.column.track", "Track", "Traza");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.column.eta", "ETA", "Llegada");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.row.countdown", "%ss", "%ss");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.row.flight", "%s/%ss", "%s/%ss");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.row.hint", "Info: error, countdown, or target distance (m) / flight time (s).",
+                "Info: error, cuenta atrás o distancia al blanco (m) / tiempo de vuelo (s).");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.target.none", "No target", "Sin blanco");
+        LangEntries.add("holo_table.create_nuclearindustry.screen.selected_target", "%s · %s", "%s · %s");
     }
 }
