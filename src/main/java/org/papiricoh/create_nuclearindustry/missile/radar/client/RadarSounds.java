@@ -33,6 +33,11 @@ public final class RadarSounds {
         ui(RocketFxRegistry.RADAR_NEW_TRACK.get(), 1, 0.6f);
     }
 
+    /** A new track on a command table. */
+    public static void holoBlip() {
+        ui(RocketFxRegistry.HOLO_BLIP.get(), 1, 0.5f);
+    }
+
     public static void acknowledged() {
         ui(RocketFxRegistry.RADAR_ACK.get(), 1, 0.7f);
     }

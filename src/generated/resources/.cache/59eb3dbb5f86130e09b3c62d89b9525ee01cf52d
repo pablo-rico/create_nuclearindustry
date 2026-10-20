@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-20T02:29:58.40533	Loot Tables
+// 1.21.1	2026-10-20T02:43:30.808044	Loot Tables
 eaeb1a44ee986afa29b73bd40bcd6ecd94187e44 data/create_nuclearindustry/loot_table/blocks/accelerator_cryo_feed.json
 64315f2829f1110e8eef7a6c1c5c4d2310efebd1 data/create_nuclearindustry/loot_table/blocks/advanced_redstone_link.json
 13c05f487af479a2691bf45b4d60b1e69d36ac47 data/create_nuclearindustry/loot_table/blocks/air_raid_siren.json
@@ -73,6 +73,7 @@ f9cc7a87bafa47ac193b83add998957226816065 data/create_nuclearindustry/loot_table/
 73e6e71b3490d5b1f01b3dfb82b6c2d0d3b6d23f data/create_nuclearindustry/loot_table/blocks/hand_crank_siren.json
 c43d10630d20ff8fc98097ea62dc566ba5774478 data/create_nuclearindustry/loot_table/blocks/heat_exchanger.json
 881af21800fa3a03d1c961213326ddfec12802ad data/create_nuclearindustry/loot_table/blocks/helium_well.json
+67b1530b86b3009a80d9dec07137ff7396acad51 data/create_nuclearindustry/loot_table/blocks/holo_table.json
 1562656e1d1026c9de2179e3d86718ff4b97a5e5 data/create_nuclearindustry/loot_table/blocks/injection_septum.json
 27e2e43d76e84b1a4a86c384923d5222f6e031a6 data/create_nuclearindustry/loot_table/blocks/irradiation_source.json
 c501c41f6f75f3cdefe2626df73c7d631e457682 data/create_nuclearindustry/loot_table/blocks/large_penning_trap.json

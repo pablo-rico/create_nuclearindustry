@@ -52,6 +52,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     /** Create's reason the rocket cannot be assembled, for the {@code assembly} error. */
     private Component assemblyMessage;
     private double syncedCep;
+    /** How far the rocket standing in it reaches on level ground, blocks; 0 without one. Server side. */
+    private double reach;
     private final MultiblockMessenger messenger = new MultiblockMessenger("silo");
 
     public SiloControllerEntity(BlockPos pos, BlockState state) { super(SiloRegistry.CONTROLLER_ENTITY.get(), pos, state); errorPos = pos; }
@@ -206,6 +208,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         scan = dryRun;
         boolean same = next.equals(rocket);
         rocket = next;
+        if (!same || reach <= 0) reach = MissileFlight.maxRange(design(), MissileConfig.flightParams());
         rocketHeight = next.height();
         if (target == null) { fail("target", worldPosition, State.UNPREPARED); return; }
         if (!powered()) { fail("speed", worldPosition, State.UNPREPARED); return; }
@@ -281,6 +284,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
             if (level.getBlockEntity(pos) instanceof RocketSectionEntity section && section.identity().equals(assembled.identities().get(i))) section.consume();
         }
     }
+    /** How far the rocket standing in it reaches on level ground, blocks, or 0 without a complete rocket (server). */
+    public double reach() { return rocket == null ? 0 : reach; }
     /** The dry run of assembling its rocket from its last validation, or null; for tests and screens. */
     public RocketScan lastScan() { return scan; }
     /** The rocket standing in it as it would fly: its stages and payload, what it captures and its guidance's spread. */

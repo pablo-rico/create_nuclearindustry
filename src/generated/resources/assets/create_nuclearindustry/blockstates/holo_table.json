@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "part=center": {
+      "model": "create_nuclearindustry:block/holo_table_center"
+    },
+    "part=e": {
+      "model": "create_nuclearindustry:block/holo_table_edge",
+      "y": 90
+    },
+    "part=n": {
+      "model": "create_nuclearindustry:block/holo_table_edge"
+    },
+    "part=ne": {
+      "model": "create_nuclearindustry:block/holo_table_corner",
+      "y": 90
+    },
+    "part=nw": {
+      "model": "create_nuclearindustry:block/holo_table_corner"
+    },
+    "part=s": {
+      "model": "create_nuclearindustry:block/holo_table_edge",
+      "y": 180
+    },
+    "part=se": {
+      "model": "create_nuclearindustry:block/holo_table_corner",
+      "y": 180
+    },
+    "part=single": {
+      "model": "create_nuclearindustry:block/holo_table"
+    },
+    "part=sw": {
+      "model": "create_nuclearindustry:block/holo_table_corner",
+      "y": 270
+    },
+    "part=w": {
+      "model": "create_nuclearindustry:block/holo_table_edge",
+      "y": 270
+    }
+  }
+}

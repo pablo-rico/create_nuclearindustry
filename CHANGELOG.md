@@ -890,6 +890,57 @@ below for what changes in existing worlds.
   (`explosive.respectClaims`, on by default).
 
 ### Missiles, radar and command table
+- Silo rockets fly as what you built: the whole column (with anything glued to
+  it, such as fins) lifts off as a Create contraption, and spent stages drop
+  away as tumbling debris that burns where it lands. Extra blocks add mass
+  (`missile.rocket.extraBlockMass`). The rocket must stand clear: glued to the
+  silo, too big or with cargo in its containers, the controller says why.
+- Liquid propellant: a new **Silo Fuel Port** in the silo wall takes **Rocket
+  Fuel** (mixing: coal and hydrogen, heated) and **Liquid Oxygen** (mixing:
+  liquid air, which also gives liquid nitrogen) from pipes and fills the tanks
+  from the bottom up. A tank holds 1000 mB of each; liquid stages push harder
+  and longer than solid cartridges, so a two or three stage liquid rocket
+  reaches several kilometres and comes back fast enough to glow. Tanks mixing
+  cartridges and liquids are refused. Silo walls are a block tag.
+- Guidance tiers: the guidance module steers by a gyroscope (basic), by Create's
+  precision mechanism (inertial) or by a new **Star Tracker** (stellar). The
+  circular error probable grows with range and shrinks with the tier; the
+  controller shows it (`missile.guidance.cepScale`, 0 for perfect aim).
+- The silo controller tells you on arming what is wrong and where, grants the
+  launch advancement and shows its state on goggles.
+- Radars now have a reach: about 3 km for a bare rocket at the minimum speed,
+  more when they turn faster and far more for a burning booster
+  (`missile.radar.baseRange`). The Earth curves (`missile.radar.earthRadius`):
+  a low flight hides beyond a radar's horizon, so put them high up. Radars that
+  share a four-character link code within `missile.radar.networkRange` share
+  what they see. Each radar guards a zone (centre and radius on its screen,
+  everything by default): its redstone output and klaxon come on for flights
+  predicted to come down in it; acknowledging silences the klaxon only.
+- The radar screen is a console: a sweeping scope with range rings, echoes,
+  history trails, predicted impacts and error ellipses over the land, a track
+  table, a detail panel with an altitude profile, zoom, recentring, the link
+  code and the zone. Sounds for pings, new tracks, the klaxon and
+  acknowledgements (client: `radar.sounds`, `radar.phosphor`).
+- The radar dish on top of the radar turns with its sweep. New **Radar Scope**:
+  a wall screen (up to 3×3) linked to a radar with the Control Room Linker,
+  showing its scope live. Radars also work with control room monitors, gauges,
+  alarms and annunciators (tracks and threats) and with Display Links.
+- New **Holographic Command Table**: nine pieces in a 3×3 fuse into one table
+  with a continuous steel and brass frame over legs and a projector. Link up to
+  four radars and a silo with the Control Room Linker (on any piece). Over a
+  map of the land (1 to 16 km across, chosen by itself) it shows every track as
+  a small missile riding its arc, nose along its course, a flame while it
+  boosts and a lone re-entry vehicle as it falls, with where it has flown, where
+  it will fly and where it comes down; the silo and the launch sites as silos,
+  the radars as turning antennas with their coverage, the silo's reach and
+  target, and rings where a weapon goes off.
+- Use it in the world: look at a missile, the silo or a radar to see its label;
+  right-click a missile to pin it (a panel over the table follows it, and the
+  view follows it if it leaves the map); right-click the frame to change the
+  zoom; sneak and right-click the glass to mark a target (green if the silo can
+  take it, red with the reason if not) and do it again on the mark within five
+  seconds to send the silo there. Right-click bare glass for its screen: the
+  map, the tracks, the silo, and a designate mode with ground or air burst.
 
 ### Rocket effects
 - Rockets now have real exhaust plumes: layered cones of flame at each nozzle of

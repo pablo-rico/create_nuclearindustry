@@ -2,6 +2,9 @@ package org.papiricoh.create_nuclearindustry.data;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.tags.BlockTags;
+import org.papiricoh.create_nuclearindustry.missile.holo.HoloPart;
+import org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry;
+import org.papiricoh.create_nuclearindustry.missile.holo.HoloTableBlock;
 import org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry;
 import org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockTags;
@@ -36,6 +39,32 @@ final class MissileDataGen extends AreaDataGen {
         item("propellant_cartridge", "Propellant Cartridge", "Cartucho de propelente");
         item("star_tracker", "Star Tracker", "Rastreador estelar");
         block("radar_scope", "Radar Scope", "Pantalla de radar");
+        HoloLang.add();
+    }
+
+    /** The command table's pieces: a whole table alone, and once formed a corner, an edge or the centre turned to its place. */
+    @Override
+    void blockStates(NuclearBlockStateProvider provider) {
+        net.neoforged.neoforge.client.model.generators.ModelFile single = provider.models().getExistingFile(provider.modLoc("block/holo_table"));
+        net.neoforged.neoforge.client.model.generators.ModelFile corner = provider.models().getExistingFile(provider.modLoc("block/holo_table_corner"));
+        net.neoforged.neoforge.client.model.generators.ModelFile edge = provider.models().getExistingFile(provider.modLoc("block/holo_table_edge"));
+        net.neoforged.neoforge.client.model.generators.ModelFile centre = provider.models().getExistingFile(provider.modLoc("block/holo_table_center"));
+        provider.getVariantBuilder(HoloRegistry.TABLE.get()).forAllStates(state -> {
+            HoloPart part = state.getValue(HoloTableBlock.PART);
+            var builder = net.neoforged.neoforge.client.model.generators.ConfiguredModel.builder();
+            return switch (part) {
+                case SINGLE -> builder.modelFile(single).build();
+                case CENTER -> builder.modelFile(centre).build();
+                case NW -> builder.modelFile(corner).build();
+                case NE -> builder.modelFile(corner).rotationY(90).build();
+                case SE -> builder.modelFile(corner).rotationY(180).build();
+                case SW -> builder.modelFile(corner).rotationY(270).build();
+                case N -> builder.modelFile(edge).build();
+                case E -> builder.modelFile(edge).rotationY(90).build();
+                case S -> builder.modelFile(edge).rotationY(180).build();
+                case W -> builder.modelFile(edge).rotationY(270).build();
+            };
+        });
     }
 
     @Override
@@ -47,7 +76,7 @@ final class MissileDataGen extends AreaDataGen {
     void blockTags(NuclearBlockTagsProvider provider, HolderLookup.Provider lookup) {
         var pickaxe = provider.tagFor(BlockTags.MINEABLE_WITH_PICKAXE);
         var parts = provider.tagFor(MultiblockTags.MULTIBLOCK_PARTS);
-        pickaxe.add(RadarRegistry.RADAR.get(), RadarRegistry.SCOPE.get());
+        pickaxe.add(RadarRegistry.RADAR.get(), RadarRegistry.SCOPE.get(), org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry.TABLE.get());
         for (var block : List.of(SiloRegistry.ENGINE, SiloRegistry.TANK, SiloRegistry.GUIDANCE, SiloRegistry.WARHEAD,
                 SiloRegistry.CONTROLLER, SiloRegistry.WALL, SiloRegistry.FUEL_PORT)) {
             pickaxe.add(block.get());

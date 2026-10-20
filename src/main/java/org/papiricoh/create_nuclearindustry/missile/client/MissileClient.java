@@ -17,11 +17,14 @@ public final class MissileClient implements NuclearFeatureClient {
         org.papiricoh.create_nuclearindustry.missile.rocket.client.RocketClient.init(modEventBus);
         org.papiricoh.create_nuclearindustry.missile.terrain.client.ClientTerrain.init();
         org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.init();
+        org.papiricoh.create_nuclearindustry.missile.holo.client.ClientHolo.init();
     }
 
     @Override
     public void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         org.papiricoh.create_nuclearindustry.missile.rocket.client.RocketClient.registerRenderers(event);
+        event.registerBlockEntityRenderer(org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry.ENTITY.get(),
+                org.papiricoh.create_nuclearindustry.missile.holo.client.HoloTableRenderer::new);
         org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.registerRenderers(event);
         event.registerEntityRenderer(MissileRegistry.MISSILE.get(), MissileRenderer::new);
         event.registerBlockEntityRenderer(MissileRegistry.LAUNCH_PAD_ENTITY.get(), LaunchPadRenderer::new);
@@ -31,6 +34,8 @@ public final class MissileClient implements NuclearFeatureClient {
     public void registerScreens(RegisterMenuScreensEvent event) {
         event.register(org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry.MENU.get(), org.papiricoh.create_nuclearindustry.missile.silo.SiloScreen::new);
         org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.registerScreens(event);
+        event.register(org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry.MENU.get(),
+                org.papiricoh.create_nuclearindustry.missile.holo.client.HoloTableScreen::new);
         event.register(MissileRegistry.LAUNCH_PAD_MENU.get(), LaunchPadScreen::new);
     }
 }

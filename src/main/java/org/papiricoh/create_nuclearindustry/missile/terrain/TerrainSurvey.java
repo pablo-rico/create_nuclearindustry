@@ -165,9 +165,9 @@ public final class TerrainSurvey {
         // A superflat world has a sea level but no sea: its ground may lie far below it.
         boolean flat = gen instanceof FlatLevelSource;
         byte[] data = new byte[TerrainTile.BYTES];
-        // Coarse tiles span whole continents: only every second (or fourth) column is asked of the generator, the rest are
+        // Coarse tiles span whole regions: only every second (or fourth) column is asked of the generator, the rest are
         // interpolated between them, which a view that wide cannot tell apart and which is four (or sixteen) times quicker.
-        int stride = lod >= 3 ? 4 : lod == 2 ? 2 : 1;
+        int stride = lod >= 3 ? 4 : lod >= 1 ? 2 : 1;
         int[] heights = new int[TerrainTile.SAMPLES];
         TerrainKind[] kinds = new TerrainKind[TerrainTile.SAMPLES];
         for (int j = 0; j < TerrainTile.SIDE; j += stride) {
@@ -234,7 +234,8 @@ public final class TerrainSurvey {
 
     private static synchronized ExecutorService worker() {
         if (worker == null || worker.isShutdown()) {
-            worker = Executors.newSingleThreadExecutor(r -> {
+            // Two threads: the generator's noise is safe to read concurrently, and a table changing its view asks for a dozen tiles.
+            worker = Executors.newFixedThreadPool(2, r -> {
                 Thread t = new Thread(r, "Create: Nuclear Industry terrain survey");
                 t.setDaemon(true);
                 t.setPriority(Thread.MIN_PRIORITY);

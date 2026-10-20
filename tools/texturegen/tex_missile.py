@@ -7,7 +7,7 @@ Register block textures with ``@block``, items with ``@item`` and screens with `
 import math
 
 from blocks import block  # noqa: F401
-from common import bolt, flange
+from common import bolt, casing, flange
 from gui import gui
 from items import item, mask_from, sculpt
 from palette import BRASS, CONCRETE, CYAN, DANGER, DARK, IN_ACCENT, RADIUM, STEEL, WARN, WHITE
@@ -214,6 +214,76 @@ def radar_scope_side():
     t = _olive_casing(976)
     for y in range(3, 13, 2):
         t.hline(4, 11, y, OLIVE[1])
+    return t
+
+
+# ======================================================================================
+# the holographic command table: a dark console whose top is a projection glass
+# ======================================================================================
+
+HOLO = Ramp("#020a0c", "#05161a", "#0a242a", "#10363e", "#1a4e58", "#2a7480", "#5ad8e8")
+
+
+@block("holo_table_glass")
+def holo_table_glass():
+    """Projection glass: dark blue-black, a faint cyan lattice that runs on across the pieces without a seam."""
+    t = Tex(seed=980)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 980, 16, 16, octaves=2, scale=3.0)
+            t.set(x, y, mix(HOLO[1], HOLO[2], 0.35 + 0.35 * n))
+    for i in (0, 8):
+        for k in range(16):
+            t.set(i, k, mix(t.get(i, k), HOLO[4], 0.28))
+            t.set(k, i, mix(t.get(k, i), HOLO[4], 0.28))
+    return t
+
+
+@block("holo_table_rim")
+def holo_table_rim():
+    """The frame round the glass: dark steel with a brass lip along it."""
+    t = Tex(seed=982)
+    brushed(t, DARK, base=3.2, amp=0.6, seed=982)
+    t.hline(0, 15, 0, DARK[5])
+    t.hline(0, 15, 1, BRASS[4])
+    t.hline(0, 15, 2, BRASS[2])
+    t.hline(0, 15, 13, BRASS[3])
+    t.hline(0, 15, 14, BRASS[1])
+    t.hline(0, 15, 15, DARK[0])
+    for x in (2, 13):
+        t.set(x, 7, DARK[6])
+        t.set(x, 8, DARK[1])
+    return t
+
+
+@block("holo_table_casing")
+def holo_table_casing():
+    """The console's panels, legs and stretchers: dark industrial casing with a cyan status slot."""
+    t = Tex(seed=981)
+    casing(t, DARK, seed=981, base=2.6, amp=0.6)
+    t.rect(6, 7, 9, 8, HOLO[3])
+    outline(t, 5, 6, 10, 9, DARK[0])
+    t.set(7, 7, HOLO[6])
+    t.set(8, 7, HOLO[5])
+    return t
+
+
+@block("holo_table_lens")
+def holo_table_lens():
+    """The projector's emitter: rings of cyan glass round a bright core."""
+    t = Tex(seed=983)
+    for y in range(16):
+        for x in range(16):
+            d = math.hypot(x - 7.5, y - 7.5)
+            if d < 2:
+                c = HOLO[6]
+            elif d < 4:
+                c = mix(HOLO[5], HOLO[6], 0.4 if int(d * 2) % 2 else 0.0)
+            elif d < 6:
+                c = mix(HOLO[3], HOLO[5], 0.5 if int(d * 2) % 2 else 0.0)
+            else:
+                c = BRASS[2] if d < 7.2 else DARK[1]
+            t.set(x, y, c)
     return t
 
 

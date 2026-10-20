@@ -147,6 +147,7 @@
     "create_nuclearindustry:silo_controller",
     "create_nuclearindustry:missile_radar",
     "create_nuclearindustry:radar_scope",
+    "create_nuclearindustry:holo_table",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false

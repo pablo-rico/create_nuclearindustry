@@ -150,6 +150,7 @@
     "create_nuclearindustry:silo_controller",
     "create_nuclearindustry:missile_radar",
     "create_nuclearindustry:radar_scope",
+    "create_nuclearindustry:holo_table",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false
@@ -166,6 +167,7 @@
     "create_nuclearindustry:trinitite",
     "create_nuclearindustry:missile_radar",
     "create_nuclearindustry:radar_scope",
+    "create_nuclearindustry:holo_table",
     "create_nuclearindustry:rocket_engine",
     "create_nuclearindustry:rocket_tank",
     "create_nuclearindustry:rocket_guidance",
