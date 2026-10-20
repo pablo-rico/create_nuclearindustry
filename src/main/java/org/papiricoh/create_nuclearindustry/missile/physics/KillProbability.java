@@ -28,6 +28,19 @@ public final class KillProbability {
 
     /** The chance, 0 to 1. */
     public static double of(Inputs in) {
-        return Math.max(0, Math.min(in.maxPk(), in.basePk() * in.pkScale()));
+        double phase = switch (in.phaseAtArrival()) {
+            case BOOST, IMPACT -> 0;
+            case MIDCOURSE, REENTRY -> 1;
+            case TERMINAL -> in.terminalFactor();
+        };
+        double geometry = 0.55 + 0.45 * clamp(in.closingCos(), 0, 1);
+        double range = clamp(in.rangeFraction(), 0, 1);
+        double radar = in.radarsTracking() <= 0 ? 0 : in.radarsTracking() == 1 ? 0.85 : in.radarsTracking() == 2 ? 0.95 : 1;
+        double age = 0.7 + 0.075 * clamp(in.trackAgeSeconds(), 0, 4);
+        return clamp(in.basePk() * phase * geometry * (1 - 0.25 * range * range) * radar * age
+                * in.seekerFactor() * in.pkScale(), 0, clamp(in.maxPk(), 0, 1));
+    }
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 }

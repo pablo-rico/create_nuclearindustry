@@ -6,5 +6,7 @@ final class DefenseCoreLang {
     }
 
     static void add() {
+        LangEntries.add("defense.create_nuclearindustry.intercept", "Missile intercepted", "Misil interceptado");
+        LangEntries.add("defense.create_nuclearindustry.interceptor_miss", "Interceptor missed", "El interceptor ha fallado");
     }
 }

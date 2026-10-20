@@ -16,7 +16,10 @@ public final class InterceptorDesigns {
 
     /** A one-stage round that gains {@code deltaV} blocks per tick and starts at {@code acceleration} blocks per tick squared. */
     public static MissileDesign battery(double deltaV, double acceleration) {
-        return new MissileDesign(List.of(new MissileDesign.Stage(0.5, 1.0, acceleration * 1.6, 6.0)), 0.1, 0);
+        double empty = 0.6;
+        double propellant = empty * Math.expm1(Math.max(0, deltaV) / 6.0);
+        return new MissileDesign(List.of(new MissileDesign.Stage(0.5, propellant,
+                acceleration * (empty + propellant), 6.0)), 0.1, 0);
     }
 
     /** {@code rocket} with its warhead swapped for a kill vehicle of {@code killVehicleMass}. */

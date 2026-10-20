@@ -2265,6 +2265,8 @@
   "death.attack.create_nuclearindustry.plutonium_burn.player": "%1$s was burnt by plutonium while fighting %2$s",
   "death.attack.create_nuclearindustry.radiation": "%1$s died of radiation sickness",
   "death.attack.create_nuclearindustry.radiation.player": "%1$s died of radiation sickness while fighting %2$s",
+  "defense.create_nuclearindustry.intercept": "Missile intercepted",
+  "defense.create_nuclearindustry.interceptor_miss": "Interceptor missed",
   "effect.create_nuclearindustry.isotope_tracer": "Isotope Tracer",
   "effect.create_nuclearindustry.radiation_purge": "Radiation Purge",
   "effect.create_nuclearindustry.radiation_sickness": "Radiation Sickness",

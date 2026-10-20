@@ -140,6 +140,10 @@ public final class MissileFlight {
             dropped = dropStage();
             if (stage >= design.stages().size()) {
                 cutOff(false, params);
+                if (timed()) {
+                    burnoutTick--;
+                    fallTicks = Math.max(0, arrivalTick - burnoutTick);
+                }
                 return coastAfterBurnout(dropped, params);
             }
         }

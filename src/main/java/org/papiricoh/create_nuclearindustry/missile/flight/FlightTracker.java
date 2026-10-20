@@ -28,6 +28,11 @@ import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
 import org.papiricoh.create_nuclearindustry.missile.physics.RocketAttitude;
 import org.papiricoh.create_nuclearindustry.missile.rocket.RocketContraptionEntity;
 
+import org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig;
+import org.papiricoh.create_nuclearindustry.missile.physics.TargetArc;
+import org.papiricoh.create_nuclearindustry.missile.physics.V3;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -51,6 +56,10 @@ public final class FlightTracker extends SavedData {
     private final Map<UUID, Flight> flights = new LinkedHashMap<>();
     // Permanent receipts: replaying a silo transaction must not relaunch an already impacted missile.
     private final java.util.Set<UUID> launchedIds = new java.util.HashSet<>();
+
+    private record Debris(Flight flight, long due, Vec3 point, Vec3 velocity, int index) {}
+    private final List<Debris> debris = new ArrayList<>();
+    private long steps;
 
     public boolean hasLaunched(UUID id) { return launchedIds.contains(id); }
 
@@ -185,7 +194,7 @@ public final class FlightTracker extends SavedData {
     public static void onLevelTick(LevelTickEvent.Post event) {
         if (event.getLevel() instanceof ServerLevel level) {
             FlightTracker tracker = getIfPresent(level);
-            if (tracker != null && !tracker.flights.isEmpty()) {
+            if (tracker != null && (!tracker.flights.isEmpty() || !tracker.debris.isEmpty())) {
                 tracker.tick(level);
             }
         }
@@ -194,16 +203,25 @@ public final class FlightTracker extends SavedData {
     /** Flies everything one tick on. Public for tests and benchmarks; the level ticks it itself. */
     public void tick(ServerLevel level) {
         BallisticModel.Params params = MissileConfig.flightParams();
+        steps++;
+        List<Flight> arrived = new ArrayList<>();
         for (Flight flight : List.copyOf(flights.values())) {
             // Taken out earlier this tick (an interceptor's kill): it must not fly on, or land.
             if (!flights.containsKey(flight.id())) continue;
             Vec3 from = flight.position();
             MissileFlight.Step step = flight.flight().step(params);
             Vec3 impact = step.impact() ? flight.position() : null;
-            if (impact == null && !flight.flight().rising(params)) {
+            boolean interceptor = flight.kind() == Flight.Kind.INTERCEPTOR;
+            if (impact == null && !flight.flight().rising(params) && (!interceptor || flight.flight().tick() > 10)) {
                 impact = groundHit(level, from, flight.position());
             }
             fireStepEvents(level, flight, step, params);
+            if (interceptor) {
+                if (step.impact()) arrived.add(flight);
+                else if (impact != null) remove(level, flight, FlightFxEvent.INTERCEPTOR_MISS, impact, flight.velocity());
+                else showPuppet(level, flight);
+                continue;
+            }
             if (impact != null) {
                 flights.remove(flight.id());
                 FlightEvents.fire(level, flight, FlightFxEvent.IMPACT, flight.flight().stage(), impact, flight.velocity());
@@ -214,7 +232,62 @@ public final class FlightTracker extends SavedData {
             forceImpactChunk(level, flight, params);
             showPuppet(level, flight);
         }
+        for (Flight interceptor : arrived) resolve(level, interceptor, params);
+        for (Debris piece : List.copyOf(debris)) {
+            if (piece.due() > steps) continue;
+            FlightEvents.fireDebris(level, piece.flight(), FlightFxEvent.DEBRIS_IMPACT, piece.index(), piece.point(), piece.velocity());
+            debris.remove(piece);
+        }
         FlightFxBroadcaster.tick(level, flights.values());
+        setDirty();
+    }
+
+    /** Resolves only after every target has advanced, independent of insertion order. */
+    private void resolve(ServerLevel level, Flight interceptor, BallisticModel.Params params) {
+        Flight.Intercept intercept = interceptor.intercept();
+        Flight target = intercept == null ? null : flights.get(intercept.target());
+        if (target == null || target.kind() != Flight.Kind.MISSILE || target.flight().impacted()) {
+            remove(level, interceptor, FlightFxEvent.INTERCEPTOR_MISS, interceptor.position(), interceptor.velocity());
+            return;
+        }
+        TargetArc targetArc = TargetArc.of(target.flight(), params.gravity());
+        double distance = Double.POSITIVE_INFINITY;
+        if (targetArc != null) {
+            for (int offset = -1; offset <= 1; offset++) {
+                MissileFlight flight = interceptor.flight();
+                V3 point = flight.burnedOut()
+                        ? BallisticModel.position(flight.burnoutPosition(), flight.burnoutVelocity(),
+                                flight.tick() - flight.burnoutTick() + offset, params.gravity())
+                        : BallisticModel.position(flight.position(), flight.velocity(), offset, params.gravity());
+                distance = Math.min(distance, point.distance(targetArc.at(offset)));
+            }
+        }
+        Random random = new Random(intercept.seed());
+        if (distance <= DefenseConfig.fuseRadius && random.nextDouble() < intercept.pk()) {
+            Vec3 point = Flight.vec(intercept.point());
+            Vec3 velocity = target.velocity();
+            remove(level, target, FlightFxEvent.INTERCEPT, point, velocity);
+            BlockPos block = BlockPos.containing(point);
+            if (DefenseConfig.killExplosionPower > 0 && !level.isOutsideBuildHeight(block) && level.isLoaded(block))
+                level.explode(null, point.x, point.y, point.z, (float) DefenseConfig.killExplosionPower,
+                        net.minecraft.world.level.Level.ExplosionInteraction.TNT);
+            if (DefenseConfig.debris && targetArc != null) {
+                V3 ground = targetArc.at(targetArc.remaining());
+                int count = 2 + random.nextInt(2);
+                for (int i = 0; i < count; i++) {
+                    Vec3 scattered = Flight.vec(ground).add(random.nextGaussian() * 12, 0, random.nextGaussian() * 12);
+                    debris.add(new Debris(target, steps + Math.max(1, (long) Math.ceil(targetArc.remaining())) + i * 3L,
+                            scattered, velocity.scale(0.5), i));
+                }
+            }
+            remove(level, interceptor);
+        } else remove(level, interceptor, FlightFxEvent.INTERCEPTOR_MISS, interceptor.position(), interceptor.velocity());
+    }
+
+    private void remove(ServerLevel level, Flight flight, FlightFxEvent event, Vec3 point, Vec3 velocity) {
+        if (flights.remove(flight.id()) == null) return;
+        FlightEvents.fire(level, flight, event, flight.flight().stage(), point, velocity);
+        release(level, flight);
         setDirty();
     }
 
@@ -230,6 +303,7 @@ public final class FlightTracker extends SavedData {
             FlightEvents.fire(level, flight, FlightFxEvent.BURNOUT, f.stage());
             if (f.stage() < stages) FlightEvents.fire(level, flight, FlightFxEvent.PAYLOAD_SEPARATION, f.stage());
         }
+        if (flight.kind() == Flight.Kind.INTERCEPTOR) return;
         MissileFlight.Phase phase = f.phase(params);
         // Re-entry is coming back down into the air, not burning out below its top on the way up.
         boolean inAir = f.burnedOut() && f.velocity().y() < 0 && f.position().y() <= params.atmosphereTop();

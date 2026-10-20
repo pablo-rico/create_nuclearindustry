@@ -2265,6 +2265,8 @@
   "death.attack.create_nuclearindustry.plutonium_burn.player": "%1$s se quemó con plutonio mientras luchaba contra %2$s",
   "death.attack.create_nuclearindustry.radiation": "%1$s murió por irradiación",
   "death.attack.create_nuclearindustry.radiation.player": "%1$s murió por irradiación mientras luchaba contra %2$s",
+  "defense.create_nuclearindustry.intercept": "Misil interceptado",
+  "defense.create_nuclearindustry.interceptor_miss": "El interceptor ha fallado",
   "effect.create_nuclearindustry.isotope_tracer": "Trazador isotópico",
   "effect.create_nuclearindustry.radiation_purge": "Purga de radiación",
   "effect.create_nuclearindustry.radiation_sickness": "Síndrome de irradiación",
