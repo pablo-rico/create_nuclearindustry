@@ -144,6 +144,10 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
+    // -Pcreate_only=true runs the dev client, server and game tests with Create alone, without any optional mod, as many
+    // players will: it checks no integration loads classes of a mod that is not there.
+    def createOnly = project.findProperty('create_only') == 'true'
+
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}") {
         exclude group: 'com.tterrag.registrate', module: 'Registrate'
         exclude group: 'maven.modrinth', module: 'farmers-delight'
@@ -155,6 +159,8 @@ dependencies {
         exclude group: 'top.theillusivec4.curios', module: 'curios-neoforge'
         exclude group: 'cc.tweaked', module: 'cc-tweaked-1.21.1-forge'
         exclude group: 'dev.architectury', module: 'architectury-neoforge'
+        // Create brings JEI along at runtime.
+        if (createOnly) exclude group: 'mezz.jei'
     }
     compileOnly("net.createmod.ponder:ponder-neoforge:1.0.82+mc1.21.1")
     runtimeOnly("net.createmod.ponder:ponder-neoforge:1.0.82+mc1.21.1")
@@ -163,16 +169,16 @@ dependencies {
     implementation("io.github.llamalad7:mixinextras-neoforge:0.4.1")
 
     compileOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
-    runtimeOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
+    if (!createOnly) runtimeOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
 
     compileOnly("com.rbasamoyai:createbigcannons:${create_big_cannons_version}+mc.${minecraft_version}") {
         transitive = false
     }
-    runtimeOnly("com.rbasamoyai:createbigcannons:${create_big_cannons_version}+mc.${minecraft_version}") {
+    if (!createOnly) runtimeOnly("com.rbasamoyai:createbigcannons:${create_big_cannons_version}+mc.${minecraft_version}") {
         transitive = false
     }
     compileOnly("com.rbasamoyai:ritchiesprojectilelib:${ritchies_projectile_lib_version}+mc.${minecraft_version}-neoforge")
-    runtimeOnly("com.rbasamoyai:ritchiesprojectilelib:${ritchies_projectile_lib_version}+mc.${minecraft_version}-neoforge")
+    if (!createOnly) runtimeOnly("com.rbasamoyai:ritchiesprojectilelib:${ritchies_projectile_lib_version}+mc.${minecraft_version}-neoforge")
 
     // Sable / Create Aeronautics: optional. We compile against Sable's API only; the dev runtime carries the full
     // Aeronautics stack unless -Pno_aeronautics=true, which checks that the mod still runs without it.
@@ -180,7 +186,7 @@ dependencies {
     compileOnly("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sable_companion_version}") { transitive = false }
     // Sable's force groups are Veil registry objects (Veil comes inside Sable's jar at runtime).
     compileOnly("foundry.veil:veil-neoforge-${minecraft_version}:${veil_version}") { transitive = false }
-    if (project.findProperty('no_aeronautics') != 'true') {
+    if (project.findProperty('no_aeronautics') != 'true' && !createOnly) {
         runtimeOnly("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:${sable_version}") { transitive = false }
         runtimeOnly("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${aeronautics_version}") { transitive = false }
         runtimeOnly("dev.eriksonn.aeronautics:aeronautics-neoforge-${minecraft_version}:${aeronautics_version}") { transitive = false }
