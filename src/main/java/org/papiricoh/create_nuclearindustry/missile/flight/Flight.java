@@ -27,7 +27,9 @@ public final class Flight {
     public enum Kind {
         MISSILE,
         /** Sent to meet a missile in the air; never detonates and is never shown on radar. */
-        INTERCEPTOR;
+        INTERCEPTOR,
+        /** A launch vehicle climbing to put its {@link Flight#satellite()} in orbit; radars see it, it never detonates. */
+        SATELLITE;
 
         static Kind byName(String name) {
             try {
@@ -92,6 +94,9 @@ public final class Flight {
     /** What an interceptor is sent to meet; null for a missile. */
     @Nullable
     private final Intercept intercept;
+    /** What a launch vehicle puts in orbit when it gets there; null for anything else. */
+    @Nullable
+    private final org.papiricoh.create_nuclearindustry.missile.orbit.Satellite satellite;
     /** The phase it was in last tick, to tell when it changes; not saved. */
     @Nullable
     MissileFlight.Phase lastPhase;
@@ -119,7 +124,15 @@ public final class Flight {
     Flight(UUID id, Kind kind, MissileFlight flight, Warhead warhead, BlockPos target, @Nullable UUID owner,
            long launchedAt, @Nullable BlockPos origin, List<String> sections, List<Integer> stageStarts,
            RocketShape shape, @Nullable CompoundTag cargo, float heading, @Nullable Intercept intercept) {
+        this(id, kind, flight, warhead, target, owner, launchedAt, origin, sections, stageStarts, shape, cargo, heading, intercept, null);
+    }
+
+    Flight(UUID id, Kind kind, MissileFlight flight, Warhead warhead, BlockPos target, @Nullable UUID owner,
+           long launchedAt, @Nullable BlockPos origin, List<String> sections, List<Integer> stageStarts,
+           RocketShape shape, @Nullable CompoundTag cargo, float heading, @Nullable Intercept intercept,
+           @Nullable org.papiricoh.create_nuclearindustry.missile.orbit.Satellite satellite) {
         this.intercept = intercept;
+        this.satellite = satellite;
         this.shape = shape;
         this.cargo = cargo;
         this.heading = heading;
@@ -138,6 +151,8 @@ public final class Flight {
     @Nullable public BlockPos origin() { return origin; }
     /** What an interceptor is sent to meet; null for a missile. */
     @Nullable public Intercept intercept() { return intercept; }
+    /** What a launch vehicle puts in orbit when it gets there; null for anything else. */
+    @Nullable public org.papiricoh.create_nuclearindustry.missile.orbit.Satellite satellite() { return satellite; }
     public RocketShape shape() { return shape; }
     @Nullable public CompoundTag cargo() { return cargo; }
     public float heading() { return heading; }
@@ -210,6 +225,7 @@ public final class Flight {
         CompoundTag tag = new CompoundTag();
         tag.putInt("FormatVersion", 3);
         if (intercept != null) tag.put("Intercept", intercept.save());
+        if (satellite != null) tag.put("Satellite", satellite.save());
         if (flight.timed()) tag.putInt("ArrivalTick", flight.arrivalTick());
         if (!Double.isNaN(flight.rise())) tag.putDouble("Rise", flight.rise());
         if (origin != null) tag.putLong("Origin", origin.asLong());
@@ -266,7 +282,8 @@ public final class Flight {
                 tag.contains("Origin", Tag.TAG_LONG) ? BlockPos.of(tag.getLong("Origin")) : null, sections, starts, shape,
                 tag.contains("Cargo", Tag.TAG_COMPOUND) ? tag.getCompound("Cargo") : null,
                 tag.contains("Heading", Tag.TAG_FLOAT) ? tag.getFloat("Heading") : headingOf(flight),
-                tag.contains("Intercept", Tag.TAG_COMPOUND) ? Intercept.load(tag.getCompound("Intercept")) : null);
+                tag.contains("Intercept", Tag.TAG_COMPOUND) ? Intercept.load(tag.getCompound("Intercept")) : null,
+                tag.contains("Satellite", Tag.TAG_COMPOUND) ? org.papiricoh.create_nuclearindustry.missile.orbit.Satellite.load(tag.getCompound("Satellite")) : null);
         loaded.forcedChunk = tag.contains("ForcedChunk") ? tag.getLong("ForcedChunk") : NO_CHUNK;
         return loaded;
     }

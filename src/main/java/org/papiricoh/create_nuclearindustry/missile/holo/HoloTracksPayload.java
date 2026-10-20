@@ -16,13 +16,21 @@ import java.util.UUID;
 /**
  * What a command table shows, sent every half second to players near it: the tracks of its linked radars (each with up to
  * {@link #HISTORY} plotted points, positions relative to the table), the radars' own places and reach, up to sixteen silos, and its
- * missile defence: the launchers that fire interceptors, the interceptors in flight and how it defends. Bounded:
- * {@link #MAX_TRACKS} tracks, {@link #MAX_RADARS} radars, {@link #MAX_SHOOTERS} launchers, {@link #MAX_INTERCEPTS} interceptors.
+ * missile defence: the launchers that fire interceptors, the interceptors in flight and how it defends; and its satellites
+ * ({@link Orbital}). Bounded: {@link #MAX_TRACKS} tracks, {@link #MAX_RADARS} radars, {@link #MAX_SHOOTERS} launchers,
+ * {@link #MAX_INTERCEPTS} interceptors, {@link #MAX_STATIONS} ground stations, {@link #MAX_SATELLITES} satellites.
  */
 public record HoloTracksPayload(BlockPos centre, long sample, float gravity, List<Track> tracks, List<Radar> radars, List<Silo> silos, Board board,
-                                List<Shooter> shooters, List<Intercept> intercepts, Defense defense)
+                                List<Shooter> shooters, List<Intercept> intercepts, Defense defense, Orbital orbital)
         implements CustomPacketPayload {
-    public static final int MAX_TRACKS = 32, HISTORY = 24, MAX_RADARS = 4, MAX_SHOOTERS = 24, MAX_INTERCEPTS = 32;
+    public static final int MAX_TRACKS = 32, HISTORY = 24, MAX_RADARS = 4, MAX_SHOOTERS = 24, MAX_INTERCEPTS = 32, MAX_STATIONS = 2,
+            MAX_SATELLITES = 32;
+
+    /** A picture without satellites. */
+    public HoloTracksPayload(BlockPos centre, long sample, float gravity, List<Track> tracks, List<Radar> radars, List<Silo> silos, Board board,
+                             List<Shooter> shooters, List<Intercept> intercepts, Defense defense) {
+        this(centre, sample, gravity, tracks, radars, silos, board, shooters, intercepts, defense, Orbital.NONE);
+    }
 
     /** A picture without missile defence. */
     public HoloTracksPayload(BlockPos centre, long sample, float gravity, List<Track> tracks, List<Radar> radars, List<Silo> silos, Board board) {
@@ -98,6 +106,44 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
     /** How the table defends: automatically or not, its doctrine (ordinal) and its zone, relative to it (radius 0 the default). */
     public record Defense(boolean auto, byte doctrine, int zoneDx, int zoneDz, int zoneRadius) {
         public static final Defense OFF = new Defense(false, (byte) 0, 0, 0, 0);
+    }
+
+    /**
+     * The table's satellites: its network's code (from its ground stations; empty without one), the stations, the satellites it
+     * knows of (its own, then the foreign ones its radars have catalogued) and its launch controllers topped by a satellite fairing.
+     */
+    public record Orbital(String code, List<Station> stations, List<Sat> satellites, List<SatLauncher> launchers) {
+        public static final Orbital NONE = new Orbital("", List.of(), List.of(), List.of());
+
+        public Orbital {
+            stations = List.copyOf(stations);
+            satellites = List.copyOf(satellites);
+            launchers = List.copyOf(launchers);
+        }
+    }
+
+    /** A linked ground station: where (relative to the table, y absolute), whether it works and its network's code. */
+    public record Station(int dx, int dy, int dz, boolean online, String code) {
+    }
+
+    /**
+     * A satellite the table knows of, where it is at the picture's sample tick: relative to the table (y absolute), its ground
+     * velocity, how far it sees, the ticks until it next sees the table (0 now, -1 not within the look-ahead), the ticks left
+     * before it decays (-1 for good) and the chance an interceptor on its way kills it (-1 none).
+     *
+     * @param kind  a {@code SatelliteKind} ordinal
+     * @param orbit an {@code OrbitType} ordinal
+     */
+    public record Sat(UUID id, String designation, byte kind, byte orbit, boolean own, float x, float y, float z, float vx, float vz,
+                      float footprint, int nextPass, int life, float pk) {
+    }
+
+    /**
+     * A linked launch controller topped by a satellite fairing: {@code link} its index in the silo list, the satellite it carries
+     * (a {@code SatelliteKind} ordinal, -1 an empty fairing), the highest orbit it reaches (an {@code OrbitType} ordinal, -1 none)
+     * and its state (a {@code State} ordinal).
+     */
+    public record SatLauncher(byte link, byte kind, byte reach, byte state) {
     }
 
     @Nullable
@@ -232,6 +278,27 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
         Defense d = p.defense;
         b.writeBoolean(d.auto); b.writeByte(d.doctrine);
         b.writeVarInt(d.zoneDx); b.writeVarInt(d.zoneDz); b.writeVarInt(d.zoneRadius);
+        Orbital o = p.orbital;
+        b.writeUtf(o.code, 8);
+        int stations = Math.min(MAX_STATIONS, o.stations.size());
+        b.writeVarInt(stations);
+        for (int i = 0; i < stations; i++) {
+            Station st = o.stations.get(i);
+            b.writeVarInt(st.dx); b.writeVarInt(st.dy); b.writeVarInt(st.dz); b.writeBoolean(st.online); b.writeUtf(st.code, 8);
+        }
+        int sats = Math.min(MAX_SATELLITES, o.satellites.size());
+        b.writeVarInt(sats);
+        for (int i = 0; i < sats; i++) {
+            Sat s = o.satellites.get(i);
+            UUIDUtil.STREAM_CODEC.encode(b, s.id);
+            b.writeUtf(s.designation, 12);
+            b.writeByte(s.kind); b.writeByte(s.orbit); b.writeBoolean(s.own);
+            for (float f : new float[]{s.x, s.y, s.z, s.vx, s.vz, s.footprint}) b.writeFloat(f);
+            b.writeVarInt(s.nextPass); b.writeVarInt(s.life); b.writeFloat(s.pk);
+        }
+        if (o.launchers.size() > HoloTableBlockEntity.MAX_SILOS) throw new IllegalArgumentException("Too many holo satellite launchers");
+        b.writeVarInt(o.launchers.size());
+        for (SatLauncher l : o.launchers) { b.writeByte(l.link); b.writeByte(l.kind); b.writeByte(l.reach); b.writeByte(l.state); }
     }
 
     private static HoloTracksPayload read(RegistryFriendlyByteBuf b) {
@@ -300,8 +367,34 @@ public record HoloTracksPayload(BlockPos centre, long sample, float gravity, Lis
             intercepts.add(new Intercept(interceptor, target, f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], b.readVarInt(), b.readFloat()));
         }
         Defense defense = new Defense(b.readBoolean(), b.readByte(), b.readVarInt(), b.readVarInt(), b.readVarInt());
+        String code = b.readUtf(8);
+        int stationCount = b.readVarInt();
+        if (stationCount < 0 || stationCount > MAX_STATIONS) throw new IllegalArgumentException("Too many holo stations");
+        List<Station> stations = new ArrayList<>(stationCount);
+        for (int i = 0; i < stationCount; i++) stations.add(new Station(b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readBoolean(), b.readUtf(8)));
+        int satCount = b.readVarInt();
+        if (satCount < 0 || satCount > MAX_SATELLITES) throw new IllegalArgumentException("Too many holo satellites");
+        List<Sat> sats = new ArrayList<>(satCount);
+        for (int i = 0; i < satCount; i++) {
+            UUID id = UUIDUtil.STREAM_CODEC.decode(b);
+            String designation = b.readUtf(12);
+            byte kind = b.readByte(), orbit = b.readByte();
+            boolean own = b.readBoolean();
+            float[] f = new float[6];
+            for (int k = 0; k < f.length; k++) f[k] = b.readFloat();
+            sats.add(new Sat(id, designation, kind, orbit, own, f[0], f[1], f[2], f[3], f[4], f[5], b.readVarInt(), b.readVarInt(), b.readFloat()));
+        }
+        int launcherCount = b.readVarInt();
+        if (launcherCount < 0 || launcherCount > HoloTableBlockEntity.MAX_SILOS) throw new IllegalArgumentException("Too many holo satellite launchers");
+        List<SatLauncher> launchers = new ArrayList<>(launcherCount);
+        for (int i = 0; i < launcherCount; i++) {
+            SatLauncher l = new SatLauncher(b.readByte(), b.readByte(), b.readByte(), b.readByte());
+            if (l.link < 0 || l.link >= siloCount) throw new IllegalArgumentException("Unknown holo satellite launcher");
+            launchers.add(l);
+        }
         return new HoloTracksPayload(centre, sample, gravity, List.copyOf(tracks), List.copyOf(radars), List.copyOf(silos),
-                new Board(view, ox, oz, zoom, selectedSilo, selected, mark), List.copyOf(shooters), List.copyOf(intercepts), defense);
+                new Board(view, ox, oz, zoom, selectedSilo, selected, mark), List.copyOf(shooters), List.copyOf(intercepts), defense,
+                new Orbital(code, stations, sats, launchers));
     }
 
     @Override

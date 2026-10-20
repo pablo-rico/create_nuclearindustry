@@ -84,6 +84,7 @@
     "create_nuclearindustry:silo_wall",
     "create_nuclearindustry:silo_fuel_port",
     "create_nuclearindustry:launch_base",
-    "create_nuclearindustry:rocket_kill_vehicle"
+    "create_nuclearindustry:rocket_kill_vehicle",
+    "create_nuclearindustry:rocket_satellite_fairing"
   ]
 }

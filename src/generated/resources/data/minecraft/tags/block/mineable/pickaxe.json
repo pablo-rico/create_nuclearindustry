@@ -146,6 +146,7 @@
     "create_nuclearindustry:rocket_guidance",
     "create_nuclearindustry:rocket_warhead",
     "create_nuclearindustry:rocket_kill_vehicle",
+    "create_nuclearindustry:rocket_satellite_fairing",
     "create_nuclearindustry:silo_wall",
     "create_nuclearindustry:silo_fuel_port",
     "create_nuclearindustry:launch_base",
@@ -155,6 +156,7 @@
     "create_nuclearindustry:holo_table",
     "create_nuclearindustry:interceptor_battery",
     "create_nuclearindustry:interceptor_battery_part",
+    "create_nuclearindustry:ground_station",
     {
       "id": "create_nuclearindustry:nuclear_cannon_shell",
       "required": false
@@ -182,6 +184,8 @@
     "create_nuclearindustry:launch_base",
     "create_nuclearindustry:interceptor_battery",
     "create_nuclearindustry:interceptor_battery_part",
-    "create_nuclearindustry:rocket_kill_vehicle"
+    "create_nuclearindustry:rocket_kill_vehicle",
+    "create_nuclearindustry:ground_station",
+    "create_nuclearindustry:rocket_satellite_fairing"
   ]
 }

@@ -3,8 +3,8 @@ package org.papiricoh.create_nuclearindustry.missile.physics;
 import java.util.Optional;
 
 /**
- * Finds the earliest meeting an interceptor can make with a burnt-out missile: a point on the target's arc it reaches on the
- * same tick, within its envelope. Pure: no game classes, no config.
+ * Finds the earliest meeting an interceptor can make with a burnt-out missile or a satellite: a point on the target's path it
+ * reaches on the same tick, within its envelope. Pure: no game classes, no config.
  */
 public final class InterceptSolver {
     private InterceptSolver() {
@@ -14,13 +14,13 @@ public final class InterceptSolver {
      * The earliest way an interceptor launched from {@code launch} {@code delayTicks} from now meets {@code arc}, or empty if it
      * cannot.
      */
-    public static Optional<InterceptSolution> solve(TargetArc arc, V3 launch, InterceptorEnvelope envelope, BallisticModel.Params params,
+    public static Optional<InterceptSolution> solve(TargetPath arc, V3 launch, InterceptorEnvelope envelope, BallisticModel.Params params,
                                                     int delayTicks) {
         return solve(arc, launch, envelope, params, delayTicks, 4);
     }
 
     /** Configurable sweep spacing; all guidance verification remains independent of server config. */
-    public static Optional<InterceptSolution> solve(TargetArc arc, V3 launch, InterceptorEnvelope envelope,
+    public static Optional<InterceptSolution> solve(TargetPath arc, V3 launch, InterceptorEnvelope envelope,
                                                     BallisticModel.Params params, int delayTicks, int stepTicks) {
         int delay = Math.max(0, delayTicks);
         int limit = (int) Math.min(Math.floor(arc.remaining() - 1 - delay), envelope.maxFlightTicks());
@@ -47,7 +47,7 @@ public final class InterceptSolver {
         return Optional.empty();
     }
 
-    private static InterceptSolution candidate(TargetArc arc, V3 launch, InterceptorEnvelope env,
+    private static InterceptSolution candidate(TargetPath arc, V3 launch, InterceptorEnvelope env,
                                                 BallisticModel.Params params, int delay, int n) {
         V3 point = arc.at(n + delay);
         V3 offset = point.sub(launch);

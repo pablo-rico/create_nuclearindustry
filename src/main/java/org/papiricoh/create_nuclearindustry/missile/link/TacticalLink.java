@@ -11,13 +11,13 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Locale;
 
 /**
- * What a Tactical Linker holds: a missile radar, a launch controller or an interceptor battery, and which, so its tooltip can name
+ * What a Tactical Linker holds: a missile radar, a launch controller, an interceptor battery or a ground station, and which, so its tooltip can name
  * it without the chunk loaded.
  */
 public record TacticalLink(GlobalPos target, Kind kind) {
     /** Saved by name, sent by ordinal: add new kinds at the end, never rename one. */
     public enum Kind implements StringRepresentable {
-        RADAR, LAUNCH_CONTROLLER, INTERCEPTOR_BATTERY;
+        RADAR, LAUNCH_CONTROLLER, INTERCEPTOR_BATTERY, GROUND_STATION;
 
         public static final Codec<Kind> CODEC = StringRepresentable.fromEnum(Kind::values);
 

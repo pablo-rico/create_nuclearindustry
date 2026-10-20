@@ -157,6 +157,7 @@ public final class MissileConfig {
                         "goes off. 0 for none.")
                 .defineInRange("missile.salvo.selfDestructPower", 2.0, 0.0, 8.0);
         org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig.define(builder);
+        org.papiricoh.create_nuclearindustry.missile.orbit.OrbitConfig.define(builder);
     }
 
     public static void bake() {
@@ -188,6 +189,7 @@ public final class MissileConfig {
         selfDestructPower = selfDestructPowerValue.get();
         launchBroadcast = LaunchBroadcast.NONE; // Legacy option is ignored; radar supplies missile alerts.
         org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig.bake();
+        org.papiricoh.create_nuclearindustry.missile.orbit.OrbitConfig.bake();
     }
 
     /** The launch countdown, in ticks. */

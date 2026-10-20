@@ -91,6 +91,19 @@ public final class FlightFxBroadcaster {
         }
     }
 
+    /**
+     * Sends a moment that belongs to no flight, a satellite's, to everyone in range of where it happened: {@code id} is the
+     * satellite's.
+     */
+    public static void event(ServerLevel level, java.util.UUID id, FlightFxEvent event, int flags, Vec3 pos, Vec3 vel) {
+        double range = MissileConfig.fxRange;
+        FlightFxEventPayload payload = new FlightFxEventPayload(id, event.id(), (byte) 0, (byte) flags, pos.x, pos.y, pos.z,
+                (float) vel.x, (float) vel.y, (float) vel.z);
+        for (ServerPlayer player : level.players()) {
+            if (horizontal(player.position(), pos) <= range) PacketDistributor.sendToPlayer(player, payload);
+        }
+    }
+
     private static double horizontal(Vec3 a, Vec3 b) {
         double dx = a.x - b.x, dz = a.z - b.z;
         return Math.sqrt(dx * dx + dz * dz);

@@ -73,6 +73,7 @@ public final class MissileRegistry implements NuclearFeature {
         org.papiricoh.create_nuclearindustry.missile.terrain.TerrainSurvey.register();
         org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry.register(modEventBus);
         org.papiricoh.create_nuclearindustry.missile.defense.DefenseRegistry.register(modEventBus);
+        org.papiricoh.create_nuclearindustry.missile.orbit.OrbitRegistry.register(modEventBus);
     }
 
     @Override
@@ -88,6 +89,7 @@ public final class MissileRegistry implements NuclearFeature {
         org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.fillCreativeTab(output);
         org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry.fillCreativeTab(output);
         org.papiricoh.create_nuclearindustry.missile.defense.DefenseRegistry.fillCreativeTab(output);
+        org.papiricoh.create_nuclearindustry.missile.orbit.OrbitRegistry.fillCreativeTab(output);
         output.accept(TARGET_DESIGNATOR.get());
     }
 }

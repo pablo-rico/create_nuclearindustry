@@ -1217,7 +1217,7 @@ def holo_table_screen():
     for r in (L.HOLO_AUTO, L.HOLO_DESIGNATE, L.HOLO_AIRBURST):
         _holo_button(t, *r, 0)
     # Tabs.
-    for r in (L.HOLO_TAB_SILOS, L.HOLO_TAB_RADARS, L.HOLO_TAB_TRACKS, L.HOLO_TAB_DEFENSE):
+    for r in (L.HOLO_TAB_SILOS, L.HOLO_TAB_RADARS, L.HOLO_TAB_TRACKS, L.HOLO_TAB_DEFENSE, L.HOLO_TAB_SATELLITES):
         _holo_sunk(t, r)
         _holo_tab(t, *r, False)
     # The list: header band, sixteen faint alternating rows and column rules.

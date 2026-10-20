@@ -27,9 +27,15 @@ public enum FlightFxEvent {
     /** Destroyed by an interceptor: the event's position is where, its velocity the missile's. */
     INTERCEPT(10),
     /** An interceptor that reached its point without a kill destroys itself. */
-    INTERCEPTOR_MISS(11);
+    INTERCEPTOR_MISS(11),
+    /** A launch vehicle reaches orbit and lets its satellite go: the event's id is the flight's. */
+    ORBIT_INSERTION(12),
+    /** A satellite destroyed by an interceptor, high up: the event's id is the satellite's. */
+    SATELLITE_KILLED(13),
+    /** A low satellite that decayed burns up coming down: the event's id is the satellite's. */
+    SATELLITE_REENTRY(14);
 
-    private static final FlightFxEvent[] BY_ID = new FlightFxEvent[12];
+    private static final FlightFxEvent[] BY_ID = new FlightFxEvent[15];
 
     static {
         for (FlightFxEvent e : values()) BY_ID[e.id] = e;

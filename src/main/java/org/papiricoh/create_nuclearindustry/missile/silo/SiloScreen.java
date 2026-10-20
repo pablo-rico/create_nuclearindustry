@@ -280,6 +280,8 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
             case BOMB -> GHOST_BOMB;
             case PROPELLANT -> GHOST_PROPELLANT;
             case GUIDANCE -> GHOST_TRACKER;
+            // Until the fairing has its own ghost (GUI stream).
+            case SATELLITE -> GHOST_BOMB;
         };
         if (widgetsAvailable) tintedSprite(g, x, y, SPRITE_GHOSTS.x() + ghost * 16, SPRITE_GHOSTS.y(), 16, 16, 0x4D888888);
         else {

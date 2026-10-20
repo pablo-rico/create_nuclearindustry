@@ -4,14 +4,14 @@ import java.util.List;
 
 /**
  * Where everything sits on the command table's screen, in texture pixels: the map on the left, a tabbed list of linked
- * silos, radars or tracks on the right, and the salvo and command buttons under it. {@code holo_table_screen.png} and
+ * silos, radars, tracks, defences or satellites on the right, and the salvo and command buttons under it. {@code holo_table_screen.png} and
  * {@code holo_table_widgets.png} are painted from {@code tools/texturegen/missile_layouts.py} ({@code HOLO_*}); JUnit keeps
  * both in step.
  */
 public final class HoloLayout {
-    public static final int WIDTH = 400, HEIGHT = 256;
+    public static final int WIDTH = 444, HEIGHT = 256;
 
-    public static final LayoutRect TITLE = new LayoutRect("title", 6, 4, 388, 13);
+    public static final LayoutRect TITLE = new LayoutRect("title", 6, 4, 432, 13);
     /** The map's bezel; the map itself is {@link #MAP}. */
     public static final LayoutRect MAP_FRAME = new LayoutRect("map_frame", 6, 20, 212, 212);
     public static final LayoutRect MAP = new LayoutRect("map", 12, 26, 200, 200);
@@ -29,10 +29,15 @@ public final class HoloLayout {
      * salvo row sets the doctrine and the defended zone's radius, the buttons engage, toggle automatic, cease fire and abort).
      */
     public static final LayoutRect TAB_DEFENSE = new LayoutRect("tab_defense", 353, 20, 41, 14);
+    /**
+     * Satellites: the table's own (its ground stations' network) and the foreign ones its radars have catalogued in the list, and the
+     * panel reused to launch, deorbit and engage them.
+     */
+    public static final LayoutRect TAB_SATELLITES = new LayoutRect("tab_satellites", 396, 20, 41, 14);
     /** A header of {@link #LIST_HEADER} over {@link #LIST_ROWS} rows of {@link #LIST_ROW}. */
-    public static final LayoutRect LIST = new LayoutRect("list", 224, 36, 170, 155);
+    public static final LayoutRect LIST = new LayoutRect("list", 224, 36, 213, 155);
     /** The selected row in more words. */
-    public static final LayoutRect DETAIL = new LayoutRect("detail", 224, 194, 170, 24);
+    public static final LayoutRect DETAIL = new LayoutRect("detail", 224, 194, 213, 24);
     /** Time on target or a sequence, and the spacing between impacts of a sequence. */
     public static final LayoutRect SALVO_MODE = new LayoutRect("salvo_mode", 224, 220, 84, 13);
     public static final LayoutRect SPACING_DOWN = new LayoutRect("spacing_down", 310, 220, 13, 13);
@@ -45,11 +50,11 @@ public final class HoloLayout {
     public static final LayoutRect ABORT = new LayoutRect("abort", 354, 236, 40, 15);
 
     public static final List<LayoutRect> ALL = List.of(TITLE, MAP_FRAME, ZOOM_OUT, ZOOM_IN, AUTO, DESIGNATE, AIRBURST, TAB_SILOS,
-            TAB_RADARS, TAB_TRACKS, TAB_DEFENSE, LIST, DETAIL, SALVO_MODE, SPACING_DOWN, SPACING, SPACING_UP, ARM, DISARM, SALVO, ABORT);
+            TAB_RADARS, TAB_TRACKS, TAB_DEFENSE, TAB_SATELLITES, LIST, DETAIL, SALVO_MODE, SPACING_DOWN, SPACING, SPACING_UP, ARM, DISARM, SALVO, ABORT);
 
     public static final int LIST_HEADER = 11, LIST_ROW = 9, LIST_ROWS = 16;
     /** Column starts in the list, from its left edge: tick box, name, state lamp and word, detail, salvo delay, unlink. */
-    public static final int COL_CHECK = 2, COL_NAME = 12, COL_STATE = 50, COL_INFO = 104, COL_DELAY = 138, COL_UNLINK = 160;
+    public static final int COL_CHECK = 2, COL_NAME = 12, COL_STATE = 50, COL_INFO = 112, COL_DELAY = 160, COL_UNLINK = 203;
 
     // Sprites in holo_table_widgets.png (256 × 128).
     public static final int WIDGETS_W = 256, WIDGETS_H = 128;

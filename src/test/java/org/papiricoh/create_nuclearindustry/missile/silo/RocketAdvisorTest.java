@@ -33,7 +33,7 @@ class RocketAdvisorTest {
         assertEquals(1, mismatch.index());
         var missingWarhead = RocketAdvisor.advise(List.of(ENGINE, TANK, GUIDANCE)).getFirst();
         assertEquals(3, missingWarhead.index());
-        assertEquals((1 << WARHEAD.ordinal()) | (1 << KILL_VEHICLE.ordinal()), missingWarhead.expectedMask());
+        assertEquals((1 << WARHEAD.ordinal()) | (1 << KILL_VEHICLE.ordinal()) | (1 << SATELLITE.ordinal()), missingWarhead.expectedMask());
     }
     @Test void validRocketOffersAnotherStageUntilThree() {
         var advice = RocketAdvisor.advise(List.of(ENGINE, TANK, GUIDANCE, WARHEAD)).getFirst();

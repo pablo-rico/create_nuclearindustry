@@ -40,8 +40,17 @@ public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, in
      * {@code CEASE}: automatic off and every order dropped.
      */
     public static final byte ENGAGE = 8, SET_AUTO = 9, SET_DOCTRINE = 10, SET_ZONE = 11, UNLINK_BATTERY = 12, CEASE = 13;
+    /**
+     * Satellites. {@code LAUNCH_SAT}: {@code silo} the launch controller topped by a satellite fairing, {@code x, z} the orbit's
+     * anchor (absolute), {@code arg} bit 0 the {@code OrbitType} (0 low, 1 geostationary) and {@code arg >> 1} a low orbit's heading
+     * in whole degrees as a flight's heading (0 towards +Z, south; 90 towards +X, east). {@code DEORBIT}: {@code flight} one of
+     * the table's own satellites. {@code ENGAGE_SAT}: {@code flight} a foreign satellite the table knows of, {@code arg} -1 for the
+     * best launcher, 100 + i silo i. {@code UNLINK_STATION}: {@code silo} the ground station's place.
+     */
+    public static final byte LAUNCH_SAT = 14, DEORBIT = 15, ENGAGE_SAT = 16, UNLINK_STATION = 17;
     public enum Command { OK, TOO_FAR, BROKEN, NOT_LINKED, UNLOADED, REFUSED, NO_TARGET, TOO_LONG, NOT_OWN, GONE,
-        NO_SHOOTER, NOT_TRACKED, NO_SOLUTION, FRIENDLY, NO_AMMO, ALREADY_ENGAGED }
+        NO_SHOOTER, NOT_TRACKED, NO_SOLUTION, FRIENDLY, NO_AMMO, ALREADY_ENGAGED,
+        NO_STATION, NO_SATELLITE, NO_ORBIT, ORBIT_FULL, OUT_OF_BOUNDS }
     public static final Type<HoloCommandPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "holo_command"));
     public static final StreamCodec<ByteBuf, HoloCommandPayload> CODEC = StreamCodec.of(HoloCommandPayload::write, HoloCommandPayload::read);
 

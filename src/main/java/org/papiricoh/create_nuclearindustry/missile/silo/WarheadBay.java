@@ -34,7 +34,7 @@ public final class WarheadBay {
     public static final int BOMB = 9;
 
     /** What a slot is for; its ordinal picks the slot's ghost icon. */
-    public enum SlotType { CHARGE, SECONDARY, TAMPER, BOMB, PROPELLANT, GUIDANCE }
+    public enum SlotType { CHARGE, SECONDARY, TAMPER, BOMB, PROPELLANT, GUIDANCE, SATELLITE }
 
     private WarheadBay() {
     }
@@ -43,7 +43,7 @@ public final class WarheadBay {
     public static int activeSlots(RocketComposition.Section section) {
         return switch (section) {
             case ENGINE, KILL_VEHICLE -> 0;
-            case TANK, GUIDANCE -> 1;
+            case TANK, GUIDANCE, SATELLITE -> 1;
             case WARHEAD -> SLOTS;
         };
     }
@@ -54,6 +54,7 @@ public final class WarheadBay {
         return switch (section) {
             case TANK -> SlotType.PROPELLANT;
             case GUIDANCE -> SlotType.GUIDANCE;
+            case SATELLITE -> SlotType.SATELLITE;
             case ENGINE, KILL_VEHICLE -> null;
             case WARHEAD -> slot == BOMB ? SlotType.BOMB : slot >= TAMPER[0] ? SlotType.TAMPER : slot >= SECONDARY[0] ? SlotType.SECONDARY : SlotType.CHARGE;
         };
@@ -72,6 +73,7 @@ public final class WarheadBay {
             case BOMB -> isBomb(stack);
             case PROPELLANT -> stack.is(SiloRegistry.PROPELLANT.get());
             case GUIDANCE -> RocketSectionEntity.tierOf(stack) != GuidanceTier.BASIC;
+            case SATELLITE -> stack.getItem() instanceof org.papiricoh.create_nuclearindustry.missile.orbit.SatelliteItem;
         };
     }
 

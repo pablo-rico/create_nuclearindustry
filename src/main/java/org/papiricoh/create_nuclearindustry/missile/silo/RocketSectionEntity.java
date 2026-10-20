@@ -104,8 +104,16 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
     public boolean fueled() { return section() != RocketComposition.Section.TANK || propellant().fill() > 0; }
 
     public boolean validCharge() { return WarheadBay.validate(contents) == null; }
-    public Warhead warhead() { return section() == RocketComposition.Section.KILL_VEHICLE ? Warhead.INERT : WarheadBay.warhead(contents); }
-    public double payloadMass() { return section() == RocketComposition.Section.KILL_VEHICLE ? org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig.siloKillVehicleMass : WarheadBay.payloadMass(contents); }
+    public Warhead warhead() {
+        return section() == RocketComposition.Section.KILL_VEHICLE || section() == RocketComposition.Section.SATELLITE ? Warhead.INERT : WarheadBay.warhead(contents);
+    }
+    public double payloadMass() {
+        return switch (section()) {
+            case KILL_VEHICLE -> org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig.siloKillVehicleMass;
+            case SATELLITE -> org.papiricoh.create_nuclearindustry.missile.orbit.OrbitConfig.satelliteMass;
+            default -> WarheadBay.payloadMass(contents);
+        };
+    }
 
     public void insert(Player player, InteractionHand hand) {
         ItemStack held = player.getItemInHand(hand);
