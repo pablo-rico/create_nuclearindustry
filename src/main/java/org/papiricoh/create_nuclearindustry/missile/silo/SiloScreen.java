@@ -135,8 +135,8 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
         boolean satellite = c != null && c.satelliteMode();
         for (EditBox box : List.of(x, y, z)) { box.setEditable(editable); box.visible = launch && !satellite; }
         for (ConsoleButton button : List.of(set, airburst, arm, disarm)) button.visible = launch;
-        // A satellite's fairing has no target: the table aims it.
-        set.visible = airburst.visible = launch && !satellite;
+        // A satellite's fairing has no target and is never armed: the table aims and launches it.
+        set.visible = airburst.visible = arm.visible = disarm.visible = launch && !satellite;
         set.active = airburst.active = editable && enteredTarget() != null;
         airburst.setMessage(text(c != null && c.airburst() ? "airburst.on" : "airburst.off"));
         arm.active = c != null && !c.interceptorMode() && !c.satelliteMode() && c.state() == SiloControllerEntity.State.READY;
@@ -363,9 +363,18 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
 
     private void drawLaunch(GuiGraphics g, LaunchDiagram d, @Nullable SiloControllerEntity c) {
         if (c != null && c.satelliteMode()) {
-            // No target here: the fairing's satellite goes up from a command table, which picks its orbit and where.
+            // No target here: the fairing's satellite goes up from a command table, which picks its orbit and where. The
+            // coordinate boxes, the arm keys and the redstone strip are painted over: none of them launches a satellite.
+            g.fill(TARGET.x() + 3, TARGET.y() + 13, TARGET.right() - 3, TARGET.bottom() - 3, PANEL);
             small(g, Component.translatable("silo.create_nuclearindustry.satellite.controlled"), TARGET.x() + 5, TARGET.y() + 3, TARGET.w() - 10, MUTED);
-            ConsoleDraw.wrap(g, font, satelliteText("launch_hint"), TARGET.x() + 5, TARGET.y() + 16, TARGET.w() - 10, TEXT, ConsoleDraw.SMALL, 4);
+            boolean networked = org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode.complete(c.network());
+            small(g, networked ? satelliteText("network", c.network()) : satelliteText("no_network"), TARGET.x() + 5, TARGET.y() + 17,
+                    TARGET.w() - 10, networked ? ACCENT : 0xFFFFB347);
+            ConsoleDraw.wrap(g, font, satelliteText(networked ? "launch_hint" : "network_hint"), TARGET.x() + 5, TARGET.y() + 30,
+                    TARGET.w() - 10, TEXT, ConsoleDraw.SMALL, 3);
+            checklist(g, c, networked);
+            g.fill(REDSTONE.x() + 2, REDSTONE.y() + 2, REDSTONE.right() - 2, REDSTONE.bottom() - 2, SCREEN);
+            ConsoleDraw.wrap(g, font, satelliteText("launch_steps"), REDSTONE.x() + 5, REDSTONE.y() + 4, REDSTONE.w() - 10, TEXT, ConsoleDraw.SMALL, 4);
             List<Component> lines = List.of(c.satelliteStatus(), fairing(c), orbitReach(c), deltaV(c), text("reach", ConsoleNumbers.number(d.reach())));
             for (int i = 0; i < lines.size(); i++)
                 small(g, lines.get(i), READOUT.x() + 5, READOUT.y() + 5 + i * 11, READOUT.w() - 10, i == 0 ? ACCENT : c.orbitReach() == null && i == 2 ? ERROR_COLOUR : TEXT);
@@ -393,6 +402,23 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
         countdown(g, c);
         if (!launchAvailable) g.renderItem(Items.LEVER.getDefaultInstance(), REDSTONE.x() + 4, REDSTONE.y() + 10);
         ConsoleDraw.wrap(g, font, text("redstone"), REDSTONE.x() + 80, REDSTONE.y() + 3, REDSTONE.w() - 85, TEXT, ConsoleDraw.SMALL, 4);
+    }
+
+    /** Olive panel and dark screen of the console sheet, to paint over the parts a satellite launch does not use. */
+    private static final int PANEL = 0xFF38422D, SCREEN = 0xFF071D0C;
+
+    /** What a satellite launch still needs, where the arm keys sit: each item ticked green or crossed red. */
+    private void checklist(GuiGraphics g, SiloControllerEntity c, boolean networked) {
+        g.fill(ARM.x(), ARM.y(), DISARM.right(), DISARM.bottom(), 0xFF2A3221);
+        g.fill(ARM.x() + 1, ARM.y() + 1, DISARM.right() - 1, DISARM.bottom() - 1, SCREEN);
+        boolean[] done = {c.satelliteKind() != null, c.orbitReach() != null, networked,
+                c.state() == SiloControllerEntity.State.READY || c.state() == SiloControllerEntity.State.COUNTDOWN};
+        String[] keys = {"check.fairing", "check.orbit", "check.network", "check.ready"};
+        for (int i = 0; i < keys.length; i++) {
+            int y = ARM.y() + 3 + i * 9;
+            small(g, Component.literal(done[i] ? "✔" : "✘"), ARM.x() + 4, y, 8, done[i] ? ACCENT : ERROR_COLOUR);
+            small(g, satelliteText(keys[i]), ARM.x() + 13, y, DISARM.right() - ARM.x() - 16, done[i] ? TEXT : MUTED);
+        }
     }
 
     /** Where the GPS badge sits: the target panel's top right corner, beside its heading. */

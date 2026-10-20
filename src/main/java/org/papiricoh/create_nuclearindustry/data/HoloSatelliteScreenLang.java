@@ -107,5 +107,15 @@ final class HoloSatelliteScreenLang {
         LangEntries.add(key + "launch_hint", "Launched from a command table's SATELLITES tab: anchor and orbit are chosen there.",
                 "Se lanza desde la pestaña SATÉLITES de una mesa de mando: allí se eligen el anclaje y la órbita.");
         LangEntries.add(key + "gps", "GPS", "GPS");
+        LangEntries.add(key + "network", "Network %s: its command table can launch it", "Red %s: su mesa de mando puede lanzarlo");
+        LangEntries.add(key + "no_network", "No satellite network yet", "Aún sin red de satélites");
+        LangEntries.add(key + "network_hint", "Link this controller to a command table with the Tactical Linker, and a ground station with a network code turning at the same table.",
+                "Enlaza este controlador a una mesa de mando con el Enlazador táctico, y a la misma mesa una estación terrestre con código de red que gire.");
+        LangEntries.add(key + "launch_steps", "Redstone does not launch it. At the table: SATELLITES tab, pick this launcher, ANCHOR and click the map where it will pass (low orbit: click again for its heading), then LAUNCH.",
+                "La redstone no lo lanza. En la mesa: pestaña SATÉLITES, elige este lanzador, ANCLA y haz clic en el mapa por donde pasará (órbita baja: otro clic para el rumbo) y LANZAR.");
+        LangEntries.add(key + "check.fairing", "Satellite in the fairing", "Satélite en la cofia");
+        LangEntries.add(key + "check.orbit", "Delta-v for an orbit", "Delta-v para órbita");
+        LangEntries.add(key + "check.network", "Network from a table", "Red de una mesa");
+        LangEntries.add(key + "check.ready", "Ready on the pad", "Listo en la plataforma");
     }
 }

@@ -28,6 +28,9 @@
 ### Fixes
 - The link code boxes of the missile radar, the interceptor battery and the ground station screens take typing again:
   clicking them focused the box but keys never reached it.
+- A launch controller topped by a satellite fairing no longer shows arm keys, coordinate boxes and a redstone hint that
+  do nothing: it shows its satellite network, a checklist of what the launch still needs and how to launch it from the
+  table.
 - A command table whose ground station has no code, or is not turning, now says so on its Satellites tab instead of
   "No ground station".
 
