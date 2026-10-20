@@ -167,7 +167,7 @@
             16,
             2
           ],
-          "rotation": 90
+          "rotation": 270
         },
         "down": {
           "texture": "#rim",
