@@ -1,5 +1,8 @@
 package org.papiricoh.create_nuclearindustry.missile.orbit.client;
 
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.common.NeoForge;
+
 import org.papiricoh.create_nuclearindustry.missile.orbit.OrbitSyncPayload;
 import org.papiricoh.create_nuclearindustry.missile.orbit.Satellite;
 
@@ -10,6 +13,10 @@ public final class ClientSatellites {
     private static List<Satellite> satellites = List.of();
 
     private ClientSatellites() {
+    }
+
+    public static void init() {
+        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> clear());
     }
 
     public static void accept(OrbitSyncPayload payload) {

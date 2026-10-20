@@ -65,6 +65,7 @@ public final class FlightFxBroadcaster {
         MissileFlight f = flight.flight();
         Vec3 pos = flight.position(), vel = flight.velocity();
         MissileFlight.Phase phase = f.phase(params);
+        if (flight.kind() == Flight.Kind.SATELLITE && f.burnedOut() && !f.impacted()) phase = MissileFlight.Phase.MIDCOURSE;
         int flags = 0;
         if (phase == MissileFlight.Phase.BOOST) flags |= FlightFxState.BURNING;
         if (f.rising(params)) flags |= FlightFxState.RISING;

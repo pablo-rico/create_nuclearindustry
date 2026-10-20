@@ -26,6 +26,12 @@ import org.papiricoh.create_nuclearindustry.missile.physics.BallisticModel;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
 import org.papiricoh.create_nuclearindustry.missile.physics.RocketAttitude;
+import org.papiricoh.create_nuclearindustry.missile.physics.SatelliteClimb;
+import org.papiricoh.create_nuclearindustry.missile.orbit.Orbit;
+import org.papiricoh.create_nuclearindustry.missile.orbit.OrbitConfig;
+import org.papiricoh.create_nuclearindustry.missile.orbit.OrbitInsertion;
+import org.papiricoh.create_nuclearindustry.missile.orbit.Satellite;
+import org.papiricoh.create_nuclearindustry.missile.orbit.SatelliteTracker;
 import org.papiricoh.create_nuclearindustry.missile.rocket.RocketContraptionEntity;
 
 import org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig;
@@ -128,9 +134,18 @@ public final class FlightTracker extends SavedData {
      */
     @Nullable
     public Flight launchSatellite(ServerLevel level, UUID launchId, MissileDesign design, Vec3 start, float heading,
-                                  org.papiricoh.create_nuclearindustry.missile.orbit.Satellite satellite, @Nullable UUID owner,
+                                  Satellite satellite, @Nullable UUID owner,
                                   RocketShape shape, @Nullable CompoundTag cargo) {
-        throw new UnsupportedOperationException("orbit stream");
+        if (hasLaunched(launchId)) return flights.get(launchId);
+        MissileFlight climb = SatelliteClimb.flight(design, Flight.v3(start), heading,
+                Orbit.SEA_LEVEL + OrbitConfig.insertionAltitude, OrbitConfig.insertionAltitude / 2, MissileConfig.flightParams());
+        Flight launched = new Flight(launchId, Flight.Kind.SATELLITE, climb, Warhead.INERT, BlockPos.containing(Flight.vec(climb.aim())),
+                owner, level.getGameTime(), BlockPos.containing(start), List.of(), List.of(), shape, cargo, heading, null, satellite);
+        flights.put(launchId, launched);
+        launchedIds.add(launchId);
+        setDirty();
+        FlightEvents.fire(level, launched, FlightFxEvent.LAUNCH, 0);
+        return launched;
     }
 
     /** How many interceptors are flying at flight {@code target}. */
@@ -197,7 +212,7 @@ public final class FlightTracker extends SavedData {
         Vec3 position = flight.position();
         remove(level, flight);
         BlockPos block = BlockPos.containing(position);
-        if (MissileConfig.selfDestructPower > 0 && !level.isOutsideBuildHeight(block) && level.isLoaded(block))
+        if (flight.kind() != Flight.Kind.SATELLITE && MissileConfig.selfDestructPower > 0 && !level.isOutsideBuildHeight(block) && level.isLoaded(block))
             level.explode(null, position.x, position.y, position.z, (float) MissileConfig.selfDestructPower,
                     net.minecraft.world.level.Level.ExplosionInteraction.TNT);
         return true;
@@ -224,10 +239,18 @@ public final class FlightTracker extends SavedData {
             MissileFlight.Step step = flight.flight().step(params);
             Vec3 impact = step.impact() ? flight.position() : null;
             boolean interceptor = flight.kind() == Flight.Kind.INTERCEPTOR;
-            if (impact == null && !flight.flight().rising(params) && (!interceptor || flight.flight().tick() > 10)) {
+            boolean satellite = flight.kind() == Flight.Kind.SATELLITE;
+            if (!satellite && impact == null && !flight.flight().rising(params) && (!interceptor || flight.flight().tick() > 10)) {
                 impact = groundHit(level, from, flight.position());
             }
             fireStepEvents(level, flight, step, params);
+            if (satellite) {
+                MissileFlight f = flight.flight();
+                if (step.impact()) insertSatellite(level, flight);
+                else if (f.burnedOut() && !f.guidedCutoff() && f.velocity().y() <= 0) remove(level, flight);
+                else showPuppet(level, flight);
+                continue;
+            }
             if (interceptor) {
                 if (step.impact()) arrived.add(flight);
                 else if (impact != null) remove(level, flight, FlightFxEvent.INTERCEPTOR_MISS, impact, flight.velocity());
@@ -252,6 +275,21 @@ public final class FlightTracker extends SavedData {
         }
         FlightFxBroadcaster.tick(level, flights.values());
         setDirty();
+    }
+
+    /** An insertion is a rendezvous in the sky, never an impact on the world. */
+    private void insertSatellite(ServerLevel level, Flight flight) {
+        Satellite satellite = flight.satellite();
+        if (satellite == null || !flight.flight().guidedCutoff() || !OrbitInsertion.reaches(flight.flight().design(), satellite.orbit().type(),
+                OrbitConfig.leoDeltaV, OrbitConfig.geoDeltaV) || flight.position().distanceTo(flight.aim()) > 1) {
+            remove(level, flight);
+            return;
+        }
+        Orbit orbit = satellite.orbit();
+        Orbit arrived = new Orbit(orbit.type(), orbit.anchorX(), orbit.anchorZ(), orbit.heading(), orbit.altitude(),
+                level.getGameTime(), orbit.speed(), orbit.bounds());
+        SatelliteTracker.get(level).add(level, satellite.withOrbit(arrived));
+        remove(level, flight, FlightFxEvent.ORBIT_INSERTION, flight.position(), flight.velocity());
     }
 
     /** Resolves only after every target has advanced, independent of insertion order. */
@@ -320,7 +358,7 @@ public final class FlightTracker extends SavedData {
             FlightEvents.fire(level, flight, FlightFxEvent.BURNOUT, f.stage());
             if (f.stage() < stages) FlightEvents.fire(level, flight, FlightFxEvent.PAYLOAD_SEPARATION, f.stage());
         }
-        if (flight.kind() == Flight.Kind.INTERCEPTOR) return;
+        if (flight.kind() != Flight.Kind.MISSILE) return;
         MissileFlight.Phase phase = f.phase(params);
         // Re-entry is coming back down into the air, not burning out below its top on the way up.
         boolean inAir = f.burnedOut() && f.velocity().y() < 0 && f.position().y() <= params.atmosphereTop();

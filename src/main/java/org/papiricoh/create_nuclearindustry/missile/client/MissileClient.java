@@ -19,6 +19,7 @@ public final class MissileClient implements NuclearFeatureClient {
         org.papiricoh.create_nuclearindustry.missile.radar.RadarClient.init();
         org.papiricoh.create_nuclearindustry.missile.holo.client.ClientHolo.init();
         org.papiricoh.create_nuclearindustry.missile.defense.client.DefenseClient.init(modEventBus);
+        org.papiricoh.create_nuclearindustry.missile.orbit.client.ClientSatellites.init();
         org.papiricoh.create_nuclearindustry.missile.orbit.OrbitRegistry.clientSync = org.papiricoh.create_nuclearindustry.missile.orbit.client.ClientSatellites::accept;
         org.papiricoh.create_nuclearindustry.missile.silo.SiloDiagramPayload.client = org.papiricoh.create_nuclearindustry.missile.silo.client.ClientLaunchDiagrams::accept;
     }

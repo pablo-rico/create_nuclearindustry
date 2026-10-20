@@ -6,9 +6,19 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import org.jetbrains.annotations.Nullable;
+import org.papiricoh.create_nuclearindustry.controlroom.link.LinkCode;
+import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
+import org.papiricoh.create_nuclearindustry.missile.flight.Flight;
+import org.papiricoh.create_nuclearindustry.missile.flight.FlightFxBroadcaster;
+import org.papiricoh.create_nuclearindustry.missile.flight.FlightFxEvent;
+import org.papiricoh.create_nuclearindustry.missile.physics.MissileFlight;
+import org.papiricoh.create_nuclearindustry.missile.radar.RadarModel;
+import org.papiricoh.create_nuclearindustry.missile.radar.RadarNetwork;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,6 +45,8 @@ public final class SatelliteTracker extends SavedData {
     /** Foreign codes that know each satellite; its own code is never stored here. */
     private final Map<UUID, Set<String>> catalogued = new LinkedHashMap<>();
     private int nextNumber = 1;
+    private int seconds;
+    private boolean unsavedDecay;
 
     public static SatelliteTracker get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(new Factory<>(SatelliteTracker::new, SatelliteTracker::load, null), NAME);
@@ -53,6 +65,19 @@ public final class SatelliteTracker extends SavedData {
         }
     }
 
+    public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) syncPlayer(player);
+    }
+
+    public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) syncPlayer(player);
+    }
+
+    private static void syncPlayer(ServerPlayer player) {
+        SatelliteTracker tracker = getIfPresent(player.serverLevel());
+        OrbitSyncPayload.send(player, tracker == null ? List.of() : List.copyOf(tracker.all()));
+    }
+
     public Collection<Satellite> all() {
         return Collections.unmodifiableCollection(satellites.values());
     }
@@ -65,6 +90,11 @@ public final class SatelliteTracker extends SavedData {
     /** The satellites on network {@code code}. */
     public List<Satellite> ofCode(String code) {
         return satellites.values().stream().filter(s -> s.code().equals(code)).toList();
+    }
+
+    /** How many satellites belong to network {@code code}. */
+    public int count(String code) {
+        return (int) satellites.values().stream().filter(s -> s.code().equals(code)).count();
     }
 
     /** What network {@code code} knows of: its own satellites, then the foreign ones it has catalogued. */
@@ -117,13 +147,40 @@ public final class SatelliteTracker extends SavedData {
     void update(Satellite satellite) {
         if (satellites.containsKey(satellite.id())) {
             satellites.put(satellite.id(), satellite);
-            setDirty();
+            unsavedDecay = true;
         }
     }
 
     /** Once a second: decay, cataloguing and the clients' copy. */
     public void tick(ServerLevel level) {
-        // Filled in by the orbit stream.
+        seconds++;
+        long now = level.getGameTime();
+        double decay = OrbitConfig.leoDecayPerDay * 20 / 24000;
+        for (Satellite satellite : List.copyOf(satellites.values())) {
+            Orbit orbit = satellite.orbit();
+            if (orbit.geostationary()) continue;
+            Satellite lower = satellite.withOrbit(orbit.withAltitude(orbit.altitude() - decay));
+            if (lower.orbit().altitude() < OrbitConfig.leoMinAltitude) {
+                remove(level, satellite.id(), Removal.DECAYED);
+                FlightFxBroadcaster.event(level, satellite.id(), FlightFxEvent.SATELLITE_REENTRY, 0,
+                        Flight.vec(lower.orbit().position(now)), Flight.vec(lower.orbit().velocity(now)));
+            } else if (decay > 0) update(lower);
+        }
+        for (var radar : RadarNetwork.radars(level)) {
+            if (!radar.operational() || !LinkCode.complete(radar.code())) continue;
+            double reach = radar.reach();
+            reach = reach <= 0 ? Double.POSITIVE_INFINITY
+                    : reach * Math.pow(RadarModel.signature(MissileFlight.Phase.MIDCOURSE), 0.25);
+            for (Satellite satellite : satellites.values()) {
+                if (!known(satellite.id(), radar.code()) && RadarModel.detects(radar.antenna(), satellite.orbit().position(now),
+                        reach, MissileConfig.radarEarthRadius)) catalogue(satellite.id(), radar.code());
+            }
+        }
+        if (unsavedDecay && seconds % 30 == 0) {
+            setDirty();
+            unsavedDecay = false;
+        }
+        if (seconds % Math.max(1, OrbitConfig.syncSeconds) == 0) sync(level);
     }
 
     /** Sends every player in {@code level} the satellites over it. */

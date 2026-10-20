@@ -45,6 +45,11 @@ public record OrbitSyncPayload(List<Satellite> satellites) implements CustomPack
         for (ServerPlayer player : level.players()) PacketDistributor.sendToPlayer(player, payload);
     }
 
+    /** Sends even an empty catalogue, clearing the previous level on a dimension change. */
+    public static void send(ServerPlayer player, List<Satellite> satellites) {
+        PacketDistributor.sendToPlayer(player, new OrbitSyncPayload(satellites));
+    }
+
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;

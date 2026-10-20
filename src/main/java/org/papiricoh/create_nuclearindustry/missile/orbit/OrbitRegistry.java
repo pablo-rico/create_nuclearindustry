@@ -51,6 +51,8 @@ public final class OrbitRegistry {
             registrar.playToClient(OrbitSyncPayload.TYPE, OrbitSyncPayload.CODEC, (p, ctx) -> ctx.enqueueWork(() -> clientSync.accept(p)));
         });
         NeoForge.EVENT_BUS.addListener(SatelliteTracker::onLevelTick);
+        NeoForge.EVENT_BUS.addListener(SatelliteTracker::onLogin);
+        NeoForge.EVENT_BUS.addListener(SatelliteTracker::onDimensionChange);
     }
 
     public static void fillCreativeTab(SectionedOutput output) {

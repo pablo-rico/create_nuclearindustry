@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Satellite launch vehicles climb and separate their stages before inserting their payload into orbit. Failed climbs abort safely.
+- Low satellites gradually lose altitude and burn up; working radars permanently catalogue foreign satellites for their network. Orbit displays refresh when joining or changing dimensions.
+
 ## 2.0.0 (beta): nuclear chain rewrite
 
 Released as a beta: back up your world before updating. Worlds from 1.1.0 load: every item and block keeps its id. See "Upgrading"
