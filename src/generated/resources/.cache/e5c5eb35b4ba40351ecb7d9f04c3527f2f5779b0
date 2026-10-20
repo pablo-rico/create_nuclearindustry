@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-15T23:48:20.614947	Advancements
+// 1.21.1	2026-10-20T18:27:51.187312	Advancements
 f86b50fd9890d733af2b4a23c043ef94e6202432 data/create_nuclearindustry/advancement/accelerator.json
 b88e64d4dde4889469d29479ad39a7a4bf299192 data/create_nuclearindustry/advancement/accelerator_formed.json
 81fcbbe3b8c518cc943417d938a1be6f73af2678 data/create_nuclearindustry/advancement/annihilation_ignition.json
@@ -34,6 +34,7 @@ d344cd167246c3876999ea2a7504f8741c8adb3a data/create_nuclearindustry/advancement
 c36989f38b0f7110d0f6c748490444eb75097a35 data/create_nuclearindustry/advancement/lithium_6.json
 8412a0197ca8f414ca3038cc1b9592748bf9a25c data/create_nuclearindustry/advancement/maintenance_done.json
 c01ad6d20579de30129a86068fc627eee8adbcf2 data/create_nuclearindustry/advancement/meltdown.json
+00a0dce383e8c691b3bb7dbd1de231d404ae56cc data/create_nuclearindustry/advancement/missile_intercepted.json
 be627b23b732c226a755c84d2e18dabcb84d764c data/create_nuclearindustry/advancement/missile_launched.json
 04a891ab8c30f3141dbdcb92e8042a0b9e1a30ed data/create_nuclearindustry/advancement/moderated_core.json
 ec974870af246809cde64e76d7b8b066707a02b2 data/create_nuclearindustry/advancement/mox.json

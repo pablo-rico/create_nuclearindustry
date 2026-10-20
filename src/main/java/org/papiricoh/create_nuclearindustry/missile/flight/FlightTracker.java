@@ -267,6 +267,11 @@ public final class FlightTracker extends SavedData {
             Vec3 point = Flight.vec(intercept.point());
             Vec3 velocity = target.velocity();
             remove(level, target, FlightFxEvent.INTERCEPT, point, velocity);
+            // Whoever owns the launcher, wherever they are, and anyone watching it.
+            BlockPos launcher = intercept.launcher() != null ? intercept.launcher() : BlockPos.containing(interceptor.position());
+            org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements.awardMachine(level, launcher,
+                    interceptor.owner() == null ? null : level.getServer().getPlayerList().getPlayer(interceptor.owner()),
+                    org.papiricoh.create_nuclearindustry.advancement.NuclearEvent.MISSILE_INTERCEPTED);
             BlockPos block = BlockPos.containing(point);
             if (DefenseConfig.killExplosionPower > 0 && !level.isOutsideBuildHeight(block) && level.isLoaded(block))
                 level.explode(null, point.x, point.y, point.z, (float) DefenseConfig.killExplosionPower,

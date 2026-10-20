@@ -96,6 +96,53 @@ retraso asignado. Desde las trazas de la mesa se puede abortar un vuelo propio q
 salió de un controlador enlazado; el misil se autodestruye con una explosión pequeña
 sin detonar su ojiva.
 
+## Defensa antimisiles
+
+Los interceptores derriban misiles en vuelo. Nunca atacan uno que todavía acelera: hace
+falta que haya apagado los motores para calcular dónde estará.
+
+**Batería de interceptores.** Se coloca entera con un solo objeto: ocupa 2×2×2 y crece
+desde el bloque donde haces clic, hacia delante y a tu derecha. Necesita un eje por debajo
+de su esquina que gire al menos a 32 RPM; cuanto más rápido, antes gira la torreta. Sus
+cuatro tubos admiten un **Misil interceptor** cada uno, a mano (clic con el misil sobre
+cualquier bloque de la batería), con embudo o con brazo mecánico; agachado y con la mano
+vacía se saca uno listo. Cada interceptor tarda unos segundos en quedar listo tras cargarlo.
+Defiende de cerca y dentro de la atmósfera, y se recarga. Los interceptores se fabrican por
+montaje secuencial: lámina de hierro, cartucho de propelente, mecanismo de precisión, válvula
+electrónica y prensa.
+
+En su pantalla pones el **código de enlace** de cuatro caracteres de tus radares, eliges
+**automático** o **manual**, la **doctrina** (de uno en uno, y otro si falla y queda
+tiempo, o de dos en dos) y el **radio de la zona defendida** (por defecto, su propio
+alcance; "Aquí" la centra en la batería). En automático ataca sola los misiles que sus
+radares ven ir a caer en esa zona y que no son de su dueño. Una señal de redstone en
+cualquiera de sus bloques retiene el fuego automático (las órdenes de una mesa siguen
+valiendo) y un comparador lee cuántos interceptores tiene listos. Las gafas y un Display
+Link muestran su estado, su munición y su modo.
+
+**Silo interceptor.** Remata un cohete con un **Vehículo de intercepción** en lugar de la
+ojiva: `(Motor + Depósitos)×1..3 + Guiado + Vehículo de intercepción`. Su Controlador de
+lanzamiento queda listo sin blanco, no hace caso a la redstone ni al armado y solo despega
+cuando una mesa de mando o la defensa automática le ordenan atacar un misil; tras una cuenta
+atrás corta, sale a encontrarlo por encima de la atmósfera, lejos, y se gasta.
+
+**Desde la mesa.** El Enlazador táctico también guarda baterías (haz clic en cualquiera de
+sus bloques) y las enlaza a una mesa, hasta 8; los silos interceptores se enlazan como
+cualquier controlador. La pestaña **Defensa** lista los lanzadores con su estado y su
+munición. Fija una traza en el holograma y pulsa **Atacar** para lanzar desde el lanzador
+elegido o desde el mejor; **Auto** activa la defensa automática de la mesa con los radares
+enlazados (sirve también para baterías sin código propio), la fila de abajo cambia la
+doctrina y el radio de la zona, **Alto el fuego** apaga el automático y anula las órdenes, y
+**Abortar** autodestruye un interceptor propio. El holograma dibuja cada interceptor
+camino de su punto de encuentro, con su probabilidad de destrucción.
+
+**Probabilidad de destrucción.** Cada interceptor tiene una probabilidad de destruir su
+blanco al llegar: mayor de frente, bien dentro de su alcance y con el misil seguido por
+varios radares desde hace rato; menor en la fase terminal y para la batería. Si falla, se
+autodestruye y, si queda tiempo, la doctrina de uno en uno lanza otro. Un misil destruido
+estalla en el aire y sus restos caen al suelo: su ojiva nunca detona ni contamina. Los
+valores se ajustan en `missile.defense.*` (ver [configuración](configuration.md)).
+
 ## Radar
 
 Haz girar un radar al menos a 32 RPM. Ve cuerpos de cohete dentro de su alcance y por

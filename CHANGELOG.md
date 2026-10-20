@@ -5,6 +5,33 @@
 Worlds from 1.1.0 load: every item and block keeps its id. See "Upgrading"
 below for what changes in existing worlds.
 
+### Missile defence
+- New **Interceptor Battery**: placed whole as a 2×2×2, driven by a shaft from
+  below. Load its four tubes with **Interceptor Missiles** (made by sequenced
+  assembly) by hand, funnel or mechanical arm. Give it the link code of your
+  radars and switch it to automatic: it turns its canister and fires at
+  missiles predicted to land in its defended zone, one at a time or two at once.
+  Redstone holds its automatic fire, and a comparator reads its ready rounds.
+- Top a rocket with the new **Rocket Kill Vehicle** instead of a warhead to make
+  an interceptor silo. It stands ready with no target, ignores redstone, and
+  launches only when a command table or automatic defence orders it. It meets
+  missiles far away, above the air, and flies once.
+- The command table has a new **Defence** tab, and the Tactical Linker now
+  links up to eight batteries to it. Engage a tracked missile from a chosen or
+  the best launcher, run the table's own automatic defence (it also covers
+  batteries without a link code), set its doctrine and zone, cease fire, or
+  self-destruct one of your interceptors. The hologram shows interceptors on
+  their way and their chance to kill.
+- Interceptors fly to meet their target and destroy it with a chance that is
+  best head-on, well within reach and with several radars tracking. A
+  destroyed missile breaks up in the air in a flash and falling wreckage; its
+  warhead never goes off or contaminates. A miss self-destructs. Interceptors
+  never show on radar.
+- Batteries show their state, rounds and mode on goggles and Display Links, the
+  launch controller's Display Link source now has a name, and shooting down a
+  missile earns the "Not Today" advancement. Settings are under
+  `missile.defense.*`.
+
 ### Missiles: launch platforms, console and command table
 - A launch controller can use a 3×3 launch base with walls left open. Existing
   concrete silos still work, and fuel ports can feed tanks from beside or

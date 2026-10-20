@@ -18,6 +18,14 @@ final class DefenseLang {
         item("incomplete_interceptor", "Incomplete Interceptor Missile", "Misil interceptor incompleto");
         block("rocket_kill_vehicle", "Rocket Kill Vehicle", "Vehículo de intercepción");
         LangEntries.add("item.create_nuclearindustry.tactical_linker.kind.interceptor_battery", "Interceptor Battery", "Batería de interceptores");
+        String source = "create_nuclearindustry.display_source.";
+        LangEntries.add(source + "launch_controller", "Launch Controller", "Controlador de lanzamiento");
+        LangEntries.add(source + "interceptor_battery", "Interceptor Battery", "Batería de interceptores");
+        String display = "battery.create_nuclearindustry.display.";
+        LangEntries.add(display + "offline", "No battery", "Sin batería");
+        LangEntries.add(display + "rounds", "Rounds %s/%s ready, %s loading", "Munición %s/%s lista, %s cargando");
+        LangEntries.add(display + "auto", "Automatic, radar %s", "Automática, radar %s");
+        LangEntries.add(display + "manual", "Manual, radar %s", "Manual, radar %s");
         String command = "holo_table.create_nuclearindustry.command.";
         LangEntries.add(command + "no_shooter", "No working interceptor launcher", "Ningún lanzador de interceptores operativo");
         LangEntries.add(command + "not_tracked", "No linked radar tracks that missile", "Ningún radar enlazado sigue ese misil");

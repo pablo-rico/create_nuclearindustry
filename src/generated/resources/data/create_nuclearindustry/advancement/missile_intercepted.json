@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:missile_launched",
+  "criteria": {
+    "missile_intercepted": {
+      "conditions": {
+        "event": "missile_intercepted"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.missile_intercepted.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:interceptor"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.missile_intercepted.title"
+    }
+  },
+  "requirements": [
+    [
+      "missile_intercepted"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

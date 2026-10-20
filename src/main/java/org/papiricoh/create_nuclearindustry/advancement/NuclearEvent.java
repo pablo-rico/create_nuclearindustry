@@ -63,7 +63,10 @@ public enum NuclearEvent {
     /** Boric acid went into a reactor whose water held no boron. */
     BORON_INJECTED,
     /** Hydrogen from overheated cladding blew up the room around a reactor with no containment. */
-    HYDROGEN_EXPLOSION;
+    HYDROGEN_EXPLOSION,
+    // Missile defence
+    /** An interceptor destroyed a missile in flight. */
+    MISSILE_INTERCEPTED;
 
     public String id() {
         return name().toLowerCase(Locale.ROOT);
