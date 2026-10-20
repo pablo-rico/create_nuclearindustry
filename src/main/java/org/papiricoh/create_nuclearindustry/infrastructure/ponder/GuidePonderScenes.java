@@ -10,6 +10,7 @@ import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.Acceler
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.AntimatterScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.CivilDefenseScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ControlRoomScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.DefenseScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FanTreatmentScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.FuelCycleScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.IsotopeScenes;
@@ -50,6 +51,8 @@ public final class GuidePonderScenes {
         boards.put(GuidePonderText.SILO_LAUNCH, WeaponsScenes::siloLaunch);
         boards.put(GuidePonderText.RADAR, WeaponsScenes::radar);
         boards.put(GuidePonderText.HOLO_TABLE, WeaponsScenes::holoTable);
+        boards.put(GuidePonderText.INTERCEPTOR_BATTERY, DefenseScenes::interceptorBattery);
+        boards.put(GuidePonderText.INTERCEPTOR_SILO, DefenseScenes::interceptorSilo);
         boards.put(GuidePonderText.FUEL_CYCLE, FuelCycleScenes::oreToFuel);
         boards.put(GuidePonderText.ACID_LEACHING, FanTreatmentScenes::acidLeaching);
         boards.put(GuidePonderText.IRRADIATION, FanTreatmentScenes::irradiation);

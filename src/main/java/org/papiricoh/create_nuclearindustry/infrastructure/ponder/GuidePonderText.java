@@ -172,6 +172,44 @@ public final class GuidePonderText {
                             "El cohete despega entre humo y la Base de lanzamiento permanece. Construye una carcasa de Hormigón de silo solo si quieres el aspecto de un silo.")),
             List.of("launch_base", "silo_controller", "silo_fuel_port", "rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead", "propellant_cartridge"));
 
+    public static final Scene INTERCEPTOR_BATTERY = new Scene("interceptor_battery", "defense_interceptor_battery",
+            line("Interceptor Battery", "Batería de interceptores"),
+            List.of(
+                    line("Place one Interceptor Battery item: it builds the whole 2×2×2 battery, with four launch tubes.",
+                            "Coloca un objeto de Batería de interceptores: construye toda la batería de 2×2×2, con cuatro tubos de lanzamiento."),
+                    line("Drive the lowest north-west corner from below with a shaft. Supply at least 32 RPM to turn and fire the turret.",
+                            "Mueve la esquina inferior noroeste desde abajo con un eje. Suministra al menos 32 RPM para girar y disparar la torreta."),
+                    line("Load Interceptors by hand, funnel or Mechanical Arm. Each of the four tubes holds one round; give it time to reload.",
+                            "Carga Interceptores a mano, con una tolva de Create o con un Brazo mecánico. Cada uno de los cuatro tubos admite un proyectil; dale tiempo para recargar."),
+                    line("Set the same four-character link code on the battery and a powered Missile Radar. The battery can then defend on its own, without a command table.",
+                            "Configura el mismo código de enlace de cuatro caracteres en la batería y en un Radar de misiles con rotación. Así puede defender por su cuenta, sin mesa de mando."),
+                    line("Open its screen and choose AUTO to engage tracked missiles heading for its defended zone. MANUAL waits for orders from a linked command table.",
+                            "Abre su pantalla y elige AUTO para atacar misiles rastreados que se dirijan a su zona defendida. MANUAL espera órdenes de una mesa de mando enlazada."),
+                    line("Set the defended zone radius and choose a doctrine: one interceptor at a time, or two per target.",
+                            "Configura el radio de la zona defendida y elige una doctrina: un interceptor cada vez, o dos por blanco."),
+                    line("Redstone into any of the eight blocks holds the battery's automatic fire. Remove the signal to resume automatic defence.",
+                            "Una señal de redstone en cualquiera de los ocho bloques suspende el fuego automático de la batería. Retírala para reanudar la defensa automática."),
+                    line("A comparator reads ready rounds: reloading or empty tubes do not count. Use the signal to monitor your ammunition supply.",
+                            "Un comparador lee los proyectiles listos: los tubos vacíos o en recarga no cuentan. Usa la señal para vigilar la munición disponible.")),
+            List.of("interceptor_battery", "interceptor"));
+
+    public static final Scene INTERCEPTOR_SILO = new Scene("interceptor_silo", "defense_interceptor_silo",
+            line("Interceptor Silo and Command Defence", "Silo interceptor y defensa desde el mando"),
+            List.of(
+                    line("On a 3×3 Launch Base, build engines, tanks and guidance as usual. Finish with a Kill Vehicle instead of a warhead to make an interceptor rocket.",
+                            "Sobre una Base de lanzamiento de 3×3, monta motores, depósitos y guiado como siempre. Termina con un Vehículo interceptor en vez de una ojiva para crear un cohete interceptor."),
+                    line("Drive the controller and supply propellant as usual. The interceptor stands READY without a ground target, ignores redstone and waits for a defence order.",
+                            "Suministra rotación al controlador y propelente como siempre. El interceptor queda LISTO sin un blanco terrestre, ignora la redstone y espera una orden de defensa."),
+                    line("Build a 3×3 Holographic Command Table nearby. Use the Tactical Linker on the Launch Controller to remember it.",
+                            "Construye una Mesa holográfica de mando de 3×3 cerca. Usa el Enlazador táctico sobre el Controlador de lanzamiento para guardarlo."),
+                    line("Use the remembered Tactical Linker on the table to link the silo. Link interceptor batteries the same way, and link a radar for missile tracks.",
+                            "Usa el Enlazador táctico con el controlador guardado sobre la mesa para enlazar el silo. Enlaza baterías del mismo modo y un radar para rastrear misiles."),
+                    line("On the table's Defence tab, engage a tracked missile or enable automatic defence. Set the doctrine and defended zone there; the table orders the launch.",
+                            "En la pestaña Defensa de la mesa, ataca un misil rastreado o activa la defensa automática. Configura allí la doctrina y la zona defendida; la mesa ordena el lanzamiento."),
+                    line("The interceptor meets missiles above the atmosphere and flies only once. After launch, rebuild the rocket on the base for the next interception.",
+                            "El interceptor sale al encuentro de misiles por encima de la atmósfera y vuela una sola vez. Tras el lanzamiento, reconstruye el cohete sobre la base para la próxima interceptación.")),
+            List.of("rocket_kill_vehicle", "interceptor_battery", "interceptor", "silo_controller", "holo_table", "tactical_linker"));
+
     // ------------------------------------------------------------------ fuel cycle and fan treatments
 
     public static final Scene FUEL_CYCLE = new Scene("fuel_cycle", "fuel_cycle",
@@ -535,7 +573,7 @@ public final class GuidePonderText {
             List.of("antimatter_engine", "magnetic_coil", "magnetic_nozzle"));
 
     /** Every guide scene, in the order they are registered. */
-    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, LAUNCH_BASE, MISSILE, SILO_LAUNCH, RADAR, HOLO_TABLE, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
+    public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, LAUNCH_BASE, MISSILE, SILO_LAUNCH, RADAR, HOLO_TABLE, INTERCEPTOR_BATTERY, INTERCEPTOR_SILO, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
             ACCELERATOR_LINAC, ACCELERATOR_SYNCHROTRON, ANTIMATTER_CONTAINMENT, ANTIMATTER_GENERATOR, ANTIPROTON_INJECTOR,
             ISOTOPES, MAINTENANCE, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO,
             THERMAL_ENGINE, ANTIMATTER_ENGINE);

@@ -26,6 +26,16 @@ import org.papiricoh.create_nuclearindustry.infrastructure.ponder.PlantPonderTex
 import org.papiricoh.create_nuclearindustry.integration.jei.GuideJeiInfo;
 import org.papiricoh.create_nuclearindustry.integration.jei.PlantJeiInfo;
 import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
+import org.papiricoh.create_nuclearindustry.missile.defense.DefenseRegistry;
+import org.papiricoh.create_nuclearindustry.missile.defense.battery.InterceptorBatteryBlock;
+import org.papiricoh.create_nuclearindustry.missile.defense.battery.InterceptorBatteryEntity;
+import org.papiricoh.create_nuclearindustry.missile.defense.battery.InterceptorBatteryPartBlock;
+import org.papiricoh.create_nuclearindustry.missile.holo.HoloPart;
+import org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry;
+import org.papiricoh.create_nuclearindustry.missile.holo.HoloTableBlock;
+import org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition;
+import org.papiricoh.create_nuclearindustry.missile.silo.RocketSectionBlock;
+import org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualsRegistry;
 
 import java.util.HashSet;
@@ -115,6 +125,64 @@ public class GuidePonderSchematicTests {
         try { valid = org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition.parse(column).stageStarts().size() == 2; }
         catch (org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition.Invalid e) { valid = false; }
         helper.assertTrue(valid, "the scene's rocket is a valid two-stage rocket: " + column);
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/defense_interceptor_battery_ponder", batch = BATCH)
+    public static void interceptorBatterySchematicLoads(GameTestHelper helper) {
+        BlockPos master = new BlockPos(2, 3, 2);
+        helper.assertBlockPresent(DefenseRegistry.BATTERY.get(), master);
+        helper.assertTrue(helper.getBlockState(master).getValue(InterceptorBatteryBlock.FACING) == net.minecraft.core.Direction.NORTH,
+                "the battery faces the camera");
+        helper.assertTrue(at(helper, master, InterceptorBatteryEntity.class) != null,
+                "the schematic retains the master BE that renders the turret");
+        for (int offset = 1; offset < 8; offset++) {
+            BlockPos pos = master.offset(offset & 1, (offset >> 1) & 1, (offset >> 2) & 1);
+            helper.assertBlockPresent(DefenseRegistry.BATTERY_PART.get(), pos);
+            var state = helper.getBlockState(pos);
+            helper.assertTrue(state.getValue(InterceptorBatteryPartBlock.OFFSET) == offset
+                            && InterceptorBatteryPartBlock.master(pos, state).equals(master),
+                    "part " + offset + " points back to the master");
+        }
+        helper.assertBlockPresent(createBlock("shaft"), new BlockPos(2, 2, 2));
+        helper.assertBlockPresent(createBlock("creative_motor"), new BlockPos(2, 1, 2));
+        helper.assertBlockPresent(createBlock("andesite_funnel"), new BlockPos(1, 3, 2));
+        helper.assertBlockPresent(net.minecraft.world.level.block.Blocks.LEVER, new BlockPos(1, 3, 3));
+        helper.assertBlockPresent(net.minecraft.world.level.block.Blocks.COMPARATOR, new BlockPos(3, 3, 1));
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.RADAR.get(), new BlockPos(5, 2, 4));
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/defense_interceptor_silo_ponder", batch = BATCH)
+    public static void interceptorSiloSchematicLoads(GameTestHelper helper) {
+        for (int x = 2; x <= 4; x++) for (int z = 2; z <= 4; z++)
+            helper.assertBlockPresent(SiloRegistry.LAUNCH_BASE.get(), new BlockPos(x, 1, z));
+        helper.assertBlockPresent(SiloRegistry.CONTROLLER.get(), new BlockPos(5, 1, 3));
+        helper.assertBlockPresent(SiloRegistry.FUEL_PORT.get(), new BlockPos(3, 1, 1));
+        helper.assertBlockPresent(createBlock("creative_motor"), new BlockPos(6, 1, 3));
+        helper.assertBlockPresent(net.minecraft.world.level.block.Blocks.LEVER, new BlockPos(5, 2, 3));
+        helper.assertBlockPresent(SiloRegistry.ENGINE.get(), new BlockPos(3, 2, 3));
+        helper.assertBlockPresent(SiloRegistry.TANK.get(), new BlockPos(3, 3, 3));
+        helper.assertBlockPresent(SiloRegistry.ENGINE.get(), new BlockPos(3, 4, 3));
+        helper.assertBlockPresent(SiloRegistry.TANK.get(), new BlockPos(3, 5, 3));
+        helper.assertBlockPresent(SiloRegistry.GUIDANCE.get(), new BlockPos(3, 6, 3));
+        helper.assertBlockPresent(SiloRegistry.KILL_VEHICLE.get(), new BlockPos(3, 7, 3));
+        java.util.List<RocketComposition.Section> column = new java.util.ArrayList<>();
+        for (int y = 2; y <= 7; y++)
+            if (helper.getBlockState(new BlockPos(3, y, 3)).getBlock() instanceof RocketSectionBlock section)
+                column.add(section.section);
+        boolean valid;
+        try {
+            RocketComposition composition = RocketComposition.parse(column);
+            valid = composition.interceptor() && composition.stageStarts().size() == 2;
+        } catch (RocketComposition.Invalid e) { valid = false; }
+        helper.assertTrue(valid, "the scene's rocket is a valid two-stage interceptor: " + column);
+        for (int i = 0; i < 9; i++) {
+            BlockPos pos = new BlockPos(1 + i % 3, 2, 6 + i / 3);
+            helper.assertBlockPresent(HoloRegistry.TABLE.get(), pos);
+            helper.assertTrue(helper.getBlockState(pos).getValue(HoloTableBlock.PART) == HoloPart.of(i),
+                    "command table part " + i + " is formed");
+        }
         helper.succeed();
     }
 
@@ -219,5 +287,10 @@ public class GuidePonderSchematicTests {
     private static <T> T at(GameTestHelper helper, BlockPos pos, Class<T> type) {
         BlockEntity blockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(pos));
         return type.isInstance(blockEntity) ? type.cast(blockEntity) : null;
+    }
+
+    /** A Create block by id: its registry entries are not on the compile classpath. */
+    private static net.minecraft.world.level.block.Block createBlock(String id) {
+        return net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("create", id));
     }
 }
