@@ -22,17 +22,31 @@ public final class SiloRegistry {
     /** What a silo's floor and walls may be built of. */
     public static final net.minecraft.tags.TagKey<Block> SILO_WALLS = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK,
             net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "silo_walls"));
+    /** The pad a rocket stands on: a 3×3 of these under it, with the launch controller and fuel ports beside it. */
+    public static final DeferredHolder<Block, Block> LAUNCH_BASE = AllNuclearBlocks.BLOCKS.register("launch_base", () -> new Block(wallProperties()));
+    /** What the 3×3 a rocket stands on may be built of: launch bases, or a silo's concrete floor. */
+    public static final net.minecraft.tags.TagKey<Block> LAUNCH_BASES = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK,
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "launch_bases"));
+    /** Everything of a launch site a rocket never takes with it: its base, walls, ports and controller. */
+    public static final net.minecraft.tags.TagKey<Block> LAUNCH_STRUCTURE = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK,
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "launch_structure"));
+    /** What a conventional warhead is packed with. */
+    public static final net.minecraft.tags.TagKey<Item> CONVENTIONAL_EXPLOSIVES = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM,
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "conventional_explosives"));
     public static final DeferredHolder<Block, SiloControllerBlock> CONTROLLER = AllNuclearBlocks.BLOCKS.register("silo_controller", () -> new SiloControllerBlock(properties()));
     public static final DeferredHolder<Item, Item> PROPELLANT = AllNuclearItems.ITEMS.register("propellant_cartridge", () -> new Item(new Item.Properties()));
     /** Goes in a guidance module for stellar guidance, the most accurate. */
     public static final DeferredHolder<Item, Item> STAR_TRACKER = AllNuclearItems.ITEMS.register("star_tracker", () -> new Item(new Item.Properties().stacksTo(16)));
+    /** Links command tables and radar scopes to radars and launch controllers. */
+    public static final DeferredHolder<Item, org.papiricoh.create_nuclearindustry.missile.link.TacticalLinkerItem> TACTICAL_LINKER = AllNuclearItems.ITEMS.register("tactical_linker",
+            () -> new org.papiricoh.create_nuclearindustry.missile.link.TacticalLinkerItem(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RocketSectionEntity>> SECTION_ENTITY = AllNuclearEntities.ENTITIES.register("rocket_section",
             () -> BlockEntityType.Builder.of(RocketSectionEntity::new, ENGINE.get(), TANK.get(), GUIDANCE.get(), WARHEAD.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SiloControllerEntity>> CONTROLLER_ENTITY = AllNuclearEntities.ENTITIES.register("silo_controller",
             () -> BlockEntityType.Builder.of(SiloControllerEntity::new, CONTROLLER.get()).build(null));
     public static final DeferredHolder<MenuType<?>, MenuType<SiloMenu>> MENU = AllNuclearGUIs.MENUS.register("silo_controller", () -> IMenuTypeExtension.create(SiloMenu::read));
     static {
-        for (var block : java.util.List.of(ENGINE, TANK, GUIDANCE, WARHEAD, WALL, FUEL_PORT, CONTROLLER))
+        for (var block : java.util.List.of(ENGINE, TANK, GUIDANCE, WARHEAD, WALL, FUEL_PORT, CONTROLLER, LAUNCH_BASE))
             AllNuclearItems.ITEMS.register(block.getId().getPath(), () -> new BlockItem(block.get(), new Item.Properties()));
     }
     /** Reinforced concrete: full, opaque blocks that stand up to more than a rocket's exhaust. */
@@ -41,13 +55,14 @@ public final class SiloRegistry {
     private static DeferredHolder<Block, RocketSectionBlock> section(String name, RocketComposition.Section section) {
         return AllNuclearBlocks.BLOCKS.register(name, () -> new RocketSectionBlock(properties(), section));
     }
-    public static void register(IEventBus bus) { SiloControlPayload.register(bus); }
+    public static void register(IEventBus bus) { SiloControlPayload.register(bus); SiloDiagramPayload.register(bus); }
     public static void registerCapabilities(net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent event) {
         event.registerBlock(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK,
                 (level, pos, state, entity, side) -> SiloFuelPort.at(level, pos), FUEL_PORT.get());
     }
     public static void fillCreativeTab(SectionedOutput output) {
-        for (var block : java.util.List.of(ENGINE, TANK, GUIDANCE, WARHEAD, WALL, FUEL_PORT, CONTROLLER)) output.accept(block.get());
+        for (var block : java.util.List.of(CONTROLLER, LAUNCH_BASE, FUEL_PORT, WALL, ENGINE, TANK, GUIDANCE, WARHEAD)) output.accept(block.get());
+        output.accept(TACTICAL_LINKER.get());
         output.accept(PROPELLANT.get());
         output.accept(STAR_TRACKER.get());
     }

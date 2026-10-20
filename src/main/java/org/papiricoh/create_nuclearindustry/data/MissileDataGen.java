@@ -27,12 +27,18 @@ final class MissileDataGen extends AreaDataGen {
     void lang() {
         RadarLang.add();
         SiloLang.add();
+        LaunchSiteLang.add();
+        WarheadLang.add();
+        LaunchScreenLang.add();
+        TacticalLang.add();
         block("rocket_engine", "Rocket Engine", "Motor de cohete");
         block("rocket_tank", "Rocket Propellant Tank", "Depósito de propelente");
         block("rocket_guidance", "Rocket Guidance Module", "Módulo de guiado");
         block("rocket_warhead", "Rocket Warhead", "Ojiva de cohete");
-        block("silo_controller", "Silo Controller", "Controlador de silo");
-        block("silo_wall", "Silo Wall", "Pared de silo");
+        block("silo_controller", "Launch Controller", "Controlador de lanzamiento");
+        block("silo_wall", "Silo Concrete", "Hormigón de silo");
+        block("launch_base", "Launch Base", "Base de lanzamiento");
+        item("tactical_linker", "Tactical Linker", "Enlazador táctico");
         block("silo_fuel_port", "Silo Fuel Port", "Puerto de combustible de silo");
         LangEntries.fluid("rocket_fuel", "Rocket Fuel", "Combustible de cohete");
         LangEntries.fluid("liquid_oxygen", "Liquid Oxygen", "Oxígeno líquido");
@@ -70,6 +76,7 @@ final class MissileDataGen extends AreaDataGen {
     @Override
     void itemModels(NuclearItemModelProvider provider) {
         provider.basicItem(SiloRegistry.STAR_TRACKER.get());
+        provider.basicItem(SiloRegistry.TACTICAL_LINKER.get());
     }
 
     @Override
@@ -78,10 +85,17 @@ final class MissileDataGen extends AreaDataGen {
         var parts = provider.tagFor(MultiblockTags.MULTIBLOCK_PARTS);
         pickaxe.add(RadarRegistry.RADAR.get(), RadarRegistry.SCOPE.get(), org.papiricoh.create_nuclearindustry.missile.holo.HoloRegistry.TABLE.get());
         for (var block : List.of(SiloRegistry.ENGINE, SiloRegistry.TANK, SiloRegistry.GUIDANCE, SiloRegistry.WARHEAD,
-                SiloRegistry.CONTROLLER, SiloRegistry.WALL, SiloRegistry.FUEL_PORT)) {
+                SiloRegistry.CONTROLLER, SiloRegistry.WALL, SiloRegistry.FUEL_PORT, SiloRegistry.LAUNCH_BASE)) {
             pickaxe.add(block.get());
             parts.add(block.get());
         }
         provider.tagFor(SiloRegistry.SILO_WALLS).add(SiloRegistry.WALL.get(), SiloRegistry.FUEL_PORT.get());
+        provider.tagFor(SiloRegistry.LAUNCH_BASES).addTag(SiloRegistry.SILO_WALLS).add(SiloRegistry.LAUNCH_BASE.get());
+        provider.tagFor(SiloRegistry.LAUNCH_STRUCTURE).addTag(SiloRegistry.LAUNCH_BASES).add(SiloRegistry.CONTROLLER.get());
+    }
+
+    @Override
+    void itemTags(NuclearItemTagsProvider provider, HolderLookup.Provider lookup) {
+        provider.tagFor(SiloRegistry.CONVENTIONAL_EXPLOSIVES).add(net.minecraft.world.item.Items.TNT);
     }
 }

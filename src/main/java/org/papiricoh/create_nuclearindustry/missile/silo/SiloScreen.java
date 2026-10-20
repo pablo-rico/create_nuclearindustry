@@ -30,7 +30,7 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
         EditBox box = new EditBox(font, leftPos + offset, topPos + 86, 86, 20, Component.literal(axis));
         box.setMaxLength(9); box.setValue("0"); addRenderableWidget(box); return box;
     }
-    private void send(int action, BlockPos target) { PacketDistributor.sendToServer(new SiloControlPayload(menu.pos, action, target)); }
+    private void send(int action, BlockPos target) { PacketDistributor.sendToServer(new SiloControlPayload(menu.pos, action, target, 0)); }
     @Override protected void renderBg(GuiGraphics g, float partial, int mx, int my) {
         g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xff17232b);
         g.fill(leftPos+2, topPos+2, leftPos+imageWidth-2, topPos+24, 0xff32505c);

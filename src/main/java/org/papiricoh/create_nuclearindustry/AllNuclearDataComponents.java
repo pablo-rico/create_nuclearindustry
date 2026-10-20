@@ -39,6 +39,12 @@ public class AllNuclearDataComponents {
                     .persistent(net.minecraft.core.GlobalPos.CODEC)
                     .networkSynchronized(net.minecraft.core.GlobalPos.STREAM_CODEC));
 
+    /** What a Tactical Linker points at: a missile radar or a launch controller. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<org.papiricoh.create_nuclearindustry.missile.link.TacticalLink>> TACTICAL_LINK =
+            DATA_COMPONENTS.registerComponentType("tactical_link", builder -> builder
+                    .persistent(org.papiricoh.create_nuclearindustry.missile.link.TacticalLink.CODEC)
+                    .networkSynchronized(org.papiricoh.create_nuclearindustry.missile.link.TacticalLink.STREAM_CODEC));
+
     /** Fraction of an RTG pellet's heat left, 1 when fresh. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Float>> RTG_CHARGE =
             DATA_COMPONENTS.registerComponentType("rtg_charge", builder -> builder

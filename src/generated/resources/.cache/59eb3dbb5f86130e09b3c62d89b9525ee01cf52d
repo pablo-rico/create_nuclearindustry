@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-20T02:43:30.808044	Loot Tables
+// 1.21.1	2026-10-20T05:23:00.852823	Loot Tables
 eaeb1a44ee986afa29b73bd40bcd6ecd94187e44 data/create_nuclearindustry/loot_table/blocks/accelerator_cryo_feed.json
 64315f2829f1110e8eef7a6c1c5c4d2310efebd1 data/create_nuclearindustry/loot_table/blocks/advanced_redstone_link.json
 13c05f487af479a2691bf45b4d60b1e69d36ac47 data/create_nuclearindustry/loot_table/blocks/air_raid_siren.json
@@ -77,6 +77,7 @@ c43d10630d20ff8fc98097ea62dc566ba5774478 data/create_nuclearindustry/loot_table/
 1562656e1d1026c9de2179e3d86718ff4b97a5e5 data/create_nuclearindustry/loot_table/blocks/injection_septum.json
 27e2e43d76e84b1a4a86c384923d5222f6e031a6 data/create_nuclearindustry/loot_table/blocks/irradiation_source.json
 c501c41f6f75f3cdefe2626df73c7d631e457682 data/create_nuclearindustry/loot_table/blocks/large_penning_trap.json
+7909712e2c96d0ddab1c44a23d3fd36a2e33d110 data/create_nuclearindustry/loot_table/blocks/launch_base.json
 ce7e23980fa7c56de2a27d4091a0d389093cbbe1 data/create_nuclearindustry/loot_table/blocks/launch_pad.json
 4e9439e3c91b6e0cb773597d00d134c403fc5f67 data/create_nuclearindustry/loot_table/blocks/lead_blast_door.json
 d1150d4d6adfbcdaa05a70146e68b5ad912a5f29 data/create_nuclearindustry/loot_table/blocks/magnetic_coil.json

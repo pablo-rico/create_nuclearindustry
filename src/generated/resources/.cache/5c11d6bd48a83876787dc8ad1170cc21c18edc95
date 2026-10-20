@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-20T01:16:59.970422	Item Models: create_nuclearindustry
+// 1.21.1	2026-10-20T05:23:00.853569	Item Models: create_nuclearindustry
 fbb44421d41b161a776411650882a190059c17c8 assets/create_nuclearindustry/models/item/americium_241.json
 c751b3309684aa5733087dd1d1e82066016215f0 assets/create_nuclearindustry/models/item/amidoxime_adsorbent.json
 70769908b82daba73c4d705865fc8fd119e7b179 assets/create_nuclearindustry/models/item/bomb_casing.json
@@ -70,6 +70,7 @@ f7228c9e3f5dd0bd7108d56c33f1dc787dd5e11c assets/create_nuclearindustry/models/it
 37e8c72c998cbccfc558db664dd6c4261ff2e7c2 assets/create_nuclearindustry/models/item/strontium_90.json
 1c04d808a355bf9d201d9bc9288f52c32f59db0b assets/create_nuclearindustry/models/item/strontium_rtg_pellet.json
 59c7555db7e0baafceb8e75ee8650e66dbb526a9 assets/create_nuclearindustry/models/item/sulfuric_acid_bucket.json
+d8697f8cf71360c44a955e45df639813ee7d6b58 assets/create_nuclearindustry/models/item/tactical_linker.json
 f9e2c3ad6c4fcc48364784a2c9e3cbd790908d29 assets/create_nuclearindustry/models/item/technetium_99m.json
 7af1d83ffcdf8d7b35a484fed0faf77de036c343 assets/create_nuclearindustry/models/item/technetium_generator.json
 c7dd81041a184650a557640a8adfacee052d5475 assets/create_nuclearindustry/models/item/thermonuclear_casing.json

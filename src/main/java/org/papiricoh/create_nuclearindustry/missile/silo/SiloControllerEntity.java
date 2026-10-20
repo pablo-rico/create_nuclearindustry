@@ -56,6 +56,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private double syncedCep;
     /** How far the rocket standing in it reaches on level ground, blocks; 0 without one. Server side. */
     private double reach;
+    /** Ticks a command table's salvo holds the countdown back by, so its impacts line up; 0 normally. */
+    private int launchDelay;
     private final MultiblockMessenger messenger = new MultiblockMessenger("silo");
 
     public SiloControllerEntity(BlockPos pos, BlockState state) { super(SiloRegistry.CONTROLLER_ENTITY.get(), pos, state); errorPos = pos; }
@@ -64,9 +66,24 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     /** Why it is not ready, as a lang key suffix ({@code silo.create_nuclearindustry.error.*}), or empty. */
     public String error() { return error; }
     public BlockPos target() { return target; }
+    /** Whether it is set to go off above its target. */
+    public boolean airburst() { return airburst; }
     public int countdown() { return countdown; }
     public double flightTicks() { return flightTicks; }
     public int rocketHeight() { return rocketHeight; }
+    /** Ticks the next countdown is held back by (a salvo's offset); cleared when disarmed or retargeted. */
+    public int launchDelay() { return launchDelay; }
+    /** Sets {@link #launchDelay}, clamped to the configured longest; a command table's salvo calls it once armed. */
+    public void setLaunchDelay(int ticks) {
+        launchDelay = Math.max(0, Math.min(ticks, MissileConfig.maxLaunchDelaySeconds * 20));
+        setChanged(); sendData();
+    }
+    /** Layers of silo wall standing round the rocket from the base up, 0 on an open platform; for launch effects. */
+    public int shaftHeight() { return 0; }
+    /** The rocket standing on the base as last validated, or null; server side. */
+    public AssembledRocket rocket() { return rocket; }
+    /** How the rocket standing on the base would fly (stages, payload, captured blocks, spread), or null without one; server side. */
+    public MissileDesign currentDesign() { return rocket == null ? null : design(); }
     public Component status() {
         if (error.equals("assembly") && assemblyMessage != null) return Component.translatable("silo.create_nuclearindustry.error.assembly_reason", assemblyMessage);
         return error.isEmpty() ? Component.translatable("silo.create_nuclearindustry.state." + state.name().toLowerCase(Locale.ROOT))
@@ -87,7 +104,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (!(level instanceof ServerLevel) || target == null || !level.getWorldBorder().isWithinBounds(target)
                 || target.getY() < level.getMinBuildHeight() || target.getY() >= level.getMaxBuildHeight()) return;
         this.target = target.immutable(); this.airburst = airburst; this.operator = player.getUUID();
-        disarm(); dirty = true; setChanged(); sendData();
+        disarm(); launchDelay = 0; dirty = true; setChanged(); sendData();
     }
     public void arm(Player player) {
         if (!(level instanceof ServerLevel)) return;
@@ -103,7 +120,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     public void setOperator(UUID operator) { this.operator = operator; setChanged(); }
     public UUID operator() { return operator; }
     public void disarm() {
-        countdown = -1;
+        countdown = -1; launchDelay = 0;
         if (state == State.ARMED || state == State.COUNTDOWN) state = State.UNPREPARED;
         setChanged();
     }
@@ -265,7 +282,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (!powered() && (state == State.ARMED || state == State.COUNTDOWN)) { failSpeed(); dirty = true; }
         // Events invalidate immediately; a slow audit also catches chunk unloads and raw world edits.
         if (dirty || level.getGameTime() % 20 == 0) validate();
-        if (state == State.ARMED && rising) { countdown = MissileConfig.launchCountdownTicks(); state = State.COUNTDOWN; setChanged(); }
+        if (state == State.ARMED && rising) { countdown = MissileConfig.launchCountdownTicks() + launchDelay; state = State.COUNTDOWN; setChanged(); }
         else if (state == State.COUNTDOWN && --countdown <= 0) {
             validate(); // Full final server-side validation before consuming anything.
             if (state == State.COUNTDOWN) launch(server);
@@ -334,6 +351,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (operator != null) tag.putUUID("Operator", operator);
         if (pendingLaunch != null) tag.putUUID("PendingLaunch", pendingLaunch);
         tag.putBoolean("Airburst", airburst);
+        if (launchDelay > 0) tag.putInt("LaunchDelay", launchDelay);
         if (clientPacket) {
             tag.putString("State", state.name()); tag.putString("Error", error); tag.putLong("ErrorPos", errorPos.asLong()); if (errorArgs != null) tag.putIntArray("ErrorArgs", errorArgs);
             tag.putInt("Countdown", countdown); tag.putDouble("FlightTicks", flightTicks); tag.putInt("RocketHeight", rocketHeight);
@@ -347,6 +365,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         operator = tag.hasUUID("Operator") ? tag.getUUID("Operator") : null;
         pendingLaunch = tag.hasUUID("PendingLaunch") ? tag.getUUID("PendingLaunch") : null;
         airburst = tag.getBoolean("Airburst");
+        launchDelay = tag.getInt("LaunchDelay");
         if (clientPacket) {
             try { state = State.valueOf(tag.getString("State")); } catch (IllegalArgumentException ignored) { state = State.INCOMPLETE; }
             error = tag.getString("Error"); errorPos = BlockPos.of(tag.getLong("ErrorPos")); errorArgs = tag.contains("ErrorArgs") ? tag.getIntArray("ErrorArgs") : null; countdown = tag.getInt("Countdown"); flightTicks = tag.getDouble("FlightTicks"); rocketHeight = tag.getInt("RocketHeight");

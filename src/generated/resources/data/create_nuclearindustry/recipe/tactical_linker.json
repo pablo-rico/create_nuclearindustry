@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:control_room_linker"
+    },
+    {
+      "item": "create:precision_mechanism"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:tactical_linker"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "create_nuclearindustry:block/launch_base_top",
+    "bottom": "create_nuclearindustry:block/silo_wall",
+    "side": "create_nuclearindustry:block/launch_base_side"
+  }
+}

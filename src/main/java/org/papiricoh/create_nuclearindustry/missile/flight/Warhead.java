@@ -12,10 +12,10 @@ import org.papiricoh.create_nuclearindustry.explosive.ThermonuclearStats;
 import java.util.Locale;
 
 /**
- * What a missile carries down: a fission warhead (maybe salted), a dirty one, a thermonuclear one, or
- * nothing at all (a test shot, which only lands).
+ * What a missile carries down: a fission warhead (maybe salted), a dirty one, a thermonuclear one, a
+ * conventional one, or nothing at all (a test shot, which only lands).
  *
- * @param power      fission blast power
+ * @param power      fission blast power, or a conventional warhead's explosion power
  * @param hRadius    fission destruction radius
  * @param intensity  fission fallout intensity
  * @param salting    radioactivity of non-fissile material packed in, rad/s: the whole load of a dirty warhead
@@ -25,7 +25,8 @@ public record Warhead(Kind kind, float power, int hRadius, float intensity, floa
     public static final Warhead INERT = new Warhead(Kind.INERT, 0, 0, 0, 0, ThermonuclearLoad.EMPTY);
 
     public enum Kind {
-        INERT, FISSION, DIRTY, THERMONUCLEAR
+        // Saved by name: append only.
+        INERT, FISSION, DIRTY, THERMONUCLEAR, CONVENTIONAL
     }
 
     public static Warhead fission(float power, int hRadius, float intensity, float salting) {
@@ -38,6 +39,11 @@ public record Warhead(Kind kind, float power, int hRadius, float intensity, floa
 
     public static Warhead thermonuclear(ThermonuclearLoad load) {
         return new Warhead(Kind.THERMONUCLEAR, 0, 0, 0, 0, load);
+    }
+
+    /** High explosive going off with an explosion of {@code power} (TNT is 4): no radiation, no flash. */
+    public static Warhead conventional(float power) {
+        return new Warhead(Kind.CONVENTIONAL, power, 0, 0, 0, ThermonuclearLoad.EMPTY);
     }
 
     /** The destruction radius, blocks, which an airburst is set above. */
@@ -56,6 +62,7 @@ public record Warhead(Kind kind, float power, int hRadius, float intensity, floa
             case FISSION -> Math.max(NuclearDetonation.falloutRadius(hRadius), salting > 0 ? DirtyWarheadStats.falloutRadius(salting) : 0);
             case DIRTY -> DirtyWarheadStats.falloutRadius(salting);
             case THERMONUCLEAR -> thermo.stats(ExplosiveConfig.thermonuclearCaps()).falloutRadius();
+            case CONVENTIONAL -> (int) Math.ceil(power * 1.5);
         };
     }
 
@@ -74,6 +81,7 @@ public record Warhead(Kind kind, float power, int hRadius, float intensity, floa
                 ThermonuclearStats.Result stats = thermo.stats(ExplosiveConfig.thermonuclearCaps());
                 NuclearDetonation.detonateThermonuclear(level, at, stats);
             }
+            case CONVENTIONAL -> level.explode(null, at.x, at.y, at.z, power, net.minecraft.world.level.Level.ExplosionInteraction.TNT);
         }
     }
 

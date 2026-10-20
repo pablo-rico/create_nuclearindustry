@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "S": {
+      "item": "create:sturdy_sheet"
+    },
+    "W": {
+      "item": "create_nuclearindustry:silo_wall"
+    }
+  },
+  "pattern": [
+    "PPP",
+    "WSW",
+    "WWW"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:launch_base"
+  }
+}

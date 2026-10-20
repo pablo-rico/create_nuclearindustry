@@ -193,6 +193,10 @@ public final class WeaponsRecipes implements DataProvider {
             part(output, SiloRegistry.WARHEAD.get(), " S ", "SFS", "SSS", 'S', sturdy, 'F', ExplosiveRegistry.FIRING_SET.get());
             part(output, SiloRegistry.CONTROLLER.get(), "SFS", "PEP", "SIS", 'S', sturdy, 'F', ExplosiveRegistry.FIRING_SET.get(), 'P', CreateItems.get("precision_mechanism"), 'E', CreateItems.get("electron_tube"), 'I', Items.IRON_BLOCK);
             part(output, SiloRegistry.WALL.get(), "III", "ISI", "III", 'I', Items.STONE, 'S', sturdy);
+            part(output, SiloRegistry.LAUNCH_BASE.get(), "PPP", "WSW", "WWW", 'P', CreateItems.get("iron_sheet"), 'W', SiloRegistry.WALL.get(), 'S', sturdy);
+            ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, SiloRegistry.TACTICAL_LINKER.get())
+                    .requires(AllNuclearItems.CONTROL_ROOM_LINKER.get()).requires(CreateItems.get("precision_mechanism"))
+                    .unlockedBy("has_linker", has(AllNuclearItems.CONTROL_ROOM_LINKER.get())).save(output);
             part(output, SiloRegistry.PROPELLANT.get(), " I ", " B ", " I ", 'I', CreateItems.get("iron_sheet"), 'B', CreateItems.get("blaze_cake"));
             part(output, SiloRegistry.FUEL_PORT.get(), " P ", " W ", " V ", 'P', CreateItems.get("fluid_pipe"), 'W', SiloRegistry.WALL.get(),
                     'V', CreateItems.get("fluid_valve"));

@@ -1776,6 +1776,17 @@ extraBlockMass = 0.05
 baseRange = 3000.0
 earthRadius = 16000.0
 networkRange = 4096.0
+
+[missile.link]
+tacticalRange = 512.0
+
+[missile.salvo]
+maxDelaySeconds = 120
+maxSpacingSeconds = 30
+selfDestructPower = 2.0
+
+[missile.warhead]
+conventionalMaxPower = 16.0
 ```
 
 El lanzamiento usa un cohete modular construido dentro de un silo de 5×5.
@@ -1819,6 +1830,19 @@ de las RPM y de la firma; 0 ve todo). `earthRadius` es el radio con el que se
 calcula el horizonte (0 lo quita). `networkRange` es la distancia máxima entre
 radares con el mismo código para compartir trazas (0 sin límite). La mesa
 holográfica usa lo que ven sus radares enlazados.
+
+**Enlaces y salvas** (`missile.link.*`, `missile.salvo.*`): `tacticalRange` es la
+distancia máxima, en bloques, a la que el enlazador táctico une una mesa de mando
+o una pantalla de radar con un radar o un controlador de lanzamiento. Una salva
+de la mesa retrasa la cuenta atrás de cada controlador como mucho
+`maxDelaySeconds` segundos para que los impactos coincidan, y en una secuencia
+separa los impactos como mucho `maxSpacingSeconds`. Abortar un misil propio en
+vuelo lo destruye con una explosión de potencia `selfDestructPower` (0 ninguna)
+si su posición está cargada; la ojiva nunca estalla.
+
+**Ojiva convencional** (`missile.warhead.conventionalMaxPower`): potencia máxima
+de la explosión de una ojiva cargada con TNT (la de un bloque de TNT es 4). Crece
+con la raíz cúbica de la TNT cargada.
 
 **Efectos a distancia** (`missile.fx.*`): los jugadores a menos de `range`
 bloques (en horizontal) de un misil reciben su posición para dibujar su pluma,

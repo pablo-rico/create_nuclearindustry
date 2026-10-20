@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_linker": {
+      "conditions": {
+        "items": [
+          {
+            "items": "create_nuclearindustry:control_room_linker"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "create_nuclearindustry:tactical_linker"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_linker"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "create_nuclearindustry:tactical_linker"
+    ]
+  }
+}
