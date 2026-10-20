@@ -17,6 +17,8 @@ import org.papiricoh.create_nuclearindustry.missile.flight.Flight;
 import org.papiricoh.create_nuclearindustry.missile.flight.FlightTracker;
 import org.papiricoh.create_nuclearindustry.missile.silo.SiloControllerEntity;
 
+import org.papiricoh.create_nuclearindustry.missile.defense.*;
+import org.papiricoh.create_nuclearindustry.missile.radar.RadarConfigurePayload;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -83,7 +85,31 @@ public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, in
         if (!menu.stillValid(player)) return Command.REFUSED;
         if (p.action == ABORT) return abort(level, table, p.flight);
         if (p.action == SALVO) return salvo(player, table, p.silos, p.arg);
+        switch (p.action) {
+            case ENGAGE -> {
+                if (p.flight == null || table.tracks().stream().noneMatch(t -> t.id().equals(p.flight))) return Command.NOT_TRACKED;
+                Flight target = FlightTracker.get(level).get(p.flight);
+                if (target != null && table.own(target)) return Command.FRIENDLY;
+                EngageResult result = DefenseCommand.manualEngage(level, table.tracks(), table.shooters(p.arg), p.flight, table.defense().doctrine(), table::own);
+                return result == EngageResult.QUEUED ? Command.OK : Command.valueOf(result.name());
+            }
+            case SET_AUTO -> {
+                if (p.arg != 0 && p.arg != 1) return Command.REFUSED;
+                table.setDefense(table.defense().withAuto(p.arg == 1)); return Command.OK;
+            }
+            case SET_DOCTRINE -> {
+                table.setDefense(table.defense().withDoctrine(Doctrine.byOrdinal(p.arg))); return Command.OK;
+            }
+            case SET_ZONE -> {
+                int limit = RadarConfigurePayload.MAX_ZONE_OFFSET;
+                int x = Math.max(p.centre.getX() - limit, Math.min(p.centre.getX() + limit, p.x));
+                int z = Math.max(p.centre.getZ() - limit, Math.min(p.centre.getZ() + limit, p.z));
+                table.setDefense(table.defense().withZone(x, z, p.arg)); return Command.OK;
+            }
+            case CEASE -> { table.cease(); return Command.OK; }
+        }
         GlobalPos link = GlobalPos.of(level.dimension(), p.silo);
+        if (p.action == UNLINK_BATTERY) return table.batteries().contains(link) && table.unlink(link) ? Command.OK : Command.NOT_LINKED;
         if (p.action == UNLINK_RADAR) return table.radars().contains(link) && table.unlink(link) ? Command.OK : Command.NOT_LINKED;
         if (!table.silos().contains(link)) return Command.NOT_LINKED;
         // Unlink also works for a destroyed or unloaded device.
@@ -144,6 +170,7 @@ public record HoloCommandPayload(BlockPos centre, byte action, BlockPos silo, in
         FlightTracker tracker = FlightTracker.getIfPresent(level);
         Flight flight = tracker == null || id == null ? null : tracker.get(id);
         if (flight == null) return Command.GONE;
+        if (table.ownInterceptor(flight)) return tracker.abort(level, id) ? Command.OK : Command.GONE;
         if (flight.kind() != Flight.Kind.MISSILE) return Command.NOT_OWN;
         for (GlobalPos link : table.silos()) {
             if (controllerProblem(level, table, link.pos()) == Command.OK

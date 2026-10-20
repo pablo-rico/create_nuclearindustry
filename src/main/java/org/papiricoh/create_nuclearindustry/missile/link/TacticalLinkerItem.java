@@ -1,5 +1,7 @@
 package org.papiricoh.create_nuclearindustry.missile.link;
 
+import org.papiricoh.create_nuclearindustry.missile.defense.battery.InterceptorBatteryEntity;
+import org.papiricoh.create_nuclearindustry.missile.defense.battery.InterceptorBatteryPartBlock;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -50,6 +52,8 @@ public class TacticalLinkerItem extends Item {
         BlockPos clicked = context.getClickedPos();
         BlockPos centre = org.papiricoh.create_nuclearindustry.missile.holo.HoloTable.centre(clicked, level.getBlockState(clicked));
         if (centre != null) clicked = centre;
+        if (level.getBlockState(clicked).getBlock() instanceof InterceptorBatteryPartBlock)
+            clicked = InterceptorBatteryPartBlock.master(clicked, level.getBlockState(clicked));
         ItemStack stack = context.getItemInHand();
         BlockEntity entity = level.getBlockEntity(clicked);
         if (entity instanceof TacticalDevice device) {
@@ -62,6 +66,11 @@ public class TacticalLinkerItem extends Item {
                 message(player, "out_of_range"); return InteractionResult.SUCCESS;
             }
             message(player, device.toggleLink(target).name().toLowerCase(Locale.ROOT));
+            return InteractionResult.SUCCESS;
+        }
+        if (entity instanceof InterceptorBatteryEntity) {
+            stack.set(AllNuclearDataComponents.TACTICAL_LINK.get(), new TacticalLink(GlobalPos.of(level.dimension(), clicked), TacticalLink.Kind.INTERCEPTOR_BATTERY));
+            message(player, "stored");
             return InteractionResult.SUCCESS;
         }
         SiloControllerEntity controller = entity instanceof SiloControllerEntity silo ? silo : null;

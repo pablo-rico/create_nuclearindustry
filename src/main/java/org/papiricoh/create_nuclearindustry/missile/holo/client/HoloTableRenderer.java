@@ -95,6 +95,7 @@ public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEnti
                 if (held) pinned = track;
                 track(pose, buffers, p, picture, track, since, millis, lit || held);
             }
+            defense(pose, buffers, p, picture, since, texts);
             mark(m, buffers, p, picture, centre, texts, pose);
             if (pinned != null) panel(pose, buffers, picture, pinned, since, texts);
         }
@@ -420,10 +421,44 @@ public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEnti
         }
     }
 
+    private void defense(PoseStack pose, MultiBufferSource buffers, HoloProjection p, HoloTracksPayload picture, double since, List<Runnable> texts) {
+        Matrix4f m = pose.last().pose();
+        for (var shooter : picture.shooters()) {
+            if (shooter.type() != 0 || !p.shows(shooter.dx() + 0.5, shooter.dz() + 0.5)) continue;
+            float x = p.x(shooter.dx() + 0.5), z = p.z(shooter.dz() + 0.5);
+            int colour = shooter.loaded() ? GREEN : AMBER;
+            ring(flat(buffers), m, x, z, shooter.range() * SIZE / p.view(), Y + 0.012f, 0.006f, alpha(colour, 0.3f), true);
+            siloIcon(flat(buffers), m, x, z, 0.12f, colour, false);
+            strip(flat(buffers), m, x - 0.08f, z, x + 0.08f, z, Y + 0.1f, 0.035f, colour, colour);
+        }
+        for (var intercept : picture.intercepts()) {
+            double x = intercept.x() + intercept.vx() * since, z = intercept.z() + intercept.vz() * since;
+            if (!p.shows(x, z)) continue;
+            float[] at = {p.x(x), p.y(intercept.y() + intercept.vy() * since), p.z(z)};
+            float[] point = {clamp(p.x(intercept.px())), p.y(intercept.py()), clamp(p.z(intercept.pz()))};
+            ribbon(flat(buffers), m, new float[]{at[0] - 0.025f, at[1], at[2]}, new float[]{at[0] + 0.025f, at[1], at[2]}, 0.04f, GREEN, WHITE);
+            for (int i = 0; i < 24; i += 2) {
+                float a = i / 24f, b = (i + 1) / 24f;
+                float[] from = new float[3], to = new float[3];
+                for (int j = 0; j < 3; j++) { from[j] = at[j] + (point[j] - at[j]) * a; to[j] = at[j] + (point[j] - at[j]) * b; }
+                ribbon(flat(buffers), m, from, to, 0.008f, GREEN, GREEN);
+            }
+            for (int direction : new int[]{-1, 1})
+                ribbon(flat(buffers), m, new float[]{point[0] - 0.04f, point[1], point[2] - direction * 0.04f},
+                        new float[]{point[0] + 0.04f, point[1], point[2] + direction * 0.04f}, 0.012f, AMBER, AMBER);
+            texts.add(() -> label(pose, buffers, point[0], point[1] + 0.12f, point[2], Component.translatable(KEY + "screen.defense.pk", Math.round(intercept.pk() * 100)), AMBER));
+        }
+        for (var track : picture.tracks()) {
+            long count = picture.intercepts().stream().filter(i -> i.target().equals(track.id())).count();
+            if (count == 0 || !p.shows(track.x(), track.z())) continue;
+            texts.add(() -> label(pose, buffers, p.x(track.x()), p.y(track.y()) + 0.15f, p.z(track.z()), Component.literal("×" + count), AMBER));
+        }
+    }
+
     private void track(PoseStack pose, MultiBufferSource buffers, HoloProjection p, HoloTracksPayload picture, HoloTracksPayload.Track t, double since,
                        long millis, boolean lit) {
         Matrix4f m = pose.last().pose();
-        int colour = t.own() ? GREEN : t.threat() ? RED : CYAN;
+        int colour = picture.intercepts().stream().anyMatch(i -> i.target().equals(t.id())) ? AMBER : t.own() ? GREEN : t.threat() ? RED : CYAN;
         float g = Math.max(1e-5f, picture.gravity());
         double ground = Math.min(RadarModel.SEA_LEVEL, t.fy());
         double[] at = t.at(since, g);

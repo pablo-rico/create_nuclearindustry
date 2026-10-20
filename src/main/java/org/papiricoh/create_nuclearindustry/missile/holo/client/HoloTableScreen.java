@@ -46,7 +46,7 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
     private boolean auto = true, designate, airburst, dragging;
     private double cx, cz;
     private UUID selected;
-    private int tab, scroll, radarRow = -1, spacing;
+    private int tab, scroll, radarRow = -1, shooterRow = -1, spacing;
     private boolean sequence;
     private final Set<BlockPos> salvo = new LinkedHashSet<>();
 
@@ -194,10 +194,28 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
                 if (silo.cep() > 0) d.circle(tx, ty, Math.max(1.5f, silo.cep() * scale), 0.7f, ScopeDraw.alpha(RED, 0.7f), true);
             }
         }
+        for (var shooter : picture.shooters()) {
+            if (shooter.type() != 0) continue;
+            float x = sx(shooter.dx() + 0.5), y = sy(shooter.dz() + 0.5);
+            d.rect(x - 3, y - 2, x + 3, y + 2, shooter.loaded() ? GREEN : DIM);
+            d.circle(x, y, shooter.range() * scale, .7f, ScopeDraw.alpha(GREEN, .25f), true);
+        }
+        if (tab == 3) d.circle(sx(picture.defense().zoneDx()), sy(picture.defense().zoneDz()),
+                (picture.defense().zoneRadius() == 0 ? 2000 : picture.defense().zoneRadius()) * scale, .8f, ScopeDraw.alpha(CYAN, .6f), true);
         double since = Math.max(0, Math.min(20, now - picture.sample()));
+        for (var intercept : picture.intercepts()) {
+            float x = sx(intercept.x() + intercept.vx() * since), y = sy(intercept.z() + intercept.vz() * since);
+            float px = sx(intercept.px()), py = sy(intercept.pz());
+            int colour = intercept.interceptor().equals(selected) ? WHITE : GREEN;
+            d.disc(x, y, 2.5f, colour, colour);
+            for (int i = 0; i < 16; i += 2) d.line(x + (px - x) * i / 16, y + (py - y) * i / 16,
+                    x + (px - x) * (i + 1) / 16, y + (py - y) * (i + 1) / 16, .8f, colour);
+            d.line(px - 3, py - 3, px + 3, py + 3, 1, AMBER);
+            d.line(px - 3, py + 3, px + 3, py - 3, 1, AMBER);
+        }
         float g = Math.max(1e-5f, picture.gravity());
         for (HoloTracksPayload.Track t : picture.tracks()) {
-            int c = t.id().equals(selected) ? WHITE : t.own() ? GREEN : t.threat() ? RED : CYAN;
+            int c = t.id().equals(selected) ? WHITE : picture.intercepts().stream().anyMatch(i -> i.target().equals(t.id())) ? AMBER : t.own() ? GREEN : t.threat() ? RED : CYAN;
             float[] h = t.history();
             for (int i = 3; i + 2 < h.length; i += 3) d.line(sx(h[i - 3]), sy(h[i - 1]), sx(h[i]), sy(h[i + 2]), 1, ScopeDraw.alpha(c, 0.3f + 0.6f * i / h.length));
             double px = t.x() + t.vx() * since, pz = t.z() + t.vz() * since, py = t.y() + t.vy() * since - 0.5 * g * since * since;
@@ -287,6 +305,7 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
         HoloTracksPayload p = picture();
+        if (selected == null && p != null) selected = p.board().selected();
         ConsoleDraw.line(g, font, title, TITLE.x() + 2, TITLE.y() + 2, 290, CYAN, 1);
         String scale = view >= 1000 ? (view / 1000) + " km" : view + " m";
         small(g, Component.literal(scale), TITLE.right() - 86, TITLE.y() + 3, 50, DIM);
@@ -297,16 +316,17 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
         button(g, ZOOM_OUT, Component.literal("−"), false, true, false, mouseX, mouseY);
         button(g, ZOOM_IN, Component.literal("+"), false, true, false, mouseX, mouseY);
         button(g, AUTO, text("auto"), auto, true, false, mouseX, mouseY);
-        button(g, DESIGNATE, text(designate ? "designate_on" : "designate"), designate, loaded, false, mouseX, mouseY);
+        button(g, DESIGNATE, text(designate ? "designate_on" : "designate"), designate, tab != 3 && loaded, false, mouseX, mouseY);
         button(g, AIRBURST, text(airburst ? "airburst" : "groundburst"), airburst, true, false, mouseX, mouseY);
-        LayoutRect[] tabs = {TAB_SILOS, TAB_RADARS, TAB_TRACKS};
-        String[] names = {"silos", "radars", "tracks"};
+        LayoutRect[] tabs = {TAB_SILOS, TAB_RADARS, TAB_TRACKS, TAB_DEFENSE};
+        String[] names = {"silos", "radars", "tracks", "defense"};
         for (int i = 0; i < tabs.length; i++) {
             LayoutRect rect = tabs[i];
             g.fill(rect.x(), rect.y(), rect.right(), rect.bottom(), tab == i ? 0xFF24606A : 0xFF15333C);
-            sprite(g, SPRITE_TABS, 0, tab == i ? 16 : 0, rect.x(), rect.y(), rect.w(), rect.h(), 58, 14);
+            sprite(g, SPRITE_TABS, 0, tab == i ? 16 : 0, rect.x(), rect.y(), rect.w(), rect.h(), 41, 14);
             fit(g, text(names[i]), rect.x() + 3, rect.y() + 3, rect.w() - 6, CYAN);
         }
+        if (tab == 3) { renderDefense(g, p, mouseX, mouseY); return; }
         if (tab == 0) {
             int[] columns = {COL_NAME, COL_STATE, COL_INFO, COL_DELAY};
             String[] labels = {"silo", "state", "info", "delay"};
@@ -378,11 +398,102 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
         button(g, ABORT, text("abort"), false, selectedTrack() != null && selectedTrack().own(), true, mouseX, mouseY);
     }
 
+    private void renderDefense(GuiGraphics g, HoloTracksPayload p, int mx, int my) {
+        if (p == null) return;
+        int[] columns = {COL_NAME, COL_STATE, COL_INFO, COL_DELAY};
+        String[] labels = {"shooter", "state", "info", "delay"};
+        for (int i = 0; i < columns.length; i++)
+            small(g, text("column." + labels[i]), LIST.x() + columns[i], LIST.y() + 2,
+                    (i + 1 < columns.length ? columns[i + 1] : COL_UNLINK) - columns[i] - 2, DIM);
+        scroll = Mth.clamp(scroll, 0, Math.max(0, p.shooters().size() - LIST_ROWS));
+        if (shooterRow >= p.shooters().size()) shooterRow = -1;
+        for (int row = 0; row < Math.min(LIST_ROWS, p.shooters().size() - scroll); row++) {
+            int i = row + scroll, x = LIST.x(), y = LIST.y() + LIST_HEADER + row * LIST_ROW;
+            var shooter = p.shooters().get(i);
+            boolean battery = shooter.type() == 0;
+            if (i == shooterRow) g.fill(x, y, x + LIST.w(), y + LIST_ROW, 0xFF234A52);
+            small(g, Component.literal((battery ? "BAT-" : "SIL-") + (shooter.link() + 1)), x + COL_NAME, y + 1, COL_STATE - COL_NAME - 2, AMBER);
+            int colour = !shooter.loaded() ? DIM : shooter.ready() > 0 ? GREEN : AMBER;
+            g.fill(x + COL_STATE, y, x + COL_STATE + 7, y + 7, colour);
+            Component state = text("unloaded");
+            if (shooter.loaded()) {
+                String name = battery
+                        ? org.papiricoh.create_nuclearindustry.missile.defense.battery.InterceptorBatteryEntity.Status.values()[Mth.clamp(shooter.state(), 0, 7)].name()
+                        : SiloControllerEntity.State.values()[Mth.clamp(shooter.state(), 0, SiloControllerEntity.State.values().length - 1)].name();
+                state = Component.translatable((battery ? KEY + "defense.status." : "silo.create_nuclearindustry.state.") + name.toLowerCase(Locale.ROOT));
+            }
+            small(g, state, x + COL_STATE + 9, y + 1, COL_INFO - COL_STATE - 11, colour);
+            small(g, Component.literal(battery ? shooter.ready() + "/" + shooter.capacity() : "KV"), x + COL_INFO, y + 1, COL_DELAY - COL_INFO - 2, CYAN);
+            small(g, Component.literal(shooter.auto() ? "AUTO" : ""), x + COL_DELAY, y + 1, COL_UNLINK - COL_DELAY - 2, CYAN);
+            if (battery) g.drawString(font, "×", x + COL_UNLINK, y, RED, false);
+        }
+        var track = selectedTrack();
+        var intercept = ClientHolo.bestIntercept(p, selected);
+        Component detail = track == null ? text("defense.pin") : intercept == null ? Component.literal(track.designation())
+                : Component.translatable(KEY + "defense.estimate", track.designation(), Math.round(intercept.pk() * 100), Math.max(0, intercept.tti()) / 20);
+        small(g, detail, DETAIL.x() + 2, DETAIL.y() + 3, DETAIL.w() - 4, WHITE);
+        small(g, text(intercept == null ? "defense.no_estimate" : "defense.in_flight"), DETAIL.x() + 2, DETAIL.y() + 13, DETAIL.w() - 4, DIM);
+        button(g, SALVO_MODE, text(p.defense().doctrine() == 0 ? "defense.shoot_look" : "defense.salvo_two"), false, true, false, mx, my);
+        button(g, SPACING_DOWN, Component.literal("−"), false, p.defense().zoneRadius() > 0, false, mx, my);
+        button(g, SPACING, p.defense().zoneRadius() == 0 ? text("defense.default") : Component.literal(p.defense().zoneRadius() + " m"), false, true, false, mx, my);
+        button(g, SPACING_UP, Component.literal("+"), false, p.defense().zoneRadius() < org.papiricoh.create_nuclearindustry.missile.radar.RadarBlockEntity.MAX_ZONE, false, mx, my);
+        boolean ready = shooterRow < 0 ? p.shooters().stream().anyMatch(sh -> sh.loaded() && sh.ready() > 0)
+                : p.shooters().get(shooterRow).loaded() && p.shooters().get(shooterRow).ready() > 0;
+        button(g, ARM, text("defense.engage"), false, track != null && !track.own() && ready, false, mx, my);
+        button(g, DISARM, text("defense.auto"), p.defense().auto(), true, false, mx, my);
+        button(g, SALVO, text("defense.cease"), false, true, false, mx, my);
+        button(g, ABORT, text("abort"), false, p.intercepts().stream().anyMatch(i -> i.interceptor().equals(selected)), true, mx, my);
+    }
+
+    private boolean defenseClick(double mx, double my, HoloTracksPayload p) {
+        if (p == null) return true;
+        if (over(LIST, mx, my)) {
+            int y = (int) (my - topPos - LIST.y() - LIST_HEADER);
+            int row = y / LIST_ROW + scroll;
+            if (y >= 0 && row < p.shooters().size()) {
+                var shooter = p.shooters().get(row);
+                if (mx - leftPos - LIST.x() >= COL_UNLINK && shooter.type() == 0
+                        && minecraft.level.getBlockEntity(menu.centre) instanceof HoloTableBlockEntity table
+                        && shooter.link() < table.batteries().size())
+                    command(HoloCommandPayload.UNLINK_BATTERY, table.batteries().get(shooter.link()).pos(), 0, 0, 0, null, List.of());
+                else shooterRow = shooterRow == row ? -1 : row;
+            }
+            return true;
+        }
+        if (over(SALVO_MODE, mx, my)) {
+            command(HoloCommandPayload.SET_DOCTRINE, null, 0, 0, (p.defense().doctrine() + 1) % 2, null, List.of()); return true;
+        }
+        if (over(SPACING_DOWN, mx, my) || over(SPACING, mx, my) || over(SPACING_UP, mx, my)) {
+            int radius = over(SPACING, mx, my) ? 0 : p.defense().zoneRadius() + (over(SPACING_UP, mx, my) ? 250 : -250);
+            command(HoloCommandPayload.SET_ZONE, null, menu.centre.getX() + p.defense().zoneDx(), menu.centre.getZ() + p.defense().zoneDz(), radius, null, List.of()); return true;
+        }
+        if (over(ARM, mx, my)) {
+            var track = selectedTrack();
+            if (track != null && !track.own() && p.shooters().stream().anyMatch(sh -> sh.loaded() && sh.ready() > 0)) {
+                int choice = -1;
+                if (shooterRow >= 0 && shooterRow < p.shooters().size()) {
+                    var shooter = p.shooters().get(shooterRow);
+                    if (!shooter.loaded() || shooter.ready() <= 0) return true;
+                    choice = shooter.type() == 0 ? shooter.link() : 100 + shooter.link();
+                }
+                command(HoloCommandPayload.ENGAGE, null, 0, 0, choice, track.id(), List.of());
+            }
+            return true;
+        }
+        if (over(DISARM, mx, my)) { command(HoloCommandPayload.SET_AUTO, null, 0, 0, p.defense().auto() ? 0 : 1, null, List.of()); return true; }
+        if (over(SALVO, mx, my)) { command(HoloCommandPayload.CEASE, null, 0, 0, 0, null, List.of()); return true; }
+        if (over(ABORT, mx, my)) {
+            if (p.intercepts().stream().anyMatch(i -> i.interceptor().equals(selected))) command(HoloCommandPayload.ABORT, null, 0, 0, 0, selected, List.of());
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
         super.render(g, mouseX, mouseY, partial);
         renderTooltip(g, mouseX, mouseY);
-        if (over(SALVO, mouseX, mouseY) || over(ARM, mouseX, mouseY))
+        if (tab != 3 && (over(SALVO, mouseX, mouseY) || over(ARM, mouseX, mouseY)))
             g.renderTooltip(font, font.split(text("redstone"), 240), mouseX, mouseY);
         if (over(LIST, mouseX, mouseY) && tab == 0 && picture() != null) {
             int localY = mouseY - topPos - LIST.y() - LIST_HEADER;
@@ -412,7 +523,7 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
             HoloTracksPayload p = picture();
             HoloTracksPayload.Silo s = p == null ? null : p.silo();
             BlockPos at = controller(s);
-            if (over(DESIGNATE, mx, my)) { if (at != null && s.loaded()) designate = !designate; return true; }
+            if (over(DESIGNATE, mx, my)) { if (tab != 3 && at != null && s.loaded()) designate = !designate; return true; }
             if (over(AIRBURST, mx, my)) { airburst = !airburst; return true; }
             if (over(AUTO, mx, my)) { auto = true; return true; }
             if (over(ZOOM_IN, mx, my) || over(ZOOM_OUT, mx, my)) {
@@ -422,8 +533,16 @@ public class HoloTableScreen extends AbstractContainerScreen<HoloTableMenu> {
                 view = HoloView.VIEWS[Mth.clamp(index + (over(ZOOM_IN, mx, my) ? -1 : 1), 0, HoloView.VIEWS.length - 1)];
                 return true;
             }
-            LayoutRect[] tabs = {TAB_SILOS, TAB_RADARS, TAB_TRACKS};
-            for (int i = 0; i < tabs.length; i++) if (over(tabs[i], mx, my)) { tab = i; scroll = 0; return true; }
+            LayoutRect[] tabs = {TAB_SILOS, TAB_RADARS, TAB_TRACKS, TAB_DEFENSE};
+            for (int i = 0; i < tabs.length; i++) if (over(tabs[i], mx, my)) { tab = i; scroll = 0; if (tab == 3) designate = false; return true; }
+            if (tab == 3) {
+                if (defenseClick(mx, my, p)) return true;
+                if (overMap(mx, my) && p != null) for (var intercept : p.intercepts()) {
+                    if (Math.pow(sx(intercept.x()) - mx, 2) + Math.pow(sy(intercept.z()) - my, 2) < 64) {
+                        selected = intercept.interceptor(); return true;
+                    }
+                }
+            }
             if (over(SALVO_MODE, mx, my)) { sequence = !sequence; return true; }
             if (over(SPACING_DOWN, mx, my) || over(SPACING_UP, mx, my)) {
                 if (sequence) spacing = Mth.clamp(spacing + (over(SPACING_UP, mx, my) ? 1 : -1), 0, MissileConfig.salvoMaxSpacingSeconds);

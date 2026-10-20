@@ -82,6 +82,13 @@ public final class ClientHolo {
         return pictures.get(centre);
     }
 
+    /** The most promising interceptor already flying at the pinned target. */
+    @Nullable
+    public static HoloTracksPayload.Intercept bestIntercept(HoloTracksPayload picture, @Nullable UUID target) {
+        return picture.intercepts().stream().filter(i -> i.target().equals(target))
+                .max(java.util.Comparator.comparingDouble(HoloTracksPayload.Intercept::pk)).orElse(null);
+    }
+
     /** Detonations still flashing. */
     public static List<Flash> flashes() {
         checkLevel();

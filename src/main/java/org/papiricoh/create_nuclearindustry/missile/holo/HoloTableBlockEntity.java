@@ -33,6 +33,8 @@ import org.papiricoh.create_nuclearindustry.missile.silo.SiloControllerEntity;
 import org.papiricoh.create_nuclearindustry.missile.terrain.TerrainTile;
 import org.papiricoh.create_nuclearindustry.missile.terrain.TerrainViewer;
 
+import org.papiricoh.create_nuclearindustry.missile.defense.*;
+import org.papiricoh.create_nuclearindustry.missile.defense.battery.InterceptorBatteryEntity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -49,7 +51,7 @@ import java.util.WeakHashMap;
  * player can send the silo a new target ({@link #designate}), checked here.
  */
 public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice, TerrainViewer {
-    public static final int MAX_RADARS = 4, MAX_SILOS = 16;
+    public static final int MAX_RADARS = 4, MAX_SILOS = 16, MAX_BATTERIES = 8;
     /** Players this close see the hologram and are sent its picture. */
     public static final double SIGHT = 32;
     /** Players this close may use the table: its screen, its terrain, designating. */
@@ -66,6 +68,8 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
 
     private final List<GlobalPos> radars = new ArrayList<>();
     private final List<GlobalPos> silos = new ArrayList<>();
+    private final List<GlobalPos> batteries = new ArrayList<>();
+    private DefenseSettings defense;
     private byte selectedSilo;
     private int counter;
     /** The zoom chosen: 0 automatic, else an index into {@link HoloView#VIEWS} plus one. Saved. */
@@ -78,10 +82,14 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
 
     public HoloTableBlockEntity(BlockPos pos, BlockState state) {
         super(HoloRegistry.ENTITY.get(), pos, state);
+        defense = DefenseSettings.defaults(pos);
     }
 
     public List<GlobalPos> radars() { return Collections.unmodifiableList(radars); }
     public List<GlobalPos> silos() { return Collections.unmodifiableList(silos); }
+    public List<GlobalPos> batteries() { return Collections.unmodifiableList(batteries); }
+    public DefenseSettings defense() { return defense; }
+    public void setDefense(DefenseSettings settings) { defense = settings; changed(); }
     public byte selectedSilo() { return selectedSilo; }
     @Nullable public GlobalPos silo() { return selectedSilo >= 0 && selectedSilo < silos.size() ? silos.get(selectedSilo) : null; }
 
@@ -126,7 +134,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
 
     @Nullable
     public GlobalPos getTarget() {
-        return silo() != null ? silo() : radars.isEmpty() ? null : radars.getFirst();
+        return silo() != null ? silo() : !radars.isEmpty() ? radars.getFirst() : batteries.isEmpty() ? null : batteries.getFirst();
     }
 
     /** Compatibility entry point for old callers and saves. */
@@ -146,6 +154,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
         int max;
         if (at instanceof RadarBlockEntity) { list = radars; max = MAX_RADARS; }
         else if (at instanceof SiloControllerEntity) { list = silos; max = MAX_SILOS; }
+        else if (at instanceof InterceptorBatteryEntity) { list = batteries; max = MAX_BATTERIES; }
         else return Result.UNSUPPORTED;
         if (list.size() >= max) return Result.FULL;
         list.add(target);
@@ -156,7 +165,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
     @Override
     public boolean unlink(GlobalPos target) {
         GlobalPos selected = silo();
-        boolean removed = radars.remove(target) | silos.remove(target);
+        boolean removed = radars.remove(target) | silos.remove(target) | batteries.remove(target);
         if (removed) {
             selectedSilo = (byte) Math.max(0, selected == null ? 0 : silos.indexOf(selected));
             mark = null;
@@ -167,7 +176,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
 
     @Override
     public void clearLinks() {
-        radars.clear(); silos.clear(); selectedSilo = 0; mark = null;
+        radars.clear(); silos.clear(); batteries.clear(); selectedSilo = 0; mark = null;
         changed();
     }
 
@@ -175,6 +184,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
     public List<GlobalPos> links() {
         List<GlobalPos> all = new ArrayList<>(radars);
         all.addAll(silos);
+        all.addAll(batteries);
         return List.copyOf(all);
     }
 
@@ -202,7 +212,13 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
     // ------------------------------------------------------------------ the picture
 
     void serverTick() {
-        if (!(level instanceof ServerLevel server) || ++counter % 10 != 0) return;
+        if (!(level instanceof ServerLevel server)) return;
+        ++counter;
+        if (defense.auto() && counter % Math.max(1, DefenseConfig.autoIntervalTicks) == 0 && HoloTable.intact(level, worldPosition)) {
+            DefenseSettings settings = defense.zoneRadius() == 0 ? defense.withZone(worldPosition.getX(), worldPosition.getZ(), 2000) : defense;
+            DefenseCommand.autoEngage(server, tracks(), shooters(-1), settings, this::own, EngagementSource.AUTO_TABLE);
+        }
+        if (counter % 10 != 0) return;
         List<ServerPlayer> watching = new ArrayList<>();
         for (ServerPlayer player : server.players()) {
             if (player.distanceToSqr(worldPosition.getCenter()) <= SIGHT * SIGHT) watching.add(player);
@@ -243,6 +259,74 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
                 && level.getBlockEntity(pos.pos()) instanceof SiloControllerEntity controller ? controller : null;
     }
 
+    @Nullable
+    private InterceptorBatteryEntity battery(GlobalPos pos) {
+        return level != null && level.dimension().equals(pos.dimension()) && level.isLoaded(pos.pos())
+                && level.getBlockEntity(pos.pos()) instanceof InterceptorBatteryEntity battery ? battery : null;
+    }
+
+    /** The same linked radar picture feeds manual and automatic engagements. */
+    public List<RadarTrack> tracks() {
+        Map<UUID, RadarTrack> tracks = new LinkedHashMap<>();
+        for (GlobalPos link : radars) {
+            RadarBlockEntity radar = radar(link);
+            if (radar != null) for (RadarTrack track : radar.tracks())
+                if (tracks.size() < HoloTracksPayload.MAX_TRACKS || tracks.containsKey(track.id())) tracks.putIfAbsent(track.id(), track);
+        }
+        return List.copyOf(tracks.values());
+    }
+
+    /** Loaded launchers, or the launcher selected by the wire protocol's stable link index. */
+    public List<InterceptorShooter> shooters(int choice) {
+        List<InterceptorShooter> result = new ArrayList<>();
+        for (int i = 0; i < batteries.size(); i++) {
+            InterceptorBatteryEntity battery = battery(batteries.get(i));
+            if ((choice == -1 || choice == i) && battery != null) result.add(battery);
+        }
+        for (int i = 0; i < silos.size(); i++) {
+            SiloControllerEntity silo = siloEntity(silos.get(i));
+            if ((choice == -1 || choice == 100 + i) && silo != null && silo.interceptorMode()) result.add(silo);
+        }
+        return result;
+    }
+
+    public boolean own(Flight flight) {
+        for (GlobalPos link : batteries) {
+            InterceptorBatteryEntity battery = battery(link);
+            if (battery != null && battery.owner() != null && battery.owner().equals(flight.owner())) return true;
+        }
+        for (GlobalPos link : silos) {
+            SiloControllerEntity silo = siloEntity(link);
+            if (silo != null && (silo.floor().above().equals(flight.origin())
+                    || silo.operator() != null && silo.operator().equals(flight.owner()))) return true;
+        }
+        return false;
+    }
+
+    public boolean ownInterceptor(Flight flight) {
+        if (flight.kind() != Flight.Kind.INTERCEPTOR || flight.intercept() == null || level == null) return false;
+        BlockPos launcher = flight.intercept().launcher();
+        if (launcher == null) return false;
+        GlobalPos link = GlobalPos.of(level.dimension(), launcher);
+        return batteries.contains(link) || silos.contains(link);
+    }
+
+    /** The board has no bulk operation; drain each known target/launcher pair. */
+    public void cease() {
+        setDefense(defense.withAuto(false));
+        if (!(level instanceof ServerLevel server)) return;
+        Set<UUID> targets = new java.util.HashSet<>();
+        tracks().forEach(track -> targets.add(track.id()));
+        FlightTracker.get(server).flights().forEach(flight -> targets.add(flight.id()));
+        List<GlobalPos> launchers = new ArrayList<>(batteries);
+        launchers.addAll(silos);
+        for (UUID target : targets) for (GlobalPos launcher : launchers) {
+            if (!launcher.dimension().equals(level.dimension())) continue;
+            int count = EngagementBoard.reserved(server, target);
+            for (int i = 0; i < count; i++) EngagementBoard.release(server, target, launcher.pos());
+        }
+    }
+
     /** What the table shows now. Public for tests. */
     public HoloTracksPayload picture() {
         double cx = worldPosition.getX() + 0.5, cz = worldPosition.getZ() + 0.5;
@@ -256,6 +340,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
             SiloControllerEntity controller = siloEntity(pos);
             if (controller != null && origins.containsKey(controller.floor().above())) own.add(origins.get(controller.floor().above()));
         }
+        if (tracker != null) for (Flight flight : tracker.flights()) if (own(flight)) own.add(flight.id());
         Map<UUID, HoloTracksPayload.Track> tracks = new LinkedHashMap<>();
         List<HoloTracksPayload.Radar> radarInfo = new ArrayList<>();
         for (GlobalPos pos : radars) {
@@ -295,6 +380,39 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
                     controller == null ? 0 : controller.launchDelay(), controller == null ? 0 : (float) (controller.flightTicks() / 20),
                     controller == null ? null : origins.get(controller.floor().above())));
         }
+        List<HoloTracksPayload.Shooter> shooterInfo = new ArrayList<>();
+        for (int i = 0; i < batteries.size(); i++) {
+            GlobalPos link = batteries.get(i);
+            InterceptorBatteryEntity b = battery(link);
+            shooterInfo.add(new HoloTracksPayload.Shooter((byte) shooterInfo.size(), (byte) ShooterType.BATTERY.ordinal(), (byte) i, b != null,
+                    link.pos().getX() - worldPosition.getX(), link.pos().getZ() - worldPosition.getZ(),
+                    (byte) (b == null ? 0 : b.status().ordinal()), (byte) (b == null ? 0 : b.readyRounds()), (byte) 4,
+                    b == null ? 0 : (float) b.envelope(MissileConfig.flightParams()).maxRange(),
+                    b == null ? 0 : b.yaw(1), b == null ? 0 : b.pitch(1), b != null && b.settings().auto()));
+        }
+        for (int i = 0; i < silos.size() && shooterInfo.size() < HoloTracksPayload.MAX_SHOOTERS; i++) {
+            SiloControllerEntity silo = siloEntity(silos.get(i));
+            if (silo == null || !silo.interceptorMode()) continue;
+            shooterInfo.add(new HoloTracksPayload.Shooter((byte) shooterInfo.size(), (byte) ShooterType.SILO.ordinal(), (byte) i, true,
+                    silo.floor().getX() - worldPosition.getX(), silo.floor().getZ() - worldPosition.getZ(), (byte) silo.state().ordinal(),
+                    (byte) silo.readyRounds(), (byte) 1, (float) silo.envelope(MissileConfig.flightParams()).maxRange(), 0, 90, defense.auto()));
+        }
+        List<HoloTracksPayload.Intercept> interceptInfo = new ArrayList<>();
+        if (tracker != null) for (Flight flight : tracker.interceptors()) {
+            Flight.Intercept intercept = flight.intercept();
+            if (intercept == null || (!tracks.containsKey(intercept.target()) && !ownInterceptor(flight))) continue;
+            if (interceptInfo.size() >= HoloTracksPayload.MAX_INTERCEPTS) break;
+            var at = flight.flight().position();
+            var velocity = flight.flight().velocity();
+            var point = intercept.point();
+            interceptInfo.add(new HoloTracksPayload.Intercept(flight.id(), intercept.target(),
+                    (float) (at.x() - cx), (float) at.y(), (float) (at.z() - cz),
+                    (float) velocity.x(), (float) velocity.y(), (float) velocity.z(),
+                    (float) (point.x() - cx), (float) point.y(), (float) (point.z() - cz),
+                    intercept.arrivalTick() - flight.flight().tick(), (float) intercept.pk()));
+        }
+        HoloTracksPayload.Defense defenseInfo = new HoloTracksPayload.Defense(defense.auto(), (byte) defense.doctrine().ordinal(),
+                defense.zoneX() - worldPosition.getX(), defense.zoneZ() - worldPosition.getZ(), defense.zoneRadius());
         long now = level == null ? 0 : level.getGameTime();
         List<HoloTracksPayload.Track> list = List.copyOf(tracks.values());
         HoloTracksPayload.Track pinned = null;
@@ -312,7 +430,7 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
             oz = Math.round(pinned.z() / step) * step;
         }
         return new HoloTracksPayload(worldPosition, now, (float) MissileConfig.gravity, list, radarInfo, siloInfo,
-                new HoloTracksPayload.Board(view, (float) ox, (float) oz, zoom, selectedSilo, selected, mark));
+                new HoloTracksPayload.Board(view, (float) ox, (float) oz, zoom, selectedSilo, selected, mark), shooterInfo, interceptInfo, defenseInfo);
     }
 
     private static HoloTracksPayload.Track track(RadarTrack track, boolean threat, boolean own, double cx, double cz) {
@@ -482,6 +600,10 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
         ListTag list = new ListTag();
         for (GlobalPos pos : radars) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).result().ifPresent(list::add);
         tag.put("Radars", list);
+        ListTag savedBatteries = new ListTag();
+        for (GlobalPos pos : batteries) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).result().ifPresent(savedBatteries::add);
+        tag.put("Batteries", savedBatteries);
+        tag.put("Defense", defense.save());
         tag.putByte("Zoom", zoom);
         ListTag savedSilos = new ListTag();
         for (GlobalPos pos : silos) GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).result().ifPresent(savedSilos::add);
@@ -492,6 +614,12 @@ public class HoloTableBlockEntity extends BlockEntity implements TacticalDevice,
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        batteries.clear();
+        for (Tag t : tag.getList("Batteries", Tag.TAG_COMPOUND)) {
+            if (batteries.size() < MAX_BATTERIES) GlobalPos.CODEC.parse(NbtOps.INSTANCE, t).result()
+                    .filter(p -> !batteries.contains(p)).ifPresent(batteries::add);
+        }
+        defense = DefenseSettings.load(tag.getCompound("Defense"), DefenseSettings.defaults(worldPosition));
         radars.clear();
         for (Tag t : tag.getList("Radars", Tag.TAG_COMPOUND)) {
             if (radars.size() < MAX_RADARS) GlobalPos.CODEC.parse(NbtOps.INSTANCE, t).result().ifPresent(radars::add);
