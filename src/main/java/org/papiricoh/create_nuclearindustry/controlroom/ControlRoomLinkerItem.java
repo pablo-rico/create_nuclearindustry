@@ -45,6 +45,12 @@ public class ControlRoomLinkerItem extends Item {
         }
         ItemStack stack = context.getItemInHand();
         BlockPos clicked = context.getClickedPos();
+        BlockPos centre = org.papiricoh.create_nuclearindustry.missile.holo.HoloTable.centre(clicked, level.getBlockState(clicked));
+        if (centre != null) clicked = centre;
+        if (level.getBlockEntity(clicked) instanceof org.papiricoh.create_nuclearindustry.missile.link.TacticalDevice) {
+            message(player, Component.translatable(KEY + "use_tactical"), ChatFormatting.YELLOW);
+            return InteractionResult.SUCCESS;
+        }
         if (level.getBlockEntity(clicked) instanceof ControlRoomDevice device) {
             if (player.isShiftKeyDown()) {
                 device.setTarget(null, context.getClickLocation());

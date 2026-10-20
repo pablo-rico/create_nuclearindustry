@@ -7,8 +7,8 @@ final class HoloLang {
         entry("designate.ok", "Silo targeted at %s, %s", "Silo apuntado a %s, %s");
         entry("designate.too_far", "Stand at the table to designate", "Ponte junto a la mesa para designar");
         entry("designate.broken", "The table is not whole", "La mesa no está completa");
-        entry("designate.no_silo", "No silo linked: click one with a Control Room Linker, then the table",
-                "Sin silo enlazado: haz clic en uno con un enlazador de sala de control y luego en la mesa");
+        entry("designate.no_silo", "No silo linked: click one with a Tactical Linker, then the table",
+                "Sin silo enlazado: haz clic en uno con un enlazador táctico y luego en la mesa");
         entry("designate.other_dimension", "The silo is in another dimension", "El silo está en otra dimensión");
         entry("designate.unloaded", "The silo is not loaded", "El silo no está cargado");
         entry("designate.out_of_reach", "%s, %s is beyond the silo's rocket", "%s, %s queda fuera del alcance del cohete del silo");

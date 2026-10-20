@@ -133,6 +133,19 @@ public final class FlightTracker extends SavedData {
         }
     }
 
+    /** Removes the flight and releases its resources before a small conventional self-destruct. */
+    public boolean abort(ServerLevel level, UUID id) {
+        Flight flight = flights.get(id);
+        if (flight == null) return false;
+        Vec3 position = flight.position();
+        remove(level, flight);
+        BlockPos block = BlockPos.containing(position);
+        if (!level.isOutsideBuildHeight(block) && level.isLoaded(block))
+            level.explode(null, position.x, position.y, position.z, (float) MissileConfig.selfDestructPower,
+                    net.minecraft.world.level.Level.ExplosionInteraction.TNT);
+        return true;
+    }
+
     public static void onLevelTick(LevelTickEvent.Post event) {
         if (event.getLevel() instanceof ServerLevel level) {
             FlightTracker tracker = getIfPresent(level);

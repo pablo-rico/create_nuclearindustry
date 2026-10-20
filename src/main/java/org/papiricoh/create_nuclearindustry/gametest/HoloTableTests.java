@@ -1,7 +1,13 @@
 package org.papiricoh.create_nuclearindustry.gametest;
 
 import io.netty.buffer.Unpooled;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.core.BlockPos;
+import org.papiricoh.create_nuclearindustry.missile.holo.HoloCommandPayload;
+import org.papiricoh.create_nuclearindustry.missile.holo.HoloTableMenu;
+import org.papiricoh.create_nuclearindustry.missile.silo.SiloRegistry;
+import org.papiricoh.create_nuclearindustry.missile.silo.RocketSectionEntity;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -61,7 +67,7 @@ public class HoloTableTests {
         return helper.getBlockEntity(CENTRE);
     }
 
-    private static FakePlayer player(GameTestHelper helper, BlockPos near) {
+    static FakePlayer player(GameTestHelper helper, BlockPos near) {
         FakePlayer player = FakePlayerFactory.get(helper.getLevel(), new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "holo_test"));
         BlockPos at = helper.absolutePos(near);
         player.moveTo(at.getX() + 0.5, at.getY() + 1, at.getZ() + 2.5);
@@ -109,13 +115,13 @@ public class HoloTableTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
-    public static void aLinkerOnAnyPieceLinksTheTable(GameTestHelper helper) {
+    public static void linkingThroughCornerPiece(GameTestHelper helper) {
         HoloTableBlockEntity table = table(helper);
         ServerLevel level = helper.getLevel();
         BlockPos radarPos = new BlockPos(10, 1, 10);
         helper.setBlock(radarPos, RadarRegistry.RADAR.get());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack linker = new ItemStack(AllNuclearItems.CONTROL_ROOM_LINKER.get());
+        ItemStack linker = new ItemStack(SiloRegistry.TACTICAL_LINKER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, linker);
         BlockPos radar = helper.absolutePos(radarPos);
         linker.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(radar), Direction.UP, radar, false)));
@@ -341,4 +347,268 @@ public class HoloTableTests {
         helper.assertTrue(sneakAt(table, far, 10, 10) == HoloTableBlockEntity.Click.TOO_FAR && table.mark() == null, "nor can they mark a target");
         helper.succeed();
     }
+    private static List<SiloControllerEntity> controllers(GameTestHelper helper, HoloTableBlockEntity table, int count) {
+        List<SiloControllerEntity> result = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            BlockPos pos = new BlockPos(9 + i % 6, 2, 9 + i / 6);
+            helper.setBlock(pos, SiloRegistry.CONTROLLER.get());
+            SiloControllerEntity controller = helper.getBlockEntity(pos);
+            helper.assertTrue(controller != null, "launch controller exists");
+            table.toggleLink(GlobalPos.of(helper.getLevel().dimension(), controller.getBlockPos()));
+            result.add(controller);
+        }
+        return result;
+    }
+
+    private static FakePlayer operator(GameTestHelper helper, HoloTableBlockEntity table) {
+        FakePlayer player = player(helper, CENTRE);
+        player.containerMenu = new HoloTableMenu(1, player.getInventory(), table.getBlockPos());
+        return player;
+    }
+
+    private static HoloCommandPayload.Command command(FakePlayer player, HoloTableBlockEntity table, byte action,
+                                                       BlockPos controller, int x, int z, int arg, java.util.UUID flight, List<BlockPos> silos) {
+        return HoloCommandPayload.execute(player, new HoloCommandPayload(table.getBlockPos(), action, controller, x, z, arg, flight, silos));
+    }
+
+    /** A second, independently assembled site seven blocks east; keep exits open through the arena roof. */
+    private static SiloControllerEntity secondSite(GameTestHelper helper) {
+        var level = helper.getLevel();
+        for (int x = 4; x <= 8; x++) for (int z = 3; z <= 8; z++) for (int y = 1; y <= 7; y++) {
+            BlockPos from = helper.absolutePos(new BlockPos(x, y, z)), to = from.east(7);
+            level.setBlockAndUpdate(to, level.getBlockState(from));
+            if (level.getBlockEntity(from) instanceof RocketSectionEntity source && level.getBlockEntity(to) instanceof RocketSectionEntity copy)
+                copy.loadWithComponents(source.saveWithoutMetadata(level.registryAccess()), level.registryAccess());
+        }
+        BlockPos floor = helper.absolutePos(SiloTestBuilder.FLOOR.east(7));
+        for (int y = floor.getY() + 7; y < level.getMaxBuildHeight(); y++) for (int x = -1; x <= 1; x++) for (int z = -1; z <= 1; z++)
+            level.setBlockAndUpdate(new BlockPos(floor.getX() + x, y, floor.getZ() + z), Blocks.AIR.defaultBlockState());
+        SiloControllerEntity second = helper.getBlockEntity(SiloTestBuilder.CONTROLLER.east(7));
+        helper.assertTrue(second != null, "second controller exists");
+        var motor = level.getBlockEntity(helper.absolutePos(SiloTestBuilder.MOTOR.east(7)));
+        helper.assertTrue(motor instanceof com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity, "second site has its own motor");
+        ((com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity) motor).generatedSpeed.setValue(64);
+        return second;
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void tableLinksSixteenSilosAndRefusesSeventeenth(GameTestHelper helper) {
+        HoloTableBlockEntity table = table(helper);
+        var controllers = controllers(helper, table, 17);
+        helper.assertTrue(table.silos().size() == 16, "sixteen silos fit");
+        var last = GlobalPos.of(helper.getLevel().dimension(), controllers.get(16).getBlockPos());
+        helper.assertTrue(table.toggleLink(last) == org.papiricoh.create_nuclearindustry.missile.link.TacticalDevice.Result.FULL, "seventeenth is refused");
+        helper.succeed();
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void legacySingleSiloTagMigrates(GameTestHelper helper) {
+        HoloTableBlockEntity table = table(helper);
+        var controller = controllers(helper, table, 1).getFirst();
+        var link = GlobalPos.of(helper.getLevel().dimension(), controller.getBlockPos());
+        CompoundTag old = new CompoundTag();
+        GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, link).result().ifPresent(t -> old.put("Silo", t));
+        table.loadWithComponents(old, helper.getLevel().registryAccess());
+        helper.assertTrue(table.silos().equals(List.of(link)) && link.equals(table.silo()), "old Silo tag becomes the selected row");
+        CompoundTag saved = table.saveWithoutMetadata(helper.getLevel().registryAccess());
+        helper.assertTrue(saved.contains("Silos") && !saved.contains("Silo"), "saved using bounded list format");
+        helper.succeed();
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, timeoutTicks = 200)
+    public static void designateAimsOnlyTheChosenSilo(GameTestHelper helper) {
+        SiloControllerEntity first = new SiloTestBuilder().tanks(2).build(helper);
+        SiloControllerEntity second = secondSite(helper);
+        HoloTableBlockEntity table = table(helper);
+        var player = operator(helper, table);
+        table.setTarget(GlobalPos.of(helper.getLevel().dimension(), first.getBlockPos()));
+        table.setTarget(GlobalPos.of(helper.getLevel().dimension(), second.getBlockPos()));
+        helper.runAfterDelay(10, () -> {
+            first.validate(); second.validate();
+            BlockPos before = first.target(), target = second.floor().east(150);
+            helper.assertTrue(command(player, table, HoloCommandPayload.SELECT, second.getBlockPos(), 0, 0, 0, null, List.of()) == HoloCommandPayload.Command.OK,
+                    "second controller selected remotely");
+            helper.assertTrue(command(player, table, HoloCommandPayload.DESIGNATE, second.getBlockPos(), target.getX(), target.getZ(), 1, null, List.of()) == HoloCommandPayload.Command.OK,
+                    "second controller accepts target");
+            helper.assertTrue(java.util.Objects.equals(before, first.target()), "first controller keeps its target");
+            helper.assertTrue(second.target() != null && second.target().getX() == target.getX() && second.airburst(), "selected controller receives airburst target");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, timeoutTicks = 200)
+    public static void armAndDisarmRemotely(GameTestHelper helper) {
+        SiloControllerEntity controller = new SiloTestBuilder().tanks(2).build(helper);
+        HoloTableBlockEntity table = table(helper);
+        var player = operator(helper, table);
+        table.setTarget(GlobalPos.of(helper.getLevel().dimension(), controller.getBlockPos()));
+        helper.runAfterDelay(10, () -> {
+            controller.configure(player, controller.floor().east(150), false);
+            helper.assertTrue(command(player, table, HoloCommandPayload.ARM, controller.getBlockPos(), 0, 0, 0, null, List.of()) == HoloCommandPayload.Command.OK,
+                    "remote arm succeeds");
+            helper.assertTrue(controller.state() == SiloControllerEntity.State.ARMED && controller.countdown() < 0, "arming does not launch");
+            helper.assertTrue(command(player, table, HoloCommandPayload.DISARM, controller.getBlockPos(), 0, 0, 0, null, List.of()) == HoloCommandPayload.Command.OK,
+                    "remote disarm succeeds");
+            helper.assertTrue(controller.state() != SiloControllerEntity.State.ARMED && controller.launchDelay() == 0, "disarmed with no stale delay");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, timeoutTicks = 200)
+    public static void salvoTimeOnTargetSetsDelays(GameTestHelper helper) {
+        SiloControllerEntity first = new SiloTestBuilder().tanks(2).build(helper);
+        SiloControllerEntity second = secondSite(helper);
+        HoloTableBlockEntity table = table(helper);
+        var player = operator(helper, table);
+        table.setTarget(GlobalPos.of(helper.getLevel().dimension(), first.getBlockPos()));
+        table.setTarget(GlobalPos.of(helper.getLevel().dimension(), second.getBlockPos()));
+        helper.runAfterDelay(10, () -> {
+            first.configure(player, first.floor().east(150), false);
+            second.configure(player, second.floor().east(400), false);
+            var positions = List.of(first.getBlockPos(), second.getBlockPos());
+            helper.assertTrue(command(player, table, HoloCommandPayload.SALVO, BlockPos.ZERO, 0, 0, 0, null, positions) == HoloCommandPayload.Command.OK, "salvo arms every controller");
+            double a = first.flightTicks() + first.launchDelay(), b = second.flightTicks() + second.launchDelay();
+            helper.assertTrue(Math.abs(a - b) <= 1, "simultaneous impacts within one tick, got " + a + " and " + b);
+            helper.assertTrue(first.launchDelay() != second.launchDelay(), "different flight times receive different delays");
+            helper.assertTrue(first.countdown() < 0 && second.countdown() < 0 && first.state() == SiloControllerEntity.State.ARMED,
+                    "salvo never starts a countdown");
+            helper.assertTrue(command(player, table, HoloCommandPayload.SALVO, BlockPos.ZERO, 0, 0, 20, null, positions) == HoloCommandPayload.Command.OK, "sequence accepted");
+            helper.assertTrue(Math.abs((second.flightTicks() + second.launchDelay()) - (first.flightTicks() + first.launchDelay()) - 20) <= 1,
+                    "sequence follows requested list order");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, timeoutTicks = 200)
+    public static void salvoIsAllOrNothing(GameTestHelper helper) {
+        SiloControllerEntity first = new SiloTestBuilder().tanks(2).build(helper);
+        HoloTableBlockEntity table = table(helper);
+        var broken = controllers(helper, table, 1).getFirst();
+        var player = operator(helper, table);
+        table.setTarget(GlobalPos.of(helper.getLevel().dimension(), first.getBlockPos()));
+        helper.runAfterDelay(10, () -> {
+            first.configure(player, first.floor().east(150), false);
+            var result = command(player, table, HoloCommandPayload.SALVO, BlockPos.ZERO, 0, 0, 0, null, List.of(first.getBlockPos(), broken.getBlockPos()));
+            helper.assertTrue(result != HoloCommandPayload.Command.OK, "incomplete participant refuses the salvo");
+            helper.assertTrue(first.state() != SiloControllerEntity.State.ARMED && first.countdown() < 0 && first.launchDelay() == 0, "successful participant rolled back");
+            helper.assertTrue(broken.state() != SiloControllerEntity.State.ARMED && broken.launchDelay() == 0, "failed participant is disarmed too");
+            helper.assertTrue(table.silo() != null && table.silo().pos().equals(broken.getBlockPos()), "failure row selected to show controller error");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void abortOwnFlightRemovesItWithoutDetonation(GameTestHelper helper) {
+        HoloTableBlockEntity table = table(helper);
+        var controller = controllers(helper, table, 1).getFirst();
+        var player = operator(helper, table);
+        var level = helper.getLevel();
+        var tracker = FlightTracker.get(level);
+        Vec3 start = Vec3.atBottomCenterOf(controller.floor().above());
+        Flight flight = tracker.launch(level, MissileDesign.LEGACY_PAD, start, Vec3.ZERO, start.add(300, 0, 0), controller.floor().east(300),
+                Warhead.fission(30, 40, 0, 0), null);
+        int[] detonations = {0};
+        java.util.function.Consumer<org.papiricoh.create_nuclearindustry.explosive.NuclearDetonationEvent> listener = e -> detonations[0]++;
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(org.papiricoh.create_nuclearindustry.explosive.NuclearDetonationEvent.class, listener);
+        try {
+            helper.assertTrue(table.picture().silo() != null && flight.id().equals(table.picture().silo().flight()), "picture identifies own flight by launch origin");
+            helper.assertTrue(command(player, table, HoloCommandPayload.ABORT, BlockPos.ZERO, 0, 0, 0, flight.id(), List.of()) == HoloCommandPayload.Command.OK,
+                    "own missile may self-destruct");
+            helper.assertTrue(tracker.get(flight.id()) == null && detonations[0] == 0, "removed without detonating nuclear warhead");
+            helper.assertTrue(command(player, table, HoloCommandPayload.ABORT, BlockPos.ZERO, 0, 0, 0, flight.id(), List.of()) == HoloCommandPayload.Command.GONE, "abort is not replayed");
+        } finally {
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener);
+            tracker.remove(level, flight);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void abortForeignFlightRefused(GameTestHelper helper) {
+        HoloTableBlockEntity table = table(helper);
+        controllers(helper, table, 1);
+        var player = operator(helper, table);
+        var level = helper.getLevel();
+        var tracker = FlightTracker.get(level);
+        Vec3 start = Vec3.atCenterOf(table.getBlockPos().above(30));
+        Flight flight = tracker.launch(level, MissileDesign.LEGACY_PAD, start, Vec3.ZERO, start.add(300, 0, 0), table.getBlockPos().east(300), Warhead.INERT, player.getUUID());
+        try {
+            helper.assertTrue(command(player, table, HoloCommandPayload.ABORT, BlockPos.ZERO, 0, 0, 0, flight.id(), List.of()) == HoloCommandPayload.Command.NOT_OWN,
+                    "same player does not make a foreign launch origin own");
+            helper.assertTrue(tracker.get(flight.id()) != null, "foreign flight stays in flight");
+        } finally { tracker.remove(level, flight); }
+        helper.succeed();
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void picturePayloadRoundTripsSixteenSilos(GameTestHelper helper) {
+        HoloTableBlockEntity table = table(helper);
+        var controllers = controllers(helper, table, 16);
+        table.selectSilo(controllers.getLast().getBlockPos());
+        var snapshot = table.picture();
+        var rows = snapshot.silos().stream().map(row -> new HoloTracksPayload.Silo(row.index(), row.index() % 2 == 0,
+                row.dx(), row.dz(), 1500 + row.index(), 20 + row.index(), (byte) 3, true, 500, 800,
+                "target_reach", 47, 120, 19.5f, java.util.UUID.randomUUID())).toList();
+        var ownTrack = new HoloTracksPayload.Track(java.util.UUID.randomUUID(), "M1", (byte) 1, false, true, 80,
+                1, 90, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, new float[]{1, 2, 3});
+        var picture = new HoloTracksPayload(snapshot.centre(), snapshot.sample(), snapshot.gravity(), List.of(ownTrack), snapshot.radars(), rows, snapshot.board());
+        RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+        try {
+            HoloTracksPayload.CODEC.encode(buffer, picture);
+            var back = HoloTracksPayload.CODEC.decode(buffer);
+            helper.assertTrue(back.silos().size() == 16 && back.silos().equals(picture.silos()), "all silo fields round-trip");
+            helper.assertTrue(back.tracks().size() == 1 && back.tracks().getFirst().own(), "own-flight tint survives transport");
+            helper.assertTrue(back.board().selectedSilo() == 15 && back.silo() != null && back.silo().index() == 15, "selection survives transport");
+            helper.assertTrue(!buffer.isReadable(), "bounded payload consumed exactly");
+        } finally { buffer.release(); }
+        var saved = table.saveWithoutMetadata(helper.getLevel().registryAccess());
+        table.loadWithComponents(saved, helper.getLevel().registryAccess());
+        helper.assertTrue(table.selectedSilo() == 15 && table.silos().size() == 16, "selection and links persist");
+        helper.succeed();
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void commandRequiresTheMatchingOpenMenu(GameTestHelper helper) {
+        HoloTableBlockEntity table = table(helper);
+        var controller = controllers(helper, table, 1).getFirst();
+        FakePlayer player = player(helper, CENTRE);
+        helper.assertTrue(command(player, table, HoloCommandPayload.SELECT, controller.getBlockPos(), 0, 0, 0, null, List.of()) == HoloCommandPayload.Command.REFUSED,
+                "no matching open menu means no command");
+        player = operator(helper, table);
+        player.moveTo(player.getX() + 30, player.getY(), player.getZ());
+        helper.assertTrue(command(player, table, HoloCommandPayload.ARM, controller.getBlockPos(), 0, 0, 0, null, List.of()) == HoloCommandPayload.Command.TOO_FAR,
+                "menu does not bypass distance check");
+        helper.succeed();
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void pictureRejectsOversizedSiloList(GameTestHelper helper) {
+        RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+        boolean refused = false;
+        try {
+            buffer.writeBlockPos(helper.absolutePos(CENTRE)); buffer.writeLong(0); buffer.writeFloat(0.05f);
+            buffer.writeVarInt(0); buffer.writeVarInt(0); buffer.writeVarInt(17);
+            try { HoloTracksPayload.CODEC.decode(buffer); }
+            catch (IllegalArgumentException expected) { refused = true; }
+            helper.assertTrue(refused, "network reader rejects a seventeenth silo before reading entries");
+        } finally { buffer.release(); }
+        helper.succeed();
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void aClickOnASiloSelectsThatController(GameTestHelper helper) {
+        var table = table(helper);
+        var controllers = controllers(helper, table, 2);
+        var player = player(helper, CENTRE);
+        HoloTracksPayload picture = table.picture();
+        var second = picture.silos().get(1);
+        var projection = picture.projection();
+        // Use a tight vertical ray so nearby marks cannot hide the second one at this zoom.
+        Vec3 mark = world(table, projection.x(second.dx() + 0.5), HoloProjection.Y + 0.03, projection.z(second.dz() + 0.5));
+        var click = table.click(player, mark, mark.add(0, 1, 0), new Vec3(0, -1, 0), false);
+        helper.assertTrue(click == HoloTableBlockEntity.Click.SILO_SELECTED && table.silo() != null
+                && table.silo().pos().equals(controllers.get(1).getBlockPos()), "clicking a silo mark selects that controller");
+        helper.succeed();
+    }
+
 }

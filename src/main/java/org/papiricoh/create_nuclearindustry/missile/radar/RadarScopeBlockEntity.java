@@ -23,9 +23,9 @@ import java.util.UUID;
 /**
  * A radar scope: a phosphor screen in a control room showing a linked radar's picture. Scopes of one kind facing one way join into
  * one screen up to {@link #MAX_SIZE} blocks a side ({@link PanelCluster}); the bottom-left one (the origin) holds the link, takes a
- * compact picture of the radar once a second and draws the whole screen. Link it with a Control Room Linker.
+ * compact picture of the radar once a second and draws the whole screen. Link it with a Tactical Linker.
  */
-public class RadarScopeBlockEntity extends SmartBlockEntity implements ControlRoomDevice {
+public class RadarScopeBlockEntity extends SmartBlockEntity implements org.papiricoh.create_nuclearindustry.missile.link.TacticalDevice {
     public static final int MAX_SIZE = 3;
     /** Echoes a scope shows at most. */
     public static final int MAX_ECHOES = 24;
@@ -157,14 +157,12 @@ public class RadarScopeBlockEntity extends SmartBlockEntity implements ControlRo
 
     // ------------------------------------------------------------------ linking
 
-    @Override
     @Nullable
     public GlobalPos getTarget() {
         RadarScopeBlockEntity screen = originEntity();
         return screen == null ? null : screen.target;
     }
 
-    @Override
     public void setTarget(@Nullable GlobalPos target) {
         RadarScopeBlockEntity screen = originEntity();
         if (screen != null && screen != this) {
@@ -176,6 +174,31 @@ public class RadarScopeBlockEntity extends SmartBlockEntity implements ControlRo
         setChanged();
         sendData();
     }
+
+    @Override
+    public Result toggleLink(GlobalPos link) {
+        if (link.equals(getTarget())) { clearLinks(); return Result.REMOVED; }
+        if (level == null || !level.dimension().equals(link.dimension())
+                || !org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.closerThan(level, worldPosition, link.pos(),
+                org.papiricoh.create_nuclearindustry.missile.MissileConfig.tacticalLinkRange)) return Result.OUT_OF_RANGE;
+        if (!level.isLoaded(link.pos()) || !(level.getBlockEntity(link.pos()) instanceof RadarBlockEntity)) return Result.UNSUPPORTED;
+        if (getTarget() != null) return Result.FULL;
+        setTarget(link);
+        return Result.ADDED;
+    }
+
+    @Override
+    public boolean unlink(GlobalPos link) {
+        if (!link.equals(getTarget())) return false;
+        clearLinks();
+        return true;
+    }
+
+    @Override
+    public void clearLinks() { setTarget(null); }
+
+    @Override
+    public List<GlobalPos> links() { return getTarget() == null ? List.of() : List.of(getTarget()); }
 
     // ------------------------------------------------------------------ persistence
 

@@ -52,8 +52,8 @@ public final class HoloRegistry {
             var registrar = e.registrar("1");
             registrar.playToClient(HoloTracksPayload.TYPE, HoloTracksPayload.CODEC, (p, ctx) -> ctx.enqueueWork(() -> clientTracks.accept(p)));
             registrar.playToClient(HoloDetonationPayload.TYPE, HoloDetonationPayload.CODEC, (p, ctx) -> ctx.enqueueWork(() -> clientDetonation.accept(p)));
-            registrar.playToServer(HoloDesignatePayload.TYPE, HoloDesignatePayload.CODEC, (p, ctx) -> ctx.enqueueWork(() -> {
-                if (ctx.player() instanceof ServerPlayer player) HoloDesignatePayload.handle(player, p);
+            registrar.playToServer(HoloCommandPayload.TYPE, HoloCommandPayload.CODEC, (p, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer player) HoloCommandPayload.handle(player, p);
             }));
         });
         NeoForge.EVENT_BUS.addListener(NuclearDetonationEvent.class, HoloRegistry::onDetonation);
