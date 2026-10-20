@@ -44,7 +44,7 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
     private final ItemStackHandler contents = new ItemStackHandler(WarheadBay.SLOTS) {
         @Override public boolean isItemValid(int slot, ItemStack stack) { return accepts(slot, stack); }
         @Override protected int getStackLimit(int slot, ItemStack stack) {
-            return Math.min(stack.getMaxStackSize(), WarheadBay.limit(section(), slot, stack));
+            return Math.min(stack.getMaxStackSize(), WarheadBay.limit(section(), slot, stack, this));
         }
         @Override protected void onContentsChanged(int slot) { changed(); }
     };
@@ -114,8 +114,9 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
         }
         boolean fits = false;
         for (int i = 0; i < WarheadBay.activeSlots(section()); i++) fits |= WarheadBay.accepts(section(), i, held);
-        String reason = section() == RocketComposition.Section.TANK && (!fuel.isEmpty() || !oxidizer.isEmpty())
-                ? "liquid" : fits ? "full" : "not_for_slot";
+        String reason = section() == RocketComposition.Section.TANK && (!fuel.isEmpty() || !oxidizer.isEmpty()) ? "liquid"
+                : fits && FissileMaterial.isWarheadCore(held) && WarheadBay.thermonuclear(contents) ? "thermo_primary"
+                : fits ? "full" : "not_for_slot";
         player.displayClientMessage(Component.translatable("silo.create_nuclearindustry.refuse." + reason), true);
     }
 

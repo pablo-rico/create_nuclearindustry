@@ -56,7 +56,7 @@ final class LaunchScreenLang {
         entry("engine.hint", "Feed the tanks above this engine", "Carga los depósitos sobre este motor");
         entry("advice.ready", "Select a section to inspect its contents", "Selecciona una sección para ver su contenido");
         entry("locked", "Loading locked while armed or launching", "Carga bloqueada al armar o lanzar");
-        entry("slot.charge", "Charge: fissile cores (2), radiological material (64), or TNT (16)", "Carga: núcleos fisibles (2), material radiológico (64) o TNT (16)");
+        entry("slot.charge", "Charge: fissile cores (2; just 1 for a thermonuclear), radiological material (64), or TNT (16)", "Carga: núcleos fisibles (2; solo 1 si es termonuclear), material radiológico (64) o TNT (16)");
         entry("slot.secondary", "Secondary: lithium deuteride (4 per slot)", "Secundario: deuteruro de litio (4 por casilla)");
         entry("slot.tamper", "Tamper: thermonuclear tamper material (2 per slot)", "Reflector: material de reflector termonuclear (2 por casilla)");
         entry("slot.bomb", "One complete nuclear, dirty or thermonuclear bomb; use no loose charge", "Una bomba nuclear, sucia o termonuclear completa; sin carga suelta");

@@ -8,6 +8,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.util.*;
 import net.neoforged.neoforge.gametest.*;
 import org.papiricoh.create_nuclearindustry.*;
+import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
+import org.papiricoh.create_nuclearindustry.missile.flight.Warhead;
 import org.papiricoh.create_nuclearindustry.missile.silo.*;
 import java.util.UUID;
 
@@ -90,6 +92,36 @@ public class LaunchControllerMenuTests {
             helper.assertTrue(!menu.locked() && menu.getSlot(0).mayPlace(new ItemStack(Items.TNT)), "disarm unlocks immediately");
             helper.succeed();
         });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void thermonuclearChargeTakesOneCore(GameTestHelper helper) {
+        var controller = new SiloTestBuilder().build(helper);
+        var player = player(helper);
+        var menu = menu(helper, player);
+        helper.assertTrue(menu.select(3), "selected warhead");
+        RocketSectionEntity warhead = helper.getBlockEntity(SiloTestBuilder.FLOOR.above(4));
+        player.getInventory().setItem(9, new ItemStack(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.get(), 4));
+        menu.quickMoveStack(player, SiloMenu.INV_START);
+        player.getInventory().setItem(10, new ItemStack(ExplosiveRegistry.LITHIUM_DEUTERIDE.get(), 16));
+        menu.quickMoveStack(player, SiloMenu.INV_START + 1);
+        helper.assertTrue(WarheadBay.cores(warhead.contents()) == 4 && WarheadBay.thermonuclear(warhead.contents()), "fission cores then lithium");
+        controller.validate();
+        var diagram = LaunchDiagrams.build(controller);
+        helper.assertTrue(diagram.error().equals("charge_thermo_primary"), "too many primary cores: " + diagram.error());
+        helper.assertTrue(diagram.advice().size() == 1 && diagram.advice().getFirst().key().equals("charge_thermo_primary")
+                && diagram.advice().getFirst().index() == 3 && diagram.advice().getFirst().arg() == 4, "advice says how many cores to leave");
+        menu.quickMoveStack(player, 0);
+        menu.quickMoveStack(player, 1);
+        helper.assertTrue(WarheadBay.cores(warhead.contents()) == 0, "cores taken back");
+        player.getInventory().clearContent();
+        player.getInventory().setItem(9, new ItemStack(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.get(), 4));
+        menu.quickMoveStack(player, SiloMenu.INV_START);
+        helper.assertTrue(WarheadBay.cores(warhead.contents()) == 1, "with a secondary loaded, shift click puts a single core");
+        helper.assertTrue(!menu.getSlot(1).mayPlace(new ItemStack(AllNuclearItems.WEAPONS_GRADE_URANIUM_CORE.get())), "no second core elsewhere");
+        controller.validate();
+        helper.assertTrue(!controller.error().startsWith("charge") && warhead.warhead().kind() == Warhead.Kind.THERMONUCLEAR, "one core arms: " + controller.error());
+        helper.succeed();
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)

@@ -137,10 +137,11 @@ public class SiloMenu extends AbstractContainerMenu {
         }
         @Override public ItemStack remove(int amount) { return locked() ? ItemStack.EMPTY : handler().extractItem(bay, amount, false); }
         @Override public boolean mayPlace(ItemStack stack) {
-            return isActive() && !locked() && WarheadBay.accepts(selectedSection(), bay, stack) && handler().isItemValid(bay, stack);
+            return isActive() && !locked() && WarheadBay.accepts(selectedSection(), bay, stack) && handler().isItemValid(bay, stack)
+                    && WarheadBay.limit(selectedSection(), bay, stack, handler()) > 0;
         }
         @Override public boolean mayPickup(Player player) { return isActive() && !locked(); }
-        @Override public int getMaxStackSize(ItemStack stack) { return isActive() ? WarheadBay.limit(selectedSection(), bay, stack) : 0; }
+        @Override public int getMaxStackSize(ItemStack stack) { return isActive() ? WarheadBay.limit(selectedSection(), bay, stack, handler()) : 0; }
         @Override public void setChanged() {
             if (!player.level().isClientSide) {
                 RocketSectionEntity section = sectionAt(selected);

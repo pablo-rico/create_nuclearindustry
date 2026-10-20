@@ -23,9 +23,11 @@ below for what changes in existing worlds.
   controller is now called the **Launch Controller**, and **Silo Concrete** is
   the renamed silo wall block.
 - Breaking change: a rocket loaded with lithium and more than one core now
-  says "A secondary needs exactly one core and no other charge" and will not
-  launch. Leave exactly one core as the primary to use its thermonuclear
-  secondary again.
+  says "A thermonuclear warhead needs exactly 1 core as its primary" and will
+  not launch. Leave exactly one core as the primary to use its thermonuclear
+  secondary again. Once a warhead holds lithium or a tamper, the console and
+  right-clicking only let one core in, and the console's advice line says how
+  many cores to take out.
 - Rocket warheads moved to typed slots: old warhead sections keep their cores,
   lithium and tampers. A bomb broken by hand drops with what it holds.
 - The new Ponder scene "Launch Platform and Redstone Launch" shows a whole

@@ -93,6 +93,34 @@ public final class WarheadBay {
     }
 
     /**
+     * As {@link #limit(RocketComposition.Section, int, ItemStack)}, given what the bay already holds: once it has a secondary
+     * or a tamper, its cores are the thermonuclear primary, one core across all the charge slots, as in the bomb.
+     */
+    public static int limit(RocketComposition.Section section, int slot, ItemStack stack, IItemHandler contents) {
+        int limit = limit(section, slot, stack);
+        if (limit == 0 || !FissileMaterial.isWarheadCore(stack) || !thermonuclear(contents)) return limit;
+        int elsewhere = 0;
+        for (int i : CHARGE) if (i != slot && i < contents.getSlots() && FissileMaterial.isWarheadCore(contents.getStackInSlot(i)))
+            elsewhere += contents.getStackInSlot(i).getCount();
+        return Math.max(0, Math.min(limit, 1 - elsewhere));
+    }
+
+    /** Whether {@code contents} holds any lithium deuteride or tamper, making its charge a thermonuclear primary. */
+    public static boolean thermonuclear(IItemHandler contents) {
+        for (int i = SECONDARY[0]; i <= TAMPER[TAMPER.length - 1] && i < contents.getSlots(); i++)
+            if (!contents.getStackInSlot(i).isEmpty()) return true;
+        return false;
+    }
+
+    /** How many cores the charge slots of {@code contents} hold. */
+    public static int cores(IItemHandler contents) {
+        int cores = 0;
+        for (int i : CHARGE) if (i < contents.getSlots() && FissileMaterial.isWarheadCore(contents.getStackInSlot(i)))
+            cores += contents.getStackInSlot(i).getCount();
+        return cores;
+    }
+
+    /**
      * Why {@code stack} cannot go in slot {@code slot} of {@code section}, as a lang suffix
      * ({@code silo.create_nuclearindustry.refuse.*}), or null if it can.
      */

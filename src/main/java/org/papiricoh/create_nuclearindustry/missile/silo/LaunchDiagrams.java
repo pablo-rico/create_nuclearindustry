@@ -108,8 +108,15 @@ public final class LaunchDiagrams {
         byte site = !hasBase ? SITE_NONE
                 : !parts.isEmpty() && controller.shaftHeight() >= parts.size() ? SITE_SILO : SITE_PLATFORM;
         return new LaunchDiagram(List.copyOf(cells), List.copyOf(stages), warhead, errorCell, where, error,
-                RocketAdvisor.advise(kinds), (float) controller.reach(), (float) controller.cep(), (byte) controller.guidance().ordinal(),
+                advice(kinds, parts, error, errorCell), (float) controller.reach(), (float) controller.cep(), (byte) controller.guidance().ordinal(),
                 site, controller.launchDelay());
+    }
+
+    /** How to fix a wrongly loaded warhead, on its cell, before the grammar's next step. */
+    private static List<Advice> advice(List<RocketComposition.Section> kinds, List<RocketSectionEntity> parts, String error, int errorCell) {
+        if (!error.startsWith("charge") || errorCell < 0 || errorCell >= parts.size()) return RocketAdvisor.advise(kinds);
+        return List.of(new Advice((byte) errorCell, Advice.INFO, (byte) (1 << RocketComposition.Section.WARHEAD.ordinal()),
+                error, WarheadBay.cores(parts.get(errorCell).contents())));
     }
 
     private static List<Double> ranges(AssembledRocket rocket, MissileDesign design) {
