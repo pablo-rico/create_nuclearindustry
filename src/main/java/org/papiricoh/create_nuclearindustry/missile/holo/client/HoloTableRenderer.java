@@ -446,7 +446,8 @@ public class HoloTableRenderer implements BlockEntityRenderer<HoloTableBlockEnti
             for (int direction : new int[]{-1, 1})
                 ribbon(flat(buffers), m, new float[]{point[0] - 0.04f, point[1], point[2] - direction * 0.04f},
                         new float[]{point[0] + 0.04f, point[1], point[2] + direction * 0.04f}, 0.012f, AMBER, AMBER);
-            texts.add(() -> label(pose, buffers, point[0], point[1] + 0.12f, point[2], Component.translatable(KEY + "screen.defense.pk", Math.round(intercept.pk() * 100)), AMBER));
+            // Under the cross: the engaged track's "×n" sits above its own mark, often right beside the meeting point.
+            texts.add(() -> label(pose, buffers, point[0], point[1] - 0.1f, point[2], Component.translatable(KEY + "screen.defense.pk", Math.round(intercept.pk() * 100)), AMBER));
         }
         for (var track : picture.tracks()) {
             long count = picture.intercepts().stream().filter(i -> i.target().equals(track.id())).count();
