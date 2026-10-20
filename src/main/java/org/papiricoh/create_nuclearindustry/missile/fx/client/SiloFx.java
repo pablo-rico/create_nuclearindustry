@@ -37,6 +37,7 @@ final class SiloFx {
         final BlockPos controller;
         BlockPos floor;
         int height;
+        int shaft;
         int lastSynced = Integer.MIN_VALUE;
         double estimate = -1;
         boolean vented;
@@ -46,7 +47,7 @@ final class SiloFx {
         }
 
         Mouth mouth() {
-            return new Mouth(floor.getX() + 0.5, floor.getY() + height + 1, floor.getZ() + 0.5, floor.getY() + 1);
+            return new Mouth(floor.getX() + 0.5, floor.getY() + 1 + (shaft >= height ? height : 0), floor.getZ() + 0.5, floor.getY() + 1);
         }
     }
 
@@ -67,6 +68,7 @@ final class SiloFx {
                 continue;
             }
             silo.floor = controller.floor();
+            silo.shaft = controller.shaftHeight();
             if (controller.rocketHeight() > 0) silo.height = controller.rocketHeight();
             if (controller.state() != SiloControllerEntity.State.COUNTDOWN) {
                 silo.estimate = -1;
@@ -111,7 +113,7 @@ final class SiloFx {
     Mouth launchedFrom(Vec3 pos) {
         Silo best = null;
         for (Silo silo : silos.values()) {
-            if (silo.floor == null || silo.height <= 0) continue;
+            if (silo.floor == null || silo.height <= 0 || silo.shaft < silo.height) continue;
             double dx = silo.floor.getX() + 0.5 - pos.x, dz = silo.floor.getZ() + 0.5 - pos.z;
             double dy = silo.floor.getY() + 1 - pos.y;
             if (dx * dx + dz * dz <= 4 && Math.abs(dy) <= 3) best = silo;

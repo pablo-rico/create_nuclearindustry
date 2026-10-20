@@ -55,15 +55,25 @@ public class SiloTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
-    public static void aMissingWallIsReported(GameTestHelper helper) {
+    public static void aWallGapIsHarmless(GameTestHelper helper) {
         SiloControllerEntity silo = aimed(helper, new SiloTestBuilder().tanks(2), helper.makeMockPlayer(GameType.SURVIVAL));
-        BlockPos gap = SiloTestBuilder.FLOOR.offset(2, 2, 0);
+        helper.setBlock(SiloTestBuilder.FLOOR.offset(2, 2, 0), Blocks.AIR);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(silo.state() == SiloControllerEntity.State.READY, "walls are optional, got " + silo.state() + " " + silo.error());
+            helper.assertTrue(silo.shaftHeight() == 1, "the gap ends the consecutive shaft at layer one");
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void aMissingBaseBlockIsReported(GameTestHelper helper) {
+        SiloControllerEntity silo = aimed(helper, new SiloTestBuilder().tanks(2), helper.makeMockPlayer(GameType.SURVIVAL));
+        BlockPos gap = SiloTestBuilder.FLOOR;
         helper.setBlock(gap, Blocks.AIR);
         helper.succeedWhen(() -> {
-            helper.assertTrue(silo.state() == SiloControllerEntity.State.INCOMPLETE, "a gap in the wall leaves it incomplete, got " + silo.state());
-            helper.assertTrue("wall".equals(silo.error()), "and says so, got " + silo.error());
+            helper.assertTrue(silo.state() == SiloControllerEntity.State.INCOMPLETE, "a base gap leaves it incomplete, got " + silo.state());
+            helper.assertTrue("base".equals(silo.error()), "and says so, got " + silo.error());
             helper.assertTrue(silo.errorPos().equals(helper.absolutePos(gap)), "where the gap is, got " + silo.errorPos());
-            helper.assertTrue(silo.errorMessage().startsWith("silo.create_nuclearindustry.error.wall|"), "as a translatable message");
+            helper.assertTrue(silo.errorMessage().startsWith("silo.create_nuclearindustry.error.base|"), "as a translatable message");
         });
     }
 

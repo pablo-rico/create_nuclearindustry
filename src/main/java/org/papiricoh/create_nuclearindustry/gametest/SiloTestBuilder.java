@@ -41,6 +41,23 @@ final class SiloTestBuilder {
     private boolean fueled = true;
     private boolean port;
     private int stages = 1;
+    private boolean platform;
+    private Direction side = Direction.NORTH;
+    private int lateral;
+
+    /** An open 3×3 launch base, with no surrounding concrete. */
+    SiloTestBuilder platform() { platform = true; return this; }
+
+    /** Outward side of the base and offset along that side (-1, 0 or 1). */
+    SiloTestBuilder controllerSide(Direction side, int lateral) {
+        if (!side.getAxis().isHorizontal() || Math.abs(lateral) > 1) throw new IllegalArgumentException("Not a base side");
+        this.side = side;
+        this.lateral = lateral;
+        return this;
+    }
+
+    BlockPos controllerPos() { return FLOOR.relative(side, 2).relative(side.getClockWise(), lateral); }
+    BlockPos motorPos() { return controllerPos().relative(side); }
 
     /** Stages of {@link #tanks} tanks each. */
     SiloTestBuilder stages(int stages) {
@@ -87,7 +104,9 @@ final class SiloTestBuilder {
         for (int y = 0; y <= height; y++) {
             for (int x = -2; x <= 2; x++) {
                 for (int z = -2; z <= 2; z++) {
-                    if (y == 0 || Math.abs(x) == 2 || Math.abs(z) == 2) helper.setBlock(FLOOR.offset(x, y, z), wall);
+                    Block block = platform ? (y == 0 && Math.abs(x) <= 1 && Math.abs(z) <= 1 ? SiloRegistry.LAUNCH_BASE.get() : Blocks.AIR)
+                            : (y == 0 || Math.abs(x) == 2 || Math.abs(z) == 2 ? wall : Blocks.AIR);
+                    helper.setBlock(FLOOR.offset(x, y, z), block);
                 }
             }
         }
@@ -108,13 +127,13 @@ final class SiloTestBuilder {
             }
         }
         if (port) helper.setBlock(PORT, SiloRegistry.FUEL_PORT.get());
-        helper.setBlock(CONTROLLER, SiloRegistry.CONTROLLER.get().defaultBlockState().setValue(SiloControllerBlock.FACING, Direction.NORTH));
+        helper.setBlock(controllerPos(), SiloRegistry.CONTROLLER.get().defaultBlockState().setValue(SiloControllerBlock.FACING, side));
         Block motor = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("create", "creative_motor"));
-        helper.setBlock(MOTOR, motor.defaultBlockState().setValue(BlockStateProperties.FACING, Direction.SOUTH));
-        CreativeMotorBlockEntity motorEntity = helper.getBlockEntity(MOTOR);
+        helper.setBlock(motorPos(), motor.defaultBlockState().setValue(BlockStateProperties.FACING, side.getOpposite()));
+        CreativeMotorBlockEntity motorEntity = helper.getBlockEntity(motorPos());
         motorEntity.generatedSpeed.setValue(rpm);
         clearExit(helper, height);
-        return helper.getBlockEntity(CONTROLLER);
+        return helper.getBlockEntity(controllerPos());
     }
 
     /** Fills a tank with both liquids. */

@@ -13,7 +13,7 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import java.util.List;
 
 /**
- * The fluid side of a silo's fuel port: a wall block pipes connect to. What is pumped in fills the rocket's tanks from the bottom
+ * The fluid side of a silo's fuel port: a block touching the launch base or its optional walls. What is pumped in fills the rocket's tanks from the bottom
  * up, rocket fuel and liquid oxygen each into its own side; what is pulled out drains them from the top down. Nothing moves while
  * the silo is armed or counting down. It holds nothing itself: every call reads the rocket standing in the silo now.
  */
@@ -28,7 +28,7 @@ public final class SiloFuelPort implements IFluidHandler {
     @Nullable
     public static IFluidHandler at(Level level, BlockPos pos) {
         for (SiloControllerEntity silo : MultiblockRegistry.affecting(level, pos, SiloControllerEntity.class)) {
-            if (!silo.isRemoved() && silo.isWall(pos)) return new SiloFuelPort(silo);
+            if (!silo.isRemoved() && silo.isPortPosition(pos)) return new SiloFuelPort(silo);
         }
         return null;
     }

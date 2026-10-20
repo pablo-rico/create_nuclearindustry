@@ -67,7 +67,8 @@ public class RocketContraption extends Contraption {
 
     /** A block of the silo itself: wall, floor, fuel port or controller. */
     public static boolean isSilo(BlockState state) {
-        return state.is(SiloRegistry.SILO_WALLS) || state.is(SiloRegistry.CONTROLLER.get());
+        return state.is(SiloRegistry.LAUNCH_STRUCTURE) || state.is(SiloRegistry.SILO_WALLS)
+                || state.is(SiloRegistry.CONTROLLER.get()) || state.is(SiloRegistry.LAUNCH_BASE.get());
     }
 
     @Override

@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.ChatFormatting;
+import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearAdvancements;
 import org.papiricoh.create_nuclearindustry.advancement.NuclearEvent;
 import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
@@ -48,6 +49,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private double flightTicks;
     /** Sections in the rocket standing in it, 0 if none is complete; for the client's countdown and launch effects. */
     private int rocketHeight;
+    @Nullable private BlockPos base;
+    private int shaftHeight;
     private GuidanceTier syncedGuidance = GuidanceTier.BASIC;
     /** The dry run of assembling the rocket standing in it, from its last validation. */
     private RocketScan scan;
@@ -61,7 +64,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private final MultiblockMessenger messenger = new MultiblockMessenger("silo");
 
     public SiloControllerEntity(BlockPos pos, BlockState state) { super(SiloRegistry.CONTROLLER_ENTITY.get(), pos, state); errorPos = pos; }
-    public BlockPos floor() { return worldPosition.relative(getBlockState().getValue(SiloControllerBlock.FACING).getOpposite(), 2); }
+    public BlockPos floor() { return base != null ? base : legacyFloor(); }
+    private BlockPos legacyFloor() { return worldPosition.relative(getBlockState().getValue(SiloControllerBlock.FACING).getOpposite(), 2); }
     public State state() { return state; }
     /** Why it is not ready, as a lang key suffix ({@code silo.create_nuclearindustry.error.*}), or empty. */
     public String error() { return error; }
@@ -79,7 +83,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         setChanged(); sendData();
     }
     /** Layers of silo wall standing round the rocket from the base up, 0 on an open platform; for launch effects. */
-    public int shaftHeight() { return 0; }
+    public int shaftHeight() { return shaftHeight; }
     /** The rocket standing on the base as last validated, or null; server side. */
     public AssembledRocket rocket() { return rocket; }
     /** How the rocket standing on the base would fly (stages, payload, captured blocks, spread), or null without one; server side. */
@@ -94,7 +98,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (error.isEmpty()) return "";
         if (errorArgs != null) return MultiblockText.message("silo.create_nuclearindustry.error." + error + "_detail",
                 java.util.Arrays.stream(errorArgs).boxed().toArray());
-        return MultiblockText.message("silo.create_nuclearindustry.error." + error, errorPos.getX(), errorPos.getY(), errorPos.getZ());
+        return MultiblockText.message("silo.create_nuclearindustry.error." + (error.equals("interior") ? "clearance" : error), errorPos.getX(), errorPos.getY(), errorPos.getZ());
     }
     /** Where the reason it is not ready lies (the controller when it is not a place). */
     public BlockPos errorPos() { return errorPos; }
@@ -127,11 +131,10 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     @Override public void initialize() { super.initialize(); if (level != null && !level.isClientSide) { MultiblockRegistry.register(this); invalidatePorts(); } dirty = true; }
     // setRemoved is final in SmartBlockEntity; invalidate runs on both a replacement and a chunk unload.
     @Override public void invalidate() { if (level != null && !level.isClientSide) { MultiblockRegistry.unregister(this); invalidatePorts(); } super.invalidate(); }
-    /** Whether {@code pos} is in its floor or walls (where a fuel port may sit), up to the tallest rocket a silo takes. */
-    public boolean isWall(BlockPos pos) {
+    /** Whether a fuel port touches its base or stands in its optional wall ring. */
+    public boolean isPortPosition(BlockPos pos) {
         BlockPos f = floor();
-        int dx = pos.getX() - f.getX(), dy = pos.getY() - f.getY(), dz = pos.getZ() - f.getZ();
-        return Math.abs(dx) <= 2 && Math.abs(dz) <= 2 && dy >= 0 && dy <= MAX_ROCKET + 1 && (dy == 0 || Math.abs(dx) == 2 || Math.abs(dz) == 2);
+        return LaunchSiteGeometry.portOffset(pos.getX() - f.getX(), pos.getY() - f.getY(), pos.getZ() - f.getZ(), MAX_ROCKET);
     }
     /** The tanks of the column standing on its floor, bottom to top, complete rocket or not; nothing loads chunks. */
     public List<RocketSectionEntity> columnTanks() {
@@ -152,18 +155,27 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     /** Pipes cache what a fuel port exposes; tells them to look again (the silo came, went or changed state). */
     private void invalidatePorts() {
         if (level == null) return;
-        BlockPos f = floor();
-        for (int y = 0; y <= MAX_ROCKET + 1; y++) for (int x = -2; x <= 2; x++) for (int z = -2; z <= 2; z++) {
-            if (y != 0 && Math.abs(x) != 2 && Math.abs(z) != 2) continue;
+        invalidatePorts(floor());
+    }
+    private void invalidatePorts(BlockPos f) {
+        if (level == null) return;
+        for (int y = -1; y <= MAX_ROCKET + 1; y++) for (int x = -2; x <= 2; x++) for (int z = -2; z <= 2; z++) {
+            if (!LaunchSiteGeometry.portOffset(x, y, z, MAX_ROCKET)) continue;
             BlockPos p = f.offset(x, y, z);
             if (level.isLoaded(p) && level.getBlockState(p).is(SiloRegistry.FUEL_PORT.get())) level.invalidateCapabilities(p);
         }
     }
     @Override public BoundingBox interestBounds() {
-        BlockPos f = floor();
-        return new BoundingBox(f.getX()-2, f.getY(), f.getZ()-2, f.getX()+2, level == null ? f.getY()+18 : level.getMaxBuildHeight()-1, f.getZ()+2);
+        BlockPos p = worldPosition;
+        return new BoundingBox(p.getX()-4, p.getY()-1, p.getZ()-4, p.getX()+4, level == null ? p.getY()+18 : level.getMaxBuildHeight()-1, p.getZ()+4);
     }
-    @Override public boolean shouldReactToBlockChange(BlockChange change) { return !change.pos().equals(worldPosition); }
+    @Override public boolean shouldReactToBlockChange(BlockChange change) {
+        BlockPos p = change.pos(), f = floor();
+        if (p.equals(worldPosition)) return false;
+        return Math.abs(p.getX() - f.getX()) <= 2 && Math.abs(p.getZ() - f.getZ()) <= 2
+                || p.getY() >= worldPosition.getY()-1 && p.getY() <= worldPosition.getY()
+                && Math.abs(p.getX() - worldPosition.getX()) <= 3 && Math.abs(p.getZ() - worldPosition.getZ()) <= 3;
+    }
     @Override public void requestStructureRevalidation(Player player) { dirty = true; }
     /** Where it is sent: the target, or above it for an airburst. */
     private Vec3 designatedAim() {
@@ -234,21 +246,84 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (isOverStressed()) failWith("overstressed", State.UNPREPARED, Math.round(calculateStressApplied() * Math.max((float) MissileConfig.minimumRpm, Math.abs(getSpeed()))));
         else failWith("speed", State.UNPREPARED, (int) Math.ceil(MissileConfig.minimumRpm), Math.round(Math.abs(getSpeed())));
     }
+    /** Keeps a valid choice stable when neighbouring platforms are added. */
+    private void setBase(@Nullable BlockPos next) {
+        if (Objects.equals(base, next)) return;
+        BlockPos old = floor();
+        base = next;
+        invalidatePorts(old);
+        invalidatePorts(floor());
+        setChanged(); sendData();
+    }
+
+    private record BaseCheck(int blocks, @Nullable BlockPos missing, @Nullable BlockPos unloaded) {
+        boolean valid() { return blocks == 9; }
+    }
+
+    private BaseCheck checkBase(BlockPos centre) {
+        int blocks = 0;
+        BlockPos missing = null, unloaded = null;
+        for (int x = -1; x <= 1; x++) for (int z = -1; z <= 1; z++) {
+            BlockPos p = centre.offset(x, 0, z);
+            if (!level.isLoaded(p)) {
+                if (unloaded == null) unloaded = p;
+            } else if (level.getBlockState(p).is(SiloRegistry.LAUNCH_BASES)) blocks++;
+            else if (missing == null) missing = p;
+        }
+        return new BaseCheck(blocks, missing, unloaded);
+    }
+
+    private boolean findBase() {
+        Direction facing = getBlockState().getValue(SiloControllerBlock.FACING);
+        List<BlockPos> candidates = new ArrayList<>();
+        for (int[] offset : LaunchSiteGeometry.candidates(facing.getStepX(), facing.getStepZ()))
+            candidates.add(worldPosition.offset(offset[0], 0, offset[1]));
+        if (base != null && candidates.contains(base) && checkBase(base).valid()) return true;
+        BlockPos first = null, bestMissing = null, unloaded = null;
+        int mostBlocks = -1;
+        for (BlockPos candidate : candidates) {
+            BaseCheck check = checkBase(candidate);
+            if (check.valid()) {
+                if (first == null) first = candidate;
+                if (level.isLoaded(candidate.above()) && level.getBlockEntity(candidate.above()) instanceof RocketSectionEntity) {
+                    setBase(candidate);
+                    return true;
+                }
+            }
+            if (check.blocks() > mostBlocks) { mostBlocks = check.blocks(); bestMissing = check.missing(); }
+            if (unloaded == null) unloaded = check.unloaded();
+        }
+        if (first != null) { setBase(first); return true; }
+        setBase(null);
+        rocket = null; scan = null; rocketHeight = 0;
+        setShaftHeight(0);
+        fail(unloaded != null ? "unloaded" : "base", unloaded != null ? unloaded : bestMissing, State.INCOMPLETE);
+        return false;
+    }
+
+    private void setShaftHeight(int height) {
+        if (shaftHeight == height) return;
+        shaftHeight = height;
+        setChanged(); sendData();
+    }
+
     public void validate() {
         dirty = false;
         if (!(level instanceof ServerLevel server)) return;
         if (ShipSpace.shipAt(level, worldPosition) != null) { fail("static", worldPosition, State.INCOMPLETE); return; }
+        if (!findBase()) return;
         RocketValidator.Result result = RocketValidator.validate(level, floor().above());
         if (!result.valid()) { rocket = null; rocketHeight = 0; fail(result.error(), result.position(), result.error().equals("fuel") || result.error().equals("mixed_propellant") ? State.UNPREPARED : State.INCOMPLETE); return; }
         AssembledRocket next = result.rocket();
+        setShaftHeight(SiloValidator.shaft(level, floor(), worldPosition, next.height()));
         // A stale chunk restored after a launch is reconciled against the dimension's launch ledger.
         if (FlightTracker.get(server).hasLaunched(next.launchId())) {
             consume(next); rocket = null; pendingLaunch = null; state = State.LAUNCHED; error = ""; setChanged(); return;
         }
         RocketScan dryRun = RocketScan.scan(level, floor(), next);
         SiloValidator.Result geometry = SiloValidator.validate(level, floor(), worldPosition, next.height(), dryRun.valid() ? dryRun.captured() : Set.of());
-        // A missing wall explains more than anything the rocket captures through the gap, so it is reported first.
-        boolean structural = !geometry.valid() && (geometry.error().equals("wall") || geometry.error().equals("unloaded"));
+        // Base damage or an unloaded chunk takes precedence over assembly errors.
+        boolean structural = !geometry.valid() && (geometry.error().equals("base") || geometry.error().equals("unloaded"));
         if (!structural && !dryRun.valid()) { rocket = null; scan = null; assemblyMessage = dryRun.message(); fail(dryRun.error(), dryRun.errorPos(), State.INCOMPLETE); return; }
         if (!geometry.valid()) { fail(geometry.error(), geometry.position(), State.INCOMPLETE); return; }
         scan = dryRun;
@@ -348,6 +423,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     @Override protected void write(CompoundTag tag, HolderLookup.Provider provider, boolean clientPacket) {
         super.write(tag, provider, clientPacket);
         if (target != null) tag.putLong("Target", target.asLong());
+        if (base != null) tag.putLong("Base", base.asLong());
+        tag.putInt("Shaft", shaftHeight);
         if (operator != null) tag.putUUID("Operator", operator);
         if (pendingLaunch != null) tag.putUUID("PendingLaunch", pendingLaunch);
         tag.putBoolean("Airburst", airburst);
@@ -362,6 +439,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     @Override protected void read(CompoundTag tag, HolderLookup.Provider provider, boolean clientPacket) {
         super.read(tag, provider, clientPacket);
         target = tag.contains("Target") ? BlockPos.of(tag.getLong("Target")) : null;
+        base = tag.contains("Base") ? BlockPos.of(tag.getLong("Base")) : null;
+        shaftHeight = tag.getInt("Shaft");
         operator = tag.hasUUID("Operator") ? tag.getUUID("Operator") : null;
         pendingLaunch = tag.hasUUID("PendingLaunch") ? tag.getUUID("PendingLaunch") : null;
         airburst = tag.getBoolean("Airburst");
@@ -381,6 +460,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         tooltip.add(Component.literal("     ").append(status()).withStyle(colour));
         if (state == State.COUNTDOWN) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.countdown", (countdown + 19) / 20)).withStyle(ChatFormatting.RED));
         if (target != null) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.target", target.getX(), target.getY(), target.getZ())).withStyle(ChatFormatting.GRAY));
+        if (sneaking) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.site.instructions")).withStyle(ChatFormatting.GRAY));
         if (rocketHeight > 0) tooltip.add(Component.literal("     ").append(guidanceLine()).withStyle(ChatFormatting.GRAY));
         return true;
     }
