@@ -126,7 +126,7 @@ final class FlightFx {
         stage = flight.stage();
         flags = 0;
         for (int f : new int[]{FlightFxState.BURNING, FlightFxState.RISING, FlightFxState.NUCLEAR_WARHEAD, FlightFxState.PUPPET,
-                FlightFxState.BURNED_OUT}) {
+                FlightFxState.BURNED_OUT, FlightFxState.INTERCEPTOR, FlightFxState.CANISTER}) {
             if (flight.has(f)) flags |= f;
         }
     }

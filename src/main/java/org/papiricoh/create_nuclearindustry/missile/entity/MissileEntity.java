@@ -40,6 +40,7 @@ import java.util.UUID;
  */
 public class MissileEntity extends Entity {
     private static final EntityDataAccessor<Boolean> BURNING = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> INTERCEPTOR = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final EntityDataAccessor<CompoundTag> VISUALS = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Integer> FIRST_SECTION = SynchedEntityData.defineId(MissileEntity.class, EntityDataSerializers.INT);
@@ -89,6 +90,7 @@ public class MissileEntity extends Entity {
     }
 
     public int firstVisualSection() { return entityData.get(FIRST_SECTION); }
+    public boolean isInterceptor() { return entityData.get(INTERCEPTOR); }
 
     /** The flight this entity shows, or null for a missile saved in flight by an older version. */
     @Nullable
@@ -154,6 +156,7 @@ public class MissileEntity extends Entity {
             entityData.set(VISUALS, visuals);
         }
         entityData.set(FIRST_SECTION, flight.firstVisualSection());
+        entityData.set(INTERCEPTOR, flight.kind() == Flight.Kind.INTERCEPTOR);
         this.flightId = flight.id();
         entityData.set(FLIGHT, java.util.Optional.of(flight.id()));
         Vec3 previous = position();
@@ -344,6 +347,7 @@ public class MissileEntity extends Entity {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         // The entity tracker carries position and rotation; only whether the engines burn is synced.
         builder.define(BURNING, true);
+        builder.define(INTERCEPTOR, false);
         builder.define(VISUALS, new CompoundTag());
         builder.define(FIRST_SECTION, 0);
         builder.define(FLIGHT, java.util.Optional.empty());

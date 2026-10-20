@@ -116,6 +116,18 @@ final class RocketParticles {
         return true;
     }
 
+    /** Throws a budgeted handful of glowing fragments from an airburst. */
+    static void debris(ClientLevel level, net.minecraft.world.phys.Vec3 at, net.minecraft.world.phys.Vec3 inherited, int count,
+                       float scale, net.minecraft.util.RandomSource random) {
+        int quota = FxBudget.quota(count, alive(), 1);
+        for (int i = 0; i < quota; i++) {
+            double x = random.nextGaussian() * 0.22, y = random.nextGaussian() * 0.22, z = random.nextGaussian() * 0.22;
+            ember(level, at.x + x, at.y + y, at.z + z, inherited.x * 0.08 + x * 0.65,
+                    inherited.y * 0.08 + 0.25 + Math.abs(y) * 0.5, inherited.z * 0.08 + z * 0.65,
+                    (0.1f + random.nextFloat() * 0.12f) * scale, 22 + random.nextInt(15));
+        }
+    }
+
     private static void add(Particle particle) {
         Minecraft.getInstance().particleEngine.add(particle);
         ALIVE.add(particle);

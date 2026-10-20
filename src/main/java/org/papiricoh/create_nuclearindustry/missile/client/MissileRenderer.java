@@ -2,7 +2,9 @@ package org.papiricoh.create_nuclearindustry.missile.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.createmod.catnip.render.CachedBuffers;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -13,6 +15,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
+import org.papiricoh.create_nuclearindustry.missile.defense.client.DefensePartials;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
 
 public class MissileRenderer extends EntityRenderer<MissileEntity> {
@@ -35,6 +38,14 @@ public class MissileRenderer extends EntityRenderer<MissileEntity> {
         // straight up), then turned to the heading, it points along the flight.
         poseStack.mulPose(Axis.YP.rotationDegrees(-entityYaw));
         poseStack.mulPose(Axis.XP.rotationDegrees(Mth.lerp(partialTicks, entity.xRotO, entity.getXRot()) + 90.0f));
+        if (entity.isInterceptor()) {
+            CachedBuffers.partial(DefensePartials.INTERCEPTOR_ROUND, net.minecraft.world.level.block.Blocks.WHITE_CONCRETE.defaultBlockState())
+                    .translate(-0.5f, 0, -0.5f).light(packedLight)
+                    .renderInto(poseStack, buffer.getBuffer(RenderType.solid()));
+            poseStack.popPose();
+            super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
+            return;
+        }
         java.util.List<String> sections = entity.visualSections();
         if (!sections.isEmpty()) {
             int first = Math.min(entity.firstVisualSection(), sections.size());

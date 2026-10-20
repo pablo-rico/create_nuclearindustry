@@ -23,6 +23,7 @@ import org.papiricoh.create_nuclearindustry.missile.flight.client.ClientFlight;
 import org.papiricoh.create_nuclearindustry.missile.flight.client.ClientFlights;
 import org.papiricoh.create_nuclearindustry.missile.flight.client.FlightFxListener;
 import org.papiricoh.create_nuclearindustry.missile.fx.FxBudget;
+import org.papiricoh.create_nuclearindustry.missile.fx.FxScale;
 import org.papiricoh.create_nuclearindustry.missile.fx.FxCurves;
 import org.papiricoh.create_nuclearindustry.missile.fx.PlumeModel;
 import org.papiricoh.create_nuclearindustry.missile.fx.RocketAcoustics;
@@ -181,6 +182,7 @@ final class RocketFxManager implements FlightFxListener {
         FlightFx fx = flight == null ? null : track(flight, now);
         switch (event) {
             case LAUNCH -> launch(fx, pos, now, distance);
+            case REENTRY, TERMINAL -> { }
             case STAGE_SEPARATION -> separation(fx, stage, pos, vel, now, distance);
             case STAGE_IGNITION -> {
                 if (fx != null) {
@@ -204,14 +206,52 @@ final class RocketFxManager implements FlightFxListener {
                 if (distance < FxBudget.MID) dust(pos, ground, 18, 0.8, water);
                 RocketSounds.oneShot(RocketFxRegistry.DEBRIS_IMPACT.get(), pos, distance, 900, 0.9f, 1.0f, true);
             }
-            case ABORT, INTERCEPT, INTERCEPTOR_MISS -> end(fx, now, false);
+            case INTERCEPT -> intercept(fx, flags, pos, vel, now, distance);
+            case INTERCEPTOR_MISS -> interceptorMiss(fx, flags, pos, now, distance);
+            case ABORT -> end(fx, now, false);
             default -> {
             }
         }
     }
 
+    private void intercept(@Nullable FlightFx fx, int flags, Vec3 pos, Vec3 vel, long now, double distance) {
+        float scale = FxScale.of(flags, fx == null ? RocketShape.LEGACY : fx.shape);
+        bursts.add(new Burst(Burst.Kind.FLASH, pos, null, now, 18, 18 * scale, 0xFFF4D8, 0));
+        bursts.add(new Burst(Burst.Kind.RING, pos, vel.lengthSqr() < 1.0e-6 ? null : vel.normalize(), now, 26, 24 * scale, 0xFFD8A8, 0));
+        if (distance < FxBudget.MID * 2) {
+            RocketParticles.smoke(level, true, pos.x, pos.y, pos.z, 0, 0.04, 0,
+                    new RocketParticles.Puff(0.42f, 0.43f, 0.45f, 0.85f, 2.2f * scale, 8.0f * scale, 65, 8, 0.002f));
+            RocketParticles.debris(level, pos, vel, 10, scale, random);
+        }
+        RocketSounds.oneShot(RocketFxRegistry.SONIC_BOOM.get(), pos, distance, 2400 * scale, 0.9f * scale,
+                0.9f + 0.25f * (1 - scale), true);
+        end(fx, now, false);
+    }
+
+    private void interceptorMiss(@Nullable FlightFx fx, int flags, Vec3 pos, long now, double distance) {
+        float scale = FxScale.of(flags, fx == null ? RocketShape.LEGACY : fx.shape);
+        bursts.add(new Burst(Burst.Kind.FLASH, pos, null, now, 8, 4 * scale, 0xFFE8C8, 0));
+        if (distance < FxBudget.MID) RocketParticles.smoke(level, false, pos.x, pos.y, pos.z, 0, 0.06, 0,
+                new RocketParticles.Puff(0.82f, 0.82f, 0.8f, 0.65f, 0.7f * scale, 2.8f * scale, 32, 2, 0.01f));
+        end(fx, now, false);
+    }
+
     private void launch(@Nullable FlightFx fx, Vec3 pos, long now, double distance) {
+        if (fx != null && fx.has(FlightFxState.CANISTER)) {
+            float scale = FxScale.of(fx.flags, fx.shape);
+            for (int i = 0; i < 8; i++) {
+                double a = random.nextDouble() * Math.PI * 2, out = random.nextDouble() * 0.18;
+                RocketParticles.smoke(level, false, pos.x + Math.cos(a) * out, pos.y, pos.z + Math.sin(a) * out,
+                        Math.cos(a) * 0.08, 0.12 + random.nextDouble() * 0.18, Math.sin(a) * 0.08,
+                        new RocketParticles.Puff(0.96f, 0.97f, 0.99f, 0.72f, 0.35f * scale, 1.8f * scale, 34, 0, 0.015f));
+            }
+            bursts.add(new Burst(Burst.Kind.FLASH, pos, null, now, 8, 2.5f * scale, 0xFFF2D8, 0));
+            RocketSounds.oneShot(RocketFxRegistry.ROCKET_IGNITION.get(), pos, distance, 2600 * scale, 0.5f * scale, 1.6f, true);
+            if (fx != null) { fx.launchTick = now; fx.launchY = pos.y; fx.groundKnown = false; }
+            return;
+        }
         SiloFx.Mouth mouth = silos.launchedFrom(pos);
+        float scale = FxScale.of(fx == null ? 0 : fx.flags, fx == null ? RocketShape.LEGACY : fx.shape);
         double ground = mouth != null ? mouth.y() : groundBelow(level, pos);
         PendingLaunch launch = new PendingLaunch(pos, now, mouth, ground);
         if (fx != null) {
@@ -219,17 +259,17 @@ final class RocketFxManager implements FlightFxListener {
         } else {
             pending.add(launch);
         }
-        RocketSounds.oneShot(RocketFxRegistry.ROCKET_IGNITION.get(), pos, distance, 2600, 1.0f, 1.0f, true);
+        scaledSound(RocketFxRegistry.ROCKET_IGNITION.get(), pos, distance, 2600, 1.0f, 1.0f, true, scale);
         if (mouth != null) {
             // Fire fills the shaft and bursts out of its mouth.
             bursts.add(new Burst(Burst.Kind.SHAFT, new Vec3(mouth.x(), mouth.floorY(), mouth.z()), null, now, 40, 1.5f, 0xFFD49A,
                     mouth.y() - mouth.floorY() + 2));
-            bursts.add(new Burst(Burst.Kind.FLASH, mouth.centre().add(0, 1, 0), null, now, 16, 9, 0xFFE2B0, 0));
+            bursts.add(new Burst(Burst.Kind.FLASH, mouth.centre().add(0, 1, 0), null, now, 16, 9 * scale, 0xFFE2B0, 0));
         } else {
-            bursts.add(new Burst(Burst.Kind.FLASH, pos, null, now, 14, 6, 0xFFE2B0, 0));
+            bursts.add(new Burst(Burst.Kind.FLASH, pos, null, now, 14, 6 * scale, 0xFFE2B0, 0));
         }
         bursts.add(new Burst(Burst.Kind.DUST_RING, new Vec3(pos.x, ground, pos.z), null, now, (int) (FxCurves.DUST_SECONDS * 1.6 * 20),
-                (float) FxCurves.DUST_END, 0xA89C86, ground));
+                (float) FxCurves.DUST_END * scale, 0xA89C86, ground));
     }
 
     private void separation(@Nullable FlightFx fx, int dropped, Vec3 pos, Vec3 vel, long now, double distance) {
@@ -258,6 +298,7 @@ final class RocketFxManager implements FlightFxListener {
     }
 
     private void impact(@Nullable FlightFx fx, Vec3 pos, int flags, long now, double distance) {
+        float scale = FxScale.of(flags, fx == null ? RocketShape.LEGACY : fx.shape);
         if (fx != null && fx.passage.finish()) boom(pos, distance);
         if ((flags & FlightFxState.NUCLEAR_WARHEAD) != 0) {
             // The detonation's own effects take over: only let the warhead's glow go out.
@@ -266,11 +307,16 @@ final class RocketFxManager implements FlightFxListener {
         }
         end(fx, now, false);
         double ground = Math.min(pos.y, groundBelow(level, pos));
-        bursts.add(new Burst(Burst.Kind.FLASH, pos.add(0, 1, 0), null, now, 8, 5, 0xFFC890, 0));
+        bursts.add(new Burst(Burst.Kind.FLASH, pos.add(0, 1, 0), null, now, 8, 5 * scale, 0xFFC890, 0));
         boolean water = water(pos, ground);
-        bursts.add(new Burst(Burst.Kind.DUST_RING, new Vec3(pos.x, ground, pos.z), null, now, 70, 16, water ? 0xE6ECF0 : 0x9C8E78, ground));
+        bursts.add(new Burst(Burst.Kind.DUST_RING, new Vec3(pos.x, ground, pos.z), null, now, 70, 16 * scale, water ? 0xE6ECF0 : 0x9C8E78, ground));
         if (distance < FxBudget.MID) dust(pos, ground, 36, 1.4, water);
-        RocketSounds.oneShot(RocketFxRegistry.DEBRIS_IMPACT.get(), pos, distance, 1400, 1.0f, 0.7f, true);
+        scaledSound(RocketFxRegistry.DEBRIS_IMPACT.get(), pos, distance, 1400, 1.0f, 0.7f, true, scale);
+    }
+
+    private static void scaledSound(net.minecraft.sounds.SoundEvent sound, Vec3 pos, double distance, double reach, float volume,
+                                    float pitch, boolean delayed, float scale) {
+        RocketSounds.oneShot(sound, pos, distance, reach * scale, volume * scale, pitch + (1 - scale) * 0.25f, delayed);
     }
 
     private void boom(Vec3 at, double distance) {
@@ -360,12 +406,12 @@ final class RocketFxManager implements FlightFxListener {
         if (fx.lod.particles() && !fx.ended() && now >= fx.ullageFrom && now < fx.litAfter) ullage(fx);
         fx.lastTail = tail;
 
-        if (fx.descending() && !fx.ended()) {
+        if (fx.descending() && !fx.ended() && !fx.has(FlightFxState.INTERCEPTOR)) {
             fx.pushStreak(fx.position.add(fx.axis().scale(fx.shape.height())));
         } else if (!fx.streak.isEmpty()) {
             fx.streak.removeFirst();
         }
-        if (!fx.ended() && fx.passage.update(fx.distance, fx.velocity.length(), fx.descending())) boom(fx.position, fx.distance);
+        if (!fx.ended() && !fx.has(FlightFxState.INTERCEPTOR) && fx.passage.update(fx.distance, fx.velocity.length(), fx.descending())) boom(fx.position, fx.distance);
     }
 
     /** Where the burning stage's nozzles are, on average, at the end of this tick. */
@@ -441,10 +487,11 @@ final class RocketFxManager implements FlightFxListener {
      * rolling outward along the ground, or boiling out of the silo's mouth.
      */
     private void groundBlast(FlightFx fx, Vec3 nozzle, PlumeModel.Plume plume, int wanting) {
+        if (fx.has(FlightFxState.CANISTER)) return;
         if (fx.lod != FxBudget.Lod.NEAR && fx.lod != FxBudget.Lod.MID) return;
         boolean inShaft = fx.silo != null && nozzle.y < fx.silo.y() + 1;
         double height = nozzle.y - (fx.silo != null ? fx.silo.y() : fx.groundY);
-        double strength = inShaft ? 1 : 1 - FxCurves.clamp01(height / BLAST_HEIGHT);
+        double strength = inShaft ? 1 : 1 - FxCurves.clamp01(height / (BLAST_HEIGHT * FxScale.of(fx.flags, fx.shape)));
         if (strength <= 0) return;
         int wanted = (int) Math.round((fx.lod == FxBudget.Lod.NEAR ? 6 : 2) * ClientConfig.rocketDetail * strength * fx.plume);
         int quota = FxBudget.quota(wanted, RocketParticles.alive(), wanting);
@@ -592,11 +639,12 @@ final class RocketFxManager implements FlightFxListener {
         List<FlightFx> roaring = new ArrayList<>();
         for (FlightFx fx : list) {
             fx.roarWanted = false;
-            if (!fx.ended() && fx.distance < RocketAcoustics.FAR_REACH && fx.heard(RocketAcoustics.delayTicks(fx.distance)) > 0.02f) {
+            float scale = FxScale.of(fx.flags, fx.shape);
+            if (!fx.ended() && fx.distance < RocketAcoustics.FAR_REACH * scale && fx.heard(RocketAcoustics.delayTicks(fx.distance)) > 0.02f) {
                 roaring.add(fx);
             }
             double heat = FxCurves.reentryHeat(fx.velocity.length(), FxCurves.airDepth(fx.position.y, MissileConfig.atmosphereTop));
-            fx.hissWanted = !fx.ended() && fx.descending() && heat > 0.05 && fx.distance < 700;
+            fx.hissWanted = !fx.ended() && !fx.has(FlightFxState.INTERCEPTOR) && fx.descending() && heat > 0.05 && fx.distance < 700;
             if (fx.hissWanted && (fx.hiss == null || fx.hiss.done())) {
                 fx.hiss = new RocketSounds.Loop(RocketFxRegistry.REENTRY_HISS.get(), new HissSource(fx));
                 Minecraft.getInstance().getSoundManager().play(fx.hiss);
@@ -639,12 +687,12 @@ final class RocketFxManager implements FlightFxListener {
         @Override
         public float volume() {
             double v = near ? RocketAcoustics.nearVolume(fx.distance) : 0.85 * RocketAcoustics.farVolume(fx.distance);
-            return (float) (v * heardLevel());
+            return (float) (v * heardLevel() * FxScale.of(fx.flags, fx.shape));
         }
 
         @Override
         public float pitch() {
-            return near ? 0.96f + 0.08f * fx.plume : 1.0f;
+            return (near ? 0.96f + 0.08f * fx.plume : 1.0f) + (1 - FxScale.of(fx.flags, fx.shape)) * 0.25f;
         }
 
         @Override
@@ -690,9 +738,10 @@ final class RocketFxManager implements FlightFxListener {
         for (FlightFx fx : flights.values()) {
             if (fx.ended()) continue;
             double distance = eye.distanceTo(fx.position);
-            if (distance > FxCurves.SHAKE_REACH * 1.5) continue;
+            float scale = FxScale.of(fx.flags, fx.shape);
+            if (distance > FxCurves.SHAKE_REACH * 1.5 * scale) continue;
             float heard = fx.heard(RocketAcoustics.delayTicks(distance));
-            amount += FxCurves.shake(distance, fx.position.y - fx.launchY) * heard;
+            amount += FxCurves.shake(distance / scale, fx.position.y - fx.launchY) * heard * scale;
         }
         // Several launches side by side never shake harder than one close by.
         amount = Math.min(1, amount);
