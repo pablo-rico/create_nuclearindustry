@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.gametest;
 
+import com.simibubi.create.content.kinetics.belt.BeltBlockEntity;
 import com.simibubi.create.content.kinetics.belt.item.BeltConnectorItem;
 import com.simibubi.create.content.kinetics.fan.EncasedFanBlockEntity;
 import com.simibubi.create.content.kinetics.fan.processing.FanProcessingType;
@@ -182,11 +183,12 @@ public class FanTreatmentTests {
                         "the belt should take heavy mineral sand");
             }
         });
+        // The leaching may also yield uranium concentrate or beryllium by chance, and a belt segment's handler only shows the
+        // first stack where it lies, so every stack on the belt is looked at.
         helper.succeedWhen(() -> {
-            boolean leached = false;
-            for (int x = start.getX(); x <= end.getX(); x++) {
-                leached |= holds(handler(helper, new BlockPos(x, UNDER.getY(), LANE_Z)), FuelCycleRegistry.THORIUM_DIOXIDE.get());
-            }
+            boolean leached = helper.getLevel().getBlockEntity(helper.absolutePos(start)) instanceof BeltBlockEntity belt
+                    && belt.getControllerBE() != null && belt.getControllerBE().getInventory().getTransportedItems().stream()
+                    .anyMatch(item -> item.stack.is(FuelCycleRegistry.THORIUM_DIOXIDE.get()));
             helper.assertTrue(leached, "heavy mineral sand on the belt should be leached into thorium dioxide");
         });
     }
