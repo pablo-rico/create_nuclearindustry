@@ -24,8 +24,8 @@ public final class RocketAdvisor {
                     tanks++;
                     expected = mask(GUIDANCE) | (tanks < 4 ? mask(TANK) : 0) | (stages < 3 ? mask(ENGINE) : 0);
                 }
-                case GUIDANCE -> { guidance = true; guidanceIndex = i; expected = mask(WARHEAD); }
-                case WARHEAD -> { done = true; expected = 0; }
+                case GUIDANCE -> { guidance = true; guidanceIndex = i; expected = mask(WARHEAD) | mask(KILL_VEHICLE); }
+                case WARHEAD, KILL_VEHICLE -> { done = true; expected = 0; }
             }
         }
         if (!done) return List.of(new LaunchDiagram.Advice((byte) column.size(), ADD, (byte) expected,

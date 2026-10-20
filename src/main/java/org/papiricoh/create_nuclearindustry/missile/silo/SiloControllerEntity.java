@@ -19,6 +19,7 @@ import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import org.papiricoh.create_nuclearindustry.missile.*;
 import org.papiricoh.create_nuclearindustry.missile.flight.*;
 import org.papiricoh.create_nuclearindustry.missile.item.TargetDesignatorItem;
+import org.papiricoh.create_nuclearindustry.missile.radar.RadarModel;
 import org.papiricoh.create_nuclearindustry.missile.physics.AccuracyModel;
 import org.papiricoh.create_nuclearindustry.missile.physics.GuidanceTier;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
@@ -27,10 +28,14 @@ import org.papiricoh.create_nuclearindustry.missile.physics.RocketAttitude;
 import org.papiricoh.create_nuclearindustry.missile.rocket.RocketContraption;
 import org.papiricoh.create_nuclearindustry.missile.rocket.RocketScan;
 import org.papiricoh.create_nuclearindustry.missile.physics.V3;
+import org.papiricoh.create_nuclearindustry.missile.defense.*;
+import org.papiricoh.create_nuclearindustry.missile.physics.BallisticModel;
+import org.papiricoh.create_nuclearindustry.missile.physics.InterceptorEnvelope;
+import org.papiricoh.create_nuclearindustry.missile.physics.InterceptSolution;
 import org.papiricoh.create_nuclearindustry.multiblock.*;
 import java.util.*;
 
-public class SiloControllerEntity extends KineticBlockEntity implements MultiblockController {
+public class SiloControllerEntity extends KineticBlockEntity implements MultiblockController, InterceptorShooter {
     public enum State { INCOMPLETE, UNPREPARED, READY, ARMED, COUNTDOWN, LAUNCHED }
     /** The tallest rocket a silo takes, in sections. */
     public static final int MAX_ROCKET = 17;
@@ -61,6 +66,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     private double reach;
     /** Ticks a command table's salvo holds the countdown back by, so its impacts line up; 0 normally. */
     private int launchDelay;
+    private UUID pendingTarget;
     private final MultiblockMessenger messenger = new MultiblockMessenger("silo");
 
     public SiloControllerEntity(BlockPos pos, BlockState state) { super(SiloRegistry.CONTROLLER_ENTITY.get(), pos, state); errorPos = pos; }
@@ -86,6 +92,25 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     public int shaftHeight() { return shaftHeight; }
     /** The rocket standing on the base as last validated, or null; server side. */
     public AssembledRocket rocket() { return rocket; }
+    public boolean interceptorMode() { return rocket != null && rocket.composition().interceptor(); }
+    @Override public BlockPos shooterPos() { return worldPosition; }
+    @Override public ShooterType shooterType() { return ShooterType.SILO; }
+    @Override public UUID shooterOwner() { return operator; }
+    @Override public boolean operational() { return interceptorMode() && state == State.READY && level != null && ShipSpace.shipAt(level, worldPosition) == null; }
+    @Override public int readyRounds() { return operational() ? 1 : 0; }
+    @Override public int reactionTicks(V3 direction) { return DefenseConfig.siloLaunchDelayTicks; }
+    @Override public V3 launchPoint() { return Flight.v3(Vec3.atBottomCenterOf(floor().above())); }
+    @Override public InterceptorEnvelope envelope(BallisticModel.Params params) {
+        MissileDesign d = rocket == null ? new MissileDesign(List.of(), DefenseConfig.siloKillVehicleMass, 0) : design();
+        return new InterceptorEnvelope(d, params.riseHeight(), 0, DefenseConfig.siloMaxRange, params.atmosphereTop(), 1.0e5,
+                true, DefenseConfig.siloBasePk, 60, 4000);
+    }
+    @Override public double seekerFactor() { return switch (guidance()) { case BASIC -> .8; case INERTIAL -> .95; case STELLAR -> 1.0; }; }
+    @Override public FireResult order(ServerLevel server, UUID target, EngagementSource source) {
+        if (!operational()) return FireResult.OFFLINE;
+        pendingTarget = target; countdown = DefenseConfig.siloLaunchDelayTicks; state = State.COUNTDOWN;
+        setChanged(); sendData(); return FireResult.QUEUED;
+    }
     /** How the rocket standing on the base would fly (stages, payload, captured blocks, spread), or null without one; server side. */
     public MissileDesign currentDesign() { return rocket == null ? null : design(); }
     public Component status() {
@@ -105,12 +130,14 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     public boolean powered() { return !isOverStressed() && Math.abs(getSpeed()) >= MissileConfig.minimumRpm; }
     @Override public float calculateStressApplied() { return lastStressApplied = (float) MissileConfig.stressImpact; }
     public void configure(Player player, BlockPos target, boolean airburst) {
+        if (interceptorMode()) return;
         if (!(level instanceof ServerLevel) || target == null || !level.getWorldBorder().isWithinBounds(target)
                 || target.getY() < level.getMinBuildHeight() || target.getY() >= level.getMaxBuildHeight()) return;
         this.target = target.immutable(); this.airburst = airburst; this.operator = player.getUUID();
         disarm(); launchDelay = 0; dirty = true; setChanged(); sendData();
     }
     public void arm(Player player) {
+        if (interceptorMode()) return;
         if (!(level instanceof ServerLevel)) return;
         operator = player.getUUID();
         disarm(); validate();
@@ -124,6 +151,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     public void setOperator(UUID operator) { this.operator = operator; setChanged(); }
     public UUID operator() { return operator; }
     public void disarm() {
+        if (interceptorMode()) { if (state == State.ARMED) state = State.READY; return; }
         countdown = -1; launchDelay = 0;
         if (state == State.ARMED || state == State.COUNTDOWN) state = State.UNPREPARED;
         setChanged();
@@ -331,6 +359,15 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         rocket = next;
         if (!same || reach <= 0) reach = MissileFlight.maxRange(design(), MissileConfig.flightParams());
         rocketHeight = next.height();
+        if (next.composition().interceptor()) {
+            if (!LaunchRules.dimensionAllowed(server.dimension().location().toString(), MissileConfig.allowedDimensions)) {
+                fail("dimension", worldPosition, State.UNPREPARED); return;
+            }
+            if (!powered()) { failSpeed(); return; }
+            error = "";
+            if (!same || state != State.COUNTDOWN) { countdown = -1; state = State.READY; }
+            return;
+        }
         if (target == null) { fail("target", worldPosition, State.UNPREPARED); return; }
         if (!powered()) { failSpeed(); return; }
         LaunchRules.Refusal refusal = checkLimits(server);
@@ -357,7 +394,9 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (!powered() && (state == State.ARMED || state == State.COUNTDOWN)) { failSpeed(); dirty = true; }
         // Events invalidate immediately; a slow audit also catches chunk unloads and raw world edits.
         if (dirty || level.getGameTime() % 20 == 0) validate();
-        if (state == State.ARMED && rising) { countdown = MissileConfig.launchCountdownTicks() + launchDelay; state = State.COUNTDOWN; setChanged(); }
+        if (interceptorMode()) {
+            if (state == State.COUNTDOWN && --countdown <= 0) { validate(); if (state == State.COUNTDOWN) launchInterceptor(server); }
+        } else if (state == State.ARMED && rising) { countdown = MissileConfig.launchCountdownTicks() + launchDelay; state = State.COUNTDOWN; setChanged(); }
         else if (state == State.COUNTDOWN && --countdown <= 0) {
             validate(); // Full final server-side validation before consuming anything.
             if (state == State.COUNTDOWN) launch(server);
@@ -373,17 +412,8 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
             Vec3 start = Vec3.atBottomCenterOf(assembled.base()), aim = aim();
             MissileDesign design = design();
             // Assembled for real, emptied (the flight carries the warhead and propellant), then lifted out of the world.
-            RocketScan live = RocketScan.scan(server, floor(), assembled);
-            RocketContraption contraption = live.valid() ? live.contraption() : null;
-            RocketShape shape = live.valid() ? live.shape(assembled) : RocketShape.column(assembled.height(), assembled.composition().stageStarts());
-            emptySections(assembled);
-            CompoundTag cargo = null;
-            if (contraption != null) {
-                contraption.sanitize();
-                contraption.removeBlocksFromWorld(server, BlockPos.ZERO);
-                cargo = contraption.writeNBT(server.registryAccess(), false);
-            }
-            FlightTracker.get(server).launchModular(server, pendingLaunch, design, start, aim, target, assembled.warhead(), operator, shape, cargo,
+            Cargo cargoData = assembleCargo(server, assembled);
+            FlightTracker.get(server).launchModular(server, pendingLaunch, design, start, aim, target, assembled.warhead(), operator, cargoData.shape(), cargoData.tag(),
                     (float) RocketAttitude.heading(aim.x - start.x, aim.z - start.z));
             if (operator != null) LaunchCooldowns.get(server.getServer()).record(operator, LaunchCooldowns.now(server.getServer()));
             NuclearAdvancements.awardMachine(server, worldPosition, operator == null ? null : server.getServer().getPlayerList().getPlayer(operator),
@@ -391,6 +421,33 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         }
         consume(assembled);
         pendingLaunch = null; rocket = null; rocketHeight = 0; countdown = -1; state = State.LAUNCHED; error = ""; dirty = false; setChanged();
+    }
+    private record Cargo(RocketShape shape, @Nullable CompoundTag tag) {}
+    private Cargo assembleCargo(ServerLevel server, AssembledRocket assembled) {
+        RocketScan live = RocketScan.scan(server, floor(), assembled);
+        RocketContraption contraption = live.valid() ? live.contraption() : null;
+        RocketShape shape = live.valid() ? live.shape(assembled) : RocketShape.column(assembled.height(), assembled.composition().stageStarts());
+        emptySections(assembled);
+        CompoundTag cargo = null;
+        if (contraption != null) {
+            contraption.sanitize(); contraption.removeBlocksFromWorld(server, BlockPos.ZERO);
+            cargo = contraption.writeNBT(server.registryAccess(), false);
+        }
+        return new Cargo(shape, cargo);
+    }
+    private void launchInterceptor(ServerLevel server) {
+        Flight targetFlight = pendingTarget == null ? null : FlightTracker.get(server).get(pendingTarget);
+        // Checked before anything is lifted out of the world: only then can the launch itself not fail.
+        if (targetFlight == null || rocket == null || !DefenseConfig.enabled) { state = State.READY; countdown = -1; pendingTarget = null; return; }
+        Optional<InterceptSolution> solution = DefenseCommand.solve(server, targetFlight, this, 0);
+        if (solution.isEmpty()) { state = State.READY; countdown = -1; pendingTarget = null; return; }
+        AssembledRocket assembled = rocket;
+        MissileDesign design = InterceptorDesigns.killVehicle(design(), DefenseConfig.siloKillVehicleMass);
+        Cargo cargo = assembleCargo(server, assembled);
+        if (DefenseCommand.launch(server, this, targetFlight, solution.get(), design, cargo.shape(), cargo.tag()) != null) {
+            consume(assembled); rocket = null; rocketHeight = 0; state = State.LAUNCHED; error = "";
+        } else { state = State.READY; }
+        countdown = -1; pendingTarget = null; setChanged();
     }
     /** Takes the rocket (and what it captures) out of the silo without dropping anything: it has flown already. */
     private void consume(AssembledRocket assembled) {
@@ -413,6 +470,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     }
     /** How far the rocket standing in it reaches on level ground, blocks, or 0 without a complete rocket (server). */
     public double reach() { return rocket == null ? 0 : reach; }
+    @Nullable public UUID pendingTarget() { return pendingTarget; }
     /** The dry run of assembling its rocket from its last validation, or null; for tests and screens. */
     public RocketScan lastScan() { return scan; }
     /** The rocket standing in it as it would fly: its stages and payload, what it captures and its guidance's spread. */
@@ -458,7 +516,10 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         ChatFormatting colour = !error.isEmpty() ? (state == State.INCOMPLETE ? ChatFormatting.RED : ChatFormatting.YELLOW)
                 : state == State.LAUNCHED ? ChatFormatting.GRAY : ChatFormatting.GREEN;
         tooltip.add(Component.literal("     ").append(status()).withStyle(colour));
-        if (state == State.COUNTDOWN) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.countdown", (countdown + 19) / 20)).withStyle(ChatFormatting.RED));
+        if (interceptorMode()) tooltip.add(Component.literal("     ").append(pendingTarget == null
+                ? Component.translatable("silo.create_nuclearindustry.goggles.interceptor_standby")
+                : Component.translatable("silo.create_nuclearindustry.goggles.engaging", RadarModel.designation(pendingTarget))).withStyle(ChatFormatting.AQUA));
+        else if (state == State.COUNTDOWN) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.countdown", (countdown + 19) / 20)).withStyle(ChatFormatting.RED));
         if (target != null) tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.target", target.getX(), target.getY(), target.getZ())).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.reach", Math.round(reach()))).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("     ").append(Component.translatable("silo.create_nuclearindustry.goggles.salvo_delay", (launchDelay + 19) / 20)).withStyle(ChatFormatting.GRAY));

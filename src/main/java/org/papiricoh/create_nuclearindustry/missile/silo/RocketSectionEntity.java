@@ -42,6 +42,7 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
     private UUID identity = UUID.randomUUID();
     private final List<ItemStack> migrationDrops = new ArrayList<>();
     private final ItemStackHandler contents = new ItemStackHandler(WarheadBay.SLOTS) {
+        @Override public int getSlots() { return WarheadBay.activeSlots(section()); }
         @Override public boolean isItemValid(int slot, ItemStack stack) { return accepts(slot, stack); }
         @Override protected int getStackLimit(int slot, ItemStack stack) {
             return Math.min(stack.getMaxStackSize(), WarheadBay.limit(section(), slot, stack, this));
@@ -103,8 +104,8 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
     public boolean fueled() { return section() != RocketComposition.Section.TANK || propellant().fill() > 0; }
 
     public boolean validCharge() { return WarheadBay.validate(contents) == null; }
-    public Warhead warhead() { return WarheadBay.warhead(contents); }
-    public double payloadMass() { return WarheadBay.payloadMass(contents); }
+    public Warhead warhead() { return section() == RocketComposition.Section.KILL_VEHICLE ? Warhead.INERT : WarheadBay.warhead(contents); }
+    public double payloadMass() { return section() == RocketComposition.Section.KILL_VEHICLE ? org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig.siloKillVehicleMass : WarheadBay.payloadMass(contents); }
 
     public void insert(Player player, InteractionHand hand) {
         ItemStack held = player.getItemInHand(hand);

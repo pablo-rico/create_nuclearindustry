@@ -131,13 +131,13 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
 
     private void updateControls() {
         SiloControllerEntity c = controller();
-        boolean editable = c != null && !menu.locked();
+        boolean editable = c != null && !menu.locked() && !c.interceptorMode();
         for (EditBox box : List.of(x, y, z)) box.setEditable(editable);
         for (ConsoleButton button : List.of(set, airburst, arm, disarm)) button.visible = launch;
         set.active = airburst.active = editable && enteredTarget() != null;
         airburst.setMessage(text(c != null && c.airburst() ? "airburst.on" : "airburst.off"));
-        arm.active = c != null && c.state() == SiloControllerEntity.State.READY;
-        disarm.active = c != null && (c.state() == SiloControllerEntity.State.ARMED || c.state() == SiloControllerEntity.State.COUNTDOWN);
+        arm.active = c != null && !c.interceptorMode() && c.state() == SiloControllerEntity.State.READY;
+        disarm.active = c != null && !c.interceptorMode() && (c.state() == SiloControllerEntity.State.ARMED || c.state() == SiloControllerEntity.State.COUNTDOWN);
     }
 
     @Override
@@ -206,9 +206,11 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
         int border = state == CELL_ERROR ? ERROR_COLOUR : state == CELL_SELECTED ? ACCENT : ghost ? 0xFF577077 : colour;
         g.fill(x, y, x + CELL_W, y + CELL_H, border);
         g.fill(x + 1, y + 1, x + CELL_W - 1, y + CELL_H - 1, ghost ? 0xFF17262D : 0xFF30434D);
-        if (c.section() >= 0 && c.section() < 4) {
+        if (c.section() >= 0 && c.section() < RocketComposition.Section.values().length) {
             int tint = state == CELL_ERROR || state == CELL_SELECTED ? 0xFFFFFFFF : ghost ? GHOST_COLOUR : colour;
-            tintedSprite(g, x, y, SPRITE_CELLS.x() + state * CELL_W, SPRITE_CELLS.y() + c.section() * CELL_H, CELL_W, CELL_H, tint);
+            if (c.section() == RocketComposition.Section.KILL_VEHICLE.ordinal()) tintedSprite(g, x, y,
+                    SPRITE_CELL_KILL_VEHICLE.x() + state * CELL_W, SPRITE_CELL_KILL_VEHICLE.y(), CELL_W, CELL_H, tint);
+            else tintedSprite(g, x, y, SPRITE_CELLS.x() + state * CELL_W, SPRITE_CELLS.y() + c.section() * CELL_H, CELL_W, CELL_H, tint);
             if (!widgetsAvailable) {
                 // Distinct silhouettes keep the cutaway legible before the sprite sheet arrives.
                 int inset = c.section() == 3 ? 6 : c.section() == 0 ? 3 : 4;
@@ -288,7 +290,12 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
 
     private void drawSectionStats(GuiGraphics g, LaunchDiagram d, RocketComposition.Section selected) {
         List<Component> lines = new ArrayList<>();
-        if (selected == RocketComposition.Section.WARHEAD) {
+        if (selected == RocketComposition.Section.KILL_VEHICLE) {
+            lines.add(text("kill_vehicle"));
+            lines.add(text("mass", ConsoleNumbers.number(d.warhead().mass())));
+            lines.add(guidanceName(d.guidance()));
+            lines.add(text("exo_only"));
+        } else if (selected == RocketComposition.Section.WARHEAD) {
             LaunchDiagram.WarheadInfo w = d.warhead();
             Warhead.Kind[] kinds = Warhead.Kind.values();
             int kind = w.kind() >= 0 && w.kind() < kinds.length ? w.kind() : 0;
@@ -315,6 +322,13 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
     }
 
     private void drawLaunch(GuiGraphics g, LaunchDiagram d, @Nullable SiloControllerEntity c) {
+        if (c != null && c.interceptorMode()) {
+            ConsoleDraw.wrap(g, font, text("interceptor_controlled"), TARGET.x() + 5, TARGET.y() + 3, TARGET.w() - 10, MUTED, ConsoleDraw.SMALL, 2);
+            small(g, c.pendingTarget() == null ? text("target.none") : Component.translatable(
+                    "silo.create_nuclearindustry.goggles.engaging", org.papiricoh.create_nuclearindustry.missile.radar.RadarModel.designation(c.pendingTarget())),
+                    READOUT.x() + 5, READOUT.y() + 5, READOUT.w() - 10, ACCENT);
+            return;
+        }
         small(g, text("target"), TARGET.x() + 5, TARGET.y() + 3, TARGET.w() - 30, MUTED);
         LayoutRect[] boxes = {BOX_X, BOX_Y, BOX_Z};
         String[] axes = {"X", "Y", "Z"};
@@ -385,7 +399,7 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
             int index = ConsoleNumbers.cellAt(mx - leftPos, my - topPos, d.column().size());
             if (index >= 0) {
                 LaunchDiagram.Cell cell = d.column().get(index);
-                if (!cell.has(LaunchDiagram.Cell.GHOST) && cell.section() >= 0 && cell.section() < 4)
+                if (!cell.has(LaunchDiagram.Cell.GHOST) && cell.section() >= 0 && cell.section() < RocketComposition.Section.values().length)
                     send(SiloControlPayload.SELECT, BlockPos.ZERO, index);
                 return true;
             }

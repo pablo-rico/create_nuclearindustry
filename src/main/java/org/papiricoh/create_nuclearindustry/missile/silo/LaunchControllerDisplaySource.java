@@ -9,6 +9,7 @@ import net.minecraft.network.chat.MutableComponent;
 
 import java.util.List;
 import java.util.Locale;
+import org.papiricoh.create_nuclearindustry.missile.radar.RadarModel;
 
 /** The launch controller's live state, timing and target for a Display Link. */
 public class LaunchControllerDisplaySource extends DisplaySource {
@@ -22,6 +23,14 @@ public class LaunchControllerDisplaySource extends DisplaySource {
     /** Builds the same readout for a controller, also usable by the controller's GameTest. */
     public List<MutableComponent> read(SiloControllerEntity controller) {
         List<MutableComponent> lines = new java.util.ArrayList<>();
+        if (controller.interceptorMode()) {
+            lines.add(Component.translatable("silo.create_nuclearindustry.display.state",
+                    Component.translatable("silo.create_nuclearindustry.state." + controller.state().name().toLowerCase(Locale.ROOT))));
+            lines.add(controller.pendingTarget() == null
+                    ? Component.translatable("silo.create_nuclearindustry.display.interceptor_standby")
+                    : Component.translatable("silo.create_nuclearindustry.display.engaging", RadarModel.designation(controller.pendingTarget())));
+            return lines;
+        }
         lines.add(Component.translatable("silo.create_nuclearindustry.display.state",
                 Component.translatable("silo.create_nuclearindustry.state." + controller.state().name().toLowerCase(Locale.ROOT))));
         if (controller.state() == SiloControllerEntity.State.COUNTDOWN) {

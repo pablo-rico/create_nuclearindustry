@@ -39,7 +39,7 @@ public final class RocketValidator {
             sections.add(part.section());
             visuals.add(BuiltInRegistries.BLOCK.getKey(part.getBlockState().getBlock()).toString());
             identities.add(part.identity());
-            if (part.section() == RocketComposition.Section.WARHEAD) payload = part;
+            if (part.section() == RocketComposition.Section.WARHEAD || part.section() == RocketComposition.Section.KILL_VEHICLE) payload = part;
             if (part.section() == RocketComposition.Section.GUIDANCE) guidance = part.guidanceTier();
         }
         RocketComposition composition;
@@ -56,7 +56,8 @@ public final class RocketValidator {
                 stages.add(PropellantModel.stage(tanks));
             } catch (PropellantModel.Invalid e) { return new Result(null, e.reason, base.above(first + e.tank)); }
         }
-        String why = payload == null ? "warhead" : WarheadBay.validate(payload.contents());
+        boolean killVehicle = composition.interceptor();
+        String why = payload == null ? "warhead" : killVehicle ? null : WarheadBay.validate(payload.contents());
         if (why != null && why.startsWith("charge") && previewOnly)
             return new Result(new AssembledRocket(UUID.nameUUIDFromBytes(identities.toString().getBytes(StandardCharsets.UTF_8)), base, composition,
                     new MissileDesign(stages.stream().map(PropellantModel.Stage::design).toList(), payload.payloadMass(), 0), payload.warhead(), visuals,

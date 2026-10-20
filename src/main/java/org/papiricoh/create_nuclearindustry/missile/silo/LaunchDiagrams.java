@@ -59,7 +59,7 @@ public final class LaunchDiagrams {
         for (int i = 0; i < parts.size(); i++) {
             RocketSectionEntity part = parts.get(i);
             if (part.section() == RocketComposition.Section.ENGINE) stage++;
-            int cellStage = part.section() == RocketComposition.Section.GUIDANCE || part.section() == RocketComposition.Section.WARHEAD
+            int cellStage = part.section() == RocketComposition.Section.GUIDANCE || part.section() == RocketComposition.Section.WARHEAD || part.section() == RocketComposition.Section.KILL_VEHICLE
                     ? Cell.PAYLOAD : Math.min(stage, 2);
             byte flags = (byte) (i == errorCell ? Cell.ERROR : 0);
             int fill = 0;
@@ -72,7 +72,7 @@ public final class LaunchDiagrams {
                 if ((flags & Cell.LOADED) != 0) fill = 100;
             }
             cells.add(new Cell((byte) part.section().ordinal(), (byte) cellStage, (byte) fill, flags));
-            if (part.section() == RocketComposition.Section.WARHEAD) warhead = warhead(part);
+            if (part.section() == RocketComposition.Section.WARHEAD || part.section() == RocketComposition.Section.KILL_VEHICLE) warhead = warhead(part);
         }
         AssembledRocket rocket = controller.rocket();
         MissileDesign design = controller.currentDesign();

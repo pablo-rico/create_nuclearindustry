@@ -5,7 +5,8 @@ import java.util.List;
 import org.papiricoh.create_nuclearindustry.missile.physics.MissileDesign;
 
 /** Pure, immutable grammar for the bottom-to-top column. Indexes in errors are zero based. */
-public record RocketComposition(List<Integer> tanksPerStage) {
+public record RocketComposition(List<Integer> tanksPerStage, Payload payload) {
+    public enum Payload { WARHEAD, KILL_VEHICLE }
     /** Sent and stored by ordinal: add new kinds at the end. */
     public enum Section { ENGINE, TANK, GUIDANCE, WARHEAD, KILL_VEHICLE }
     public RocketComposition {
@@ -14,6 +15,8 @@ public record RocketComposition(List<Integer> tanksPerStage) {
                 || tanksPerStage.stream().anyMatch(n -> n < 1 || n > 4))
             throw new IllegalArgumentException("One to three stages, each with one to four tanks");
     }
+    public RocketComposition(List<Integer> tanksPerStage) { this(tanksPerStage, Payload.WARHEAD); }
+    public boolean interceptor() { return payload == Payload.KILL_VEHICLE; }
     public static RocketComposition parse(List<Section> sections) {
         if (sections.size() < 4 || sections.size() > 17) throw new Invalid(0, "height");
         List<Integer> stages = new ArrayList<>();
@@ -29,9 +32,10 @@ public record RocketComposition(List<Integer> tanksPerStage) {
         if (stages.isEmpty()) throw new Invalid(0, "engine");
         if (i >= sections.size() || sections.get(i) != Section.GUIDANCE) throw new Invalid(i, "guidance");
         i++;
-        if (i >= sections.size() || sections.get(i) != Section.WARHEAD) throw new Invalid(i, "warhead");
+        if (i >= sections.size() || sections.get(i) != Section.WARHEAD && sections.get(i) != Section.KILL_VEHICLE) throw new Invalid(i, "warhead");
+        Payload payload = sections.get(i) == Section.KILL_VEHICLE ? Payload.KILL_VEHICLE : Payload.WARHEAD;
         if (i + 1 != sections.size()) throw new Invalid(i + 1, "extra");
-        return new RocketComposition(stages);
+        return new RocketComposition(stages, payload);
     }
     public int height() { return tanksPerStage.stream().mapToInt(n -> n + 1).sum() + 2; }
     public List<Integer> stageStarts() {

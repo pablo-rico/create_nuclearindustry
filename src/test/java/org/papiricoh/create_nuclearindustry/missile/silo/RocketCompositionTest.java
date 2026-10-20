@@ -13,6 +13,7 @@ import static org.papiricoh.create_nuclearindustry.missile.silo.RocketCompositio
 import static org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition.Section.GUIDANCE;
 import static org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition.Section.TANK;
 import static org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition.Section.WARHEAD;
+import static org.papiricoh.create_nuclearindustry.missile.silo.RocketComposition.Section.KILL_VEHICLE;
 
 /** The grammar of a silo column: engine and tanks per stage, then guidance and one warhead on top. */
 class RocketCompositionTest {
@@ -31,6 +32,18 @@ class RocketCompositionTest {
         assertEquals(List.of(1), rocket.tanksPerStage());
         assertEquals(4, rocket.height());
         assertEquals(List.of(0), rocket.stageStarts());
+    }
+
+    @Test
+    void killVehicleIsAnAlternativePayloadAndLegacyConstructorMeansWarhead() {
+        RocketComposition legacy = new RocketComposition(List.of(1));
+        assertEquals(RocketComposition.Payload.WARHEAD, legacy.payload());
+        RocketComposition interceptor = RocketComposition.parse(List.of(ENGINE, TANK, GUIDANCE, KILL_VEHICLE));
+        assertEquals(RocketComposition.Payload.KILL_VEHICLE, interceptor.payload());
+        assertTrue(interceptor.interceptor());
+        assertEquals(4, interceptor.height());
+        assertThrows(RocketComposition.Invalid.class,
+                () -> RocketComposition.parse(List.of(ENGINE, TANK, GUIDANCE, WARHEAD, KILL_VEHICLE)));
     }
 
     @Test
