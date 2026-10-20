@@ -680,6 +680,9 @@ final class RocketFxManager implements FlightFxListener {
 
     // ------------------------------------------------------------------ the view shaking
 
+    /** Degrees the view turns at most, right beside a rocket lifting off. */
+    static final double SHAKE_DEGREES = 0.35;
+
     void onCameraAngles(ViewportEvent.ComputeCameraAngles event) {
         if (!ClientConfig.rocketShake || !ClientConfig.rocketEffects || flights.isEmpty() || level == null) return;
         Vec3 eye = event.getCamera().getPosition();
@@ -691,12 +694,14 @@ final class RocketFxManager implements FlightFxListener {
             float heard = fx.heard(RocketAcoustics.delayTicks(distance));
             amount += FxCurves.shake(distance, fx.position.y - fx.launchY) * heard;
         }
+        // Several launches side by side never shake harder than one close by.
         amount = Math.min(1, amount);
         if (amount < 0.01) return;
+        // A low rumble: a few degrees' worth at most, slow enough to read as the ground and not as a glitch.
         double t = (level.getGameTime() + event.getPartialTick()) / 20.0;
-        event.setYaw(event.getYaw() + (float) (amount * 0.8 * (Math.sin(t * 43) + 0.5 * Math.sin(t * 97 + 1.1))));
-        event.setPitch(event.getPitch() + (float) (amount * 0.8 * (Math.sin(t * 57 + 0.7) + 0.5 * Math.sin(t * 89 + 2.3))));
-        event.setRoll(event.getRoll() + (float) (amount * 0.45 * Math.sin(t * 31 + 2.1)));
+        event.setYaw(event.getYaw() + (float) (amount * SHAKE_DEGREES * (Math.sin(t * 17) + 0.4 * Math.sin(t * 29 + 1.1))));
+        event.setPitch(event.getPitch() + (float) (amount * SHAKE_DEGREES * (Math.sin(t * 21 + 0.7) + 0.4 * Math.sin(t * 33 + 2.3))));
+        event.setRoll(event.getRoll() + (float) (amount * SHAKE_DEGREES * 0.4 * Math.sin(t * 13 + 2.1)));
     }
 
     // ------------------------------------------------------------------ helpers
