@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased: nuclear chain rewrite
+## 2.0.0 (beta): nuclear chain rewrite
 
-Worlds from 1.1.0 load: every item and block keeps its id. See "Upgrading"
+Released as a beta: back up your world before updating. Worlds from 1.1.0 load: every item and block keeps its id. See "Upgrading"
 below for what changes in existing worlds.
 
 ### Missile defence

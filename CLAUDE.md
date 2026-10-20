@@ -15,7 +15,7 @@ No hagas commit a no ser que te lo pida.
 | GameTests (todos deben pasar) | `./gradlew runGameTestServer` → busca `All N required tests passed` en el log |
 | Cliente de desarrollo | `./gradlew runClient` (directorio de trabajo `runs/client`) |
 | Texturas | `python tools/texturegen/generate.py` (necesita Pillow) |
-| Validar texturas y referencias de modelos | `python tools/texturegen/validate.py --jar build/libs/create_nuclearindustry_1.21.1_1.1.0.jar` |
+| Validar texturas y referencias de modelos | `python tools/texturegen/validate.py --jar build/libs/create_nuclearindustry_1.21.1_2.0.0.jar` |
 | Schematics de Ponder / arenas de test | `python tools/structgen/<script>.py` |
 
 Pillow no está en el Python del sistema: crea un venv aparte (`python -m venv <scratch>/texvenv && <scratch>/texvenv/Scripts/python -m pip install pillow`) y lanza `generate.py`/`validate.py` con ese intérprete. La salida es determinista: regenerar no debe cambiar texturas que no tocaste.
