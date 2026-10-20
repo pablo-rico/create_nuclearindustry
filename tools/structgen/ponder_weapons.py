@@ -13,8 +13,10 @@ lose the block without that mod.
 - weapons_missile, 5x8x5: a cutaway silo with a fuel port (0,1,2) and a four-section modular rocket.
 - weapons_holo_table, 5x3x5: a formed command table (1..3, 1, 1..3), a radar (4,1,0) and a silo
   controller (0,1,4) on a smooth stone floor.
+- weapons_launch_base, 7x6x7: an open 3x3 launch base with its controller on the east side, a fuel
+  port and pipe to the north, a creative-motor shaft and a two-stage rocket ready for a redstone launch.
 """
-from ponder_plant_parts import NS, floor, put, replace, write
+from ponder_plant_parts import NS, floor, pipe, put, replace, write
 
 LEVER = {"face": "wall", "facing": "north", "powered": "false"}
 
@@ -55,6 +57,24 @@ def missile():
     write("weapons_missile", size, blocks)
 
 
+def launch_base():
+    size = (7, 6, 7)
+    blocks = {}
+    for x in range(2, 5):
+        for z in range(2, 5):
+            put(blocks, (x, 0, z), NS + "launch_base")
+    # East is deliberately not the legacy north side: the controller can sit on any side of a base.
+    put(blocks, (5, 0, 3), NS + "silo_controller", {"facing": "east"})
+    put(blocks, (6, 0, 3), "create:shaft", {"axis": "x", "waterlogged": "false"})
+    put(blocks, (6, 0, 4), "create:creative_motor", {"facing": "north"})
+    put(blocks, (5, 1, 3), "minecraft:lever", {"face": "floor", "facing": "north", "powered": "false"})
+    put(blocks, (3, 0, 1), NS + "silo_fuel_port")
+    pipe(blocks, (3, 0, 0), "north", "south")
+    for y, name in enumerate(("rocket_engine", "rocket_tank", "rocket_engine", "rocket_guidance", "rocket_warhead"), 1):
+        put(blocks, (3, y, 3), NS + name)
+    write("weapons_launch_base", size, blocks)
+
+
 PARTS = ("nw", "n", "ne", "w", "center", "e", "sw", "s", "se")
 
 
@@ -73,6 +93,7 @@ def main():
     bombs()
     thermonuclear()
     missile()
+    launch_base()
     holo_table()
 
 
