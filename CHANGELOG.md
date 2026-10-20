@@ -17,12 +17,20 @@ below for what changes in existing worlds.
 - The tactical command table can link up to 16 silos. Arm them remotely, set a
   salvo for time-on-target or a sequence, and abort a missile flight that
   belongs to one of the linked controllers.
-- The Tactical Linker connects launch controllers to command tables. The
+- The Tactical Linker links radars and launch controllers to command tables and
+  radar scopes; the Control Room Linker no longer links missile devices (saved
+  links stay). The
   controller is now called the **Launch Controller**, and **Silo Concrete** is
   the renamed silo wall block.
-- Breaking change: a loaded rocket with lithium and more than one core now
-  reports `charge_thermo_primary` and cannot launch. Reload the bay with exactly
-  one primary core to use its thermonuclear secondary again.
+- Breaking change: a rocket loaded with lithium and more than one core now
+  says "A secondary needs exactly one core and no other charge" and will not
+  launch. Leave exactly one core as the primary to use its thermonuclear
+  secondary again.
+- Rocket warheads moved to typed slots: old warhead sections keep their cores,
+  lithium and tampers. A bomb broken by hand drops with what it holds.
+- The new Ponder scene "Launch Platform and Redstone Launch" shows a whole
+  launch, including that a new redstone signal (a lever or button) fires an
+  armed controller and a signal already on does not.
 
 ### Safe shutdown and loss of cooling
 - A fission reactor can now really be shut down. With at least as many
