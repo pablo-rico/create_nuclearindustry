@@ -1,6 +1,8 @@
 package org.papiricoh.create_nuclearindustry.explosive.blockentity;
 
 import net.minecraft.core.BlockPos;
+import net.neoforged.neoforge.items.IItemHandler;
+import org.papiricoh.create_nuclearindustry.explosive.ThermonuclearLoad;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -82,36 +84,30 @@ public class ThermonuclearBombBlockEntity extends NuclearBombBlockEntity {
         return false;
     }
 
-    public ThermonuclearStats.Primary primary() {
-        ItemStack core = inventory.getStackInSlot(PRIMARY_SLOT);
-        if (core.is(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get())) {
-            return ThermonuclearStats.Primary.PLUTONIUM;
-        }
-        return FissileMaterial.isWarheadCore(core) ? ThermonuclearStats.Primary.URANIUM : ThermonuclearStats.Primary.NONE;
-    }
-
-    public int secondary() {
-        return count(FIRST_SECONDARY_SLOT, FIRST_TAMPER_SLOT);
-    }
-
-    public int tamper() {
-        return count(FIRST_TAMPER_SLOT, SLOTS);
-    }
-
-    private int count(int from, int to) {
-        int count = 0;
-        for (int slot = from; slot < to; slot++) {
-            ItemStack stack = inventory.getStackInSlot(slot);
-            if (isValidInSlot(slot, stack)) {
-                count += stack.getCount();
+    /** Shared by placed bombs and the identical inventory saved on bomb items. */
+    public static ThermonuclearLoad load(IItemHandler contents) {
+        ItemStack core = contents.getStackInSlot(PRIMARY_SLOT);
+        ThermonuclearStats.Primary primary = !FissileMaterial.isWarheadCore(core) ? ThermonuclearStats.Primary.NONE
+                : core.is(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get()) ? ThermonuclearStats.Primary.PLUTONIUM
+                : ThermonuclearStats.Primary.URANIUM;
+        int secondary = 0, tamper = 0;
+        for (int i = FIRST_SECONDARY_SLOT; i < Math.min(SLOTS, contents.getSlots()); i++) {
+            ItemStack stack = contents.getStackInSlot(i);
+            if (part(i).takes(stack)) {
+                if (i < FIRST_TAMPER_SLOT) secondary += stack.getCount();
+                else tamper += stack.getCount();
             }
         }
-        return count;
+        return new ThermonuclearLoad(primary, secondary, tamper);
     }
+
+    public ThermonuclearStats.Primary primary() { return load(inventory).primary(); }
+    public int secondary() { return load(inventory).secondary(); }
+    public int tamper() { return load(inventory).tamper(); }
 
     /** What it would go off with now, under the server's caps. */
     public ThermonuclearStats.Result stats() {
-        return ThermonuclearStats.of(primary(), secondary(), tamper(), ExplosiveConfig.thermonuclearCaps());
+        return load(inventory).stats(ExplosiveConfig.thermonuclearCaps());
     }
 
     @Override

@@ -2,6 +2,14 @@ package org.papiricoh.create_nuclearindustry.explosive.block;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemContainerContents;
+import org.papiricoh.create_nuclearindustry.missile.silo.WarheadBay;
+import java.util.List;
+import java.util.Locale;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -31,6 +39,19 @@ public class NuclearBombBlock extends BaseEntityBlock {
     public NuclearBombBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(POWERED, false));
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context,
+                                List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
+        var items = stack.getOrDefault(DataComponents.CONTAINER,
+                ItemContainerContents.EMPTY);
+        int count = 0;
+        for (var item : items.nonEmptyItems()) count += item.getCount();
+        tooltip.add(Component.translatable("silo.create_nuclearindustry.bomb.contents", count,
+                Component.translatable("silo.create_nuclearindustry.warhead." +
+                        WarheadBay.fromBomb(stack).kind().name().toLowerCase(Locale.ROOT))));
     }
 
     @Override

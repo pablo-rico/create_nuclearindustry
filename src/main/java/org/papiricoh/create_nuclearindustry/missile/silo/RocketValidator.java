@@ -46,7 +46,8 @@ public final class RocketValidator {
                 stages.add(PropellantModel.stage(tanks));
             } catch (PropellantModel.Invalid e) { return new Result(null, e.reason, base.above(first + e.tank)); }
         }
-        if (payload == null || !payload.validCharge()) return new Result(null, "charge", base.above(sections.size() - 1));
+        String why = payload == null ? "warhead" : WarheadBay.validate(payload.contents());
+        if (why != null) return new Result(null, why, payload == null ? base.above(sections.size() - 1) : payload.getBlockPos());
         UUID id = UUID.nameUUIDFromBytes(identities.toString().getBytes(StandardCharsets.UTF_8));
         MissileDesign design = new MissileDesign(stages.stream().map(PropellantModel.Stage::design).toList(), payload.payloadMass(), 0);
         return new Result(new AssembledRocket(id, base, composition, design, payload.warhead(), visuals, identities, guidance,
