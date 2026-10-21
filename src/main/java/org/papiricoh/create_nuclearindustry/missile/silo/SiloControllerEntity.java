@@ -202,8 +202,14 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
         if (interceptorMode() || satelliteMode()) return;
         if (!(level instanceof ServerLevel) || target == null || !level.getWorldBorder().isWithinBounds(target)
                 || target.getY() < level.getMinBuildHeight() || target.getY() >= level.getMaxBuildHeight()) return;
+        State before = state;
         this.target = target.immutable(); this.airburst = airburst; this.operator = player.getUUID();
-        disarm(); launchDelay = 0; dirty = true; setChanged(); sendData();
+        disarm(); launchDelay = 0;
+        // Retargeting an armed silo keeps it armed if it can fly to the new target; a countdown under way still wants a fresh edge.
+        if (before == State.ARMED || before == State.COUNTDOWN) { validate(); if (state == State.READY) state = State.ARMED; }
+        else dirty = true;
+        if (before != state) invalidatePorts();
+        setChanged(); sendData();
     }
     public void arm(Player player) {
         if (interceptorMode() || satelliteMode()) return;

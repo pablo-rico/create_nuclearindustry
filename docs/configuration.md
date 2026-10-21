@@ -1845,6 +1845,8 @@ Consulta [la guía de montaje](modular-missiles.md). El controlador requiere
 aplicar un nuevo flanco de redstone. Cuenta `missile.launch.countdownSeconds`
 segundos (10 por defecto). La pérdida de rotación, un cambio del cohete o una
 obstrucción cancela la cuenta y exige volver a armar. Recargar también lo desarma.
+Cambiar el blanco no lo desarma si el cohete alcanza el nuevo, pero cancela una
+cuenta en marcha.
 
 **Vuelo** (`missile.flight.*`): un misil sube recto `riseHeight` bloques (lo
 justo para salir de su silo), gira hacia el objetivo y su guiado mantiene el

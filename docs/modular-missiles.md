@@ -78,6 +78,11 @@ En la pestaña **Lanzamiento**, comprueba el blanco, el alcance y la cuenta, y p
 se acaba de activar o un botón sirven. Una señal que ya estaba encendida al armar no
 inicia nada, y mantenerla encendida no lanza el siguiente cohete.
 
+Cambiar el blanco de un controlador armado (desde la mesa o con el designador) no lo
+desarma: sigue armado si el cohete alcanza el nuevo blanco y basta con la señal de
+redstone. Si estaba en cuenta atrás, la cuenta se cancela y espera una señal nueva; si
+el nuevo blanco queda fuera de alcance, se desarma.
+
 La cuenta atrás normal dura diez segundos, más el retraso que pueda asignar una salva.
 Perder rotación, cambiar el cohete, bloquear la salida, descargar el área o reiniciar
 el mundo cancela la cuenta y desarma el controlador. Tras despegar, la base y el silo

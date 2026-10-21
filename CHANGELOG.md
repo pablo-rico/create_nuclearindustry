@@ -47,6 +47,9 @@
   table.
 - A command table whose ground station has no code, or is not turning, now says so on its Satellites tab instead of
   "No ground station".
+- Designating a new target for an armed launch controller (from the command table or with a target designator) no
+  longer quietly disarms it: it stays armed if the rocket reaches the new target, so the next redstone edge launches
+  it. A countdown under way goes back to armed and waits for a fresh edge; a target out of reach stands it down.
 
 ## 2.0.0 (beta): nuclear chain rewrite
 

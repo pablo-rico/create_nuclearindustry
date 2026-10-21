@@ -124,6 +124,35 @@ public class SiloTests {
         });
     }
 
+    /**
+     * A command table designating a new target for an armed silo leaves it armed, so the next edge launches; a countdown under
+     * way goes back to armed, and a target beyond its reach stands it down.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, timeoutTicks = 200)
+    public static void retargetingKeepsItArmed(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        SiloControllerEntity silo = aimed(helper, new SiloTestBuilder().tanks(2), player);
+        BlockPos redstone = SiloTestBuilder.CONTROLLER.north();
+        BlockPos floor = helper.absolutePos(SiloTestBuilder.FLOOR);
+        helper.runAfterDelay(10, () -> {
+            silo.arm(player);
+            helper.assertTrue(silo.state() == SiloControllerEntity.State.ARMED, "it arms, got " + silo.state() + " " + silo.error());
+            silo.configure(player, floor.offset(0, 0, 150), false);
+            helper.assertTrue(silo.state() == SiloControllerEntity.State.ARMED, "a new target in reach keeps it armed, got " + silo.state() + " " + silo.error());
+            helper.assertTrue(silo.target().equals(floor.offset(0, 0, 150)), "with the new target");
+        });
+        helper.runAfterDelay(20, () -> helper.setBlock(redstone, Blocks.REDSTONE_BLOCK));
+        helper.runAfterDelay(25, () -> {
+            helper.assertTrue(silo.state() == SiloControllerEntity.State.COUNTDOWN, "a fresh edge after retargeting counts down, got " + silo.state());
+            silo.configure(player, floor.offset(150, 0, 0), false);
+            helper.assertTrue(silo.state() == SiloControllerEntity.State.ARMED && silo.countdown() < 0, "retargeting stops the countdown but stays armed, got " + silo.state());
+            silo.configure(player, floor.offset((int) (silo.reach() * 1.3), 0, 0), false);
+            helper.assertTrue(silo.state() != SiloControllerEntity.State.ARMED && "range".equals(silo.error()), "a target out of reach disarms it, got " + silo.state() + " " + silo.error());
+            helper.setBlock(redstone, Blocks.AIR);
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH, timeoutTicks = 200)
     public static void losingRotationCancelsTheCountdown(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
