@@ -1,41 +1,8 @@
 {
   "parent": "minecraft:block/block",
-  "textures": {
-    "particle": "create_nuclearindustry:block/silo_controller_casing",
-    "lens": "minecraft:block/orange_concrete"
-  },
+  "textures": {"particle": "create_nuclearindustry:block/silo_controller_parts", "parts": "create_nuclearindustry:block/silo_controller_parts"},
   "elements": [
-    {
-      "from": [
-        7,
-        13,
-        -0.3
-      ],
-      "to": [
-        9,
-        15,
-        0
-      ],
-      "faces": {
-        "north": {
-          "texture": "#lens"
-        },
-        "south": {
-          "texture": "#lens"
-        },
-        "east": {
-          "texture": "#lens"
-        },
-        "west": {
-          "texture": "#lens"
-        },
-        "up": {
-          "texture": "#lens"
-        },
-        "down": {
-          "texture": "#lens"
-        }
-      }
-    }
+    {"name": "lamp_amber_lens", "from": [4.355, 12.855, 0.48], "to": [5.645, 14.145, 0.895], "faces": {"north": {"texture": "#parts", "uv": [8, 6, 10, 8]}, "east": {"texture": "#parts", "uv": [8, 6, 10, 8]}, "south": {"texture": "#parts", "uv": [8, 6, 10, 8]}, "west": {"texture": "#parts", "uv": [8, 6, 10, 8]}, "up": {"texture": "#parts", "uv": [8, 6, 10, 8]}, "down": {"texture": "#parts", "uv": [8, 6, 10, 8]}}},
+    {"name": "lamp_amber_dome", "from": [4.605, 13.105, 0.23], "to": [5.395, 13.895, 0.5], "faces": {"north": {"texture": "#parts", "uv": [8, 6, 10, 8]}, "east": {"texture": "#parts", "uv": [8, 6, 10, 8]}, "south": {"texture": "#parts", "uv": [8, 6, 10, 8]}, "west": {"texture": "#parts", "uv": [8, 6, 10, 8]}, "up": {"texture": "#parts", "uv": [8, 6, 10, 8]}, "down": {"texture": "#parts", "uv": [8, 6, 10, 8]}}}
   ]
 }

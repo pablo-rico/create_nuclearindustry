@@ -1,41 +1,9 @@
 {
   "parent": "minecraft:block/block",
-  "textures": {
-    "particle": "create_nuclearindustry:block/silo_controller_casing",
-    "wheel": "minecraft:block/iron_block"
-  },
+  "textures": {"particle": "create_nuclearindustry:block/silo_controller_plinth", "wheel": "create_nuclearindustry:block/silo_controller_flywheel"},
   "elements": [
-    {
-      "from": [
-        4,
-        1,
-        4
-      ],
-      "to": [
-        12,
-        3,
-        12
-      ],
-      "faces": {
-        "north": {
-          "texture": "#wheel"
-        },
-        "south": {
-          "texture": "#wheel"
-        },
-        "east": {
-          "texture": "#wheel"
-        },
-        "west": {
-          "texture": "#wheel"
-        },
-        "up": {
-          "texture": "#wheel"
-        },
-        "down": {
-          "texture": "#wheel"
-        }
-      }
-    }
+    {"name": "rim", "from": [4, 1.5, 4], "to": [12, 3.25, 12], "faces": {"north": {"texture": "#wheel", "uv": [0, 0, 8, 1.75]}, "east": {"texture": "#wheel"}, "south": {"texture": "#wheel"}, "west": {"texture": "#wheel"}, "up": {"texture": "#wheel"}, "down": {"texture": "#wheel"}}},
+    {"name": "rim_turned", "from": [4, 1.55, 4], "to": [12, 3.2, 12], "faces": {"north": {"texture": "#wheel"}, "east": {"texture": "#wheel"}, "south": {"texture": "#wheel"}, "west": {"texture": "#wheel"}, "up": {"texture": "#wheel"}, "down": {"texture": "#wheel"}}, "rotation": {"angle": 45, "axis": "y", "origin": [8, 2.4, 8]}},
+    {"name": "hub", "from": [5.5, 1.25, 5.5], "to": [10.5, 3.5, 10.5], "faces": {"north": {"texture": "#wheel"}, "east": {"texture": "#wheel"}, "south": {"texture": "#wheel"}, "west": {"texture": "#wheel"}, "up": {"texture": "#wheel"}, "down": {"texture": "#wheel"}}}
   ]
 }

@@ -1,41 +1,8 @@
 {
   "parent": "minecraft:block/block",
-  "textures": {
-    "particle": "create_nuclearindustry:block/silo_controller_casing",
-    "lens": "minecraft:block/red_concrete"
-  },
+  "textures": {"particle": "create_nuclearindustry:block/silo_controller_parts", "parts": "create_nuclearindustry:block/silo_controller_parts"},
   "elements": [
-    {
-      "from": [
-        11,
-        13,
-        -0.3
-      ],
-      "to": [
-        13,
-        15,
-        0
-      ],
-      "faces": {
-        "north": {
-          "texture": "#lens"
-        },
-        "south": {
-          "texture": "#lens"
-        },
-        "east": {
-          "texture": "#lens"
-        },
-        "west": {
-          "texture": "#lens"
-        },
-        "up": {
-          "texture": "#lens"
-        },
-        "down": {
-          "texture": "#lens"
-        }
-      }
-    }
+    {"name": "lamp_red_lens", "from": [2.605, 12.855, 0.48], "to": [3.895, 14.145, 0.895], "faces": {"north": {"texture": "#parts", "uv": [10, 6, 12, 8]}, "east": {"texture": "#parts", "uv": [10, 6, 12, 8]}, "south": {"texture": "#parts", "uv": [10, 6, 12, 8]}, "west": {"texture": "#parts", "uv": [10, 6, 12, 8]}, "up": {"texture": "#parts", "uv": [10, 6, 12, 8]}, "down": {"texture": "#parts", "uv": [10, 6, 12, 8]}}},
+    {"name": "lamp_red_dome", "from": [2.855, 13.105, 0.23], "to": [3.645, 13.895, 0.5], "faces": {"north": {"texture": "#parts", "uv": [10, 6, 12, 8]}, "east": {"texture": "#parts", "uv": [10, 6, 12, 8]}, "south": {"texture": "#parts", "uv": [10, 6, 12, 8]}, "west": {"texture": "#parts", "uv": [10, 6, 12, 8]}, "up": {"texture": "#parts", "uv": [10, 6, 12, 8]}, "down": {"texture": "#parts", "uv": [10, 6, 12, 8]}}}
   ]
 }
