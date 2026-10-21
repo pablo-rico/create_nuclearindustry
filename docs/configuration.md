@@ -88,8 +88,13 @@ scrubberStress = 8.0
 
 ## Turbinas
 
-Las turbinas son cajas de 3 a 7 bloques de ancho y alto (impares) y de 3 a 16 de
-largo, con una columna de rotores en el eje. Cada rotor expande 40 mB/t de vapor
+Las turbinas son motores compactos de 3x3 de sección y de 3 a 16 bloques de largo,
+con una columna de rotores en el eje. Una vez formadas, las paredes y el vidrio se
+afinan a placas y el frente muestra el ventilador de admisión girando con el eje.
+Las turbinas más anchas de antes de la versión con forma de motor a reacción ya no
+se forman: hay que reconstruirlas a 3x3. Como el interior es menor, cada bloque
+interior guarda 9 veces más vapor, así que el depósito es igual al de una 5x5 del
+mismo largo. Cada rotor expande 40 mB/t de vapor
 (20 de vapor de plasma) y cada par de puertos entrada/salida deja pasar 160 (80);
 el menor de los dos limites manda. Una bomba de Create a 256 RPM mueve 128 mB/t,
 así que una línea con una bomba casi llena un par de puertos.

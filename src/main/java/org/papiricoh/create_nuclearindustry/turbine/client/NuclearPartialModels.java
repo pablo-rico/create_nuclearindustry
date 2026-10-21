@@ -11,6 +11,10 @@ public final class NuclearPartialModels {
     public static final PartialModel TURBINE_ROTOR_BLADE = of("turbine/rotor_blade");
     public static final PartialModel FUSION_TURBINE_ROTOR_HUB = of("fusion_turbine/rotor_hub");
     public static final PartialModel FUSION_TURBINE_ROTOR_BLADE = of("fusion_turbine/rotor_blade");
+    public static final PartialModel TURBINE_FRONT_BEZEL = of("turbine/front_bezel");
+    public static final PartialModel TURBINE_FAN = of("turbine/fan");
+    public static final PartialModel FUSION_TURBINE_FRONT_BEZEL = of("fusion_turbine/front_bezel");
+    public static final PartialModel FUSION_TURBINE_FAN = of("fusion_turbine/fan");
 
     private NuclearPartialModels() {}
 
@@ -20,6 +24,16 @@ public final class NuclearPartialModels {
 
     public static PartialModel blade(TurbineTier tier) {
         return tier == TurbineTier.STEAM ? TURBINE_ROTOR_BLADE : FUSION_TURBINE_ROTOR_BLADE;
+    }
+
+    /** The 3x3 intake front of a formed turbine, built facing north around the controller. */
+    public static PartialModel bezel(TurbineTier tier) {
+        return tier == TurbineTier.STEAM ? TURBINE_FRONT_BEZEL : FUSION_TURBINE_FRONT_BEZEL;
+    }
+
+    /** The intake fan, built facing north and spinning about Z through the controller's centre. */
+    public static PartialModel fan(TurbineTier tier) {
+        return tier == TurbineTier.STEAM ? TURBINE_FAN : FUSION_TURBINE_FAN;
     }
 
     private static PartialModel of(String path) {

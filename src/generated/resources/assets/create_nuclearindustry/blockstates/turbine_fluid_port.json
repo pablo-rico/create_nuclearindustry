@@ -1,0 +1,324 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_input",
+        "x": 90
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "down",
+        "mode": "input",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_input",
+        "x": 270
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "up",
+        "mode": "input",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_input"
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "north",
+        "mode": "input",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_input",
+        "y": 180
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "south",
+        "mode": "input",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_input",
+        "y": 270
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "west",
+        "mode": "input",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_input",
+        "y": 90
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "east",
+        "mode": "input",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_input_panel",
+        "uvlock": true,
+        "x": 90
+      },
+      "when": {
+        "down": "true",
+        "mode": "input"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_input_panel",
+        "uvlock": true,
+        "x": 270
+      },
+      "when": {
+        "mode": "input",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_input_panel",
+        "uvlock": true
+      },
+      "when": {
+        "mode": "input",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_input_panel",
+        "uvlock": true,
+        "y": 180
+      },
+      "when": {
+        "mode": "input",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_input_panel",
+        "uvlock": true,
+        "y": 270
+      },
+      "when": {
+        "mode": "input",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_input_panel",
+        "uvlock": true,
+        "y": 90
+      },
+      "when": {
+        "east": "true",
+        "mode": "input"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_output",
+        "x": 90
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "down",
+        "mode": "output",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_output",
+        "x": 270
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "up",
+        "mode": "output",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_output"
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "north",
+        "mode": "output",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_output",
+        "y": 180
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "south",
+        "mode": "output",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_output",
+        "y": 270
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "west",
+        "mode": "output",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine_fluid_port_output",
+        "y": 90
+      },
+      "when": {
+        "down": "false",
+        "east": "false",
+        "facing": "east",
+        "mode": "output",
+        "north": "false",
+        "south": "false",
+        "up": "false",
+        "west": "false"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_output_panel",
+        "uvlock": true,
+        "x": 90
+      },
+      "when": {
+        "down": "true",
+        "mode": "output"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_output_panel",
+        "uvlock": true,
+        "x": 270
+      },
+      "when": {
+        "mode": "output",
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_output_panel",
+        "uvlock": true
+      },
+      "when": {
+        "mode": "output",
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_output_panel",
+        "uvlock": true,
+        "y": 180
+      },
+      "when": {
+        "mode": "output",
+        "south": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_output_panel",
+        "uvlock": true,
+        "y": 270
+      },
+      "when": {
+        "mode": "output",
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/turbine/fluid_port_output_panel",
+        "uvlock": true,
+        "y": 90
+      },
+      "when": {
+        "east": "true",
+        "mode": "output"
+      }
+    }
+  ]
+}

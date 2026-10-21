@@ -33,30 +33,33 @@ public class TurbineStructureTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
-    public static void nonSquareBoxForms(GameTestHelper helper) {
+    public static void nonSquareBoxIsRejected(GameTestHelper helper) {
         TurbineTestBuilder.build(helper, TurbineTier.PLASMA, CONTROLLER, 3, 5, 6);
-        MultiblockValidationResult<TurbineStructure> result = TurbineTestBuilder.validate(helper, TurbineTier.PLASMA, CONTROLLER);
-        helper.assertTrue(result.formed(), "3x5x6 plasma turbine should form: " + result.primaryMessage());
-        helper.assertTrue("3x5x6".equals(result.structure().orElseThrow().dimensionsText()),
-                "dimensions should read 3x5x6, got " + result.structure().orElseThrow().dimensionsText());
-        helper.succeed();
+        expectError(helper, TurbineTier.PLASMA, "Turbines are 3x3");
+    }
+
+    /** Turbines built before the jet-engine redesign were up to 7 wide; they now say why they stopped. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void oldWideBoxIsExplained(GameTestHelper helper) {
+        TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 5, 5, 5);
+        expectError(helper, TurbineTier.STEAM, "Turbines are 3x3");
     }
 
     @GameTest(template = NuclearGameTests.LONG_ARENA)
     public static void largestBoxForms(GameTestHelper helper) {
         BlockPos controller = new BlockPos(5, 4, 1);
-        TurbineTestBuilder.build(helper, TurbineTier.STEAM, controller, 7, 7, 16);
+        TurbineTestBuilder.build(helper, TurbineTier.STEAM, controller, 3, 3, 16);
         MultiblockValidationResult<TurbineStructure> result = TurbineTestBuilder.validate(helper, TurbineTier.STEAM, controller);
-        helper.assertTrue(result.formed(), "7x7x16 should form: " + result.primaryMessage());
+        helper.assertTrue(result.formed(), "3x3x16 should form: " + result.primaryMessage());
         helper.assertTrue(result.structure().orElseThrow().rotorCount() == 14, "14 rotors expected");
         helper.succeed();
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void glassOnFaceIsAccepted(GameTestHelper helper) {
-        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 5, 5, 5);
+        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 3, 3, 5);
         helper.setBlock(s.at(2, 0, s.hv), AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get());
-        helper.setBlock(s.at(2, 1, s.hv), AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get());
+        helper.setBlock(s.at(3, 0, s.hv), AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get());
         MultiblockValidationResult<TurbineStructure> result = TurbineTestBuilder.validate(helper, TurbineTier.STEAM, CONTROLLER);
         helper.assertTrue(result.formed() && result.structure().orElseThrow().glassCount == 2, "glass in a wall is fine: " + result.primaryMessage());
         helper.succeed();
@@ -64,14 +67,14 @@ public class TurbineStructureTests {
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void glassOnEdgeIsRejected(GameTestHelper helper) {
-        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 5, 5, 5);
+        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 3, 3, 5);
         helper.setBlock(s.at(2, s.hu, s.hv), AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get());
         expectError(helper, TurbineTier.STEAM, "Glass cannot");
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void portOnEdgeIsRejected(GameTestHelper helper) {
-        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 5, 5, 5);
+        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 3, 3, 5);
         TurbineTestBuilder.port(helper, TurbineTier.STEAM, s.at(3, s.hu, s.hv), Direction.UP,
                 org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode.INPUT);
         expectError(helper, TurbineTier.STEAM, "Ports must be on a face");
@@ -93,15 +96,8 @@ public class TurbineStructureTests {
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
-    public static void clutteredInteriorIsRejected(GameTestHelper helper) {
-        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 5, 5, 5);
-        helper.setBlock(s.at(2, 1, 1), Blocks.STONE);
-        expectError(helper, TurbineTier.STEAM, "Turbine interior must be empty");
-    }
-
-    @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void offCentreControllerIsRejected(GameTestHelper helper) {
-        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 5, 5, 5);
+        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 3, 3, 5);
         // Widen the box on one side only by moving the east wall out.
         for (int a = 0; a < s.length; a++) {
             for (int i = -s.hu; i <= s.hu; i++) {
@@ -109,12 +105,12 @@ public class TurbineStructureTests {
                 helper.setBlock(s.at(a, i, s.hv + 1), TurbineTestBuilder.casing(TurbineTier.STEAM));
             }
         }
-        expectError(helper, TurbineTier.STEAM, "Controller must be centred");
+        expectError(helper, TurbineTier.STEAM, "Turbines are 3x3");
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void mixedTiersAreRejected(GameTestHelper helper) {
-        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 5, 5, 5);
+        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 3, 3, 5);
         helper.setBlock(s.at(2, 0, s.hv), AllNuclearBlocks.FUSION_TURBINE_CASING.get());
         expectError(helper, TurbineTier.STEAM, "Invalid wall block");
     }
@@ -154,12 +150,12 @@ public class TurbineStructureTests {
 
     private static void ponderSchematicForms(GameTestHelper helper, TurbineTier tier) {
         // Templates are placed one block above the test origin.
-        BlockPos controller = new BlockPos(4, 4, 1);
+        BlockPos controller = new BlockPos(3, 3, 1);
         helper.runAfterDelay(2, () -> {
             MultiblockValidationResult<TurbineStructure> result = TurbineTestBuilder.validate(helper, tier, controller);
             helper.assertTrue(result.formed(), "the Ponder turbine should be valid: " + result.primaryMessage());
             TurbineStructure s = result.structure().orElseThrow();
-            helper.assertTrue(s.rotorCount() == 5 && s.glassCount == 15, "5 rotors and 15 glass expected");
+            helper.assertTrue(s.rotorCount() == 5 && s.glassCount == 5, "5 rotors and 5 glass expected");
             helper.succeed();
         });
     }

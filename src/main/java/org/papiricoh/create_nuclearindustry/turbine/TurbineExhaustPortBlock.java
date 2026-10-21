@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.turbine;
 
+import org.papiricoh.create_nuclearindustry.turbine.block.TurbineFormedLook;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -39,7 +40,7 @@ public class TurbineExhaustPortBlock extends BaseEntityBlock {
 
     public TurbineExhaustPortBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(TurbineFormedLook.withoutPanels(stateDefinition.any()).setValue(FACING, Direction.NORTH));
     }
 
     @Override
@@ -50,6 +51,7 @@ public class TurbineExhaustPortBlock extends BaseEntityBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING);
+        TurbineFormedLook.addPanels(builder);
     }
 
     @Nullable
@@ -91,5 +93,15 @@ public class TurbineExhaustPortBlock extends BaseEntityBlock {
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    @Override
+    protected boolean isRandomlyTicking(BlockState state) {
+        return TurbineFormedLook.isShaped(state);
+    }
+
+    @Override
+    protected void randomTick(BlockState state, net.minecraft.server.level.ServerLevel level, BlockPos pos, net.minecraft.util.RandomSource random) {
+        TurbineFormedLook.releaseIfOrphaned(state, level, pos);
     }
 }

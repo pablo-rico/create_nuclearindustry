@@ -28,7 +28,7 @@ public class PortCapabilityTests {
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 200)
     public static void linkedTurbinePortKeepsItsCapability(GameTestHelper helper) {
-        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 5, 5, 8);
+        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 3, 3, 8);
         BlockPos output = helper.absolutePos(s.at(1, -s.hu, 0));
         int[] invalidations = new int[1];
         BlockCapabilityCache<?, ?>[] cache = new BlockCapabilityCache<?, ?>[1];
@@ -47,7 +47,7 @@ public class PortCapabilityTests {
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA, timeoutTicks = 200)
     public static void drainingAFullTurbineRestartsIt(GameTestHelper helper) {
-        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 5, 5, 8);
+        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 3, 3, 8);
         AbstractTurbineControllerBlockEntity turbine = helper.getBlockEntity(CONTROLLER);
         BlockPos output = s.at(1, -s.hu, 0);
         helper.runAfterDelay(5, () -> {

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Turbines
+- Steam and plasma turbines are now compact Create-style jet engines: always **3x3 across** and still 3–16 blocks long.
+  Once formed, the walls, ports and glass thin down to plates with brass trim, and the front shows a brass intake ring
+  with a fan that spins with the shaft.
+- Turbines wider than 3x3 no longer form; the controller says so. Rebuild them at 3x3 (keep the same length and ports).
+  Each interior block now holds 9 times as much working fluid, so the tank matches a 5x5 turbine of the same length.
+
 ### Satellites
 - New **Rocket Satellite Fairing**: top a rocket with it instead of a warhead, with an **Early Warning Satellite** or a
   **Communications Satellite** inside (both made by sequenced assembly). Its launch controller is ready without a target

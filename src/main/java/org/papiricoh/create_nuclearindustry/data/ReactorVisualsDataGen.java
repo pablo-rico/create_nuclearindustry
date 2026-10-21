@@ -285,8 +285,8 @@ final class ReactorVisualsDataGen extends AreaDataGen {
         LangEntries.add(t + "message.details", "[%s, %s rotors, up to %s mB/t]", "[%s, %s rotores, hasta %s mB/t]");
         LangEntries.add(t + "message.broken", "Turbine broken: %s", "Turbina rota: %s");
         LangEntries.add(t + "message.incomplete", "Turbine incomplete: %s", "Turbina incompleta: %s");
-        LangEntries.add(t + "legacy_line", "This is an old 3-block turbine. Rebuild it as a box (3-7 wide and high, 3-16 long); see the Ponder scene",
-                "Es una turbina antigua de 3 bloques. Reconstrúyela como una caja (de 3 a 7 de ancho y alto, de 3 a 16 de largo); mira la escena de Ponder");
+        LangEntries.add(t + "legacy_line", "This is an old 3-block turbine. Rebuild it as a 3x3 jet-engine tube, 3-16 long; see the Ponder scene",
+                "Es una turbina antigua de 3 bloques. Reconstrúyela como un tubo de 3x3 con forma de motor a reacción, de 3 a 16 de largo; mira la escena de Ponder");
         LangEntries.add(t + "title.steam", "Steam Turbine", "Turbina de vapor");
         LangEntries.add(t + "title.plasma", "Plasma Steam Turbine", "Turbina de vapor de plasma");
         LangEntries.add(t + "goggles.size", "%s, %s rotors, ports %s in / %s out", "%s, %s rotores, puertos %s de entrada / %s de salida");

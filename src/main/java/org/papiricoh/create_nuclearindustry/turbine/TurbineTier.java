@@ -22,10 +22,10 @@ import java.util.function.Supplier;
 public enum TurbineTier {
     STEAM(AllNuclearBlocks.TURBINE_OUTPUT::get, AllNuclearBlocks.TURBINE_CASING::get, AllNuclearBlocks.TURBINE_ROTOR::get,
             AllNuclearBlocks.TURBINE_FLUID_PORT::get, TurbineFluidPortBlock.MODE, NuclearFluidHelper::isTurbineSteam,
-            40, 160, 16_000, 1_000, () -> Config.steamCapacityPerPort, "Steam"),
+            40, 160, 16_000, 9_000, () -> Config.steamCapacityPerPort, "Steam"),
     PLASMA(AllNuclearBlocks.FUSION_PLASMA_TURBINE::get, AllNuclearBlocks.FUSION_TURBINE_CASING::get, AllNuclearBlocks.FUSION_TURBINE_ROTOR::get,
             AllNuclearBlocks.FUSION_TURBINE_FLUID_PORT::get, FusionTurbineFluidPortBlock.MODE, NuclearFluidHelper::isPlasmaTurbineFluid,
-            20, 80, 32_000, 2_000, () -> Config.plasmaCapacityPerPort, "Plasma steam");
+            20, 80, 32_000, 18_000, () -> Config.plasmaCapacityPerPort, "Plasma steam");
 
     private final Supplier<? extends Block> controller;
     private final Supplier<? extends Block> casing;

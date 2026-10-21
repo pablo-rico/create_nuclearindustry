@@ -23,13 +23,14 @@ import org.papiricoh.create_nuclearindustry.turbine.TurbineStructure;
 
 /**
  * Draws a turbine from its controller: the half shaft turning in the controller's outer face,
- * as on the tokamak's heaters, and once formed one long rotor whose blades reach almost to the
- * walls, spinning with the Create network, and the working fluid filling the casing from the
- * top as the tank fills.
+ * as on the tokamak's heaters. Once formed it adds the 3x3 intake bezel with its fan on the
+ * shaft, one long rotor whose blades reach almost to the thin walls, all spinning with the Create
+ * network, and the working fluid filling the casing from the top as the tank fills.
  */
 public class TurbineRenderer<T extends AbstractTurbineControllerBlockEntity> extends KineticBlockEntityRenderer<T> {
     private static final float BLADE_CLEARANCE = 0.06f;
-    private static final float WALL_INSET = 1 / 16f;
+    /** Formed walls are 2-3 px plates; keep the blades and the fluid just inside them. */
+    private static final float WALL_INSET = 3 / 16f;
 
     public TurbineRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
@@ -57,15 +58,40 @@ public class TurbineRenderer<T extends AbstractTurbineControllerBlockEntity> ext
         // The casing is sealed, so light the inside from the shaft side.
         int innerLight = LevelRenderer.getLightColor(turbine.getLevel(), turbine.getBlockPos().relative(outward));
 
+        renderFront(turbine, shape, state, ms, buffers, light);
         renderRotor(turbine, shape, state, ms, buffers.getBuffer(RenderType.solid()), innerLight);
         renderSteam(turbine, shape, partialTicks, ms, buffers, innerLight);
+    }
+
+    private void renderFront(T turbine, TurbineStructure shape, BlockState state, PoseStack ms, MultiBufferSource buffers, int light) {
+        SuperByteBuffer bezel = CachedBuffers.partial(NuclearPartialModels.bezel(turbine.tier()), state);
+        fromNorth(bezel.center(), shape.outward).uncenter().light(light).renderInto(ms, buffers.getBuffer(RenderType.cutout()));
+
+        float angle = getAngleForBe(turbine, turbine.getBlockPos(), shape.axis);
+        Direction spin = Direction.fromAxisAndDirection(shape.axis, Direction.AxisDirection.POSITIVE);
+        SuperByteBuffer fan = CachedBuffers.partial(NuclearPartialModels.fan(turbine.tier()), state);
+        fromNorth(fan.center().rotate(angle, spin), shape.outward).uncenter().light(light)
+                .renderInto(ms, buffers.getBuffer(RenderType.cutout()));
+    }
+
+    /** Front partials are built facing north; turn them to the controller's facing (centred buffer). */
+    private static SuperByteBuffer fromNorth(SuperByteBuffer buffer, Direction outward) {
+        return switch (outward) {
+            case NORTH -> buffer;
+            case SOUTH -> buffer.rotateYDegrees(180);
+            case EAST -> buffer.rotateYDegrees(-90);
+            case WEST -> buffer.rotateYDegrees(90);
+            case UP -> buffer.rotateXDegrees(90);
+            case DOWN -> buffer.rotateXDegrees(-90);
+        };
     }
 
     private void renderRotor(T turbine, TurbineStructure shape, BlockState state, PoseStack ms, VertexConsumer buffer, int light) {
         Direction.Axis axis = shape.axis;
         float angle = getAngleForBe(turbine, turbine.getBlockPos(), axis);
         Direction spin = Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE);
-        float bladeScale = (Math.min(shape.hu, shape.hv) - 0.5f - BLADE_CLEARANCE) / 0.5f;
+        // The walls are thin plates on the far side of the wall blocks, so the blades reach into them.
+        float bladeScale = (Math.min(shape.hu, shape.hv) + 0.5f - WALL_INSET - BLADE_CLEARANCE) / 0.5f;
         Direction inward = shape.inward;
         for (int d = 1; d < shape.length - 1; d++) {
             float dx = inward.getStepX() * d;
@@ -101,8 +127,9 @@ public class TurbineRenderer<T extends AbstractTurbineControllerBlockEntity> ext
             return;
         }
         BlockPos origin = turbine.getBlockPos();
-        BoundingBox interior = BoundingBox.fromCorners(shape.at(1, -(shape.hu - 1), -(shape.hv - 1)),
-                shape.at(shape.length - 2, shape.hu - 1, shape.hv - 1));
+        // Formed walls are thin, so the gas fills the wall blocks too, up to the plates.
+        BoundingBox interior = BoundingBox.fromCorners(shape.at(1, -shape.hu, -shape.hv),
+                shape.at(shape.length - 1, shape.hu, shape.hv));
         float x0 = interior.minX() - origin.getX() + WALL_INSET;
         float y0 = interior.minY() - origin.getY() + WALL_INSET;
         float z0 = interior.minZ() - origin.getZ() + WALL_INSET;

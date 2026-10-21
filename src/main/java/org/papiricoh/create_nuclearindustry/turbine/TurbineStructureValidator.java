@@ -15,13 +15,14 @@ import java.util.Optional;
 /**
  * Finds and checks a box turbine around its controller.
  *
- * <p>Rules: the controller sits at the centre of one end face, facing out along the rotor
- * axis. Edges and corners are casing; faces may also hold glass and ports of the same tier;
- * the interior is the rotor column on the axis and air everywhere else.
+ * <p>Rules: a 3x3 cross-section, the compact jet-engine shape. The controller sits at the centre
+ * of one end face, facing out along the rotor axis. Edges and corners are casing; faces may also
+ * hold glass and ports of the same tier; the interior is the rotor column on the axis and air
+ * everywhere else.
  */
 public final class TurbineStructureValidator {
     public static final int MIN_HALF = 1;
-    public static final int MAX_HALF = 3;
+    public static final int MAX_HALF = 1;
     public static final int MIN_LENGTH = 3;
     public static final int MAX_LENGTH = 16;
     public static final String LEGACY_LINE_ERROR = "legacy_turbine_line";
@@ -176,7 +177,7 @@ public final class TurbineStructureValidator {
         int positive = probe(level, tier, rotor, dir);
         int negative = probe(level, tier, rotor, dir.getOpposite());
         if (positive < 0 || negative < 0) {
-            errors.add("Turbine walls must be " + (2 * MIN_HALF + 1) + " to " + (2 * MAX_HALF + 1) + " blocks wide, with an empty interior");
+            errors.add("Turbines are " + (2 * MAX_HALF + 1) + "x" + (2 * MAX_HALF + 1) + " in cross-section: the walls must touch the rotor column");
             return -1;
         }
         if (positive != negative) {

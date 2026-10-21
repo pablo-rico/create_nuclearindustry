@@ -5,8 +5,10 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
@@ -15,7 +17,10 @@ import org.papiricoh.create_nuclearindustry.controlroom.desk.ControlDeskBlock;
 import org.papiricoh.create_nuclearindustry.controlroom.desk.DeskShape;
 import net.minecraft.resources.ResourceLocation;
 import org.papiricoh.create_nuclearindustry.coolingtower.block.CoolingTowerFluidPortBlock;
+import org.papiricoh.create_nuclearindustry.fusion.block.FusionTurbineFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
+import org.papiricoh.create_nuclearindustry.reactor.block.TurbineFluidPortBlock;
+import org.papiricoh.create_nuclearindustry.turbine.block.TurbineFormedLook;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorRedstonePortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.RedstonePortMode;
 
@@ -43,9 +48,78 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         ModelFile file = models().getExistingFile(modLoc("block/" + model));
         getVariantBuilder(block).forAllStates(state -> {
             Direction facing = state.getValue(BlockStateProperties.FACING);
-            int x = facing == Direction.UP ? 270 : facing == Direction.DOWN ? 90 : 0;
-            int y = facing.getAxis().isHorizontal() ? ((int) facing.toYRot() + 180) % 360 : 0;
-            return ConfiguredModel.builder().modelFile(file).rotationX(x).rotationY(y).build();
+            return ConfiguredModel.builder().modelFile(file).rotationX(northToX(facing)).rotationY(northToY(facing)).build();
+        });
+    }
+
+    /** Blockstate rotations that turn a model built facing north to {@code facing}. */
+    private static int northToX(Direction facing) {
+        return facing == Direction.UP ? 270 : facing == Direction.DOWN ? 90 : 0;
+    }
+
+    private static int northToY(Direction facing) {
+        return facing.getAxis().isHorizontal() ? ((int) facing.toYRot() + 180) % 360 : 0;
+    }
+
+    /** A turbine controller: the one-block engine, or once formed only what the bezel leaves to show. */
+    private void turbineControllerStates(Block block, String model, String formedModel) {
+        ModelFile unformed = models().getExistingFile(modLoc("block/" + model));
+        ModelFile formed = models().getExistingFile(modLoc("block/" + formedModel));
+        getVariantBuilder(block).forAllStates(state -> {
+            Direction facing = state.getValue(BlockStateProperties.FACING);
+            return ConfiguredModel.builder().modelFile(state.getValue(TurbineFormedLook.FORMED) ? formed : unformed)
+                    .rotationX(northToX(facing)).rotationY(northToY(facing)).build();
+        });
+    }
+
+    /** A turbine wall without a facing: the full block, or thin plates on its outer faces once formed. */
+    private void turbineWallStates(Block block, String model, String panelModel) {
+        MultiPartBlockStateBuilder builder = getMultipartBuilder(block);
+        unpanelled(builder.part().modelFile(models().getExistingFile(modLoc("block/" + model))).addModel()).end();
+        panelParts(builder, panelModel, part -> {});
+    }
+
+    /** Turbine fluid ports: the orientable port, or a port plate per outer face once formed. */
+    private void turbinePortStates(Block block, EnumProperty<ReactorFluidPortMode> modeProperty, String model, String panelDir) {
+        MultiPartBlockStateBuilder builder = getMultipartBuilder(block);
+        for (ReactorFluidPortMode mode : ReactorFluidPortMode.values()) {
+            ModelFile file = models().getExistingFile(modLoc("block/" + model + "_" + mode.getSerializedName()));
+            for (Direction facing : Direction.values()) {
+                unpanelled(builder.part().modelFile(file).rotationX(northToX(facing)).rotationY(northToY(facing)).addModel()
+                        .condition(BlockStateProperties.FACING, facing).condition(modeProperty, mode)).end();
+            }
+            panelParts(builder, panelDir + "/fluid_port_" + mode.getSerializedName() + "_panel", part -> part.condition(modeProperty, mode));
+        }
+    }
+
+    private void turbineExhaustStates(Block block, String model, String panelModel) {
+        MultiPartBlockStateBuilder builder = getMultipartBuilder(block);
+        ModelFile file = models().getExistingFile(modLoc("block/" + model));
+        for (Direction facing : Direction.values()) {
+            unpanelled(builder.part().modelFile(file).rotationX(northToX(facing)).rotationY(northToY(facing)).addModel()
+                    .condition(BlockStateProperties.FACING, facing)).end();
+        }
+        panelParts(builder, panelModel, part -> {});
+    }
+
+    private static MultiPartBlockStateBuilder.PartBuilder unpanelled(MultiPartBlockStateBuilder.PartBuilder part) {
+        TurbineFormedLook.PANELS.values().forEach(panel -> part.condition(panel, false));
+        return part;
+    }
+
+    /**
+     * One plate model (built on the north face) turned onto every face whose panel is set. UV-locked
+     * so connected textures, which are picked in world orientation, keep their borders on the right
+     * edges of the top and bottom plates.
+     */
+    private void panelParts(MultiPartBlockStateBuilder builder, String panelModel,
+                            java.util.function.Consumer<MultiPartBlockStateBuilder.PartBuilder> extra) {
+        ModelFile panel = models().getExistingFile(modLoc("block/" + panelModel));
+        TurbineFormedLook.PANELS.forEach((face, property) -> {
+            MultiPartBlockStateBuilder.PartBuilder part = builder.part().modelFile(panel)
+                    .rotationX(northToX(face)).rotationY(northToY(face)).uvLock(true).addModel().condition(property, true);
+            extra.accept(part);
+            part.end();
         });
     }
 
@@ -146,12 +220,16 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
                 modLoc("block/fusion_central_solenoid_side"), modLoc("block/fusion_central_solenoid_top"));
         simpleBlockItem(AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get(), models().getExistingFile(modLoc("block/fusion_central_solenoid")));
         simpleBlockWithItem(AllNuclearBlocks.FUSION_BREEDING_BLANKET.get(), cubeAll(AllNuclearBlocks.FUSION_BREEDING_BLANKET.get()));
-        simpleBlockWithItem(AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get(), models()
-                .cubeAll("reinforced_turbine_glass", modLoc("block/reinforced_turbine_glass"))
-                .renderType("cutout"));
+        turbineWallStates(AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get(), "reinforced_turbine_glass", "turbine/glass_panel");
+        simpleBlockItem(AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get(), models().getExistingFile(modLoc("block/reinforced_turbine_glass")));
         rotorStates(AllNuclearBlocks.TURBINE_ROTOR.get(), "turbine_rotor");
         rotorStates(AllNuclearBlocks.FUSION_TURBINE_ROTOR.get(), "fusion_turbine_rotor");
-        facingStates(AllNuclearBlocks.TURBINE_OUTPUT.get(), "turbine_output");
+        turbineControllerStates(AllNuclearBlocks.TURBINE_OUTPUT.get(), "turbine_output", "turbine/output_formed");
+        turbineControllerStates(AllNuclearBlocks.FUSION_PLASMA_TURBINE.get(), "fusion_plasma_turbine", "fusion_turbine/output_formed");
+        turbineWallStates(AllNuclearBlocks.TURBINE_CASING.get(), "turbine_casing", "turbine/casing_panel");
+        turbineWallStates(AllNuclearBlocks.FUSION_TURBINE_CASING.get(), "fusion_turbine_casing", "fusion_turbine/casing_panel");
+        turbinePortStates(AllNuclearBlocks.TURBINE_FLUID_PORT.get(), TurbineFluidPortBlock.MODE, "turbine_fluid_port", "turbine");
+        turbinePortStates(AllNuclearBlocks.FUSION_TURBINE_FLUID_PORT.get(), FusionTurbineFluidPortBlock.MODE, "fusion_turbine_fluid_port", "fusion_turbine");
         simpleBlockWithItem(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get(), cubeAll(AllNuclearBlocks.DEPLETED_URANIUM_BLOCK.get()));
         simpleBlockWithItem(AllNuclearBlocks.GRAPHITE_MODERATOR.get(), cubeAll(AllNuclearBlocks.GRAPHITE_MODERATOR.get()));
         simpleBlockWithItem(AllNuclearBlocks.BERYLLIUM_REFLECTOR.get(), cubeAll(AllNuclearBlocks.BERYLLIUM_REFLECTOR.get()));
@@ -169,10 +247,8 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         directionalBlock(AllNuclearBlocks.RTG.get(), rtg);
         simpleBlockItem(AllNuclearBlocks.RTG.get(), rtg);
         coolingTowerStates();
-        ModelFile exhaust = models().orientable("turbine_exhaust_port", modLoc("block/turbine_casing"),
-                modLoc("block/turbine_exhaust_port"), modLoc("block/turbine_casing"));
-        directionalBlock(AllNuclearBlocks.TURBINE_EXHAUST_PORT.get(), exhaust);
-        simpleBlockItem(AllNuclearBlocks.TURBINE_EXHAUST_PORT.get(), exhaust);
+        turbineExhaustStates(AllNuclearBlocks.TURBINE_EXHAUST_PORT.get(), "turbine_exhaust_port", "turbine/exhaust_port_panel");
+        simpleBlockItem(AllNuclearBlocks.TURBINE_EXHAUST_PORT.get(), models().getExistingFile(modLoc("block/turbine_exhaust_port")));
         simpleBlockWithItem(AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get(), models().cubeBottomTop("radioactive_waste_barrel",
                 modLoc("block/radioactive_waste_barrel_side"),
                 modLoc("block/radioactive_waste_barrel_top"),

@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.fusion.block;
 
+import org.papiricoh.create_nuclearindustry.turbine.block.TurbineFormedLook;
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
 import net.minecraft.core.BlockPos;
@@ -32,7 +33,7 @@ public class FusionPlasmaTurbineBlock extends KineticBlock implements EntityBloc
 
     public FusionPlasmaTurbineBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(TurbineFormedLook.FORMED, false));
     }
 
     @Override
@@ -42,7 +43,7 @@ public class FusionPlasmaTurbineBlock extends KineticBlock implements EntityBloc
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, TurbineFormedLook.FORMED);
         super.createBlockStateDefinition(builder);
     }
 

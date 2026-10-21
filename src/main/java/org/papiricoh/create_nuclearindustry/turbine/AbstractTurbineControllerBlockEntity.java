@@ -33,7 +33,7 @@ import org.papiricoh.create_nuclearindustry.multiblock.MultiblockRegistry;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockText;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockValidationResult;
 import org.papiricoh.create_nuclearindustry.multiblock.StructureSnapshot;
-import org.papiricoh.create_nuclearindustry.turbine.block.TurbineRotorFormed;
+import org.papiricoh.create_nuclearindustry.turbine.block.TurbineFormedLook;
 
 import java.util.List;
 import java.util.Optional;
@@ -353,11 +353,11 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
         Optional<TurbineStructure> previous = structure;
         boolean boundsChanged = !previous.map(TurbineStructure::bounds).equals(next.map(TurbineStructure::bounds));
         previous.ifPresent(s -> forEachPort(s, port -> port.unlink(getBlockPos())));
-        previous.ifPresent(s -> TurbineRotorFormed.apply(level, s, false));
+        previous.ifPresent(s -> TurbineFormedLook.apply(level, s, false));
         structure = next;
         snapshot = next.map(s -> StructureSnapshot.capture(level, s.allPositions())).orElse(null);
         next.ifPresent(s -> {
-            TurbineRotorFormed.apply(level, s, true);
+            TurbineFormedLook.apply(level, s, true);
             forEachPort(s, port -> port.link(getBlockPos()));
             int capacity = s.tankCapacity();
             steamTank.setCapacity(Math.max(capacity, steamTank.getFluidAmount()));
@@ -370,7 +370,7 @@ public abstract class AbstractTurbineControllerBlockEntity extends GeneratingKin
 
     /** Clears the formed look of the rotors when the controller block goes away. */
     public void onControllerRemoved() {
-        structure.ifPresent(s -> TurbineRotorFormed.apply(level, s, false));
+        structure.ifPresent(s -> TurbineFormedLook.apply(level, s, false));
     }
 
     private void forEachPort(TurbineStructure s, java.util.function.Consumer<TurbinePortBlockEntity> action) {

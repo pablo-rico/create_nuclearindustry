@@ -13,6 +13,11 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 public final class NuclearSpriteShifts {
     public static final CTSpriteShiftEntry TURBINE_GLASS = CTSpriteShifter.getCT(AllCTTypes.RECTANGLE,
             block("reinforced_turbine_glass"), block("reinforced_turbine_glass_connected"));
+    /** Turbine walls frame themselves in brass where the casing meets anything else. */
+    public static final CTSpriteShiftEntry TURBINE_CASING = CTSpriteShifter.getCT(AllCTTypes.RECTANGLE,
+            block("turbine_casing"), block("turbine_casing_connected"));
+    public static final CTSpriteShiftEntry FUSION_TURBINE_CASING = CTSpriteShifter.getCT(AllCTTypes.RECTANGLE,
+            block("fusion_turbine_casing"), block("fusion_turbine_casing_connected"));
     /** Reactor viewports side by side frame one big window. */
     public static final CTSpriteShiftEntry REACTOR_VIEWPORT = CTSpriteShifter.getCT(AllCTTypes.RECTANGLE,
             block("reactor_viewport"), block("reactor_viewport_connected"));

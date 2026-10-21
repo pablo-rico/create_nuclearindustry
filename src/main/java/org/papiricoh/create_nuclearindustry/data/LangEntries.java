@@ -422,8 +422,8 @@ public final class LangEntries {
                 "Heavy fallout turns the surface of lakes and rivers into Contaminated Water. It irradiates; a centrifuge separates it into clean water and low-level waste.",
                 "La lluvia radiactiva intensa convierte la superficie de lagos y ríos en Agua contaminada. Irradia; una centrífuga la separa en agua limpia y residuos de baja actividad.");
         add("jei.create_nuclearindustry.info.turbine",
-                "A box multiblock 3-7 blocks wide and high and 3-16 long, with a rotor column on its axis and this block at the centre of one end. Each rotor expands 40 mB/t of steam (20 of plasma steam); each input/output port pair passes 160 (80). Reinforced Turbine Glass shows the rotor and steam inside.",
-                "Un multibloque en forma de caja de 3 a 7 bloques de ancho y alto y de 3 a 16 de largo, con una columna de rotores en su eje y este bloque en el centro de un extremo. Cada rotor expande 40 mB/t de vapor (20 de vapor de plasma); cada par de puertos entrada/salida deja pasar 160 (80). El Vidrio reforzado de turbina deja ver el rotor y el vapor.");
+                "A compact jet-engine multiblock, 3x3 across and 3-16 blocks long, with a rotor column on its axis and this block at the centre of the front, where the intake fan turns once formed. Each rotor expands 40 mB/t of steam (20 of plasma steam); each input/output port pair passes 160 (80). Reinforced Turbine Glass shows the rotor and steam inside.",
+                "Un multibloque compacto con forma de motor a reacción, de 3x3 de sección y de 3 a 16 bloques de largo, con una columna de rotores en su eje y este bloque en el centro del frente, donde gira el ventilador de admisión una vez formada. Cada rotor expande 40 mB/t de vapor (20 de vapor de plasma); cada par de puertos entrada/salida deja pasar 160 (80). El Vidrio reforzado de turbina deja ver el rotor y el vapor.");
         add("jei.create_nuclearindustry.info.reactor_redstone_port",
                 "Part of a reactor's shell. It puts out a 0-15 signal on its panel side: temperature, power, fuel, coolant or steam, or the SCRAM signal, which turns on when SCRAM is pressed or the automatic SCRAM trips. Control rods only move with pistons, so wire the SCRAM signal to them. Wrench to change the mode, sneak-wrench to turn it.",
                 "Forma parte de la carcasa de un reactor. Da una señal de 0 a 15 por la cara del panel: temperatura, potencia, combustible, refrigerante o vapor, o la señal de SCRAM, que se enciende al pulsar SCRAM o al dispararse el SCRAM automático. Las barras de control solo se mueven con pistones, así que conecta a ellos la señal de SCRAM. Llave para cambiar el modo; agachado con la llave para girarlo.");
@@ -789,14 +789,14 @@ public final class LangEntries {
                 "Building a Steam Turbine",
                 "Construir una turbina de vapor");
         add("create_nuclearindustry.ponder.turbine.text_1",
-                "A turbine is a box of casing: 3 to 7 blocks wide and high, and 3 to 16 blocks long.",
-                "Una turbina es una caja de carcasa: de 3 a 7 bloques de ancho y alto, y de 3 a 16 de largo.");
+                "A turbine is a compact 3x3 tube of casing, like a jet engine, and 3 to 16 blocks long.",
+                "Una turbina es un tubo compacto de carcasa de 3x3, como un motor a reacción, de 3 a 16 bloques de largo.");
         add("create_nuclearindustry.ponder.turbine.text_2",
                 "A column of rotors runs down its axis. Every rotor stage expands 40 mB/t of steam.",
                 "Una columna de rotores recorre su eje. Cada etapa de rotor expande 40 mB/t de vapor.");
         add("create_nuclearindustry.ponder.turbine.text_3",
-                "Reinforced Turbine Glass can replace casing anywhere on a face, but not on edges or corners.",
-                "El Vidrio reforzado de turbina puede sustituir la carcasa en cualquier punto de una cara, pero no en aristas ni esquinas.");
+                "Reinforced Turbine Glass can replace the middle block of a side, but not edges or corners.",
+                "El Vidrio reforzado de turbina puede sustituir el bloque central de un lateral, pero no aristas ni esquinas.");
         add("create_nuclearindustry.ponder.turbine.text_4",
                 "Fluid Ports go on the faces. One set to INPUT takes the steam...",
                 "Los Puertos de fluido van en las caras. Uno en ENTRADA recibe el vapor...");
@@ -807,8 +807,8 @@ public final class LangEntries {
                 "The Turbine Output sits at the centre of one end, its shaft pointing out. Right-click it to form the turbine.",
                 "La Salida de turbina va en el centro de un extremo, con el eje hacia fuera. Haz clic derecho para formar la turbina.");
         add("create_nuclearindustry.ponder.turbine.text_7",
-                "Once formed, the rotor spins up while steam flows, and the glass shows how full the turbine is.",
-                "Una vez formada, el rotor gira mientras fluye el vapor, y el vidrio muestra lo llena que está la turbina.");
+                "Once formed, the walls thin down and the intake fan and rotor spin up while steam flows; the glass shows how full the turbine is.",
+                "Una vez formada, las paredes se afinan y el ventilador y el rotor giran mientras fluye el vapor; el vidrio muestra lo llena que está la turbina.");
         add("create_nuclearindustry.ponder.turbine.text_8",
                 "Rotors and port pairs both cap the flow; the smaller limit wins. Longer turbines with more ports make more power.",
                 "Los rotores y los pares de puertos limitan el caudal; manda el límite menor. Las turbinas más largas y con más puertos dan más potencia.");
@@ -816,14 +816,14 @@ public final class LangEntries {
                 "Building a Plasma Turbine",
                 "Construir una turbina de plasma");
         add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_1",
-                "A turbine is a box of casing: 3 to 7 blocks wide and high, and 3 to 16 blocks long.",
-                "Una turbina es una caja de carcasa: de 3 a 7 bloques de ancho y alto, y de 3 a 16 de largo.");
+                "A turbine is a compact 3x3 tube of casing, like a jet engine, and 3 to 16 blocks long.",
+                "Una turbina es un tubo compacto de carcasa de 3x3, como un motor a reacción, de 3 a 16 bloques de largo.");
         add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_2",
                 "A column of rotors runs down its axis. Every rotor stage expands 20 mB/t of plasma steam.",
                 "Una columna de rotores recorre su eje. Cada etapa de rotor expande 20 mB/t de vapor de plasma.");
         add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_3",
-                "Reinforced Turbine Glass can replace casing anywhere on a face, but not on edges or corners.",
-                "El Vidrio reforzado de turbina puede sustituir la carcasa en cualquier punto de una cara, pero no en aristas ni esquinas.");
+                "Reinforced Turbine Glass can replace the middle block of a side, but not edges or corners.",
+                "El Vidrio reforzado de turbina puede sustituir el bloque central de un lateral, pero no aristas ni esquinas.");
         add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_4",
                 "Fluid Ports go on the faces. One set to INPUT takes the plasma steam...",
                 "Los Puertos de fluido van en las caras. Uno en ENTRADA recibe el vapor de plasma...");
@@ -834,8 +834,8 @@ public final class LangEntries {
                 "The Plasma Turbine sits at the centre of one end, its shaft pointing out. Right-click it to form the turbine.",
                 "La Turbina de plasma va en el centro de un extremo, con el eje hacia fuera. Haz clic derecho para formar la turbina.");
         add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_7",
-                "Once formed, the rotor spins up while plasma steam flows, and the glass shows how full the turbine is.",
-                "Una vez formada, el rotor gira mientras fluye el vapor de plasma, y el vidrio muestra lo llena que está la turbina.");
+                "Once formed, the walls thin down and the intake fan and rotor spin up while plasma steam flows; the glass shows how full the turbine is.",
+                "Una vez formada, las paredes se afinan y el ventilador y el rotor giran mientras fluye el vapor de plasma; el vidrio muestra lo llena que está la turbina.");
         add("create_nuclearindustry.ponder.fusion_plasma_turbine.text_8",
                 "Rotors and port pairs both cap the flow; the smaller limit wins. Longer turbines with more ports make more power.",
                 "Los rotores y los pares de puertos limitan el caudal; manda el límite menor. Las turbinas más largas y con más puertos dan más potencia.");
@@ -990,8 +990,8 @@ public final class LangEntries {
         add(p + "spawn.unformed", "not formed: %s", "sin formar: %s");
         add(p + "spawn.measuring", "the monitor is still measuring the room", "el monitor aún está midiendo la sala");
         add(p + "spawn.name.reactor", "a 5x5x5 fission reactor", "un reactor de fisión de 5x5x5");
-        add(p + "spawn.name.turbine", "a 5x5x8 steam turbine", "una turbina de vapor de 5x5x8");
-        add(p + "spawn.name.fusion_turbine", "a 5x5x8 plasma steam turbine", "una turbina de vapor de plasma de 5x5x8");
+        add(p + "spawn.name.turbine", "a 3x3x8 steam turbine", "una turbina de vapor de 3x3x8");
+        add(p + "spawn.name.fusion_turbine", "a 3x3x8 plasma steam turbine", "una turbina de vapor de plasma de 3x3x8");
         add(p + "spawn.name.cooling_tower", "a cooling tower of radius 4", "una torre de refrigeración de radio 4");
         add(p + "spawn.name.tokamak", "a tokamak of major radius 4", "un tokamak de radio mayor 4");
         add(p + "spawn.name.accelerator", "a linac with eight cavities", "un linac con ocho cavidades");

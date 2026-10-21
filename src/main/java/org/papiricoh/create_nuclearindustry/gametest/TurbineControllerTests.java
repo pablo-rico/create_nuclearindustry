@@ -1,5 +1,7 @@
 package org.papiricoh.create_nuclearindustry.gametest;
 
+import net.minecraft.world.level.block.state.BlockState;
+import org.papiricoh.create_nuclearindustry.turbine.block.TurbineFormedLook;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -40,6 +42,46 @@ public class TurbineControllerTests {
         });
     }
 
+    /** The front slice hides behind the bezel; every other wall thins to plates on its outer faces. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void formingShapesTheWalls(GameTestHelper helper) {
+        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 3, 3, 5);
+        AbstractTurbineControllerBlockEntity turbine = helper.getBlockEntity(CONTROLLER);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(turbine.getStructure().isPresent(), "turbine should form: " + turbine.getDisplay().message());
+            helper.assertBlockProperty(CONTROLLER, TurbineFormedLook.FORMED, true);
+            helper.assertBlockProperty(s.at(0, s.hu, s.hv), TurbineFormedLook.HIDDEN, true);
+            // A corner of the back wall shows three plates, an edge two, a face one (here the input port).
+            BlockPos backCorner = s.at(s.length - 1, s.hu, s.hv);
+            helper.assertBlockProperty(backCorner, TurbineFormedLook.PANELS.get(s.inward), true);
+            helper.assertBlockProperty(backCorner, TurbineFormedLook.PANELS.get(s.u), true);
+            helper.assertBlockProperty(backCorner, TurbineFormedLook.PANELS.get(s.v), true);
+            helper.assertBlockProperty(s.at(2, s.hu, s.hv), TurbineFormedLook.PANELS.get(s.inward), false);
+            helper.assertBlockProperty(s.at(2, s.hu, s.hv), TurbineFormedLook.PANELS.get(s.v), true);
+            helper.assertBlockProperty(s.at(1, s.hu, 0), TurbineFormedLook.PANELS.get(s.u), true);
+            helper.assertBlockProperty(s.at(1, s.hu, 0), TurbineFormedLook.PANELS.get(s.v), false);
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA)
+    public static void unformingRestoresTheWalls(GameTestHelper helper) {
+        TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 3, 3, 5);
+        AbstractTurbineControllerBlockEntity turbine = helper.getBlockEntity(CONTROLLER);
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(turbine.getStructure().isPresent(), "turbine should form first");
+            helper.destroyBlock(s.at(2, 0, s.hv));
+        });
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(turbine.getStructure().isEmpty(), "a hole in the wall must unform the turbine");
+            helper.assertBlockProperty(CONTROLLER, TurbineFormedLook.FORMED, false);
+            for (BlockPos pos : s.allPositions()) {
+                BlockState state = helper.getBlockState(pos);
+                helper.assertTrue(!TurbineFormedLook.isShaped(state), "wall still shaped at " + pos);
+            }
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void breakingTheCasingUnformsAndShowsRotors(GameTestHelper helper) {
         TurbineStructure s = TurbineTestBuilder.build(helper, TurbineTier.STEAM, CONTROLLER, 3, 3, 5);
@@ -62,7 +104,7 @@ public class TurbineControllerTests {
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)
     public static void fourRotorsWithTwoPortPairsExpandFull(GameTestHelper helper) {
-        runAndExpectUse(helper, TurbineTier.STEAM, 5, 5, 6, true, 160);
+        runAndExpectUse(helper, TurbineTier.STEAM, 3, 3, 6, true, 160);
     }
 
     @GameTest(template = NuclearGameTests.SMALL_ARENA)

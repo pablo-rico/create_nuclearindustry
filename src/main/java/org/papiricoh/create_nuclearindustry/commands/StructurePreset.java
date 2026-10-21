@@ -52,7 +52,7 @@ public enum StructurePreset {
             return FissionTestBuilder.controllerAt(BlockPos.ZERO);
         }
     },
-    /** A 5x5x8 steam turbine with its output (the controller) facing north and a port on top and below. */
+    /** A 3x3x8 steam turbine with its output (the controller) facing north and a port on top and below. */
     TURBINE("turbine") {
         @Override
         BoundingBox bounds() {
@@ -278,14 +278,14 @@ public enum StructurePreset {
     }
 
     private static BoundingBox turbineBounds(TurbineTier tier) {
-        BoundingBox probe = TurbineTestBuilder.shape(tier, BlockPos.ZERO, 5, 5, 8).bounds();
+        BoundingBox probe = TurbineTestBuilder.shape(tier, BlockPos.ZERO, 3, 3, 8).bounds();
         return probe.moved(-probe.minX(), -probe.minY(), -probe.minZ());
     }
 
     private static BlockPos buildTurbine(BlockPlacer placer, TurbineTier tier) {
-        BoundingBox probe = TurbineTestBuilder.shape(tier, BlockPos.ZERO, 5, 5, 8).bounds();
+        BoundingBox probe = TurbineTestBuilder.shape(tier, BlockPos.ZERO, 3, 3, 8).bounds();
         BlockPos controller = new BlockPos(-probe.minX(), -probe.minY(), -probe.minZ());
-        TurbineStructure structure = TurbineTestBuilder.build(placer, tier, controller, 5, 5, 8);
+        TurbineStructure structure = TurbineTestBuilder.build(placer, tier, controller, 3, 3, 8);
         return structure.controllerPos;
     }
 
