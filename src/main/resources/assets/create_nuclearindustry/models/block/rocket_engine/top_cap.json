@@ -1,7 +1,2226 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_engine_hull"
+    "particle": "create_nuclearindustry:block/rocket_engine_skirt",
+    "skirt": "create_nuclearindustry:block/rocket_engine_skirt",
+    "bell": "create_nuclearindustry:block/rocket_engine_bell",
+    "exit": "create_nuclearindustry:block/rocket_engine_exit",
+    "shield": "create_nuclearindustry:block/rocket_engine_heatshield",
+    "parts": "create_nuclearindustry:block/rocket_engine_parts",
+    "inter": "create_nuclearindustry:block/rocket_interstage",
+    "ring": "create_nuclearindustry:block/rocket_ring",
+    "deck": "create_nuclearindustry:block/rocket_deck",
+    "skin": "create_nuclearindustry:block/rocket_skin",
+    "top": "create_nuclearindustry:block/rocket_skin_top"
   },
-  "elements": []
+  "elements": [
+    {
+      "name": "nose fairing",
+      "from": [
+        4.59,
+        16,
+        2.5
+      ],
+      "to": [
+        11.41,
+        17,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.59,
+            3,
+            11.41,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            4.59,
+            3,
+            11.41,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            4.59,
+            2.5,
+            11.41,
+            13.5
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        2.5,
+        16,
+        4.59
+      ],
+      "to": [
+        4.59,
+        17,
+        11.41
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            4.59,
+            3,
+            11.41,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            2.5,
+            4.59,
+            4.59,
+            11.41
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        11.41,
+        16,
+        4.59
+      ],
+      "to": [
+        13.5,
+        17,
+        11.41
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            4.59,
+            3,
+            11.41,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            11.41,
+            4.59,
+            13.5,
+            11.41
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        2.5896,
+        16,
+        3.3286
+      ],
+      "to": [
+        5.5454,
+        17,
+        4.8064
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          4.0675,
+          16,
+          4.0675
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            11.41,
+            3,
+            13.5,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            2.5,
+            2.5,
+            4.59,
+            4.59
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        10.4546,
+        16,
+        3.3286
+      ],
+      "to": [
+        13.4104,
+        17,
+        4.8064
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          11.9325,
+          16,
+          4.0675
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2.5,
+            3,
+            4.59,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            11.41,
+            2.5,
+            13.5,
+            4.59
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        10.4546,
+        16,
+        11.1936
+      ],
+      "to": [
+        13.4104,
+        17,
+        12.6714
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          11.9325,
+          16,
+          11.9325
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            11.41,
+            3,
+            13.5,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            11.41,
+            11.41,
+            13.5,
+            13.5
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        2.5896,
+        16,
+        11.1936
+      ],
+      "to": [
+        5.5454,
+        17,
+        12.6714
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          4.0675,
+          16,
+          11.9325
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            2.5,
+            3,
+            4.59,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            2.5,
+            11.41,
+            4.59,
+            13.5
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        5.055,
+        17,
+        3.25
+      ],
+      "to": [
+        10.945,
+        18,
+        12.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.055,
+            3,
+            10.945,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            5.055,
+            3,
+            10.945,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            5.055,
+            3.25,
+            10.945,
+            12.75
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        3.25,
+        17,
+        5.055
+      ],
+      "to": [
+        5.055,
+        18,
+        10.945
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            5.055,
+            3,
+            10.945,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            3.25,
+            5.055,
+            5.055,
+            10.945
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        10.945,
+        17,
+        5.055
+      ],
+      "to": [
+        12.75,
+        18,
+        10.945
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            5.055,
+            3,
+            10.945,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            10.945,
+            5.055,
+            12.75,
+            10.945
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        3.3274,
+        17,
+        3.9656
+      ],
+      "to": [
+        5.8801,
+        18,
+        5.2419
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          4.6037,
+          17,
+          4.6037
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            10.945,
+            3,
+            12.75,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            3.25,
+            3.25,
+            5.055,
+            5.055
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        10.1199,
+        17,
+        3.9656
+      ],
+      "to": [
+        12.6726,
+        18,
+        5.2419
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          11.3963,
+          17,
+          4.6037
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3.25,
+            3,
+            5.055,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            10.945,
+            3.25,
+            12.75,
+            5.055
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        10.1199,
+        17,
+        10.7581
+      ],
+      "to": [
+        12.6726,
+        18,
+        12.0344
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          11.3963,
+          17,
+          11.3963
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            10.945,
+            3,
+            12.75,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            10.945,
+            10.945,
+            12.75,
+            12.75
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        3.3274,
+        17,
+        10.7581
+      ],
+      "to": [
+        5.8801,
+        18,
+        12.0344
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          4.6037,
+          17,
+          11.3963
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            3.25,
+            3,
+            5.055,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            3.25,
+            10.945,
+            5.055,
+            12.75
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        5.52,
+        18,
+        4
+      ],
+      "to": [
+        10.48,
+        19,
+        12
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.52,
+            3,
+            10.48,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            5.52,
+            3,
+            10.48,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            5.52,
+            4,
+            10.48,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        4,
+        18,
+        5.52
+      ],
+      "to": [
+        5.52,
+        19,
+        10.48
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            5.52,
+            3,
+            10.48,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            4,
+            5.52,
+            5.52,
+            10.48
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        10.48,
+        18,
+        5.52
+      ],
+      "to": [
+        12,
+        19,
+        10.48
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            5.52,
+            3,
+            10.48,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            10.48,
+            5.52,
+            12,
+            10.48
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        4.0652,
+        18,
+        4.6026
+      ],
+      "to": [
+        6.2148,
+        19,
+        5.6774
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          5.14,
+          18,
+          5.14
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            10.48,
+            3,
+            12,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            5.52,
+            5.52
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        9.7852,
+        18,
+        4.6026
+      ],
+      "to": [
+        11.9348,
+        19,
+        5.6774
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          10.86,
+          18,
+          5.14
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            3,
+            5.52,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            10.48,
+            4,
+            12,
+            5.52
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        9.7852,
+        18,
+        10.3226
+      ],
+      "to": [
+        11.9348,
+        19,
+        11.3974
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          10.86,
+          18,
+          10.86
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            10.48,
+            3,
+            12,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            10.48,
+            10.48,
+            12,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        4.0652,
+        18,
+        10.3226
+      ],
+      "to": [
+        6.2148,
+        19,
+        11.3974
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          5.14,
+          18,
+          10.86
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            4,
+            3,
+            5.52,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            4,
+            10.48,
+            5.52,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        5.985,
+        19,
+        4.75
+      ],
+      "to": [
+        10.015,
+        20,
+        11.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.985,
+            3,
+            10.015,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            5.985,
+            3,
+            10.015,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            5.985,
+            4.75,
+            10.015,
+            11.25
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        4.75,
+        19,
+        5.985
+      ],
+      "to": [
+        5.985,
+        20,
+        10.015
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            5.985,
+            3,
+            10.015,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            4.75,
+            5.985,
+            5.985,
+            10.015
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        10.015,
+        19,
+        5.985
+      ],
+      "to": [
+        11.25,
+        20,
+        10.015
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            5.985,
+            3,
+            10.015,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            10.015,
+            5.985,
+            11.25,
+            10.015
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        4.803,
+        19,
+        5.2396
+      ],
+      "to": [
+        6.5495,
+        20,
+        6.1129
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          5.6762,
+          19,
+          5.6762
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            10.015,
+            3,
+            11.25,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            4.75,
+            4.75,
+            5.985,
+            5.985
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        9.4505,
+        19,
+        5.2396
+      ],
+      "to": [
+        11.197,
+        20,
+        6.1129
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          10.3238,
+          19,
+          5.6762
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4.75,
+            3,
+            5.985,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            10.015,
+            4.75,
+            11.25,
+            5.985
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        9.4505,
+        19,
+        9.8871
+      ],
+      "to": [
+        11.197,
+        20,
+        10.7604
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          10.3238,
+          19,
+          10.3238
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            10.015,
+            3,
+            11.25,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            10.015,
+            10.015,
+            11.25,
+            11.25
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        4.803,
+        19,
+        9.8871
+      ],
+      "to": [
+        6.5495,
+        20,
+        10.7604
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          5.6762,
+          19,
+          10.3238
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            4.75,
+            3,
+            5.985,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            4.75,
+            10.015,
+            5.985,
+            11.25
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        6.295,
+        20,
+        5.25
+      ],
+      "to": [
+        9.705,
+        21,
+        10.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.295,
+            3,
+            9.705,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6.295,
+            3,
+            9.705,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            6.295,
+            5.25,
+            9.705,
+            10.75
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        5.25,
+        20,
+        6.295
+      ],
+      "to": [
+        6.295,
+        21,
+        9.705
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            6.295,
+            3,
+            9.705,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            5.25,
+            6.295,
+            6.295,
+            9.705
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        9.705,
+        20,
+        6.295
+      ],
+      "to": [
+        10.75,
+        21,
+        9.705
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            6.295,
+            3,
+            9.705,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            9.705,
+            6.295,
+            10.75,
+            9.705
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        5.2948,
+        20,
+        5.6643
+      ],
+      "to": [
+        6.7727,
+        21,
+        6.4032
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6.0337,
+          20,
+          6.0337
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.705,
+            3,
+            10.75,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            5.25,
+            5.25,
+            6.295,
+            6.295
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        9.2273,
+        20,
+        5.6643
+      ],
+      "to": [
+        10.7052,
+        21,
+        6.4032
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          9.9663,
+          20,
+          6.0337
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5.25,
+            3,
+            6.295,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            9.705,
+            5.25,
+            10.75,
+            6.295
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        9.2273,
+        20,
+        9.5968
+      ],
+      "to": [
+        10.7052,
+        21,
+        10.3357
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          9.9663,
+          20,
+          9.9663
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            9.705,
+            3,
+            10.75,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            9.705,
+            9.705,
+            10.75,
+            10.75
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        5.2948,
+        20,
+        9.5968
+      ],
+      "to": [
+        6.7727,
+        21,
+        10.3357
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          6.0337,
+          20,
+          9.9663
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            5.25,
+            3,
+            6.295,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            5.25,
+            9.705,
+            6.295,
+            10.75
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        6.76,
+        21,
+        6
+      ],
+      "to": [
+        9.24,
+        22,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.76,
+            3,
+            9.24,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6.76,
+            3,
+            9.24,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            6.76,
+            6,
+            9.24,
+            10
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        6,
+        21,
+        6.76
+      ],
+      "to": [
+        6.76,
+        22,
+        9.24
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            6.76,
+            3,
+            9.24,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            6,
+            6.76,
+            6.76,
+            9.24
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        9.24,
+        21,
+        6.76
+      ],
+      "to": [
+        10,
+        22,
+        9.24
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            6.76,
+            3,
+            9.24,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            9.24,
+            6.76,
+            10,
+            9.24
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        6.0326,
+        21,
+        6.3013
+      ],
+      "to": [
+        7.1074,
+        22,
+        6.8387
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6.57,
+          21,
+          6.57
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.24,
+            3,
+            10,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            6,
+            6,
+            6.76,
+            6.76
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        8.8926,
+        21,
+        6.3013
+      ],
+      "to": [
+        9.9674,
+        22,
+        6.8387
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          9.43,
+          21,
+          6.57
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            3,
+            6.76,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            9.24,
+            6,
+            10,
+            6.76
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        8.8926,
+        21,
+        9.1613
+      ],
+      "to": [
+        9.9674,
+        22,
+        9.6987
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          9.43,
+          21,
+          9.43
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            9.24,
+            3,
+            10,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            9.24,
+            9.24,
+            10,
+            10
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        6.0326,
+        21,
+        9.1613
+      ],
+      "to": [
+        7.1074,
+        22,
+        9.6987
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          6.57,
+          21,
+          9.43
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            6,
+            3,
+            6.76,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            6,
+            9.24,
+            6.76,
+            10
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        7.225,
+        22,
+        6.75
+      ],
+      "to": [
+        8.775,
+        23,
+        9.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.225,
+            3,
+            8.775,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            7.225,
+            3,
+            8.775,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            7.225,
+            6.75,
+            8.775,
+            9.25
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        6.75,
+        22,
+        7.225
+      ],
+      "to": [
+        7.225,
+        23,
+        8.775
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            7.225,
+            3,
+            8.775,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            6.75,
+            7.225,
+            7.225,
+            8.775
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        8.775,
+        22,
+        7.225
+      ],
+      "to": [
+        9.25,
+        23,
+        8.775
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            7.225,
+            3,
+            8.775,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            8.775,
+            7.225,
+            9.25,
+            8.775
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        6.7704,
+        22,
+        6.9383
+      ],
+      "to": [
+        7.4421,
+        23,
+        7.2742
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          7.1063,
+          22,
+          7.1063
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            8.775,
+            3,
+            9.25,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            6.75,
+            6.75,
+            7.225,
+            7.225
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        8.5579,
+        22,
+        6.9383
+      ],
+      "to": [
+        9.2296,
+        23,
+        7.2742
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          8.8938,
+          22,
+          7.1063
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            6.75,
+            3,
+            7.225,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            8.775,
+            6.75,
+            9.25,
+            7.225
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        8.5579,
+        22,
+        8.7258
+      ],
+      "to": [
+        9.2296,
+        23,
+        9.0617
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          8.8938,
+          22,
+          8.8938
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            8.775,
+            3,
+            9.25,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            8.775,
+            8.775,
+            9.25,
+            9.25
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        6.7704,
+        22,
+        8.7258
+      ],
+      "to": [
+        7.4421,
+        23,
+        9.0617
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          7.1063,
+          22,
+          8.8938
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            6.75,
+            3,
+            7.225,
+            4
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            6.75,
+            8.775,
+            7.225,
+            9.25
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        7.628,
+        23,
+        7.4
+      ],
+      "to": [
+        8.372,
+        23.75,
+        8.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.628,
+            3,
+            8.372,
+            3.75
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            7.628,
+            3,
+            8.372,
+            3.75
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            7.628,
+            7.4,
+            8.372,
+            8.6
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        7.4,
+        23,
+        7.628
+      ],
+      "to": [
+        7.628,
+        23.75,
+        8.372
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            7.628,
+            3,
+            8.372,
+            3.75
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            7.4,
+            7.628,
+            7.628,
+            8.372
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        8.372,
+        23,
+        7.628
+      ],
+      "to": [
+        8.6,
+        23.75,
+        8.372
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            7.628,
+            3,
+            8.372,
+            3.75
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            8.372,
+            7.628,
+            8.6,
+            8.372
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        7.4098,
+        23,
+        7.4904
+      ],
+      "to": [
+        7.7322,
+        23.75,
+        7.6516
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          7.571,
+          23,
+          7.571
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            8.372,
+            3,
+            8.6,
+            3.75
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            7.4,
+            7.4,
+            7.628,
+            7.628
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        8.2678,
+        23,
+        7.4904
+      ],
+      "to": [
+        8.5902,
+        23.75,
+        7.6516
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          8.429,
+          23,
+          7.571
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7.4,
+            3,
+            7.628,
+            3.75
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            8.372,
+            7.4,
+            8.6,
+            7.628
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        8.2678,
+        23,
+        8.3484
+      ],
+      "to": [
+        8.5902,
+        23.75,
+        8.5096
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          8.429,
+          23,
+          8.429
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            8.372,
+            3,
+            8.6,
+            3.75
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            8.372,
+            8.372,
+            8.6,
+            8.6
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "nose fairing",
+      "from": [
+        7.4098,
+        23,
+        8.3484
+      ],
+      "to": [
+        7.7322,
+        23.75,
+        8.5096
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          7.571,
+          23,
+          8.429
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            7.4,
+            3,
+            7.628,
+            3.75
+          ],
+          "texture": "#skin"
+        },
+        "up": {
+          "uv": [
+            7.4,
+            8.372,
+            7.628,
+            8.6
+          ],
+          "texture": "#top"
+        }
+      }
+    }
+  ]
 }

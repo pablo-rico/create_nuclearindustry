@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_warhead_cone"
+    "particle": "create_nuclearindustry:block/rocket_rv_fission"
   },
   "elements": []
 }

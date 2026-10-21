@@ -25,12 +25,12 @@ public final class OrbitPartials {
      */
     public static final PartialModel STATION_DISH = of("block/ground_station/dish");
     /**
-     * The fairing's west half (x 3..8, y 1.5..16) where it sits in the {@code rocket_satellite_fairing} block, without the joint
+     * The fairing's west half (x 2..8, y 2..16) where it sits in the {@code rocket_satellite_fairing} block, without the joint
      * ring, which stays with the rocket. It parts from the other half on the plane x = 8; to peel it away, turn it with
-     * {@code rotateZDegrees(+angle)} about its outer bottom edge, the z axis through (3, 1.5, 8) ({@link #FAIRING_LEFT_HINGE}).
+     * {@code rotateZDegrees(+angle)} about its outer bottom edge, the z axis through (2, 2, 8) ({@link #FAIRING_LEFT_HINGE}).
      */
     public static final PartialModel FAIRING_HALF_LEFT = of("block/rocket_satellite_fairing/half_left");
-    /** The fairing's east half (x 8..13): the mirror of {@link #FAIRING_HALF_LEFT}, peeled with {@code rotateZDegrees(-angle)} about (13, 1.5, 8). */
+    /** The fairing's east half (x 8..14): the mirror of {@link #FAIRING_HALF_LEFT}, peeled with {@code rotateZDegrees(-angle)} about (14, 2, 8). */
     public static final PartialModel FAIRING_HALF_RIGHT = of("block/rocket_satellite_fairing/half_right");
     /**
      * An early-warning satellite: a gold bus with the infrared telescope under it looking down (-y, at the Earth) and solar wings
@@ -49,8 +49,8 @@ public final class OrbitPartials {
     public static final float[] STATION_AXIS = {0.5f, 0, 0.5f};
     /** The dish's elevation axle, along x: (8, 16, 8) pixels. */
     public static final float[] DISH_PIVOT = {0.5f, 1, 0.5f};
-    /** The fairing halves' hinges, along z: their outer bottom edges, (3, 1.5, 8) and (13, 1.5, 8) pixels. */
-    public static final float[] FAIRING_LEFT_HINGE = {3 / 16f, 1.5f / 16, 0.5f}, FAIRING_RIGHT_HINGE = {13 / 16f, 1.5f / 16, 0.5f};
+    /** The fairing halves' hinges, along z: their outer bottom edges, (2, 2, 8) and (14, 2, 8) pixels. */
+    public static final float[] FAIRING_LEFT_HINGE = {2 / 16f, 2 / 16f, 0.5f}, FAIRING_RIGHT_HINGE = {14 / 16f, 2 / 16f, 0.5f};
     /** The satellites' centre: (8, 8, 8) pixels. */
     public static final float[] SATELLITE_CENTRE = {0.5f, 0.5f, 0.5f};
 

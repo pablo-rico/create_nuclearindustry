@@ -21,7 +21,7 @@ from pixelkit import Ramp, Tex, bevel, brushed, fbm, item_outline, mix, outline,
 
 from tex_launch import (LAMP_AMBER, LAMP_GREEN, LAMP_RED, _brackets, _button, _groove, _lamp, _louvres, _olive_panel,
                         _phosphor, _slot, _stripes, _sunk)
-from tex_missile import HULL, OLIVE, PHOSPHOR, _box
+from tex_missile import FOIL, GRAPHITE, HULL, OLIVE, PHOSPHOR, _box
 
 # Ceramic of the interceptor's radome, and the kill vehicle's seeker glass.
 RADOME = Ramp("#4a4a44", "#6d6c63", "#8f8d82", "#aeab9d", "#c8c5b5", "#dddacb", "#f0eee2")
@@ -292,29 +292,22 @@ def interceptor_round_nose():
 
 @block("rocket_kill_vehicle_hull")
 def rocket_kill_vehicle_hull():
-    """Top half (rows 0..7): the avionics shoulder, dark with a cyan sensor slit. Bottom half (rows 8..15): the painted
-    body with a black-and-white roll band; no explosive marking, this one kills by hitting."""
+    """Mapped one pixel a pixel up the kill vehicle (v = 16 - y). Rows 0-7 (y 8..16): the seeker's housing, black graphite
+    composite with faint panel lines. Rows 8-15 (y 0..8): the divert propulsion stage wrapped in crinkled gold insulation
+    foil. No markings: this one kills by hitting."""
     t = Tex(seed=1120)
     for y in range(16):
         for x in range(16):
             n = fbm(x, y, 1120, 16, 16, octaves=2, scale=4.0)
-            t.set(x, y, HULL.t(0.62 + 0.18 * n))
-    # Shoulder.
-    brushed(t, DARK, 0, 0, 15, 7, base=2.4, amp=0.4, seed=1121)
-    t.hline(0, 15, 0, DARK[5])
-    t.hline(0, 15, 7, DARK[0])
-    t.hline(1, 14, 3, SEEKER[2])
-    t.hline(1, 14, 4, SEEKER[4])
-    for x in (3, 8, 12):
-        t.set(x, 4, SEEKER[6])
-    # Body: a lit seam under the shoulder, and a narrow black-and-white roll band low down.
-    for y in (12, 13):
-        for x in range(16):
-            if (x // 2 + y) % 2 == 0:
-                t.set(x, y, DARK[1])
-    t.hline(0, 15, 8, HULL[6])
-    t.hline(0, 15, 14, HULL[2])
-    t.hline(0, 15, 15, HULL[1])
+            if y < 8:
+                t.set(x, y, GRAPHITE.t(0.5 + 0.18 * (n - 0.5) + 0.06 * (8 - x) / 8))
+            else:
+                crinkle = fbm(x, y, 1121, 16, 16, octaves=3, scale=8.0)
+                t.set(x, y, FOIL.t(max(0.0, min(1.0, 0.6 + 0.32 * (crinkle - 0.5) + 0.08 * (8 - x) / 8))))
+    for x in range(16):
+        t.set(x, 3, GRAPHITE[2])
+        t.set(x, 7, GRAPHITE[1])
+        t.set(x, 8, FOIL[2])
     return t
 
 

@@ -36,8 +36,6 @@ STATE_LAMPS = (LAMP_RED, LAMP_AMBER, LAMP_GREEN, LAMP_ORANGE, LAMP_HOT, LAMP_GRE
 CELL = Ramp("#3a3c3c", "#7c7f7e", "#a3a6a4", "#c0c3c0", "#d8dad6", "#e9eae6", "#fafaf6")
 # The kill vehicle's seeker glass in its cell.
 KV_SEEKER = Ramp("#06222c", "#0b3a4a", "#14627a", "#2a90a8", "#5cc8dc", "#a6ecf6", "#eafcff")
-# The blue band painted round the satellite fairing (the block's own).
-FAIRING_BAND = Ramp("#0a1630", "#13244c", "#1d3772", "#2a4f9c", "#3f6cc0", "#6e94dc", "#b4c8f2")
 
 YELLOW = WARN[5]
 BLACK_PAINT = DARK[0]
@@ -623,126 +621,127 @@ def _cell(t, ox, oy, section, state):
         t.vline(ox + x0, oy + y0, oy + y1, CELL[0])
         t.vline(ox + x1, oy + y0, oy + y1, CELL[0])
 
+    # The rocket's twelve-pixel fuselage in the block's sixteen: columns fl..fr, rings one column wider either side.
+    fl, fr = 3, w - 4
+
+    def shade_row(y, x0, x1, dv):
+        for x in range(x0 + 1, x1):
+            t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, cyl(x, x0, x1) + dv))))])
+
+    def ring(y, dv=-2.0):
+        for x in range(fl - 1, fr + 2):
+            t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, cyl(x, fl - 1, fr + 1) + dv))))])
+        t.set(ox + fl - 1, oy + y, CELL[0])
+        t.set(ox + fr + 1, oy + y, CELL[0])
+
     if ghost:
         # Only a dashed outline of the section's shape, half clear.
         dash = _rgba(CELL[6], 200)
         if section in (3, 4, 5):
             for y in range(h):
-                half = 1 + (hi - lo) * (y + 1) / (2 * h)
+                half = 1 + (fr - fl) * (y + 1) / (2 * h)
                 for x in (int(round(w / 2 - half)), int(round(w / 2 + half - 1))):
                     if y % 3 != 2:
                         t.set(ox + x, oy + y, dash)
         else:
             for y in range(h):
                 if y % 3 != 2:
-                    t.set(ox + lo, oy + y, dash)
-                    t.set(ox + hi, oy + y, dash)
-            for x in range(lo, hi + 1):
+                    t.set(ox + fl, oy + y, dash)
+                    t.set(ox + fr, oy + y, dash)
+            for x in range(fl, fr + 1):
                 if x % 3 != 2:
                     t.set(ox + x, oy, dash)
                     t.set(ox + x, oy + h - 1, dash)
         return
 
     if section == 0:
-        # Engine: thrust frame on top, the bell flaring out below with its cooling lines.
-        body(lo, hi, 0, 3)
-        t.hline(ox + lo, ox + hi, oy, CELL[1])
-        t.hline(ox + lo + 1, ox + hi - 1, oy + 3, CELL[2])
-        for x in (lo + 3, hi - 3):
-            t.set(ox + x, oy + 1, CELL[6])
-            t.set(ox + x, oy + 2, CELL[1])
-        for y in range(4, h):
-            k = (y - 4) / (h - 5)
-            half = 2.5 + 4.5 * k * k + 1.0 * k
-            x0 = int(round(w / 2 - half))
-            x1 = int(round(w / 2 + half)) - 1
-            for x in range(x0, x1 + 1):
-                v = cyl(x, x0, x1) - 0.8
-                if (x - x0) % 3 == 1 and 0 < x - x0 < x1 - x0:
-                    v -= 0.9
-                t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, v))))])
-            t.set(ox + x0, oy + y, CELL[0])
-            t.set(ox + x1, oy + y, CELL[0])
-        t.hline(ox + 6, ox + w - 7, oy + 4, CELL[1])
-        t.hline(ox + int(w / 2 - 7), ox + int(w / 2 + 7) - 1, oy + h - 1, CELL[1])
+        # Engine: the corrugated thrust section, its heavy ring, then hold-down posts between the engines' fairings and bells
+        # and a swept fin either side.
+        body(fl, fr, 0, 3)
+        for x in range(fl + 1, fr, 2):
+            for y in range(4):
+                t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, cyl(x, fl, fr) - 0.9))))])
+        ring(4, -2.4)
+        for y in range(5, h):
+            for x in range(w // 2 - 2, w // 2 + 2):
+                t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, cyl(x, w // 2 - 2, w // 2 + 1) - 1.6))))])
+        for bx in (fl + 1, fr - 1):
+            for y in (5, 6):
+                for x in range(bx - 1, bx + 2):
+                    t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, cyl(x, bx - 1, bx + 1) + 0.6))))])
+            for y, half in ((7, 1), (8, 1), (9, 2)):
+                for x in range(bx - half, bx + half + 1):
+                    t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, cyl(x, bx - half, bx + half) - 2.0))))])
+            t.set(ox + bx, oy + h - 1, CELL[0])
+        for y, span in ((5, 1), (6, 1), (7, 1), (8, 2), (9, 2)):
+            for x in range(fl - span, fl):
+                t.set(ox + x, oy + y, CELL[5])
+            for x in range(fr + 1, fr + 1 + span):
+                t.set(ox + x, oy + y, CELL[3])
     elif section == 1:
-        # Tank: weld bands top and bottom, a seam of rivets down the shadow side.
-        body(lo, hi, 0, h - 1)
-        for y in (1, h - 2):
-            for x in range(lo + 1, hi):
-                t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, cyl(x, lo, hi) - 1.3))))])
-        t.hline(ox + lo + 1, ox + hi - 1, oy + 2, CELL[6])
-        for y in range(3, h - 3, 2):
-            t.set(ox + hi - 3, oy + y, CELL[2])
-        t.hline(ox + lo, ox + hi, oy, CELL[1])
-    elif section == 2:
-        # Guidance: painted skin with a black and white roll band and a star window.
-        body(lo, hi, 0, h - 1)
-        t.hline(ox + lo, ox + hi, oy, CELL[1])
-        for x in range(lo + 1, hi):
-            v = cyl(x, lo, hi)
-            t.set(ox + x, oy + 3, CELL[int(round(max(1, min(6, v - 2.6))))])
-            t.set(ox + x, oy + 4, CELL[int(round(max(1, min(6, v - 3.4))))])
-            t.set(ox + x, oy + 5, CELL[int(round(max(1, min(6, v - 3.4))))])
-            t.set(ox + x, oy + 6, CELL[int(round(max(1, min(6, v + 0.6))))])
-        for x in range(lo + 2, hi - 1, 3):
-            t.set(ox + x, oy + 4, CELL[3] if x < hi - 5 else CELL[2])
-        t.set(ox + 5, oy + 8, CELL[0])
-        t.set(ox + 6, oy + 8, CELL[1])
-    elif section == 4:
-        # Kill vehicle: a short body with divert thrusters either side, a shoulder, and the seeker's glass dome on top;
-        # no warhead stripe.
+        # Tank: a girth weld at the top, a seam of rivets down the shadow side and the cable tunnel up the lit one.
+        body(fl, fr, 0, h - 1)
+        shade_row(0, fl, fr, -1.3)
+        t.hline(ox + fl + 1, ox + fr - 1, oy + 1, CELL[6])
+        for y in range(3, h - 1, 2):
+            t.set(ox + fr - 3, oy + y, CELL[2])
         for y in range(h):
-            half = (3, 5, 6, 7, 7)[y] if y < 5 else (hi - lo + 1) // 2
+            t.set(ox + fl + 1, oy + y, CELL[6])
+            t.set(ox + fl + 2, oy + y, CELL[3])
+    elif section == 2:
+        # Guidance: the dark radiator band near the top, an access door below it.
+        body(fl, fr, 0, h - 1)
+        for y in (1, 2):
+            shade_row(y, fl, fr, -3.2)
+        for x in range(fl + 2, fr - 1, 3):
+            t.set(ox + x, oy + 2, CELL[2])
+        t.hline(ox + 7, ox + 10, oy + 4, CELL[2])
+        t.vline(ox + 7, oy + 4, oy + 8, CELL[2])
+        t.hline(ox + 8, ox + 10, oy + 8, CELL[6])
+        t.vline(ox + 10, oy + 5, oy + 8, CELL[6])
+    elif section == 4:
+        # Kill vehicle: the seeker's glass on a dark housing, the divert stage with its thrusters, all on the deck.
+        for y in range(h - 1):
+            half = (2, 3, 3, 4, 4)[y] if y < 5 else 5
             x0, x1 = w // 2 - half, w // 2 + half - 1
             glass = y < 3
             for x in range(x0, x1 + 1):
-                v = cyl(x, x0, x1) + (0.3 if not glass else 0.0)
+                v = cyl(x, x0, x1) - (0.0 if glass else 1.4)
                 t.set(ox + x, oy + y, (KV_SEEKER if glass else CELL)[int(round(max(1, min(6, v))))])
             t.set(ox + x0, oy + y, KV_SEEKER[0] if glass else CELL[0])
             t.set(ox + x1, oy + y, KV_SEEKER[0] if glass else CELL[0])
-        t.set(ox + w // 2 - 2, oy + 1, (255, 255, 255, 255))
-        t.set(ox + w // 2 - 3, oy + 2, KV_SEEKER[6])
-        t.hline(ox + w // 2 - 7, ox + w // 2 + 6, oy + 3, CELL[2])
-        t.hline(ox + lo, ox + hi, oy + 5, CELL[1])
-        # The divert thrusters: dark nozzles at the body's edges.
-        for x in (lo, lo + 1, hi - 1, hi):
+        t.set(ox + w // 2 - 1, oy + 1, (255, 255, 255, 255))
+        t.hline(ox + w // 2 - 5, ox + w // 2 + 4, oy + 5, CELL[1])
+        for x in (w // 2 - 6, w // 2 + 5):
+            t.set(ox + x, oy + 6, CELL[1])
             t.set(ox + x, oy + 7, CELL[0])
-            t.set(ox + x, oy + 8, CELL[1])
+        ring(h - 1, -1.0)
     elif section == 5:
-        # Satellite fairing: a blunt ogive split down the middle, a coloured band above the joint ring it parts from.
-        for y in range(h):
-            half = (2, 4, 5, 6, 7)[y] if y < 5 else (hi - lo + 1) // 2
+        # Satellite fairing: a blunt ogive split down the middle on its joint ring; clean white, no band.
+        for y in range(h - 1):
+            half = (2, 3, 4, 5, 5)[y] if y < 5 else 6
             x0, x1 = w // 2 - half, w // 2 + half - 1
-            band = y in (h - 4, h - 3)
             for x in range(x0, x1 + 1):
-                v = cyl(x, x0, x1) + 0.3
-                t.set(ox + x, oy + y, (FAIRING_BAND if band else CELL)[int(round(max(1, min(6, v - (0.4 if band else 0)))))])
+                t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, cyl(x, x0, x1) + 0.4))))])
             t.set(ox + x0, oy + y, CELL[0])
             t.set(ox + x1, oy + y, CELL[0])
-        # The split plane: a dark seam with a lit edge beside it.
-        for y in range(2, h - 1):
-            t.set(ox + w // 2, oy + y, CELL[1])
-            t.set(ox + w // 2 + 1, oy + y, CELL[5] if y not in (h - 4, h - 3) else FAIRING_BAND[5])
-        # The joint ring at the foot.
-        for x in range(lo, hi + 1):
-            t.set(ox + x, oy + h - 1, CELL[int(round(max(1, min(6, cyl(x, lo, hi) - 2.0))))])
+        for y in range(1, h - 1):
+            t.set(ox + w // 2 - 1, oy + y, CELL[1])
+            t.set(ox + w // 2, oy + y, CELL[5])
+        ring(h - 1)
         t.set(ox + w // 2 - 2, oy + 1, CELL[6])
     else:
-        # Warhead: the nose cone, its point at the top row and its base the body's full width.
-        for y in range(h):
-            half = 0.6 + (hi - lo + 1) / 2 * ((y + 1) / h) ** 0.75
+        # Warhead: a re-entry vehicle's dark cone, its point at the top row, on the separation deck.
+        for y in range(h - 1):
+            half = 0.6 + 5.0 * ((y + 1) / (h - 1)) ** 0.9
             x0 = int(round(w / 2 - half))
             x1 = int(round(w / 2 + half)) - 1
-            x0, x1 = max(lo, x0), min(hi, x1)
             for x in range(x0, x1 + 1):
-                t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, cyl(x, x0, x1) + 0.3))))])
+                t.set(ox + x, oy + y, CELL[int(round(max(1, min(6, cyl(x, x0, x1) - 1.6))))])
             t.set(ox + x0, oy + y, CELL[0])
             t.set(ox + x1, oy + y, CELL[0])
-        # A dark band near the base: the re-entry body's stripe.
-        for x in range(lo + 1, hi):
-            t.set(ox + x, oy + h - 3, CELL[int(round(max(1, min(6, cyl(x, lo, hi) - 2.2))))])
         t.set(ox + w // 2 - 1, oy, CELL[6])
+        ring(h - 1, -1.0)
 
     if state == L.SILO_CELL_SELECTED:
         # A bright frame round the whole cell, broken at the corners like a reticle.

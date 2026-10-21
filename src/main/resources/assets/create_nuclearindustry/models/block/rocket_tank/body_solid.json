@@ -1,215 +1,563 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_tank_hull",
-    "hull": "create_nuclearindustry:block/rocket_tank_hull",
-    "ring": "create_nuclearindustry:block/rocket_ring"
+    "particle": "create_nuclearindustry:block/rocket_skin",
+    "skin": "create_nuclearindustry:block/rocket_skin",
+    "top": "create_nuclearindustry:block/rocket_skin_top",
+    "ring": "create_nuclearindustry:block/rocket_ring",
+    "deck": "create_nuclearindustry:block/rocket_deck",
+    "fit": "create_nuclearindustry:block/rocket_fittings",
+    "case": "create_nuclearindustry:block/rocket_solid_case",
+    "frost": "create_nuclearindustry:block/rocket_frost",
+    "edge": "create_nuclearindustry:block/rocket_frost_edge"
   },
   "elements": [
     {
-      "name": "body",
+      "name": "motor case",
       "from": [
-        3,
+        4,
         0,
-        3
+        2
       ],
       "to": [
-        13,
+        12,
         16,
-        13
+        14
       ],
       "faces": {
         "north": {
-          "texture": "#hull",
           "uv": [
-            3,
+            4,
             0,
-            13,
+            12,
             16
-          ]
+          ],
+          "texture": "#case"
         },
         "south": {
-          "texture": "#hull",
           "uv": [
-            3,
+            4,
             0,
-            13,
+            12,
             16
-          ]
-        },
-        "west": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            0,
-            13,
-            16
-          ]
-        },
-        "east": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            0,
-            13,
-            16
-          ]
-        },
-        "up": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            3,
-            13,
-            13
-          ]
-        },
-        "down": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            3,
-            13,
-            13
-          ]
+          ],
+          "texture": "#case"
         }
       }
     },
     {
-      "name": "ring_low",
+      "name": "motor case",
       "from": [
-        2.5,
+        2,
         0,
-        2.5
+        4
       ],
       "to": [
-        13.5,
+        4,
+        16,
+        12
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            4,
+            0,
+            12,
+            16
+          ],
+          "texture": "#case"
+        }
+      }
+    },
+    {
+      "name": "motor case",
+      "from": [
+        12,
+        0,
+        4
+      ],
+      "to": [
+        14,
+        16,
+        12
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            4,
+            0,
+            12,
+            16
+          ],
+          "texture": "#case"
+        }
+      }
+    },
+    {
+      "name": "motor case",
+      "from": [
+        2.0858,
+        0,
+        2.7929
+      ],
+      "to": [
+        4.9142,
+        16,
+        4.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          0,
+          3.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            0,
+            14,
+            16
+          ],
+          "texture": "#case"
+        }
+      }
+    },
+    {
+      "name": "motor case",
+      "from": [
+        11.0858,
+        0,
+        2.7929
+      ],
+      "to": [
+        13.9142,
+        16,
+        4.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          0,
+          3.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            4,
+            16
+          ],
+          "texture": "#case"
+        }
+      }
+    },
+    {
+      "name": "motor case",
+      "from": [
+        11.0858,
+        0,
+        11.7929
+      ],
+      "to": [
+        13.9142,
+        16,
+        13.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          0,
+          12.5
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            12,
+            0,
+            14,
+            16
+          ],
+          "texture": "#case"
+        }
+      }
+    },
+    {
+      "name": "motor case",
+      "from": [
+        2.0858,
+        0,
+        11.7929
+      ],
+      "to": [
+        4.9142,
+        16,
+        13.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          0,
+          12.5
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            2,
+            0,
+            4,
+            16
+          ],
+          "texture": "#case"
+        }
+      }
+    },
+    {
+      "name": "clevis joint",
+      "from": [
+        3.8551,
+        0,
+        1.65
+      ],
+      "to": [
+        12.1449,
         1.5,
-        13.5
+        14.35
       ],
       "faces": {
         "north": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
+            3.8551,
+            2,
+            12.1449,
+            3.5
+          ],
+          "texture": "#ring"
         },
         "south": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
-        },
-        "west": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
-        },
-        "east": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
+            3.8551,
+            2,
+            12.1449,
+            3.5
+          ],
+          "texture": "#ring"
         },
         "up": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
-        },
-        "down": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
+            3.8551,
+            1.65,
+            12.1449,
+            14.35
+          ],
+          "texture": "#ring"
         }
       }
     },
     {
-      "name": "ring_high",
+      "name": "clevis joint",
       "from": [
-        2.5,
-        14.5,
-        2.5
+        1.65,
+        0,
+        3.8551
       ],
       "to": [
-        13.5,
+        3.8551,
+        1.5,
+        12.1449
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            3.8551,
+            2,
+            12.1449,
+            3.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            1.65,
+            3.8551,
+            3.8551,
+            12.1449
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "clevis joint",
+      "from": [
+        12.1449,
+        0,
+        3.8551
+      ],
+      "to": [
+        14.35,
+        1.5,
+        12.1449
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            3.8551,
+            2,
+            12.1449,
+            3.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            12.1449,
+            3.8551,
+            14.35,
+            12.1449
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "clevis joint",
+      "from": [
+        1.7446,
+        0,
+        2.5242
+      ],
+      "to": [
+        4.8631,
+        1.5,
+        4.0834
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.3038,
+          0,
+          3.3038
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            12.1449,
+            2,
+            14.35,
+            3.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            1.65,
+            1.65,
+            3.8551,
+            3.8551
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "clevis joint",
+      "from": [
+        11.1369,
+        0,
+        2.5242
+      ],
+      "to": [
+        14.2554,
+        1.5,
+        4.0834
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.6962,
+          0,
+          3.3038
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1.65,
+            2,
+            3.8551,
+            3.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            12.1449,
+            1.65,
+            14.35,
+            3.8551
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "clevis joint",
+      "from": [
+        11.1369,
+        0,
+        11.9166
+      ],
+      "to": [
+        14.2554,
+        1.5,
+        13.4758
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.6962,
+          0,
+          12.6962
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            12.1449,
+            2,
+            14.35,
+            3.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            12.1449,
+            12.1449,
+            14.35,
+            14.35
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "clevis joint",
+      "from": [
+        1.7446,
+        0,
+        11.9166
+      ],
+      "to": [
+        4.8631,
+        1.5,
+        13.4758
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.3038,
+          0,
+          12.6962
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            1.65,
+            2,
+            3.8551,
+            3.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            1.65,
+            12.1449,
+            3.8551,
+            14.35
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "raceway",
+      "from": [
+        1.4,
+        0,
+        7
+      ],
+      "to": [
+        2,
         16,
-        13.5
+        9
       ],
       "faces": {
         "north": {
-          "texture": "#ring",
           "uv": [
-            2.5,
+            8,
             0,
-            13.5,
-            1.5
-          ]
+            12,
+            16
+          ],
+          "texture": "#fit"
         },
         "south": {
-          "texture": "#ring",
           "uv": [
-            2.5,
+            8,
             0,
-            13.5,
-            1.5
-          ]
+            12,
+            16
+          ],
+          "texture": "#fit"
         },
         "west": {
-          "texture": "#ring",
           "uv": [
-            2.5,
+            8,
             0,
-            13.5,
-            1.5
-          ]
-        },
-        "east": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            0,
-            13.5,
-            1.5
-          ]
+            12,
+            16
+          ],
+          "texture": "#fit"
         },
         "up": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
+            8,
+            0,
+            12,
+            16
+          ],
+          "texture": "#fit"
         },
         "down": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
+            8,
+            0,
+            12,
+            16
+          ],
+          "texture": "#fit"
         }
       }
     }

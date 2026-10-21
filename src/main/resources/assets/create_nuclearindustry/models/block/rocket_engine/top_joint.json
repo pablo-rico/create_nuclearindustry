@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_engine_hull"
+    "particle": "create_nuclearindustry:block/rocket_engine_skirt"
   },
   "elements": []
 }

@@ -1,7 +1,220 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_tank_hull"
+    "particle": "create_nuclearindustry:block/rocket_skin",
+    "skin": "create_nuclearindustry:block/rocket_skin",
+    "top": "create_nuclearindustry:block/rocket_skin_top",
+    "ring": "create_nuclearindustry:block/rocket_ring",
+    "deck": "create_nuclearindustry:block/rocket_deck",
+    "fit": "create_nuclearindustry:block/rocket_fittings",
+    "case": "create_nuclearindustry:block/rocket_solid_case",
+    "frost": "create_nuclearindustry:block/rocket_frost",
+    "edge": "create_nuclearindustry:block/rocket_frost_edge"
   },
-  "elements": []
+  "elements": [
+    {
+      "name": "aft bulkhead",
+      "from": [
+        4,
+        0,
+        2
+      ],
+      "to": [
+        12,
+        0.5,
+        14
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4,
+            2,
+            12,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        2,
+        0,
+        4
+      ],
+      "to": [
+        4,
+        0.5,
+        12
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            2,
+            4,
+            4,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        12,
+        0,
+        4
+      ],
+      "to": [
+        14,
+        0.5,
+        12
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            12,
+            4,
+            14,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        2.0858,
+        0,
+        2.7929
+      ],
+      "to": [
+        4.9142,
+        0.5,
+        4.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          0,
+          3.5
+        ]
+      },
+      "faces": {
+        "down": {
+          "uv": [
+            2,
+            2,
+            4,
+            4
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        11.0858,
+        0,
+        2.7929
+      ],
+      "to": [
+        13.9142,
+        0.5,
+        4.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          0,
+          3.5
+        ]
+      },
+      "faces": {
+        "down": {
+          "uv": [
+            12,
+            2,
+            14,
+            4
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        11.0858,
+        0,
+        11.7929
+      ],
+      "to": [
+        13.9142,
+        0.5,
+        13.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          0,
+          12.5
+        ]
+      },
+      "faces": {
+        "down": {
+          "uv": [
+            12,
+            12,
+            14,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        2.0858,
+        0,
+        11.7929
+      ],
+      "to": [
+        4.9142,
+        0.5,
+        13.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          0,
+          12.5
+        ]
+      },
+      "faces": {
+        "down": {
+          "uv": [
+            2,
+            12,
+            4,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    }
+  ]
 }

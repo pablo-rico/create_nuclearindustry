@@ -1,7 +1,223 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_tank_hull"
+    "particle": "create_nuclearindustry:block/rocket_frost",
+    "frost": "create_nuclearindustry:block/rocket_frost",
+    "edge": "create_nuclearindustry:block/rocket_frost_edge"
   },
-  "elements": []
+  "elements": [
+    {
+      "name": "frost",
+      "from": [
+        3.8965,
+        0,
+        1.75
+      ],
+      "to": [
+        12.1035,
+        16,
+        14.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.8965,
+            0,
+            12.1035,
+            16
+          ],
+          "texture": "#frost"
+        },
+        "south": {
+          "uv": [
+            3.8965,
+            0,
+            12.1035,
+            16
+          ],
+          "texture": "#frost"
+        }
+      }
+    },
+    {
+      "name": "frost",
+      "from": [
+        1.75,
+        0,
+        3.8965
+      ],
+      "to": [
+        3.8965,
+        16,
+        12.1035
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            3.8965,
+            0,
+            12.1035,
+            16
+          ],
+          "texture": "#frost"
+        }
+      }
+    },
+    {
+      "name": "frost",
+      "from": [
+        12.1035,
+        0,
+        3.8965
+      ],
+      "to": [
+        14.25,
+        16,
+        12.1035
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            3.8965,
+            0,
+            12.1035,
+            16
+          ],
+          "texture": "#frost"
+        }
+      }
+    },
+    {
+      "name": "frost",
+      "from": [
+        1.8421,
+        0,
+        2.601
+      ],
+      "to": [
+        4.8777,
+        16,
+        4.1188
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.3599,
+          0,
+          3.3599
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            12.1035,
+            0,
+            14.25,
+            16
+          ],
+          "texture": "#frost"
+        }
+      }
+    },
+    {
+      "name": "frost",
+      "from": [
+        11.1223,
+        0,
+        2.601
+      ],
+      "to": [
+        14.1579,
+        16,
+        4.1188
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.6401,
+          0,
+          3.3599
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1.75,
+            0,
+            3.8965,
+            16
+          ],
+          "texture": "#frost"
+        }
+      }
+    },
+    {
+      "name": "frost",
+      "from": [
+        11.1223,
+        0,
+        11.8812
+      ],
+      "to": [
+        14.1579,
+        16,
+        13.399
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.6401,
+          0,
+          12.6401
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            12.1035,
+            0,
+            14.25,
+            16
+          ],
+          "texture": "#frost"
+        }
+      }
+    },
+    {
+      "name": "frost",
+      "from": [
+        1.8421,
+        0,
+        11.8812
+      ],
+      "to": [
+        4.8777,
+        16,
+        13.399
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.3599,
+          0,
+          12.6401
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            1.75,
+            0,
+            3.8965,
+            16
+          ],
+          "texture": "#frost"
+        }
+      }
+    }
+  ]
 }

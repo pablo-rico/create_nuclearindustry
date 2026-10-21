@@ -1,215 +1,628 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_tank_hull",
-    "hull": "create_nuclearindustry:block/rocket_tank_hull",
-    "ring": "create_nuclearindustry:block/rocket_ring"
+    "particle": "create_nuclearindustry:block/rocket_skin",
+    "skin": "create_nuclearindustry:block/rocket_skin",
+    "top": "create_nuclearindustry:block/rocket_skin_top",
+    "ring": "create_nuclearindustry:block/rocket_ring",
+    "deck": "create_nuclearindustry:block/rocket_deck",
+    "fit": "create_nuclearindustry:block/rocket_fittings",
+    "case": "create_nuclearindustry:block/rocket_solid_case",
+    "frost": "create_nuclearindustry:block/rocket_frost",
+    "edge": "create_nuclearindustry:block/rocket_frost_edge"
   },
   "elements": [
     {
-      "name": "body",
+      "name": "barrel",
       "from": [
-        3,
+        4,
         0,
-        3
+        2
       ],
       "to": [
-        13,
+        12,
         16,
-        13
+        14
       ],
       "faces": {
         "north": {
-          "texture": "#hull",
           "uv": [
-            3,
+            4,
             0,
-            13,
+            12,
             16
-          ]
+          ],
+          "texture": "#skin"
         },
         "south": {
-          "texture": "#hull",
           "uv": [
-            3,
+            4,
             0,
-            13,
+            12,
             16
-          ]
-        },
-        "west": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            0,
-            13,
-            16
-          ]
-        },
-        "east": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            0,
-            13,
-            16
-          ]
-        },
-        "up": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            3,
-            13,
-            13
-          ]
-        },
-        "down": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            3,
-            13,
-            13
-          ]
+          ],
+          "texture": "#skin"
         }
       }
     },
     {
-      "name": "ring_low",
+      "name": "barrel",
       "from": [
-        2.5,
+        2,
         0,
-        2.5
+        4
       ],
       "to": [
-        13.5,
-        1.5,
-        13.5
+        4,
+        16,
+        12
       ],
       "faces": {
-        "north": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
-        },
-        "south": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
-        },
         "west": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            14.5,
-            13.5,
+            4,
+            0,
+            12,
             16
-          ]
-        },
-        "east": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
-        },
-        "up": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
-        },
-        "down": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
+          ],
+          "texture": "#skin"
         }
       }
     },
     {
-      "name": "ring_high",
+      "name": "barrel",
       "from": [
-        2.5,
-        14.5,
-        2.5
+        12,
+        0,
+        4
       ],
       "to": [
-        13.5,
+        14,
         16,
-        13.5
+        12
       ],
       "faces": {
-        "north": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            0,
-            13.5,
-            1.5
-          ]
-        },
-        "south": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            0,
-            13.5,
-            1.5
-          ]
-        },
-        "west": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            0,
-            13.5,
-            1.5
-          ]
-        },
         "east": {
-          "texture": "#ring",
           "uv": [
-            2.5,
+            4,
             0,
-            13.5,
-            1.5
-          ]
-        },
+            12,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "barrel",
+      "from": [
+        2.0858,
+        0,
+        2.7929
+      ],
+      "to": [
+        4.9142,
+        16,
+        4.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          0,
+          3.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            0,
+            14,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "barrel",
+      "from": [
+        11.0858,
+        0,
+        2.7929
+      ],
+      "to": [
+        13.9142,
+        16,
+        4.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          0,
+          3.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            4,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "barrel",
+      "from": [
+        11.0858,
+        0,
+        11.7929
+      ],
+      "to": [
+        13.9142,
+        16,
+        13.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          0,
+          12.5
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            12,
+            0,
+            14,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "barrel",
+      "from": [
+        2.0858,
+        0,
+        11.7929
+      ],
+      "to": [
+        4.9142,
+        16,
+        13.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          0,
+          12.5
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            2,
+            0,
+            4,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        15.5,
+        2
+      ],
+      "to": [
+        12,
+        16,
+        14
+      ],
+      "faces": {
         "up": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
-        },
+            4,
+            2,
+            12,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        15.5,
+        4
+      ],
+      "to": [
+        4,
+        16,
+        12
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            2,
+            4,
+            4,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        12,
+        15.5,
+        4
+      ],
+      "to": [
+        14,
+        16,
+        12
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            12,
+            4,
+            14,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        2.0858,
+        15.5,
+        2.7929
+      ],
+      "to": [
+        4.9142,
+        16,
+        4.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          15.5,
+          3.5
+        ]
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            2,
+            2,
+            4,
+            4
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        11.0858,
+        15.5,
+        2.7929
+      ],
+      "to": [
+        13.9142,
+        16,
+        4.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          15.5,
+          3.5
+        ]
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            12,
+            2,
+            14,
+            4
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        11.0858,
+        15.5,
+        11.7929
+      ],
+      "to": [
+        13.9142,
+        16,
+        13.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          15.5,
+          12.5
+        ]
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            12,
+            12,
+            14,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        2.0858,
+        15.5,
+        11.7929
+      ],
+      "to": [
+        4.9142,
+        16,
+        13.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          15.5,
+          12.5
+        ]
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            2,
+            12,
+            4,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        4,
+        0,
+        2
+      ],
+      "to": [
+        12,
+        0.5,
+        14
+      ],
+      "faces": {
         "down": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
+            4,
+            2,
+            12,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        2,
+        0,
+        4
+      ],
+      "to": [
+        4,
+        0.5,
+        12
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            2,
+            4,
+            4,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        12,
+        0,
+        4
+      ],
+      "to": [
+        14,
+        0.5,
+        12
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            12,
+            4,
+            14,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        2.0858,
+        0,
+        2.7929
+      ],
+      "to": [
+        4.9142,
+        0.5,
+        4.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          0,
+          3.5
+        ]
+      },
+      "faces": {
+        "down": {
+          "uv": [
+            2,
+            2,
+            4,
+            4
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        11.0858,
+        0,
+        2.7929
+      ],
+      "to": [
+        13.9142,
+        0.5,
+        4.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          0,
+          3.5
+        ]
+      },
+      "faces": {
+        "down": {
+          "uv": [
+            12,
+            2,
+            14,
+            4
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        11.0858,
+        0,
+        11.7929
+      ],
+      "to": [
+        13.9142,
+        0.5,
+        13.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          0,
+          12.5
+        ]
+      },
+      "faces": {
+        "down": {
+          "uv": [
+            12,
+            12,
+            14,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "aft bulkhead",
+      "from": [
+        2.0858,
+        0,
+        11.7929
+      ],
+      "to": [
+        4.9142,
+        0.5,
+        13.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          0,
+          12.5
+        ]
+      },
+      "faces": {
+        "down": {
+          "uv": [
+            2,
+            12,
+            4,
+            14
+          ],
+          "texture": "#top"
         }
       }
     }

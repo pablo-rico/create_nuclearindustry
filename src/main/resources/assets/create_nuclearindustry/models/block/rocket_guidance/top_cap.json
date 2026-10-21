@@ -1,7 +1,211 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_guidance_hull"
+    "particle": "create_nuclearindustry:block/rocket_guidance",
+    "skin": "create_nuclearindustry:block/rocket_guidance",
+    "band": "create_nuclearindustry:block/rocket_guidance_band",
+    "top": "create_nuclearindustry:block/rocket_skin_top",
+    "ring": "create_nuclearindustry:block/rocket_ring",
+    "deck": "create_nuclearindustry:block/rocket_deck",
+    "fit": "create_nuclearindustry:block/rocket_fittings"
   },
-  "elements": []
+  "elements": [
+    {
+      "from": [
+        4,
+        15.5,
+        2
+      ],
+      "to": [
+        12,
+        16,
+        14
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            4,
+            2,
+            12,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        15.5,
+        4
+      ],
+      "to": [
+        4,
+        16,
+        12
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            2,
+            4,
+            4,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        12,
+        15.5,
+        4
+      ],
+      "to": [
+        14,
+        16,
+        12
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            12,
+            4,
+            14,
+            12
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        2.0858,
+        15.5,
+        2.7929
+      ],
+      "to": [
+        4.9142,
+        16,
+        4.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          15.5,
+          3.5
+        ]
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            2,
+            2,
+            4,
+            4
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        11.0858,
+        15.5,
+        2.7929
+      ],
+      "to": [
+        13.9142,
+        16,
+        4.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          15.5,
+          3.5
+        ]
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            12,
+            2,
+            14,
+            4
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        11.0858,
+        15.5,
+        11.7929
+      ],
+      "to": [
+        13.9142,
+        16,
+        13.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          15.5,
+          12.5
+        ]
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            12,
+            12,
+            14,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        2.0858,
+        15.5,
+        11.7929
+      ],
+      "to": [
+        4.9142,
+        16,
+        13.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          15.5,
+          12.5
+        ]
+      },
+      "faces": {
+        "up": {
+          "uv": [
+            2,
+            12,
+            4,
+            14
+          ],
+          "texture": "#top"
+        }
+      }
+    }
+  ]
 }

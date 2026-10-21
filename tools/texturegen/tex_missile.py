@@ -6,11 +6,11 @@ Register block textures with ``@block``, items with ``@item`` and screens with `
 
 import math
 
-from blocks import block  # noqa: F401
+from blocks import SHEET_BLOCKS, block  # noqa: F401
 from common import bolt, casing, flange
 from gui import gui
 from items import item, mask_from, sculpt
-from palette import BRASS, CONCRETE, COPPER, CYAN, DANGER, DARK, IN_ACCENT, RADIUM, STEEL, WARN, WHITE
+from palette import BRASS, CONCRETE, COPPER, CYAN, DANGER, DARK, IN_ACCENT, MIMIC_BLUE, RADIUM, STEEL, WARN, WHITE
 from pixelkit import Ramp, Tex, bevel, brushed, fbm, glow, hazard, item_outline, mix, outline, shade
 
 
@@ -71,62 +71,465 @@ STAR_TRACKER = [
 
 
 # ======================================================================================
-# the silo controller and the rocket's sections: a painted hull, dark engine metal, a
-# concrete-and-steel console
+# the rocket's sections: one off-white fuselage twelve pixels across, stacked from engine
+# to payload. Cold War livery: no lettering, no roll marks; detail is geometry plus the
+# panel seams, welds, corrugations and bolt heads drawn here.
+#
+# Side faces are mapped one pixel a pixel from the block (u from the position across the
+# face, v = 16 - y), so every row of a body texture is a height in the block and stacked
+# sections line up. The 32x32 engine textures put two texels in each pixel.
 # ======================================================================================
 
+# The hull ramp other modules share (the fairing, the battery); the sections use PAINT below.
 HULL = Ramp("#6f7473", "#8c918e", "#a7aba6", "#c0c3bc", "#d6d8d0", "#e7e8e0", "#f5f5ee")
 
+# The sections' paint, a warm off-white; bare aluminium for corrugated and structural skin; the solid motor case's grey
+# steel; LOX frost; the nozzles' tube wall; the re-entry vehicles' heat shields.
+PAINT = Ramp("#4b4d49", "#6d6f69", "#8f918a", "#afb1a8", "#c9cac0", "#dcdbd1", "#ecebe2")
+ALU = Ramp("#363c40", "#4f575c", "#6b7378", "#899094", "#a6acad", "#c1c6c5", "#dadddb")
+CASE = Ramp("#292e2c", "#3a413e", "#4e5652", "#636c67", "#7a837d", "#929b94", "#adb5ad")
+FROST = Ramp("#6a7f93", "#8ea2b4", "#b0c2d0", "#cbd8e1", "#dfe7ed", "#edf2f5", "#fafcfd")
+TUBE = Ramp("#17191c", "#24282c", "#33393e", "#454c51", "#596166", "#70797d", "#8d969a")
+HEAT = Ramp("#2a1d1b", "#47302a", "#6a4632", "#8e5f3c", "#b07c48", "#c99a5c", "#e2be7e")
+HEAT_BLUE = Ramp("#1c2230", "#2a3346", "#3a4762", "#4f5e7e", "#6a7a98", "#8b99b2", "#b0bccd")
+RV_OLIVE = Ramp("#25291c", "#363d29", "#4a5237", "#5f6847", "#757f59", "#8d986f", "#a9b38b")
+ABLATIVE = Ramp("#261b15", "#3b2a20", "#523b2c", "#6a4d39", "#836148", "#9d795b", "#b99573")
+CARBON = Ramp("#0f1113", "#181b1e", "#23272a", "#30353a", "#41474b", "#565d62", "#71797d")
+RV_LEAD = Ramp("#26292b", "#363b3d", "#4a5052", "#5f6668", "#767d7e", "#8e9594", "#a9afac")
+GRAPHITE = Ramp("#141618", "#1e2124", "#2a2e32", "#373c41", "#474d52", "#5b6267", "#767d82")
+# The burnt-orange of a nozzle's injector seen down its throat.
+PLASMA_DIM = (90, 52, 34, 255)
+FOIL = Ramp("#4f350c", "#7a5414", "#a3741f", "#c69332", "#ddb04f", "#efcd79", "#fbe7ad")
 
-def _hull(t, seed):
-    """White-painted rocket skin: faint streaks down it, a seam either side."""
+SHEET_BLOCKS.update({name: (32, 32) for name in (
+    "rocket_engine_skirt", "rocket_engine_bell", "rocket_engine_exit", "rocket_engine_heatshield", "rocket_engine_parts",
+    "rocket_interstage")})
+
+
+def _skin(t, seed, ramp, base=0.66, amp=0.14, scale=4.0, x0=0, y0=0, x1=None, y1=None):
+    """Painted skin with a faint mottle; seamless, since the noise wraps."""
+    x1 = t.w - 1 if x1 is None else x1
+    y1 = t.h - 1 if y1 is None else y1
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            n = fbm(x, y, seed, t.w, t.h, octaves=2, scale=scale)
+            t.set(x, y, ramp.t(max(0.0, min(1.0, base + amp * (n - 0.5) * 2))))
+
+
+def _dim(t, x, y, f):
+    t.set(x, y, shade(t.get(x, y), f))
+
+
+@block("rocket_skin")
+def rocket_skin():
+    """The tanks' painted skin: faint stringers either side of each flat's middle and a girth weld at the top of each barrel
+    section (row 0), riveted under it."""
+    t = Tex(seed=940)
+    _skin(t, 940, PAINT)
     for y in range(16):
-        for x in range(16):
-            n = fbm(x, y, seed, 16, 16, octaves=2, scale=4.0)
-            t.set(x, y, HULL.t(0.62 + 0.18 * n))
-    for x in (0, 15):
-        t.vline(x, 0, 15, HULL[2])
-    for x in (4, 11):
-        t.vline(x, 0, 15, HULL[3])
-
-
-@block("rocket_tank_hull")
-def rocket_tank_hull():
-    """A propellant tank: painted skin, a welded belt with rivets and a black and white roll pattern."""
-    t = Tex(seed=930)
-    _hull(t, 930)
-    t.hline(0, 15, 7, HULL[2])
-    t.hline(0, 15, 8, HULL[5])
-    for x in range(1, 16, 3):
-        t.set(x, 7, HULL[1])
-    for y in range(1, 4):
-        for x in range(11, 14):
-            t.set(x, y, DARK[1])
-    for y in range(12, 15):
-        for x in range(2, 5):
-            t.set(x, y, DARK[1])
+        for x, f in ((5, 0.965), (6, 1.02), (9, 0.965), (10, 1.02), (2, 0.95), (13, 1.03)):
+            _dim(t, x, y, f)
+    for x in range(16):
+        _dim(t, x, 0, 0.9)
+        _dim(t, x, 1, 1.03)
+        if x % 3 == 1:
+            _dim(t, x, 2, 0.92)
     return t
 
 
-@block("rocket_engine_hull")
-def rocket_engine_hull():
-    """The engine bay: bare steel going blue and bronze with heat towards the nozzle."""
-    t = Tex(seed=931)
-    brushed(t, STEEL, base=3.0, amp=0.7, seed=931, axis="v")
-    for y in range(9, 16):
-        f = (y - 9) / 6
+@block("rocket_skin_top")
+def rocket_skin_top():
+    """A bulkhead seen from above or below: the dome's light falls off to its rim, a soft weld ring and a central fitting."""
+    t = Tex(seed=941)
+    for y in range(16):
         for x in range(16):
-            t.set(x, y, mix(t.get(x, y), BRASS[2] if (x + y) % 5 else COPPER[1], 0.25 + 0.35 * f))
-    t.hline(0, 15, 0, DARK[1])
-    t.hline(0, 15, 1, STEEL[5])
-    for x in (2, 7, 12):
-        bolt(t, x, 3, STEEL)
+            d = math.hypot(x + 0.5 - 8, y + 0.5 - 8)
+            n = fbm(x, y, 941, 16, 16, octaves=2, scale=4.0)
+            t.set(x, y, PAINT.t(max(0.0, min(1.0, 0.86 - d * 0.03 + 0.08 * (n - 0.5) - 0.015 * (x + y) / 4))))
+    t.ring(8, 8, 5.4, 4.7, PAINT[3])
+    t.rect(7, 7, 8, 8, STEEL[3])
+    t.set(7, 7, STEEL[5])
+    t.set(8, 8, STEEL[1])
+    return t
+
+
+@block("rocket_ring")
+def rocket_ring():
+    """The section rings, two rows a style (a ring two pixels tall shows one pair): rows 0-1 the joint ring between sections,
+    bare steel with its bolt heads; 2-3 a solid motor's clevis joint, case grey with pin heads; 4-5 the heavy thrust ring;
+    6-7 a white-painted stiffener; 8-15 plain steel for the faces nobody sees."""
+    t = Tex(seed=942)
+    styles = ((STEEL, 0.66, 0.38, 4, 1), (CASE, 0.6, 0.3, 3, 0), (DARK, 0.62, 0.34, 2, 1), (PAINT, 0.74, 0.5, 0, 0))
+    for i, (ramp, hi, lo, step, off) in enumerate(styles):
+        for x in range(16):
+            n = fbm(x, i, 942, 16, 16, octaves=2, scale=4.0)
+            t.set(x, 2 * i, ramp.t(hi + 0.1 * (n - 0.5)))
+            t.set(x, 2 * i + 1, ramp.t(lo + 0.1 * (n - 0.5)))
+        if step:
+            for x in range(off, 16, step):
+                t.set(x, 2 * i, ramp[6])
+                t.set(x, 2 * i + 1, ramp[1])
+    brushed(t, STEEL, 0, 8, 15, 15, base=3.2, amp=0.5, seed=943)
+    return t
+
+
+@block("rocket_deck")
+def rocket_deck():
+    """The top of a joint ring, where a narrower section stands on it: a steel separation deck, a bolt circle near its rim and
+    a radial web out from the middle."""
+    t = Tex(seed=944)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 944, 16, 16, octaves=2, scale=5.0)
+            t.set(x, y, STEEL.t(0.6 + 0.12 * (n - 0.5) - 0.02 * (x + y) / 6))
+    for i in range(2, 14):
+        _dim(t, i, i, 0.9)
+        _dim(t, i, 15 - i, 0.9)
+    t.ring(8, 8, 3.2, 2.4, STEEL[2])
+    for a in range(0, 360, 30):
+        bx, by = round(8 + 6.0 * math.cos(math.radians(a)) - 0.5), round(8 + 6.0 * math.sin(math.radians(a)) - 0.5)
+        t.set(bx, by, STEEL[6])
+    t.frame(0, 0, 15, 15, STEEL[2])
+    return t
+
+
+@block("rocket_solid_case")
+def rocket_solid_case():
+    """A solid motor's steel case: smooth grey, a faint lighter band where it is lit and a line of tie-down bolts low on each
+    segment (row 12)."""
+    t = Tex(seed=945)
+    _skin(t, 945, CASE, base=0.64, amp=0.12, scale=3.0)
+    for y in range(16):
+        for x, f in ((3, 1.05), (4, 1.06), (5, 1.04), (12, 0.94), (13, 0.92)):
+            _dim(t, x, y, f)
+    for x in range(1, 16, 3):
+        t.set(x, 12, CASE[6])
+        t.set(x, 13, CASE[1])
+    return t
+
+
+def _frost(t, seed, y0=0):
+    for y in range(y0, 16):
+        for x in range(16):
+            n = fbm(x, y, seed, 16, 16, octaves=3, scale=6.0)
+            t.set(x, y, FROST.t(max(0.0, min(1.0, 0.62 + 0.42 * (n - 0.5)))))
+    rng = t.rng
+    for y in range(y0, 16):
+        for x in range(16):
+            r = rng.random()
+            if r < 0.07:
+                t.set(x, y, FROST[6])
+            elif r < 0.1:
+                t.set(x, y, FROST[2])
+
+
+@block("rocket_frost")
+def rocket_frost():
+    """Frost on a cryogenic tank's wall below its liquid level: white-blue rime with a few glints; seamless."""
+    t = Tex(seed=946)
+    _frost(t, 946)
+    return t
+
+
+@block("rocket_frost_edge")
+def rocket_frost_edge():
+    """The frost's ragged top edge (rows 0-3, painted skin where the rime has not reached), frost below."""
+    t = Tex(seed=947)
+    _frost(t, 947)
+    for x in range(16):
+        h = int(fbm(x, 0, 947, 16, 16, octaves=2, scale=8.0) * 4.2)
+        for y in range(h):
+            t.set(x, y, PAINT.t(0.66 + 0.06 * fbm(x, y, 940, 16, 16)))
+        if h < 4:
+            t.set(x, h, FROST[3])
+    return t
+
+
+@block("rocket_fittings")
+def rocket_fittings():
+    """The small hardware, four columns a part: u 0-3 an aluminium feed line lit from the left with a flange every eight
+    rows; 4-7 the cable tunnel's ribbed cover; 8-11 dark steel brackets and braces; 12-15 four colour patches four rows each:
+    the fuel valve's red, the oxidiser's blue, brass, black rubber."""
+    t = Tex(seed=948)
+    for y in range(16):
+        for x, k in zip(range(4), (1, 5, 4, 2)):
+            t.set(x, y, ALU[k])
+        for x in range(4, 8):
+            t.set(x, y, PAINT[5] if y % 4 else PAINT[3])
+        t.set(4, y, shade(t.get(4, y), 0.93))
+        t.set(7, y, shade(t.get(7, y), 0.9))
+    for y in (0, 8):
+        for x in range(4):
+            t.set(x, y, ALU[6] if x == 1 else ALU[3])
+    brushed(t, DARK, 8, 0, 11, 15, base=3.0, amp=0.5, seed=949, axis="v")
+    for x in range(8, 12):
+        t.set(x, 0, DARK[5])
+    for i, ramp in enumerate((DANGER, MIMIC_BLUE, BRASS, DARK)):
+        for y in range(4 * i, 4 * i + 4):
+            for x in range(12, 16):
+                t.set(x, y, ramp[4 if (x + y) % 3 else 3] if ramp is not DARK else DARK[1])
+        t.set(12, 4 * i, ramp[6])
+    return t
+
+
+@block("rocket_guidance")
+def rocket_guidance():
+    """The guidance and control section: painted skin, an access door on each flat (u 5-10, rows 3-12) with its four
+    fasteners, and a rivet line round each end frame."""
+    t = Tex(seed=950)
+    _skin(t, 950, PAINT, base=0.7, amp=0.1)
+    x0, y0, x1, y1 = 5, 3, 10, 12
+    t.hline(x0, x1, y0, PAINT[3])
+    t.vline(x0, y0, y1, PAINT[3])
+    t.hline(x0 + 1, x1, y1, PAINT[6])
+    t.vline(x1, y0 + 1, y1, PAINT[6])
+    for x, y in ((x0 + 1, y0 + 1), (x1 - 1, y0 + 1), (x0 + 1, y1 - 1), (x1 - 1, y1 - 1)):
+        t.set(x, y, PAINT[2])
+    for x in range(0, 16, 2):
+        t.set(x, 1, PAINT[4])
+        t.set(x, 14, PAINT[4])
+    return t
+
+
+@block("rocket_guidance_band")
+def rocket_guidance_band():
+    """The avionics bay's radiator band: dark louvres, a slat every other row, broken every four columns."""
+    t = Tex(seed=951)
+    brushed(t, DARK, base=2.4, amp=0.4, seed=951)
+    for y in range(16):
+        for x in range(16):
+            if x % 4 == 3:
+                t.set(x, y, DARK[1])
+            elif y % 2 == 0:
+                t.set(x, y, DARK[4] if x % 4 else DARK[5])
+            else:
+                t.set(x, y, DARK[1])
+    return t
+
+
+def _rv(seed, ramp, tip, base=0.6, amp=0.16, scale=4.0):
+    """A re-entry vehicle's heat shield: rows 0-1 are its nose tip (``tip`` ramp), the rest the shield, darker towards the
+    nose where it would char."""
+    t = Tex(seed=seed)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, seed, 16, 16, octaves=2, scale=scale)
+            t.set(x, y, ramp.t(max(0.0, min(1.0, base + amp * (n - 0.5) * 2 - 0.12 * (15 - y) / 15 + 0.04 * (8 - x) / 8))))
+    for x in range(16):
+        t.set(x, 0, tip[5 if x < 8 else 4])
+        t.set(x, 1, tip[3 if x < 8 else 2])
+    return t
+
+
+@block("rocket_rv_conventional")
+def rocket_rv_conventional():
+    """The conventional warhead's blunt body: olive-drab painted steel, two panel lines."""
+    t = _rv(952, RV_OLIVE, STEEL)
+    for x in range(2, 16):
+        t.set(x, 6, RV_OLIVE[2])
+        t.set(x, 11, RV_OLIVE[2])
+        t.set(x, 12, RV_OLIVE[5])
+    for x in range(3, 16, 4):
+        t.set(x, 9, RV_OLIVE[1])
+    return t
+
+
+@block("rocket_rv_fission")
+def rocket_rv_fission():
+    """The fission RV: brown phenolic ablator, finely mottled, with a graphite nose."""
+    t = _rv(953, ABLATIVE, DARK, scale=8.0)
+    for y in range(2, 16):
+        for x in range(16):
+            if t.rng.random() < 0.08:
+                t.set(x, y, ABLATIVE[1])
+    return t
+
+
+@block("rocket_rv_thermonuclear")
+def rocket_rv_thermonuclear():
+    """The thermonuclear RV: black carbon-phenolic with a faint woven sheen and a bright metal nose tip."""
+    t = _rv(954, CARBON, STEEL, base=0.5, amp=0.1)
+    for y in range(2, 16):
+        for x in range(16):
+            if (x + 2 * y) % 5 == 0:
+                _dim(t, x, y, 1.15)
+    return t
+
+
+@block("rocket_rv_dirty")
+def rocket_rv_dirty():
+    """The dirty bomb's casing: heavy lead-grey cast with weld seams and a ring of bolts."""
+    t = _rv(955, RV_LEAD, RV_LEAD, base=0.58, amp=0.12)
+    for y in range(2, 16):
+        _dim(t, 7, y, 0.88)
+        _dim(t, 8, y, 1.08)
+    for x in range(1, 16, 3):
+        t.set(x, 4, RV_LEAD[6])
+        t.set(x, 5, RV_LEAD[1])
+    return t
+
+
+@block("rocket_rv_platform")
+def rocket_rv_platform():
+    """The payload's mounting platform and its fittings: machined steel, bolt holes and a darker bore."""
+    t = Tex(seed=956)
+    brushed(t, STEEL, base=3.6, amp=0.5, seed=956)
+    for x, y in ((2, 2), (12, 2), (2, 12), (12, 12), (7, 2), (2, 7), (12, 7), (7, 12)):
+        t.set(x, y, STEEL[1])
+        t.set(x + 1, y + 1, STEEL[6])
+    t.rect(6, 6, 9, 9, DARK[2])
+    t.rect(7, 7, 8, 8, DARK[0])
+    return t
+
+
+# -- the engines: 32x32 ------------------------------------------------------------------
+
+@block("rocket_engine_skirt")
+def rocket_engine_skirt():
+    """The thrust section's skin: corrugated aluminium (a crest every pixel), a stiffening ring every six pixels, lit from the
+    left."""
+    t = Tex(32, 32, 960)
+    for y in range(32):
+        for x in range(32):
+            n = fbm(x, y, 960, 32, 32, octaves=2, scale=4.0)
+            crest = (x % 2 == 0)
+            k = (0.7 if crest else 0.5) + 0.1 * (n - 0.5) - 0.05 * x / 31
+            t.set(x, y, ALU.t(max(0.0, min(1.0, k))))
+    for y0 in (0, 12, 24):
+        for x in range(32):
+            t.set(x, y0, ALU[2])
+            t.set(x, y0 + 1, ALU[6] if x % 6 else ALU[3])
+            t.set(x, y0 + 2, ALU[4])
+    return t
+
+
+@block("rocket_engine_bell")
+def rocket_engine_bell():
+    """A regeneratively cooled nozzle's tube wall, throat (row 0) to exit (row 31): brazed tubes two texels a tube, dark steel
+    going heat-blue then bronze towards the lip, a hat band every eight rows."""
+    t = Tex(32, 32, 961)
+    for y in range(32):
+        f = y / 31
+        for x in range(32):
+            n = fbm(x, y, 961, 32, 32, octaves=2, scale=6.0)
+            v = (0.6 if x % 2 == 0 else 0.34) + 0.12 * (n - 0.5)
+            c = TUBE.t(max(0.0, min(1.0, v)))
+            if f > 0.35:
+                c = mix(c, HEAT_BLUE.t(v), min(1.0, (f - 0.35) * 2.2) * 0.7)
+            if f > 0.7:
+                c = mix(c, HEAT.t(v + 0.1), (f - 0.7) * 2.4)
+            t.set(x, y, c)
+    for y in (7, 15, 23):
+        for x in range(32):
+            t.set(x, y, TUBE[5])
+            t.set(x, y + 1, TUBE[1])
+    for x in range(32):
+        t.set(x, 30, HEAT[6])
+        t.set(x, 31, HEAT[2])
+    return t
+
+
+@block("rocket_engine_exit")
+def rocket_engine_exit():
+    """A nozzle seen from below: the bronze lip, the sooty wall going darker to the throat, a dull glow of the injector deep
+    inside."""
+    t = Tex(32, 32, 962)
+    for y in range(32):
+        for x in range(32):
+            # Square-ish distance, since the bells are square slabs.
+            d = max(abs(x + 0.5 - 16), abs(y + 0.5 - 16)) * 0.55 + math.hypot(x + 0.5 - 16, y + 0.5 - 16) * 0.45
+            n = fbm(x, y, 962, 32, 32, octaves=2, scale=6.0)
+            if d > 14.5:
+                c = HEAT[5] if (x + y) % 2 else HEAT[4]
+            elif d > 13.5:
+                c = HEAT[1]
+            else:
+                c = TUBE.t(max(0.0, min(1.0, 0.1 + d / 13.5 * 0.5 + 0.1 * (n - 0.5))))
+                if (int(d) % 3 == 0):
+                    c = shade(c, 0.85)
+            t.set(x, y, c)
+    t.disc(16, 16, 3.2, HEAT[0])
+    t.disc(16, 16, 2.0, PLASMA_DIM)
+    t.disc(16, 16, 1.0, HEAT[3])
+    return t
+
+
+
+@block("rocket_engine_heatshield")
+def rocket_engine_heatshield():
+    """The base heat shield seen from below: quilted dark panels, stitched in squares of four pixels, sooted."""
+    t = Tex(32, 32, 963)
+    for y in range(32):
+        for x in range(32):
+            n = fbm(x, y, 963, 32, 32, octaves=3, scale=5.0)
+            lx, ly = x % 8, y % 8
+            v = 0.45 + 0.2 * (n - 0.5) + (0.12 if lx in (2, 3) and ly in (2, 3) else 0) - (0.08 if lx > 4 and ly > 4 else 0)
+            t.set(x, y, mix(DARK.t(v), HEAT[2], 0.18))
+            if lx == 7 or ly == 7:
+                t.set(x, y, DARK[0])
+    return t
+
+
+@block("rocket_engine_parts")
+def rocket_engine_parts():
+    """The engine's hardware, a quarter each: top left the engine fairings' riveted aluminium; top right the hold-down posts'
+    forged dark steel with bolts; bottom left the turbopump's brass castings; bottom right the chambers' and feed lines'
+    steel."""
+    t = Tex(32, 32, 964)
+    for y in range(16):
+        for x in range(16):
+            n = fbm(x, y, 964, 32, 32, octaves=2, scale=4.0)
+            t.set(x, y, ALU.t(0.66 + 0.12 * (n - 0.5) - 0.12 * x / 15))
+    for y in range(1, 16, 4):
+        for x in range(1, 16, 2):
+            t.set(x, y, ALU[6])
+    for x in range(16):
+        t.set(x, 0, ALU[3])
+    brushed(t, DARK, 16, 0, 31, 15, base=3.2, amp=0.5, seed=965, axis="v")
+    for x in range(16, 32):
+        t.set(x, 0, DARK[6])
+        t.set(x, 15, DARK[0])
+    for x, y in ((18, 3), (28, 3), (18, 11), (28, 11), (23, 7)):
+        bolt(t, x, y, DARK)
+    brushed(t, BRASS, 0, 16, 15, 31, base=3.4, amp=0.7, seed=966)
+    for y in (19, 24, 29):
+        for x in range(16):
+            t.set(x, y, BRASS[1])
+            t.set(x, y - 1, BRASS[5])
+    brushed(t, STEEL, 16, 16, 31, 31, base=3.0, amp=0.6, seed=967, axis="v")
+    for y in (20, 27):
+        for x in range(16, 32):
+            t.set(x, y, STEEL[6])
+            t.set(x, y + 1, STEEL[1])
+    return t
+
+
+@block("rocket_interstage")
+def rocket_interstage():
+    """The interstage's frame members: white-painted aluminium extrusions with a rivet line down their middle and a darker
+    edge, lit from the left."""
+    t = Tex(32, 32, 965)
+    for y in range(32):
+        for x in range(32):
+            n = fbm(x, y, 965, 32, 32, octaves=2, scale=4.0)
+            t.set(x, y, PAINT.t(0.64 + 0.1 * (n - 0.5) - 0.08 * (x % 8) / 7))
+    for y in range(32):
+        for x in range(0, 32, 8):
+            t.set(x, y, PAINT[6])
+            t.set(x + 7, y, PAINT[2])
+        if y % 3 == 0:
+            for x in range(3, 32, 8):
+                t.set(x, y, PAINT[3])
+    for x in range(32):
+        if x % 8 not in (0, 7):
+            t.set(x, 0, PAINT[6])
+            t.set(x, 31, PAINT[2])
     return t
 
 
 @block("rocket_engine_nozzle")
 def rocket_engine_nozzle():
-    """Nozzle and fins' metal: dark, sooty, scorched."""
+    """Dark, sooty, scorched metal: the interceptor round's fins and nozzle (``models/entity/interceptor_round.json``)."""
     t = Tex(seed=932)
     brushed(t, DARK, base=1.8, amp=0.6, seed=932)
     for y in range(16):
@@ -137,60 +540,6 @@ def rocket_engine_nozzle():
     outline(t, 0, 0, 15, 15, DARK[0])
     return t
 
-
-@block("rocket_ring")
-def rocket_ring():
-    """The joint rings between sections: dark steel bolted all round."""
-    t = Tex(seed=933)
-    brushed(t, DARK, base=2.6, amp=0.5, seed=933)
-    t.hline(0, 15, 0, DARK[5])
-    t.hline(0, 15, 15, DARK[0])
-    for x in range(1, 16, 4):
-        bolt(t, x, 6, DARK)
-    return t
-
-
-@block("rocket_guidance_hull")
-def rocket_guidance_hull():
-    """The guidance bay: painted skin with an access hatch and a small star window."""
-    t = Tex(seed=934)
-    _hull(t, 934)
-    outline(t, 3, 2, 12, 13, HULL[1])
-    t.hline(4, 11, 3, HULL[6])
-    for x, y in ((4, 4), (11, 4), (4, 12), (11, 12)):
-        t.set(x, y, STEEL[2])
-    t.rect(6, 6, 9, 9, DARK[0])
-    t.set(7, 7, CYAN[5])
-    t.set(8, 8, CYAN[3])
-    return t
-
-
-@block("rocket_guidance_band")
-def rocket_guidance_band():
-    """The avionics band round the guidance bay: dark panels and status lights."""
-    t = Tex(seed=935)
-    brushed(t, DARK, base=2.2, amp=0.4, seed=935)
-    t.hline(0, 15, 4, DARK[5])
-    t.hline(0, 15, 11, DARK[0])
-    for i, x in enumerate(range(1, 16, 3)):
-        t.set(x, 7, (CYAN[5], WARN[4], CYAN[4], DANGER[4], CYAN[5], WARN[3])[i % 6])
-        t.set(x, 8, DARK[0])
-    return t
-
-
-@block("rocket_warhead_cone")
-def rocket_warhead_cone():
-    """The re-entry body: olive-grey ablative skin, a red band and a yellow stencil line."""
-    t = Tex(seed=936)
-    for y in range(16):
-        for x in range(16):
-            n = fbm(x, y, 936, 16, 16, octaves=2, scale=4.0)
-            t.set(x, y, mix(CONCRETE.t(0.45 + 0.2 * n), RADIUM[1], 0.25))
-    t.hline(0, 15, 12, DANGER[2])
-    t.hline(0, 15, 13, DANGER[3])
-    t.hline(0, 15, 14, DANGER[1])
-    t.hline(2, 9, 9, WARN[4])
-    return t
 
 
 @item("star_tracker")

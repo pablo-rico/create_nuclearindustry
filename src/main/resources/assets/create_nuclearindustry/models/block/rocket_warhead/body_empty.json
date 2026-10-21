@@ -1,422 +1,1118 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_warhead_cone",
-    "cone": "create_nuclearindustry:block/rocket_warhead_cone",
-    "ring": "create_nuclearindustry:block/rocket_ring"
+    "particle": "create_nuclearindustry:block/rocket_rv_fission",
+    "ring": "create_nuclearindustry:block/rocket_ring",
+    "deck": "create_nuclearindustry:block/rocket_deck",
+    "plat": "create_nuclearindustry:block/rocket_rv_platform",
+    "conv": "create_nuclearindustry:block/rocket_rv_conventional",
+    "fis": "create_nuclearindustry:block/rocket_rv_fission",
+    "thermo": "create_nuclearindustry:block/rocket_rv_thermonuclear",
+    "dirty": "create_nuclearindustry:block/rocket_rv_dirty",
+    "base": "create_nuclearindustry:block/rocket_rv_platform"
   },
   "elements": [
     {
-      "name": "ring",
+      "name": "mounting cone",
       "from": [
-        2.5,
-        0,
-        2.5
+        6.55,
+        2,
+        5.75
       ],
       "to": [
-        13.5,
-        1.5,
-        13.5
-      ],
-      "faces": {
-        "north": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
-        },
-        "south": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
-        },
-        "west": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
-        },
-        "east": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
-        },
-        "up": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
-        },
-        "down": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
-        }
-      }
-    },
-    {
-      "name": "base",
-      "from": [
+        9.45,
         3,
-        1.5,
-        3
-      ],
-      "to": [
-        13,
-        6,
-        13
+        10.25
       ],
       "faces": {
         "north": {
-          "texture": "#cone",
           "uv": [
-            3,
-            10,
+            6.55,
             13,
-            14.5
-          ]
+            9.45,
+            14
+          ],
+          "texture": "#plat"
         },
         "south": {
-          "texture": "#cone",
           "uv": [
-            3,
-            10,
+            6.55,
             13,
-            14.5
-          ]
-        },
-        "west": {
-          "texture": "#cone",
-          "uv": [
-            3,
-            10,
-            13,
-            14.5
-          ]
-        },
-        "east": {
-          "texture": "#cone",
-          "uv": [
-            3,
-            10,
-            13,
-            14.5
-          ]
+            9.45,
+            14
+          ],
+          "texture": "#plat"
         },
         "up": {
-          "texture": "#cone",
           "uv": [
-            3,
-            3,
+            6.55,
+            5.75,
+            9.45,
+            10.25
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "mounting cone",
+      "from": [
+        5.75,
+        2,
+        6.55
+      ],
+      "to": [
+        6.55,
+        3,
+        9.45
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            6.55,
             13,
+            9.45,
+            14
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            5.75,
+            6.55,
+            6.55,
+            9.45
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "mounting cone",
+      "from": [
+        9.45,
+        2,
+        6.55
+      ],
+      "to": [
+        10.25,
+        3,
+        9.45
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            6.55,
+            13,
+            9.45,
+            14
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            9.45,
+            6.55,
+            10.25,
+            9.45
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "mounting cone",
+      "from": [
+        5.7843,
+        2,
+        6.0672
+      ],
+      "to": [
+        6.9157,
+        3,
+        6.6328
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6.35,
+          2,
+          6.35
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.45,
+            13,
+            10.25,
+            14
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            5.75,
+            5.75,
+            6.55,
+            6.55
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "mounting cone",
+      "from": [
+        9.0843,
+        2,
+        6.0672
+      ],
+      "to": [
+        10.2157,
+        3,
+        6.6328
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          9.65,
+          2,
+          6.35
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5.75,
+            13,
+            6.55,
+            14
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            9.45,
+            5.75,
+            10.25,
+            6.55
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "mounting cone",
+      "from": [
+        9.0843,
+        2,
+        9.3672
+      ],
+      "to": [
+        10.2157,
+        3,
+        9.9328
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          9.65,
+          2,
+          9.65
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            9.45,
+            13,
+            10.25,
+            14
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            9.45,
+            9.45,
+            10.25,
+            10.25
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "mounting cone",
+      "from": [
+        5.7843,
+        2,
+        9.3672
+      ],
+      "to": [
+        6.9157,
+        3,
+        9.9328
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          6.35,
+          2,
+          9.65
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            5.75,
+            13,
+            6.55,
+            14
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            5.75,
+            9.45,
+            6.55,
+            10.25
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "mounting cone",
+      "from": [
+        7.1,
+        3,
+        6.6
+      ],
+      "to": [
+        8.9,
+        4.5,
+        9.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.1,
+            11.5,
+            8.9,
             13
-          ]
+          ],
+          "texture": "#plat"
         },
-        "down": {
-          "texture": "#cone",
+        "south": {
           "uv": [
-            3,
-            3,
-            13,
+            7.1,
+            11.5,
+            8.9,
             13
-          ]
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            7.1,
+            6.6,
+            8.9,
+            9.4
+          ],
+          "texture": "#plat"
         }
       }
     },
     {
-      "name": "shoulder",
+      "name": "mounting cone",
       "from": [
-        4,
-        6,
-        4
+        6.6,
+        3,
+        7.1
       ],
       "to": [
-        12,
-        10,
-        12
+        7.1,
+        4.5,
+        8.9
       ],
       "faces": {
-        "north": {
-          "texture": "#cone",
-          "uv": [
-            4,
-            6,
-            12,
-            10
-          ]
-        },
-        "south": {
-          "texture": "#cone",
-          "uv": [
-            4,
-            6,
-            12,
-            10
-          ]
-        },
         "west": {
-          "texture": "#cone",
           "uv": [
-            4,
-            6,
-            12,
-            10
-          ]
-        },
-        "east": {
-          "texture": "#cone",
-          "uv": [
-            4,
-            6,
-            12,
-            10
-          ]
+            7.1,
+            11.5,
+            8.9,
+            13
+          ],
+          "texture": "#plat"
         },
         "up": {
-          "texture": "#cone",
           "uv": [
-            4,
-            4,
-            12,
-            12
-          ]
-        },
-        "down": {
-          "texture": "#cone",
-          "uv": [
-            4,
-            4,
-            12,
-            12
-          ]
+            6.6,
+            7.1,
+            7.1,
+            8.9
+          ],
+          "texture": "#plat"
         }
       }
     },
     {
-      "name": "ogive",
+      "name": "mounting cone",
       "from": [
-        5,
-        10,
-        5
+        8.9,
+        3,
+        7.1
       ],
       "to": [
-        11,
-        13,
-        11
+        9.4,
+        4.5,
+        8.9
       ],
       "faces": {
-        "north": {
-          "texture": "#cone",
-          "uv": [
-            5,
-            3,
-            11,
-            6
-          ]
-        },
-        "south": {
-          "texture": "#cone",
-          "uv": [
-            5,
-            3,
-            11,
-            6
-          ]
-        },
-        "west": {
-          "texture": "#cone",
-          "uv": [
-            5,
-            3,
-            11,
-            6
-          ]
-        },
         "east": {
-          "texture": "#cone",
           "uv": [
-            5,
-            3,
-            11,
-            6
-          ]
+            7.1,
+            11.5,
+            8.9,
+            13
+          ],
+          "texture": "#plat"
         },
         "up": {
-          "texture": "#cone",
           "uv": [
-            5,
-            5,
-            11,
-            11
-          ]
-        },
-        "down": {
-          "texture": "#cone",
-          "uv": [
-            5,
-            5,
-            11,
-            11
-          ]
+            8.9,
+            7.1,
+            9.4,
+            8.9
+          ],
+          "texture": "#plat"
         }
       }
     },
     {
-      "name": "tip",
+      "name": "mounting cone",
       "from": [
-        6,
-        13,
-        6
+        6.6214,
+        3,
+        6.7982
       ],
       "to": [
-        10,
-        15.5,
-        10
+        7.3286,
+        4.5,
+        7.1518
       ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6.975,
+          3,
+          6.975
+        ]
+      },
       "faces": {
         "north": {
-          "texture": "#cone",
           "uv": [
-            6,
-            0.5,
-            10,
-            3
-          ]
-        },
-        "south": {
-          "texture": "#cone",
-          "uv": [
-            6,
-            0.5,
-            10,
-            3
-          ]
-        },
-        "west": {
-          "texture": "#cone",
-          "uv": [
-            6,
-            0.5,
-            10,
-            3
-          ]
-        },
-        "east": {
-          "texture": "#cone",
-          "uv": [
-            6,
-            0.5,
-            10,
-            3
-          ]
+            8.9,
+            11.5,
+            9.4,
+            13
+          ],
+          "texture": "#plat"
         },
         "up": {
-          "texture": "#cone",
           "uv": [
-            6,
-            6,
-            10,
-            10
-          ]
-        },
-        "down": {
-          "texture": "#cone",
-          "uv": [
-            6,
-            6,
-            10,
-            10
-          ]
+            6.6,
+            6.6,
+            7.1,
+            7.1
+          ],
+          "texture": "#plat"
         }
       }
     },
     {
-      "name": "point",
+      "name": "mounting cone",
       "from": [
-        7,
-        15.5,
-        7
+        8.6714,
+        3,
+        6.7982
       ],
       "to": [
-        9,
-        16,
-        9
+        9.3786,
+        4.5,
+        7.1518
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          9.025,
+          3,
+          6.975
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            6.6,
+            11.5,
+            7.1,
+            13
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            8.9,
+            6.6,
+            9.4,
+            7.1
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "mounting cone",
+      "from": [
+        8.6714,
+        3,
+        8.8482
+      ],
+      "to": [
+        9.3786,
+        4.5,
+        9.2018
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          9.025,
+          3,
+          9.025
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            8.9,
+            11.5,
+            9.4,
+            13
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            8.9,
+            8.9,
+            9.4,
+            9.4
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "mounting cone",
+      "from": [
+        6.6214,
+        3,
+        8.8482
+      ],
+      "to": [
+        7.3286,
+        4.5,
+        9.2018
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          6.975,
+          3,
+          9.025
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            6.6,
+            11.5,
+            7.1,
+            13
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            6.6,
+            8.9,
+            7.1,
+            9.4
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "RV pad",
+      "from": [
+        7.25,
+        2,
+        2.75
+      ],
+      "to": [
+        8.75,
+        3.25,
+        4.25
       ],
       "faces": {
         "north": {
-          "texture": "#ring",
           "uv": [
-            7,
-            0,
-            9,
-            0.5
-          ]
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
         },
         "south": {
-          "texture": "#ring",
           "uv": [
-            7,
-            0,
-            9,
-            0.5
-          ]
-        },
-        "west": {
-          "texture": "#ring",
-          "uv": [
-            7,
-            0,
-            9,
-            0.5
-          ]
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
         },
         "east": {
-          "texture": "#ring",
           "uv": [
-            7,
-            0,
-            9,
-            0.5
-          ]
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "west": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
         },
         "up": {
-          "texture": "#ring",
           "uv": [
-            7,
-            7,
-            9,
-            9
-          ]
+            6,
+            6,
+            7.5,
+            7.5
+          ],
+          "texture": "#plat"
         },
         "down": {
-          "texture": "#ring",
           "uv": [
-            7,
-            7,
-            9,
-            9
-          ]
+            6,
+            6,
+            7.5,
+            7.5
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "RV pad",
+      "from": [
+        7.25,
+        2,
+        11.75
+      ],
+      "to": [
+        8.75,
+        3.25,
+        13.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "south": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "east": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "west": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.5
+          ],
+          "texture": "#plat"
+        },
+        "down": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.5
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "RV pad",
+      "from": [
+        2.75,
+        2,
+        7.25
+      ],
+      "to": [
+        4.25,
+        3.25,
+        8.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "south": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "east": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "west": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.5
+          ],
+          "texture": "#plat"
+        },
+        "down": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.5
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "RV pad",
+      "from": [
+        11.75,
+        2,
+        7.25
+      ],
+      "to": [
+        13.25,
+        3.25,
+        8.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "south": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "east": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "west": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.25
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.5
+          ],
+          "texture": "#plat"
+        },
+        "down": {
+          "uv": [
+            6,
+            6,
+            7.5,
+            7.5
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "bolt",
+      "from": [
+        4.6,
+        2,
+        4.6
+      ],
+      "to": [
+        5.4,
+        2.5,
+        5.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.8
+          ],
+          "texture": "#plat"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.8
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "bolt",
+      "from": [
+        10.6,
+        2,
+        4.6
+      ],
+      "to": [
+        11.4,
+        2.5,
+        5.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.8
+          ],
+          "texture": "#plat"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.8
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "bolt",
+      "from": [
+        4.6,
+        2,
+        10.6
+      ],
+      "to": [
+        5.4,
+        2.5,
+        11.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.8
+          ],
+          "texture": "#plat"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.8
+          ],
+          "texture": "#plat"
+        }
+      }
+    },
+    {
+      "name": "bolt",
+      "from": [
+        10.6,
+        2,
+        10.6
+      ],
+      "to": [
+        11.4,
+        2.5,
+        11.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.5
+          ],
+          "texture": "#plat"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.8
+          ],
+          "texture": "#plat"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            0.8,
+            0.8
+          ],
+          "texture": "#plat"
         }
       }
     }

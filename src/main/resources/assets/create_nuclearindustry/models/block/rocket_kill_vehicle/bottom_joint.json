@@ -1,7 +1,354 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_kill_vehicle_hull"
+    "particle": "create_nuclearindustry:block/rocket_kill_vehicle_hull",
+    "kv": "create_nuclearindustry:block/rocket_kill_vehicle_hull",
+    "seeker": "create_nuclearindustry:block/rocket_kill_vehicle_seeker",
+    "ring": "create_nuclearindustry:block/rocket_ring",
+    "deck": "create_nuclearindustry:block/rocket_deck",
+    "exit": "create_nuclearindustry:block/rocket_engine_exit",
+    "fit": "create_nuclearindustry:block/rocket_fittings",
+    "base": "create_nuclearindustry:block/rocket_rv_platform"
   },
-  "elements": []
+  "elements": [
+    {
+      "name": "joint",
+      "from": [
+        3.793,
+        0,
+        1.5
+      ],
+      "to": [
+        12.207,
+        2,
+        14.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.793,
+            0,
+            12.207,
+            2
+          ],
+          "texture": "#ring"
+        },
+        "south": {
+          "uv": [
+            3.793,
+            0,
+            12.207,
+            2
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            3.793,
+            1.5,
+            12.207,
+            14.5
+          ],
+          "texture": "#deck"
+        },
+        "down": {
+          "uv": [
+            3.793,
+            1.5,
+            12.207,
+            14.5
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "joint",
+      "from": [
+        1.5,
+        0,
+        3.793
+      ],
+      "to": [
+        3.793,
+        2,
+        12.207
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            3.793,
+            0,
+            12.207,
+            2
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            1.5,
+            3.793,
+            3.793,
+            12.207
+          ],
+          "texture": "#deck"
+        },
+        "down": {
+          "uv": [
+            1.5,
+            3.793,
+            3.793,
+            12.207
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "joint",
+      "from": [
+        12.207,
+        0,
+        3.793
+      ],
+      "to": [
+        14.5,
+        2,
+        12.207
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            3.793,
+            0,
+            12.207,
+            2
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            12.207,
+            3.793,
+            14.5,
+            12.207
+          ],
+          "texture": "#deck"
+        },
+        "down": {
+          "uv": [
+            12.207,
+            3.793,
+            14.5,
+            12.207
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "joint",
+      "from": [
+        1.5984,
+        0,
+        2.4091
+      ],
+      "to": [
+        4.8411,
+        2,
+        4.0304
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.2198,
+          0,
+          3.2198
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            12.207,
+            0,
+            14.5,
+            2
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            1.5,
+            1.5,
+            3.793,
+            3.793
+          ],
+          "texture": "#deck"
+        },
+        "down": {
+          "uv": [
+            1.5,
+            1.5,
+            3.793,
+            3.793
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "joint",
+      "from": [
+        11.1589,
+        0,
+        2.4091
+      ],
+      "to": [
+        14.4016,
+        2,
+        4.0304
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.7802,
+          0,
+          3.2198
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1.5,
+            0,
+            3.793,
+            2
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            12.207,
+            1.5,
+            14.5,
+            3.793
+          ],
+          "texture": "#deck"
+        },
+        "down": {
+          "uv": [
+            12.207,
+            1.5,
+            14.5,
+            3.793
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "joint",
+      "from": [
+        11.1589,
+        0,
+        11.9696
+      ],
+      "to": [
+        14.4016,
+        2,
+        13.5909
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.7802,
+          0,
+          12.7802
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            12.207,
+            0,
+            14.5,
+            2
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            12.207,
+            12.207,
+            14.5,
+            14.5
+          ],
+          "texture": "#deck"
+        },
+        "down": {
+          "uv": [
+            12.207,
+            12.207,
+            14.5,
+            14.5
+          ],
+          "texture": "#ring"
+        }
+      }
+    },
+    {
+      "name": "joint",
+      "from": [
+        1.5984,
+        0,
+        11.9696
+      ],
+      "to": [
+        4.8411,
+        2,
+        13.5909
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.2198,
+          0,
+          12.7802
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            1.5,
+            0,
+            3.793,
+            2
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            1.5,
+            12.207,
+            3.793,
+            14.5
+          ],
+          "texture": "#deck"
+        },
+        "down": {
+          "uv": [
+            1.5,
+            12.207,
+            3.793,
+            14.5
+          ],
+          "texture": "#ring"
+        }
+      }
+    }
+  ]
 }

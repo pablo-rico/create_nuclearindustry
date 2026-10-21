@@ -1,423 +1,3967 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_engine_hull",
-    "hull": "create_nuclearindustry:block/rocket_engine_hull",
-    "nozzle": "create_nuclearindustry:block/rocket_engine_nozzle",
-    "ring": "create_nuclearindustry:block/rocket_ring"
+    "particle": "create_nuclearindustry:block/rocket_engine_skirt",
+    "skirt": "create_nuclearindustry:block/rocket_engine_skirt",
+    "bell": "create_nuclearindustry:block/rocket_engine_bell",
+    "exit": "create_nuclearindustry:block/rocket_engine_exit",
+    "shield": "create_nuclearindustry:block/rocket_engine_heatshield",
+    "parts": "create_nuclearindustry:block/rocket_engine_parts",
+    "inter": "create_nuclearindustry:block/rocket_interstage",
+    "ring": "create_nuclearindustry:block/rocket_ring",
+    "deck": "create_nuclearindustry:block/rocket_deck",
+    "skin": "create_nuclearindustry:block/rocket_skin",
+    "top": "create_nuclearindustry:block/rocket_skin_top"
   },
   "elements": [
     {
-      "name": "bay",
+      "name": "thrust section",
       "from": [
-        3,
-        6,
-        3
+        4,
+        10,
+        2
       ],
       "to": [
-        13,
+        12,
         16,
-        13
+        14
       ],
       "faces": {
         "north": {
-          "texture": "#hull",
           "uv": [
-            3,
+            4,
             0,
-            13,
-            10
-          ]
+            12,
+            6
+          ],
+          "texture": "#skirt"
         },
         "south": {
-          "texture": "#hull",
           "uv": [
-            3,
+            4,
             0,
-            13,
-            10
-          ]
-        },
-        "west": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            0,
-            13,
-            10
-          ]
-        },
-        "east": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            0,
-            13,
-            10
-          ]
-        },
-        "up": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            3,
-            13,
-            13
-          ]
-        },
-        "down": {
-          "texture": "#hull",
-          "uv": [
-            3,
-            3,
-            13,
-            13
-          ]
+            12,
+            6
+          ],
+          "texture": "#skirt"
         }
       }
     },
     {
-      "name": "ring",
+      "name": "thrust section",
+      "from": [
+        2,
+        10,
+        4
+      ],
+      "to": [
+        4,
+        16,
+        12
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            4,
+            0,
+            12,
+            6
+          ],
+          "texture": "#skirt"
+        }
+      }
+    },
+    {
+      "name": "thrust section",
+      "from": [
+        12,
+        10,
+        4
+      ],
+      "to": [
+        14,
+        16,
+        12
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            4,
+            0,
+            12,
+            6
+          ],
+          "texture": "#skirt"
+        }
+      }
+    },
+    {
+      "name": "thrust section",
+      "from": [
+        2.0858,
+        10,
+        2.7929
+      ],
+      "to": [
+        4.9142,
+        16,
+        4.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          10,
+          3.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            0,
+            14,
+            6
+          ],
+          "texture": "#skirt"
+        }
+      }
+    },
+    {
+      "name": "thrust section",
+      "from": [
+        11.0858,
+        10,
+        2.7929
+      ],
+      "to": [
+        13.9142,
+        16,
+        4.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          10,
+          3.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            4,
+            6
+          ],
+          "texture": "#skirt"
+        }
+      }
+    },
+    {
+      "name": "thrust section",
+      "from": [
+        11.0858,
+        10,
+        11.7929
+      ],
+      "to": [
+        13.9142,
+        16,
+        13.2071
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.5,
+          10,
+          12.5
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            12,
+            0,
+            14,
+            6
+          ],
+          "texture": "#skirt"
+        }
+      }
+    },
+    {
+      "name": "thrust section",
+      "from": [
+        2.0858,
+        10,
+        11.7929
+      ],
+      "to": [
+        4.9142,
+        16,
+        13.2071
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.5,
+          10,
+          12.5
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            2,
+            0,
+            4,
+            6
+          ],
+          "texture": "#skirt"
+        }
+      }
+    },
+    {
+      "name": "thrust ring",
+      "from": [
+        3.8344,
+        9,
+        1.6
+      ],
+      "to": [
+        12.1656,
+        10.5,
+        14.4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.8344,
+            4,
+            12.1656,
+            5.5
+          ],
+          "texture": "#ring"
+        },
+        "south": {
+          "uv": [
+            3.8344,
+            4,
+            12.1656,
+            5.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            3.8344,
+            1.6,
+            12.1656,
+            14.4
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            3.8344,
+            1.6,
+            12.1656,
+            14.4
+          ],
+          "texture": "#shield"
+        }
+      }
+    },
+    {
+      "name": "thrust ring",
+      "from": [
+        1.6,
+        9,
+        3.8344
+      ],
+      "to": [
+        3.8344,
+        10.5,
+        12.1656
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            3.8344,
+            4,
+            12.1656,
+            5.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            1.6,
+            3.8344,
+            3.8344,
+            12.1656
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            1.6,
+            3.8344,
+            3.8344,
+            12.1656
+          ],
+          "texture": "#shield"
+        }
+      }
+    },
+    {
+      "name": "thrust ring",
+      "from": [
+        12.1656,
+        9,
+        3.8344
+      ],
+      "to": [
+        14.4,
+        10.5,
+        12.1656
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            3.8344,
+            4,
+            12.1656,
+            5.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            12.1656,
+            3.8344,
+            14.4,
+            12.1656
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            12.1656,
+            3.8344,
+            14.4,
+            12.1656
+          ],
+          "texture": "#shield"
+        }
+      }
+    },
+    {
+      "name": "thrust ring",
+      "from": [
+        1.6958,
+        9,
+        2.4858
+      ],
+      "to": [
+        4.8558,
+        10.5,
+        4.0658
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          3.2758,
+          9,
+          3.2758
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            12.1656,
+            4,
+            14.4,
+            5.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            1.6,
+            1.6,
+            3.8344,
+            3.8344
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            1.6,
+            1.6,
+            3.8344,
+            3.8344
+          ],
+          "texture": "#shield"
+        }
+      }
+    },
+    {
+      "name": "thrust ring",
+      "from": [
+        11.1442,
+        9,
+        2.4858
+      ],
+      "to": [
+        14.3042,
+        10.5,
+        4.0658
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          12.7242,
+          9,
+          3.2758
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1.6,
+            4,
+            3.8344,
+            5.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            12.1656,
+            1.6,
+            14.4,
+            3.8344
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            12.1656,
+            1.6,
+            14.4,
+            3.8344
+          ],
+          "texture": "#shield"
+        }
+      }
+    },
+    {
+      "name": "thrust ring",
+      "from": [
+        11.1442,
+        9,
+        11.9342
+      ],
+      "to": [
+        14.3042,
+        10.5,
+        13.5142
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          12.7242,
+          9,
+          12.7242
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            12.1656,
+            4,
+            14.4,
+            5.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            12.1656,
+            12.1656,
+            14.4,
+            14.4
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            12.1656,
+            12.1656,
+            14.4,
+            14.4
+          ],
+          "texture": "#shield"
+        }
+      }
+    },
+    {
+      "name": "thrust ring",
+      "from": [
+        1.6958,
+        9,
+        11.9342
+      ],
+      "to": [
+        4.8558,
+        10.5,
+        13.5142
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          3.2758,
+          9,
+          12.7242
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            1.6,
+            4,
+            3.8344,
+            5.5
+          ],
+          "texture": "#ring"
+        },
+        "up": {
+          "uv": [
+            1.6,
+            12.1656,
+            3.8344,
+            14.4
+          ],
+          "texture": "#ring"
+        },
+        "down": {
+          "uv": [
+            1.6,
+            12.1656,
+            3.8344,
+            14.4
+          ],
+          "texture": "#shield"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        2.45,
+        7.75,
+        2.45
+      ],
+      "to": [
+        6.05,
+        9,
+        6.05
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        2.625,
+        6,
+        2.625
+      ],
+      "to": [
+        5.875,
+        7.75,
+        5.875
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        2.825,
+        4.5,
+        2.825
+      ],
+      "to": [
+        5.675,
+        6,
+        5.675
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        3.25,
+        3.25,
+        3.25
+      ],
+      "to": [
+        5.25,
+        4.5,
+        5.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        2.95,
+        1.75,
+        2.95
+      ],
+      "to": [
+        5.55,
+        3.25,
+        5.55
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        2.7,
+        0.5,
+        2.7
+      ],
+      "to": [
+        5.8,
+        1.75,
+        5.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
       "from": [
         2.5,
-        14.5,
+        0,
         2.5
       ],
       "to": [
-        13.5,
-        16,
+        6,
+        0.5,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#exit"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        1.5431,
+        0.25,
+        2.0931
+      ],
+      "to": [
+        3.1431,
+        9,
+        2.5931
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          2.3431,
+          0.25,
+          2.3431
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        0.7532,
+        0.25,
+        1.1032
+      ],
+      "to": [
+        1.9532,
+        7,
+        1.6032
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          1.3532,
+          0.25,
+          1.3532
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        0.1607,
+        0.25,
+        0.3607
+      ],
+      "to": [
+        1.0607,
+        4.75,
+        0.8607
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          0.6107,
+          0.25,
+          0.6107
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        2.45,
+        7.75,
+        9.95
+      ],
+      "to": [
+        6.05,
+        9,
+        13.55
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        2.625,
+        6,
+        10.125
+      ],
+      "to": [
+        5.875,
+        7.75,
+        13.375
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        2.825,
+        4.5,
+        10.325
+      ],
+      "to": [
+        5.675,
+        6,
+        13.175
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        3.25,
+        3.25,
+        10.75
+      ],
+      "to": [
+        5.25,
+        4.5,
+        12.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        2.95,
+        1.75,
+        10.45
+      ],
+      "to": [
+        5.55,
+        3.25,
+        13.05
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        2.7,
+        0.5,
+        10.2
+      ],
+      "to": [
+        5.8,
+        1.75,
+        13.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        2.5,
+        0,
+        10
+      ],
+      "to": [
+        6,
+        0.5,
         13.5
       ],
       "faces": {
         "north": {
-          "texture": "#ring",
           "uv": [
-            2.5,
             0,
-            13.5,
-            1.5
-          ]
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
         },
         "south": {
-          "texture": "#ring",
           "uv": [
-            2.5,
             0,
-            13.5,
-            1.5
-          ]
-        },
-        "west": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            0,
-            13.5,
-            1.5
-          ]
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
         },
         "east": {
-          "texture": "#ring",
           "uv": [
-            2.5,
             0,
-            13.5,
-            1.5
-          ]
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
         },
         "up": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
         },
         "down": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#exit"
         }
       }
     },
     {
-      "name": "throat",
+      "name": "fin",
       "from": [
-        5,
-        4,
-        5
+        1.5431,
+        0.25,
+        13.4069
       ],
       "to": [
-        11,
-        6,
-        11
+        3.1431,
+        9,
+        13.9069
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          2.3431,
+          0.25,
+          13.6569
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        0.7532,
+        0.25,
+        14.3968
+      ],
+      "to": [
+        1.9532,
+        7,
+        14.8968
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          1.3532,
+          0.25,
+          14.6468
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        0.1607,
+        0.25,
+        15.1393
+      ],
+      "to": [
+        1.0607,
+        4.75,
+        15.6393
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          0.6107,
+          0.25,
+          15.3893
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        9.95,
+        7.75,
+        2.45
+      ],
+      "to": [
+        13.55,
+        9,
+        6.05
       ],
       "faces": {
         "north": {
-          "texture": "#nozzle",
           "uv": [
-            5,
-            10,
-            11,
-            12
-          ]
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
         },
         "south": {
-          "texture": "#nozzle",
           "uv": [
-            5,
-            10,
-            11,
-            12
-          ]
-        },
-        "west": {
-          "texture": "#nozzle",
-          "uv": [
-            5,
-            10,
-            11,
-            12
-          ]
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
         },
         "east": {
-          "texture": "#nozzle",
           "uv": [
-            5,
-            10,
-            11,
-            12
-          ]
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
         },
-        "up": {
-          "texture": "#nozzle",
+        "west": {
           "uv": [
-            5,
-            5,
-            11,
-            11
-          ]
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
         },
         "down": {
-          "texture": "#nozzle",
           "uv": [
-            5,
-            5,
-            11,
-            11
-          ]
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
         }
       }
     },
     {
-      "name": "bell",
+      "name": "engine fairing",
       "from": [
-        3.5,
+        10.125,
+        6,
+        2.625
+      ],
+      "to": [
+        13.375,
+        7.75,
+        5.875
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        10.325,
+        4.5,
+        2.825
+      ],
+      "to": [
+        13.175,
+        6,
+        5.675
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        10.75,
+        3.25,
+        3.25
+      ],
+      "to": [
+        12.75,
+        4.5,
+        5.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        10.45,
+        1.75,
+        2.95
+      ],
+      "to": [
+        13.05,
+        3.25,
+        5.55
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        10.2,
+        0.5,
+        2.7
+      ],
+      "to": [
+        13.3,
+        1.75,
+        5.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        10,
         0,
+        2.5
+      ],
+      "to": [
+        13.5,
+        0.5,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#exit"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        12.8569,
+        0.25,
+        2.0931
+      ],
+      "to": [
+        14.4569,
+        9,
+        2.5931
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          13.6569,
+          0.25,
+          2.3431
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        14.0468,
+        0.25,
+        1.1032
+      ],
+      "to": [
+        15.2468,
+        7,
+        1.6032
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          14.6468,
+          0.25,
+          1.3532
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        14.9393,
+        0.25,
+        0.3607
+      ],
+      "to": [
+        15.8393,
+        4.75,
+        0.8607
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          15.3893,
+          0.25,
+          0.6107
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        9.95,
+        7.75,
+        9.95
+      ],
+      "to": [
+        13.55,
+        9,
+        13.55
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            7,
+            9.6,
+            8.25
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        10.125,
+        6,
+        10.125
+      ],
+      "to": [
+        13.375,
+        7.75,
+        13.375
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            8.25,
+            9.25,
+            10
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "engine fairing",
+      "from": [
+        10.325,
+        4.5,
+        10.325
+      ],
+      "to": [
+        13.175,
+        6,
+        13.175
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "south": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "east": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "west": {
+          "uv": [
+            6,
+            10,
+            8.85,
+            11.5
+          ],
+          "texture": "#skin"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#skin"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        10.75,
+        3.25,
+        10.75
+      ],
+      "to": [
+        12.75,
+        4.5,
+        12.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            4.4444
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        10.45,
+        1.75,
+        10.45
+      ],
+      "to": [
+        13.05,
+        3.25,
+        13.05
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            4.4444,
+            16,
+            9.7778
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        10.2,
+        0.5,
+        10.2
+      ],
+      "to": [
+        13.3,
+        1.75,
+        13.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            9.7778,
+            16,
+            14.2222
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        10,
+        0,
+        10
+      ],
+      "to": [
+        13.5,
+        0.5,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            14.2222,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#exit"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        12.8569,
+        0.25,
+        13.4069
+      ],
+      "to": [
+        14.4569,
+        9,
+        13.9069
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          13.6569,
+          0.25,
+          13.6569
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            10.75
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            2.6,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        14.0468,
+        0.25,
+        14.3968
+      ],
+      "to": [
+        15.2468,
+        7,
+        14.8968
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          14.6468,
+          0.25,
+          14.6468
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            8.75
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            2.2,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "fin",
+      "from": [
+        14.9393,
+        0.25,
+        15.1393
+      ],
+      "to": [
+        15.8393,
+        4.75,
+        15.6393
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          15.3893,
+          0.25,
+          15.3893
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "east": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "west": {
+          "uv": [
+            1,
+            2,
+            1.5,
+            6.5
+          ],
+          "texture": "#inter"
+        },
+        "up": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            2.5
+          ],
+          "texture": "#inter"
+        },
+        "down": {
+          "uv": [
+            1,
+            2,
+            1.9,
+            2.5
+          ],
+          "texture": "#inter"
+        }
+      }
+    },
+    {
+      "name": "centre chamber",
+      "from": [
+        7,
+        6,
+        7
+      ],
+      "to": [
+        9,
+        9,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            8,
+            10,
+            11
+          ],
+          "texture": "#parts"
+        },
+        "south": {
+          "uv": [
+            8,
+            8,
+            10,
+            11
+          ],
+          "texture": "#parts"
+        },
+        "east": {
+          "uv": [
+            8,
+            8,
+            10,
+            11
+          ],
+          "texture": "#parts"
+        },
+        "west": {
+          "uv": [
+            8,
+            8,
+            10,
+            11
+          ],
+          "texture": "#parts"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        6.75,
+        4.5,
+        6.75
+      ],
+      "to": [
+        9.25,
+        6,
+        9.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        6.375,
+        2.25,
+        6.375
+      ],
+      "to": [
+        9.625,
+        4.5,
+        9.625
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            4,
+            16,
+            10
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            4,
+            16,
+            10
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            4,
+            16,
+            10
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            4,
+            16,
+            10
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        }
+      }
+    },
+    {
+      "name": "nozzle",
+      "from": [
+        6,
+        0,
+        6
+      ],
+      "to": [
+        10,
+        2.25,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            10,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "south": {
+          "uv": [
+            0,
+            10,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "east": {
+          "uv": [
+            0,
+            10,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "west": {
+          "uv": [
+            0,
+            10,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#bell"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#exit"
+        }
+      }
+    },
+    {
+      "name": "hold-down post",
+      "from": [
+        6.5,
+        0.5,
+        2
+      ],
+      "to": [
+        9.5,
+        9,
+        3.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            0,
+            11,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "south": {
+          "uv": [
+            8,
+            0,
+            11,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "east": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "up": {
+          "uv": [
+            8,
+            0,
+            11,
+            1.25
+          ],
+          "texture": "#parts"
+        },
+        "down": {
+          "uv": [
+            8,
+            0,
+            11,
+            1.25
+          ],
+          "texture": "#parts"
+        }
+      }
+    },
+    {
+      "name": "hold-down post",
+      "from": [
+        6.5,
+        0.5,
+        12.75
+      ],
+      "to": [
+        9.5,
+        9,
+        14
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            0,
+            11,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "south": {
+          "uv": [
+            8,
+            0,
+            11,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "east": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "up": {
+          "uv": [
+            8,
+            0,
+            11,
+            1.25
+          ],
+          "texture": "#parts"
+        },
+        "down": {
+          "uv": [
+            8,
+            0,
+            11,
+            1.25
+          ],
+          "texture": "#parts"
+        }
+      }
+    },
+    {
+      "name": "hold-down post",
+      "from": [
+        2,
+        0.5,
+        6.5
+      ],
+      "to": [
+        3.25,
+        9,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "south": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "east": {
+          "uv": [
+            8,
+            0,
+            11,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            11,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "up": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            3
+          ],
+          "texture": "#parts"
+        },
+        "down": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            3
+          ],
+          "texture": "#parts"
+        }
+      }
+    },
+    {
+      "name": "hold-down post",
+      "from": [
+        12.75,
+        0.5,
+        6.5
+      ],
+      "to": [
+        14,
+        9,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "south": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "east": {
+          "uv": [
+            8,
+            0,
+            11,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            11,
+            8
+          ],
+          "texture": "#parts"
+        },
+        "up": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            3
+          ],
+          "texture": "#parts"
+        },
+        "down": {
+          "uv": [
+            8,
+            0,
+            9.25,
+            3
+          ],
+          "texture": "#parts"
+        }
+      }
+    },
+    {
+      "name": "hold-down foot",
+      "from": [
+        6,
+        0,
+        1.75
+      ],
+      "to": [
+        10,
+        1,
         3.5
       ],
-      "to": [
-        12.5,
-        4,
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            0,
+            12,
+            1
+          ],
+          "texture": "#parts"
+        },
+        "south": {
+          "uv": [
+            8,
+            0,
+            12,
+            1
+          ],
+          "texture": "#parts"
+        },
+        "east": {
+          "uv": [
+            8,
+            0,
+            9.75,
+            1
+          ],
+          "texture": "#parts"
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            9.75,
+            1
+          ],
+          "texture": "#parts"
+        },
+        "up": {
+          "uv": [
+            8,
+            0,
+            12,
+            1.75
+          ],
+          "texture": "#parts"
+        },
+        "down": {
+          "uv": [
+            8,
+            0,
+            12,
+            1.75
+          ],
+          "texture": "#parts"
+        }
+      }
+    },
+    {
+      "name": "hold-down foot",
+      "from": [
+        6,
+        0,
         12.5
       ],
+      "to": [
+        10,
+        1,
+        14.25
+      ],
       "faces": {
         "north": {
-          "texture": "#nozzle",
           "uv": [
-            3.5,
+            8,
+            0,
             12,
-            12.5,
-            16
-          ]
+            1
+          ],
+          "texture": "#parts"
         },
         "south": {
-          "texture": "#nozzle",
           "uv": [
-            3.5,
+            8,
+            0,
             12,
-            12.5,
-            16
-          ]
-        },
-        "west": {
-          "texture": "#nozzle",
-          "uv": [
-            3.5,
-            12,
-            12.5,
-            16
-          ]
+            1
+          ],
+          "texture": "#parts"
         },
         "east": {
-          "texture": "#nozzle",
           "uv": [
-            3.5,
-            12,
-            12.5,
-            16
-          ]
+            8,
+            0,
+            9.75,
+            1
+          ],
+          "texture": "#parts"
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            9.75,
+            1
+          ],
+          "texture": "#parts"
         },
         "up": {
-          "texture": "#nozzle",
           "uv": [
-            3.5,
-            3.5,
-            12.5,
-            12.5
-          ]
+            8,
+            0,
+            12,
+            1.75
+          ],
+          "texture": "#parts"
         },
         "down": {
-          "texture": "#nozzle",
           "uv": [
-            3.5,
-            3.5,
-            12.5,
-            12.5
-          ]
+            8,
+            0,
+            12,
+            1.75
+          ],
+          "texture": "#parts"
         }
       }
     },
     {
-      "name": "fin_x",
+      "name": "hold-down foot",
       "from": [
+        1.75,
         0,
-        0,
-        7.5
+        6
       ],
       "to": [
-        16,
-        7,
-        8.5
+        3.5,
+        1,
+        10
       ],
       "faces": {
         "north": {
-          "texture": "#nozzle",
           "uv": [
+            8,
             0,
-            9,
-            16,
-            16
-          ]
+            9.75,
+            1
+          ],
+          "texture": "#parts"
         },
         "south": {
-          "texture": "#nozzle",
           "uv": [
+            8,
             0,
-            9,
-            16,
-            16
-          ]
-        },
-        "west": {
-          "texture": "#nozzle",
-          "uv": [
-            7.5,
-            9,
-            8.5,
-            16
-          ]
+            9.75,
+            1
+          ],
+          "texture": "#parts"
         },
         "east": {
-          "texture": "#nozzle",
           "uv": [
-            7.5,
-            9,
-            8.5,
-            16
-          ]
+            8,
+            0,
+            12,
+            1
+          ],
+          "texture": "#parts"
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            12,
+            1
+          ],
+          "texture": "#parts"
         },
         "up": {
-          "texture": "#nozzle",
           "uv": [
+            8,
             0,
-            7.5,
-            16,
-            8.5
-          ]
+            9.75,
+            4
+          ],
+          "texture": "#parts"
         },
         "down": {
-          "texture": "#nozzle",
           "uv": [
+            8,
             0,
-            7.5,
-            16,
-            8.5
-          ]
+            9.75,
+            4
+          ],
+          "texture": "#parts"
         }
       }
     },
     {
-      "name": "fin_z",
+      "name": "hold-down foot",
       "from": [
-        7.5,
+        12.5,
         0,
-        0
+        6
       ],
       "to": [
-        8.5,
-        7,
-        16
+        14.25,
+        1,
+        10
       ],
       "faces": {
         "north": {
-          "texture": "#nozzle",
           "uv": [
-            7.5,
-            9,
-            8.5,
-            16
-          ]
+            8,
+            0,
+            9.75,
+            1
+          ],
+          "texture": "#parts"
         },
         "south": {
-          "texture": "#nozzle",
           "uv": [
-            7.5,
-            9,
-            8.5,
-            16
-          ]
-        },
-        "west": {
-          "texture": "#nozzle",
-          "uv": [
+            8,
             0,
-            9,
-            16,
-            16
-          ]
+            9.75,
+            1
+          ],
+          "texture": "#parts"
         },
         "east": {
-          "texture": "#nozzle",
           "uv": [
+            8,
             0,
-            9,
-            16,
-            16
-          ]
+            12,
+            1
+          ],
+          "texture": "#parts"
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            12,
+            1
+          ],
+          "texture": "#parts"
         },
         "up": {
-          "texture": "#nozzle",
           "uv": [
-            7.5,
+            8,
             0,
-            8.5,
-            16
-          ]
+            9.75,
+            4
+          ],
+          "texture": "#parts"
         },
         "down": {
-          "texture": "#nozzle",
           "uv": [
-            7.5,
+            8,
             0,
-            8.5,
-            16
-          ]
+            9.75,
+            4
+          ],
+          "texture": "#parts"
         }
       }
     }

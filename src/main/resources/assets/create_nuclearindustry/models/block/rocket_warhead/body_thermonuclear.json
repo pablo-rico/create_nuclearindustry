@@ -1,422 +1,4706 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/rocket_warhead_cone",
-    "cone": "create_nuclearindustry:block/rocket_warhead_cone",
-    "ring": "create_nuclearindustry:block/rocket_ring"
+    "particle": "create_nuclearindustry:block/rocket_rv_fission",
+    "ring": "create_nuclearindustry:block/rocket_ring",
+    "deck": "create_nuclearindustry:block/rocket_deck",
+    "plat": "create_nuclearindustry:block/rocket_rv_platform",
+    "conv": "create_nuclearindustry:block/rocket_rv_conventional",
+    "fis": "create_nuclearindustry:block/rocket_rv_fission",
+    "thermo": "create_nuclearindustry:block/rocket_rv_thermonuclear",
+    "dirty": "create_nuclearindustry:block/rocket_rv_dirty",
+    "base": "create_nuclearindustry:block/rocket_rv_platform"
   },
   "elements": [
     {
-      "name": "ring",
+      "name": "re-entry vehicle",
       "from": [
-        2.5,
-        0,
-        2.5
+        5.3,
+        2,
+        3.5
       ],
       "to": [
-        13.5,
-        1.5,
-        13.5
+        10.7,
+        3.0156,
+        12.5
       ],
       "faces": {
         "north": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            14.5,
-            13.5,
+            5.3,
+            15.1757,
+            10.7,
             16
-          ]
+          ],
+          "texture": "#thermo"
         },
         "south": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            14.5,
-            13.5,
+            5.3,
+            15.1757,
+            10.7,
             16
-          ]
-        },
-        "west": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
-        },
-        "east": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            14.5,
-            13.5,
-            16
-          ]
+          ],
+          "texture": "#thermo"
         },
         "up": {
-          "texture": "#ring",
           "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
-        },
-        "down": {
-          "texture": "#ring",
-          "uv": [
-            2.5,
-            2.5,
-            13.5,
-            13.5
-          ]
+            5.3,
+            3.5,
+            10.7,
+            12.5
+          ],
+          "texture": "#thermo"
         }
       }
     },
     {
-      "name": "base",
+      "name": "re-entry vehicle",
       "from": [
-        3,
-        1.5,
-        3
+        3.5,
+        2,
+        5.3
       ],
       "to": [
-        13,
-        6,
-        13
+        5.3,
+        3.0156,
+        10.7
       ],
       "faces": {
-        "north": {
-          "texture": "#cone",
-          "uv": [
-            3,
-            10,
-            13,
-            14.5
-          ]
-        },
-        "south": {
-          "texture": "#cone",
-          "uv": [
-            3,
-            10,
-            13,
-            14.5
-          ]
-        },
         "west": {
-          "texture": "#cone",
           "uv": [
-            3,
-            10,
-            13,
-            14.5
-          ]
-        },
-        "east": {
-          "texture": "#cone",
-          "uv": [
-            3,
-            10,
-            13,
-            14.5
-          ]
+            5.3,
+            15.1757,
+            10.7,
+            16
+          ],
+          "texture": "#thermo"
         },
         "up": {
-          "texture": "#cone",
           "uv": [
-            3,
-            3,
-            13,
-            13
-          ]
-        },
-        "down": {
-          "texture": "#cone",
-          "uv": [
-            3,
-            3,
-            13,
-            13
-          ]
+            3.5,
+            5.3,
+            5.3,
+            10.7
+          ],
+          "texture": "#thermo"
         }
       }
     },
     {
-      "name": "shoulder",
+      "name": "re-entry vehicle",
       "from": [
-        4,
-        6,
+        10.7,
+        2,
+        5.3
+      ],
+      "to": [
+        12.5,
+        3.0156,
+        10.7
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            5.3,
+            15.1757,
+            10.7,
+            16
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.7,
+            5.3,
+            12.5,
+            10.7
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        3.5772,
+        2,
+        4.2136
+      ],
+      "to": [
+        6.1228,
+        3.0156,
+        5.4864
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          4.85,
+          2,
+          4.85
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            10.7,
+            15.1757,
+            12.5,
+            16
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            3.5,
+            3.5,
+            5.3,
+            5.3
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.8772,
+        2,
+        4.2136
+      ],
+      "to": [
+        12.4228,
+        3.0156,
+        5.4864
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          11.15,
+          2,
+          4.85
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            15.1757,
+            5.3,
+            16
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.7,
+            3.5,
+            12.5,
+            5.3
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.8772,
+        2,
+        10.5136
+      ],
+      "to": [
+        12.4228,
+        3.0156,
+        11.7864
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          11.15,
+          2,
+          11.15
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            10.7,
+            15.1757,
+            12.5,
+            16
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.7,
+            10.7,
+            12.5,
+            12.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        3.5772,
+        2,
+        10.5136
+      ],
+      "to": [
+        6.1228,
+        3.0156,
+        11.7864
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          4.85,
+          2,
+          11.15
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            3.5,
+            15.1757,
+            5.3,
+            16
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            3.5,
+            10.7,
+            5.3,
+            12.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.45,
+        3.0156,
+        3.75
+      ],
+      "to": [
+        10.55,
+        4.0312,
+        12.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.45,
+            14.3514,
+            10.55,
+            15.1757
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            5.45,
+            14.3514,
+            10.55,
+            15.1757
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.45,
+            3.75,
+            10.55,
+            12.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        3.75,
+        3.0156,
+        5.45
+      ],
+      "to": [
+        5.45,
+        4.0312,
+        10.55
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            5.45,
+            14.3514,
+            10.55,
+            15.1757
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            3.75,
+            5.45,
+            5.45,
+            10.55
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        10.55,
+        3.0156,
+        5.45
+      ],
+      "to": [
+        12.25,
+        4.0312,
+        10.55
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            5.45,
+            14.3514,
+            10.55,
+            15.1757
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.55,
+            5.45,
+            12.25,
+            10.55
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        3.8229,
+        3.0156,
+        4.424
+      ],
+      "to": [
+        6.2271,
+        4.0312,
+        5.626
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          5.025,
+          3.0156,
+          5.025
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            10.55,
+            14.3514,
+            12.25,
+            15.1757
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            3.75,
+            3.75,
+            5.45,
+            5.45
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.7729,
+        3.0156,
+        4.424
+      ],
+      "to": [
+        12.1771,
+        4.0312,
+        5.626
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          10.975,
+          3.0156,
+          5.025
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3.75,
+            14.3514,
+            5.45,
+            15.1757
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.55,
+            3.75,
+            12.25,
+            5.45
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.7729,
+        3.0156,
+        10.374
+      ],
+      "to": [
+        12.1771,
+        4.0312,
+        11.576
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          10.975,
+          3.0156,
+          10.975
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            10.55,
+            14.3514,
+            12.25,
+            15.1757
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.55,
+            10.55,
+            12.25,
+            12.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        3.8229,
+        3.0156,
+        10.374
+      ],
+      "to": [
+        6.2271,
+        4.0312,
+        11.576
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          5.025,
+          3.0156,
+          10.975
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            3.75,
+            14.3514,
+            5.45,
+            15.1757
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            3.75,
+            10.55,
+            5.45,
+            12.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.6,
+        4.0312,
         4
       ],
       "to": [
-        12,
-        10,
+        10.4,
+        5.0469,
         12
       ],
       "faces": {
         "north": {
-          "texture": "#cone",
           "uv": [
-            4,
-            6,
-            12,
-            10
-          ]
+            5.6,
+            13.5272,
+            10.4,
+            14.3514
+          ],
+          "texture": "#thermo"
         },
         "south": {
-          "texture": "#cone",
           "uv": [
-            4,
-            6,
-            12,
-            10
-          ]
-        },
-        "west": {
-          "texture": "#cone",
-          "uv": [
-            4,
-            6,
-            12,
-            10
-          ]
-        },
-        "east": {
-          "texture": "#cone",
-          "uv": [
-            4,
-            6,
-            12,
-            10
-          ]
+            5.6,
+            13.5272,
+            10.4,
+            14.3514
+          ],
+          "texture": "#thermo"
         },
         "up": {
-          "texture": "#cone",
           "uv": [
+            5.6,
             4,
-            4,
-            12,
+            10.4,
             12
-          ]
-        },
-        "down": {
-          "texture": "#cone",
-          "uv": [
-            4,
-            4,
-            12,
-            12
-          ]
+          ],
+          "texture": "#thermo"
         }
       }
     },
     {
-      "name": "ogive",
+      "name": "re-entry vehicle",
       "from": [
-        5,
-        10,
+        4,
+        4.0312,
+        5.6
+      ],
+      "to": [
+        5.6,
+        5.0469,
+        10.4
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            5.6,
+            13.5272,
+            10.4,
+            14.3514
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4,
+            5.6,
+            5.6,
+            10.4
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        10.4,
+        4.0312,
+        5.6
+      ],
+      "to": [
+        12,
+        5.0469,
+        10.4
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            5.6,
+            13.5272,
+            10.4,
+            14.3514
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.4,
+            5.6,
+            12,
+            10.4
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.0686,
+        4.0312,
+        4.6343
+      ],
+      "to": [
+        6.3314,
+        5.0469,
+        5.7657
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          5.2,
+          4.0312,
+          5.2
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            10.4,
+            13.5272,
+            12,
+            14.3514
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            5.6,
+            5.6
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.6686,
+        4.0312,
+        4.6343
+      ],
+      "to": [
+        11.9314,
+        5.0469,
+        5.7657
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          10.8,
+          4.0312,
+          5.2
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            13.5272,
+            5.6,
+            14.3514
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.4,
+            4,
+            12,
+            5.6
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.6686,
+        4.0312,
+        10.2343
+      ],
+      "to": [
+        11.9314,
+        5.0469,
+        11.3657
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          10.8,
+          4.0312,
+          10.8
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            10.4,
+            13.5272,
+            12,
+            14.3514
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.4,
+            10.4,
+            12,
+            12
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.0686,
+        4.0312,
+        10.2343
+      ],
+      "to": [
+        6.3314,
+        5.0469,
+        11.3657
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          5.2,
+          4.0312,
+          10.8
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            4,
+            13.5272,
+            5.6,
+            14.3514
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4,
+            10.4,
+            5.6,
+            12
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.75,
+        5.0469,
+        4.25
+      ],
+      "to": [
+        10.25,
+        6.0625,
+        11.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.75,
+            12.7029,
+            10.25,
+            13.5272
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            5.75,
+            12.7029,
+            10.25,
+            13.5272
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.75,
+            4.25,
+            10.25,
+            11.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.25,
+        5.0469,
+        5.75
+      ],
+      "to": [
+        5.75,
+        6.0625,
+        10.25
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            5.75,
+            12.7029,
+            10.25,
+            13.5272
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4.25,
+            5.75,
+            5.75,
+            10.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        10.25,
+        5.0469,
+        5.75
+      ],
+      "to": [
+        11.75,
+        6.0625,
+        10.25
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            5.75,
+            12.7029,
+            10.25,
+            13.5272
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.25,
+            5.75,
+            11.75,
+            10.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.3143,
+        5.0469,
+        4.8447
+      ],
+      "to": [
+        6.4357,
+        6.0625,
+        5.9053
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          5.375,
+          5.0469,
+          5.375
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            10.25,
+            12.7029,
+            11.75,
+            13.5272
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4.25,
+            4.25,
+            5.75,
+            5.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.5643,
+        5.0469,
+        4.8447
+      ],
+      "to": [
+        11.6857,
+        6.0625,
+        5.9053
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          10.625,
+          5.0469,
+          5.375
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4.25,
+            12.7029,
+            5.75,
+            13.5272
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.25,
+            4.25,
+            11.75,
+            5.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.5643,
+        5.0469,
+        10.0947
+      ],
+      "to": [
+        11.6857,
+        6.0625,
+        11.1553
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          10.625,
+          5.0469,
+          10.625
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            10.25,
+            12.7029,
+            11.75,
+            13.5272
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.25,
+            10.25,
+            11.75,
+            11.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.3143,
+        5.0469,
+        10.0947
+      ],
+      "to": [
+        6.4357,
+        6.0625,
+        11.1553
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          5.375,
+          5.0469,
+          10.625
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            4.25,
+            12.7029,
+            5.75,
+            13.5272
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4.25,
+            10.25,
+            5.75,
+            11.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.9,
+        6.0625,
+        4.5
+      ],
+      "to": [
+        10.1,
+        7.0781,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.9,
+            11.8786,
+            10.1,
+            12.7029
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            5.9,
+            11.8786,
+            10.1,
+            12.7029
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.9,
+            4.5,
+            10.1,
+            11.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.5,
+        6.0625,
+        5.9
+      ],
+      "to": [
+        5.9,
+        7.0781,
+        10.1
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            5.9,
+            11.8786,
+            10.1,
+            12.7029
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            5.9,
+            5.9,
+            10.1
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        10.1,
+        6.0625,
+        5.9
+      ],
+      "to": [
+        11.5,
+        7.0781,
+        10.1
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            5.9,
+            11.8786,
+            10.1,
+            12.7029
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.1,
+            5.9,
+            11.5,
+            10.1
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.5601,
+        6.0625,
+        5.055
+      ],
+      "to": [
+        6.5399,
+        7.0781,
+        6.045
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          5.55,
+          6.0625,
+          5.55
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            10.1,
+            11.8786,
+            11.5,
+            12.7029
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            4.5,
+            5.9,
+            5.9
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.4601,
+        6.0625,
+        5.055
+      ],
+      "to": [
+        11.4399,
+        7.0781,
+        6.045
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          10.45,
+          6.0625,
+          5.55
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4.5,
+            11.8786,
+            5.9,
+            12.7029
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.1,
+            4.5,
+            11.5,
+            5.9
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.4601,
+        6.0625,
+        9.955
+      ],
+      "to": [
+        11.4399,
+        7.0781,
+        10.945
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          10.45,
+          6.0625,
+          10.45
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            10.1,
+            11.8786,
+            11.5,
+            12.7029
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            10.1,
+            10.1,
+            11.5,
+            11.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.5601,
+        6.0625,
+        9.955
+      ],
+      "to": [
+        6.5399,
+        7.0781,
+        10.945
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          5.55,
+          6.0625,
+          10.45
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            4.5,
+            11.8786,
+            5.9,
+            12.7029
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            10.1,
+            5.9,
+            11.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.05,
+        7.0781,
+        4.75
+      ],
+      "to": [
+        9.95,
+        8.0938,
+        11.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.05,
+            11.0543,
+            9.95,
+            11.8786
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            6.05,
+            11.0543,
+            9.95,
+            11.8786
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.05,
+            4.75,
+            9.95,
+            11.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.75,
+        7.0781,
+        6.05
+      ],
+      "to": [
+        6.05,
+        8.0938,
+        9.95
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            6.05,
+            11.0543,
+            9.95,
+            11.8786
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4.75,
+            6.05,
+            6.05,
+            9.95
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.95,
+        7.0781,
+        6.05
+      ],
+      "to": [
+        11.25,
+        8.0938,
+        9.95
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            6.05,
+            11.0543,
+            9.95,
+            11.8786
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.95,
+            6.05,
+            11.25,
+            9.95
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.8058,
+        7.0781,
+        5.2654
+      ],
+      "to": [
+        6.6442,
+        8.0938,
+        6.1846
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          5.725,
+          7.0781,
+          5.725
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.95,
+            11.0543,
+            11.25,
+            11.8786
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4.75,
+            4.75,
+            6.05,
+            6.05
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.3558,
+        7.0781,
+        5.2654
+      ],
+      "to": [
+        11.1942,
+        8.0938,
+        6.1846
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          10.275,
+          7.0781,
+          5.725
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4.75,
+            11.0543,
+            6.05,
+            11.8786
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.95,
+            4.75,
+            11.25,
+            6.05
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.3558,
+        7.0781,
+        9.8154
+      ],
+      "to": [
+        11.1942,
+        8.0938,
+        10.7346
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          10.275,
+          7.0781,
+          10.275
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            9.95,
+            11.0543,
+            11.25,
+            11.8786
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.95,
+            9.95,
+            11.25,
+            11.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        4.8058,
+        7.0781,
+        9.8154
+      ],
+      "to": [
+        6.6442,
+        8.0938,
+        10.7346
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          5.725,
+          7.0781,
+          10.275
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            4.75,
+            11.0543,
+            6.05,
+            11.8786
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            4.75,
+            9.95,
+            6.05,
+            11.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.2,
+        8.0938,
         5
       ],
       "to": [
-        11,
-        13,
+        9.8,
+        9.1094,
         11
       ],
       "faces": {
         "north": {
-          "texture": "#cone",
           "uv": [
-            5,
-            3,
-            11,
-            6
-          ]
+            6.2,
+            10.2301,
+            9.8,
+            11.0543
+          ],
+          "texture": "#thermo"
         },
         "south": {
-          "texture": "#cone",
           "uv": [
-            5,
-            3,
-            11,
-            6
-          ]
-        },
-        "west": {
-          "texture": "#cone",
-          "uv": [
-            5,
-            3,
-            11,
-            6
-          ]
-        },
-        "east": {
-          "texture": "#cone",
-          "uv": [
-            5,
-            3,
-            11,
-            6
-          ]
+            6.2,
+            10.2301,
+            9.8,
+            11.0543
+          ],
+          "texture": "#thermo"
         },
         "up": {
-          "texture": "#cone",
           "uv": [
+            6.2,
             5,
-            5,
-            11,
+            9.8,
             11
-          ]
-        },
-        "down": {
-          "texture": "#cone",
-          "uv": [
-            5,
-            5,
-            11,
-            11
-          ]
+          ],
+          "texture": "#thermo"
         }
       }
     },
     {
-      "name": "tip",
+      "name": "re-entry vehicle",
       "from": [
-        6,
-        13,
+        5,
+        8.0938,
+        6.2
+      ],
+      "to": [
+        6.2,
+        9.1094,
+        9.8
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            6.2,
+            10.2301,
+            9.8,
+            11.0543
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5,
+            6.2,
+            6.2,
+            9.8
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.8,
+        8.0938,
+        6.2
+      ],
+      "to": [
+        11,
+        9.1094,
+        9.8
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            6.2,
+            10.2301,
+            9.8,
+            11.0543
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.8,
+            6.2,
+            11,
+            9.8
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.0515,
+        8.0938,
+        5.4757
+      ],
+      "to": [
+        6.7485,
+        9.1094,
+        6.3243
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          5.9,
+          8.0938,
+          5.9
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.8,
+            10.2301,
+            11,
+            11.0543
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5,
+            5,
+            6.2,
+            6.2
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.2515,
+        8.0938,
+        5.4757
+      ],
+      "to": [
+        10.9485,
+        9.1094,
+        6.3243
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          10.1,
+          8.0938,
+          5.9
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            10.2301,
+            6.2,
+            11.0543
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.8,
+            5,
+            11,
+            6.2
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.2515,
+        8.0938,
+        9.6757
+      ],
+      "to": [
+        10.9485,
+        9.1094,
+        10.5243
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          10.1,
+          8.0938,
+          10.1
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            9.8,
+            10.2301,
+            11,
+            11.0543
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.8,
+            9.8,
+            11,
+            11
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.0515,
+        8.0938,
+        9.6757
+      ],
+      "to": [
+        6.7485,
+        9.1094,
+        10.5243
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          5.9,
+          8.0938,
+          10.1
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            5,
+            10.2301,
+            6.2,
+            11.0543
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5,
+            9.8,
+            6.2,
+            11
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.35,
+        9.1094,
+        5.25
+      ],
+      "to": [
+        9.65,
+        10.125,
+        10.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.35,
+            9.4058,
+            9.65,
+            10.2301
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            6.35,
+            9.4058,
+            9.65,
+            10.2301
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.35,
+            5.25,
+            9.65,
+            10.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.25,
+        9.1094,
+        6.35
+      ],
+      "to": [
+        6.35,
+        10.125,
+        9.65
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            6.35,
+            9.4058,
+            9.65,
+            10.2301
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.25,
+            6.35,
+            6.35,
+            9.65
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.65,
+        9.1094,
+        6.35
+      ],
+      "to": [
+        10.75,
+        10.125,
+        9.65
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            6.35,
+            9.4058,
+            9.65,
+            10.2301
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.65,
+            6.35,
+            10.75,
+            9.65
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.2972,
+        9.1094,
+        5.6861
+      ],
+      "to": [
+        6.8528,
+        10.125,
+        6.4639
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6.075,
+          9.1094,
+          6.075
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.65,
+            9.4058,
+            10.75,
+            10.2301
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.25,
+            5.25,
+            6.35,
+            6.35
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.1472,
+        9.1094,
+        5.6861
+      ],
+      "to": [
+        10.7028,
+        10.125,
+        6.4639
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          9.925,
+          9.1094,
+          6.075
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5.25,
+            9.4058,
+            6.35,
+            10.2301
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.65,
+            5.25,
+            10.75,
+            6.35
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.1472,
+        9.1094,
+        9.5361
+      ],
+      "to": [
+        10.7028,
+        10.125,
+        10.3139
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          9.925,
+          9.1094,
+          9.925
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            9.65,
+            9.4058,
+            10.75,
+            10.2301
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.65,
+            9.65,
+            10.75,
+            10.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.2972,
+        9.1094,
+        9.5361
+      ],
+      "to": [
+        6.8528,
+        10.125,
+        10.3139
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          6.075,
+          9.1094,
+          9.925
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            5.25,
+            9.4058,
+            6.35,
+            10.2301
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.25,
+            9.65,
+            6.35,
+            10.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.5,
+        10.125,
+        5.5
+      ],
+      "to": [
+        9.5,
+        11.1406,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.5,
+            8.5815,
+            9.5,
+            9.4058
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            6.5,
+            8.5815,
+            9.5,
+            9.4058
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            5.5,
+            9.5,
+            10.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.5,
+        10.125,
+        6.5
+      ],
+      "to": [
+        6.5,
+        11.1406,
+        9.5
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            6.5,
+            8.5815,
+            9.5,
+            9.4058
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.5,
+            6.5,
+            6.5,
+            9.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.5,
+        10.125,
+        6.5
+      ],
+      "to": [
+        10.5,
+        11.1406,
+        9.5
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            6.5,
+            8.5815,
+            9.5,
+            9.4058
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.5,
+            6.5,
+            10.5,
+            9.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.5429,
+        10.125,
+        5.8964
+      ],
+      "to": [
+        6.9571,
+        11.1406,
+        6.6036
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6.25,
+          10.125,
+          6.25
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.5,
+            8.5815,
+            10.5,
+            9.4058
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.5,
+            5.5,
+            6.5,
+            6.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.0429,
+        10.125,
+        5.8964
+      ],
+      "to": [
+        10.4571,
+        11.1406,
+        6.6036
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          9.75,
+          10.125,
+          6.25
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5.5,
+            8.5815,
+            6.5,
+            9.4058
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.5,
+            5.5,
+            10.5,
+            6.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.0429,
+        10.125,
+        9.3964
+      ],
+      "to": [
+        10.4571,
+        11.1406,
+        10.1036
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          9.75,
+          10.125,
+          9.75
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            9.5,
+            8.5815,
+            10.5,
+            9.4058
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.5,
+            9.5,
+            10.5,
+            10.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.5429,
+        10.125,
+        9.3964
+      ],
+      "to": [
+        6.9571,
+        11.1406,
+        10.1036
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          6.25,
+          10.125,
+          9.75
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            5.5,
+            8.5815,
+            6.5,
+            9.4058
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.5,
+            9.5,
+            6.5,
+            10.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.65,
+        11.1406,
+        5.75
+      ],
+      "to": [
+        9.35,
+        12.1562,
+        10.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.65,
+            7.7572,
+            9.35,
+            8.5815
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            6.65,
+            7.7572,
+            9.35,
+            8.5815
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.65,
+            5.75,
+            9.35,
+            10.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.75,
+        11.1406,
+        6.65
+      ],
+      "to": [
+        6.65,
+        12.1562,
+        9.35
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            6.65,
+            7.7572,
+            9.35,
+            8.5815
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.75,
+            6.65,
+            6.65,
+            9.35
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.35,
+        11.1406,
+        6.65
+      ],
+      "to": [
+        10.25,
+        12.1562,
+        9.35
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            6.65,
+            7.7572,
+            9.35,
+            8.5815
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.35,
+            6.65,
+            10.25,
+            9.35
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.7886,
+        11.1406,
+        6.1068
+      ],
+      "to": [
+        7.0614,
+        12.1562,
+        6.7432
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6.425,
+          11.1406,
+          6.425
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.35,
+            7.7572,
+            10.25,
+            8.5815
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.75,
+            5.75,
+            6.65,
+            6.65
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.9386,
+        11.1406,
+        6.1068
+      ],
+      "to": [
+        10.2114,
+        12.1562,
+        6.7432
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          9.575,
+          11.1406,
+          6.425
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5.75,
+            7.7572,
+            6.65,
+            8.5815
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.35,
+            5.75,
+            10.25,
+            6.65
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.9386,
+        11.1406,
+        9.2568
+      ],
+      "to": [
+        10.2114,
+        12.1562,
+        9.8932
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          9.575,
+          11.1406,
+          9.575
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            9.35,
+            7.7572,
+            10.25,
+            8.5815
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.35,
+            9.35,
+            10.25,
+            10.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        5.7886,
+        11.1406,
+        9.2568
+      ],
+      "to": [
+        7.0614,
+        12.1562,
+        9.8932
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          6.425,
+          11.1406,
+          9.575
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            5.75,
+            7.7572,
+            6.65,
+            8.5815
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            5.75,
+            9.35,
+            6.65,
+            10.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.8,
+        12.1562,
         6
       ],
       "to": [
-        10,
-        15.5,
+        9.2,
+        13.1719,
         10
       ],
       "faces": {
         "north": {
-          "texture": "#cone",
           "uv": [
-            6,
-            0.5,
-            10,
-            3
-          ]
+            6.8,
+            6.933,
+            9.2,
+            7.7572
+          ],
+          "texture": "#thermo"
         },
         "south": {
-          "texture": "#cone",
           "uv": [
-            6,
-            0.5,
-            10,
-            3
-          ]
-        },
-        "west": {
-          "texture": "#cone",
-          "uv": [
-            6,
-            0.5,
-            10,
-            3
-          ]
-        },
-        "east": {
-          "texture": "#cone",
-          "uv": [
-            6,
-            0.5,
-            10,
-            3
-          ]
+            6.8,
+            6.933,
+            9.2,
+            7.7572
+          ],
+          "texture": "#thermo"
         },
         "up": {
-          "texture": "#cone",
           "uv": [
+            6.8,
             6,
-            6,
-            10,
+            9.2,
             10
-          ]
-        },
-        "down": {
-          "texture": "#cone",
-          "uv": [
-            6,
-            6,
-            10,
-            10
-          ]
+          ],
+          "texture": "#thermo"
         }
       }
     },
     {
-      "name": "point",
+      "name": "re-entry vehicle",
       "from": [
-        7,
-        15.5,
+        6,
+        12.1562,
+        6.8
+      ],
+      "to": [
+        6.8,
+        13.1719,
+        9.2
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            6.8,
+            6.933,
+            9.2,
+            7.7572
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6,
+            6.8,
+            6.8,
+            9.2
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.2,
+        12.1562,
+        6.8
+      ],
+      "to": [
+        10,
+        13.1719,
+        9.2
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            6.8,
+            6.933,
+            9.2,
+            7.7572
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.2,
+            6.8,
+            10,
+            9.2
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.0343,
+        12.1562,
+        6.3172
+      ],
+      "to": [
+        7.1657,
+        13.1719,
+        6.8828
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6.6,
+          12.1562,
+          6.6
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.2,
+            6.933,
+            10,
+            7.7572
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6,
+            6,
+            6.8,
+            6.8
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.8343,
+        12.1562,
+        6.3172
+      ],
+      "to": [
+        9.9657,
+        13.1719,
+        6.8828
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          9.4,
+          12.1562,
+          6.6
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            6.933,
+            6.8,
+            7.7572
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.2,
+            6,
+            10,
+            6.8
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.8343,
+        12.1562,
+        9.1172
+      ],
+      "to": [
+        9.9657,
+        13.1719,
+        9.6828
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          9.4,
+          12.1562,
+          9.4
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            9.2,
+            6.933,
+            10,
+            7.7572
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.2,
+            9.2,
+            10,
+            10
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.0343,
+        12.1562,
+        9.1172
+      ],
+      "to": [
+        7.1657,
+        13.1719,
+        9.6828
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          6.6,
+          12.1562,
+          9.4
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            6,
+            6.933,
+            6.8,
+            7.7572
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6,
+            9.2,
+            6.8,
+            10
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.95,
+        13.1719,
+        6.25
+      ],
+      "to": [
+        9.05,
+        14.1875,
+        9.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.95,
+            6.1087,
+            9.05,
+            6.933
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            6.95,
+            6.1087,
+            9.05,
+            6.933
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.95,
+            6.25,
+            9.05,
+            9.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.25,
+        13.1719,
+        6.95
+      ],
+      "to": [
+        6.95,
+        14.1875,
+        9.05
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            6.95,
+            6.1087,
+            9.05,
+            6.933
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.25,
+            6.95,
+            6.95,
+            9.05
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        9.05,
+        13.1719,
+        6.95
+      ],
+      "to": [
+        9.75,
+        14.1875,
+        9.05
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            6.95,
+            6.1087,
+            9.05,
+            6.933
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.05,
+            6.95,
+            9.75,
+            9.05
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.28,
+        13.1719,
+        6.5275
+      ],
+      "to": [
+        7.27,
+        14.1875,
+        7.0225
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6.775,
+          13.1719,
+          6.775
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9.05,
+            6.1087,
+            9.75,
+            6.933
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.25,
+            6.25,
+            6.95,
+            6.95
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.73,
+        13.1719,
+        6.5275
+      ],
+      "to": [
+        9.72,
+        14.1875,
+        7.0225
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          9.225,
+          13.1719,
+          6.775
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            6.25,
+            6.1087,
+            6.95,
+            6.933
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.05,
+            6.25,
+            9.75,
+            6.95
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.73,
+        13.1719,
+        8.9775
+      ],
+      "to": [
+        9.72,
+        14.1875,
+        9.4725
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          9.225,
+          13.1719,
+          9.225
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            9.05,
+            6.1087,
+            9.75,
+            6.933
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            9.05,
+            9.05,
+            9.75,
+            9.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.28,
+        13.1719,
+        8.9775
+      ],
+      "to": [
+        7.27,
+        14.1875,
+        9.4725
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          6.775,
+          13.1719,
+          9.225
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            6.25,
+            6.1087,
+            6.95,
+            6.933
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.25,
+            9.05,
+            6.95,
+            9.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.1,
+        14.1875,
+        6.5
+      ],
+      "to": [
+        8.9,
+        15.2031,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.1,
+            5.2844,
+            8.9,
+            6.1087
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            7.1,
+            5.2844,
+            8.9,
+            6.1087
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7.1,
+            6.5,
+            8.9,
+            9.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.5,
+        14.1875,
+        7.1
+      ],
+      "to": [
+        7.1,
+        15.2031,
+        8.9
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            7.1,
+            5.2844,
+            8.9,
+            6.1087
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            7.1,
+            7.1,
+            8.9
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.9,
+        14.1875,
+        7.1
+      ],
+      "to": [
+        9.5,
+        15.2031,
+        8.9
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            7.1,
+            5.2844,
+            8.9,
+            6.1087
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.9,
+            7.1,
+            9.5,
+            8.9
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.5257,
+        14.1875,
+        6.7379
+      ],
+      "to": [
+        7.3743,
+        15.2031,
+        7.1621
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6.95,
+          14.1875,
+          6.95
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            8.9,
+            5.2844,
+            9.5,
+            6.1087
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            6.5,
+            7.1,
+            7.1
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.6257,
+        14.1875,
+        6.7379
+      ],
+      "to": [
+        9.4743,
+        15.2031,
+        7.1621
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          9.05,
+          14.1875,
+          6.95
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            6.5,
+            5.2844,
+            7.1,
+            6.1087
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.9,
+            6.5,
+            9.5,
+            7.1
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.6257,
+        14.1875,
+        8.8379
+      ],
+      "to": [
+        9.4743,
+        15.2031,
+        9.2621
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          9.05,
+          14.1875,
+          9.05
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            8.9,
+            5.2844,
+            9.5,
+            6.1087
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.9,
+            8.9,
+            9.5,
+            9.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.5257,
+        14.1875,
+        8.8379
+      ],
+      "to": [
+        7.3743,
+        15.2031,
+        9.2621
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          6.95,
+          14.1875,
+          9.05
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            6.5,
+            5.2844,
+            7.1,
+            6.1087
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            8.9,
+            7.1,
+            9.5
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.25,
+        15.2031,
+        6.75
+      ],
+      "to": [
+        8.75,
+        16.2188,
+        9.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.25,
+            4.4601,
+            8.75,
+            5.2844
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            7.25,
+            4.4601,
+            8.75,
+            5.2844
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7.25,
+            6.75,
+            8.75,
+            9.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.75,
+        15.2031,
+        7.25
+      ],
+      "to": [
+        7.25,
+        16.2188,
+        8.75
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            7.25,
+            4.4601,
+            8.75,
+            5.2844
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.75,
+            7.25,
+            7.25,
+            8.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.75,
+        15.2031,
+        7.25
+      ],
+      "to": [
+        9.25,
+        16.2188,
+        8.75
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            7.25,
+            4.4601,
+            8.75,
+            5.2844
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.75,
+            7.25,
+            9.25,
+            8.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.7714,
+        15.2031,
+        6.9482
+      ],
+      "to": [
+        7.4786,
+        16.2188,
+        7.3018
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          7.125,
+          15.2031,
+          7.125
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            8.75,
+            4.4601,
+            9.25,
+            5.2844
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.75,
+            6.75,
+            7.25,
+            7.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.5214,
+        15.2031,
+        6.9482
+      ],
+      "to": [
+        9.2286,
+        16.2188,
+        7.3018
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          8.875,
+          15.2031,
+          7.125
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            6.75,
+            4.4601,
+            7.25,
+            5.2844
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.75,
+            6.75,
+            9.25,
+            7.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.5214,
+        15.2031,
+        8.6982
+      ],
+      "to": [
+        9.2286,
+        16.2188,
+        9.0518
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          8.875,
+          15.2031,
+          8.875
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            8.75,
+            4.4601,
+            9.25,
+            5.2844
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.75,
+            8.75,
+            9.25,
+            9.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        6.7714,
+        15.2031,
+        8.6982
+      ],
+      "to": [
+        7.4786,
+        16.2188,
+        9.0518
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          7.125,
+          15.2031,
+          8.875
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            6.75,
+            4.4601,
+            7.25,
+            5.2844
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            6.75,
+            8.75,
+            7.25,
+            9.25
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.4,
+        16.2188,
         7
       ],
       "to": [
-        9,
-        16,
+        8.6,
+        17.2344,
         9
       ],
       "faces": {
         "north": {
-          "texture": "#ring",
           "uv": [
-            7,
-            0,
-            9,
-            0.5
-          ]
+            7.4,
+            3.6359,
+            8.6,
+            4.4601
+          ],
+          "texture": "#thermo"
         },
         "south": {
-          "texture": "#ring",
           "uv": [
-            7,
-            0,
-            9,
-            0.5
-          ]
-        },
-        "west": {
-          "texture": "#ring",
-          "uv": [
-            7,
-            0,
-            9,
-            0.5
-          ]
-        },
-        "east": {
-          "texture": "#ring",
-          "uv": [
-            7,
-            0,
-            9,
-            0.5
-          ]
+            7.4,
+            3.6359,
+            8.6,
+            4.4601
+          ],
+          "texture": "#thermo"
         },
         "up": {
-          "texture": "#ring",
           "uv": [
+            7.4,
             7,
-            7,
-            9,
+            8.6,
             9
-          ]
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7,
+        16.2188,
+        7.4
+      ],
+      "to": [
+        7.4,
+        17.2344,
+        8.6
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            7.4,
+            3.6359,
+            8.6,
+            4.4601
+          ],
+          "texture": "#thermo"
         },
-        "down": {
-          "texture": "#ring",
+        "up": {
+          "uv": [
+            7,
+            7.4,
+            7.4,
+            8.6
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.6,
+        16.2188,
+        7.4
+      ],
+      "to": [
+        9,
+        17.2344,
+        8.6
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            7.4,
+            3.6359,
+            8.6,
+            4.4601
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.6,
+            7.4,
+            9,
+            8.6
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.0172,
+        16.2188,
+        7.1586
+      ],
+      "to": [
+        7.5828,
+        17.2344,
+        7.4414
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          7.3,
+          16.2188,
+          7.3
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            8.6,
+            3.6359,
+            9,
+            4.4601
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
           "uv": [
             7,
             7,
+            7.4,
+            7.4
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.4172,
+        16.2188,
+        7.1586
+      ],
+      "to": [
+        8.9828,
+        17.2344,
+        7.4414
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          8.7,
+          16.2188,
+          7.3
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7,
+            3.6359,
+            7.4,
+            4.4601
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.6,
+            7,
+            9,
+            7.4
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.4172,
+        16.2188,
+        8.5586
+      ],
+      "to": [
+        8.9828,
+        17.2344,
+        8.8414
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          8.7,
+          16.2188,
+          8.7
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            8.6,
+            3.6359,
+            9,
+            4.4601
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.6,
+            8.6,
             9,
             9
-          ]
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.0172,
+        16.2188,
+        8.5586
+      ],
+      "to": [
+        7.5828,
+        17.2344,
+        8.8414
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          7.3,
+          16.2188,
+          8.7
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            7,
+            3.6359,
+            7.4,
+            4.4601
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7,
+            8.6,
+            7.4,
+            9
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.55,
+        17.2344,
+        7.25
+      ],
+      "to": [
+        8.45,
+        18.25,
+        8.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.55,
+            2.8116,
+            8.45,
+            3.6359
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            7.55,
+            2.8116,
+            8.45,
+            3.6359
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7.55,
+            7.25,
+            8.45,
+            8.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.25,
+        17.2344,
+        7.55
+      ],
+      "to": [
+        7.55,
+        18.25,
+        8.45
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            7.55,
+            2.8116,
+            8.45,
+            3.6359
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7.25,
+            7.55,
+            7.55,
+            8.45
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.45,
+        17.2344,
+        7.55
+      ],
+      "to": [
+        8.75,
+        18.25,
+        8.45
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            7.55,
+            2.8116,
+            8.45,
+            3.6359
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.45,
+            7.55,
+            8.75,
+            8.45
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.2629,
+        17.2344,
+        7.3689
+      ],
+      "to": [
+        7.6871,
+        18.25,
+        7.5811
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          7.475,
+          17.2344,
+          7.475
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            8.45,
+            2.8116,
+            8.75,
+            3.6359
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7.25,
+            7.25,
+            7.55,
+            7.55
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.3129,
+        17.2344,
+        7.3689
+      ],
+      "to": [
+        8.7371,
+        18.25,
+        7.5811
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          8.525,
+          17.2344,
+          7.475
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7.25,
+            2.8116,
+            7.55,
+            3.6359
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.45,
+            7.25,
+            8.75,
+            7.55
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.3129,
+        17.2344,
+        8.4189
+      ],
+      "to": [
+        8.7371,
+        18.25,
+        8.6311
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          8.525,
+          17.2344,
+          8.525
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            8.45,
+            2.8116,
+            8.75,
+            3.6359
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.45,
+            8.45,
+            8.75,
+            8.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.2629,
+        17.2344,
+        8.4189
+      ],
+      "to": [
+        7.6871,
+        18.25,
+        8.6311
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          7.475,
+          17.2344,
+          8.525
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            7.25,
+            2.8116,
+            7.55,
+            3.6359
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7.25,
+            8.45,
+            7.55,
+            8.75
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.82,
+        18.25,
+        7.7
+      ],
+      "to": [
+        8.18,
+        19.25,
+        8.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7.82,
+            0,
+            8.18,
+            2
+          ],
+          "texture": "#thermo"
+        },
+        "south": {
+          "uv": [
+            7.82,
+            0,
+            8.18,
+            2
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7.82,
+            7.7,
+            8.18,
+            8.3
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.7,
+        18.25,
+        7.82
+      ],
+      "to": [
+        7.82,
+        19.25,
+        8.18
+      ],
+      "faces": {
+        "west": {
+          "uv": [
+            7.82,
+            0,
+            8.18,
+            2
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7.7,
+            7.82,
+            7.82,
+            8.18
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.18,
+        18.25,
+        7.82
+      ],
+      "to": [
+        8.3,
+        19.25,
+        8.18
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            7.82,
+            0,
+            8.18,
+            2
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.18,
+            7.82,
+            8.3,
+            8.18
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.7051,
+        18.25,
+        7.7476
+      ],
+      "to": [
+        7.8749,
+        19.25,
+        7.8324
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          7.79,
+          18.25,
+          7.79
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            8.18,
+            0,
+            8.3,
+            2
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7.7,
+            7.7,
+            7.82,
+            7.82
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.1251,
+        18.25,
+        7.7476
+      ],
+      "to": [
+        8.2949,
+        19.25,
+        7.8324
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          8.21,
+          18.25,
+          7.79
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7.7,
+            0,
+            7.82,
+            2
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.18,
+            7.7,
+            8.3,
+            7.82
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        8.1251,
+        18.25,
+        8.1676
+      ],
+      "to": [
+        8.2949,
+        19.25,
+        8.2524
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          8.21,
+          18.25,
+          8.21
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            8.18,
+            0,
+            8.3,
+            2
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            8.18,
+            8.18,
+            8.3,
+            8.3
+          ],
+          "texture": "#thermo"
+        }
+      }
+    },
+    {
+      "name": "re-entry vehicle",
+      "from": [
+        7.7051,
+        18.25,
+        8.1676
+      ],
+      "to": [
+        7.8749,
+        19.25,
+        8.2524
+      ],
+      "rotation": {
+        "angle": -45,
+        "axis": "y",
+        "origin": [
+          7.79,
+          18.25,
+          8.21
+        ]
+      },
+      "faces": {
+        "south": {
+          "uv": [
+            7.7,
+            0,
+            7.82,
+            2
+          ],
+          "texture": "#thermo"
+        },
+        "up": {
+          "uv": [
+            7.7,
+            8.18,
+            7.82,
+            8.3
+          ],
+          "texture": "#thermo"
         }
       }
     }

@@ -41,60 +41,37 @@ def _fairing_skin(t, seed):
 
 
 def _fairing_common(t):
-    """What every side shows: the grey nose cap (row 0), the band low on the body (rows 11..13) and the step shadows."""
-    t.hline(0, 15, 0, STEEL[3])
-    t.set(7, 0, STEEL[4])
-    # A faint line where each step of the ogive meets the next: rows 8, 6, 4, 2 (y = 8, 10, 12, 14).
-    for y in (2, 4, 6, 8):
-        for x in range(16):
-            t.set(x, y, shade(t.get(x, y), 0.94))
-    # The band: a lit lip, two rows of blue, a shadow under it.
-    t.hline(0, 15, 11, HULL[6])
-    t.hline(0, 15, 12, MIMIC_BLUE[3])
-    t.hline(0, 15, 13, MIMIC_BLUE[2])
-    t.hline(0, 15, 14, HULL[3])
+    """What every side shows (rows are heights, v = 16 - y): a rivet line where the cylinder meets the ogive (row 6, y 9.5)
+    and a darker lip at the shell's foot (row 13, y 2..3), just above the separation ring."""
+    for x in range(16):
+        t.set(x, 13, shade(t.get(x, 13), 0.9))
+        t.set(x, 6, shade(t.get(x, 6), 0.94))
+        if x % 2 == 0:
+            t.set(x, 7, HULL[2])
 
 
 @block("rocket_satellite_fairing")
 def rocket_satellite_fairing():
-    """The fairing's sides away from its seam (east and west): the band and the payload's small stencilled markings."""
+    """The fairing's east and west sides, away from its seam: clean glossy white."""
     t = Tex(seed=2400)
     _fairing_skin(t, 2400)
     _fairing_common(t)
-    # A small emblem on the body: a blue disc ringed by an orbit (columns 4..6, rows 8..10).
-    for x, y in ((5, 8), (4, 9), (5, 9), (6, 9), (5, 10)):
-        t.set(x, y, MIMIC_BLUE[4])
-    t.set(5, 9, MIMIC_BLUE[6])
-    t.set(6, 8, CYAN[4])
-    t.set(4, 10, CYAN[3])
-    # A stencilled line of lettering beside it, and a red handling mark above the band.
-    for x in (8, 9, 11, 12):
-        t.set(x, 9, DARK[1])
-    t.set(10, 10, DARK[2])
-    t.hline(8, 9, 10, DARK[2])
-    t.set(11, 10, DANGER[3])
-    # A tiny access door up on the ogive.
-    t.set(7, 5, HULL[2])
-    t.set(8, 5, HULL[2])
     return t
 
 
 @block("rocket_satellite_fairing_side")
 def rocket_satellite_fairing_side():
-    """The north and south sides, which the seam runs down: a groove between columns 7 and 8 (the two halves meet at x = 8), with
-    the separation bolts either side of it."""
+    """The north and south sides, which the seam runs down: a groove between columns 7 and 8 (the two halves meet at x = 8),
+    with the separation bolts either side of it."""
     t = Tex(seed=2401)
     _fairing_skin(t, 2401)
     _fairing_common(t)
-    for y in range(0, 15):
+    for y in range(0, 14):
         t.set(7, y, HULL[1])
         t.set(8, y, HULL[3])
-    for y in (3, 7, 10):
+    for y in (2, 5, 8, 11):
         t.set(6, y, STEEL[2])
         t.set(9, y, STEEL[2])
-    # The band is cut by the seam too.
-    t.set(7, 12, MIMIC_BLUE[0])
-    t.set(7, 13, MIMIC_BLUE[0])
     return t
 
 
