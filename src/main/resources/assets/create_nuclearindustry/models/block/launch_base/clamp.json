@@ -1,105 +1,476 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "minecraft:block/iron_block",
-    "steel": "minecraft:block/iron_block"
+    "particle": "create_nuclearindustry:block/launch_base_clamp",
+    "hw": "create_nuclearindustry:block/launch_base_clamp"
   },
   "elements": [
     {
       "from": [
-        6,
+        5,
+        14.5,
+        4.5
+      ],
+      "to": [
+        11,
+        17.5,
+        7.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            13,
+            6,
+            16.0
+          ]
+        },
+        "south": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            13,
+            6,
+            16.0
+          ]
+        },
+        "up": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            13,
+            6,
+            16.0
+          ]
+        },
+        "east": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            13,
+            3.0,
+            16.0
+          ]
+        },
+        "west": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            13,
+            3.0,
+            16.0
+          ]
+        }
+      },
+      "name": "barrel"
+    },
+    {
+      "from": [
+        5.5,
         16,
-        4
+        2.5
+      ],
+      "to": [
+        10.5,
+        20.5,
+        5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            8,
+            16.0,
+            12.5
+          ]
+        },
+        "south": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            8,
+            16.0,
+            12.5
+          ]
+        },
+        "east": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            8,
+            13.5,
+            12.5
+          ]
+        },
+        "west": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            8,
+            13.5,
+            12.5
+          ]
+        },
+        "up": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            8,
+            16.0,
+            10.5
+          ]
+        }
+      },
+      "name": "counterweight"
+    },
+    {
+      "from": [
+        6,
+        15,
+        5
       ],
       "to": [
         10,
         18,
-        8
+        14.5
       ],
       "faces": {
-        "north": {
-          "texture": "#steel"
-        },
-        "south": {
-          "texture": "#steel"
-        },
         "east": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            0,
+            0,
+            9.5,
+            3
+          ]
         },
         "west": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            0,
+            0,
+            9.5,
+            3
+          ]
         },
         "up": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            0,
+            4,
+            9.5,
+            8
+          ],
+          "rotation": 90
         },
         "down": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            0,
+            4,
+            9.5,
+            8
+          ],
+          "rotation": 90
+        },
+        "north": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            4,
+            11
+          ]
         }
+      },
+      "name": "arm",
+      "rotation": {
+        "axis": "x",
+        "angle": -45,
+        "origin": [
+          8,
+          16.5,
+          6
+        ]
       }
     },
     {
       "from": [
         7,
-        18,
-        6
+        16.25,
+        7.5
       ],
       "to": [
         9,
-        26,
-        8
+        17.75,
+        13
       ],
       "faces": {
-        "north": {
-          "texture": "#steel"
-        },
-        "south": {
-          "texture": "#steel"
-        },
         "east": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            0,
+            0,
+            5.5,
+            1.5
+          ]
         },
         "west": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            0,
+            0,
+            5.5,
+            1.5
+          ]
         },
         "up": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            0,
+            4,
+            2,
+            9.5
+          ]
         },
         "down": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            0,
+            4,
+            2,
+            9.5
+          ]
+        },
+        "north": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            9.5
+          ]
+        },
+        "south": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            9.5
+          ]
         }
-      }
+      },
+      "name": "lower_chord"
     },
     {
       "from": [
         7,
-        24,
-        8
+        16.25,
+        13
       ],
       "to": [
         9,
-        26,
+        19,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            10.75
+          ]
+        },
+        "south": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            10.75
+          ]
+        },
+        "east": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            10.75
+          ]
+        },
+        "west": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            10.75
+          ]
+        },
+        "up": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            10
+          ]
+        },
+        "down": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            10
+          ]
+        }
+      },
+      "name": "jaw_web"
+    },
+    {
+      "from": [
+        5,
+        19,
+        12
+      ],
+      "to": [
+        11,
+        23.5,
+        16.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            6,
+            12.5
+          ]
+        },
+        "south": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            6,
+            12.5
+          ]
+        },
+        "east": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            4.5,
+            12.5
+          ]
+        },
+        "west": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            4.5,
+            12.5
+          ]
+        },
+        "up": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            6,
+            12.5
+          ]
+        },
+        "down": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            6,
+            12.5
+          ]
+        }
+      },
+      "name": "head"
+    },
+    {
+      "from": [
+        5.5,
+        18.5,
+        16.5
+      ],
+      "to": [
+        10.5,
+        23.5,
         18
       ],
       "faces": {
         "north": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            6,
+            8,
+            11.0,
+            13.0
+          ]
         },
         "south": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            6,
+            8,
+            11.0,
+            13.0
+          ]
         },
         "east": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            6,
+            8,
+            7.5,
+            13.0
+          ]
         },
         "west": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            6,
+            8,
+            7.5,
+            13.0
+          ]
         },
         "up": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            6,
+            8,
+            11.0,
+            9.5
+          ]
         },
         "down": {
-          "texture": "#steel"
+          "texture": "#hw",
+          "uv": [
+            6,
+            8,
+            11.0,
+            9.5
+          ]
         }
-      }
+      },
+      "name": "jaw_pad"
     }
   ]
 }

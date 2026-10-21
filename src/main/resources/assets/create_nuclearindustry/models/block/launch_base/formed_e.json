@@ -1,10 +1,12 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/launch_base_side",
+    "particle": "create_nuclearindustry:block/launch_base_formed_side",
     "top": "create_nuclearindustry:block/launch_base_formed",
-    "side": "create_nuclearindustry:block/launch_base_side",
-    "bottom": "create_nuclearindustry:block/silo_wall"
+    "side": "create_nuclearindustry:block/launch_base_formed_side",
+    "bottom": "create_nuclearindustry:block/silo_wall",
+    "hw": "create_nuclearindustry:block/launch_base_clamp",
+    "outlet": "create_nuclearindustry:block/launch_base_formed_outlet"
   },
   "elements": [
     {
@@ -42,7 +44,7 @@
           "cullface": "south"
         },
         "east": {
-          "texture": "#side",
+          "texture": "#outlet",
           "cullface": "east"
         },
         "west": {
@@ -50,6 +52,250 @@
           "cullface": "west"
         }
       }
+    },
+    {
+      "from": [
+        8,
+        16,
+        3
+      ],
+      "to": [
+        12,
+        18.5,
+        5
+      ],
+      "faces": {
+        "east": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            10.5
+          ]
+        },
+        "south": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            4,
+            10.5
+          ]
+        },
+        "north": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            4,
+            10.5
+          ]
+        },
+        "up": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            12
+          ],
+          "rotation": 90
+        }
+      },
+      "name": "hinge_lug"
+    },
+    {
+      "from": [
+        9,
+        16.5,
+        2.5
+      ],
+      "to": [
+        11,
+        18,
+        3.0
+      ],
+      "faces": {
+        "east": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            13,
+            11.5,
+            14.5
+          ]
+        },
+        "west": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            13,
+            11.5,
+            14.5
+          ]
+        },
+        "south": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            13,
+            13,
+            14.5
+          ]
+        },
+        "north": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            13,
+            13,
+            14.5
+          ]
+        },
+        "up": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            13,
+            11.5,
+            15
+          ],
+          "rotation": 90
+        }
+      },
+      "name": "hinge_pin"
+    },
+    {
+      "from": [
+        8,
+        16,
+        11
+      ],
+      "to": [
+        12,
+        18.5,
+        13
+      ],
+      "faces": {
+        "east": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            10.5
+          ]
+        },
+        "west": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            10.5
+          ]
+        },
+        "south": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            4,
+            10.5
+          ]
+        },
+        "north": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            4,
+            10.5
+          ]
+        },
+        "up": {
+          "texture": "#hw",
+          "uv": [
+            0,
+            8,
+            2,
+            12
+          ],
+          "rotation": 90
+        }
+      },
+      "name": "hinge_lug"
+    },
+    {
+      "from": [
+        9,
+        16.5,
+        13
+      ],
+      "to": [
+        11,
+        18,
+        13.5
+      ],
+      "faces": {
+        "east": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            13,
+            11.5,
+            14.5
+          ]
+        },
+        "west": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            13,
+            11.5,
+            14.5
+          ]
+        },
+        "south": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            13,
+            13,
+            14.5
+          ]
+        },
+        "north": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            13,
+            13,
+            14.5
+          ]
+        },
+        "up": {
+          "texture": "#hw",
+          "uv": [
+            11,
+            13,
+            11.5,
+            15
+          ],
+          "rotation": 90
+        }
+      },
+      "name": "hinge_pin"
     }
   ]
 }

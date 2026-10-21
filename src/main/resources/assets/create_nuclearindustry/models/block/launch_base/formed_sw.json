@@ -1,9 +1,9 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "create_nuclearindustry:block/launch_base_side",
+    "particle": "create_nuclearindustry:block/launch_base_formed_side",
     "top": "create_nuclearindustry:block/launch_base_formed",
-    "side": "create_nuclearindustry:block/launch_base_side",
+    "side": "create_nuclearindustry:block/launch_base_formed_side",
     "bottom": "create_nuclearindustry:block/silo_wall"
   },
   "elements": [
