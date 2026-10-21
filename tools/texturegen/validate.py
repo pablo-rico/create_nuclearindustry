@@ -48,6 +48,10 @@ def main():
             assert im.getbbox() is not None, name
             if name in special:
                 continue
+            if name.startswith("block/") and name[len("block/"):-4] in blocks.TRANSLUCENT_BLOCKS:
+                assert im.size == blocks.TRANSLUCENT_BLOCKS[name[len("block/"):-4]], name
+                assert im.getchannel("A").getextrema()[0] < 255, "Translucent texture without alpha: " + name
+                continue
             cutout = name.startswith("block/") and name[len("block/"):-4] in blocks.CUTOUT_BLOCKS
             if cutout:
                 assert im.size == blocks.CUTOUT_BLOCKS[name[len("block/"):-4]], name

@@ -1,0 +1,137 @@
+{
+  "credit": "Create: Nuclear Industry. A port through the formed tokamak's skin: front faces north (outward); the skin plane sits at z=4, so only the flange (z 0..2) and the body's brass collar (z 2..4) show.",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "#face",
+    "flange": "create_nuclearindustry:block/tokamak/nozzle_flange",
+    "body": "create_nuclearindustry:block/tokamak/nozzle_body"
+  },
+  "elements": [
+    {
+      "name": "flange",
+      "from": [
+        2,
+        2,
+        0
+      ],
+      "to": [
+        14,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#face",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#flange"
+        },
+        "up": {
+          "uv": [
+            2,
+            0,
+            14,
+            2
+          ],
+          "texture": "#flange"
+        },
+        "down": {
+          "uv": [
+            2,
+            0,
+            14,
+            2
+          ],
+          "rotation": 180,
+          "texture": "#flange"
+        },
+        "east": {
+          "uv": [
+            2,
+            0,
+            14,
+            2
+          ],
+          "rotation": 90,
+          "texture": "#flange"
+        },
+        "west": {
+          "uv": [
+            2,
+            0,
+            14,
+            2
+          ],
+          "rotation": 270,
+          "texture": "#flange"
+        }
+      }
+    },
+    {
+      "name": "body",
+      "from": [
+        3,
+        3,
+        2
+      ],
+      "to": [
+        13,
+        13,
+        10
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            3,
+            4,
+            13,
+            12
+          ],
+          "texture": "#body"
+        },
+        "down": {
+          "uv": [
+            3,
+            4,
+            13,
+            12
+          ],
+          "texture": "#body"
+        },
+        "east": {
+          "uv": [
+            3,
+            4,
+            13,
+            12
+          ],
+          "rotation": 90,
+          "texture": "#body"
+        },
+        "west": {
+          "uv": [
+            3,
+            4,
+            13,
+            12
+          ],
+          "rotation": 90,
+          "texture": "#body"
+        }
+      }
+    }
+  ]
+}

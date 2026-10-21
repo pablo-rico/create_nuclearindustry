@@ -399,6 +399,9 @@ def centrifuge_shaft():
 # Textures drawn with transparent pixels; validate.py checks these against their own sizes (the turbine glass, from tex_turbine).
 CUTOUT_BLOCKS = {}
 
+# Textures with partial alpha, drawn translucent (the tokamak's porthole glass); validate.py checks their size only.
+TRANSLUCENT_BLOCKS = {}
+
 # Opaque textures larger than 16x16 (connected-texture sheets and the 32x launch-site textures); validate.py
 # checks their size and that every pixel is opaque.
 SHEET_BLOCKS = {
@@ -1342,3 +1345,4 @@ import tex_orbit  # noqa: E402,F401
 import tex_silo_controller  # noqa: E402,F401
 import tex_launch_base  # noqa: E402,F401
 import tex_turbine  # noqa: E402,F401
+import tex_tokamak  # noqa: E402,F401

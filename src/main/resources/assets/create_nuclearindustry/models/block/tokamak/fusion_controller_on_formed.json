@@ -1,0 +1,6 @@
+{
+  "parent": "create_nuclearindustry:block/tokamak/valve_formed",
+  "textures": {
+    "face": "create_nuclearindustry:block/fusion_controller_on"
+  }
+}

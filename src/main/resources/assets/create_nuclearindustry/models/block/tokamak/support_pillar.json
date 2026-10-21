@@ -1,0 +1,207 @@
+{
+  "credit": "Create: Nuclear Industry. Tokamak support stand, combined by a multipart blockstate: the I-beam column (flanges z 4..6 and 10..12, web x 7..9), full height.",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "pillar": "create_nuclearindustry:block/tokamak/support_pillar",
+    "foot": "create_nuclearindustry:block/tokamak/support_foot",
+    "cradle": "create_nuclearindustry:block/tokamak/support_cradle",
+    "particle": "create_nuclearindustry:block/tokamak/support_pillar"
+  },
+  "elements": [
+    {
+      "name": "flange_north",
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        16,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            0,
+            12,
+            16
+          ],
+          "texture": "#pillar"
+        },
+        "south": {
+          "uv": [
+            4,
+            0,
+            12,
+            16
+          ],
+          "texture": "#pillar"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "texture": "#pillar"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "texture": "#pillar"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            6
+          ],
+          "texture": "#pillar",
+          "cullface": "up"
+        },
+        "down": {
+          "uv": [
+            4,
+            4,
+            12,
+            6
+          ],
+          "texture": "#pillar",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "flange_south",
+      "from": [
+        4,
+        0,
+        10
+      ],
+      "to": [
+        12,
+        16,
+        12
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            0,
+            12,
+            16
+          ],
+          "texture": "#pillar"
+        },
+        "south": {
+          "uv": [
+            4,
+            0,
+            12,
+            16
+          ],
+          "texture": "#pillar"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "texture": "#pillar"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "texture": "#pillar"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            6
+          ],
+          "texture": "#pillar",
+          "cullface": "up"
+        },
+        "down": {
+          "uv": [
+            4,
+            4,
+            12,
+            6
+          ],
+          "texture": "#pillar",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "web",
+      "from": [
+        7,
+        0,
+        6
+      ],
+      "to": [
+        9,
+        16,
+        10
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            12,
+            0,
+            16,
+            16
+          ],
+          "texture": "#pillar"
+        },
+        "west": {
+          "uv": [
+            12,
+            0,
+            16,
+            16
+          ],
+          "texture": "#pillar"
+        },
+        "up": {
+          "uv": [
+            12,
+            0,
+            14,
+            4
+          ],
+          "texture": "#pillar",
+          "cullface": "up"
+        },
+        "down": {
+          "uv": [
+            12,
+            0,
+            14,
+            4
+          ],
+          "texture": "#pillar",
+          "cullface": "down"
+        }
+      }
+    }
+  ]
+}

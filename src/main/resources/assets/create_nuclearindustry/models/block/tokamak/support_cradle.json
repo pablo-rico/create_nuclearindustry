@@ -1,0 +1,532 @@
+{
+  "credit": "Create: Nuclear Industry. Tokamak support stand, combined by a multipart blockstate: the saddle plate (y 14..16) with diagonal braces into the column.",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "pillar": "create_nuclearindustry:block/tokamak/support_pillar",
+    "foot": "create_nuclearindustry:block/tokamak/support_foot",
+    "cradle": "create_nuclearindustry:block/tokamak/support_cradle",
+    "particle": "create_nuclearindustry:block/tokamak/support_pillar"
+  },
+  "elements": [
+    {
+      "name": "saddle",
+      "from": [
+        1,
+        14,
+        1
+      ],
+      "to": [
+        15,
+        16,
+        15
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#cradle",
+          "cullface": "up"
+        },
+        "down": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#cradle"
+        },
+        "north": {
+          "uv": [
+            1,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cradle"
+        },
+        "south": {
+          "uv": [
+            1,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cradle"
+        },
+        "east": {
+          "uv": [
+            1,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cradle"
+        },
+        "west": {
+          "uv": [
+            1,
+            0,
+            15,
+            2
+          ],
+          "texture": "#cradle"
+        }
+      }
+    },
+    {
+      "name": "stiffener",
+      "from": [
+        9,
+        10,
+        6
+      ],
+      "to": [
+        12,
+        14,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            0,
+            16,
+            4
+          ],
+          "texture": "#pillar"
+        },
+        "south": {
+          "uv": [
+            12,
+            0,
+            16,
+            4
+          ],
+          "texture": "#pillar"
+        },
+        "east": {
+          "uv": [
+            12,
+            0,
+            16,
+            4
+          ],
+          "texture": "#pillar"
+        },
+        "west": {
+          "uv": [
+            12,
+            0,
+            16,
+            4
+          ],
+          "texture": "#pillar"
+        },
+        "up": {
+          "uv": [
+            12,
+            0,
+            15,
+            4
+          ],
+          "texture": "#pillar"
+        },
+        "down": {
+          "uv": [
+            12,
+            0,
+            15,
+            4
+          ],
+          "texture": "#pillar"
+        }
+      }
+    },
+    {
+      "name": "stiffener",
+      "from": [
+        4,
+        10,
+        6
+      ],
+      "to": [
+        7,
+        14,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            0,
+            16,
+            4
+          ],
+          "texture": "#pillar"
+        },
+        "south": {
+          "uv": [
+            12,
+            0,
+            16,
+            4
+          ],
+          "texture": "#pillar"
+        },
+        "east": {
+          "uv": [
+            12,
+            0,
+            16,
+            4
+          ],
+          "texture": "#pillar"
+        },
+        "west": {
+          "uv": [
+            12,
+            0,
+            16,
+            4
+          ],
+          "texture": "#pillar"
+        },
+        "up": {
+          "uv": [
+            12,
+            0,
+            15,
+            4
+          ],
+          "texture": "#pillar"
+        },
+        "down": {
+          "uv": [
+            12,
+            0,
+            15,
+            4
+          ],
+          "texture": "#pillar"
+        }
+      }
+    },
+    {
+      "name": "brace_north",
+      "from": [
+        7,
+        11.75,
+        0.4500000000000002
+      ],
+      "to": [
+        9,
+        13.25,
+        5.05
+      ],
+      "rotation": {
+        "origin": [
+          8,
+          12.5,
+          2.75
+        ],
+        "axis": "x",
+        "angle": 45
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "south": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "east": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "west": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "up": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "down": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        }
+      }
+    },
+    {
+      "name": "brace_south",
+      "from": [
+        7,
+        11.75,
+        10.95
+      ],
+      "to": [
+        9,
+        13.25,
+        15.55
+      ],
+      "rotation": {
+        "origin": [
+          8,
+          12.5,
+          13.25
+        ],
+        "axis": "x",
+        "angle": -45
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "south": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "east": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "west": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "up": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "down": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        }
+      }
+    },
+    {
+      "name": "brace_east",
+      "from": [
+        10.95,
+        11.75,
+        7
+      ],
+      "to": [
+        15.55,
+        13.25,
+        9
+      ],
+      "rotation": {
+        "origin": [
+          13.25,
+          12.5,
+          8
+        ],
+        "axis": "z",
+        "angle": 45
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "south": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "east": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "west": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "up": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "down": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        }
+      }
+    },
+    {
+      "name": "brace_west",
+      "from": [
+        0.4500000000000002,
+        11.75,
+        7
+      ],
+      "to": [
+        5.05,
+        13.25,
+        9
+      ],
+      "rotation": {
+        "origin": [
+          2.75,
+          12.5,
+          8
+        ],
+        "axis": "z",
+        "angle": -45
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "south": {
+          "uv": [
+            2,
+            0,
+            6.6,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "east": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "west": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "up": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        },
+        "down": {
+          "uv": [
+            2,
+            0,
+            3.5,
+            1.5
+          ],
+          "texture": "#cradle"
+        }
+      }
+    }
+  ]
+}
