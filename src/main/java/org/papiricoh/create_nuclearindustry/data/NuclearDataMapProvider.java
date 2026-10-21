@@ -32,7 +32,7 @@ public class NuclearDataMapProvider extends DataMapProvider {
     }
 
     @Override
-    protected void gather() {
+    protected void gather(HolderLookup.Provider provider) {
         var radioactivity = builder(AllNuclearRadiation.RADIOACTIVITY);
         add(radioactivity, AllNuclearItems.RAW_URANIUM, 0.01f, false);
         add(radioactivity, AllNuclearItems.CRUSHED_RAW_URANIUM, 0.01f, false);
