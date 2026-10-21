@@ -1,0 +1,45 @@
+{
+  "credit": "Create: Nuclear Industry. A 2px glass pane on the north (outer) face, framed by connected textures.",
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "glass": "create_nuclearindustry:block/reinforced_turbine_glass",
+    "particle": "create_nuclearindustry:block/reinforced_turbine_glass"
+  },
+  "elements": [
+    {
+      "name": "pane",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#glass",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#glass"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "create_nuclearindustry:block/turbine/casing_panel",
+  "textures": {
+    "casing": "create_nuclearindustry:block/fusion_turbine_casing",
+    "inner": "create_nuclearindustry:block/fusion_turbine_casing_inner",
+    "particle": "create_nuclearindustry:block/fusion_turbine_casing"
+  }
+}

@@ -4,13 +4,13 @@ import math
 from fusion_materials import FUSION_BLOCKS
 from reactor_materials import steel_panel, steel_port, mineral, STEEL as REACTOR_STEEL
 
-from common import (bar_readout, bezel, bolt, casing, cracks, flange, ore,
+from common import (bar_readout, bezel, bolt, cracks, flange, ore,
                     panel_screen, port_face, trefoil)
 from palette import (BLACK, BRASS, CONCRETE, COPPER, CRYO, CYAN, DANGER, DARK, IN_ACCENT,
                      LEAD, OUT_ACCENT, PLASMA, RADIUM, STEEL, STONE, TRITIUM, URANIUM,
                      WARN, WHITE)
 from pixelkit import (Tex, bevel, brushed, fbm, glow, hazard, inset, item_outline, mix,
-                      outline, rivet, scanlines, shade, speckle, vents)
+                      outline, rivet, scanlines, shade, speckle)
 
 BLOCKS = {}
 
@@ -290,139 +290,6 @@ def reactor_fuel_port_output():
 
 
 # ======================================================================================
-# turbine
-# ======================================================================================
-
-@block("turbine_casing")
-def turbine_casing():
-    t = Tex(seed=24)
-    casing(t, STEEL, seed=24, seam=False)
-    vents(t, 3, 4, 12, 11, STEEL, step=2)
-    t.frame(2, 3, 13, 12, STEEL[1])
-    t.hline(3, 12, 3, STEEL[5])
-    return t
-
-
-@block("turbine_blade")
-def turbine_blade():
-    t = Tex(seed=25)
-    brushed(t, STEEL, base=2.6, amp=0.7, seed=25)
-    for k in range(-16, 16, 4):
-        for y in range(16):
-            x = k + y
-            if 0 <= x < 16:
-                t.set(x, y, STEEL[6])
-                if x + 1 < 16:
-                    t.set(x + 1, y, STEEL[4])
-                if x + 2 < 16:
-                    t.set(x + 2, y, STEEL[2])
-                if x + 3 < 16:
-                    t.set(x + 3, y, STEEL[0])
-    t.hline(0, 15, 0, STEEL[1])
-    t.hline(0, 15, 15, STEEL[1])
-    return t
-
-
-@block("turbine_rotor_core")
-def turbine_rotor_core():
-    t = Tex(seed=26)
-    brushed(t, BRASS, base=3.0, amp=0.8, seed=26, axis="v")
-    t.disc(8, 8, 6.0, BRASS[4])
-    t.ring(8, 8, 6.0, 5.2, BRASS[6])
-    t.ring(8, 8, 6.3, 5.9, BRASS[0])
-    t.disc(8, 8, 3.4, BRASS[2])
-    t.disc(8, 8, 2.0, DARK[1])
-    for a in range(0, 360, 45):
-        r = math.radians(a)
-        t.line(8 + math.cos(r) * 2.4, 8 + math.sin(r) * 2.4,
-               8 + math.cos(r) * 5.2, 8 + math.sin(r) * 5.2, BRASS[1])
-    glow(t, 6, 6, 5.0, BRASS[6], 0.18)
-    return t
-
-
-def _output_frame():
-    """Steel twin of the tokamak's framed bearing: the model stands the outer 3px 2px proud of
-    the 10x10 recess the drive shaft turns in."""
-    t = Tex(seed=27)
-    brushed(t, STEEL, base=3.4, amp=0.6, seed=27)
-    outline(t, 0, 0, 15, 15, STEEL[1])
-    bevel(t, 1, 1, 14, 14, STEEL, hi=STEEL[5], lo=STEEL[1], corner=False)
-    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
-        bolt(t, x, y, STEEL)
-    # Recess floor, in shadow under the frame's top and left edges.
-    t.rect(3, 3, 12, 12, DARK[2])
-    t.hline(3, 12, 3, DARK[0])
-    t.vline(3, 3, 12, DARK[0])
-    t.hline(4, 12, 4, DARK[1])
-    t.vline(4, 4, 12, DARK[1])
-    return t
-
-
-@block("turbine_output_front")
-def turbine_output_front():
-    """The shaft end in the turbine's end wall: a brass coupling flange round the bearing."""
-    t = _output_frame()
-    t.ring(8, 8, 4.6, 3.7, BRASS[3])
-    for x, y in ((4, 7), (7, 4)):
-        t.set(x, y, BRASS[5])
-    for x, y in ((11, 8), (8, 11)):
-        t.set(x, y, BRASS[1])
-    t.ring(8, 8, 3.6, 2.4, STEEL[4])
-    t.set(6, 5, STEEL[6])
-    t.set(5, 6, STEEL[6])
-    t.set(10, 10, STEEL[2])
-    t.rect(6, 6, 9, 9, DARK[0])
-    # Exhaust louvres on the bottom bar, as on the casing.
-    for x in (4, 7, 10):
-        t.hline(x, x + 1, 13, DARK[1])
-        t.hline(x, x + 1, 14, STEEL[5])
-    return t
-
-
-@block("turbine_output_side")
-def turbine_output_side():
-    """The bearing housing: the shaft line runs front to back between two clamp rings."""
-    t = Tex(seed=28)
-    casing(t, STEEL, seed=28, seam=False)
-    t.rect(0, 5, 15, 10, STEEL[4])
-    bevel(t, 0, 5, 15, 10, STEEL)
-    t.hline(0, 15, 5, STEEL[6])
-    t.hline(0, 15, 10, STEEL[1])
-    for x in (3, 12):
-        t.vline(x, 4, 11, BRASS[4])
-        t.vline(x + 1, 4, 11, BRASS[1])
-    return t
-
-
-@block("turbine_output_back")
-def turbine_output_back():
-    """Seen from inside the turbine: the brass hub the rotor is keyed to."""
-    t = Tex(seed=29)
-    brushed(t, DARK, base=2.6, amp=0.6, seed=29)
-    bevel(t, 0, 0, 15, 15, DARK, hi=DARK[4], lo=DARK[0])
-    t.disc(8, 8, 5.6, BRASS[3])
-    t.ring(8, 8, 5.6, 4.8, BRASS[5])
-    t.ring(8, 8, 5.9, 5.5, BRASS[0])
-    t.disc(8, 8, 3.0, BRASS[2])
-    for a in range(0, 360, 60):
-        r = math.radians(a)
-        t.line(8 + math.cos(r) * 3.2, 8 + math.sin(r) * 3.2,
-               8 + math.cos(r) * 4.6, 8 + math.sin(r) * 4.6, BRASS[1])
-    t.disc(8, 8, 1.6, DARK[0])
-    return t
-
-
-@block("turbine_fluid_port_input")
-def turbine_fluid_port_input():
-    return port_face(Tex(seed=29), STEEL, IN_ACCENT, seed=29, out=False)
-
-
-@block("turbine_fluid_port_output")
-def turbine_fluid_port_output():
-    return port_face(Tex(seed=30), STEEL, OUT_ACCENT, seed=30, out=True)
-
-
-# ======================================================================================
 # centrifuge
 # ======================================================================================
 
@@ -529,74 +396,14 @@ def centrifuge_shaft():
     return t
 
 
-# ======================================================================================
-# reinforced turbine glass (connected textures)
-# ======================================================================================
-
-# Textures drawn with transparent pixels; validate.py checks these against their own sizes.
-CUTOUT_BLOCKS = {
-    "reinforced_turbine_glass": (16, 16),
-    "reinforced_turbine_glass_connected": (64, 64),
-}
+# Textures drawn with transparent pixels; validate.py checks these against their own sizes (the turbine glass, from tex_turbine).
+CUTOUT_BLOCKS = {}
 
 # Opaque textures larger than 16x16 (connected-texture sheets and the 32x launch-site textures); validate.py
 # checks their size and that every pixel is opaque.
 SHEET_BLOCKS = {
     "launch_base_formed": (96, 96),
 }
-
-
-def _glass_tile(t, ox, oy, left, right, top, bottom):
-    """One 16x16 pane at (ox, oy). Borders are drawn only where the pane meets a non-glass
-    neighbour, so tiles join seamlessly; the wire mesh uses tile-local coordinates so it lines
-    up across joined panes."""
-    for y in range(16):
-        for x in range(16):
-            px = None
-            if (x % 8 == 3 and y % 8 != 3) or (y % 8 == 3 and x % 8 != 3):
-                px = STEEL[2]
-            elif x % 8 == 3 and y % 8 == 3:
-                px = STEEL[4]
-            t.set(ox + x, oy + y, px) if px else None
-    # faint glint, drawn opaque so cutout rendering keeps it
-    for i in range(3):
-        t.set(ox + 10 + i, oy + 5 - i, STEEL[6])
-    edges = []
-    if top:
-        edges += [(x, 0, 1) for x in range(16)] + [(x, 1, 0) for x in range(16)]
-    if bottom:
-        edges += [(x, 15, 1) for x in range(16)] + [(x, 14, 0) for x in range(16)]
-    if left:
-        edges += [(0, y, 1) for y in range(16)] + [(1, y, 0) for y in range(16)]
-    if right:
-        edges += [(15, y, 1) for y in range(16)] + [(14, y, 0) for y in range(16)]
-    for x, y, outer in edges:
-        t.set(ox + x, oy + y, DARK[1] if outer else STEEL[5 if (x + y) % 2 else 4])
-    # bolts where two bordered sides meet
-    for cx, cy, on in ((2, 2, top and left), (13, 2, top and right), (2, 13, bottom and left), (13, 13, bottom and right)):
-        if on:
-            t.set(ox + cx, oy + cy, BRASS[5])
-
-
-@block("reinforced_turbine_glass")
-def reinforced_turbine_glass():
-    t = Tex(seed=41)
-    _glass_tile(t, 0, 0, True, True, True, True)
-    return t
-
-
-@block("reinforced_turbine_glass_connected")
-def reinforced_turbine_glass_connected():
-    """Create's RECTANGLE layout: 4x4 tiles, index = col + 4*row.
-    col 0 isolated, 1 joined right, 2 joined both, 3 joined left;
-    row 0 joined down, 1 joined both, 2 joined up, 3 isolated."""
-    t = Tex(64, 64, 42)
-    for row in range(4):
-        for col in range(4):
-            _glass_tile(t, col * 16, row * 16,
-                        left=col in (0, 1), right=col in (0, 3),
-                        top=row in (0, 3), bottom=row in (2, 3))
-    return t
 
 
 # ======================================================================================
@@ -906,15 +713,6 @@ def launch_pad_rail():
             t.set(x, y, STEEL[6])
             t.set(x + 1, y, STEEL[4])
             t.set(x + 2, y, STEEL[1])
-    return t
-
-
-@block("turbine_exhaust_port")
-def turbine_exhaust_port():
-    # A turbine port with a louvred grey outlet: spent steam goes out here, to a cooling tower.
-    t = port_face(Tex(seed=99), STEEL, LEAD, seed=99, out=True)
-    for y in (5, 7, 9):
-        t.hline(5, 10, y, STEEL[6])
     return t
 
 
@@ -1543,3 +1341,4 @@ import tex_defense  # noqa: E402,F401
 import tex_orbit  # noqa: E402,F401
 import tex_silo_controller  # noqa: E402,F401
 import tex_launch_base  # noqa: E402,F401
+import tex_turbine  # noqa: E402,F401

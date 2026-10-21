@@ -1,0 +1,218 @@
+{
+  "credit": "Create: Nuclear Industry. A casing plate (north = outside) whose fitting sits 1px down in a square hole; the frame takes the casing's connected texture so the edge trim carries on round it.",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "casing": "create_nuclearindustry:block/turbine_casing",
+    "inner": "create_nuclearindustry:block/turbine_casing_inner",
+    "trim": "create_nuclearindustry:block/turbine_trim",
+    "port": "create_nuclearindustry:block/turbine_fluid_port_input",
+    "particle": "create_nuclearindustry:block/turbine_casing"
+  },
+  "elements": [
+    {
+      "name": "frame_west",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        3,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            13,
+            0,
+            16,
+            16
+          ],
+          "texture": "#casing",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "texture": "#trim"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            3,
+            16
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "frame_east",
+      "from": [
+        13,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            3,
+            16
+          ],
+          "texture": "#casing",
+          "cullface": "north"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ],
+          "texture": "#trim"
+        },
+        "south": {
+          "uv": [
+            13,
+            0,
+            16,
+            16
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "frame_top",
+      "from": [
+        3,
+        13,
+        0
+      ],
+      "to": [
+        13,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            0,
+            13,
+            3
+          ],
+          "texture": "#casing",
+          "cullface": "north"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            10,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "south": {
+          "uv": [
+            3,
+            0,
+            13,
+            3
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "frame_bottom",
+      "from": [
+        3,
+        0,
+        0
+      ],
+      "to": [
+        13,
+        3,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ],
+          "texture": "#casing",
+          "cullface": "north"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            10,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "south": {
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "fitting",
+      "from": [
+        3,
+        3,
+        1
+      ],
+      "to": [
+        13,
+        13,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#port"
+        },
+        "south": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#inner"
+        }
+      }
+    }
+  ]
+}

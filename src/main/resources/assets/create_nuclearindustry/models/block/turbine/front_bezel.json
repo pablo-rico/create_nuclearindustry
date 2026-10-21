@@ -1,0 +1,3895 @@
+{
+  "credit": "Create: Nuclear Industry. The formed turbine's whole 3x3 front slice, drawn by the controller (the centre block; north = outside): a thin plate round a stepped round intake (rows from tex_turbine.bezel_rows), a raised ring, the shell's 2px sides and the stator recess at z 8.",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "bezel": "create_nuclearindustry:block/turbine_front_bezel",
+    "sides": "create_nuclearindustry:block/turbine_casing_connected",
+    "inner": "create_nuclearindustry:block/turbine_casing_inner",
+    "trim": "create_nuclearindustry:block/turbine_trim",
+    "particle": "create_nuclearindustry:block/turbine_casing"
+  },
+  "elements": [
+    {
+      "name": "plate_top",
+      "from": [
+        -14,
+        29.5,
+        1
+      ],
+      "to": [
+        30,
+        30,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            0.6667,
+            15.3333,
+            0.8333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            0.6667,
+            15.3333,
+            0.8333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_top_0_w",
+      "from": [
+        -14,
+        8,
+        1
+      ],
+      "to": [
+        -13.5,
+        12,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            15.1667,
+            6.6667,
+            15.3333,
+            8
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            6.6667,
+            0.8333,
+            8
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_top_0_w",
+      "from": [
+        -13.5,
+        8,
+        0
+      ],
+      "to": [
+        -11,
+        12,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14.3333,
+            6.6667,
+            15.1667,
+            8
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_top_0_e",
+      "from": [
+        27,
+        8,
+        0
+      ],
+      "to": [
+        29.5,
+        12,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.8333,
+            6.6667,
+            1.6667,
+            8
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_top_0_e",
+      "from": [
+        29.5,
+        8,
+        1
+      ],
+      "to": [
+        30,
+        12,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            6.6667,
+            0.8333,
+            8
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            15.1667,
+            6.6667,
+            15.3333,
+            8
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_top_4_w",
+      "from": [
+        -14,
+        12,
+        1
+      ],
+      "to": [
+        -13,
+        16,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            15,
+            5.3333,
+            15.3333,
+            6.6667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            5.3333,
+            1,
+            6.6667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_top_4_w",
+      "from": [
+        -13,
+        12,
+        0
+      ],
+      "to": [
+        -11,
+        16,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14.3333,
+            5.3333,
+            15,
+            6.6667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_top_4_e",
+      "from": [
+        27,
+        12,
+        0
+      ],
+      "to": [
+        29,
+        16,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            5.3333,
+            1.6667,
+            6.6667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_top_4_e",
+      "from": [
+        29,
+        12,
+        1
+      ],
+      "to": [
+        30,
+        16,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            5.3333,
+            1,
+            6.6667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            15,
+            5.3333,
+            15.3333,
+            6.6667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_top_8_w",
+      "from": [
+        -14,
+        16,
+        1
+      ],
+      "to": [
+        -12,
+        19,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14.6667,
+            4.3333,
+            15.3333,
+            5.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            4.3333,
+            1.3333,
+            5.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_top_8_w",
+      "from": [
+        -12,
+        16,
+        0
+      ],
+      "to": [
+        -9.5,
+        19,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            13.8333,
+            4.3333,
+            14.6667,
+            5.3333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_top_8_e",
+      "from": [
+        25.5,
+        16,
+        0
+      ],
+      "to": [
+        28,
+        19,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1.3333,
+            4.3333,
+            2.1667,
+            5.3333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_top_8_e",
+      "from": [
+        28,
+        16,
+        1
+      ],
+      "to": [
+        30,
+        19,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            4.3333,
+            1.3333,
+            5.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            14.6667,
+            4.3333,
+            15.3333,
+            5.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_top_11_w",
+      "from": [
+        -14,
+        19,
+        1
+      ],
+      "to": [
+        -10.5,
+        21,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14.1667,
+            3.6667,
+            15.3333,
+            4.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            3.6667,
+            1.8333,
+            4.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_top_11_w",
+      "from": [
+        -10.5,
+        19,
+        0
+      ],
+      "to": [
+        -7.5,
+        21,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            13.1667,
+            3.6667,
+            14.1667,
+            4.3333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_top_11_e",
+      "from": [
+        23.5,
+        19,
+        0
+      ],
+      "to": [
+        26.5,
+        21,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1.8333,
+            3.6667,
+            2.8333,
+            4.3333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_top_11_e",
+      "from": [
+        26.5,
+        19,
+        1
+      ],
+      "to": [
+        30,
+        21,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            3.6667,
+            1.8333,
+            4.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            14.1667,
+            3.6667,
+            15.3333,
+            4.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_top_13_w",
+      "from": [
+        -14,
+        21,
+        1
+      ],
+      "to": [
+        -9,
+        23,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            13.6667,
+            3,
+            15.3333,
+            3.6667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            3,
+            2.3333,
+            3.6667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_top_13_w",
+      "from": [
+        -9,
+        21,
+        0
+      ],
+      "to": [
+        -6,
+        23,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12.6667,
+            3,
+            13.6667,
+            3.6667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_top_13_e",
+      "from": [
+        22,
+        21,
+        0
+      ],
+      "to": [
+        25,
+        23,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.3333,
+            3,
+            3.3333,
+            3.6667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_top_13_e",
+      "from": [
+        25,
+        21,
+        1
+      ],
+      "to": [
+        30,
+        23,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            3,
+            2.3333,
+            3.6667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            13.6667,
+            3,
+            15.3333,
+            3.6667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_top_15_w",
+      "from": [
+        -14,
+        23,
+        1
+      ],
+      "to": [
+        -7.5,
+        24.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            13.1667,
+            2.5,
+            15.3333,
+            3
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            2.5,
+            2.8333,
+            3
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_top_15_w",
+      "from": [
+        -7.5,
+        23,
+        0
+      ],
+      "to": [
+        -4,
+        24.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            2.5,
+            13.1667,
+            3
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_top_15_e",
+      "from": [
+        20,
+        23,
+        0
+      ],
+      "to": [
+        23.5,
+        24.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.8333,
+            2.5,
+            4,
+            3
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_top_15_e",
+      "from": [
+        23.5,
+        23,
+        1
+      ],
+      "to": [
+        30,
+        24.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            2.5,
+            2.8333,
+            3
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            13.1667,
+            2.5,
+            15.3333,
+            3
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_top_16_5_w",
+      "from": [
+        -14,
+        24.5,
+        1
+      ],
+      "to": [
+        -6,
+        26,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12.6667,
+            2,
+            15.3333,
+            2.5
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            2,
+            3.3333,
+            2.5
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_top_16_5_w",
+      "from": [
+        -6,
+        24.5,
+        0
+      ],
+      "to": [
+        -1.5,
+        26,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            11.1667,
+            2,
+            12.6667,
+            2.5
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_top_16_5_e",
+      "from": [
+        17.5,
+        24.5,
+        0
+      ],
+      "to": [
+        22,
+        26,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.3333,
+            2,
+            4.8333,
+            2.5
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_top_16_5_e",
+      "from": [
+        22,
+        24.5,
+        1
+      ],
+      "to": [
+        30,
+        26,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            2,
+            3.3333,
+            2.5
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            12.6667,
+            2,
+            15.3333,
+            2.5
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_top_18_w",
+      "from": [
+        -14,
+        26,
+        1
+      ],
+      "to": [
+        -4,
+        27,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            1.6667,
+            15.3333,
+            2
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            1.6667,
+            4,
+            2
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_top_18_w",
+      "from": [
+        -4,
+        26,
+        0
+      ],
+      "to": [
+        1.5,
+        27,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.1667,
+            1.6667,
+            12,
+            2
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            5.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            5.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_top_18_e",
+      "from": [
+        14.5,
+        26,
+        0
+      ],
+      "to": [
+        20,
+        27,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            1.6667,
+            5.8333,
+            2
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            5.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            5.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_top_18_e",
+      "from": [
+        20,
+        26,
+        1
+      ],
+      "to": [
+        30,
+        27,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            1.6667,
+            4,
+            2
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            12,
+            1.6667,
+            15.3333,
+            2
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_top_19_w",
+      "from": [
+        -14,
+        27,
+        1
+      ],
+      "to": [
+        -2,
+        28.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            11.3333,
+            1.1667,
+            15.3333,
+            1.6667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            1.1667,
+            4.6667,
+            1.6667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_top_19",
+      "from": [
+        -2,
+        27,
+        0
+      ],
+      "to": [
+        18,
+        28.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.6667,
+            1.1667,
+            11.3333,
+            1.6667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_top_19_e",
+      "from": [
+        18,
+        27,
+        1
+      ],
+      "to": [
+        30,
+        28.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            1.1667,
+            4.6667,
+            1.6667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            11.3333,
+            1.1667,
+            15.3333,
+            1.6667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_top_20_5_w",
+      "from": [
+        -14,
+        28.5,
+        1
+      ],
+      "to": [
+        1.5,
+        29.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.1667,
+            0.8333,
+            15.3333,
+            1.1667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            0.8333,
+            5.8333,
+            1.1667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_top_20_5",
+      "from": [
+        1.5,
+        28.5,
+        0
+      ],
+      "to": [
+        14.5,
+        29.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.8333,
+            0.8333,
+            10.1667,
+            1.1667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            13,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            13,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_top_20_5_e",
+      "from": [
+        14.5,
+        28.5,
+        1
+      ],
+      "to": [
+        30,
+        29.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            0.8333,
+            5.8333,
+            1.1667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            10.1667,
+            0.8333,
+            15.3333,
+            1.1667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_0_w",
+      "from": [
+        -14,
+        4,
+        1
+      ],
+      "to": [
+        -13.5,
+        8,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            15.1667,
+            8,
+            15.3333,
+            9.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            8,
+            0.8333,
+            9.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_0_w",
+      "from": [
+        -13.5,
+        4,
+        0
+      ],
+      "to": [
+        -11,
+        8,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14.3333,
+            8,
+            15.1667,
+            9.3333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_0_e",
+      "from": [
+        27,
+        4,
+        0
+      ],
+      "to": [
+        29.5,
+        8,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.8333,
+            8,
+            1.6667,
+            9.3333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_0_e",
+      "from": [
+        29.5,
+        4,
+        1
+      ],
+      "to": [
+        30,
+        8,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            8,
+            0.8333,
+            9.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            15.1667,
+            8,
+            15.3333,
+            9.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_4_w",
+      "from": [
+        -14,
+        0,
+        1
+      ],
+      "to": [
+        -13,
+        4,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            15,
+            9.3333,
+            15.3333,
+            10.6667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            9.3333,
+            1,
+            10.6667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_4_w",
+      "from": [
+        -13,
+        0,
+        0
+      ],
+      "to": [
+        -11,
+        4,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14.3333,
+            9.3333,
+            15,
+            10.6667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_4_e",
+      "from": [
+        27,
+        0,
+        0
+      ],
+      "to": [
+        29,
+        4,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            9.3333,
+            1.6667,
+            10.6667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            4
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_4_e",
+      "from": [
+        29,
+        0,
+        1
+      ],
+      "to": [
+        30,
+        4,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            9.3333,
+            1,
+            10.6667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            15,
+            9.3333,
+            15.3333,
+            10.6667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_8_w",
+      "from": [
+        -14,
+        -3,
+        1
+      ],
+      "to": [
+        -12,
+        0,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14.6667,
+            10.6667,
+            15.3333,
+            11.6667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            10.6667,
+            1.3333,
+            11.6667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_8_w",
+      "from": [
+        -12,
+        -3,
+        0
+      ],
+      "to": [
+        -9.5,
+        0,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            13.8333,
+            10.6667,
+            14.6667,
+            11.6667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_8_e",
+      "from": [
+        25.5,
+        -3,
+        0
+      ],
+      "to": [
+        28,
+        0,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1.3333,
+            10.6667,
+            2.1667,
+            11.6667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_8_e",
+      "from": [
+        28,
+        -3,
+        1
+      ],
+      "to": [
+        30,
+        0,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            10.6667,
+            1.3333,
+            11.6667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            14.6667,
+            10.6667,
+            15.3333,
+            11.6667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_11_w",
+      "from": [
+        -14,
+        -5,
+        1
+      ],
+      "to": [
+        -10.5,
+        -3,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14.1667,
+            11.6667,
+            15.3333,
+            12.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            11.6667,
+            1.8333,
+            12.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_11_w",
+      "from": [
+        -10.5,
+        -5,
+        0
+      ],
+      "to": [
+        -7.5,
+        -3,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            13.1667,
+            11.6667,
+            14.1667,
+            12.3333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_11_e",
+      "from": [
+        23.5,
+        -5,
+        0
+      ],
+      "to": [
+        26.5,
+        -3,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1.8333,
+            11.6667,
+            2.8333,
+            12.3333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_11_e",
+      "from": [
+        26.5,
+        -5,
+        1
+      ],
+      "to": [
+        30,
+        -3,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            11.6667,
+            1.8333,
+            12.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            14.1667,
+            11.6667,
+            15.3333,
+            12.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_13_w",
+      "from": [
+        -14,
+        -7,
+        1
+      ],
+      "to": [
+        -9,
+        -5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            13.6667,
+            12.3333,
+            15.3333,
+            13
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            12.3333,
+            2.3333,
+            13
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_13_w",
+      "from": [
+        -9,
+        -7,
+        0
+      ],
+      "to": [
+        -6,
+        -5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12.6667,
+            12.3333,
+            13.6667,
+            13
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_13_e",
+      "from": [
+        22,
+        -7,
+        0
+      ],
+      "to": [
+        25,
+        -5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.3333,
+            12.3333,
+            3.3333,
+            13
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_13_e",
+      "from": [
+        25,
+        -7,
+        1
+      ],
+      "to": [
+        30,
+        -5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            12.3333,
+            2.3333,
+            13
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            13.6667,
+            12.3333,
+            15.3333,
+            13
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_15_w",
+      "from": [
+        -14,
+        -8.5,
+        1
+      ],
+      "to": [
+        -7.5,
+        -7,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            13.1667,
+            13,
+            15.3333,
+            13.5
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            13,
+            2.8333,
+            13.5
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_15_w",
+      "from": [
+        -7.5,
+        -8.5,
+        0
+      ],
+      "to": [
+        -4,
+        -7,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            13,
+            13.1667,
+            13.5
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_15_e",
+      "from": [
+        20,
+        -8.5,
+        0
+      ],
+      "to": [
+        23.5,
+        -7,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.8333,
+            13,
+            4,
+            13.5
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_15_e",
+      "from": [
+        23.5,
+        -8.5,
+        1
+      ],
+      "to": [
+        30,
+        -7,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            13,
+            2.8333,
+            13.5
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            13.1667,
+            13,
+            15.3333,
+            13.5
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_16_5_w",
+      "from": [
+        -14,
+        -10,
+        1
+      ],
+      "to": [
+        -6,
+        -8.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12.6667,
+            13.5,
+            15.3333,
+            14
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            13.5,
+            3.3333,
+            14
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_16_5_w",
+      "from": [
+        -6,
+        -10,
+        0
+      ],
+      "to": [
+        -1.5,
+        -8.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            11.1667,
+            13.5,
+            12.6667,
+            14
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_16_5_e",
+      "from": [
+        17.5,
+        -10,
+        0
+      ],
+      "to": [
+        22,
+        -8.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.3333,
+            13.5,
+            4.8333,
+            14
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            4.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_16_5_e",
+      "from": [
+        22,
+        -10,
+        1
+      ],
+      "to": [
+        30,
+        -8.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            13.5,
+            3.3333,
+            14
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            12.6667,
+            13.5,
+            15.3333,
+            14
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_18_w",
+      "from": [
+        -14,
+        -11,
+        1
+      ],
+      "to": [
+        -4,
+        -10,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            14,
+            15.3333,
+            14.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            14,
+            4,
+            14.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_18_w",
+      "from": [
+        -4,
+        -11,
+        0
+      ],
+      "to": [
+        1.5,
+        -10,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.1667,
+            14,
+            12,
+            14.3333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            5.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            5.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_18_e",
+      "from": [
+        14.5,
+        -11,
+        0
+      ],
+      "to": [
+        20,
+        -10,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            14,
+            5.8333,
+            14.3333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            5.5,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            5.5,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_18_e",
+      "from": [
+        20,
+        -11,
+        1
+      ],
+      "to": [
+        30,
+        -10,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            14,
+            4,
+            14.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            12,
+            14,
+            15.3333,
+            14.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_19_w",
+      "from": [
+        -14,
+        -12.5,
+        1
+      ],
+      "to": [
+        -2,
+        -11,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            11.3333,
+            14.3333,
+            15.3333,
+            14.8333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            14.3333,
+            4.6667,
+            14.8333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_19",
+      "from": [
+        -2,
+        -12.5,
+        0
+      ],
+      "to": [
+        18,
+        -11,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.6667,
+            14.3333,
+            11.3333,
+            14.8333
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1.5
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_19_e",
+      "from": [
+        18,
+        -12.5,
+        1
+      ],
+      "to": [
+        30,
+        -11,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            14.3333,
+            4.6667,
+            14.8333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            11.3333,
+            14.3333,
+            15.3333,
+            14.8333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_20_5_w",
+      "from": [
+        -14,
+        -13.5,
+        1
+      ],
+      "to": [
+        1.5,
+        -12.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            10.1667,
+            14.8333,
+            15.3333,
+            15.1667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            14.8333,
+            5.8333,
+            15.1667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "ring_bottom_20_5",
+      "from": [
+        1.5,
+        -13.5,
+        0
+      ],
+      "to": [
+        14.5,
+        -12.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.8333,
+            14.8333,
+            10.1667,
+            15.1667
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            13,
+            3
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            13,
+            3
+          ],
+          "texture": "#trim"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom_20_5_e",
+      "from": [
+        14.5,
+        -13.5,
+        1
+      ],
+      "to": [
+        30,
+        -12.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            14.8333,
+            5.8333,
+            15.1667
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            10.1667,
+            14.8333,
+            15.3333,
+            15.1667
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plate_bottom",
+      "from": [
+        -14,
+        -14,
+        1
+      ],
+      "to": [
+        30,
+        -13.5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.6667,
+            15.1667,
+            15.3333,
+            15.3333
+          ],
+          "texture": "#bezel"
+        },
+        "south": {
+          "uv": [
+            0.6667,
+            15.1667,
+            15.3333,
+            15.3333
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "side_west",
+      "from": [
+        -16,
+        -16,
+        0
+      ],
+      "to": [
+        -14,
+        32,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#trim"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#inner"
+        },
+        "west": {
+          "uv": [
+            4,
+            0,
+            8,
+            12
+          ],
+          "texture": "#sides"
+        },
+        "up": {
+          "uv": [
+            4,
+            0,
+            4.5,
+            4
+          ],
+          "texture": "#sides"
+        },
+        "down": {
+          "uv": [
+            4,
+            8,
+            4.5,
+            12
+          ],
+          "texture": "#sides"
+        }
+      }
+    },
+    {
+      "name": "side_east",
+      "from": [
+        30,
+        -16,
+        0
+      ],
+      "to": [
+        32,
+        32,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#trim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#inner"
+        },
+        "east": {
+          "uv": [
+            12,
+            0,
+            16,
+            12
+          ],
+          "texture": "#sides"
+        },
+        "up": {
+          "uv": [
+            15.5,
+            0,
+            16,
+            4
+          ],
+          "texture": "#sides"
+        },
+        "down": {
+          "uv": [
+            15.5,
+            8,
+            16,
+            12
+          ],
+          "texture": "#sides"
+        }
+      }
+    },
+    {
+      "name": "side_top",
+      "from": [
+        -14,
+        30,
+        0
+      ],
+      "to": [
+        30,
+        32,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#inner"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            0,
+            15.5,
+            4
+          ],
+          "texture": "#sides"
+        }
+      }
+    },
+    {
+      "name": "side_bottom",
+      "from": [
+        -14,
+        -16,
+        0
+      ],
+      "to": [
+        30,
+        -14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#trim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#inner"
+        },
+        "down": {
+          "uv": [
+            4.5,
+            8,
+            15.5,
+            12
+          ],
+          "texture": "#sides"
+        }
+      }
+    },
+    {
+      "name": "recess_top",
+      "from": [
+        -11,
+        11,
+        8
+      ],
+      "to": [
+        27,
+        27,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1.6667,
+            1.6667,
+            14.3333,
+            7
+          ],
+          "texture": "#bezel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "recess_bottom",
+      "from": [
+        -11,
+        -11,
+        8
+      ],
+      "to": [
+        27,
+        5,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1.6667,
+            9,
+            14.3333,
+            14.3333
+          ],
+          "texture": "#bezel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "recess_west",
+      "from": [
+        -11,
+        5,
+        8
+      ],
+      "to": [
+        5,
+        11,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            7,
+            14.3333,
+            9
+          ],
+          "texture": "#bezel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            6
+          ],
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "recess_east",
+      "from": [
+        11,
+        5,
+        8
+      ],
+      "to": [
+        27,
+        11,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1.6667,
+            7,
+            7,
+            9
+          ],
+          "texture": "#bezel"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            6
+          ],
+          "texture": "#inner"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "create_nuclearindustry:block/turbine/fluid_port_input_panel",
+  "textures": {
+    "port": "create_nuclearindustry:block/turbine_fluid_port_output"
+  }
+}

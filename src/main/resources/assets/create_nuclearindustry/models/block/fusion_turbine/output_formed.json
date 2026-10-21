@@ -1,0 +1,7 @@
+{
+  "credit": "Create: Nuclear Industry. The formed controller draws nothing itself: the front bezel and fan partials do.",
+  "textures": {
+    "particle": "create_nuclearindustry:block/fusion_turbine_casing"
+  },
+  "elements": []
+}

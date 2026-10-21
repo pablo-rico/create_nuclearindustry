@@ -1,0 +1,7 @@
+{
+  "parent": "create_nuclearindustry:block/turbine/fan",
+  "textures": {
+    "fan": "create_nuclearindustry:block/fusion_turbine_fan",
+    "particle": "create_nuclearindustry:block/fusion_turbine_fan"
+  }
+}

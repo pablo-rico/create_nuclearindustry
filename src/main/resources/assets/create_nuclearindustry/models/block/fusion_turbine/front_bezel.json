@@ -1,0 +1,10 @@
+{
+  "parent": "create_nuclearindustry:block/turbine/front_bezel",
+  "textures": {
+    "bezel": "create_nuclearindustry:block/fusion_turbine_front_bezel",
+    "sides": "create_nuclearindustry:block/fusion_turbine_casing_connected",
+    "inner": "create_nuclearindustry:block/fusion_turbine_casing_inner",
+    "trim": "create_nuclearindustry:block/fusion_turbine_trim",
+    "particle": "create_nuclearindustry:block/fusion_turbine_casing"
+  }
+}

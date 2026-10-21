@@ -1,0 +1,10 @@
+{
+  "parent": "create_nuclearindustry:block/turbine/fluid_port_input_panel",
+  "textures": {
+    "casing": "create_nuclearindustry:block/fusion_turbine_casing",
+    "inner": "create_nuclearindustry:block/fusion_turbine_casing_inner",
+    "trim": "create_nuclearindustry:block/fusion_turbine_trim",
+    "particle": "create_nuclearindustry:block/fusion_turbine_casing",
+    "port": "create_nuclearindustry:block/fusion_turbine_fluid_port_output"
+  }
+}
