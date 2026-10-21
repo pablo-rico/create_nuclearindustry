@@ -62,6 +62,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook;
 
 /**
  * Tokamak controller. Owns the plasma, the coils, the vacuum and the startup sequence, the fuel,
@@ -168,6 +169,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements PanelSource
     private TokamakReadings clientReadings = TokamakReadings.NONE;
     /** Set by a Ponder scene: the readings and centre are a preview, whatever side the Ponder world claims to be. */
     private boolean ponderPreview;
+    private boolean ponderSkin;
 
     private final FluidTank deuteriumTank = tank(FUEL_TANK_CAPACITY, NuclearFluidHelper::isDeuterium);
     private final FluidTank tritiumTank = tank(FUEL_TANK_CAPACITY, NuclearFluidHelper::isTritium);
@@ -671,7 +673,9 @@ public class FusionReactorBlockEntity extends BlockEntity implements PanelSource
 
     private void setStructure(Optional<TokamakStructure> next) {
         boolean boundsChanged = !structure.map(TokamakStructure::bounds).equals(next.map(TokamakStructure::bounds));
+        structure.ifPresent(s -> TokamakFormedLook.apply(level, s, false));
         structure = next;
+        next.ifPresent(s -> TokamakFormedLook.apply(level, s, true));
         snapshot = next.isPresent() && level != null && !level.isClientSide
                 ? StructureSnapshot.capture(level, next.get().allPositions())
                 : null;
@@ -679,6 +683,11 @@ public class FusionReactorBlockEntity extends BlockEntity implements PanelSource
         if (boundsChanged) {
             MultiblockRegistry.reindex(this);
         }
+    }
+
+    /** Clears the formed look of the shell when the controller block goes away. */
+    public void onControllerRemoved() {
+        structure.ifPresent(s -> TokamakFormedLook.apply(level, s, false));
     }
 
     private void linkParts(TokamakStructure tokamak) {
@@ -891,6 +900,16 @@ public class FusionReactorBlockEntity extends BlockEntity implements PanelSource
         dispRadius = readings.majorRadius();
         clientReadings = readings;
         ponderPreview = true;
+    }
+
+    /** Ponder only: whether the scene has reached the formed look, so the renderer draws the skin. */
+    public void previewSkin(boolean show) {
+        ponderSkin = show;
+    }
+
+    /** Whether the renderer draws the skin: always in the world, in Ponder once the scene says so. */
+    public boolean showsSkin() {
+        return !ponderPreview || ponderSkin;
     }
 
     /** The point on the axis at the plasma's mid-plane; synced to clients for the renderer. */

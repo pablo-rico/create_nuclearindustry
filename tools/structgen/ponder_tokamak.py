@@ -4,7 +4,8 @@
     python3 tools/structgen/ponder_tokamak.py
 
 Mirrors TokamakGeometry (TokamakScenes relies on this layout): rho = round(sqrt(dx^2 + dz^2)); plasma |rho-R|<=1, |dy|<=1;
-shell is the rest of |rho-R|<=2, |dy|<=2. Layout matches TokamakScenes.
+the four corners |rho-R|==2, |dy|==2 stay empty (octagonal section); shell is the rest of |rho-R|<=2, |dy|<=2.
+Layout matches TokamakScenes.
 """
 import math
 import pathlib
@@ -46,7 +47,7 @@ def build():
                 continue
             for dy in range(-2, 3):
                 plasma = offset <= 1 and abs(dy) <= 1
-                if plasma:
+                if plasma or (offset == 2 and abs(dy) == 2):
                     continue
                 if abs(dy) == 2:
                     block = NS + ("fusion_breeding_blanket" if offset <= 1 else "fusion_accelerator_segment")
@@ -55,7 +56,8 @@ def build():
                 blocks[(cx + dx, cy + dy, cz + dz)] = (block, {})
 
     for dy in range(-2, 3):
-        blocks[(cx, cy + dy, cz)] = (NS + "fusion_central_solenoid", {"axis": "y"})
+        segment = "bottom" if dy == -2 else "top" if dy == 2 else "middle"
+        blocks[(cx, cy + dy, cz)] = (NS + "fusion_central_solenoid", {"axis": "y", "segment": segment})
 
     # Ponder looks from the north-west: controller, ports and magnet drive face that way;
     # the injector sits on the east side and the scene turns the camera to show it.

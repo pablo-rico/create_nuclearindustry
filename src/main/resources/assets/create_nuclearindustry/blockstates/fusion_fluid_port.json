@@ -1,49 +1,95 @@
 {
   "variants": {
-    "facing=north,mode=input": {
+    "facing=north,mode=input,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_input"
     },
-    "facing=south,mode=input": {
+    "facing=north,mode=input,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_input_formed"
+    },
+    "facing=south,mode=input,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_input",
       "y": 180
     },
-    "facing=east,mode=input": {
+    "facing=south,mode=input,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_input_formed",
+      "y": 180
+    },
+    "facing=east,mode=input,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_input",
       "y": 90
     },
-    "facing=west,mode=input": {
+    "facing=east,mode=input,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_input_formed",
+      "y": 90
+    },
+    "facing=west,mode=input,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_input",
       "y": 270
     },
-    "facing=up,mode=input": {
+    "facing=west,mode=input,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_input_formed",
+      "y": 270
+    },
+    "facing=up,mode=input,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_input",
       "x": 270
     },
-    "facing=down,mode=input": {
+    "facing=up,mode=input,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_input_formed",
+      "x": 270
+    },
+    "facing=down,mode=input,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_input",
       "x": 90
     },
-    "facing=north,mode=output": {
+    "facing=down,mode=input,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_input_formed",
+      "x": 90
+    },
+    "facing=north,mode=output,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_output"
     },
-    "facing=south,mode=output": {
+    "facing=north,mode=output,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_output_formed"
+    },
+    "facing=south,mode=output,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_output",
       "y": 180
     },
-    "facing=east,mode=output": {
+    "facing=south,mode=output,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_output_formed",
+      "y": 180
+    },
+    "facing=east,mode=output,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_output",
       "y": 90
     },
-    "facing=west,mode=output": {
+    "facing=east,mode=output,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_output_formed",
+      "y": 90
+    },
+    "facing=west,mode=output,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_output",
       "y": 270
     },
-    "facing=up,mode=output": {
+    "facing=west,mode=output,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_output_formed",
+      "y": 270
+    },
+    "facing=up,mode=output,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_output",
       "x": 270
     },
-    "facing=down,mode=output": {
+    "facing=up,mode=output,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_output_formed",
+      "x": 270
+    },
+    "facing=down,mode=output,formed=false": {
       "model": "create_nuclearindustry:block/fusion_fluid_port_output",
+      "x": 90
+    },
+    "facing=down,mode=output,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_fluid_port_output_formed",
       "x": 90
     }
   }

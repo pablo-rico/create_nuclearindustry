@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
+    "hidden=false": {
       "model": "create_nuclearindustry:block/fusion_cryostat_casing"
+    },
+    "hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
     }
   }
 }

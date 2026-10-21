@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-20T19:57:38.677831	Loot Tables
+// 1.21.1	2026-10-22T00:22:04.105133	Loot Tables
 eaeb1a44ee986afa29b73bd40bcd6ecd94187e44 data/create_nuclearindustry/loot_table/blocks/accelerator_cryo_feed.json
 64315f2829f1110e8eef7a6c1c5c4d2310efebd1 data/create_nuclearindustry/loot_table/blocks/advanced_redstone_link.json
 13c05f487af479a2691bf45b4d60b1e69d36ac47 data/create_nuclearindustry/loot_table/blocks/air_raid_siren.json
@@ -147,6 +147,7 @@ f62190c7b331ae95ce3ca7a18c7755ade52f15a3 data/create_nuclearindustry/loot_table/
 0d09a4eb223db9c97f20b48194f3c1c5f7efba51 data/create_nuclearindustry/loot_table/blocks/thermal_engine_exchanger.json
 c5230d5355d7eb8242958a11bd3907a88115a3dd data/create_nuclearindustry/loot_table/blocks/thermal_rocket_nozzle.json
 3878b22b5a13566dd139c0eafacb1c392d80587d data/create_nuclearindustry/loot_table/blocks/thermonuclear_bomb.json
+5de268dcec7c6f3beaf9dab3471ad4ab23c056a9 data/create_nuclearindustry/loot_table/blocks/tokamak_support.json
 b5ebd4985e3d0f9fd48c89a46b20cd1b6235c364 data/create_nuclearindustry/loot_table/blocks/trinitite.json
 941357a06cf7caac87c28d9691452a39dfb34cfe data/create_nuclearindustry/loot_table/blocks/turbine_casing.json
 ccdd720833b8532a0ab8102a70c3f904adb273d2 data/create_nuclearindustry/loot_table/blocks/turbine_exhaust_port.json

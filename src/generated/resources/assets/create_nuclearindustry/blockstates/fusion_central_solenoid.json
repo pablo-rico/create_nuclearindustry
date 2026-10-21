@@ -1,15 +1,51 @@
 {
   "variants": {
-    "axis=x": {
-      "model": "create_nuclearindustry:block/fusion_central_solenoid_horizontal",
+    "axis=x,segment=bottom": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_bottom",
       "x": 90,
       "y": 90
     },
-    "axis=y": {
-      "model": "create_nuclearindustry:block/fusion_central_solenoid"
+    "axis=x,segment=middle": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_middle",
+      "x": 90,
+      "y": 90
     },
-    "axis=z": {
-      "model": "create_nuclearindustry:block/fusion_central_solenoid_horizontal",
+    "axis=x,segment=single": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_single",
+      "x": 90,
+      "y": 90
+    },
+    "axis=x,segment=top": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_top",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y,segment=bottom": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_bottom"
+    },
+    "axis=y,segment=middle": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_middle"
+    },
+    "axis=y,segment=single": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_single"
+    },
+    "axis=y,segment=top": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_top"
+    },
+    "axis=z,segment=bottom": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_bottom",
+      "x": 90
+    },
+    "axis=z,segment=middle": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_middle",
+      "x": 90
+    },
+    "axis=z,segment=single": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_single",
+      "x": 90
+    },
+    "axis=z,segment=top": {
+      "model": "create_nuclearindustry:block/tokamak/solenoid_top",
       "x": 90
     }
   }

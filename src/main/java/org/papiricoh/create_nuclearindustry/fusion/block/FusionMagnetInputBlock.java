@@ -23,6 +23,9 @@ import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellBlock;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionMagnetInputBlockEntity;
 import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
+import net.minecraft.util.RandomSource;
+import net.minecraft.server.level.ServerLevel;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook;
 
 /**
  * Kinetic drive for the confinement field: takes a Create shaft on its facing axis and converts
@@ -35,7 +38,7 @@ public class FusionMagnetInputBlock extends KineticBlock implements EntityBlock,
 
     public FusionMagnetInputBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(TokamakFormedLook.FORMED, false).setValue(FACING, Direction.NORTH));
     }
 
     @Override
@@ -45,7 +48,7 @@ public class FusionMagnetInputBlock extends KineticBlock implements EntityBlock,
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, TokamakFormedLook.FORMED);
         super.createBlockStateDefinition(builder);
     }
 
@@ -90,5 +93,15 @@ public class FusionMagnetInputBlock extends KineticBlock implements EntityBlock,
     @Override
     public TokamakShellRole tokamakRole(BlockState state) {
         return TokamakShellRole.MAGNET_DRIVE;
+    }
+
+    @Override
+    protected boolean isRandomlyTicking(BlockState state) {
+        return TokamakFormedLook.isShaped(state);
+    }
+
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        TokamakFormedLook.releaseIfOrphaned(state, level, pos);
     }
 }

@@ -33,6 +33,9 @@ import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFuelInjectorBlockEntity;
 import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
+import net.minecraft.util.RandomSource;
+import net.minecraft.server.level.ServerLevel;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook;
 
 public class FusionFuelInjectorBlock extends BaseEntityBlock implements TokamakShellBlock {
 
@@ -43,7 +46,7 @@ public class FusionFuelInjectorBlock extends BaseEntityBlock implements TokamakS
 
     public FusionFuelInjectorBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(MODE, ReactorFluidPortMode.INPUT));
+        registerDefaultState(stateDefinition.any().setValue(TokamakFormedLook.FORMED, false).setValue(FACING, Direction.NORTH).setValue(MODE, ReactorFluidPortMode.INPUT));
     }
 
     @Override
@@ -53,7 +56,7 @@ public class FusionFuelInjectorBlock extends BaseEntityBlock implements TokamakS
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, MODE);
+        builder.add(FACING, MODE, TokamakFormedLook.FORMED);
     }
 
     @Nullable
@@ -119,5 +122,15 @@ public class FusionFuelInjectorBlock extends BaseEntityBlock implements TokamakS
     @Override
     public TokamakShellRole tokamakRole(BlockState state) {
         return state.getValue(MODE) == ReactorFluidPortMode.INPUT ? TokamakShellRole.FUEL_IN : TokamakShellRole.FUEL_OUT;
+    }
+
+    @Override
+    protected boolean isRandomlyTicking(BlockState state) {
+        return TokamakFormedLook.isShaped(state);
+    }
+
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        TokamakFormedLook.releaseIfOrphaned(state, level, pos);
     }
 }

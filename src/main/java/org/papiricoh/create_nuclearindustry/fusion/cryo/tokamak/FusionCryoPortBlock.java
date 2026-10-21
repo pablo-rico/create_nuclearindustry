@@ -27,6 +27,9 @@ import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellBlock;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
+import net.minecraft.util.RandomSource;
+import net.minecraft.server.level.ServerLevel;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook;
 
 /**
  * Cryogenic port in the tokamak shell. INPUT ({@link TokamakShellRole#CRYO_IN}) takes liquid
@@ -40,7 +43,7 @@ public class FusionCryoPortBlock extends BaseEntityBlock implements TokamakShell
 
     public FusionCryoPortBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(MODE, ReactorFluidPortMode.INPUT));
+        registerDefaultState(stateDefinition.any().setValue(TokamakFormedLook.FORMED, false).setValue(MODE, ReactorFluidPortMode.INPUT));
     }
 
     @Override
@@ -50,7 +53,7 @@ public class FusionCryoPortBlock extends BaseEntityBlock implements TokamakShell
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(MODE);
+        builder.add(MODE, TokamakFormedLook.FORMED);
     }
 
     @Override
@@ -98,5 +101,15 @@ public class FusionCryoPortBlock extends BaseEntityBlock implements TokamakShell
     @Override
     public TokamakShellRole tokamakRole(BlockState state) {
         return state.getValue(MODE) == ReactorFluidPortMode.INPUT ? TokamakShellRole.CRYO_IN : TokamakShellRole.CRYO_OUT;
+    }
+
+    @Override
+    protected boolean isRandomlyTicking(BlockState state) {
+        return TokamakFormedLook.isShaped(state);
+    }
+
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        TokamakFormedLook.releaseIfOrphaned(state, level, pos);
     }
 }

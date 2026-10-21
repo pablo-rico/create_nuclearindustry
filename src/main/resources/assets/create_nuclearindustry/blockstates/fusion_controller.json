@@ -1,16 +1,28 @@
 {
   "variants": {
-    "on=true,ignited=true": {
+    "on=true,ignited=true,formed=false": {
       "model": "create_nuclearindustry:block/fusion_controller_ignited"
     },
-    "on=true,ignited=false": {
+    "on=true,ignited=true,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_controller_ignited_formed"
+    },
+    "on=true,ignited=false,formed=false": {
       "model": "create_nuclearindustry:block/fusion_controller_on"
     },
-    "on=false,ignited=true": {
+    "on=true,ignited=false,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_controller_on_formed"
+    },
+    "on=false,ignited=true,formed=false": {
       "model": "create_nuclearindustry:block/fusion_controller_ignited"
     },
-    "on=false,ignited=false": {
+    "on=false,ignited=true,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_controller_ignited_formed"
+    },
+    "on=false,ignited=false,formed=false": {
       "model": "create_nuclearindustry:block/fusion_controller_off"
+    },
+    "on=false,ignited=false,formed=true": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_controller_off_formed"
     }
   }
 }

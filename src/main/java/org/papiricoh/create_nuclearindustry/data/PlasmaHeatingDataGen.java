@@ -73,8 +73,7 @@ final class PlasmaHeatingDataGen extends AreaDataGen {
         facingStates(provider, PlasmaHeatingRegistry.RF_ANTENNA.get(), "fusion_rf_antenna");
         // Every glow level shows the same window; only the light changes.
         ModelFile viewport = provider.models().getExistingFile(provider.modLoc("block/fusion_viewport"));
-        provider.getVariantBuilder(PlasmaHeatingRegistry.VIEWPORT.get())
-                .forAllStates(state -> ConfiguredModel.builder().modelFile(viewport).build());
+        provider.hullStates(PlasmaHeatingRegistry.VIEWPORT.get(), viewport);
         provider.simpleBlockItem(PlasmaHeatingRegistry.VIEWPORT.get(), viewport);
     }
 

@@ -217,6 +217,15 @@ public class NuclearCraftingRecipes extends RecipeProvider {
                 .unlockedBy("has_superconductor", has(AllNuclearItems.SUPERCONDUCTOR_INGOT.get()))
                 .save(output, id("crafting/fusion_central_solenoid"));
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.TOKAMAK_SUPPORT.get(), 4)
+                .pattern("PAP")
+                .pattern(" A ")
+                .pattern("PAP")
+                .define('P', CreateItems.get("iron_sheet"))
+                .define('A', CreateItems.get("andesite_alloy"))
+                .unlockedBy("has_cryostat_casing", has(AllNuclearItems.FUSION_CRYOSTAT_CASING.get()))
+                .save(output, id("crafting/tokamak_support"));
+
         ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, AllNuclearItems.FUSION_BREEDING_BLANKET.get())
                 .requires(AllNuclearItems.LITHIUM_6_BREEDER_ASSEMBLY.get())
                 .requires(AllNuclearItems.FUSION_CRYOSTAT_CASING.get())

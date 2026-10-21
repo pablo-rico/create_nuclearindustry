@@ -56,6 +56,7 @@ public class AllNuclearItems {
     public static final DeferredHolder<Item, ? extends Item> FUSION_CRYOSTAT_CASING = ITEMS.register("fusion_cryostat_casing", () -> new BlockItem(AllNuclearBlocks.FUSION_CRYOSTAT_CASING.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> FUSION_CENTRAL_SOLENOID = ITEMS.register("fusion_central_solenoid", () -> new BlockItem(AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> FUSION_BREEDING_BLANKET = ITEMS.register("fusion_breeding_blanket", () -> new BlockItem(AllNuclearBlocks.FUSION_BREEDING_BLANKET.value(), new Item.Properties()));
+    public static final DeferredHolder<Item, ? extends Item> TOKAMAK_SUPPORT = ITEMS.register("tokamak_support", () -> new BlockItem(AllNuclearBlocks.TOKAMAK_SUPPORT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> FUSION_MAGNET_INPUT = ITEMS.register("fusion_magnet_input", () -> new BlockItem(AllNuclearBlocks.FUSION_MAGNET_INPUT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> FUSION_FLUID_PORT = ITEMS.register("fusion_fluid_port", () -> new BlockItem(AllNuclearBlocks.FUSION_FLUID_PORT.value(), new Item.Properties()));
     public static final DeferredHolder<Item, ? extends Item> FUSION_FUEL_INJECTOR = ITEMS.register("fusion_fuel_injector", () -> new BlockItem(AllNuclearBlocks.FUSION_FUEL_INJECTOR.value(), new Item.Properties()));

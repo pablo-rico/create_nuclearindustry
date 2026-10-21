@@ -1,52 +1,100 @@
 {
   "variants": {
-    "glow=0": {
+    "glow=0,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=1": {
+    "glow=0,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=1,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=10": {
+    "glow=1,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=10,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=11": {
+    "glow=10,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=11,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=12": {
+    "glow=11,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=12,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=13": {
+    "glow=12,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=13,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=14": {
+    "glow=13,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=14,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=15": {
+    "glow=14,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=15,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=2": {
+    "glow=15,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=2,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=3": {
+    "glow=2,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=3,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=4": {
+    "glow=3,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=4,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=5": {
+    "glow=4,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=5,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=6": {
+    "glow=5,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=6,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=7": {
+    "glow=6,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=7,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=8": {
+    "glow=7,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=8,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
     },
-    "glow=9": {
+    "glow=8,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
+    },
+    "glow=9,hidden=false": {
       "model": "create_nuclearindustry:block/fusion_viewport"
+    },
+    "glow=9,hidden=true": {
+      "model": "create_nuclearindustry:block/tokamak/hidden"
     }
   }
 }

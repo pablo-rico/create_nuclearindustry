@@ -21,6 +21,7 @@ import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBloc
 import org.papiricoh.create_nuclearindustry.fusion.gui.TokamakMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.SimpleMenuProvider;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook;
 
 public class FusionReactorControllerBlock extends BaseEntityBlock {
     public static final BooleanProperty ON = BooleanProperty.create("on");
@@ -29,7 +30,7 @@ public class FusionReactorControllerBlock extends BaseEntityBlock {
 
     public FusionReactorControllerBlock(Properties props) {
         super(props);
-        this.registerDefaultState(this.stateDefinition.any().setValue(ON, false).setValue(IGNITED, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(TokamakFormedLook.FORMED, false).setValue(ON, false).setValue(IGNITED, false));
     }
 
     @Override
@@ -39,7 +40,7 @@ public class FusionReactorControllerBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(ON, IGNITED);
+        builder.add(ON, IGNITED, TokamakFormedLook.FORMED);
     }
 
     @Nullable
@@ -85,5 +86,13 @@ public class FusionReactorControllerBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof FusionReactorBlockEntity tokamak) {
+            tokamak.onControllerRemoved();
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }

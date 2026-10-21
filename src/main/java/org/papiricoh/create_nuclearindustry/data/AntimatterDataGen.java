@@ -283,11 +283,13 @@ final class AntimatterDataGen extends AreaDataGen {
         provider.getVariantBuilder(AntimatterRegistry.ANNIHILATION_GENERATOR.get()).forAllStates(state -> ConfiguredModel.builder()
                 .modelFile(generator).rotationY(yaw(state.getValue(HorizontalKineticBlock.HORIZONTAL_FACING))).build());
         ModelFile injector = existing(provider, "antiproton_injector");
+        ModelFile injectorFormed = existing(provider, "tokamak/antiproton_injector_formed");
         provider.getVariantBuilder(AntimatterRegistry.ANTIPROTON_INJECTOR.get()).forAllStates(state -> {
             Direction facing = state.getValue(AntiprotonInjectorBlock.FACING);
             int x = facing == Direction.UP ? 270 : facing == Direction.DOWN ? 90 : 0;
             int y = facing.getAxis().isHorizontal() ? yaw(facing) : 0;
-            return ConfiguredModel.builder().modelFile(injector).rotationX(x).rotationY(y).build();
+            boolean formed = state.getValue(org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook.FORMED);
+            return ConfiguredModel.builder().modelFile(formed ? injectorFormed : injector).rotationX(x).rotationY(y).build();
         });
     }
 

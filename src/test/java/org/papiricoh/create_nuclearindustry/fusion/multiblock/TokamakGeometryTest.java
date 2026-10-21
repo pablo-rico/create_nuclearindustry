@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TokamakGeometryTest {
@@ -31,8 +32,9 @@ class TokamakGeometryTest {
             int y = geometry.plasmaY(i);
             int z = geometry.plasmaZ(i);
             for (int[] n : neighbours) {
-                assertNotEquals(TokamakGeometry.Cell.OUTSIDE, geometry.classify(x + n[0], y + n[1], z + n[2]),
-                        "plasma cell " + x + "," + y + "," + z + " leaks at R=" + radius);
+                TokamakGeometry.Cell next = geometry.classify(x + n[0], y + n[1], z + n[2]);
+                assertTrue(next == TokamakGeometry.Cell.SHELL || next == TokamakGeometry.Cell.PLASMA,
+                        "plasma cell " + x + "," + y + "," + z + " leaks into " + next + " at R=" + radius);
             }
         }
     }
@@ -56,6 +58,22 @@ class TokamakGeometryTest {
         }
         for (int sector = 0; sector < perSector.length; sector++) {
             assertTrue(perSector[sector] > 4, "sector " + sector + " too thin at R=" + radius + ": " + perSector[sector]);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {4, 7, 16})
+    void cornersCutTheSectionIntoAnOctagon(int radius) {
+        TokamakGeometry geometry = TokamakGeometry.of(radius);
+        assertTrue(geometry.cornerCount() > 0, "no corners at R=" + radius);
+        for (int i = 0; i < geometry.cornerCount(); i++) {
+            assertEquals(2, Math.abs(TokamakGeometry.rho(geometry.cornerX(i), geometry.cornerZ(i)) - radius));
+            assertEquals(TokamakGeometry.HALF_HEIGHT, Math.abs(geometry.cornerY(i)));
+        }
+        for (int i = 0; i < geometry.shellCount(); i++) {
+            int offset = Math.abs(TokamakGeometry.rho(geometry.shellX(i), geometry.shellZ(i)) - radius);
+            assertFalse(offset == 2 && Math.abs(geometry.shellY(i)) == TokamakGeometry.HALF_HEIGHT,
+                    "shell keeps a corner at R=" + radius);
         }
     }
 

@@ -15,6 +15,10 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellBlock;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.util.RandomSource;
+import net.minecraft.server.level.ServerLevel;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook;
 
 /**
  * A quartz window in the tokamak shell. It seals the chamber like any shell block, lets the player
@@ -28,7 +32,7 @@ public class FusionViewportBlock extends TransparentBlock implements EntityBlock
 
     public FusionViewportBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(GLOW, 0));
+        registerDefaultState(stateDefinition.any().setValue(TokamakFormedLook.HIDDEN, false).setValue(GLOW, 0));
     }
 
     @Override
@@ -38,7 +42,7 @@ public class FusionViewportBlock extends TransparentBlock implements EntityBlock
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(GLOW);
+        builder.add(GLOW, TokamakFormedLook.HIDDEN);
     }
 
     /** Light level for the block properties. */
@@ -64,5 +68,20 @@ public class FusionViewportBlock extends TransparentBlock implements EntityBlock
             return null;
         }
         return (lvl, pos, blockState, blockEntity) -> ((FusionViewportBlockEntity) blockEntity).serverTick();
+    }
+
+    @Override
+    protected boolean isRandomlyTicking(BlockState state) {
+        return TokamakFormedLook.isShaped(state);
+    }
+
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        TokamakFormedLook.releaseIfOrphaned(state, level, pos);
+    }
+
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return state.getValue(TokamakFormedLook.HIDDEN) ? RenderShape.INVISIBLE : RenderShape.MODEL;
     }
 }

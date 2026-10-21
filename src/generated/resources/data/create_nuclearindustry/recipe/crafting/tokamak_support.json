@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "PAP",
+    " A ",
+    "PAP"
+  ],
+  "result": {
+    "count": 4,
+    "id": "create_nuclearindustry:tokamak_support"
+  }
+}

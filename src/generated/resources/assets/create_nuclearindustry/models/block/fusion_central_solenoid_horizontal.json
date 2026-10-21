@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:block/cube_column_horizontal",
-  "textures": {
-    "end": "create_nuclearindustry:block/fusion_central_solenoid_top",
-    "side": "create_nuclearindustry:block/fusion_central_solenoid_side"
-  }
-}

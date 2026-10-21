@@ -25,6 +25,9 @@ import org.papiricoh.create_nuclearindustry.antimatter.AntimatterRegistry;
 import org.papiricoh.create_nuclearindustry.antimatter.vial.AntimatterVialItem;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellBlock;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
+import net.minecraft.util.RandomSource;
+import net.minecraft.server.level.ServerLevel;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook;
 
 /**
  * Antiproton injector: a tokamak shell block. {@code FACING} is its outer face, with the vial port
@@ -38,12 +41,12 @@ public class AntiprotonInjectorBlock extends Block implements IBE<AntiprotonInje
 
     public AntiprotonInjectorBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(TokamakFormedLook.FORMED, false).setValue(FACING, Direction.NORTH));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, TokamakFormedLook.FORMED);
     }
 
     @Override
@@ -119,5 +122,15 @@ public class AntiprotonInjectorBlock extends Block implements IBE<AntiprotonInje
     @Override
     public BlockEntityType<? extends AntiprotonInjectorBlockEntity> getBlockEntityType() {
         return AntimatterRegistry.INJECTOR_ENTITY.get();
+    }
+
+    @Override
+    protected boolean isRandomlyTicking(BlockState state) {
+        return TokamakFormedLook.isShaped(state);
+    }
+
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        TokamakFormedLook.releaseIfOrphaned(state, level, pos);
     }
 }

@@ -173,8 +173,13 @@ final class CryoDataGen extends AreaDataGen {
             String name = "fusion_cryo_port_" + mode.getSerializedName();
             cryoPorts.put(mode, provider.models().cubeAll(name, provider.modLoc("block/" + name)));
         }
-        provider.getVariantBuilder(CryoRegistry.FUSION_CRYO_PORT.get()).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(cryoPorts.get(state.getValue(FusionCryoPortBlock.MODE))).build());
+        provider.getVariantBuilder(CryoRegistry.FUSION_CRYO_PORT.get()).forAllStates(state -> {
+            ReactorFluidPortMode mode = state.getValue(FusionCryoPortBlock.MODE);
+            ModelFile model = state.getValue(org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook.FORMED)
+                    ? provider.models().getExistingFile(provider.modLoc("block/tokamak/fusion_cryo_port_" + mode.getSerializedName() + "_formed"))
+                    : cryoPorts.get(mode);
+            return ConfiguredModel.builder().modelFile(model).build();
+        });
         provider.simpleBlockItem(CryoRegistry.FUSION_CRYO_PORT.get(), cryoPorts.get(ReactorFluidPortMode.INPUT));
     }
 

@@ -351,6 +351,7 @@ public final class LangEntries {
         add("death.attack.create_nuclearindustry.radiation.player", "%1$s died of radiation sickness while fighting %2$s",
                 "%1$s murió por irradiación mientras luchaba contra %2$s");
         block("fusion_breeding_blanket", "Breeding Blanket", "Manto regenerador");
+        block("tokamak_support", "Tokamak Support", "Soporte de tokamak");
 
         add("create_nuclearindustry.display_source.tokamak", "Tokamak Status", "Estado del tokamak");
         add("gui.create_nuclearindustry.tokamak.title", "Tokamak Control", "Control del tokamak");
@@ -846,8 +847,8 @@ public final class LangEntries {
                 "A tokamak holds a ring of plasma with magnets. Start with a Central Solenoid column, five blocks tall, at its axis.",
                 "Un tokamak sujeta un anillo de plasma con imanes. Empieza por una columna de Solenoide central, de cinco bloques de alto, en su eje.");
         add("create_nuclearindustry.ponder.tokamak.text_2",
-                "The torus has a 5x5 cross-section. Its floor and roof can hold Breeding Blankets, which turn fusion neutrons into tritium.",
-                "El toro tiene una sección de 5x5. Su suelo y su techo pueden llevar Mantos regeneradores, que convierten los neutrones de fusión en tritio.");
+                "The torus has an octagonal cross-section: a 5x5 square with its four corners left out. Its floor and roof can hold Breeding Blankets, which turn fusion neutrons into tritium.",
+                "El toro tiene una sección octogonal: un cuadrado de 5x5 sin sus cuatro esquinas. Su suelo y su techo pueden llevar Mantos regeneradores, que convierten los neutrones de fusión en tritio.");
         add("create_nuclearindustry.ponder.tokamak.text_3",
                 "Toroidal Field Coils line the walls. The 3x3 core of the ring must stay empty: it is the plasma chamber.",
                 "Las Bobinas de campo toroidal forran las paredes. El núcleo de 3x3 del anillo debe quedar vacío: es la cámara de plasma.");
@@ -872,6 +873,9 @@ public final class LangEntries {
         add("create_nuclearindustry.ponder.tokamak.text_10",
                 "Keep the coolant flowing. A tokamak without coolant overheats and disrupts, blowing holes in its vessel.",
                 "Mantén el refrigerante fluyendo. Un tokamak sin refrigerante se sobrecalienta y sufre una disrupción que agujerea su cámara.");
+        add("create_nuclearindustry.ponder.tokamak.text_11",
+                "Formed, the hull hides under a smooth vessel ringed with coil bands. Ports and injectors poke out of it, Viewports become windows onto the plasma, and Tokamak Supports can hold it off the floor.",
+                "Una vez formado, el casco queda bajo una vasija lisa ceñida por bandas de bobinas. Los puertos e inyectores asoman de ella, las Mirillas se vuelven ventanas al plasma y los Soportes de tokamak pueden levantarlo del suelo.");
         add("create_nuclearindustry.ponder.centrifuge.header",
                 "Enriching uranium with Centrifuges",
                 "Enriquecer uranio con centrifugadoras");

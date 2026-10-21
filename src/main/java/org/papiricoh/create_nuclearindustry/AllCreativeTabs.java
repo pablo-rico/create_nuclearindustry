@@ -133,6 +133,7 @@ public class AllCreativeTabs {
         output.accept(AllNuclearItems.FUSION_CRYOSTAT_CASING.value());
         output.accept(AllNuclearItems.FUSION_CENTRAL_SOLENOID.value());
         output.accept(AllNuclearItems.FUSION_BREEDING_BLANKET.value());
+        output.accept(AllNuclearItems.TOKAMAK_SUPPORT.value());
         output.accept(AllNuclearItems.FUSION_MAGNET_INPUT.value());
         output.accept(AllNuclearItems.FUSION_FLUID_PORT.value());
         output.accept(AllNuclearItems.FUSION_FUEL_INJECTOR.value());

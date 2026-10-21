@@ -28,7 +28,8 @@ import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakGeometry;
  * instability and flashing magenta at breakdown (see {@link PlasmaLook}). The shell hides it; it is
  * seen through viewports, or from inside the chamber. A Ponder scene does not draw the plasma's own
  * render type, so there the same shells go into the translucent block layer instead, a plain white
- * sprite tinted the plasma's colour, at full brightness and with both windings.
+ * sprite tinted the plasma's colour, at full brightness and with both windings. A formed tokamak's
+ * skin and solenoid glow are drawn first (see {@link TokamakSkinRenderer}).
  */
 public class PlasmaTorusRenderer implements BlockEntityRenderer<FusionReactorBlockEntity> {
     /** Cross-section half-width and half-height of the halo and the core, in blocks. */
@@ -43,6 +44,7 @@ public class PlasmaTorusRenderer implements BlockEntityRenderer<FusionReactorBlo
     private TorusMesh halo;
     private TorusMesh core;
     private final float[] corners = new float[12];
+    private final TokamakSkinRenderer skin = new TokamakSkinRenderer();
     private static final ResourceLocation WHITE = ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID,
             "block/penning_trap_led_lit");
 
@@ -56,6 +58,14 @@ public class PlasmaTorusRenderer implements BlockEntityRenderer<FusionReactorBlo
         }
         TokamakReadings readings = controller.readings();
         int radius = readings.majorRadius();
+        if (readings.formed() && radius >= TokamakGeometry.MIN_RADIUS) {
+            BlockPos center = controller.getCenter();
+            BlockPos origin = controller.getBlockPos();
+            ms.pushPose();
+            ms.translate(center.getX() - origin.getX() + 0.5, center.getY() - origin.getY() + 0.5, center.getZ() - origin.getZ() + 0.5);
+            skin.render(controller, ms, buffers);
+            ms.popPose();
+        }
         if (!readings.formed() || radius < TokamakGeometry.MIN_RADIUS || readings.phase() == null || !readings.phase().hasPlasma()) {
             return;
         }

@@ -20,6 +20,7 @@ import org.papiricoh.create_nuclearindustry.fusion.api.TripCause;
 import org.papiricoh.create_nuclearindustry.fusion.block.FusionReactorControllerBlock;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
 import org.papiricoh.create_nuclearindustry.fusion.heating.FusionViewportBlock;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakGeometry;
 
 /**
@@ -61,7 +62,7 @@ public class TokamakScenes {
         scene.world().showSection(util.select().layer(1).substract(util.select().position(7, 1, 7)), Direction.DOWN);
         scene.idle(15);
         scene.overlay().showText(90)
-                .text("The torus has a 5x5 cross-section. Its floor and roof can hold Breeding Blankets, which turn fusion neutrons into tritium.")
+                .text("The torus has an octagonal cross-section: a 5x5 square with its four corners left out. Its floor and roof can hold Breeding Blankets, which turn fusion neutrons into tritium.")
                 .colored(PonderPalette.GREEN)
                 .pointAt(util.vector().topOf(util.grid().at(7, 1, 7 - RADIUS)))
                 .placeNearTarget();
@@ -157,6 +158,21 @@ public class TokamakScenes {
         scene.idle(120);
         scene.world().moveSection(roof, util.vector().of(0, -3, 0), 20);
         scene.idle(25);
+        scene.addKeyframe();
+
+        // Formed: the hull hides under the skin the controller draws.
+        scene.world().modifyBlocks(util.select().everywhere(), state -> TokamakFormedLook.shaped(state, true), false);
+        // Reshaping the controller gives Ponder a fresh block entity: preview the burning plasma again.
+        TokamakReadings burning = plasma(TokamakPhase.BURN, 4200, 0.85, 10);
+        scene.world().modifyBlockEntity(controller, FusionReactorBlockEntity.class, tokamak -> {
+            tokamak.previewPlasma(axis, burning);
+            tokamak.previewSkin(true);
+        });
+        scene.overlay().showText(120)
+                .text("Formed, the hull hides under a smooth vessel ringed with coil bands. Ports and injectors poke out of it, Viewports become windows onto the plasma, and Tokamak Supports can hold it off the floor.")
+                .pointAt(util.vector().blockSurface(util.grid().at(7, 5, 7 - RADIUS), Direction.UP))
+                .placeNearTarget();
+        scene.idle(130);
     }
 
     /**
@@ -276,6 +292,20 @@ public class TokamakScenes {
         scene.idle(120);
         scene.world().moveSection(roof, util.vector().of(0, -3, 0), 20);
         scene.idle(25);
+        scene.addKeyframe();
+
+        // Reshaping the controller gives Ponder a fresh block entity: preview the burning plasma again.
+        TokamakReadings burning = plasma(TokamakPhase.BURN, 4200, 0.85, 10);
+        scene.world().modifyBlocks(util.select().everywhere(), state -> TokamakFormedLook.shaped(state, true), false);
+        scene.world().modifyBlockEntity(controller, FusionReactorBlockEntity.class, tokamak -> {
+            tokamak.previewPlasma(axis, burning);
+            tokamak.previewSkin(true);
+        });
+        scene.overlay().showText(110)
+                .text("Closed up again, the formed vessel hides the burning plasma: the Viewports are its windows, and the solenoid glows with the field.")
+                .pointAt(util.vector().blockSurface(util.grid().at(8, 4, 1), Direction.NORTH))
+                .placeNearTarget();
+        scene.idle(120);
     }
 
     static void showPlasma(CreateSceneBuilder scene, BlockPos controller, BlockPos axis, TokamakReadings readings) {

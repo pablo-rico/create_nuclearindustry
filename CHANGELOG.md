@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Tokamak
+- The tokamak now looks like a real one: once formed, its hull hides under a smooth, faceted vessel with an
+  **octagonal cross-section**, brass-trimmed chamfers and cream coil bands, round from above too. Ports, injectors,
+  the magnet drive and the controller poke out of it as nozzles, and Viewports become brass portholes onto the plasma.
+- The **Central Solenoid** is a ribbed column with caps at its ends and glows with the confining field.
+- The four corners of the 5x5 cross-section are no longer needed: build the ring as an octagon. Existing tokamaks
+  keep working; whatever stands in the corners is ignored and hidden while formed.
+- New **Tokamak Support**: a girder that stacks into pillars, with a foot at the bottom and a saddle under the ring.
+  Purely decorative, made from iron sheets and andesite alloy.
+
 ### Turbines
 - Steam and plasma turbines are now compact Create-style jet engines: always **3x3 across** and still 3–16 blocks long.
   Once formed, the walls, ports and glass thin down to plates with brass trim, and the front shows a brass intake ring

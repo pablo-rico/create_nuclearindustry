@@ -1,10 +1,16 @@
 {
   "variants": {
-    "mode=input": {
+    "formed=false,mode=input": {
       "model": "create_nuclearindustry:block/fusion_cryo_port_input"
     },
-    "mode=output": {
+    "formed=false,mode=output": {
       "model": "create_nuclearindustry:block/fusion_cryo_port_output"
+    },
+    "formed=true,mode=input": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_cryo_port_input_formed"
+    },
+    "formed=true,mode=output": {
+      "model": "create_nuclearindustry:block/tokamak/fusion_cryo_port_output_formed"
     }
   }
 }

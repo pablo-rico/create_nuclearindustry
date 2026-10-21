@@ -6,13 +6,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * Integer geometry of a tokamak of major radius {@code R}, centred on the central solenoid.
  *
  * <p>Horizontal distance from the axis is rounded to whole blocks:
- * {@code rho = round(sqrt(dx^2 + dz^2))}. The torus has a 5x5 cross-section:
+ * {@code rho = round(sqrt(dx^2 + dz^2))}. The torus has an octagonal cross-section, a 5x5
+ * square with its four corners cut:
  * <ul>
  *   <li>plasma chamber: {@code |rho - R| <= 1} and {@code |dy| <= 1} (must be air)</li>
+ *   <li>corners: {@code |rho - R| == 2} and {@code |dy| == 2}; optional, so rings built
+ *       before the octagonal section still form (whatever stands there is ignored)</li>
  *   <li>shell: the rest of {@code |rho - R| <= 2}, {@code |dy| <= 2} (vessel, coils, blankets, ports)</li>
  * </ul>
  * Rounded distance changes by at most one between face-adjacent columns, so the shell
- * always seals the chamber. Pure arithmetic, cached per radius.
+ * always seals the chamber; corners never touch a plasma cell. Pure arithmetic, cached per radius.
  */
 public final class TokamakGeometry {
     public static final int MIN_RADIUS = 4;
@@ -27,9 +30,10 @@ public final class TokamakGeometry {
     /** Packed (dx, dy, dz) triples. */
     private final int[] shell;
     private final int[] plasma;
+    private final int[] corner;
     private final int[] shellSector;
 
-    public enum Cell { OUTSIDE, SHELL, PLASMA }
+    public enum Cell { OUTSIDE, SHELL, PLASMA, CORNER }
 
     private TokamakGeometry(int radius) {
         this.radius = radius;
@@ -38,9 +42,11 @@ public final class TokamakGeometry {
         int side = 2 * extent + 1;
         int[] shellBuffer = new int[side * side * (2 * HALF_HEIGHT + 1) * 3];
         int[] plasmaBuffer = new int[shellBuffer.length];
+        int[] cornerBuffer = new int[shellBuffer.length];
         int[] sectorBuffer = new int[shellBuffer.length / 3];
         int shellCount = 0;
         int plasmaCount = 0;
+        int cornerCount = 0;
         for (int dx = -extent; dx <= extent; dx++) {
             for (int dz = -extent; dz <= extent; dz++) {
                 for (int dy = -HALF_HEIGHT; dy <= HALF_HEIGHT; dy++) {
@@ -56,12 +62,18 @@ public final class TokamakGeometry {
                         plasmaBuffer[plasmaCount * 3 + 1] = dy;
                         plasmaBuffer[plasmaCount * 3 + 2] = dz;
                         plasmaCount++;
+                    } else if (cell == Cell.CORNER) {
+                        cornerBuffer[cornerCount * 3] = dx;
+                        cornerBuffer[cornerCount * 3 + 1] = dy;
+                        cornerBuffer[cornerCount * 3 + 2] = dz;
+                        cornerCount++;
                     }
                 }
             }
         }
         this.shell = java.util.Arrays.copyOf(shellBuffer, shellCount * 3);
         this.plasma = java.util.Arrays.copyOf(plasmaBuffer, plasmaCount * 3);
+        this.corner = java.util.Arrays.copyOf(cornerBuffer, cornerCount * 3);
         this.shellSector = java.util.Arrays.copyOf(sectorBuffer, shellCount);
     }
 
@@ -97,6 +109,9 @@ public final class TokamakGeometry {
         if (offset <= PLASMA_HALF_WIDTH && Math.abs(dy) <= PLASMA_HALF_WIDTH) {
             return Cell.PLASMA;
         }
+        if (offset == 2 && Math.abs(dy) == HALF_HEIGHT) {
+            return Cell.CORNER;
+        }
         return Cell.SHELL;
     }
 
@@ -128,10 +143,18 @@ public final class TokamakGeometry {
         return plasma.length / 3;
     }
 
+    public int cornerCount() {
+        return corner.length / 3;
+    }
+
     public int shellX(int i) { return shell[i * 3]; }
     public int shellY(int i) { return shell[i * 3 + 1]; }
     public int shellZ(int i) { return shell[i * 3 + 2]; }
     public int shellSector(int i) { return shellSector[i]; }
+
+    public int cornerX(int i) { return corner[i * 3]; }
+    public int cornerY(int i) { return corner[i * 3 + 1]; }
+    public int cornerZ(int i) { return corner[i * 3 + 2]; }
 
     public int plasmaX(int i) { return plasma[i * 3]; }
     public int plasmaY(int i) { return plasma[i * 3 + 1]; }

@@ -238,6 +238,9 @@ final class FusionDataGen extends AreaDataGen {
         LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_10",
                 "Burning, a dense and well confined plasma can ignite: turn the heating down and it keeps itself hot.",
                 "En combustión, un plasma denso y bien confinado puede llegar a la ignición: baja el calentamiento y se mantiene caliente solo.");
+        LangEntries.add("create_nuclearindustry.ponder.tokamak_startup.text_11",
+                "Closed up again, the formed vessel hides the burning plasma: the Viewports are its windows, and the solenoid glows with the field.",
+                "Otra vez cerrada, la vasija formada oculta el plasma encendido: las ventanas de visión son sus ventanas, y el solenoide brilla con el campo.");
         LangEntries.add("create_nuclearindustry.ponder.cryoplant.header", "The Cryogenic Plant", "La planta criogénica");
         LangEntries.add("create_nuclearindustry.ponder.cryoplant.text_1",
                 "A Cryogenic Plant liquefies helium for a tokamak's magnets. It is a 3x3 box of Cryogenic Plant Casing, 3 to 5 blocks tall; every layer adds capacity.",

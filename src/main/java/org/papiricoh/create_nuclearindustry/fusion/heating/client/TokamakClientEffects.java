@@ -245,7 +245,8 @@ public final class TokamakClientEffects {
         int nx = dx + side.getStepX();
         int ny = dy + side.getStepY();
         int nz = dz + side.getStepZ();
-        if (geometry.classify(nx, ny, nz) != TokamakGeometry.Cell.OUTSIDE) {
+        TokamakGeometry.Cell cell = geometry.classify(nx, ny, nz);
+        if (cell == TokamakGeometry.Cell.SHELL || cell == TokamakGeometry.Cell.PLASMA) {
             return false;
         }
         return level.getBlockState(center.offset(nx, ny, nz)).isAir();

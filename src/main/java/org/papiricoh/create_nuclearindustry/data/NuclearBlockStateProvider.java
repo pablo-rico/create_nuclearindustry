@@ -216,10 +216,10 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
         simpleBlock(org.papiricoh.create_nuclearindustry.AllNuclearFluids.CONTAMINATED_WATER_BLOCK.get(),
                 models().getBuilder("contaminated_water").texture("particle", mcLoc("block/water_still")));
         simpleBlockWithItem(AllNuclearBlocks.SPODUMENE_ORE.get(), cubeAll(AllNuclearBlocks.SPODUMENE_ORE.get()));
-        axisBlock((net.minecraft.world.level.block.RotatedPillarBlock) AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get(),
-                modLoc("block/fusion_central_solenoid_side"), modLoc("block/fusion_central_solenoid_top"));
-        simpleBlockItem(AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get(), models().getExistingFile(modLoc("block/fusion_central_solenoid")));
-        simpleBlockWithItem(AllNuclearBlocks.FUSION_BREEDING_BLANKET.get(), cubeAll(AllNuclearBlocks.FUSION_BREEDING_BLANKET.get()));
+        solenoidStates();
+        hullStates(AllNuclearBlocks.FUSION_BREEDING_BLANKET.get(), cubeAll(AllNuclearBlocks.FUSION_BREEDING_BLANKET.get()));
+        simpleBlockItem(AllNuclearBlocks.FUSION_BREEDING_BLANKET.get(), cubeAll(AllNuclearBlocks.FUSION_BREEDING_BLANKET.get()));
+        supportStates();
         turbineWallStates(AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get(), "reinforced_turbine_glass", "turbine/glass_panel");
         simpleBlockItem(AllNuclearBlocks.REINFORCED_TURBINE_GLASS.get(), models().getExistingFile(modLoc("block/reinforced_turbine_glass")));
         rotorStates(AllNuclearBlocks.TURBINE_ROTOR.get(), "turbine_rotor");
@@ -254,5 +254,40 @@ public class NuclearBlockStateProvider extends BlockStateProvider {
                 modLoc("block/radioactive_waste_barrel_top"),
                 modLoc("block/radioactive_waste_barrel_top")));
         AreaDataGen.ALL.forEach(area -> area.blockStates(this));
+    }
+
+    /** A tokamak hull block: its own model, or nothing while the formed tokamak's skin covers it. */
+    public void hullStates(Block block, ModelFile model) {
+        ModelFile hidden = models().getExistingFile(modLoc("block/tokamak/hidden"));
+        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(state.getValue(org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook.HIDDEN) ? hidden : model)
+                .build());
+    }
+
+    /** The ribbed solenoid column, its caps turned to the ends of the axis it lies along. */
+    private void solenoidStates() {
+        Block solenoid = AllNuclearBlocks.FUSION_CENTRAL_SOLENOID.get();
+        getVariantBuilder(solenoid).forAllStates(state -> {
+            String segment = state.getValue(org.papiricoh.create_nuclearindustry.fusion.block.CentralSolenoidBlock.SEGMENT).getSerializedName();
+            net.minecraft.core.Direction.Axis axis = state.getValue(net.minecraft.world.level.block.RotatedPillarBlock.AXIS);
+            return ConfiguredModel.builder()
+                    .modelFile(models().getExistingFile(modLoc("block/tokamak/solenoid_" + segment)))
+                    .rotationX(axis == net.minecraft.core.Direction.Axis.Y ? 0 : 90)
+                    .rotationY(axis == net.minecraft.core.Direction.Axis.X ? 90 : 0)
+                    .build();
+        });
+        simpleBlockItem(solenoid, models().getExistingFile(modLoc("block/tokamak/solenoid_single")));
+    }
+
+    /** A pillar, with a foot on the lowest support and a saddle under the ring. */
+    private void supportStates() {
+        Block support = AllNuclearBlocks.TOKAMAK_SUPPORT.get();
+        getMultipartBuilder(support)
+                .part().modelFile(models().getExistingFile(modLoc("block/tokamak/support_pillar"))).addModel().end()
+                .part().modelFile(models().getExistingFile(modLoc("block/tokamak/support_foot"))).addModel()
+                .condition(org.papiricoh.create_nuclearindustry.fusion.block.TokamakSupportBlock.FOOT, true).end()
+                .part().modelFile(models().getExistingFile(modLoc("block/tokamak/support_cradle"))).addModel()
+                .condition(org.papiricoh.create_nuclearindustry.fusion.block.TokamakSupportBlock.CRADLE, true).end();
+        simpleBlockItem(support, models().getExistingFile(modLoc("block/tokamak/support_item")));
     }
 }

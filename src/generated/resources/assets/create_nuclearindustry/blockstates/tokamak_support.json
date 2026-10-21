@@ -1,0 +1,25 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/tokamak/support_pillar"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/tokamak/support_foot"
+      },
+      "when": {
+        "foot": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "create_nuclearindustry:block/tokamak/support_cradle"
+      },
+      "when": {
+        "cradle": "true"
+      }
+    }
+  ]
+}

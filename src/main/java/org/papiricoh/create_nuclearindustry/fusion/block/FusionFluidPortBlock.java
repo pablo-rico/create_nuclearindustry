@@ -33,6 +33,9 @@ import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakShellRole;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionFluidPortBlockEntity;
 import org.papiricoh.create_nuclearindustry.multiblock.PartPlacement;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
+import net.minecraft.util.RandomSource;
+import net.minecraft.server.level.ServerLevel;
+import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook;
 
 /**
  * Fusion fluid port: INPUT accepts coolant, OUTPUT provides plasma steam. Reuses the generic
@@ -47,7 +50,7 @@ public class FusionFluidPortBlock extends BaseEntityBlock implements TokamakShel
 
     public FusionFluidPortBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any()
+        registerDefaultState(stateDefinition.any().setValue(TokamakFormedLook.FORMED, false)
                 .setValue(FACING, Direction.NORTH)
                 .setValue(MODE, ReactorFluidPortMode.INPUT));
     }
@@ -59,7 +62,7 @@ public class FusionFluidPortBlock extends BaseEntityBlock implements TokamakShel
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, MODE);
+        builder.add(FACING, MODE, TokamakFormedLook.FORMED);
     }
 
     @Nullable
@@ -141,5 +144,15 @@ public class FusionFluidPortBlock extends BaseEntityBlock implements TokamakShel
     @Override
     public TokamakShellRole tokamakRole(BlockState state) {
         return state.getValue(MODE) == ReactorFluidPortMode.INPUT ? TokamakShellRole.COOLANT_PORT : TokamakShellRole.STEAM_PORT;
+    }
+
+    @Override
+    protected boolean isRandomlyTicking(BlockState state) {
+        return TokamakFormedLook.isShaped(state);
+    }
+
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        TokamakFormedLook.releaseIfOrphaned(state, level, pos);
     }
 }
