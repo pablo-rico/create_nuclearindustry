@@ -3,6 +3,7 @@ package org.papiricoh.create_nuclearindustry.radiation.cache;
 import net.minecraft.world.level.block.state.BlockState;
 import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.Radioactivity;
+import org.papiricoh.create_nuclearindustry.radiation.contamination.ContaminatedWaterBlock;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * How strongly a placed block irradiates, per block state, looked up once: the {@code radioactivity}
  * data map of the block's item (waste barrels, ore blocks), or of the bucket of the liquid it holds,
- * less as a flowing liquid thins out. Forgotten when data maps reload. The radiation scan also uses
+ * less as a flowing liquid thins out (contaminated water counts through its chunk instead). Forgotten when data maps reload. The radiation scan also uses
  * it to skip chunk sections whose palette holds nothing radioactive.
  */
 public final class BlockRadioactivity {
@@ -51,7 +52,8 @@ public final class BlockRadioactivity {
             return radioactivity.perSecond() > 0 ? new Source(radioactivity.perSecond(), true) : NONE;
         }
         var fluid = state.getFluidState();
-        if (fluid.isEmpty()) {
+        if (fluid.isEmpty() || state.getBlock() instanceof ContaminatedWaterBlock) {
+            // Contaminated water irradiates through its chunk's contamination, not block by block.
             return NONE;
         }
         Radioactivity liquid = fluid.getType().getBucket().builtInRegistryHolder().getData(AllNuclearRadiation.RADIOACTIVITY);

@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import org.papiricoh.create_nuclearindustry.Config;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -165,6 +166,18 @@ public class FalloutData extends SavedData {
         public double currentStrength(long now) {
             return strength * remaining(now) / duration;
         }
+
+        /** Brings its end forward so it is {@code amount} weaker from {@code now}; returns what was taken. */
+        double weaken(double amount, long now) {
+            double current = currentStrength(now);
+            if (current <= 0 || amount <= 0 || strength <= 0) {
+                return 0;
+            }
+            double taken = Math.min(current, amount);
+            long left = (long) Math.floor((current - taken) * duration / strength);
+            expires = Math.min(expires, now + left);
+            return taken;
+        }
     }
 
     public static FalloutData get(ServerLevel level) {
@@ -176,12 +189,19 @@ public class FalloutData extends SavedData {
         return data;
     }
 
-    /** Adds a contamination source next to {@code pos} that fades out over {@code durationTicks}. */
+    /**
+     * Adds a contamination source next to {@code pos} that fades out over {@code durationTicks}:
+     * scaled by {@code contamination.hotSpotScale} and lasting at most {@code contamination.hotSpotDays}.
+     */
     public static void contaminate(Level level, BlockPos pos, double strength, int durationTicks) {
         if (level instanceof ServerLevel serverLevel) {
+            double scaled = strength * Config.hotSpotScale;
+            if (scaled <= 0) {
+                return;
+            }
             // A hot spot left aboard a ship falls where the ship really is.
             BlockPos at = org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.worldBlock(level, pos);
-            get(serverLevel).add(at, strength, durationTicks, level.getGameTime());
+            get(serverLevel).add(at, scaled, Math.min(durationTicks, Config.hotSpotMaxTicks), level.getGameTime());
         }
     }
 
@@ -195,6 +215,29 @@ public class FalloutData extends SavedData {
 
     public List<Source> sources() {
         return sources;
+    }
+
+    /**
+     * Takes up to {@code amount} rad/s off every source within {@code range} blocks of {@code at},
+     * as a scrubber does: a source fades out sooner, never comes back stronger. Returns the strength
+     * taken in all.
+     */
+    public double weaken(Vec3 at, double range, double amount, long now) {
+        double[] taken = {0};
+        forEachNear(at, range, source -> {
+            if (Vec3.atCenterOf(source.pos).distanceToSqr(at) <= range * range) {
+                taken[0] += source.weaken(amount, now);
+            }
+        });
+        if (taken[0] > 0) {
+            setDirty();
+        }
+        return taken[0];
+    }
+
+    /** Counts changes to the list of sources, so a reading can tell whether one came or went. */
+    public int version() {
+        return sources.version();
     }
 
     /**

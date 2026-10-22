@@ -26,6 +26,8 @@ public final class RadiationStats {
     public int falloutSources;
     /** Whole readings of a monitored spot answered from the last one, without any scan or ray. */
     public int spotReadingsReused;
+    /** A player's blocks and fallout answered from their last update, without a scan or their rays. */
+    public int surroundingsReused;
 
     private RadiationStats() {}
 
@@ -48,6 +50,6 @@ public final class RadiationStats {
     public String toString() {
         return "blocks " + blockLookups + ", sections " + sectionsScanned + " read / " + sectionsSkipped + " skipped, rays "
                 + raysCast + " cast / " + raysReused + " reused, emitter chunks " + emitterChunks + ", fallout sources " + falloutSources
-                + (spotReadingsReused > 0 ? ", spot reading reused" : "");
+                + (spotReadingsReused > 0 ? ", spot reading reused" : "") + (surroundingsReused > 0 ? ", surroundings reused" : "");
     }
 }

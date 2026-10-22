@@ -1,0 +1,22 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "item": "create_nuclearindustry:irradiated_biomass"
+    },
+    {
+      "item": "create_nuclearindustry:irradiated_biomass"
+    },
+    {
+      "item": "create_nuclearindustry:irradiated_biomass"
+    },
+    {
+      "item": "create_nuclearindustry:irradiated_biomass"
+    }
+  ],
+  "results": [
+    {
+      "id": "create_nuclearindustry:low_level_waste"
+    }
+  ]
+}

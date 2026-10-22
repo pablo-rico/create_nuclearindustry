@@ -1,6 +1,7 @@
 package org.papiricoh.create_nuclearindustry.radiation.scrubber;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.item.ItemHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -17,19 +18,21 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.papiricoh.create_nuclearindustry.AllNuclearEntities;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Config;
+import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitter;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationEmitters;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /**
- * Once a second, removes contamination from its chunk and the chunks around it, most
- * contaminated first, at a rate that grows with speed up to 256 RPM. What it absorbs comes out
- * as low-level waste in its one output slot; full, it stops. The waste inside irradiates.
+ * Once a second, removes contamination from its chunk and each chunk around it (up to
+ * {@code contamination.scrubberRate} from every one, more with speed up to 256 RPM) and weakens
+ * the hot spots in reach by as much. What it absorbs comes out as low-level waste in its one
+ * output slot; full, it stops. The waste inside irradiates and drops when the scrubber is broken.
  * Scrubbers saved with the old (intermediate-level) waste inside stay full until it is taken out.
  */
 public class RadiationScrubberBlockEntity extends KineticBlockEntity implements RadiationEmitter {
@@ -37,6 +40,7 @@ public class RadiationScrubberBlockEntity extends KineticBlockEntity implements 
     private static final int INTERVAL = 20;
     /** Dose per second from each waste item waiting inside. */
     private static final double EMISSION_PER_WASTE = 0.1;
+    private static final String KEY = "create_nuclearindustry.radiation_scrubber.";
 
     private final ItemStackHandler output = new ItemStackHandler(1) {
         @Override
@@ -126,20 +130,20 @@ public class RadiationScrubberBlockEntity extends KineticBlockEntity implements 
         if (!(level instanceof ServerLevel serverLevel) || isFull()) {
             return 0;
         }
-        float budget = (float) (Config.scrubberRate * speedFactor());
-        if (budget <= 0) {
+        float rate = (float) (Config.scrubberRate * speedFactor());
+        if (rate <= 0) {
             return 0;
         }
-        for (LevelChunk chunk : chunksByContamination(serverLevel)) {
+        for (LevelChunk chunk : chunksInReach(serverLevel)) {
             float value = Contamination.read(chunk);
-            if (value <= 0 || budget <= 0) {
-                break;
+            if (value > 0) {
+                float taken = Math.min(value, rate);
+                Contamination.set(chunk, value - taken);
+                lastRemoved += taken;
             }
-            float taken = Math.min(value, budget);
-            Contamination.set(chunk, value - taken);
-            budget -= taken;
-            lastRemoved += taken;
         }
+        int reach = (Config.scrubberRadius * 2 + 1) * 8;
+        lastRemoved += (float) FalloutData.get(serverLevel).weaken(Vec3.atCenterOf(worldPosition), reach, rate, serverLevel.getGameTime());
         absorbed += lastRemoved;
         while (absorbed >= Config.scrubberWastePer && !isFull()) {
             absorbed -= (float) Config.scrubberWastePer;
@@ -161,20 +165,27 @@ public class RadiationScrubberBlockEntity extends KineticBlockEntity implements 
         return !output.insertItem(0, new ItemStack(WasteRegistry.LOW_LEVEL_WASTE.get()), true).isEmpty();
     }
 
-    private List<LevelChunk> chunksByContamination(ServerLevel level) {
+    private List<LevelChunk> chunksInReach(ServerLevel level) {
         ChunkPos center = new ChunkPos(worldPosition);
         int radius = Config.scrubberRadius;
         List<LevelChunk> chunks = new ArrayList<>();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
                 LevelChunk chunk = Contamination.loaded(level, center.x + dx, center.z + dz);
-                if (chunk != null && Contamination.read(chunk) > 0) {
+                if (chunk != null) {
                     chunks.add(chunk);
                 }
             }
         }
-        chunks.sort(Comparator.comparingDouble(chunk -> -Contamination.read(chunk)));
         return chunks;
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        if (level != null && !level.isClientSide && !org.papiricoh.create_nuclearindustry.integration.sable.ShipAssembly.isMoving()) {
+            ItemHelper.dropContents(level, worldPosition, output);
+        }
     }
 
     public ItemStackHandler getOutput() {
@@ -209,18 +220,23 @@ public class RadiationScrubberBlockEntity extends KineticBlockEntity implements 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         super.addToGoggleTooltip(tooltip, isPlayerSneaking);
-        tooltip.add(Component.literal("Radiation Scrubber").withStyle(ChatFormatting.GREEN));
+        tooltip.add(Component.literal("    ").append(Component.translatable("block.create_nuclearindustry.radiation_scrubber"))
+                .withStyle(ChatFormatting.GREEN));
         int waste = output.getStackInSlot(0).getCount();
         if (isFull()) {
-            tooltip.add(Component.literal("  Full: take the waste out").withStyle(ChatFormatting.RED));
+            tooltip.add(line(Component.translatable(KEY + "full").withStyle(ChatFormatting.RED)));
         } else if (speedFactor() <= 0) {
-            tooltip.add(Component.literal("  Needs rotation").withStyle(ChatFormatting.RED));
+            tooltip.add(line(Component.translatable(KEY + "no_rotation").withStyle(ChatFormatting.RED)));
         } else {
-            tooltip.add(Component.literal(String.format("  Absorbing %.2f rad/s each second", lastRemoved))
-                    .withStyle(lastRemoved > 0 ? ChatFormatting.GREEN : ChatFormatting.GRAY));
+            tooltip.add(line(Component.translatable(KEY + "absorbing", String.format(Locale.ROOT, "%.2f", lastRemoved))
+                    .withStyle(lastRemoved > 0 ? ChatFormatting.GREEN : ChatFormatting.GRAY)));
         }
-        tooltip.add(Component.literal("  Waste inside: " + waste).withStyle(waste > 0 ? ChatFormatting.YELLOW : ChatFormatting.GRAY));
+        tooltip.add(line(Component.translatable(KEY + "waste", waste).withStyle(waste > 0 ? ChatFormatting.YELLOW : ChatFormatting.GRAY)));
         return true;
+    }
+
+    private static Component line(Component text) {
+        return Component.literal("     ").append(text);
     }
 
     @Override

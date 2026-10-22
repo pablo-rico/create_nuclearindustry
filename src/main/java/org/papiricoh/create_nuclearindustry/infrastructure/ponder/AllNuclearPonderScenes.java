@@ -15,6 +15,7 @@ import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.Reactor
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorRedstoneScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.RtgScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ScrubberScenes;
+import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.SprinklerScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TokamakScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.ReactorScenes;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.TurbineScenes;
@@ -37,6 +38,9 @@ public class AllNuclearPonderScenes {
             helper.addStoryBoard(id(container), "waste_transport", WasteTransportScenes::transport);
         }
         helper.addStoryBoard(id("radiation_scrubber"), "centrifuge", ScrubberScenes::scrubber);
+        for (String part : new String[]{"decontamination_sprinkler", "irradiated_sunflower", "irradiated_biomass"}) {
+            helper.addStoryBoard(id(part), "centrifuge", SprinklerScenes::sprinkler);
+        }
         for (String part : new String[]{"rtg", "plutonium_rtg_pellet", "waste_rtg_pellet"}) {
             helper.addStoryBoard(id(part), "centrifuge", RtgScenes::rtg);
         }

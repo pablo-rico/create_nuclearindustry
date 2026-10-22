@@ -428,4 +428,42 @@ public class PerformanceRadiationTests {
             helper.succeed();
         });
     }
+
+    /**
+     * A player standing next to waste used to rescan the blocks around them and walk a ray to every
+     * radioactive one each second. Now the scan is kept while they stay put and nothing changes:
+     * the next update reads no block and casts no ray, and building next to them is seen at once.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = "contamination_perf_surroundings", timeoutTicks = 100)
+    public static void aStandingPlayersSurroundingsAreNotRescanned(GameTestHelper helper) {
+        Player player = playerAt(helper, PLAYER);
+        BlockPos barrel = PLAYER.east(2);
+        RadiationStats[] stats = new RadiationStats[3];
+        double[] rates = new double[3];
+        helper.setBlock(barrel, AllNuclearBlocks.RADIOACTIVE_WASTE_BARREL.get());
+        helper.runAfterDelay(1, () -> {
+            rates[0] = RadiationHandler.exposureRate(player);
+            stats[0] = RadiationStats.last();
+        });
+        helper.runAfterDelay(1 + UPDATE_INTERVAL, () -> {
+            try {
+                rates[1] = RadiationHandler.exposureRate(player);
+                stats[1] = RadiationStats.last();
+                helper.setBlock(PLAYER.east(), Blocks.STONE);
+                rates[2] = RadiationHandler.exposureRate(player);
+                stats[2] = RadiationStats.last();
+            } finally {
+                helper.setBlock(barrel, Blocks.AIR);
+                ContaminationTests.clean(helper, 1);
+            }
+            helper.assertTrue(stats[0] != null && stats[0].blockLookups > 0 && stats[0].raysCast >= 1 && rates[0] > 0,
+                    "the first update scans and casts: " + stats[0]);
+            helper.assertTrue(stats[1].surroundingsReused == 1 && stats[1].blockLookups == 0 && stats[1].raysCast == 0
+                    && stats[1].raysReused == 0 && Math.abs(rates[1] - rates[0]) < 1e-9,
+                    "standing still, the next update does no scan and walks no ray: " + stats[1]);
+            helper.assertTrue(stats[2].surroundingsReused == 0 && stats[2].blockLookups > 0 && rates[2] < rates[1],
+                    "a wall built in between is counted at once, " + rates[1] + " -> " + rates[2] + ": " + stats[2]);
+            helper.succeed();
+        });
+    }
 }

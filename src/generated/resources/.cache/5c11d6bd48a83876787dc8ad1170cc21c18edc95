@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-20T20:18:57.585394	Item Models: create_nuclearindustry
+// 1.21.1	2026-10-22T19:18:28.994701	Item Models: create_nuclearindustry
 fbb44421d41b161a776411650882a190059c17c8 assets/create_nuclearindustry/models/item/americium_241.json
 c751b3309684aa5733087dd1d1e82066016215f0 assets/create_nuclearindustry/models/item/amidoxime_adsorbent.json
 70769908b82daba73c4d705865fc8fd119e7b179 assets/create_nuclearindustry/models/item/bomb_casing.json
@@ -46,6 +46,7 @@ a82364c9fe26e8373377f14a4a6e540c1999be31 assets/create_nuclearindustry/models/it
 3c7dbc15cd953a0cbd523a4c62d2fbdbeac1647a assets/create_nuclearindustry/models/item/incomplete_thorium_reactor_fuel.json
 15656a393f11bd0e277b22f909b086f73c2f52d7 assets/create_nuclearindustry/models/item/incomplete_uranium_reactor_fuel.json
 0540cd345a4a8bbaa3772bb6355be76f3478b40e assets/create_nuclearindustry/models/item/interceptor.json
+0520a9b1c274308db675e8bcc157308e59577aee assets/create_nuclearindustry/models/item/irradiated_biomass.json
 59403d433da05fe962641ad5f2ae992274427794 assets/create_nuclearindustry/models/item/irradiated_depleted_uranium.json
 0c3029497b15cc29703675553b64c6bc77b683d6 assets/create_nuclearindustry/models/item/irradiated_thorium.json
 d48033aa910e72006875b2fc71b0111840249444 assets/create_nuclearindustry/models/item/liquid_helium_cell.json

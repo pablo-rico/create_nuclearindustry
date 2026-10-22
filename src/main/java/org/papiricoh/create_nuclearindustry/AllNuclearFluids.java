@@ -19,6 +19,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
+import org.papiricoh.create_nuclearindustry.radiation.contamination.ContaminatedWaterBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
@@ -197,7 +198,7 @@ public class AllNuclearFluids {
 
     // ---------------------------------------------------------------- contaminated water: lakes, rivers and buckets
     public static final DeferredHolder<Block, LiquidBlock> CONTAMINATED_WATER_BLOCK = BLOCKS.register("contaminated_water",
-            () -> new LiquidBlock(CONTAMINATED_WATER.get(), BlockBehaviour.Properties.ofFullCopy(Blocks.WATER).mapColor(MapColor.COLOR_GREEN)));
+            () -> new ContaminatedWaterBlock(CONTAMINATED_WATER.get(), BlockBehaviour.Properties.ofFullCopy(Blocks.WATER).mapColor(MapColor.COLOR_GREEN)));
 
     public static final DeferredHolder<Item, BucketItem> CONTAMINATED_WATER_BUCKET = ITEMS.register("contaminated_water_bucket",
             () -> new BucketItem(CONTAMINATED_WATER.get(), new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));

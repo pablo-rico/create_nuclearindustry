@@ -145,8 +145,9 @@ public final class Contamination {
     // ---- fallout and clearing ----
 
     /**
-     * Fallout centred on {@code center}: {@code intensity} rad/s there, falling linearly to
-     * nothing at {@code radius} blocks. Loaded chunks get it now; the rest when they load.
+     * Fallout centred on {@code center}: {@code intensity} rad/s there (times
+     * {@code contamination.falloutScale}), falling linearly to nothing at {@code radius} blocks.
+     * Loaded chunks get it now; the rest when they load.
      */
     public static void fallout(ServerLevel level, BlockPos center, int radius, float intensity) {
         fallout(level, center, radius, intensity, 0, 0);
@@ -157,6 +158,7 @@ public final class Contamination {
      * {@code wind} radians that stretches it by {@code stretch} into a plume (see {@code FalloutPlume}).
      */
     public static void fallout(ServerLevel level, BlockPos center, int radius, float intensity, double wind, double stretch) {
+        intensity *= (float) Config.falloutScale;
         if (!Config.contaminationEnabled || radius <= 0 || intensity <= 0) {
             return;
         }
@@ -185,7 +187,7 @@ public final class Contamination {
 
     /** Heavy fallout also reaches the chunk's open water, a few columns per tick. */
     private static void settle(ServerLevel level, LevelChunk chunk, float value) {
-        if (severity(value) >= WaterContamination.MIN_SEVERITY) {
+        if (severity(value) >= Config.waterMinSeverity) {
             WaterContamination.queue(level, chunk.getPos());
         }
     }

@@ -139,6 +139,8 @@
     "create_nuclearindustry:antimatter_engine",
     "create_nuclearindustry:magnetic_coil",
     "create_nuclearindustry:magnetic_nozzle",
+    "create_nuclearindustry:decontamination_sprinkler",
+    "create_nuclearindustry:irradiated_sunflower",
     "create_nuclearindustry:rocket_engine",
     "create_nuclearindustry:rocket_tank",
     "create_nuclearindustry:rocket_guidance",

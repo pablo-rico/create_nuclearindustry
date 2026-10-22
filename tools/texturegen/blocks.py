@@ -1346,3 +1346,4 @@ import tex_silo_controller  # noqa: E402,F401
 import tex_launch_base  # noqa: E402,F401
 import tex_turbine  # noqa: E402,F401
 import tex_tokamak  # noqa: E402,F401
+import tex_decontamination  # noqa: E402,F401

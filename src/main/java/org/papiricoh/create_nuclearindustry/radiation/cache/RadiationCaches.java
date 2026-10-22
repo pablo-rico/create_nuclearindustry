@@ -64,13 +64,46 @@ public final class RadiationCaches {
     /** Ticks a spot's whole reading is reused: players are read every 20 ticks, so are spots. */
     public static final int SPOT_READING_TICKS = 20;
 
-    /** One player's cached rays, for the level they were cast in. */
+    /**
+     * The dose rates from radioactive blocks and fallout sources around a body in block {@code block},
+     * worked out at {@code time} with the level's fallout list at {@code falloutVersion} and valid as
+     * long as no chunk around it changed after {@code sequence} was issued.
+     */
+    public record Surroundings(double blocks, double fallout, long block, long time, int falloutVersion, long sequence) {
+        /** A reading that is not kept. */
+        public Surroundings(double blocks, double fallout) {
+            this(blocks, fallout, Long.MIN_VALUE, Long.MIN_VALUE, -1, Long.MIN_VALUE);
+        }
+    }
+
+    /** One player's cached rays and last surroundings, for the level they were cast in. */
     public static final class PlayerCache {
         private Level level;
         private final RayCache rays = new RayCache();
+        @Nullable
+        private Surroundings surroundings;
 
         public RayCache rays() {
             return rays;
+        }
+
+        /**
+         * The last surroundings if they were read in the same block, with the same fallout, on an earlier
+         * tick within {@code maxAge} ticks. Never within the same tick: whatever reads a player twice in
+         * one tick (commands, tests) changed something in between and wants it seen.
+         */
+        @Nullable
+        public Surroundings surroundings(long block, long now, int falloutVersion, int maxAge) {
+            Surroundings last = surroundings;
+            if (last == null || last.block() != block || last.falloutVersion() != falloutVersion
+                    || now <= last.time() || now - last.time() >= maxAge) {
+                return null;
+            }
+            return last;
+        }
+
+        public void remember(Surroundings reading) {
+            surroundings = reading;
         }
     }
 
@@ -91,6 +124,7 @@ public final class RadiationCaches {
         if (cache.level != player.level()) {
             cache.level = player.level();
             cache.rays.clear();
+            cache.surroundings = null;
         }
         cache.rays.prune(player.level().getGameTime(), PerformanceConfig.radiationRayCacheTicks, PerformanceConfig.radiationRayMaxAgeTicks);
         return cache;

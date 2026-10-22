@@ -43,7 +43,8 @@ public final class NuclearFeatures {
             org.papiricoh.create_nuclearindustry.missile.MissileRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.INSTANCE,
             org.papiricoh.create_nuclearindustry.propulsion.PropulsionRegistry.INSTANCE,
-            org.papiricoh.create_nuclearindustry.missile.fx.RocketFxRegistry.INSTANCE);
+            org.papiricoh.create_nuclearindustry.missile.fx.RocketFxRegistry.INSTANCE,
+            org.papiricoh.create_nuclearindustry.radiation.decontamination.DecontaminationRegistry.INSTANCE);
 
     private NuclearFeatures() {}
 

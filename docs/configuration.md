@@ -62,6 +62,7 @@ maxFanBoost = 1.0
 enabled = true
 doseMultiplier = 1.0
 decayPerSecond = 1.0
+recoveryBelow = 0.5
 nauseaThreshold = 100.0
 weaknessThreshold = 300.0
 sicknessThreshold = 600.0
@@ -74,16 +75,31 @@ maxShielding = 0.98
 
 [contamination]
 enabled = true
-halfLifeTicks = 240000
+decayDays = 7.0
 max = 50.0
+falloutScale = 0.4
+hotSpotScale = 0.5
+hotSpotDays = 1.0
+waterMinSeverity = 5
+spilledWaterLevel = 2.0
 doseScale = 1.0
 barrelLeak = 0.02
 geologicalStorageMaxY = 0
 waterColumnsPerTick = 256
-scrubberRate = 0.05
-scrubberRadius = 1
-scrubberWastePer = 2.0
+scrubberRatePerChunk = 0.25
+scrubberRadius = 2
+scrubberWastePer = 5.0
 scrubberStress = 8.0
+
+[decontamination]
+sprinklerRate = 1.0
+sprinklerRadius = 1
+sprinklerWaterPerSecond = 50
+sprinklerContaminatedPerRad = 100.0
+sprinklerShowerPerSecond = 5.0
+sprinklerStress = 4.0
+sunflowerUptake = 0.05
+sunflowerAbsorptions = 20
 ```
 
 ## Turbinas
@@ -795,8 +811,10 @@ opciones.
 
 La dosis se acumula con los objetos que lleva el jugador, los bloques
 radiactivos cercanos (barriles de residuos) y la lluvia radiactiva de accidentes.
-Un traje antirradiacion completo detiene el 95%. La dosis baja `decayPerSecond`
-por segundo cuando cesa la exposicion y se reinicia al morir.
+Un traje antirradiacion completo detiene el 95%. Mientras la tasa recibida esta
+por debajo de `recoveryBelow` (0,5 rad/s) la dosis se recupera: baja
+`decayPerSecond` menos lo que aun se recibe cada segundo. Por encima solo sube.
+Se reinicia al morir.
 
 Entre la fuente y el jugador, cada bloque deja pasar solo una fracción de la
 radiación: la del mapa de datos de bloques `create_nuclearindustry:radiation_transmission`
@@ -806,7 +824,7 @@ sólido. Un reactor en marcha emite `reactorEmissionPerNeutron` por nivel de
 neutrones desde el centro del núcleo; su propia carcasa ya detiene la mayor
 parte. La armadura protege según el mapa de datos de objetos
 `create_nuclearindustry:radiation_shielding` (las piezas se suman, hasta
-`maxShielding`). Por debajo de `backgroundRate` la dosis no sube y sigue bajando.
+`maxShielding`). Por debajo de `backgroundRate` la tasa cuenta como cero.
 
 ```json
 {
@@ -834,9 +852,12 @@ Con `scales_with_enrichment`, la tasa se multiplica por `enriquecimiento / 90`.
 ## Contaminacion del terreno
 
 Los accidentes dejan contaminacion en el suelo: un valor por chunk, en rad/s a
-ras de suelo. No hace tick: se calcula al leerlo y se reduce a la mitad cada
-`halfLifeTicks` (240000, diez dias de juego; 0 = nunca). Un chunk guarda como
-mucho `max`. La dosis de estar encima se mezcla entre los cuatro chunks mas
+ras de suelo. No hace tick: se calcula al leerlo. `decayDays` (7 por defecto;
+0 = nunca) son los dias de juego que tarda en desaparecer un chunk con el maximo
+(`max`): baja a la mitad a ritmo constante, asi que cae mas rapido al principio
+(con 7 dias, la mitad se va en algo mas de medio dia) y la contaminacion mas
+debil desaparece antes. Cambiarlo afecta tambien a lo ya contaminado. Un chunk
+guarda como mucho `max`. La dosis de estar encima se mezcla entre los cuatro chunks mas
 cercanos, baja con la altura sobre el suelo (a la mitad a 8 bloques) y, bajo
 techo, solo cuenta lo que atraviesa el tejado. `doseScale` la multiplica.
 
@@ -883,25 +904,53 @@ cargan.
 Que contamina:
 
 - Bombas, misiles y proyectiles nucleares: hasta 1,5 veces el radio del crater,
-  con 0,2 rad/s por punto de potencia en el centro (32 con una cabeza completa).
-- La fusion del nucleo de un reactor: 20 rad/s en el reactor, hasta 48 bloques.
+  con 0,2 rad/s por punto de potencia en el centro (32 con una cabeza completa,
+  12,8 tras `falloutScale`).
+- La fusion del nucleo de un reactor: 20 rad/s en el reactor (8 tras
+  `falloutScale`), hasta 48 bloques.
+
+`falloutScale` (0,4) multiplica toda lluvia radiactiva: bombas, fusiones del
+nucleo, roturas de contenedores y motores. Los puntos calientes que dejan un
+nucleo fundido o una bomba sucia (una fuente que se apaga de forma lineal) se
+multiplican por `hotSpotScale` (0,5) y duran como mucho `hotSpotDays` (1 dia de
+juego).
 - Los barriles y bultos de residuos que no estan almacenados: cada tick
   aleatorio (unos 68 s de media) suman a su chunk `barrelLeak` por su factor de
   fuga y por lo que el repositorio no retiene.
 
-Cuando una lluvia radiactiva deja un chunk con gravedad 3 o mas (0,5 rad/s), la
-fuente de agua de la superficie de cada columna puede volverse agua
-contaminada (con probabilidad gravedad/7). Los chunks esperan en una cola y se
-revisan `waterColumnsPerTick` columnas por tick (256 = un chunk). El agua
-contaminada irradia 0,3 rad/s por fuente (igual que su cubo) y la centrifuga la
-separa en agua limpia y residuos.
+Cuando una lluvia radiactiva deja un chunk con gravedad `waterMinSeverity` o
+mas (5 = 2 rad/s), la fuente de agua de la superficie de cada columna puede
+volverse agua contaminada (de 1/6 a 1/2 segun la gravedad). Los chunks esperan en
+una cola y se revisan `waterColumnsPerTick` columnas por tick (256 = un chunk).
+El agua contaminada irradia a traves de la contaminacion de su chunk, no bloque a
+bloque, y vuelve sola a ser agua limpia (en sus ticks aleatorios) cuando su chunk
+baja de gravedad 3 (0,5 rad/s). Verterla con un cubo o una tuberia devuelve
+`spilledWaterLevel` rad/s por fuente al suelo de su chunk; la centrifuga la separa
+en agua limpia y residuos. Su cubo irradia 0,1 rad/s.
 
 El Absorbedor de radiacion limpia el suelo: accionado desde abajo, quita cada
-segundo `scrubberRate` rad/s (a 256 RPM o mas; menos si gira mas despacio) de su
-chunk y de los que estan a `scrubberRadius` chunks, empezando por el mas
-contaminado. Cada `scrubberWastePer` absorbidos produce un Residuo de baja
-actividad en su unica ranura, que se vacia con embudos o tolvas; lleno, se para. Consume
-`scrubberStress` SU por RPM.
+segundo `scrubberRatePerChunk` rad/s (a 256 RPM o mas; menos si gira mas despacio) de
+cada chunk a `scrubberRadius` chunks del suyo (5x5 por defecto) y lo mismo de
+cada punto caliente a su alcance. Cada `scrubberWastePer` absorbidos produce un
+Residuo de baja actividad en su unica ranura, que se vacia con embudos o tolvas;
+lleno, se para, y al romperlo suelta los residuos. Consume `scrubberStress` SU
+por RPM.
+
+El Rociador de descontaminacion lava el suelo mucho mas rapido: accionado desde
+abajo y con agua por tuberia (por cualquier lado menos el del eje), cada segundo
+gasta `sprinklerWaterPerSecond` mB y quita `sprinklerRate` rad/s de cada chunk a
+`sprinklerRadius` chunks (3x3), todo a 256 RPM o mas. Lo lavado se acumula como
+agua contaminada en su segundo deposito (2000 mB, `sprinklerContaminatedPerRad`
+mB por rad/s) que se saca por tuberia; con ese deposito lleno o sin agua, se
+para. A quien esta bajo el chorro (dos bloques alrededor) le quita
+`sprinklerShowerPerSecond` de dosis por segundo, sin tocar el total acumulado.
+Consume `sprinklerStress` SU por RPM.
+
+Los girasoles plantados en un chunk contaminado le quitan `sunflowerUptake` rad/s
+en cada tick aleatorio (unos 68 s) y, de media tras `sunflowerAbsorptions`
+absorciones, se marchitan en Girasoles irradiados que ya no absorben y sueltan
+1-2 de Biomasa irradiada (0,1 rad/s); cuatro se prensan en un Residuo de baja
+actividad.
 
 Los barriles y demas bultos de residuos fugan y irradian segun la calidad del
 repositorio que los rodea (ver "Residuos y repositorio"). `geologicalStorageMaxY`
@@ -2158,6 +2207,11 @@ Opciones para servidores, bajo `performance.*` y `explosive.*`:
   caché se vuelve a lanzar aunque se siga usando, red de seguridad para cambios
   de bloques que no avisan a nadie (contraptions de Create que mueven muros, por
   ejemplo). Con 0 no se vuelve a lanzar nunca un rayo en uso.
+- `performance.radiationReadingTicks` (100, de 0 a 1200): ticks que se reutiliza
+  el escaneo de bloques radiactivos y puntos calientes alrededor de un jugador
+  mientras sigue en el mismo bloque y no cambia ningún bloque ni punto caliente
+  cerca. Los objetos que lleva, las máquinas y el suelo se leen cada segundo.
+  Con 0 se escanea en cada actualización.
 - `performance.forcedSyncTicks` (100, de 10 a 1200): máximo de ticks que un
   controlador de máquina (reactor de fisión, generador de vapor, planta
   criogénica, tokamak, acelerador, monitor de contención) o un monitor de sala de

@@ -33,7 +33,7 @@ import net.minecraft.world.phys.Vec3;
  * Once a second, adds up the radiation a player is exposed to (carried items, nearby
  * radioactive blocks, fallout from accidents, running reactors and other emitters), applies
  * the shielding of the blocks in between and of worn armour, accumulates dose and applies its
- * symptoms. Dose decays slowly when exposure falls to background.
+ * symptoms. Dose recovers slowly while exposure stays low (below {@code radiation.recoveryBelow}).
  * <p>
  * The block scan skips chunk sections whose palette holds nothing radioactive, fallout sources
  * are looked up by chunk, and a player's rays (and a monitored spot's) are reused (see
@@ -86,8 +86,7 @@ public final class RadiationHandler {
         if (rate < Config.radiationBackgroundRate) {
             rate = 0;
         }
-        float dose = player.getData(AllNuclearRadiation.DOSE);
-        dose = rate > 0 ? dose + rate : Math.max(0.0f, dose - (float) Config.radiationDecayPerSecond);
+        float dose = nextDose(player.getData(AllNuclearRadiation.DOSE), rate);
         dose = Math.max(0.0f, dose - purge(player));
         player.setData(AllNuclearRadiation.DOSE, dose);
         player.setData(AllNuclearRadiation.RATE, rate);
@@ -98,6 +97,17 @@ public final class RadiationHandler {
         publish(player, rate, dose, total);
         applySymptoms(player, dose);
         applyDecayHeat(player);
+    }
+
+    /**
+     * The dose after one second at {@code rate}: it builds up at or above {@code radiation.recoveryBelow}
+     * and below it recovers by {@code radiation.decayPerSecond} less what is still taken in.
+     */
+    public static float nextDose(float dose, float rate) {
+        if (rate >= Config.radiationRecoveryBelow && rate > 0) {
+            return dose + rate;
+        }
+        return Math.max(0.0f, dose + rate - (float) Config.radiationDecayPerSecond);
     }
 
     /**
@@ -115,6 +125,21 @@ public final class RadiationHandler {
         player.setData(AllNuclearRadiation.DOSE, current);
         player.setData(AllNuclearRadiation.TOTAL_DOSE, total);
         publish(player, player.getData(AllNuclearRadiation.RATE), current, total);
+    }
+
+    /**
+     * Washes up to {@code amount} of dose off a player, as a decontamination shower does; the
+     * lifetime total stays. Returns what was washed off.
+     */
+    public static float rinse(Player player, float amount) {
+        float dose = player.getData(AllNuclearRadiation.DOSE);
+        float rinsed = Math.min(dose, Math.max(0, amount));
+        if (rinsed <= 0) {
+            return 0;
+        }
+        player.setData(AllNuclearRadiation.DOSE, dose - rinsed);
+        publish(player, player.getData(AllNuclearRadiation.RATE), dose - rinsed, player.getData(AllNuclearRadiation.TOTAL_DOSE));
+        return rinsed;
     }
 
     /**
@@ -170,9 +195,39 @@ public final class RadiationHandler {
         Level level = player.level();
         Vec3 body = bodyOf(player);
         Rays rays = cachedRays(player);
-        return inventoryRate(player) + blockRate(level, player.blockPosition(), body, rays)
-                + (falloutRate(level, body, rays) + groundRate(player, body, rays)) * ExposureModifiers.shelter(level, body)
+        RadiationCaches.Surroundings around = surroundings(player, level, body, rays);
+        return inventoryRate(player) + around.blocks()
+                + (around.fallout() + groundRate(player, body, rays)) * ExposureModifiers.shelter(level, body)
                 + emitterRate(level, body, rays);
+    }
+
+    /**
+     * The radioactive blocks and fallout sources around a player: the costly part of an update (a
+     * block scan and a ray per source), and the part that changes least. While the player stays in
+     * the same block it is reused for {@code performance.radiationReadingTicks}, unless a block
+     * changed in the chunks it can see or a fallout source came or went. Carried items, emitters
+     * (whose strength changes all the time) and the ground are worked out every update.
+     */
+    private static RadiationCaches.Surroundings surroundings(Player player, Level level, Vec3 body, Rays rays) {
+        if (level.isClientSide || PerformanceConfig.radiationReadingTicks <= 0 || !(level instanceof ServerLevel server)) {
+            return new RadiationCaches.Surroundings(blockRate(level, player.blockPosition(), body, rays), falloutRate(level, body, rays));
+        }
+        RadiationCaches.PlayerCache cache = RadiationCaches.of(player);
+        BlockPos at = BlockPos.containing(body);
+        long now = level.getGameTime();
+        int falloutVersion = FalloutData.get(server).version();
+        ChunkChangeLog changes = RadiationCaches.changes(level);
+        RadiationCaches.Surroundings last = cache.surroundings(at.asLong(), now, falloutVersion, PerformanceConfig.radiationReadingTicks);
+        if (last != null && !changes.changedSince(last.sequence(), (at.getX() >> 4) - SPOT_CHUNK_REACH, (at.getZ() >> 4) - SPOT_CHUNK_REACH,
+                (at.getX() >> 4) + SPOT_CHUNK_REACH, (at.getZ() >> 4) + SPOT_CHUNK_REACH)) {
+            RadiationStats.current().surroundingsReused++;
+            return last;
+        }
+        long sequence = changes.issue();
+        RadiationCaches.Surroundings fresh = new RadiationCaches.Surroundings(blockRate(level, player.blockPosition(), body, rays),
+                falloutRate(level, body, rays), at.asLong(), now, falloutVersion, sequence);
+        cache.remember(fresh);
+        return fresh;
     }
 
     /**

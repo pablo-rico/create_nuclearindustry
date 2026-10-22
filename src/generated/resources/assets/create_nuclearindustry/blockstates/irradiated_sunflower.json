@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=lower": {
+      "model": "create_nuclearindustry:block/irradiated_sunflower_bottom"
+    },
+    "half=upper": {
+      "model": "create_nuclearindustry:block/irradiated_sunflower_top"
+    }
+  }
+}

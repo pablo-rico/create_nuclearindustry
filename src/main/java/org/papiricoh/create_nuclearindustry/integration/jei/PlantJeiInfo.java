@@ -16,6 +16,7 @@ import org.papiricoh.create_nuclearindustry.enrichment.item.UraniumItem;
 import org.papiricoh.create_nuclearindustry.fuelcycle.FuelCycleInfo;
 import org.papiricoh.create_nuclearindustry.fusion.cryo.CryoRegistry;
 import org.papiricoh.create_nuclearindustry.fusion.heating.PlasmaHeatingRegistry;
+import org.papiricoh.create_nuclearindustry.radiation.decontamination.DecontaminationRegistry;
 import org.papiricoh.create_nuclearindustry.reactor.pwr.PwrRegistry;
 import org.papiricoh.create_nuclearindustry.spentfuel.SpentFuelRegistry;
 import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
@@ -111,6 +112,11 @@ public final class PlantJeiInfo {
         pages.add(items("blast_door", CivilDefenseRegistry.BLAST_DOOR_CONTROLLER_ITEM, CivilDefenseRegistry.BLAST_DOOR_FRAME_ITEM,
                 CivilDefenseRegistry.STEEL_BLAST_DOOR_ITEM, CivilDefenseRegistry.LEAD_BLAST_DOOR_ITEM));
         pages.add(items("shelter", CivilDefenseRegistry.SHELTER_FILTRATION_UNIT_ITEM));
+
+        // Decontamination (text in DecontaminationDataGen)
+        pages.add(items("decontamination_sprinkler", DecontaminationRegistry.SPRINKLER_ITEM));
+        pages.add(items("irradiated_sunflower", () -> net.minecraft.world.item.Items.SUNFLOWER,
+                DecontaminationRegistry.IRRADIATED_SUNFLOWER_ITEM, DecontaminationRegistry.IRRADIATED_BIOMASS));
 
         // What a nuclear detonation leaves (text in ExplosiveDataGen)
         pages.add(items("nuclear_aftermath", org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.TRINITITE_ITEM,

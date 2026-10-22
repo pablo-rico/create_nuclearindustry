@@ -91,7 +91,8 @@ public class DirtyBombTests {
                     "but not beyond the fallout radius of " + DirtyWarheadStats.falloutRadius(load));
             helper.assertTrue(fallout.sources().size() == sources + 1, "a hot spot is left behind");
             FalloutData.Source spot = fallout.sources().get(fallout.sources().size() - 1);
-            helper.assertTrue(spot.pos().equals(center) && spot.strength() == DirtyWarheadStats.hotSpot(load), "at ground zero");
+            helper.assertTrue(spot.pos().equals(center) && spot.strength() == DirtyWarheadStats.hotSpot(load) * Config.hotSpotScale,
+                    "at ground zero, scaled by contamination.hotSpotScale");
             fallout.sources().remove(fallout.sources().size() - 1);
             data.events().removeLast();
         } finally {

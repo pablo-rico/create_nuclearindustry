@@ -2,6 +2,8 @@ package org.papiricoh.create_nuclearindustry;
 
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
+import org.papiricoh.create_nuclearindustry.radiation.contamination.ContaminationDecay;
 
 public class Config
 {
@@ -57,6 +59,10 @@ public class Config
     private static final ModConfigSpec.DoubleValue RADIATION_DECAY = BUILDER
             .comment("Dose removed per second while not exposed.")
             .defineInRange("radiation.decayPerSecond", 1.0, 0.0, 1000.0);
+    private static final ModConfigSpec.DoubleValue RECOVERY_BELOW = BUILDER
+            .comment("Dose rates below this still let the dose go down: it falls by decayPerSecond less the rate taken in.",
+                    "Above it, the dose only builds up. Set it to backgroundRate to recover only once nothing reaches you.")
+            .defineInRange("radiation.recoveryBelow", 0.5, 0.0, 1000.0);
     private static final ModConfigSpec.DoubleValue NAUSEA_THRESHOLD = BUILDER
             .comment("Dose at which nausea starts.")
             .defineInRange("radiation.nauseaThreshold", 100.0, 0.0, 1.0e6);
@@ -88,12 +94,30 @@ public class Config
     private static final ModConfigSpec.BooleanValue CONTAMINATION_ENABLED = BUILDER
             .comment("Whether nuclear accidents leave lasting ground contamination (one value per chunk).")
             .define("contamination.enabled", true);
-    private static final ModConfigSpec.IntValue CONTAMINATION_HALF_LIFE = BUILDER
-            .comment("Ticks for ground contamination to halve on its own. 240000 is ten in-game days; 0 means it never decays.")
-            .defineInRange("contamination.halfLifeTicks", 240000, 0, Integer.MAX_VALUE);
+    private static final ModConfigSpec.DoubleValue CONTAMINATION_DECAY_DAYS = BUILDER
+            .comment("In-game days ground contamination at the maximum takes to fade away on its own. It falls fastest at",
+                    "first (it halves at a steady pace), so weaker contamination is gone sooner. 0 means it never decays.")
+            .defineInRange("contamination.decayDays", 7.0, 0.0, 365.0);
     private static final ModConfigSpec.DoubleValue CONTAMINATION_MAX = BUILDER
             .comment("Most contamination a chunk can hold, in rad/s at ground level.")
             .defineInRange("contamination.max", 50.0, 0.0, 10000.0);
+    private static final ModConfigSpec.DoubleValue FALLOUT_SCALE = BUILDER
+            .comment("Multiplier on the ground contamination every fallout leaves (detonations, meltdowns, spills, engines).")
+            .defineInRange("contamination.falloutScale", 0.4, 0.0, 100.0);
+    private static final ModConfigSpec.DoubleValue HOT_SPOT_SCALE = BUILDER
+            .comment("Multiplier on the strength of the hot spots accidents leave behind (a melted core, a dirty bomb's crater).")
+            .defineInRange("contamination.hotSpotScale", 0.5, 0.0, 100.0);
+    private static final ModConfigSpec.DoubleValue HOT_SPOT_DAYS = BUILDER
+            .comment("Longest a hot spot lasts, in in-game days; it fades linearly to nothing over that time.")
+            .defineInRange("contamination.hotSpotDays", 1.0, 0.01, 365.0);
+    private static final ModConfigSpec.IntValue WATER_MIN_SEVERITY = BUILDER
+            .comment("Ground severity (1-7: 0.05, 0.2, 0.5, 1, 2, 5, 10 rad/s) fallout needs to turn open water into contaminated",
+                    "water. Contaminated water turns back into clean water once its chunk falls below severity 3.")
+            .defineInRange("contamination.waterMinSeverity", 5, 1, 7);
+    private static final ModConfigSpec.DoubleValue SPILLED_WATER_LEVEL = BUILDER
+            .comment("Contamination (rad/s) a source block of contaminated water poured out (bucket, pipe) gives back to its chunk.",
+                    "Centrifuge it instead to keep it out of the ground.")
+            .defineInRange("contamination.spilledWaterLevel", 2.0, 0.0, 1000.0);
     private static final ModConfigSpec.DoubleValue CONTAMINATION_DOSE_SCALE = BUILDER
             .comment("Multiplier on the dose rate of standing on contaminated ground.")
             .defineInRange("contamination.doseScale", 1.0, 0.0, 100.0);
@@ -108,14 +132,15 @@ public class Config
             .comment("Water columns per tick checked for fallout settling on them (256 is one chunk). Zero leaves water clean.")
             .defineInRange("contamination.waterColumnsPerTick", 256, 0, 65536);
     private static final ModConfigSpec.DoubleValue SCRUBBER_RATE = BUILDER
-            .comment("Contamination (rad/s) a Radiation Scrubber at 256 RPM or more removes each second, shared among the chunks it reaches.")
-            .defineInRange("contamination.scrubberRate", 0.05, 0.0, 1000.0);
+            .comment("Contamination (rad/s) a Radiation Scrubber at 256 RPM or more removes each second from every chunk it reaches,",
+                    "and from every hot spot within them.")
+            .defineInRange("contamination.scrubberRatePerChunk", 0.25, 0.0, 1000.0);
     private static final ModConfigSpec.IntValue SCRUBBER_RADIUS = BUILDER
-            .comment("Chunks around its own a Radiation Scrubber reaches: 1 is a 3x3 area.")
-            .defineInRange("contamination.scrubberRadius", 1, 0, 4);
+            .comment("Chunks around its own a Radiation Scrubber reaches: 2 is a 5x5 area.")
+            .defineInRange("contamination.scrubberRadius", 2, 0, 4);
     private static final ModConfigSpec.DoubleValue SCRUBBER_WASTE_PER = BUILDER
-            .comment("Contamination a Radiation Scrubber absorbs for each Radioactive Waste it produces.")
-            .defineInRange("contamination.scrubberWastePer", 2.0, 0.01, 1000.0);
+            .comment("Contamination a Radiation Scrubber absorbs for each Low-Level Waste it produces.")
+            .defineInRange("contamination.scrubberWastePer", 5.0, 0.01, 1000.0);
     private static final ModConfigSpec.DoubleValue SCRUBBER_STRESS = BUILDER
             .comment("Stress impact of a Radiation Scrubber, in SU per RPM.")
             .defineInRange("contamination.scrubberStress", 8.0, 0.0, 1.0e6);
@@ -144,6 +169,7 @@ public class Config
         org.papiricoh.create_nuclearindustry.wastetransport.WasteTransportConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config.define(BUILDER);
         org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.radiation.decontamination.DecontaminationConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.fusion.FusionConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.fusion.cryo.CryoConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.fusion.heating.PlasmaHeatingConfig.define(BUILDER);
@@ -175,6 +201,7 @@ public class Config
     public static boolean radiationEnabled = true;
     public static double radiationDoseMultiplier = 1.0;
     public static double radiationDecayPerSecond = 1.0;
+    public static double radiationRecoveryBelow = 0.5;
     public static double radiationNauseaThreshold = 100.0;
     public static double radiationWeaknessThreshold = 300.0;
     public static double radiationSicknessThreshold = 600.0;
@@ -185,15 +212,22 @@ public class Config
     public static double radiationBackgroundRate = 0.05;
     public static double radiationMaxShielding = 0.98;
     public static boolean contaminationEnabled = true;
-    public static long contaminationHalfLifeTicks = 240000;
+    public static double contaminationDecayDays = 7.0;
+    /** Derived from {@link #contaminationDecayDays}: the maximum halves this often and is gone after those days. */
+    public static long contaminationHalfLifeTicks = ContaminationDecay.halfLifeTicks(7.0, 50.0, Contamination.MIN_LEVEL);
     public static double contaminationMax = 50.0;
+    public static double falloutScale = 0.4;
+    public static double hotSpotScale = 0.5;
+    public static int hotSpotMaxTicks = 24000;
+    public static int waterMinSeverity = 5;
+    public static double spilledWaterLevel = 2.0;
     public static double contaminationDoseScale = 1.0;
     public static double barrelLeak = 0.02;
     public static int geologicalStorageMaxY = 0;
     public static int waterColumnsPerTick = 256;
-    public static double scrubberRate = 0.05;
-    public static int scrubberRadius = 1;
-    public static double scrubberWastePer = 2.0;
+    public static double scrubberRate = 0.25;
+    public static int scrubberRadius = 2;
+    public static double scrubberWastePer = 5.0;
     public static double scrubberStress = 8.0;
     public static int controlRoomLinkRange = 128;
     public static double coolingTowerPassivePerBlock = 0.5;
@@ -229,6 +263,7 @@ public class Config
         radiationEnabled = RADIATION_ENABLED.get();
         radiationDoseMultiplier = RADIATION_MULTIPLIER.get();
         radiationDecayPerSecond = RADIATION_DECAY.get();
+        radiationRecoveryBelow = RECOVERY_BELOW.get();
         radiationNauseaThreshold = NAUSEA_THRESHOLD.get();
         radiationWeaknessThreshold = WEAKNESS_THRESHOLD.get();
         radiationSicknessThreshold = SICKNESS_THRESHOLD.get();
@@ -239,8 +274,14 @@ public class Config
         radiationBackgroundRate = BACKGROUND_RATE.get();
         radiationMaxShielding = MAX_SHIELDING.get();
         contaminationEnabled = CONTAMINATION_ENABLED.get();
-        contaminationHalfLifeTicks = CONTAMINATION_HALF_LIFE.get();
         contaminationMax = CONTAMINATION_MAX.get();
+        contaminationDecayDays = CONTAMINATION_DECAY_DAYS.get();
+        contaminationHalfLifeTicks = ContaminationDecay.halfLifeTicks(contaminationDecayDays, contaminationMax, Contamination.MIN_LEVEL);
+        falloutScale = FALLOUT_SCALE.get();
+        hotSpotScale = HOT_SPOT_SCALE.get();
+        hotSpotMaxTicks = (int) Math.round(HOT_SPOT_DAYS.get() * ContaminationDecay.TICKS_PER_DAY);
+        waterMinSeverity = WATER_MIN_SEVERITY.get();
+        spilledWaterLevel = SPILLED_WATER_LEVEL.get();
         contaminationDoseScale = CONTAMINATION_DOSE_SCALE.get();
         barrelLeak = BARREL_LEAK.get();
         geologicalStorageMaxY = STORAGE_MAX_Y.get();
@@ -261,6 +302,7 @@ public class Config
         org.papiricoh.create_nuclearindustry.wastetransport.WasteTransportConfig.bake();
         org.papiricoh.create_nuclearindustry.controlroom.ControlRoom2Config.bake();
         org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.bake();
+        org.papiricoh.create_nuclearindustry.radiation.decontamination.DecontaminationConfig.bake();
         org.papiricoh.create_nuclearindustry.fusion.FusionConfig.bake();
         org.papiricoh.create_nuclearindustry.fusion.cryo.CryoConfig.bake();
         org.papiricoh.create_nuclearindustry.fusion.heating.PlasmaHeatingConfig.bake();

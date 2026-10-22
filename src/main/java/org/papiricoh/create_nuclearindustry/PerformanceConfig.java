@@ -10,6 +10,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class PerformanceConfig {
     private static ModConfigSpec.IntValue RADIATION_RAY_CACHE_TICKS;
     private static ModConfigSpec.IntValue RADIATION_RAY_MAX_AGE_TICKS;
+    private static ModConfigSpec.IntValue RADIATION_READING_TICKS;
     private static ModConfigSpec.IntValue BLAST_COLUMNS_PER_TICK;
     private static ModConfigSpec.IntValue BLAST_BLOCKS_PER_TICK;
     private static ModConfigSpec.IntValue FORCED_SYNC_TICKS;
@@ -17,6 +18,7 @@ public final class PerformanceConfig {
 
     public static int radiationRayCacheTicks = 100;
     public static int radiationRayMaxAgeTicks = 1200;
+    public static int radiationReadingTicks = 100;
     public static int blastColumnsPerTick = 600;
     public static int blastBlocksPerTick = 3500;
     /** Most ticks a controller or control room screen goes without updating its clients. */
@@ -36,6 +38,11 @@ public final class PerformanceConfig {
                 .comment("Ticks after which a cached radiation ray is cast again even if it is still in use, so a block",
                         "changed without notifying its neighbours is noticed at last. 0 never recasts a ray in use.")
                 .defineInRange("performance.radiationRayMaxAgeTicks", 1200, 0, 72000);
+        RADIATION_READING_TICKS = builder
+                .comment("Ticks a player's scan of the radioactive blocks and fallout around them is reused while they stay in",
+                        "the same block and nothing around them changes. Carried items, machines and the ground are still read",
+                        "every second. 0 scans every update.")
+                .defineInRange("performance.radiationReadingTicks", 100, 0, 1200);
         BLAST_COLUMNS_PER_TICK = builder
                 .comment("Columns of the crater a nuclear detonation digs per tick. Lower spreads the work over more ticks.")
                 .defineInRange("explosive.blastColumnsPerTick", 600, 1, 100000);
@@ -56,6 +63,7 @@ public final class PerformanceConfig {
     public static void bake() {
         radiationRayCacheTicks = RADIATION_RAY_CACHE_TICKS.get();
         radiationRayMaxAgeTicks = RADIATION_RAY_MAX_AGE_TICKS.get();
+        radiationReadingTicks = RADIATION_READING_TICKS.get();
         blastColumnsPerTick = BLAST_COLUMNS_PER_TICK.get();
         blastBlocksPerTick = BLAST_BLOCKS_PER_TICK.get();
         forcedSyncTicks = FORCED_SYNC_TICKS.get();

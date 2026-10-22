@@ -8,7 +8,9 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -18,8 +20,10 @@ import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
+import org.papiricoh.create_nuclearindustry.radiation.FalloutData;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.papiricoh.create_nuclearindustry.radiation.scrubber.RadiationScrubberBlockEntity;
+import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 
 import java.util.function.Consumer;
 
@@ -39,7 +43,7 @@ public class RadiationScrubberTests {
             try {
                 check.accept(helper.getBlockEntity(SCRUBBER));
             } finally {
-                ContaminationTests.clean(helper, 1);
+                ContaminationTests.clean(helper, Config.scrubberRadius);
             }
             helper.succeed();
         });
@@ -87,14 +91,53 @@ public class RadiationScrubberTests {
         });
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_mostContaminatedFirst", timeoutTicks = 100)
-    public static void mostContaminatedFirst(GameTestHelper helper) {
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_everyChunkInReach", timeoutTicks = 100)
+    public static void everyChunkInReachIsCleanedAtTheFullRate(GameTestHelper helper) {
         withScrubber(helper, 256, scrubber -> {
-            set(helper, 0, 0, 0.5f);
-            set(helper, 1, 0, 5);
-            scrubber.scrub();
-            helper.assertTrue(get(helper, 0, 0) == 0.5f, "its own, cleaner chunk should wait");
-            helper.assertTrue(get(helper, 1, 0) < 5f, "the worse neighbour should go first");
+            float rate = (float) Config.scrubberRate;
+            float under = rate * 0.4f;
+            set(helper, 0, 0, under);
+            set(helper, Config.scrubberRadius, 0, 5);
+            set(helper, Config.scrubberRadius + 1, 0, 5);
+            float removed = scrubber.scrub();
+            helper.assertTrue(get(helper, 0, 0) == 0, "its own chunk, under the rate, should come out clean, left " + get(helper, 0, 0));
+            helper.assertTrue(Math.abs(get(helper, Config.scrubberRadius, 0) - (5 - rate)) < 1e-5,
+                    "a chunk at the edge of its reach should lose the full rate, not a share");
+            helper.assertTrue(get(helper, Config.scrubberRadius + 1, 0) == 5f, "a chunk out of reach should stay as it was");
+            helper.assertTrue(Math.abs(removed - (under + rate)) < 1e-5, "it should count what it took from each, took " + removed);
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_scrubberWeakensHotSpots", timeoutTicks = 100)
+    public static void hotSpotsInReachFadeSooner(GameTestHelper helper) {
+        withScrubber(helper, 256, scrubber -> {
+            ServerLevel level = helper.getLevel();
+            FalloutData fallout = FalloutData.get(level);
+            long now = level.getGameTime();
+            BlockPos near = helper.absolutePos(SCRUBBER.east(3));
+            fallout.add(near, 4, 24000, now);
+            FalloutData.Source source = fallout.sources().get(fallout.sources().size() - 1);
+            try {
+                float removed = scrubber.scrub();
+                double left = source.currentStrength(now);
+                helper.assertTrue(Math.abs(left - (4 - Config.scrubberRate)) < 1e-3,
+                        "the hot spot should be weaker by the rate, left " + left);
+                helper.assertTrue(removed >= Config.scrubberRate - 1e-5, "and count as absorbed, took " + removed);
+                helper.assertTrue(source.expires() < now + 24000, "it should run out sooner");
+            } finally {
+                fallout.sources().remove(source);
+            }
+        });
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_brokenScrubberDropsWaste", timeoutTicks = 100)
+    public static void aBrokenScrubberDropsItsWaste(GameTestHelper helper) {
+        withScrubber(helper, 256, scrubber -> {
+            scrubber.getOutput().setStackInSlot(0, new ItemStack(WasteRegistry.LOW_LEVEL_WASTE.get(), 5));
+            helper.destroyBlock(SCRUBBER);
+            int dropped = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(SCRUBBER)).inflate(2)).stream()
+                    .filter(item -> item.getItem().is(WasteRegistry.LOW_LEVEL_WASTE.get())).mapToInt(item -> item.getItem().getCount()).sum();
+            helper.assertTrue(dropped == 5, "the waste inside should drop, dropped " + dropped);
         });
     }
 

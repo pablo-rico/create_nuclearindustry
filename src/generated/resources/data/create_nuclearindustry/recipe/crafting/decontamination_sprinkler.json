@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "create_nuclearindustry:reactor_casing"
+    },
+    "F": {
+      "item": "create:fluid_pipe"
+    },
+    "H": {
+      "item": "create:propeller"
+    },
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "pattern": [
+    " H ",
+    "PCP",
+    "FSF"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_nuclearindustry:decontamination_sprinkler"
+  }
+}

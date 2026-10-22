@@ -49,7 +49,7 @@ public class NuclearDataMapProvider extends DataMapProvider {
         add(radioactivity, AllNuclearItems.RADIOACTIVE_WASTE_BARREL, 1.0f, false);
         add(radioactivity, AllNuclearItems.TRITIUM_CELL, 0.05f, false);
         // Carried in a bucket and as each source block of a contaminated lake.
-        radioactivity.add(AllNuclearFluids.CONTAMINATED_WATER_BUCKET.get().builtInRegistryHolder(), new Radioactivity(0.3f, false), false);
+        radioactivity.add(AllNuclearFluids.CONTAMINATED_WATER_BUCKET.get().builtInRegistryHolder(), new Radioactivity(0.1f, false), false);
         add(radioactivity, AllNuclearItems.DT_FUEL_PELLET, 0.05f, false);
         add(radioactivity, AllNuclearItems.SPENT_DT_PELLET, 0.2f, false);
         add(radioactivity, AllNuclearItems.SPENT_FUEL_FRAGMENTS, 3.0f, false);

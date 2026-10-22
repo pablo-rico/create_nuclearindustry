@@ -6,16 +6,15 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.papiricoh.create_nuclearindustry.AllNuclearFluids;
+import org.papiricoh.create_nuclearindustry.Config;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
-import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
+import org.papiricoh.create_nuclearindustry.radiation.cache.BlockRadioactivity;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.ContaminationData;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.WaterContamination;
@@ -57,7 +56,7 @@ public class ContaminatedWaterTests {
     public static void lightFalloutLeavesWaterAlone(GameTestHelper helper) {
         pool(helper);
         LevelChunk chunk = helper.getLevel().getChunkAt(helper.absolutePos(new BlockPos(6, 1, 6)));
-        int converted = WaterContamination.convert(helper.getLevel(), chunk, WaterContamination.MIN_SEVERITY - 1, RandomSource.create(1));
+        int converted = WaterContamination.convert(helper.getLevel(), chunk, Config.waterMinSeverity - 1, RandomSource.create(1));
         // Below the threshold no column is even looked at.
         helper.assertTrue(converted == 0, "light contamination should not reach the water");
         helper.assertBlockPresent(Blocks.WATER, new BlockPos(6, 2, 6));
@@ -87,17 +86,59 @@ public class ContaminatedWaterTests {
         helper.succeed();
     }
 
-    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_contaminatedWaterIrradiates")
-    public static void contaminatedWaterIrradiates(GameTestHelper helper) {
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_spilledWaterContaminatesItsChunk")
+    public static void spilledWaterContaminatesItsChunk(GameTestHelper helper) {
         BlockPos water = new BlockPos(6, 1, 6);
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        BlockPos feet = helper.absolutePos(new BlockPos(7, 1, 6));
-        player.setPos(feet.getX() + 0.5, feet.getY(), feet.getZ() + 0.5);
-        helper.setBlock(water, Blocks.WATER.defaultBlockState());
-        helper.assertTrue(RadiationHandler.exposureRate(player) == 0, "clean water should not irradiate");
-        helper.setBlock(water, AllNuclearFluids.CONTAMINATED_WATER_BLOCK.get().defaultBlockState());
-        double rate = RadiationHandler.exposureRate(player);
-        helper.assertTrue(rate > 0.1, "contaminated water next to you should irradiate, got " + rate);
+        LevelChunk chunk = helper.getLevel().getChunkAt(helper.absolutePos(water));
+        try {
+            helper.setBlock(water, AllNuclearFluids.CONTAMINATED_WATER_BLOCK.get().defaultBlockState());
+            helper.assertTrue(BlockRadioactivity.of(helper.getBlockState(water)) == null,
+                    "contaminated water irradiates through its chunk, not as a block of its own");
+            float level = Contamination.read(chunk);
+            helper.assertTrue(Math.abs(level - (float) Config.spilledWaterLevel) < 1e-3,
+                    "pouring it out should give its contamination back to the ground, got " + level);
+            // Fallout turning water must not count as a spill on top of the fallout itself.
+            Contamination.set(chunk, 0);
+            helper.setBlock(water, Blocks.WATER.defaultBlockState());
+            WaterContamination.convertColumn(helper.getLevel(), helper.absolutePos(water), 1f, RandomSource.create(1));
+            helper.assertBlockPresent(AllNuclearFluids.CONTAMINATED_WATER_BLOCK.get(), water);
+            helper.assertTrue(Contamination.read(chunk) == 0, "fallout's own conversion adds nothing");
+        } finally {
+            ContaminationTests.clean(helper, 1);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_waterClearsOnceItsChunkIsClean")
+    public static void waterClearsOnceItsChunkIsClean(GameTestHelper helper) {
+        BlockPos water = new BlockPos(6, 1, 6);
+        ServerLevel level = helper.getLevel();
+        LevelChunk chunk = level.getChunkAt(helper.absolutePos(water));
+        try {
+            helper.setBlock(water, AllNuclearFluids.CONTAMINATED_WATER_BLOCK.get().defaultBlockState());
+            helper.assertTrue(helper.getBlockState(water).isRandomlyTicking(), "contaminated water sources should tick");
+            Contamination.set(chunk, 5);
+            RandomSource random = RandomSource.create(3);
+            for (int i = 0; i < 64; i++) {
+                WaterContamination.settle(level, helper.absolutePos(water), helper.getBlockState(water), random);
+            }
+            helper.assertBlockPresent(AllNuclearFluids.CONTAMINATED_WATER_BLOCK.get(), water);
+            Contamination.set(chunk, 0.1f);
+            for (int i = 0; i < 64 && helper.getBlockState(water).is(AllNuclearFluids.CONTAMINATED_WATER_BLOCK.get()); i++) {
+                WaterContamination.settle(level, helper.absolutePos(water), helper.getBlockState(water), random);
+            }
+            helper.assertBlockPresent(Blocks.WATER, water);
+        } finally {
+            ContaminationTests.clean(helper, 1);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = ContaminationTests.BATCH + "_onlyHeavyFalloutReachesWater")
+    public static void onlyHeavyFalloutReachesWater(GameTestHelper helper) {
+        helper.assertTrue(WaterContamination.chance(Config.waterMinSeverity - 1) == 0, "below the threshold water stays clean");
+        helper.assertTrue(WaterContamination.chance(Config.waterMinSeverity) > 0, "at the threshold some water turns");
+        helper.assertTrue(WaterContamination.chance(Contamination.MAX_SEVERITY) <= 0.5f, "at most one column in two");
         helper.succeed();
     }
 

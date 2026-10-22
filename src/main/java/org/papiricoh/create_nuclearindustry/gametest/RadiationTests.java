@@ -77,7 +77,8 @@ public class RadiationTests {
         double clean = RadiationHandler.exposureRate(player);
         FalloutData.contaminate(helper.getLevel(), player.blockPosition().offset(2, 0, 0), 40, 1200);
         double contaminated = RadiationHandler.exposureRate(player);
-        helper.assertTrue(contaminated > clean + 20, "standing next to fallout should be dangerous, got " + contaminated);
+        // A strength-40 hot spot is halved by contamination.hotSpotScale; two blocks off it still makes you sick within a minute.
+        helper.assertTrue(contaminated > clean + 10, "standing next to fallout should be dangerous, got " + contaminated);
         FalloutData.get(helper.getLevel()).sources().clear();
         helper.succeed();
     }

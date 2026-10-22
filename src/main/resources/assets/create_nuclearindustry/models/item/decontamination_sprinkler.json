@@ -1,0 +1,15 @@
+{
+  "loader": "neoforge:composite",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/decontamination_sprinkler_side"
+  },
+  "children": {
+    "body": {
+      "parent": "create_nuclearindustry:block/decontamination_sprinkler/block"
+    },
+    "head": {
+      "parent": "create_nuclearindustry:block/decontamination_sprinkler/head"
+    }
+  }
+}

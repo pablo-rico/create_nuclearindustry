@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+### Radiation and decontamination
+- Ground contamination now fades in a set number of in-game days: **7 by default** (`contamination.decayDays`, replacing
+  `halfLifeTicks`). It falls fastest at first, so a bomb's ground zero is half gone in under a day and weaker fallout
+  clears sooner. It used to take three to four months.
+- Radiation is gentler: fallout leaves 40% of what it did (`contamination.falloutScale`), the hot spots of melted cores
+  and dirty bombs are half as strong and last a day at most (`contamination.hotSpotScale`, `hotSpotDays`), and your
+  dose now recovers whenever you take in less than 0.5 rad/s (`radiation.recoveryBelow`), not only at zero.
+- Contaminated water reworked: only heavy fallout (2 rad/s or more) reaches lakes and rivers, and fewer blocks turn.
+  It turns clean again by itself once its chunk is below 0.5 rad/s. It irradiates through its chunk's contamination
+  instead of block by block, and a bucket of it gives off 0.1 rad/s instead of 0.3. Poured out of a bucket or a pipe, it
+  puts 2 rad/s back into the ground of its chunk: centrifuge it instead.
+- The **Radiation Scrubber** cleans every chunk in reach at the full rate instead of sharing it, five times faster
+  (0.25 rad/s, now `contamination.scrubberRatePerChunk`), over a 5x5 area instead of 3x3, and weakens hot spots in
+  reach. Worlds with a config file keep their old `scrubberRadius` and `scrubberWastePer`. Breaking it now drops the waste inside,
+  and its goggle lines are translated.
+- New **Decontamination Sprinkler**: drive it with a shaft from below and pipe water in. Its spray head turns and washes
+  1 rad/s off each of the 9 chunks around it every second. What it washes off collects as Contaminated Water, to be
+  piped out to a centrifuge. Standing in its spray washes 5 rad of your dose off every second. It has a Ponder scene.
+- **Phytoremediation**: sunflowers on contaminated ground slowly draw the fallout out of their chunk until they wilt
+  into **Irradiated Sunflowers**. Break those for **Irradiated Biomass** and press four into Low-Level Waste.
+- Faster on servers: a player's scan of radioactive blocks and hot spots is kept while they stand still and nothing
+  around them changes (`performance.radiationReadingTicks`), and lakes of contaminated water no longer cost a ray per
+  block.
+
 ### Tokamak
 - The tokamak now looks like a real one: once formed, its hull hides under a smooth, faceted vessel with an
   **octagonal cross-section**, brass-trimmed chamfers and cream coil bands, round from above too. Ports, injectors,
