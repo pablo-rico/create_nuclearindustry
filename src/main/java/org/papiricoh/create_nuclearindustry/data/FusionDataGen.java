@@ -168,6 +168,13 @@ final class FusionDataGen extends AreaDataGen {
         LangEntries.add(GUI + "heating.tooltip",
                 "Neutral beam injectors and RF antennas in the shell. An ignited plasma burns without them; it cuts back by itself above 4500°.",
                 "Inyectores de haces neutros y antenas de RF de la carcasa. Un plasma en ignición arde sin ellos; se reduce solo por encima de 4500°.");
+        LangEntries.add(GUI + "model", "3D", "3D");
+        LangEntries.add(GUI + "model.on",
+                "3D model: ON. The formed tokamak wears its smooth vessel and nozzles. Click to show the plain blocks instead; it works the same.",
+                "Modelo 3D: SÍ. El tokamak formado lleva su vasija lisa y sus toberas. Pulsa para ver los bloques normales; funciona igual.");
+        LangEntries.add(GUI + "model.off",
+                "3D model: OFF. The formed tokamak keeps its plain blocks. Click to show the smooth vessel and nozzles.",
+                "Modelo 3D: NO. El tokamak formado mantiene sus bloques normales. Pulsa para ver la vasija lisa y las toberas.");
         LangEntries.add(GUI + "phase", "Phase: %s", "Fase: %s");
         LangEntries.add(GUI + "trip", "Trip: %s", "Disparo: %s");
         LangEntries.add(GUI + "suspended", "Paused: part of the torus is unloaded", "En pausa: parte del toro sin cargar");

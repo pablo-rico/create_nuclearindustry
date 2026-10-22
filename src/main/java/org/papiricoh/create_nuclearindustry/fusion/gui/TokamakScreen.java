@@ -1,5 +1,6 @@
 package org.papiricoh.create_nuclearindustry.fusion.gui;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -22,7 +23,7 @@ import java.util.List;
 
 /**
  * Tokamak control panel: phase and why it waits or tripped, Start and Shutdown, the fuelling, D:T and
- * heating setpoints, plasma, magnet and vacuum readouts, and the six tanks. Coordinates match
+ * heating setpoints, plasma, magnet and vacuum readouts, the six tanks, and the switch for the formed 3D look. Coordinates match
  * {@code tokamak_control()} in tools/texturegen/gui.py.
  */
 public class TokamakScreen extends AbstractContainerScreen<TokamakMenu> {
@@ -35,6 +36,8 @@ public class TokamakScreen extends AbstractContainerScreen<TokamakMenu> {
     private static final int PHASE_X = 13;
     private static final int PHASE_Y = 25;
     private static final int LAMP_X0 = 236, LAMP_Y0 = 27, LAMP_X1 = 244, LAMP_Y1 = 39;
+    // 3D look switch, over the right-hand hazard stripe of the title bar.
+    private static final int MODEL_X = 229, MODEL_Y = 5, MODEL_WIDTH = 18, MODEL_HEIGHT = 13;
     // Telemetry rows and gauges.
     private static final int ROW_X = 13;
     private static final int ROW_Y = 51;
@@ -60,6 +63,8 @@ public class TokamakScreen extends AbstractContainerScreen<TokamakMenu> {
     private Button startButton;
     private Button shutdownButton;
     private Button heatingButton;
+    private Button modelButton;
+    private Boolean modelShown;
 
     public TokamakScreen(TokamakMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -79,6 +84,9 @@ public class TokamakScreen extends AbstractContainerScreen<TokamakMenu> {
         heatingButton = addRenderableWidget(Button.builder(heatingLabel(readings()), b -> send(TokamakControlPayload.HEATING_TOGGLE, 0))
                 .bounds(leftPos + 132, topPos + BUTTON_Y, 112, 14)
                 .tooltip(Tooltip.create(Component.translatable(GUI + "heating.tooltip"))).build());
+        modelShown = null;
+        modelButton = addRenderableWidget(Button.builder(Component.empty(), b -> send(TokamakControlPayload.MODEL_TOGGLE, 0))
+                .bounds(leftPos + MODEL_X, topPos + MODEL_Y, MODEL_WIDTH, MODEL_HEIGHT).build());
         for (int i = 0; i < 3; i++) {
             int index = i;
             int x = leftPos + SETPOINT_X0 + i * SETPOINT_STEP;
@@ -116,6 +124,17 @@ public class TokamakScreen extends AbstractContainerScreen<TokamakMenu> {
         return Math.max(0.01, PlasmaModel.fuelRateFor(FusionConfig.plasmaParams(), volume, 1.0) / 20.0);
     }
 
+    /** Relabels the 3D switch when the controller's synced setting changes. */
+    private void updateModelButton() {
+        FusionReactorBlockEntity tokamak = minecraft == null || minecraft.level == null ? null : menu.tokamak(minecraft.level);
+        boolean shown = tokamak == null || tokamak.isShowingModel();
+        if (modelShown == null || modelShown != shown) {
+            modelShown = shown;
+            modelButton.setMessage(Component.translatable(GUI + "model").withStyle(shown ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY));
+            modelButton.setTooltip(Tooltip.create(Component.translatable(shown ? GUI + "model.on" : GUI + "model.off")));
+        }
+    }
+
     private static Component heatingLabel(TokamakReadings r) {
         return Component.translatable(r.heatingEnabled() ? GUI + "heating_on" : GUI + "heating_off");
     }
@@ -124,6 +143,7 @@ public class TokamakScreen extends AbstractContainerScreen<TokamakMenu> {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         TokamakReadings r = readings();
         heatingButton.setMessage(heatingLabel(r));
+        updateModelButton();
         startButton.active = r.formed() && (r.phase() == TokamakPhase.OFFLINE || r.phase() == TokamakPhase.RAMP_DOWN);
         shutdownButton.active = r.formed() && r.phase() != TokamakPhase.OFFLINE && r.phase() != TokamakPhase.RAMP_DOWN;
         super.render(graphics, mouseX, mouseY, partialTick);

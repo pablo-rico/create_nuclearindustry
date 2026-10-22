@@ -154,6 +154,8 @@ public class FusionReactorBlockEntity extends BlockEntity implements PanelSource
     private boolean fuelRateSet;
     private double dtRatio = 0.5;
     private boolean heatingEnabled = true;
+    /** Whether the formed tokamak wears its 3D look (skin and nozzles) or keeps its plain blocks. */
+    private boolean showModel = true;
     private double heatingLevel = 1.0;
     private TokamakSupply supply = TokamakSupply.NONE;
     /** Replaces what the shell's auxiliaries offer; only game tests set it. */
@@ -675,7 +677,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements PanelSource
         boolean boundsChanged = !structure.map(TokamakStructure::bounds).equals(next.map(TokamakStructure::bounds));
         structure.ifPresent(s -> TokamakFormedLook.apply(level, s, false));
         structure = next;
-        next.ifPresent(s -> TokamakFormedLook.apply(level, s, true));
+        next.ifPresent(s -> TokamakFormedLook.apply(level, s, showModel));
         snapshot = next.isPresent() && level != null && !level.isClientSide
                 ? StructureSnapshot.capture(level, next.get().allPositions())
                 : null;
@@ -683,6 +685,19 @@ public class FusionReactorBlockEntity extends BlockEntity implements PanelSource
         if (boundsChanged) {
             MultiblockRegistry.reindex(this);
         }
+    }
+
+    /** Shows or hides the formed 3D look; hidden, the tokamak keeps its plain blocks and works the same. */
+    public void setShowModel(boolean show) {
+        if (show != showModel) {
+            showModel = show;
+            structure.ifPresent(s -> TokamakFormedLook.apply(level, s, show));
+            markDirtyAndSync();
+        }
+    }
+
+    public boolean isShowingModel() {
+        return showModel;
     }
 
     /** Clears the formed look of the shell when the controller block goes away. */
@@ -907,9 +922,9 @@ public class FusionReactorBlockEntity extends BlockEntity implements PanelSource
         ponderSkin = show;
     }
 
-    /** Whether the renderer draws the skin: always in the world, in Ponder once the scene says so. */
+    /** Whether the renderer draws the skin: in the world unless the panel turned it off, in Ponder once the scene says so. */
     public boolean showsSkin() {
-        return !ponderPreview || ponderSkin;
+        return ponderPreview ? ponderSkin : showModel;
     }
 
     /** The point on the axis at the plasma's mid-plane; synced to clients for the renderer. */
@@ -1114,6 +1129,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements PanelSource
         tag.putDouble("dtRatio", dtRatio);
         tag.putBoolean("heatingEnabled", heatingEnabled);
         tag.putDouble("heatingLevel", heatingLevel);
+        tag.putBoolean("showModel", showModel);
         tag.putString("phase", sequence.phase().name());
         tag.putString("tripCause", sequence.tripCause().name());
     }
@@ -1135,6 +1151,7 @@ public class FusionReactorBlockEntity extends BlockEntity implements PanelSource
         dtRatio = tag.contains("dtRatio") ? Math.max(0, Math.min(1, tag.getDouble("dtRatio"))) : 0.5;
         heatingEnabled = !tag.contains("heatingEnabled") || tag.getBoolean("heatingEnabled");
         heatingLevel = tag.contains("heatingLevel") ? Math.max(0, Math.min(1, tag.getDouble("heatingLevel"))) : 1.0;
+        showModel = !tag.contains("showModel") || tag.getBoolean("showModel");
     }
 
     /**

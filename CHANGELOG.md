@@ -6,6 +6,8 @@
 - The tokamak now looks like a real one: once formed, its hull hides under a smooth, faceted vessel with an
   **octagonal cross-section**, brass-trimmed chamfers and cream coil bands, round from above too. Ports, injectors,
   the magnet drive and the controller poke out of it as nozzles, and Viewports become brass portholes onto the plasma.
+- The look is optional: the **3D** button at the top right of the controller's screen switches between the formed
+  vessel and the plain blocks, per tokamak. The tokamak works the same either way.
 - The **Central Solenoid** is a ribbed column with caps at its ends and glows with the confining field.
 - The four corners of the 5x5 cross-section are no longer needed: build the ring as an octagon. Existing tokamaks
   keep working; whatever stands in the corners is ignored and hidden while formed.

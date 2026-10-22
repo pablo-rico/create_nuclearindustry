@@ -3,6 +3,8 @@ package org.papiricoh.create_nuclearindustry.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -11,6 +13,7 @@ import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.fusion.block.CentralSolenoidBlock;
 import org.papiricoh.create_nuclearindustry.fusion.block.TokamakSupportBlock;
 import org.papiricoh.create_nuclearindustry.fusion.blockentity.FusionReactorBlockEntity;
+import org.papiricoh.create_nuclearindustry.fusion.gui.TokamakControlPayload;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakFormedLook;
 import org.papiricoh.create_nuclearindustry.fusion.multiblock.TokamakGeometry;
 
@@ -51,6 +54,37 @@ public class TokamakLookTests {
                 BlockState state = helper.getBlockState(pos);
                 helper.assertTrue(!TokamakFormedLook.isShaped(state), "still shaped after unforming at " + pos);
             }
+            helper.succeed();
+        });
+    }
+
+    /** The panel's 3D switch puts the plain blocks back without unforming, and the setting survives a revalidation. */
+    @GameTest(template = NuclearGameTests.TOKAMAK_ARENA)
+    public static void theModelSwitchRestoresThePlainBlocks(GameTestHelper helper) {
+        TokamakTestBuilder.build(helper, RADIUS, true, 0);
+        FusionReactorBlockEntity tokamak = TokamakTestBuilder.tokamak(helper, RADIUS);
+        BlockPos coil = TokamakTestBuilder.CENTER.offset(-TokamakGeometry.controllerToAxis(RADIUS), 1, 0);
+        BlockPos controller = TokamakTestBuilder.controller(RADIUS);
+        BlockPos port = controller.above();
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(tokamak.isFormed(), "tokamak should form: " + tokamak.getValidationMessage());
+            helper.assertBlockProperty(coil, TokamakFormedLook.HIDDEN, true);
+            Player near = helper.makeMockPlayer(GameType.SURVIVAL);
+            near.setPos(helper.absolutePos(controller).getCenter().add(2, 0, 0));
+            helper.assertTrue(TokamakControlPayload.apply(near,
+                            new TokamakControlPayload(helper.absolutePos(controller), TokamakControlPayload.MODEL_TOGGLE, 0)),
+                    "a player in reach can switch the 3D look");
+            helper.assertFalse(tokamak.isShowingModel(), "the 3D look should be off");
+            helper.assertFalse(tokamak.showsSkin(), "and the skin not drawn");
+        });
+        helper.runAfterDelay(25, () -> {
+            helper.assertTrue(tokamak.isFormed(), "switching the look must not unform the tokamak");
+            for (BlockPos pos : new BlockPos[]{coil, controller, port}) {
+                helper.assertTrue(!TokamakFormedLook.isShaped(helper.getBlockState(pos)), "still shaped with the 3D look off at " + pos);
+            }
+            tokamak.setShowModel(true);
+            helper.assertBlockProperty(coil, TokamakFormedLook.HIDDEN, true);
+            helper.assertBlockProperty(port, TokamakFormedLook.FORMED, true);
             helper.succeed();
         });
     }

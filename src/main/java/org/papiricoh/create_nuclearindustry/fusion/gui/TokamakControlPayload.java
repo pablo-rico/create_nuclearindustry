@@ -28,6 +28,7 @@ public record TokamakControlPayload(BlockPos pos, int action, double value) impl
     public static final int DT_RATIO = 3;
     public static final int HEATING_LEVEL = 4;
     public static final int HEATING_TOGGLE = 5;
+    public static final int MODEL_TOGGLE = 6;
 
     public static final Type<TokamakControlPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "tokamak_control"));
@@ -72,6 +73,7 @@ public record TokamakControlPayload(BlockPos pos, int action, double value) impl
             case DT_RATIO -> tokamak.setDtRatio(value);
             case HEATING_LEVEL -> tokamak.setHeating(tokamak.isHeatingEnabled(), value);
             case HEATING_TOGGLE -> tokamak.setHeating(!tokamak.isHeatingEnabled(), tokamak.getHeatingLevel());
+            case MODEL_TOGGLE -> tokamak.setShowModel(!tokamak.isShowingModel());
             default -> {
                 return false;
             }
