@@ -33,8 +33,9 @@ def build():
     put(blocks, (8, 2, 2), "create:basin", {"facing": "down"})
     put(blocks, (8, 4, 2), "create:mechanical_mixer")
 
-    put(blocks, (10, 1, 2), NS + "centrifuge", {"facing": "north"})
-    put(blocks, (11, 1, 2), NS + "centrifuge", {"facing": "north"})
+    # Side by side, so their cascade headers join (left is west when facing north).
+    put(blocks, (10, 1, 2), NS + "centrifuge", {"facing": "north", "left": "false", "right": "true"})
+    put(blocks, (11, 1, 2), NS + "centrifuge", {"facing": "north", "left": "true", "right": "false"})
     put(blocks, (10, 1, 4), NS + "electrolyzer", {"facing": "north"})
 
     put(blocks, (13, 1, 2), "create:depot")

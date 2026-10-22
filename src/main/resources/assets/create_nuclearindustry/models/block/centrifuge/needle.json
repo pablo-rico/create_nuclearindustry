@@ -1,0 +1,118 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/centrifuge_needle",
+    "needle": "create_nuclearindustry:block/centrifuge_needle"
+  },
+  "elements": [
+    {
+      "from": [
+        11.25,
+        12.75,
+        0.2
+      ],
+      "to": [
+        11.75,
+        15,
+        0.45
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7,
+            2,
+            9,
+            10
+          ],
+          "texture": "#needle"
+        },
+        "west": {
+          "uv": [
+            7,
+            2,
+            8,
+            10
+          ],
+          "texture": "#needle"
+        },
+        "east": {
+          "uv": [
+            8,
+            2,
+            9,
+            10
+          ],
+          "texture": "#needle"
+        },
+        "up": {
+          "uv": [
+            7,
+            1,
+            9,
+            2
+          ],
+          "texture": "#needle"
+        }
+      }
+    },
+    {
+      "from": [
+        11,
+        12.5,
+        0.15
+      ],
+      "to": [
+        12,
+        13.5,
+        0.45
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            12,
+            10,
+            16
+          ],
+          "texture": "#needle"
+        },
+        "west": {
+          "uv": [
+            6,
+            12,
+            10,
+            13
+          ],
+          "texture": "#needle"
+        },
+        "east": {
+          "uv": [
+            6,
+            12,
+            10,
+            13
+          ],
+          "texture": "#needle"
+        },
+        "up": {
+          "uv": [
+            6,
+            12,
+            10,
+            13
+          ],
+          "texture": "#needle"
+        },
+        "down": {
+          "uv": [
+            6,
+            12,
+            10,
+            13
+          ],
+          "texture": "#needle"
+        }
+      }
+    }
+  ]
+}

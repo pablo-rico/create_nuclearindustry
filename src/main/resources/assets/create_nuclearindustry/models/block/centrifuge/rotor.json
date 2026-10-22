@@ -1,0 +1,159 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "create_nuclearindustry:block/centrifuge_rotor",
+    "rotor": "create_nuclearindustry:block/centrifuge_rotor"
+  },
+  "elements": [
+    {
+      "from": [
+        4.5,
+        2,
+        6.5
+      ],
+      "to": [
+        11.5,
+        10,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            6,
+            7,
+            14
+          ],
+          "texture": "#rotor"
+        },
+        "south": {
+          "uv": [
+            9,
+            6,
+            16,
+            14
+          ],
+          "texture": "#rotor"
+        },
+        "west": {
+          "uv": [
+            9,
+            6,
+            12,
+            14
+          ],
+          "texture": "#rotor"
+        },
+        "east": {
+          "uv": [
+            9,
+            6,
+            12,
+            14
+          ],
+          "texture": "#rotor"
+        }
+      }
+    },
+    {
+      "from": [
+        5.5,
+        2,
+        5.5
+      ],
+      "to": [
+        10.5,
+        10,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            6,
+            6,
+            14
+          ],
+          "texture": "#rotor"
+        },
+        "south": {
+          "uv": [
+            10,
+            6,
+            15,
+            14
+          ],
+          "texture": "#rotor"
+        },
+        "west": {
+          "uv": [
+            8,
+            6,
+            13,
+            14
+          ],
+          "texture": "#rotor"
+        },
+        "east": {
+          "uv": [
+            8,
+            6,
+            13,
+            14
+          ],
+          "texture": "#rotor"
+        }
+      }
+    },
+    {
+      "from": [
+        6.5,
+        2,
+        4.5
+      ],
+      "to": [
+        9.5,
+        10,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            6,
+            5,
+            14
+          ],
+          "texture": "#rotor"
+        },
+        "south": {
+          "uv": [
+            11,
+            6,
+            14,
+            14
+          ],
+          "texture": "#rotor"
+        },
+        "west": {
+          "uv": [
+            7,
+            6,
+            14,
+            14
+          ],
+          "texture": "#rotor"
+        },
+        "east": {
+          "uv": [
+            7,
+            6,
+            14,
+            14
+          ],
+          "texture": "#rotor"
+        }
+      }
+    }
+  ]
+}

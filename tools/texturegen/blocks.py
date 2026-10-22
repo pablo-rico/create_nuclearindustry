@@ -4,7 +4,7 @@ import math
 from fusion_materials import FUSION_BLOCKS
 from reactor_materials import steel_panel, steel_port, mineral, STEEL as REACTOR_STEEL
 
-from common import (bar_readout, bezel, bolt, cracks, flange, ore,
+from common import (bezel, bolt, cracks, flange, ore,
                     panel_screen, port_face, trefoil)
 from palette import (BLACK, BRASS, CONCRETE, COPPER, CRYO, CYAN, DANGER, DARK, IN_ACCENT,
                      LEAD, OUT_ACCENT, PLASMA, RADIUM, STEEL, STONE, TRITIUM, URANIUM,
@@ -289,113 +289,6 @@ def reactor_fuel_port_output():
     return steel_port(LEAD, output=True, fuel=True)
 
 
-# ======================================================================================
-# centrifuge
-# ======================================================================================
-
-@block("centrifuge_metal")
-def centrifuge_metal():
-    t = Tex(seed=31)
-    brushed(t, STEEL, base=4.0, amp=0.7, seed=31, axis="v")
-    # polished drum: vertical cylindrical shading
-    for x in range(16):
-        f = 0.68 + 0.62 * math.sin(math.pi * (x + 0.5) / 16)
-        for y in range(16):
-            t.set(x, y, shade(t.get(x, y), f))
-    # segmented drum: welded seams top and bottom, specular band on the left third
-    for y in (0, 4, 11, 15):
-        for x in range(16):
-            t.set(x, y, shade(t.get(x, y), 0.62 if y in (0, 11) else 1.3))
-    for y in range(1, 15):
-        if y not in (4, 11):
-            t.blend(4, y, WHITE, 0.16)
-    for y in (2, 13):
-        for x in (2, 8, 13):
-            t.set(x, y, STEEL[6])
-            t.set(x, y + 1, STEEL[1])
-    return t
-
-
-@block("centrifuge_dark_metal")
-def centrifuge_dark_metal():
-    t = Tex(seed=32)
-    brushed(t, DARK, base=3.2, amp=0.8, seed=32)
-    bevel(t, 0, 0, 15, 15, DARK)
-    outline(t, 0, 0, 15, 15, DARK)
-    for x, y in ((2, 2), (12, 2), (2, 12), (12, 12)):
-        rivet(t, x, y, DARK)
-    return t
-
-
-@block("centrifuge_panel")
-def centrifuge_panel():
-    t = Tex(seed=33)
-    brushed(t, DARK, base=3.4, amp=0.6, seed=33)
-    bevel(t, 0, 0, 15, 15, DARK)
-    outline(t, 0, 0, 15, 15, DARK)
-    panel_screen(t, 2, 2, 9, 8, DARK, RADIUM, lit=True, seed=5)
-    bar_readout(t, 3, 3, 9, 8, RADIUM, (2, 3, 5, 4, 6), warn=4)
-    # side indicator LEDs
-    for i, y in enumerate((3, 6)):
-        t.rect(11, y, 12, y + 1, (RADIUM, WARN)[i][5])
-        t.set(11, y, (RADIUM, WARN)[i][6])
-        t.set(12, y + 1, DARK[0])
-    # dial
-    t.disc(11.5, 11.5, 2.4, DARK[5])
-    t.ring(11.5, 11.5, 2.4, 1.8, DARK[2])
-    t.line(11, 11, 12.5, 9.8, WARN[6])
-    t.hline(2, 13, 10, DARK[1])
-    glow(t, 6, 5, 6.0, RADIUM[6], 0.14)
-    return t
-
-
-@block("centrifuge_input")
-def centrifuge_input():
-    t = Tex(seed=34)
-    brushed(t, STEEL, base=3.0, amp=0.6, seed=34)
-    bevel(t, 0, 0, 15, 15, STEEL)
-    outline(t, 0, 0, 15, 15, STEEL)
-    t.rect(3, 3, 12, 12, DARK[1])
-    inset(t, 3, 3, 12, 12, STEEL)
-    for y in range(4, 12, 2):
-        t.hline(4, 11, y, DARK[0])
-        t.hline(4, 11, y + 1, CYAN[3])
-    glow(t, 8, 8, 5.5, CYAN[6], 0.3)
-    for x, y in ((1, 1), (13, 1), (1, 13), (13, 13)):
-        rivet(t, x, y, STEEL)
-    return t
-
-
-@block("centrifuge_output")
-def centrifuge_output():
-    t = Tex(seed=35)
-    brushed(t, STEEL, base=3.0, amp=0.6, seed=35)
-    bevel(t, 0, 0, 15, 15, STEEL)
-    outline(t, 0, 0, 15, 15, STEEL)
-    t.disc(8, 8, 5.6, STEEL[4])
-    t.ring(8, 8, 5.6, 4.8, STEEL[6])
-    t.ring(8, 8, 5.9, 5.4, STEEL[0])
-    t.disc(8, 8, 4.2, DARK[1])
-    t.disc(8, 8, 3.0, PLASMA[3])
-    t.disc(8, 8, 1.8, PLASMA[5])
-    glow(t, 8, 8, 6.0, PLASMA[6], 0.28)
-    return t
-
-
-@block("centrifuge_shaft")
-def centrifuge_shaft():
-    t = Tex(seed=36)
-    for x in range(16):
-        f = 0.7 + 0.6 * math.sin(math.pi * (x + 0.5) / 16)
-        for y in range(16):
-            v = 3.0 + (fbm(x, y, 36, 16, 16, 2, 6.0) - 0.5) * 1.0
-            t.set(x, y, shade(BRASS[int(round(v))], f))
-    for y in (1, 5, 9, 13):
-        t.hline(0, 15, y, BRASS[1])
-        t.hline(0, 15, y + 1, BRASS[6])
-    return t
-
-
 # Textures drawn with transparent pixels; validate.py checks these against their own sizes (the turbine glass, from tex_turbine).
 CUTOUT_BLOCKS = {}
 
@@ -440,60 +333,6 @@ def radioactive_waste_barrel_top():
     t.disc(11, 5, 1.6, DARK[2])
     t.set(10, 4, DARK[5])
     t.disc(5, 11, 1.1, DARK[2])
-    return t
-
-
-# ======================================================================================
-# electrolyzer (same body as the centrifuge, copper cell and electrode panel)
-# ======================================================================================
-
-@block("electrolyzer_metal")
-def electrolyzer_metal():
-    t = Tex(seed=37)
-    brushed(t, COPPER, base=3.8, amp=0.7, seed=37, axis="v")
-    for x in range(16):
-        f = 0.70 + 0.58 * math.sin(math.pi * (x + 0.5) / 16)
-        for y in range(16):
-            t.set(x, y, shade(t.get(x, y), f))
-    # banded electrolytic cell with insulating rings
-    for y in (0, 5, 10, 15):
-        for x in range(16):
-            t.set(x, y, shade(DARK[2], 0.9 if y in (0, 15) else 1.1))
-    for y in range(1, 15):
-        if y not in (5, 10):
-            t.blend(4, y, WHITE, 0.14)
-    for y in (2, 7, 12):
-        for x in (3, 12):
-            t.set(x, y, BRASS[5])
-            t.set(x, y + 1, BRASS[1])
-    return t
-
-
-@block("electrolyzer_panel")
-def electrolyzer_panel():
-    t = Tex(seed=38)
-    brushed(t, DARK, base=3.4, amp=0.6, seed=38)
-    bevel(t, 0, 0, 15, 15, DARK)
-    outline(t, 0, 0, 15, 15, DARK)
-    # sight glass with two electrodes and rising bubbles
-    t.rect(2, 2, 13, 11, CYAN[1])
-    inset(t, 2, 2, 13, 11, DARK)
-    for y in range(3, 11):
-        for x in range(3, 13):
-            t.set(x, y, CYAN[2] if (x + y) % 5 else CYAN[3])
-    for y in range(3, 11):
-        t.set(5, y, COPPER[5])
-        t.set(6, y, COPPER[2])
-        t.set(10, y, LEAD[5])
-        t.set(11, y, LEAD[2])
-    for x, y in ((7, 9), (8, 7), (7, 5), (9, 4), (4, 8), (12, 6)):
-        t.set(x, y, CYAN[6])
-    glow(t, 8, 7, 6.0, CYAN[6], 0.18)
-    # polarity marks
-    t.rect(3, 13, 4, 13, DANGER[5])
-    t.rect(11, 13, 12, 13, CYAN[5])
-    t.set(4, 12, DANGER[5])
-    t.set(4, 14, DANGER[5])
     return t
 
 
@@ -1347,3 +1186,4 @@ import tex_launch_base  # noqa: E402,F401
 import tex_turbine  # noqa: E402,F401
 import tex_tokamak  # noqa: E402,F401
 import tex_decontamination  # noqa: E402,F401
+import tex_centrifuge  # noqa: E402,F401

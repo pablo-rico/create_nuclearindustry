@@ -1,8 +1,117 @@
 {
-  "variants": {
-    "facing=north": { "model": "create_nuclearindustry:block/centrifuge" },
-    "facing=east": { "model": "create_nuclearindustry:block/centrifuge", "y": 90 },
-    "facing=south": { "model": "create_nuclearindustry:block/centrifuge", "y": 180 },
-    "facing=west": { "model": "create_nuclearindustry:block/centrifuge", "y": 270 }
-  }
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/body"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "left": "true"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/manifold_west"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "right": "true"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/manifold_east"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/body",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "left": "true"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/manifold_west",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "right": "true"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/manifold_east",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/body",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "left": "true"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/manifold_west",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "right": "true"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/manifold_east",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/body",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "left": "true"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/manifold_west",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "right": "true"
+      },
+      "apply": {
+        "model": "create_nuclearindustry:block/centrifuge/manifold_east",
+        "y": 270
+      }
+    }
+  ]
 }

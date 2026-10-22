@@ -1,8 +1,0 @@
-{
-  "parent": "create_nuclearindustry:block/centrifuge",
-  "textures": {
-    "metal": "create_nuclearindustry:block/electrolyzer_metal",
-    "panel": "create_nuclearindustry:block/electrolyzer_panel",
-    "particle": "create_nuclearindustry:block/electrolyzer_metal"
-  }
-}

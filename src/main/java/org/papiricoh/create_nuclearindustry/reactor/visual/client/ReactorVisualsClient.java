@@ -14,6 +14,7 @@ public final class ReactorVisualsClient implements NuclearFeatureClient {
     public void init(IEventBus modEventBus) {
         // Chained, so other areas may hook these client ticks too.
         ReactorVisualHooks.reactorClientTick = ReactorVisualHooks.reactorClientTick.andThen(ReactorClientEffects::tick);
-        ReactorVisualHooks.machineClientTick = ReactorVisualHooks.machineClientTick.andThen(MachineSounds::tick);
+        ReactorVisualHooks.machineClientTick = ReactorVisualHooks.machineClientTick.andThen(MachineSounds::tick)
+                .andThen(org.papiricoh.create_nuclearindustry.processing.client.ProcessingMachineEffects::tick);
     }
 }

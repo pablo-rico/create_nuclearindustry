@@ -29,6 +29,7 @@ import org.papiricoh.create_nuclearindustry.isotope.IsotopeRegistry;
 import org.papiricoh.create_nuclearindustry.processing.AllNuclearRecipeTypes;
 import org.papiricoh.create_nuclearindustry.processing.recipe.CentrifugingRecipe;
 import org.papiricoh.create_nuclearindustry.processing.recipe.ElectrolysisRecipe;
+import org.papiricoh.create_nuclearindustry.processing.client.ProcessingPartials;
 import org.papiricoh.create_nuclearindustry.processing.recipe.ProcessingInput;
 import org.papiricoh.create_nuclearindustry.waste.WasteRegistry;
 import org.papiricoh.create_nuclearindustry.waste.vitrification.VitrificationInput;
@@ -94,9 +95,11 @@ public class NuclearJeiPlugin implements IModPlugin {
         IGuiHelper gui = registration.getJeiHelpers().getGuiHelper();
         registration.addRecipeCategories(
                 new ProcessingJeiCategory<>(gui, CENTRIFUGING,
-                        Component.translatable("jei.create_nuclearindustry.category.centrifuging"), AllNuclearBlocks.CENTRIFUGE.get(), 32),
+                        Component.translatable("jei.create_nuclearindustry.category.centrifuging"), AllNuclearBlocks.CENTRIFUGE.get(), 32,
+                        new AnimatedProcessingMachine(AllNuclearBlocks.CENTRIFUGE, ProcessingPartials.CENTRIFUGE)),
                 new ProcessingJeiCategory<>(gui, ELECTROLYSIS,
-                        Component.translatable("jei.create_nuclearindustry.category.electrolysis"), AllNuclearBlocks.ELECTROLYZER.get(), 32),
+                        Component.translatable("jei.create_nuclearindustry.category.electrolysis"), AllNuclearBlocks.ELECTROLYZER.get(), 32,
+                        new AnimatedProcessingMachine(AllNuclearBlocks.ELECTROLYZER, ProcessingPartials.ELECTROLYZER)),
                 new VitrificationJeiCategory(gui, VITRIFICATION),
                 new TargetStationJeiCategory(gui),
                 new IsotopeJeiCategory(gui, IsotopeJeiCategory.TARGET, "jei.create_nuclearindustry.category.target_irradiation",

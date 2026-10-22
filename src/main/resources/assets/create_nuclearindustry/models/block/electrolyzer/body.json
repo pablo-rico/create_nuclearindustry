@@ -1,0 +1,15 @@
+{
+  "parent": "create_nuclearindustry:block/centrifuge/body",
+  "textures": {
+    "front": "create_nuclearindustry:block/electrolyzer_front",
+    "side": "create_nuclearindustry:block/electrolyzer_side",
+    "back": "create_nuclearindustry:block/electrolyzer_back",
+    "top": "create_nuclearindustry:block/electrolyzer_top",
+    "bottom": "create_nuclearindustry:block/electrolyzer_bottom",
+    "chamber": "create_nuclearindustry:block/electrolyzer_chamber",
+    "wall": "create_nuclearindustry:block/electrolyzer_wall",
+    "inner": "create_nuclearindustry:block/centrifuge_inner",
+    "collar": "create_nuclearindustry:block/centrifuge_collar",
+    "particle": "create_nuclearindustry:block/electrolyzer_side"
+  }
+}

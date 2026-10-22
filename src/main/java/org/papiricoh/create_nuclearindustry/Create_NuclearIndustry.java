@@ -21,6 +21,7 @@ import org.papiricoh.create_nuclearindustry.radiation.RadiationHandler;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
 import org.papiricoh.create_nuclearindustry.commands.NuclearCommands;
 import org.papiricoh.create_nuclearindustry.processing.ProcessingMachineRenderer;
+import org.papiricoh.create_nuclearindustry.processing.client.ProcessingPartials;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(Create_NuclearIndustry.MODID)
@@ -123,8 +124,10 @@ public class Create_NuclearIndustry {
     public static class ClientModEvents {
 
         public static void onRegisterRenderers(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
-            event.registerBlockEntityRenderer(AllNuclearEntities.CENTRIFUGE.get(), ProcessingMachineRenderer::new);
-            event.registerBlockEntityRenderer(AllNuclearEntities.ELECTROLYZER.get(), ProcessingMachineRenderer::new);
+            event.registerBlockEntityRenderer(AllNuclearEntities.CENTRIFUGE.get(),
+                    context -> new ProcessingMachineRenderer<>(context, ProcessingPartials.CENTRIFUGE));
+            event.registerBlockEntityRenderer(AllNuclearEntities.ELECTROLYZER.get(),
+                    context -> new ProcessingMachineRenderer<>(context, ProcessingPartials.ELECTROLYZER));
             event.registerBlockEntityRenderer(AllNuclearEntities.RTG.get(),
                     org.papiricoh.create_nuclearindustry.rtg.client.RtgRenderer::new);
             event.registerBlockEntityRenderer(AllNuclearEntities.TURBINE_OUTPUT.get(),

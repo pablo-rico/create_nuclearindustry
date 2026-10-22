@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Centrifuge and electrolyzer
+- New look for the **Centrifuge**, closer to Create's machines: an open frame whose gas-centrifuge rotor you can see
+  spinning, faster than the shaft driving it. The shaft goes into a gearbox at the back, and a dial on the
+  front shows how far the current batch has got. Its outline now follows the model instead of a full block.
+- Centrifuges standing side by side and facing the same way join into a **cascade**: a header pipe runs between them.
+  It is only for show; the stages still pass product and tails through pipes.
+- The **Electrolyzer** shares the new body with a copper cell, a sight glass and a dynamo-like rotor. Gas bubbles up its
+  sight glass and vents at the top while it works.
+- Both machines turn in their JEI pages.
+- Ponder: the centrifuge and electrolyzer scenes are rewritten on their own schematics, and a new scene shows cascades.
+
 ### Radiation and decontamination
 - Ground contamination now fades in a set number of in-game days: **7 by default** (`contamination.decayDays`, replacing
   `halfLifeTicks`). It falls fastest at first, so a bomb's ground zero is half gone in under a day and weaker fallout

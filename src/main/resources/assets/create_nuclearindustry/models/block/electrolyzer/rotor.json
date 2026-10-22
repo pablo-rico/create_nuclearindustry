@@ -1,0 +1,7 @@
+{
+  "parent": "create_nuclearindustry:block/centrifuge/rotor",
+  "textures": {
+    "particle": "create_nuclearindustry:block/electrolyzer_rotor",
+    "rotor": "create_nuclearindustry:block/electrolyzer_rotor"
+  }
+}

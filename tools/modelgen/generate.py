@@ -961,6 +961,281 @@ def isotope_models():
 
 
 # ======================================================================================
+# processing machines: gas centrifuge and electrolyzer
+# ======================================================================================
+
+# The centrifuge's body, north-facing (front z 0, back z 16), in pixels. A Create-style C frame: a 2 px plinth and a 6 px
+# head held by a 4 px gearbox plate across the back; the open front and sides show the rotor spinning between them (front
+# posts would hide it from the usual north-west view).
+PM_BASE_TOP = 2
+PM_HEAD_BOTTOM = 10
+PM_BACK = 12
+# Rotor: a rounded 7 px column (three crossed boxes) turning about the vertical axis x = z = 8; swept radius 3.81 px.
+PM_ROTOR_Y = (PM_BASE_TOP, PM_HEAD_BOTTOM)
+# Gauge on the head front (left as seen from the front): dial recess x 9..14, y 10.5..15.5, 0.5 deep; the needle pivots
+# on its centre and points up in the model.
+PM_DIAL = (9, 10.5, 14, 15.5)
+PM_DIAL_DEPTH = 0.5
+PM_NEEDLE_PIVOT = (11.5, 13, 0.35)
+# Product port recess (right as seen from the front) and the side pockets that hold the input flange and the cascade
+# manifold coupling.
+PM_PORT = (2, 10.5, 7, 15.5)
+# The recess floors sit on half pixels, so they take whole texels from a part of the front texture the model never shows
+# (the open chamber).
+PM_DIAL_UV = [3, 7, 8, 12]
+PM_PORT_UV = [8, 7, 13, 12]
+PM_POCKET = (8, 12, 12, 16)   # z0, y0, z1, y1 (open at the top, against the gearbox plate)
+PM_POCKET_DEPTH = 2
+# Shaft hole in the gearbox plate and the shaft stub in it (4x4 like Create's shaft).
+PM_HOLE = (5, 5, 11, 11)
+PM_STUB_Z = 13
+
+
+def _csg(solid, holes, outer, default_carved="#inner"):
+    """Boxes of ``solid`` minus ``holes``, each face textured: faces on the solid's own boundary take ``outer[dir]``,
+    faces cut by a hole take that hole's ``faces[dir]`` (else ``default_carved``), ``dir`` being the direction the face
+    looks (a recess floor facing north is ``north``). ``holes`` are (frm, to, faces).
+    The solid is cut on every coordinate of the holes into cells, and cells with equal faces are merged back into boxes,
+    so the faces never change texture mid-box."""
+    (sx0, sy0, sz0), (sx1, sy1, sz1) = solid
+    cuts = []
+    for axis, (a, b) in enumerate(((sx0, sx1), (sy0, sy1), (sz0, sz1))):
+        vals = {a, b}
+        for frm, to, _ in holes:
+            for v in (frm[axis], to[axis]):
+                if a < v < b:
+                    vals.add(v)
+        cuts.append(sorted(vals))
+    nx, ny, nz = (len(c) - 1 for c in cuts)
+
+    def centre(i, j, k):
+        return ((cuts[0][i] + cuts[0][i + 1]) / 2, (cuts[1][j] + cuts[1][j + 1]) / 2, (cuts[2][k] + cuts[2][k + 1]) / 2)
+
+    def hole_at(p):
+        for frm, to, faces in holes:
+            if all(frm[a] < p[a] < to[a] for a in range(3)):
+                return faces
+        return None
+
+    solid_cell = {}
+    for i in range(nx):
+        for j in range(ny):
+            for k in range(nz):
+                solid_cell[(i, j, k)] = hole_at(centre(i, j, k)) is None
+    step = {"west": (-1, 0, 0), "east": (1, 0, 0), "down": (0, -1, 0), "up": (0, 1, 0), "north": (0, 0, -1), "south": (0, 0, 1)}
+
+    def face_tex(i, j, k, d):
+        di, dj, dk = step[d]
+        n = (i + di, j + dj, k + dk)
+        if n in solid_cell:
+            if solid_cell[n]:
+                return None
+            faces = hole_at(centre(*n))
+            return faces.get(d, default_carved)
+        return outer.get(d)
+
+    sig = {}
+    for c, s in solid_cell.items():
+        if s:
+            sig[c] = {d: face_tex(*c, d) for d in step}
+    # boxes: [lo index (i,j,k), hi index exclusive, faces]
+    boxes = []
+    for (i, j, k) in sorted(sig, key=lambda c: (c[1], c[2], c[0])):
+        boxes.append([[i, j, k], [i + 1, j + 1, k + 1], dict(sig[(i, j, k)])])
+    pairs = ((0, "west", "east"), (2, "north", "south"), (1, "down", "up"))
+    for axis, lo_face, hi_face in pairs:
+        merged = True
+        while merged:
+            merged = False
+            index = {tuple(b[0]): b for b in boxes}
+            for b in list(boxes):
+                if b not in boxes:
+                    continue
+                nxt = list(b[0])
+                nxt[axis] = b[1][axis]
+                o = index.get(tuple(nxt))
+                if o is None or o is b or o not in boxes:
+                    continue
+                same_extent = all(o[0][a] == b[0][a] and o[1][a] == b[1][a] for a in range(3) if a != axis)
+                if not same_extent or b[2][hi_face] is not None or o[2][lo_face] is not None:
+                    continue
+                if any(b[2][d] != o[2][d] for d in b[2] if d not in (lo_face, hi_face)):
+                    continue
+                b[1][axis] = o[1][axis]
+                b[2][hi_face] = o[2][hi_face]
+                boxes.remove(o)
+                index = {tuple(x[0]): x for x in boxes}
+                merged = True
+    out = []
+    for lo, hi, faces in boxes:
+        frm = [cuts[a][lo[a]] for a in range(3)]
+        to = [cuts[a][hi[a]] for a in range(3)]
+        f = {}
+        for d, tex in faces.items():
+            if tex is None:
+                continue
+            if d == "east" and not isinstance(tex, tuple) and tex in PM_MIRROR_EAST:
+                # The east side shows the side texture mirrored, so the front post and the gearbox plate keep their
+                # places (u = z, like the west side).
+                f[d] = (tex, [to[2], 16 - to[1], frm[2], 16 - frm[1]])
+            else:
+                f[d] = tex
+        if f:
+            out.append(Box(frm, to, f))
+    return out
+
+
+PM_MIRROR_EAST = ("#side",)
+
+
+def pm_body():
+    """The static body, north-facing. Nothing enters the rotor's swept cylinder (radius 3.81 about x = z = 8 from
+    y 2 to 10) or the shaft stub's (radius 2*sqrt(2) about x = y = 8 from z 13)."""
+    outer = {"north": "#front", "south": "#back", "west": "#side", "east": "#side", "up": "#top", "down": "#bottom"}
+    b, h = PM_BASE_TOP, PM_HEAD_BOTTOM
+    chamber = {"up": "#chamber", "down": "#chamber", "north": "#wall"}
+    dx0, dy0, dx1, dy1 = PM_DIAL
+    px0, py0, px1, py1 = PM_PORT
+    kz0, ky0, kz1, ky1 = PM_POCKET
+    hx0, hy0, hx1, hy1 = PM_HOLE
+    holes = [
+        # the rotor chamber, open to the north, west and east
+        ((-1, b, -1), (17, h, PM_BACK), chamber),
+        # gauge and product-port recesses: their floors show the front texture (dial, flange)
+        ((dx0, dy0, -1), (dx1, dy1, PM_DIAL_DEPTH), {"north": ("#front", PM_DIAL_UV)}),
+        ((px0, py0, -1), (px1, py1, PM_DIAL_DEPTH), {"north": ("#front", PM_PORT_UV)}),
+        # side pockets, open at the top: their floors show the side texture (input flange), mirrored on the east
+        ((-1, ky0, kz0), (PM_POCKET_DEPTH, 17, kz1), {"west": "#side"}),
+        ((16 - PM_POCKET_DEPTH, ky0, kz0), (17, 17, kz1), {"east": "#side"}),
+        # shaft hole: brass collar walls
+        ((hx0, hy0, PM_STUB_Z), (hx1, hy1, 17), {d: "#collar" for d in ("west", "east", "up", "down")}),
+    ]
+    return _csg(((0, 0, 0), (16, 16, 16)), holes, outer)
+
+
+def pm_rotor():
+    """The rotor partial: a 7 px column, three crossed boxes (7x3, 5x5, 3x7; swept radius 3.81 px), from y 2 to 10,
+    centred on x = z = 8. Its texture is the drum unrolled, one texel per pixel of width: u 0..7 the marked north
+    quarter, 7..14 east and west, 9..16 south, so the marking strobes past the windows as it turns; v follows the height
+    (v = 16 - y)."""
+    y0, y1 = PM_ROTOR_Y
+    v = [16 - y1, 16 - y0]
+
+    def uv(u0, u1):
+        return ("#rotor", [u0, v[0], u1, v[1]])
+
+    boxes = []
+    for half_x, half_z in ((3.5, 1.5), (2.5, 2.5), (1.5, 3.5)):
+        n0 = 3.5 - half_x       # where this box's north face starts in the quarter
+        e0 = 3.5 - half_z
+        boxes.append(Box((8 - half_x, y0, 8 - half_z), (8 + half_x, y1, 8 + half_z), {
+            "north": uv(n0, 7 - n0), "south": uv(9 + n0, 16 - n0),
+            "west": uv(7 + e0, 14 - e0), "east": uv(7 + e0, 14 - e0)}))
+    return boxes
+
+
+def pm_shaft_stub():
+    """A Create shaft piece (x/y 6..10) from inside the gearbox (z 13) to the back face, turning about x = y = 8."""
+    return [Box((6, 6, PM_STUB_Z), (10, 10, 16), {
+        "north": ("#axis_top", [6, 6, 10, 10]), "south": ("#axis_top", [6, 6, 10, 10]),
+        "east": ("#axis", [6, 0, 10, 16 - PM_STUB_Z]), "west": ("#axis", [6, 0, 10, 16 - PM_STUB_Z]),
+        "up": ("#axis", [6, 0, 10, 16 - PM_STUB_Z]), "down": ("#axis", [6, 0, 10, 16 - PM_STUB_Z])})]
+
+
+# Create's shaft texture runs along v; the stub runs along z, so its long faces turn it like Create's shaft_half.
+PM_STUB_FACE_ROT = {"north": 180, "east": 270, "west": 90, "up": 180}
+
+
+def pm_needle():
+    """The gauge needle partial, pointing straight up from PM_NEEDLE_PIVOT, just in front of the dial."""
+    cx, cy, _ = PM_NEEDLE_PIVOT
+    z0, z1 = 0.2, 0.45
+    return [Box((cx - 0.25, cy - 0.25, z0), (cx + 0.25, cy + 2.0, z1),
+                {"north": ("#needle", [7, 2, 9, 10]), "west": ("#needle", [7, 2, 8, 10]), "east": ("#needle", [8, 2, 9, 10]),
+                 "up": ("#needle", [7, 1, 9, 2])}),
+            Box((cx - 0.5, cy - 0.5, 0.15), (cx + 0.5, cy + 0.5, z1),
+                {"north": ("#needle", [6, 12, 10, 16]), "west": ("#needle", [6, 12, 10, 13]), "east": ("#needle", [6, 12, 10, 13]),
+                 "up": ("#needle", [6, 12, 10, 13]), "down": ("#needle", [6, 12, 10, 13])})]
+
+
+def pm_manifold(west=True):
+    """The cascade coupling on one side (west: x 0..2), in the side pocket of the head, which is open at the top: a 3 px
+    header stub from the pocket's input flange to the block edge, ending in half of a bolted flange, so the west piece
+    of one centrifuge and the east piece of the next meet as one joint, seen from above between the two heads. Static,
+    drawn by the blockstate when the neighbour is a centrifuge facing the same way."""
+    kz0, ky0, kz1, ky1 = PM_POCKET
+    cy, cz = (ky0 + ky1) / 2, (kz0 + kz1) / 2
+    pipe = Box((0.75, cy - 1.5, cz - 1.5), (PM_POCKET_DEPTH, cy + 1.5, cz + 1.5), {
+        "north": ("#manifold", [0, 0, 1.25, 3]), "south": ("#manifold", [0, 0, 1.25, 3]),
+        "up": ("#manifold", [0, 0, 1.25, 3]), "down": ("#manifold", [0, 0, 1.25, 3])})
+    collar = Box((0, cy - 1.75, cz - 1.75), (0.75, cy + 1.75, cz + 1.75), {
+        "east": ("#manifold", [0, 6, 3.5, 9.5]),
+        "north": ("#manifold", [6, 6, 6.75, 9.5]), "south": ("#manifold", [6, 6, 6.75, 9.5]),
+        "up": ("#manifold", [8, 6, 8.75, 9.5]), "down": ("#manifold", [8, 6, 8.75, 9.5])})
+    boxes = [pipe, collar]
+    if west:
+        return boxes
+    swap = {"west": "east", "east": "west"}
+    out = []
+    for bx in boxes:
+        out.append(Box((16 - bx.to[0], bx.frm[1], bx.frm[2]), (16 - bx.frm[0], bx.to[1], bx.to[2]),
+                       {swap.get(k, k): v for k, v in bx.faces.items()}))
+    return out
+
+
+def pm_textures(prefix):
+    """Body textures: each machine's own faces; the recess walls and the brass hole collar are shared."""
+    t = {name: NS + "block/%s_%s" % (prefix, name) for name in ("front", "side", "back", "top", "bottom", "chamber", "wall")}
+    t["inner"] = NS + "block/centrifuge_inner"
+    t["collar"] = NS + "block/centrifuge_collar"
+    t["particle"] = t["side"]
+    return t
+
+
+PM_ROTOR_TEXTURES = {"particle": NS + "block/centrifuge_rotor", "rotor": NS + "block/centrifuge_rotor"}
+PM_STUB_TEXTURES = {"particle": "create:block/axis", "axis": "create:block/axis", "axis_top": "create:block/axis_top"}
+PM_NEEDLE_TEXTURES = {"particle": NS + "block/centrifuge_needle", "needle": NS + "block/centrifuge_needle"}
+PM_MANIFOLD_TEXTURES = {"particle": NS + "block/centrifuge_manifold", "manifold": NS + "block/centrifuge_manifold"}
+
+
+def _stub_elements():
+    els = _whole(pm_shaft_stub())
+    for el in els:
+        for face, data in el["faces"].items():
+            if face in PM_STUB_FACE_ROT:
+                data["rotation"] = PM_STUB_FACE_ROT[face]
+    return els
+
+
+def processing_machines():
+    """Block, partial and item models of the centrifuge and its electrolyzer variant: relative path -> JSON."""
+    m = {}
+    body = slice_boxes(pm_body(), (0, 0, 0))
+    m["block/centrifuge/body.json"] = block_model(pm_textures("centrifuge"), body, translucent=False)
+    m["block/centrifuge/rotor.json"] = block_model(PM_ROTOR_TEXTURES, _whole(pm_rotor()), translucent=False)
+    m["block/centrifuge/shaft_stub.json"] = block_model(PM_STUB_TEXTURES, _stub_elements(), translucent=False)
+    m["block/centrifuge/needle.json"] = block_model(PM_NEEDLE_TEXTURES, _whole(pm_needle()), translucent=False)
+    m["block/centrifuge/manifold_west.json"] = block_model(PM_MANIFOLD_TEXTURES, _whole(pm_manifold(True)), translucent=False)
+    m["block/centrifuge/manifold_east.json"] = block_model(PM_MANIFOLD_TEXTURES, _whole(pm_manifold(False)), translucent=False)
+    item_textures = dict(pm_textures("centrifuge"), rotor=PM_ROTOR_TEXTURES["rotor"], needle=PM_NEEDLE_TEXTURES["needle"],
+                         axis=PM_STUB_TEXTURES["axis"], axis_top=PM_STUB_TEXTURES["axis_top"])
+    item_elements = transform(body, (0, 0, 0), 1, (0, 0, 0)) + _whole(pm_rotor()) + _stub_elements() + _whole(pm_needle())
+    m["item/centrifuge.json"] = dict(block_model(item_textures, item_elements, translucent=False),
+                                     display=display(0.625, 0.25, 0.5, hand=0.4, third=0.375, lift=0))
+    # The electrolyzer: the same geometry, its own textures.
+    def el(name):
+        return NS + "block/electrolyzer_" + name
+    m["block/electrolyzer/body.json"] = {"parent": NS + "block/centrifuge/body", "textures": pm_textures("electrolyzer")}
+    m["block/electrolyzer/rotor.json"] = {"parent": NS + "block/centrifuge/rotor",
+                                          "textures": {"particle": el("rotor"), "rotor": el("rotor")}}
+    m["block/electrolyzer/shaft_stub.json"] = {"parent": NS + "block/centrifuge/shaft_stub"}
+    m["block/electrolyzer/needle.json"] = {"parent": NS + "block/centrifuge/needle"}
+    m["item/electrolyzer.json"] = {"parent": NS + "item/centrifuge",
+                                   "textures": dict(pm_textures("electrolyzer"), rotor=el("rotor"))}
+    return m
+
+
+# ======================================================================================
 # output
 # ======================================================================================
 
@@ -1093,6 +1368,10 @@ def main():
 
     # Isotopes: gamma irradiator (and its partials), smoke detector, reactor irradiation channel.
     for rel, data in sorted(isotope_models().items()):
+        put(os.path.join(args.out, "models", *rel.split("/")), data)
+
+    # Gas centrifuge and electrolyzer: body, partials, cascade manifold and items.
+    for rel, data in sorted(processing_machines().items()):
         put(os.path.join(args.out, "models", *rel.split("/")), data)
 
     print("wrote %d models -> %s" % (len(written), args.out))

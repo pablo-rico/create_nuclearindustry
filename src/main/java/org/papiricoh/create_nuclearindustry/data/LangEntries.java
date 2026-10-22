@@ -884,8 +884,8 @@ public final class LangEntries {
                 "Enriching uranium with Centrifuges",
                 "Enriquecer uranio con centrifugadoras");
         add("create_nuclearindustry.ponder.centrifuge.text_1",
-                "The Centrifuge separates uranium hexafluoride by enrichment. It turns through its back, at 32 RPM or more.",
-                "La centrifugadora separa el hexafluoruro de uranio por enriquecimiento. Gira por su parte trasera, a 32 RPM o más.");
+                "The Centrifuge separates uranium hexafluoride by enrichment. Its rotor is driven through the back, at 32 RPM or more.",
+                "La centrifugadora separa el hexafluoruro de uranio por enriquecimiento. Su rotor se acciona por la parte trasera, a 32 RPM o más.");
         add("create_nuclearindustry.ponder.centrifuge.text_2",
                 "Pipe UF6 into the top or the sides.",
                 "Introduce el UF6 por arriba o por los lados.");
@@ -896,11 +896,29 @@ public final class LangEntries {
                 "...and the depleted tails through the bottom.",
                 "...y las colas empobrecidas por abajo.");
         add("create_nuclearindustry.ponder.centrifuge.text_5",
-                "Chain centrifuges into a cascade: natural to LEU, LEU to HEU, HEU to weapons grade. Pipe each stage's tails back into the stage before it.",
-                "Encadena centrifugadoras en cascada: natural a LEU, LEU a HEU, HEU a grado militar. Devuelve las colas de cada etapa a la etapa anterior.");
+                "The dial on its front shows how far the current batch has got. Engineer's Goggles show its tanks.",
+                "El dial del frente muestra cuánto lleva la tanda actual. Las gafas del ingeniero muestran sus depósitos.");
         add("create_nuclearindustry.ponder.centrifuge.text_6",
-                "It also separates Lithium-6 from lithium.",
-                "También separa litio-6 del litio.");
+                "Below 32 RPM it stalls.",
+                "Por debajo de 32 RPM se detiene.");
+        add("create_nuclearindustry.ponder.centrifuge.text_7",
+                "It also separates Lithium-6 from lithium, and liquid air into nitrogen and helium.",
+                "También separa litio-6 del litio, y el aire líquido en nitrógeno y helio.");
+        add("create_nuclearindustry.ponder.centrifuge_cascade.header",
+                "Centrifuge cascades",
+                "Cascadas de centrifugadoras");
+        add("create_nuclearindustry.ponder.centrifuge_cascade.text_1",
+                "Centrifuges standing side by side and facing the same way join into a cascade, a header running between them.",
+                "Las centrifugadoras colocadas una junto a otra y mirando al mismo lado forman una cascada, con un colector que las une.");
+        add("create_nuclearindustry.ponder.centrifuge_cascade.text_2",
+                "Each stage enriches a little more: natural to LEU, LEU to HEU, HEU to weapons grade. Pipe each stage's product into the next one...",
+                "Cada etapa enriquece un poco más: natural a LEU, LEU a HEU, HEU a grado militar. Lleva el producto de cada etapa a la siguiente...");
+        add("create_nuclearindustry.ponder.centrifuge_cascade.text_3",
+                "...and its depleted tails back into the stage before it.",
+                "...y devuelve sus colas empobrecidas a la etapa anterior.");
+        add("create_nuclearindustry.ponder.centrifuge_cascade.text_4",
+                "The header is only for show: the stages trade product and tails through pipes.",
+                "El colector es solo estético: las etapas se pasan el producto y las colas por tuberías.");
         add("create_nuclearindustry.ponder.electrolyzer.header",
                 "Electrolysis",
                 "Electrólisis");
@@ -911,11 +929,14 @@ public final class LangEntries {
                 "Fed water, it slowly concentrates heavy water. Heavy water then splits into deuterium gas.",
                 "Con agua, concentra lentamente agua pesada. Luego el agua pesada se descompone en gas deuterio.");
         add("create_nuclearindustry.ponder.electrolyzer.text_3",
-                "It also reduces lithium carbonate to lithium metal.",
-                "También reduce el carbonato de litio a litio metálico.");
+                "Whichever it makes, heavy water or deuterium, leaves through the front.",
+                "Lo que produzca, agua pesada o deuterio, sale por el frente.");
         add("create_nuclearindustry.ponder.electrolyzer.text_4",
-                "Fluids leave through the front, items through the bottom.",
-                "Los fluidos salen por el frente y los objetos por abajo.");
+                "It also reduces lithium carbonate to lithium metal. Put the carbonate in through the top or the sides...",
+                "También reduce el carbonato de litio a litio metálico. Mete el carbonato por arriba o por los lados...");
+        add("create_nuclearindustry.ponder.electrolyzer.text_5",
+                "...and take the lithium out of the bottom with a funnel or a chute.",
+                "...y saca el litio por abajo con un embudo o un ducto.");
         add("create_nuclearindustry.ponder.reactor_controller.header",
                 "Assembling a Nuclear Reactor",
                 "Ensamblando un reactor nuclear");

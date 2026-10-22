@@ -26,11 +26,12 @@ import java.util.List;
 
 /**
  * JEI page for a single-slot kinetic machine: item and feed tank on the left, two item
- * outputs and the product and tails tanks on the right.
+ * outputs and the product and tails tanks on the right, and the machine turning above the arrow.
  */
 public class ProcessingJeiCategory<R extends NuclearProcessingRecipe> implements IRecipeCategory<R> {
     private static final int WIDTH = 170;
-    private static final int HEIGHT = 62;
+    private static final int HEIGHT = 76;
+    private static final int ARROW_Y = 38;
     private static final int TANK_HEIGHT = 40;
 
     private final RecipeType<R> type;
@@ -39,9 +40,12 @@ public class ProcessingJeiCategory<R extends NuclearProcessingRecipe> implements
     private final IDrawable arrow;
     private final IDrawableAnimated animatedArrow;
     private final int minimumRpm;
+    private final AnimatedProcessingMachine machine;
 
-    public ProcessingJeiCategory(IGuiHelper guiHelper, RecipeType<R> type, Component title, ItemLike catalyst, int minimumRpm) {
+    public ProcessingJeiCategory(IGuiHelper guiHelper, RecipeType<R> type, Component title, ItemLike catalyst, int minimumRpm,
+                                 AnimatedProcessingMachine machine) {
         this.type = type;
+        this.machine = machine;
         this.title = title;
         this.icon = guiHelper.createDrawableItemLike(catalyst);
         this.arrow = guiHelper.getRecipeArrow();
@@ -79,7 +83,7 @@ public class ProcessingJeiCategory<R extends NuclearProcessingRecipe> implements
         List<Ingredient> ingredients = recipe.getIngredients();
         if (!ingredients.isEmpty()) {
             int count = ingredients.size();
-            builder.addSlot(RecipeIngredientRole.INPUT, 4, 22)
+            builder.addSlot(RecipeIngredientRole.INPUT, 4, ARROW_Y)
                     .setStandardSlotBackground()
                     .addItemStacks(Arrays.stream(ingredients.get(0).getItems()).map(stack -> stack.copyWithCount(count)).toList());
         }
@@ -92,7 +96,7 @@ public class ProcessingJeiCategory<R extends NuclearProcessingRecipe> implements
         List<ProcessingOutput> outputs = recipe.getRollableResults();
         for (int i = 0; i < outputs.size(); i++) {
             ProcessingOutput output = outputs.get(i);
-            builder.addSlot(RecipeIngredientRole.OUTPUT, 82, 4 + i * 20)
+            builder.addSlot(RecipeIngredientRole.OUTPUT, 82, ARROW_Y - 12 + i * 20)
                     .setOutputSlotBackground()
                     .addItemStack(output.getStack())
                     .addRichTooltipCallback((view, tooltip) -> {
@@ -119,8 +123,9 @@ public class ProcessingJeiCategory<R extends NuclearProcessingRecipe> implements
 
     @Override
     public void draw(R recipe, IRecipeSlotsView slots, GuiGraphics graphics, double mouseX, double mouseY) {
-        arrow.draw(graphics, 50, 22);
-        animatedArrow.draw(graphics, 50, 22);
+        machine.draw(graphics, 52, 24);
+        arrow.draw(graphics, 50, ARROW_Y);
+        animatedArrow.draw(graphics, 50, ARROW_Y);
         int seconds = Math.max(1, Math.round(recipe.getProcessingDuration() / 20.0f));
         Component info = Component.translatable("jei.create_nuclearindustry.processing_time", seconds, minimumRpm);
         graphics.drawString(Minecraft.getInstance().font, info, 4, HEIGHT - 10, 0xFF808080, false);

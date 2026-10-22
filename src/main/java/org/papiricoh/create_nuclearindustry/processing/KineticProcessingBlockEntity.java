@@ -83,6 +83,10 @@ public abstract class KineticProcessingBlockEntity extends KineticBlockEntity im
     private boolean outputBlocked;
     private float progress;
     private int syncTimer;
+    /** The fraction done as the server last sent it; clients have no recipe to work it out. */
+    private float syncedProgress;
+    /** The gauge needle on clients, easing towards {@link #syncedProgress} between syncs. */
+    private float gauge, previousGauge;
 
     protected KineticProcessingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -112,6 +116,8 @@ public abstract class KineticProcessingBlockEntity extends KineticBlockEntity im
             return;
         }
         if (level.isClientSide) {
+            previousGauge = gauge;
+            gauge += (syncedProgress - gauge) * 0.15f;
             org.papiricoh.create_nuclearindustry.reactor.visual.ReactorVisualHooks.machineClientTick.accept(this);
             return;
         }
@@ -122,8 +128,13 @@ public abstract class KineticProcessingBlockEntity extends KineticBlockEntity im
             if (found == null || currentRecipe == null || !found.id().equals(currentRecipe.id())) {
                 progress = 0;
             }
+            boolean wasWorking = currentRecipe != null;
             currentRecipe = found;
             outputBlocked = false;
+            if (wasWorking && found == null) {
+                // Out of input: let the gauge drop back to zero.
+                sendData();
+            }
         }
 
         boolean changed = false;
@@ -393,7 +404,16 @@ public abstract class KineticProcessingBlockEntity extends KineticBlockEntity im
         return currentRecipe == null ? ChatFormatting.YELLOW : ChatFormatting.GREEN;
     }
 
-    private float progressFraction() {
+    /** The gauge needle's reading on clients, 0..1, smoothed between syncs. */
+    public float gauge(float partialTicks) {
+        return previousGauge + (gauge - previousGauge) * partialTicks;
+    }
+
+    /** How far the current batch is, 0..1: exact on the server, the last synced value on clients (for the gauge). */
+    public float progressFraction() {
+        if (level != null && level.isClientSide) {
+            return syncedProgress;
+        }
         if (currentRecipe == null) {
             return 0;
         }
@@ -431,6 +451,9 @@ public abstract class KineticProcessingBlockEntity extends KineticBlockEntity im
         tag.put("TailsTank", tailsTank.writeToNBT(registries, new CompoundTag()));
         tag.putFloat("Progress", progress);
         tag.putBoolean("OutputBlocked", outputBlocked);
+        if (clientPacket) {
+            tag.putFloat("ProgressFraction", progressFraction());
+        }
     }
 
     @Override
@@ -444,6 +467,9 @@ public abstract class KineticProcessingBlockEntity extends KineticBlockEntity im
         tailsTank.readFromNBT(registries, tag.getCompound("TailsTank"));
         progress = tag.getFloat("Progress");
         outputBlocked = tag.getBoolean("OutputBlocked");
+        if (clientPacket) {
+            syncedProgress = tag.getFloat("ProgressFraction");
+        }
         recipeDirty = true;
     }
 

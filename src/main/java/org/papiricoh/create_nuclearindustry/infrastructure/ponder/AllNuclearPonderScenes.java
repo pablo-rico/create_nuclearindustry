@@ -47,11 +47,8 @@ public class AllNuclearPonderScenes {
         for (String part : new String[]{"cooling_tower_controller", "cooling_tower_casing", "cooling_tower_fluid_port", "cooling_tower_fan"}) {
             helper.addStoryBoard(id(part), "cooling_tower", CoolingTowerScenes::tower);
         }
-        helper.addStoryBoard(
-                id("centrifuge"),
-                "centrifuge",
-                CentrifugeScenes::processing
-        );
+        helper.addStoryBoard(id("centrifuge"), "centrifuge_cascade", CentrifugeScenes::processing);
+        helper.addStoryBoard(id("centrifuge"), "centrifuge_cascade", CentrifugeScenes::cascade);
         helper.addStoryBoard(
                 id("reactor_controller"),
                 "reactor_controller",
@@ -74,7 +71,7 @@ public class AllNuclearPonderScenes {
         for (String part : new String[]{"graphite_moderator", "beryllium_reflector", "reactor_controller"}) {
             helper.addStoryBoard(id(part), "reactor_controller", ReactorModerationScenes::moderation);
         }
-        helper.addStoryBoard(id("electrolyzer"), "centrifuge", CentrifugeScenes::electrolysis);
+        helper.addStoryBoard(id("electrolyzer"), "electrolyzer", CentrifugeScenes::electrolysis);
         // Turbine storyboards are reachable from every block they are built from.
         for (String part : new String[]{"turbine_output", "turbine_rotor", "turbine_casing", "turbine_fluid_port", "reinforced_turbine_glass"}) {
             helper.addStoryBoard(id(part), "turbine", TurbineScenes::steam);

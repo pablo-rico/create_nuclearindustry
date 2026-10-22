@@ -51,7 +51,7 @@ Structure templates (GameTest arenas and the tokamak and turbine Ponder schemati
 
 The block models of the Penning traps, the antimatter conduit, the annihilation generator, the
 antiproton injector, the synchrotron ring blocks, the gamma irradiator, the smoke detector,
-the reactor irradiation channel and their partials (with the item models of those
+the reactor irradiation channel, the centrifuge and the electrolyzer (body, cascade headers, rotor, shaft stub and gauge needle; textures in `tex_centrifuge.py`) and their partials (with the item models of those
 blocks and their display transforms) are written by `tools/modelgen/generate.py` (standard library
 only, deterministic);
 change the model there and run it, rather than editing those JSON files.
