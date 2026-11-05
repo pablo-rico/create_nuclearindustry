@@ -19,7 +19,8 @@ public final class SunDimming {
 
     /** What to scale the sun quad's alpha by in {@code level}: 1 for no change. */
     public static float factor(@Nullable ClientLevel level) {
-        if (!ClientConfig.dysonDimSun || level == null || !ClientSwarm.shows(level) || RocketRenderTypes.shaderPackInUse()) return 1;
-        return 1 - MAX_DIM * ClientSwarm.coverage();
+        float nuclear = org.papiricoh.create_nuclearindustry.explosive.fx.client.SkyTint.sunFactor();
+        if (!ClientConfig.dysonDimSun || level == null || !ClientSwarm.shows(level) || RocketRenderTypes.shaderPackInUse()) return nuclear;
+        return (1 - MAX_DIM * ClientSwarm.coverage()) * nuclear;
     }
 }
