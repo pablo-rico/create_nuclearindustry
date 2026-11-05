@@ -28,6 +28,7 @@ public final class ExplosiveConfig {
     public static int maxFallingDebris = 1500;
     public static double airburstHeight = 2.0;
     public static int visualRange = 4096;
+    public static int audibleRange = 4096;
     public static int craterMaxReach = 768;
     public static boolean thermonuclearEnabled = true;
     public static int thermonuclearMaxRadius = 750;
@@ -55,6 +56,7 @@ public final class ExplosiveConfig {
     private static ModConfigSpec.IntValue maxFallingDebrisValue;
     private static ModConfigSpec.DoubleValue airburstHeightValue;
     private static ModConfigSpec.IntValue visualRangeValue;
+    private static ModConfigSpec.IntValue audibleRangeValue;
     private static ModConfigSpec.IntValue craterMaxReachValue;
     private static ModConfigSpec.BooleanValue thermonuclearEnabledValue;
     private static ModConfigSpec.IntValue thermonuclearMaxRadiusValue;
@@ -133,6 +135,10 @@ public final class ExplosiveConfig {
                 .comment("Players within this many blocks of a detonation see its flash, fireball, cloud and shock wave. With",
                         "Distant Horizons the cloud shows over its distant terrain too, as far as this reaches.")
                 .defineInRange("explosive.visualRange", 4096, 0, 100000);
+        audibleRangeValue = builder
+                .comment("Players within this many blocks of a detonation hear it, late by the time its shock wave or its sound",
+                        "takes to reach them. Conventional warheads and bombs are heard as far as their size carries, never past this.")
+                .defineInRange("explosive.audibleRange", 4096, 0, 100000);
         thermonuclearEnabledValue = builder
                 .comment("Whether thermonuclear warheads can light their secondary. Off, every one fizzles as its fission primary.")
                 .define("explosive.thermonuclear.enabled", true);
@@ -184,6 +190,7 @@ public final class ExplosiveConfig {
         maxFallingDebris = maxFallingDebrisValue.get();
         airburstHeight = airburstHeightValue.get();
         visualRange = visualRangeValue.get();
+        audibleRange = audibleRangeValue.get();
         craterMaxReach = craterMaxReachValue.get();
         thermonuclearEnabled = thermonuclearEnabledValue.get();
         thermonuclearMaxRadius = thermonuclearMaxRadiusValue.get();
@@ -194,6 +201,11 @@ public final class ExplosiveConfig {
         thermonuclearCountdownSeconds = thermonuclearCountdownSecondsValue.get();
         thermonuclearTamperFalloutReach = thermonuclearTamperFalloutReachValue.get();
         thermonuclearTamperHotSpot = thermonuclearTamperHotSpotValue.get();
+    }
+
+    /** How far a detonation's effects are sent: as far as it is seen or heard. */
+    public static int broadcastRange() {
+        return Math.max(visualRange, audibleRange);
     }
 
     /** The zones' measures, from this config and the blast wave's and contamination's. */

@@ -30,7 +30,7 @@ class FlightFxEventTest {
     @Test
     void theSatelliteFlagIsTheTopBitAndClashesWithNoOther() {
         assertEquals(0x80, FlightFxState.SATELLITE);
-        int others = FlightFxState.BURNING | FlightFxState.RISING | FlightFxState.NUCLEAR_WARHEAD | FlightFxState.PUPPET
+        int others = FlightFxState.BURNING | FlightFxState.RISING | FlightFxState.LIVE_WARHEAD | FlightFxState.PUPPET
                 | FlightFxState.BURNED_OUT | FlightFxState.INTERCEPTOR | FlightFxState.CANISTER;
         assertEquals(0, others & FlightFxState.SATELLITE);
         // Sent as a byte, read back masked.

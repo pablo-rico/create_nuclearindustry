@@ -144,8 +144,8 @@ public class ThermonuclearTests {
         helper.assertTrue(hydrogen.isThermonuclear() && !hydrogen.isDirty(), "a thermonuclear event");
         helper.assertTrue(dirty.isDirty() && dirty.getStyle() == DetonationStyle.DIRTY, "a dirty one");
         helper.assertTrue(fission.getStyle() == DetonationStyle.FISSION && !fission.isThermonuclear(), "and a fission one");
-        DetonationPayload sent = new DetonationPayload(new Vec3(1, 2, 3), 750, 90, 0, false, 1.0e6f, 8, 768, 1050, 42L,
-                DetonationStyle.THERMONUCLEAR);
+        DetonationPayload sent = new DetonationPayload(new Vec3(1, 2, 3), DetonationStyle.THERMONUCLEAR, 42L, 1234L, 750, 90, 0,
+                false, 1.0e6f, 8, 768, 1050, 600, 1125, 1.5f, 1.0f);
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), level.registryAccess());
         DetonationPayload.STREAM_CODEC.encode(buf, sent);
         DetonationPayload received = DetonationPayload.STREAM_CODEC.decode(buf);

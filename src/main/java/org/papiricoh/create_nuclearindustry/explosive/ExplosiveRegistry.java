@@ -129,6 +129,7 @@ public final class ExplosiveRegistry implements NuclearFeature {
         NeoForge.EVENT_BUS.addListener(ShipBlastManager::onServerStopping);
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onChunkLoad);
         DetonationPayload.register(modEventBus);
+        org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalBlastPayload.register(modEventBus);
     }
 
     @Override

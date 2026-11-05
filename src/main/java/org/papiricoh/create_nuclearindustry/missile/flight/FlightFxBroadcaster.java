@@ -69,7 +69,7 @@ public final class FlightFxBroadcaster {
         int flags = 0;
         if (phase == MissileFlight.Phase.BOOST) flags |= FlightFxState.BURNING;
         if (f.rising(params)) flags |= FlightFxState.RISING;
-        if (flight.warhead().nuclear()) flags |= FlightFxState.NUCLEAR_WARHEAD;
+        if (flight.warhead().kind() != Warhead.Kind.INERT) flags |= FlightFxState.LIVE_WARHEAD;
         if (flight.puppet != null) flags |= FlightFxState.PUPPET;
         if (f.burnedOut()) flags |= FlightFxState.BURNED_OUT;
         if (flight.kind() == Flight.Kind.SATELLITE) flags |= FlightFxState.SATELLITE;

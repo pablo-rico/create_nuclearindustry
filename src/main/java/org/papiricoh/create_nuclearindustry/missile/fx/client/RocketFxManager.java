@@ -311,7 +311,7 @@ final class RocketFxManager implements FlightFxListener {
     private void impact(@Nullable FlightFx fx, Vec3 pos, int flags, long now, double distance) {
         float scale = FxScale.of(flags, fx == null ? RocketShape.LEGACY : fx.shape);
         if (fx != null && fx.passage.finish()) boom(pos, distance);
-        if ((flags & FlightFxState.NUCLEAR_WARHEAD) != 0) {
+        if ((flags & FlightFxState.LIVE_WARHEAD) != 0) {
             // The detonation's own effects take over: only let the warhead's glow go out.
             end(fx, now, true);
             return;

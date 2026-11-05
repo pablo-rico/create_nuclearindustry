@@ -36,9 +36,11 @@ public enum FlightFxEvent {
     /** A satellite destroyed by an interceptor, high up: the event's id is the satellite's. */
     SATELLITE_KILLED(13),
     /** A low satellite that decayed burns up coming down: the event's id is the satellite's. */
-    SATELLITE_REENTRY(14);
+    SATELLITE_REENTRY(14),
+    /** A cluster warhead's casing blows open high over its target and frees its bomblets: the event's position is where. */
+    CLUSTER_OPEN(15);
 
-    private static final FlightFxEvent[] BY_ID = new FlightFxEvent[15];
+    private static final FlightFxEvent[] BY_ID = new FlightFxEvent[16];
 
     static {
         for (FlightFxEvent e : values()) BY_ID[e.id] = e;

@@ -19,8 +19,11 @@ public record FlightFxState(UUID id, double x, double y, double z, float vx, flo
     public static final int BURNING = 1;
     /** Still climbing straight out of its silo. */
     public static final int RISING = 1 << 1;
-    /** It carries a nuclear warhead: its impact hands over to the detonation's own effects. */
-    public static final int NUCLEAR_WARHEAD = 1 << 2;
+    /**
+     * It carries a live warhead (anything but an inert one): its impact hands over to the detonation's own effects, nuclear or
+     * conventional.
+     */
+    public static final int LIVE_WARHEAD = 1 << 2;
     /** The server shows a puppet entity of it near this player, which draws the rocket itself. */
     public static final int PUPPET = 1 << 3;
     /** Its engines are done: only the warhead is still attached. */

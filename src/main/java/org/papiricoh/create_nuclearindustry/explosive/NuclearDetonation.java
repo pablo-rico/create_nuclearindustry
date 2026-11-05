@@ -127,7 +127,13 @@ public final class NuclearDetonation {
         NuclearExplosionSoundManager.playDelayedForWorld(level, impact, style);
         double waveRadius = Math.min(tuning.waveCap(), BlastWaveModel.maxRadius(horizontalRadius, tuning.waveCap())
                 * (profile.airburst() ? DetonationProfile.AIRBURST_REACH : 1.0));
-        DetonationPayload.of(impact, profile, waveRadius, level.random.nextLong(), style).send(level);
+        int radius = tuning.falloutRadius() > 0 ? tuning.falloutRadius() : falloutRadius(horizontalRadius);
+        float fallout = (float) profile.falloutIntensity();
+        if (salting > 0) {
+            radius = Math.max(radius, DirtyWarheadStats.falloutRadius(salting));
+            fallout = (float) Math.min(Config.contaminationMax, fallout + DirtyWarheadStats.falloutIntensity(salting));
+        }
+        DetonationPayload.of(level, impact, profile, waveRadius, radius, level.random.nextLong(), style).send(level);
         NuclearFlash.strike(level, impact, profile);
         // Only the bang and its hurt: the crater does the digging, without waking the water round ground zero.
         level.explode(null, impact.x, impact.y, impact.z, fireballPower(power), Level.ExplosionInteraction.NONE);
@@ -136,12 +142,6 @@ public final class NuclearDetonation {
         }
         ShipBlastManager.start(level, impact, profile, carrier);
         BlastWaveManager.start(level, impact, BlastWaveModel.yield(power, CivilDefenseConfig.blastWaveYieldPerPower), waveRadius);
-        int radius = tuning.falloutRadius() > 0 ? tuning.falloutRadius() : falloutRadius(horizontalRadius);
-        float fallout = (float) profile.falloutIntensity();
-        if (salting > 0) {
-            radius = Math.max(radius, DirtyWarheadStats.falloutRadius(salting));
-            fallout = (float) Math.min(Config.contaminationMax, fallout + DirtyWarheadStats.falloutIntensity(salting));
-        }
         Contamination.fallout(level, center, radius, fallout, wind(level), ExplosiveConfig.windStretch);
         if (tuning.hotSpot() > 0) {
             FalloutData.contaminate(level, center, tuning.hotSpot(), DirtyWarheadStats.HOT_SPOT_TICKS);
@@ -163,7 +163,7 @@ public final class NuclearDetonation {
         LOGGER.info("Dirty bomb detonation at {} with load={}", center, load);
         float power = DirtyWarheadStats.blastPower(load);
         NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, DirtyWarheadStats.falloutRadius(load), DetonationStyle.DIRTY));
-        DetonationPayload.dirty(impact, power, level.random.nextLong()).send(level);
+        DetonationPayload.dirty(level, impact, power, level.random.nextLong()).send(level);
         level.explode(null, impact.x, impact.y, impact.z, power, Level.ExplosionInteraction.BLOCK);
         Contamination.fallout(level, center, DirtyWarheadStats.falloutRadius(load), DirtyWarheadStats.falloutIntensity(load),
                 wind(level), ExplosiveConfig.windStretch);

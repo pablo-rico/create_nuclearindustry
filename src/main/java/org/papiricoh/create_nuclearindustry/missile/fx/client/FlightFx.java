@@ -131,7 +131,7 @@ final class FlightFx {
         phase = flight.phase();
         stage = flight.stage();
         flags = 0;
-        for (int f : new int[]{FlightFxState.BURNING, FlightFxState.RISING, FlightFxState.NUCLEAR_WARHEAD, FlightFxState.PUPPET,
+        for (int f : new int[]{FlightFxState.BURNING, FlightFxState.RISING, FlightFxState.LIVE_WARHEAD, FlightFxState.PUPPET,
                 FlightFxState.BURNED_OUT, FlightFxState.INTERCEPTOR, FlightFxState.CANISTER, FlightFxState.SATELLITE}) {
             if (flight.has(f)) flags |= f;
         }

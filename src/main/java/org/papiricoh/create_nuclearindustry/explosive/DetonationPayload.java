@@ -18,10 +18,14 @@ import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationStyle;
 
 /**
  * Server to client: a nuclear detonation went off, for its flash, fireball, mushroom cloud and shock wave.
- * Sent to the players of the level within {@code explosive.visualRange} blocks. The client draws it all
- * from these few numbers and the seed, so every player sees the same cloud.
+ * Sent to the players of the level within {@code explosive.visualRange} or {@code explosive.audibleRange}
+ * blocks, and again to anyone who comes in range while its cloud still stands ({@code ActiveDetonations}).
+ * The client draws it all from these few numbers and the seed, so every player sees the same cloud.
  *
  * @param centre        where it went off
+ * @param style         how it looks: a fission or thermonuclear fireball and cloud, or an antimatter flash
+ * @param seed          picks the cloud's puffs
+ * @param startTick     the server's game time when it went off, so a player told late sees the cloud at its true age
  * @param scale         the warhead's destruction radius, which sizes the cloud
  * @param fireball      the fireball's radius
  * @param burstHeight   blocks above the ground
@@ -30,12 +34,14 @@ import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationStyle;
  * @param waveSpeed     blocks per tick the shock wave travels
  * @param waveRadius    how far it travels
  * @param thermalRadius how far the flash burns
- * @param seed          picks the cloud's puffs
- * @param style         how it looks: a fission or thermonuclear fireball and cloud, or a dirty bomb's small
- *                      conventional flash and no cloud
+ * @param severeRadius  how far the blast flattens what stands, for the dust it raises
+ * @param falloutRadius how far the fallout reaches before the wind stretches it, 0 for an airburst's
+ * @param windAngle     radians, where the wind blows the cloud and the fallout to
+ * @param windStretch   how far the wind draws the fallout out downwind
  */
-public record DetonationPayload(Vec3 centre, float scale, float fireball, float burstHeight, boolean airburst, float yieldKg,
-                                float waveSpeed, float waveRadius, float thermalRadius, long seed, DetonationStyle style)
+public record DetonationPayload(Vec3 centre, DetonationStyle style, long seed, long startTick, float scale, float fireball,
+                                float burstHeight, boolean airburst, float yieldKg, float waveSpeed, float waveRadius,
+                                float thermalRadius, float severeRadius, float falloutRadius, float windAngle, float windStretch)
         implements CustomPacketPayload {
     public static final Type<DetonationPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "detonation"));
@@ -44,6 +50,9 @@ public record DetonationPayload(Vec3 centre, float scale, float fireball, float 
                 buf.writeDouble(p.centre.x);
                 buf.writeDouble(p.centre.y);
                 buf.writeDouble(p.centre.z);
+                buf.writeByte(p.style.id());
+                buf.writeLong(p.seed);
+                buf.writeLong(p.startTick);
                 buf.writeFloat(p.scale);
                 buf.writeFloat(p.fireball);
                 buf.writeFloat(p.burstHeight);
@@ -52,12 +61,15 @@ public record DetonationPayload(Vec3 centre, float scale, float fireball, float 
                 buf.writeFloat(p.waveSpeed);
                 buf.writeFloat(p.waveRadius);
                 buf.writeFloat(p.thermalRadius);
-                buf.writeLong(p.seed);
-                buf.writeByte(p.style.id());
+                buf.writeFloat(p.severeRadius);
+                buf.writeFloat(p.falloutRadius);
+                buf.writeFloat(p.windAngle);
+                buf.writeFloat(p.windStretch);
             },
-            buf -> new DetonationPayload(new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble()), buf.readFloat(), buf.readFloat(),
-                    buf.readFloat(), buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readLong(),
-                    DetonationStyle.byId(buf.readByte())));
+            buf -> new DetonationPayload(new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble()),
+                    DetonationStyle.byId(buf.readByte()), buf.readLong(), buf.readLong(), buf.readFloat(), buf.readFloat(),
+                    buf.readFloat(), buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
+                    buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat()));
 
     /** A dirty bomb or an antimatter annihilation: a small flash and no cloud. */
     public boolean dirty() {
@@ -70,35 +82,40 @@ public record DetonationPayload(Vec3 centre, float scale, float fireball, float 
     }
 
     public static void register(IEventBus modEventBus) {
-        modEventBus.addListener(RegisterPayloadHandlersEvent.class, event -> event.registrar("2")
+        modEventBus.addListener(RegisterPayloadHandlersEvent.class, event -> event.registrar("3")
                 .playToClient(TYPE, STREAM_CODEC, (payload, context) -> context.enqueueWork(
-                        () -> org.papiricoh.create_nuclearindustry.explosive.client.NuclearExplosionEffects.add(payload))));
+                        () -> org.papiricoh.create_nuclearindustry.explosive.fx.client.ExplosionFxClient.onNuclear(payload))));
     }
 
-    /** The payload of a nuclear detonation of {@code profile} at {@code centre}. */
-    public static DetonationPayload of(Vec3 centre, DetonationProfile profile, double waveRadius, long seed, DetonationStyle style) {
-        return new DetonationPayload(centre, profile.horizontalRadius(), (float) profile.fireballRadius(), (float) profile.burstHeight(),
-                profile.airburst(), (float) profile.yieldKg(), (float) CivilDefenseConfig.blastWaveSpeed, (float) waveRadius,
-                (float) profile.thermalRadius(), seed, style);
+    /**
+     * The payload of a nuclear detonation of {@code profile} at {@code centre}, whose fallout reaches {@code falloutRadius}
+     * before the wind stretches it.
+     */
+    public static DetonationPayload of(ServerLevel level, Vec3 centre, DetonationProfile profile, double waveRadius, int falloutRadius,
+                                       long seed, DetonationStyle style) {
+        return new DetonationPayload(centre, style, seed, level.getGameTime(), profile.horizontalRadius(), (float) profile.fireballRadius(),
+                (float) profile.burstHeight(), profile.airburst(), (float) profile.yieldKg(), (float) CivilDefenseConfig.blastWaveSpeed,
+                (float) waveRadius, (float) profile.thermalRadius(), (float) profile.severeRadius(),
+                profile.airburst() ? 0 : falloutRadius, (float) NuclearDetonation.wind(level), (float) ExplosiveConfig.windStretch);
     }
 
     /** A dirty bomb's conventional blast of {@code power} at {@code centre}. */
-    public static DetonationPayload dirty(Vec3 centre, float power, long seed) {
-        return new DetonationPayload(centre, 0, Math.max(2, power * 0.4f), 0, false,
+    public static DetonationPayload dirty(ServerLevel level, Vec3 centre, float power, long seed) {
+        return new DetonationPayload(centre, DetonationStyle.DIRTY, seed, level.getGameTime(), 0, Math.max(2, power * 0.4f), 0, false,
                 (float) BlastWaveModel.yield(power, CivilDefenseConfig.blastWaveYieldPerPower), (float) CivilDefenseConfig.blastWaveSpeed,
-                0, 0, seed, DetonationStyle.DIRTY);
+                0, 0, 0, 0, 0, 0);
     }
 
     /** An antimatter annihilation of blast radius {@code radius} at {@code centre}: a small flash, no cloud. */
-    public static DetonationPayload antimatter(Vec3 centre, float radius, long seed) {
-        return new DetonationPayload(centre, 0, Math.max(1.5f, radius * 0.5f), 0, false,
-                (float) BlastWaveModel.yield(radius, CivilDefenseConfig.blastWaveYieldPerPower), (float) CivilDefenseConfig.blastWaveSpeed,
-                0, 0, seed, DetonationStyle.ANTIMATTER);
+    public static DetonationPayload antimatter(ServerLevel level, Vec3 centre, float radius, long seed) {
+        return new DetonationPayload(centre, DetonationStyle.ANTIMATTER, seed, level.getGameTime(), 0, Math.max(1.5f, radius * 0.5f), 0,
+                false, (float) BlastWaveModel.yield(radius, CivilDefenseConfig.blastWaveYieldPerPower),
+                (float) CivilDefenseConfig.blastWaveSpeed, 0, 0, 0, 0, 0, 0);
     }
 
     /** Sends it to the players of the level close enough to see it. */
     public void send(ServerLevel level) {
-        double range = ExplosiveConfig.visualRange;
+        double range = ExplosiveConfig.broadcastRange();
         for (ServerPlayer player : level.players()) {
             if (player.position().distanceToSqr(centre) <= range * range) {
                 PacketDistributor.sendToPlayer(player, this);

@@ -35,6 +35,32 @@ public class ClientConfig {
     private static final ModConfigSpec.BooleanValue EXPLOSION_SHAKE = BUILDER
             .comment("Shake the view when a nuclear detonation's shock wave passes.")
             .define("explosion.shake", true);
+    private static final ModConfigSpec.EnumValue<org.papiricoh.create_nuclearindustry.explosive.fx.ExplosionQuality> EXPLOSION_QUALITY = BUILDER
+            .comment("How much detail explosions are drawn with: LOW for slow machines, MEDIUM, HIGH, or ULTRA for the most puffs,",
+                    "layers and particles. Detail also fades with distance.")
+            .defineEnum("explosion.quality", org.papiricoh.create_nuclearindustry.explosive.fx.ExplosionQuality.MEDIUM);
+    private static final ModConfigSpec.BooleanValue EXPLOSION_HEAT_HAZE = BUILDER
+            .comment("Ripple the air over a fireball and along a shock front. Never with a shader pack on.")
+            .define("explosion.heatHaze", true);
+    private static final ModConfigSpec.BooleanValue EXPLOSION_TERRAIN_LIGHT = BUILDER
+            .comment("Light up the world in a detonation's flash and its orange afterglow. Never with a shader pack on.")
+            .define("explosion.terrainLight", true);
+    private static final ModConfigSpec.BooleanValue EXPLOSION_SKY_TINT = BUILDER
+            .comment("Tint the sky and clouds after a nuclear detonation and dim the sun behind its dust.")
+            .define("explosion.skyTint", true);
+    private static final ModConfigSpec.BooleanValue EXPLOSION_FAR_IMPOSTOR = BUILDER
+            .comment("Keep drawing a simplified mushroom cloud beyond the render distance. With Distant Horizons the full cloud is",
+                    "drawn over its terrain instead.")
+            .define("explosion.farImpostor", true);
+    private static final ModConfigSpec.BooleanValue EXPLOSION_ASH = BUILDER
+            .comment("Let ash and black rain fall under a mushroom cloud, downwind of ground zero.")
+            .define("explosion.ashParticles", true);
+    private static final ModConfigSpec.BooleanValue EXPLOSION_TINNITUS = BUILDER
+            .comment("Play a ringing in your ears while deafened by a shock wave.")
+            .define("explosion.tinnitus", true);
+    private static final ModConfigSpec.DoubleValue EXPLOSION_FLASH_BLINDNESS = BUILDER
+            .comment("How strongly flash blindness washes out the screen, 0 (not at all) to 1 (full). Lower it if it bothers you.")
+            .defineInRange("explosion.flashBlindness", 1.0, 0.0, 1.0);
 
     private static final ModConfigSpec.BooleanValue ROCKET_EFFECTS = BUILDER
             .comment("Draw rocket plumes, smoke trails, staging and re-entry effects, and play their sounds.")
@@ -97,6 +123,15 @@ public class ClientConfig {
     public static double explosionFlash = 1.0;
     public static double explosionCloudDetail = 1.0;
     public static boolean explosionShake = true;
+    public static org.papiricoh.create_nuclearindustry.explosive.fx.ExplosionQuality explosionQuality =
+            org.papiricoh.create_nuclearindustry.explosive.fx.ExplosionQuality.MEDIUM;
+    public static boolean explosionHeatHaze = true;
+    public static boolean explosionTerrainLight = true;
+    public static boolean explosionSkyTint = true;
+    public static boolean explosionFarImpostor = true;
+    public static boolean explosionAsh = true;
+    public static boolean explosionTinnitus = true;
+    public static double explosionFlashBlindness = 1.0;
     public static boolean rocketEffects = true;
     public static double rocketDetail = 1.0;
     public static boolean rocketFarTrails = true;
@@ -145,6 +180,14 @@ public class ClientConfig {
         explosionFlash = EXPLOSION_FLASH.get();
         explosionCloudDetail = EXPLOSION_CLOUD_DETAIL.get();
         explosionShake = EXPLOSION_SHAKE.get();
+        explosionQuality = EXPLOSION_QUALITY.get();
+        explosionHeatHaze = EXPLOSION_HEAT_HAZE.get();
+        explosionTerrainLight = EXPLOSION_TERRAIN_LIGHT.get();
+        explosionSkyTint = EXPLOSION_SKY_TINT.get();
+        explosionFarImpostor = EXPLOSION_FAR_IMPOSTOR.get();
+        explosionAsh = EXPLOSION_ASH.get();
+        explosionTinnitus = EXPLOSION_TINNITUS.get();
+        explosionFlashBlindness = EXPLOSION_FLASH_BLINDNESS.get();
         rocketEffects = ROCKET_EFFECTS.get();
         rocketDetail = ROCKET_DETAIL.get();
         rocketFarTrails = ROCKET_FAR_TRAILS.get();
