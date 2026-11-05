@@ -22,6 +22,7 @@ import fluids  # noqa: E402
 import gui  # noqa: E402
 import items  # noqa: E402
 import particles  # noqa: E402
+import tex_explosionfx  # noqa: E402
 import tex_logo  # noqa: E402
 
 DEFAULT_OUT = os.path.join("src", "main", "resources", "assets",
@@ -62,6 +63,10 @@ def main():
 
     for name, fn in sorted(particles.PARTICLES.items()):
         write(os.path.join(args.out, "particle", name + ".png"), fn().im)
+
+    # Effect textures the explosion shaders sample directly, outside the block and particle atlases.
+    for name, fn in sorted(tex_explosionfx.FX.items()):
+        write(os.path.join(args.out, "fx", name + ".png"), fn().im)
 
     for name, fn in sorted(gui.GUIS.items()):
         t = fn()
