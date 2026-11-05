@@ -1,7 +1,6 @@
 package org.papiricoh.create_nuclearindustry.civildefense.blast;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,14 +12,25 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.level.ChunkPos;
+import org.papiricoh.create_nuclearindustry.explosive.DetonationCause;
+import org.papiricoh.create_nuclearindustry.explosive.ExplosiveConfig;
+import org.papiricoh.create_nuclearindustry.explosive.blast.DeafeningModel;
+import org.papiricoh.create_nuclearindustry.explosive.fx.ExplosionFxRegistry;
+import org.papiricoh.create_nuclearindustry.integration.claims.ClaimGuards;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseRegistry;
 import org.papiricoh.create_nuclearindustry.civildefense.shelter.ShelterRegistry;
 import org.papiricoh.create_nuclearindustry.radiation.RadiationRay;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -34,9 +44,11 @@ import java.util.function.ToDoubleFunction;
  * {@code civilDefense.blastWave.speed} blocks per tick. Each tick it strikes the living entities in
  * the shell it just swept, with the {@link BlastWaveModel} overpressure for their distance times
  * what the blocks on the straight line from the centre let through, so walls and hills shelter
- * people behind them. Optionally it shatters fragile blocks near the surface on its way. Waves live
- * in memory: a wave under way when the server stops is dropped. For fragile blocks each tick walks only
- * the columns of the ring it sweeps ({@link BlastShell#ringColumns}), not the whole square around it.
+ * people behind them. Optionally it shatters fragile blocks near the surface on its way, never in a
+ * protected claim. Waves are saved with their level ({@link BlastWaves}), so one under way when the world
+ * closes carries on when it opens again. For fragile blocks each tick walks only the columns of the ring it
+ * sweeps ({@link BlastShell#ringColumns}), not the whole square around it. Its damage is whoever set the
+ * detonation off's ({@link DetonationCause}); a strong enough wave deafens the players it reaches.
  */
 public final class BlastWaveManager {
     /** Columns of the ring looked at per tick for fragile blocks; beyond it, columns are sampled. */
@@ -53,8 +65,6 @@ public final class BlastWaveManager {
     /** Speed below which a push is not worth sending. */
     private static final double MIN_PUSH = 0.01;
 
-    private static final List<Wave> WAVES = new ArrayList<>();
-
     private BlastWaveManager() {}
 
     /**
@@ -69,32 +79,42 @@ public final class BlastWaveManager {
 
     /** Starts a wave of {@code yieldKg} kg of TNT equivalent that travels {@code maxRadius} blocks. */
     public static void start(ServerLevel level, Vec3 centre, double yieldKg, double maxRadius) {
+        start(level, centre, yieldKg, maxRadius, DetonationCause.NONE, 0);
+    }
+
+    /**
+     * As {@link #start(ServerLevel, Vec3, double, double)}, its harm caused by {@code cause}, getting {@code shelterReach} (0
+     * none to 1 all) of a shelter's protection through, as a thermobaric charge's fuel flowing in before it lights does.
+     */
+    public static void start(ServerLevel level, Vec3 centre, double yieldKg, double maxRadius, DetonationCause cause, double shelterReach) {
         if (yieldKg <= 0 || maxRadius <= 0) {
             return;
         }
-        WAVES.add(new Wave(level, centre, yieldKg, maxRadius));
+        BlastWaves.get(level).add(new Wave(centre, yieldKg, maxRadius, cause, Math.clamp(shelterReach, 0, 1)));
     }
 
     /** Waves still travelling in {@code level}. */
     public static int active(ServerLevel level) {
-        return (int) WAVES.stream().filter(wave -> wave.level == level).count();
+        BlastWaves waves = BlastWaves.getIfPresent(level);
+        return waves == null ? 0 : waves.waves().size();
     }
 
     public static void onLevelTick(LevelTickEvent.Post event) {
-        if (!(event.getLevel() instanceof ServerLevel level) || WAVES.isEmpty()) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
             return;
         }
-        Iterator<Wave> iterator = WAVES.iterator();
+        BlastWaves waves = BlastWaves.getIfPresent(level);
+        if (waves == null || waves.waves().isEmpty()) {
+            return;
+        }
+        Iterator<Wave> iterator = waves.waves().iterator();
         while (iterator.hasNext()) {
-            Wave wave = iterator.next();
-            if (wave.level == level && wave.tick()) {
+            if (iterator.next().tick(level)) {
                 iterator.remove();
             }
         }
-    }
-
-    public static void onServerStopping(ServerStoppingEvent event) {
-        WAVES.clear();
+        // Every tick a wave moves on, so what is saved is always a tick behind at most.
+        waves.setDirty();
     }
 
     /** What one block lets through of the wave, by its explosion resistance; open blast doors are skipped by the walk. */
@@ -118,24 +138,73 @@ public final class BlastWaveManager {
         return free * RadiationRay.walk(level, centre, body, null, perBlock) * ShelterRegistry.blastFactor(level, body);
     }
 
-    private static final class Wave {
-        private final ServerLevel level;
+    /** As {@link #overpressureAt(ServerLevel, Vec3, double, Vec3)}, getting {@code shelterReach} of a shelter's protection through. */
+    public static double overpressureAt(ServerLevel level, Vec3 centre, double yieldKg, Vec3 body, double shelterReach) {
+        double free = BlastWaveModel.overpressure(body.distanceTo(centre), yieldKg);
+        if (free <= 0) {
+            return 0;
+        }
+        double shelter = ShelterRegistry.blastFactor(level, body);
+        shelter += (1 - shelter) * shelterReach;
+        return free * RadiationRay.walk(level, centre, body, null, BlastWaveManager::blockTransmission) * shelter;
+    }
+
+    /** One wave under way: where it started, how strong, how far it has come and what it has already struck. */
+    public static final class Wave {
         private final Vec3 centre;
         private final double yieldKg;
         private final double maxRadius;
+        private final DetonationCause cause;
+        private final double shelterReach;
         private final Set<UUID> struck = new HashSet<>();
         private double radius;
+        private ServerLevel level;
         private int tracesLeft;
+        private final Long2BooleanOpenHashMap claimed = new Long2BooleanOpenHashMap();
 
-        private Wave(ServerLevel level, Vec3 centre, double yieldKg, double maxRadius) {
-            this.level = level;
+        Wave(Vec3 centre, double yieldKg, double maxRadius, DetonationCause cause, double shelterReach) {
             this.centre = centre;
             this.yieldKg = yieldKg;
             this.maxRadius = maxRadius;
+            this.cause = cause;
+            this.shelterReach = shelterReach;
         }
 
-        /** Advances one tick; true once the wave has gone its whole way. */
-        private boolean tick() {
+        public double radius() {
+            return radius;
+        }
+
+        CompoundTag save() {
+            CompoundTag tag = new CompoundTag();
+            tag.putDouble("X", centre.x);
+            tag.putDouble("Y", centre.y);
+            tag.putDouble("Z", centre.z);
+            tag.putDouble("Yield", yieldKg);
+            tag.putDouble("MaxRadius", maxRadius);
+            tag.putDouble("Radius", radius);
+            tag.putDouble("ShelterReach", shelterReach);
+            cause.save(tag);
+            ListTag ids = new ListTag();
+            for (UUID id : struck) {
+                ids.add(NbtUtils.createUUID(id));
+            }
+            tag.put("Struck", ids);
+            return tag;
+        }
+
+        static Wave load(CompoundTag tag) {
+            Wave wave = new Wave(new Vec3(tag.getDouble("X"), tag.getDouble("Y"), tag.getDouble("Z")), tag.getDouble("Yield"),
+                    tag.getDouble("MaxRadius"), DetonationCause.load(tag), tag.getDouble("ShelterReach"));
+            wave.radius = tag.getDouble("Radius");
+            for (Tag id : tag.getList("Struck", Tag.TAG_INT_ARRAY)) {
+                wave.struck.add(NbtUtils.loadUUID(id));
+            }
+            return wave;
+        }
+
+        /** Advances one tick in {@code level}; true once the wave has gone its whole way. */
+        private boolean tick(ServerLevel level) {
+            this.level = level;
             double previous = radius;
             radius = Math.min(maxRadius, radius + CivilDefenseConfig.blastWaveSpeed);
             strike(previous);
@@ -163,12 +232,17 @@ public final class BlastWaveManager {
             AABB box = new AABB(centre, centre).inflate(radius);
             List<LivingEntity> targets = level.getEntitiesOfClass(LivingEntity.class, box, inShell);
             // Coming from the centre, so the hit's own knockback points away from it too.
-            DamageSource source = new DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
-                    .getHolderOrThrow(CivilDefenseRegistry.BLAST_WAVE_DAMAGE), centre);
+            DamageSource source = cause.damage(level, CivilDefenseRegistry.BLAST_WAVE_DAMAGE, centre);
             for (LivingEntity entity : targets) {
                 struck.add(entity.getUUID());
                 Vec3 body = body(entity);
-                double kPa = overpressureAt(level, centre, yieldKg, body);
+                if (ExplosiveConfig.claimsProtectEntities && claimed(BlockPos.containing(body))) {
+                    continue;
+                }
+                double kPa = overpressureAt(level, centre, yieldKg, body, shelterReach);
+                if (entity instanceof ServerPlayer player) {
+                    deafen(player, kPa);
+                }
                 float damage = (float) BlastWaveModel.damage(kPa, CivilDefenseConfig.blastWaveDamageThreshold,
                         CivilDefenseConfig.blastWaveDamagePerKPa);
                 if (damage > 0) {
@@ -222,6 +296,33 @@ public final class BlastWaveManager {
             }
         }
 
+        /** Deafens {@code player} for as long and as badly as {@code kPa} reaching them does. */
+        private static void deafen(ServerPlayer player, double kPa) {
+            if (!ExplosiveConfig.deafening || player.isCreative() || player.isSpectator()) {
+                return;
+            }
+            int grade = DeafeningModel.grade(kPa, ExplosiveConfig.deafeningThresholdKPa);
+            if (grade < 0) {
+                return;
+            }
+            int ticks = (int) Math.round(20 * DeafeningModel.seconds(kPa, ExplosiveConfig.deafeningThresholdKPa));
+            MobEffectInstance current = player.getEffect(ExplosionFxRegistry.DEAFENED);
+            if (current == null || current.getAmplifier() < grade || current.getDuration() < ticks) {
+                player.addEffect(new MobEffectInstance(ExplosionFxRegistry.DEAFENED, ticks, grade, false, false, true));
+            }
+        }
+
+        /** Whether a claim keeps blasts away from {@code pos}'s chunk; asked once per chunk and wave. */
+        private boolean claimed(BlockPos pos) {
+            long key = ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4);
+            if (claimed.containsKey(key)) {
+                return claimed.get(key);
+            }
+            boolean protectedChunk = ClaimGuards.protectsFromExplosions(level, pos.getX() >> 4, pos.getZ() >> 4);
+            claimed.put(key, protectedChunk);
+            return protectedChunk;
+        }
+
         /** Throws the body away from the centre, a little upwards, less for whatever resists knockback. */
         private void push(LivingEntity entity, Vec3 body, double kPa) {
             if (entity instanceof Player player && player.isCreative() && player.getAbilities().flying) {
@@ -269,7 +370,7 @@ public final class BlastWaveManager {
 
         private int shatterColumn(BlockPos.MutableBlockPos pos, int x, int z, int budget, int alreadyBroken) {
             pos.set(x, level.getMinBuildHeight(), z);
-            if (!level.isLoaded(pos)) {
+            if (!level.isLoaded(pos) || claimed(pos)) {
                 return 0;
             }
             int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;

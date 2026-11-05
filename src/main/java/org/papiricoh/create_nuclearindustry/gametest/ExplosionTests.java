@@ -41,7 +41,7 @@ import org.papiricoh.create_nuclearindustry.radiation.contamination.Contaminatio
 public class ExplosionTests {
     /** A detonation small enough for the 41 wide arena: a 6 block crater, wrecking out to 9.5, the flash 18 blocks out. */
     private static DetonationProfile small() {
-        return new DetonationProfile(10, 2500, 12, 1, 0, false, 2, 6, 2, 8, 1, 10, 5, 7, 9.5, 18, 8, 0, 0);
+        return new DetonationProfile(10, 2500, 12, 1, 0, false, 2, 6, 2, 8, 1, 10, 5, 7, 9.5, 18, 8, 0, 0, 0);
     }
 
     private static final BlockPos CENTRE = new BlockPos(20, 4, 20);

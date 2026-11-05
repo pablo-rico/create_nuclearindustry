@@ -268,10 +268,12 @@ public final class FlightTracker extends SavedData {
                 flights.remove(flight.id());
                 FlightEvents.fire(level, flight, FlightFxEvent.IMPACT, flight.flight().stage(), impact, flight.velocity());
                 release(level, flight);
-                flight.warhead().detonate(level, impact);
+                flight.warhead().detonate(level, impact, flight.velocity(),
+                        org.papiricoh.create_nuclearindustry.explosive.DetonationCause.of(flight.owner()));
                 continue;
             }
             forceImpactChunk(level, flight, params);
+            reportThreat(level, flight, params);
             showPuppet(level, flight);
         }
         for (Flight interceptor : arrived) resolve(level, interceptor, params);
@@ -516,6 +518,17 @@ public final class FlightTracker extends SavedData {
             }
         }
         return false;
+    }
+
+    /** Tells the sirens near a live missile's target, once a second, how long until it comes down. */
+    private static void reportThreat(ServerLevel level, Flight flight, BallisticModel.Params params) {
+        if (!org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.sirenMissileThreats || flight.kind() != Flight.Kind.MISSILE
+                || flight.warhead().kind() == Warhead.Kind.INERT
+                || level.getGameTime() % 20 != 0 && ThreatRegistry.find(level, flight.id()) != null) {
+            return;
+        }
+        ThreatRegistry.report(level, flight.id(), flight.target(), flight.warhead().threatRadius(),
+                (int) Math.ceil(flight.flight().ticksToImpact(params)));
     }
 
     private static void release(ServerLevel level, Flight flight) {

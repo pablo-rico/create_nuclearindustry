@@ -126,7 +126,7 @@ public class AeronauticsTests {
 
     /** A small detonation: severe to 7 blocks, wrecking to 9.5, the flash to 24. */
     private static DetonationProfile smallBlast() {
-        return new DetonationProfile(10, 2500, 12, 1, 0, false, 2, 6, 2, 8, 1, 10, 5, 7, 9.5, 24, 8, 0, 0);
+        return new DetonationProfile(10, 2500, 12, 1, 0, false, 2, 6, 2, 8, 1, 10, 5, 7, 9.5, 24, 8, 0, 0, 0);
     }
 
     private static final BlockPos BLAST = new BlockPos(20, 4, 20);
@@ -148,7 +148,7 @@ public class AeronauticsTests {
         helper.assertTrue(near != null && far != null, "no ships assembled");
         helper.runAfterDelay(3, () -> ShipBlastManager.start(helper.getLevel(), helper.absoluteVec(Vec3.atCenterOf(BLAST)), smallBlast(), null));
         helper.succeedWhen(() -> {
-            helper.assertTrue(ShipBlastManager.pending() == 0, "the blast is still working through the ships");
+            helper.assertTrue(ShipBlastManager.pending(helper.getLevel()) == 0, "the blast is still working through the ships");
             helper.assertTrue(near.isRemoved() || near.firstBlock() == null, "the ship in the severe zone still stands");
             BlockPos log = far.firstBlock();
             helper.assertTrue(log != null && helper.getLevel().getBlockState(log).is(ExplosiveRegistry.CHARRED_LOG.get()),

@@ -126,8 +126,16 @@ public final class ExplosiveRegistry implements NuclearFeature {
     public void register(IEventBus modEventBus) {
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onLevelTick);
         NeoForge.EVENT_BUS.addListener(ShipBlastManager::onLevelTick);
-        NeoForge.EVENT_BUS.addListener(ShipBlastManager::onServerStopping);
         NeoForge.EVENT_BUS.addListener(NuclearBlastManager::onChunkLoad);
+        NeoForge.EVENT_BUS.addListener(NuclearFlash::onLevelTick);
+        NeoForge.EVENT_BUS.addListener(ActiveDetonations::onLevelTick);
+        NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent.class,
+                ActiveDetonations::onPlayerArrives);
+        NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerChangedDimensionEvent.class,
+                ActiveDetonations::onPlayerArrives);
+        NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerRespawnEvent.class,
+                ActiveDetonations::onPlayerArrives);
+        NeoForge.EVENT_BUS.addListener(NuclearFlash::onLevelUnload);
         DetonationPayload.register(modEventBus);
         org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalBlastPayload.register(modEventBus);
     }

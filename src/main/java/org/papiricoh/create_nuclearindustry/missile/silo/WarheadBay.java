@@ -9,8 +9,7 @@ import org.papiricoh.create_nuclearindustry.AllNuclearItems;
 import org.papiricoh.create_nuclearindustry.AllNuclearTags;
 import org.papiricoh.create_nuclearindustry.explosive.*;
 import org.papiricoh.create_nuclearindustry.explosive.blockentity.*;
-import org.papiricoh.create_nuclearindustry.missile.MissileConfig;
-import org.papiricoh.create_nuclearindustry.missile.physics.ConventionalYield;
+import org.papiricoh.create_nuclearindustry.explosive.conventional.ExplosiveCharge;
 import org.papiricoh.create_nuclearindustry.missile.physics.GuidanceTier;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
@@ -18,13 +17,15 @@ import org.papiricoh.create_nuclearindustry.missile.flight.Warhead;
 
 /**
  * The slots of a rocket section and what may go in them, the same on server and client so the console's slots refuse what
- * the section would. A warhead takes a charge (cores, radiological material or TNT), a thermonuclear secondary and tamper,
+ * the section would. A warhead takes a charge (cores, radiological material, or conventional explosives of one kind: high
+ * explosive, thermobaric charges or cluster bomblets, weighed by the {@code explosive_charge} data map), a thermonuclear
+ * secondary and tamper,
  * or one whole bomb; a tank takes a propellant cartridge and a guidance module a precision mechanism or star tracker, both
  * in slot 0.
  */
 public final class WarheadBay {
     public static final int SLOTS = 10;
-    /** Cores ×2 each, radiological material ×64 each, or TNT ×16 each. */
+    /** Cores ×2 each, radiological material ×64 each, or conventional explosives ×16 each. */
     public static final int[] CHARGE = {0, 1, 2};
     /** Lithium deuteride ×4 each: 16, a full secondary. */
     public static final int[] SECONDARY = {3, 4, 5, 6};
@@ -100,6 +101,16 @@ public final class WarheadBay {
      */
     public static int limit(RocketComposition.Section section, int slot, ItemStack stack, IItemHandler contents) {
         int limit = limit(section, slot, stack);
+        ExplosiveCharge charge = ExplosiveCharge.of(stack);
+        if (limit > 0 && charge != null) {
+            // One kind of conventional charge per bay: no TNT with a thermobaric charge, no bomblets with either.
+            for (int i : CHARGE) {
+                if (i == slot || i >= contents.getSlots()) continue;
+                ExplosiveCharge other = ExplosiveCharge.of(contents.getStackInSlot(i));
+                if (other != null && other.type() != charge.type()) return 0;
+            }
+            return limit;
+        }
         if (limit == 0 || !FissileMaterial.isWarheadCore(stack) || !thermonuclear(contents)) return limit;
         int elsewhere = 0;
         for (int i : CHARGE) if (i != slot && i < contents.getSlots() && FissileMaterial.isWarheadCore(contents.getStackInSlot(i)))
@@ -135,6 +146,7 @@ public final class WarheadBay {
     public static @Nullable String validate(IItemHandler contents) {
         int cores = 0, tnt = 0, secondary = 0, tamper = 0;
         boolean other = false, radiological = false;
+        ExplosiveCharge.Type chargeType = null;
         for (int i = 0; i < Math.min(contents.getSlots(), BOMB); i++) {
             ItemStack stack = contents.getStackInSlot(i);
             if (stack.isEmpty()) continue;
@@ -143,7 +155,12 @@ public final class WarheadBay {
                     || stack.getCount() > limit(RocketComposition.Section.WARHEAD, i, stack)) return "charge_invalid";
             if (i < SECONDARY[0]) {
                 if (FissileMaterial.isWarheadCore(stack)) cores += stack.getCount();
-                else if (stack.is(SiloRegistry.CONVENTIONAL_EXPLOSIVES)) tnt += stack.getCount();
+                else if (stack.is(SiloRegistry.CONVENTIONAL_EXPLOSIVES)) {
+                    tnt += stack.getCount();
+                    ExplosiveCharge.Type type = ExplosiveCharge.of(stack).type();
+                    if (chargeType != null && chargeType != type) return "charge_mixed_types";
+                    chargeType = type;
+                }
                 else radiological = true;
             } else if (i < TAMPER[0]) secondary += stack.getCount();
             else tamper += stack.getCount();
@@ -164,17 +181,28 @@ public final class WarheadBay {
         if (validate(contents) != null) return Warhead.INERT;
         if (contents.getSlots() > BOMB && !contents.getStackInSlot(BOMB).isEmpty()) return fromBomb(contents.getStackInSlot(BOMB));
         ItemStackHandler primary = new ItemStackHandler(NuclearBombBlockEntity.SLOT_COUNT);
-        int tnt = 0, secondary = 0, tamper = 0;
+        int items = 0, secondary = 0, tamper = 0;
+        float charge = 0;
+        ExplosiveCharge.Type chargeType = ExplosiveCharge.Type.HIGH_EXPLOSIVE;
         boolean plutonium = false;
         for (int i : CHARGE) {
             ItemStack stack = contents.getStackInSlot(i);
             primary.setStackInSlot(i, stack);
-            if (stack.is(SiloRegistry.CONVENTIONAL_EXPLOSIVES)) tnt += stack.getCount();
+            ExplosiveCharge explosive = ExplosiveCharge.of(stack);
+            if (explosive != null) {
+                items += stack.getCount();
+                charge += explosive.tntEquivalent() * stack.getCount();
+                chargeType = explosive.type();
+            }
             plutonium |= stack.is(AllNuclearItems.WEAPONS_GRADE_PLUTONIUM_CORE.get());
         }
         for (int i : SECONDARY) secondary += contents.getStackInSlot(i).getCount();
         for (int i : TAMPER) tamper += contents.getStackInSlot(i).getCount();
-        if (tnt > 0) return Warhead.conventional((float) ConventionalYield.power(tnt, MissileConfig.conventionalMaxPower));
+        if (items > 0) return switch (chargeType) {
+            case HIGH_EXPLOSIVE -> Warhead.conventional(charge);
+            case THERMOBARIC -> Warhead.thermobaric(charge);
+            case BOMBLET -> Warhead.cluster(items, charge);
+        };
         if (secondary > 0) return Warhead.thermonuclear(new ThermonuclearLoad(plutonium ? ThermonuclearStats.Primary.PLUTONIUM
                 : ThermonuclearStats.Primary.URANIUM, secondary, tamper));
         return NuclearBombBlockEntity.charge(primary, false);

@@ -13,7 +13,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.DoubleTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.PerformanceConfig;
@@ -26,21 +31,22 @@ import org.papiricoh.create_nuclearindustry.explosive.blast.ThermalPulse;
 import org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig;
 import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * What a nuclear detonation does to the blocks of the ships around it, the way {@link NuclearBlastManager}
+ * What a detonation does to the blocks of the ships around it, the way {@link NuclearBlastManager}
  * does it to the terrain: blown away in the severe zone, wrecked by chance in the moderate one, burnt where
  * they face the fireball in the thermal one. The zones are fixed by where each ship was at the moment of
- * the detonation; its blocks are then worked through nearest first, a share of the crater's budget a tick.
- * A blast wave also shatters the fragile blocks of the ships it strikes. Jobs live in memory only.
+ * the detonation. Each job first looks through its ship's blocks, {@code explosive.ship.scanBlocksPerTick}
+ * a tick across all jobs, then works through the ones in reach nearest first, a share of the crater's
+ * budget a tick. A blast wave also shatters the fragile blocks of the ships it strikes. Jobs are saved with
+ * the level ({@link ShipBlastJobs}): one under way when the world closes looks its ship over again when it
+ * opens, and finishes.
  */
 public final class ShipBlastManager {
     private static final int QUIET = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
-    private static final List<Job> JOBS = new ArrayList<>();
 
     private ShipBlastManager() {}
 
@@ -55,11 +61,7 @@ public final class ShipBlastManager {
         double reach = Math.min(ExplosiveConfig.craterMaxReach,
                 Math.max(Math.max(profile.moderateRadius(), profile.fireballRadius()), profile.thermalRadius()));
         for (ShipSpace.Ship ship : ShipSpace.shipsIn(level, new AABB(centre, centre).inflate(reach))) {
-            Vec3 local = ship.toLocal(centre);
-            Job job = Job.crater(level, ship, local, profile, ship.equals(source), reach);
-            if (job != null) {
-                JOBS.add(job);
-            }
+            ShipBlastJobs.get(level).add(new Job(ship.id(), ship.toLocal(centre), centre, profile, 0, false, ship.equals(source), reach));
         }
     }
 
@@ -68,128 +70,147 @@ public final class ShipBlastManager {
         if (!AeronauticsConfig.blastDamageOn() || !CivilDefenseConfig.blastWaveBreakFragileBlocks) {
             return;
         }
-        Job job = Job.fragile(level, ship, centre, yieldKg);
-        if (job != null) {
-            JOBS.add(job);
-        }
+        ShipBlastJobs.get(level).add(new Job(ship.id(), ship.toLocal(centre), centre, null, yieldKg, true, false, Double.MAX_VALUE));
     }
 
-    /** Ship jobs still to finish, in every level. */
-    public static int pending() {
-        return JOBS.size();
+    /** Ship jobs still to finish in {@code level}. */
+    public static int pending(ServerLevel level) {
+        ShipBlastJobs jobs = ShipBlastJobs.getIfPresent(level);
+        return jobs == null ? 0 : jobs.jobs().size();
     }
 
     public static void onLevelTick(LevelTickEvent.Post event) {
-        if (!(event.getLevel() instanceof ServerLevel level) || JOBS.isEmpty()) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
             return;
         }
+        ShipBlastJobs data = ShipBlastJobs.getIfPresent(level);
+        if (data == null || data.jobs().isEmpty()) {
+            return;
+        }
+        int scan = Math.max(1, ExplosiveConfig.shipScanBlocksPerTick);
         int budget = Math.max(1, PerformanceConfig.blastBlocksPerTick / 2);
         int fires = ExplosiveConfig.thermalFiresPerTick;
-        Iterator<Job> jobs = JOBS.iterator();
-        while (jobs.hasNext() && budget > 0) {
+        Iterator<Job> jobs = data.jobs().iterator();
+        while (jobs.hasNext() && (budget > 0 || scan > 0)) {
             Job job = jobs.next();
-            if (job.level != level) {
+            ShipSpace.Ship ship = ShipSpace.byId(level, job.ship);
+            if (ship == null) {
+                jobs.remove();
                 continue;
             }
-            int[] used = job.work(budget, fires);
+            if (!job.scanned()) {
+                scan -= job.scan(level, ship, scan);
+                continue;
+            }
+            int[] used = job.work(level, budget, fires);
             budget -= used[0];
             fires -= used[1];
             if (job.done()) {
                 jobs.remove();
             }
         }
+        data.setDirty();
     }
 
-    public static void onServerStopping(ServerStoppingEvent event) {
-        JOBS.clear();
-    }
-
-    private static final class Job {
-        private final ServerLevel level;
+    /** One detonation's work on one ship: looking its blocks over, then breaking the ones in reach, nearest first. */
+    public static final class Job {
         private final UUID ship;
-        /** Plot blocks, nearest the blast first. */
-        private final long[] blocks;
-        private final double[] distances;
         private final Vec3 localCentre;
         private final Vec3 worldCentre;
+        @Nullable
         private final DetonationProfile profile;
         private final double yieldKg;
         private final boolean fragileOnly;
-        private final Explosion explosion;
+        private final boolean own;
+        private final double reach;
+        /** How far the look over the ship's box has got; not saved, so a loaded job looks again. */
+        private long scanIndex;
+        private LongArrayList foundBlocks = new LongArrayList();
+        private DoubleArrayList foundDistances = new DoubleArrayList();
+        /** Plot blocks, nearest the blast first, once the look is done. */
+        private long[] blocks;
+        private double[] distances;
         private int next;
+        private ServerLevel level;
+        private Explosion explosion;
 
-        private Job(ServerLevel level, ShipSpace.Ship ship, long[] blocks, double[] distances, Vec3 localCentre, Vec3 worldCentre,
-                    @Nullable DetonationProfile profile, double yieldKg, boolean fragileOnly) {
-            this.level = level;
-            this.ship = ship.id();
-            this.blocks = blocks;
-            this.distances = distances;
+        Job(UUID ship, Vec3 localCentre, Vec3 worldCentre, @Nullable DetonationProfile profile, double yieldKg, boolean fragileOnly,
+            boolean own, double reach) {
+            this.ship = ship;
             this.localCentre = localCentre;
             this.worldCentre = worldCentre;
             this.profile = profile;
             this.yieldKg = yieldKg;
             this.fragileOnly = fragileOnly;
-            this.explosion = new Explosion(level, null, localCentre.x, localCentre.y, localCentre.z,
-                    (float) Math.max(1, profile == null ? 1 : profile.fireballRadius()), false, Explosion.BlockInteraction.DESTROY);
+            this.own = own;
+            this.reach = reach;
         }
 
-        @Nullable
-        static Job crater(ServerLevel level, ShipSpace.Ship ship, Vec3 local, DetonationProfile profile, boolean own, double reach) {
-            List<Hit> found = new ArrayList<>();
-            forEachBlock(level, ship, pos -> {
-                double d = Vec3.atCenterOf(pos).distanceTo(local);
-                if (own) {
+        boolean scanned() {
+            return blocks != null;
+        }
+
+        /** Looks over up to {@code budget} positions of the ship's box; how many it looked at. */
+        int scan(ServerLevel level, ShipSpace.Ship holder, int budget) {
+            BoundingBox box = holder.localBounds();
+            long xs = box.getXSpan();
+            long ys = box.getYSpan();
+            long zs = box.getZSpan();
+            long volume = xs * ys * zs;
+            int looked = 0;
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+            while (scanIndex < volume && looked < budget) {
+                long i = scanIndex++;
+                looked++;
+                pos.set(box.minX() + (int) (i % xs), box.minY() + (int) ((i / xs) % ys), box.minZ() + (int) (i / (xs * ys)));
+                BlockState state = level.getBlockState(pos);
+                if (state.isAir() || fragileOnly && !state.is(CivilDefenseRegistry.BLAST_FRAGILE)) {
+                    continue;
+                }
+                double d = Vec3.atCenterOf(pos).distanceTo(localCentre);
+                if (own && profile != null) {
                     // The warhead's own ship takes the blast at point-blank range.
                     d = Math.min(d, profile.severeRadius());
                 }
                 if (d <= reach) {
-                    found.add(new Hit(pos.asLong(), d));
-                }
-            });
-            return found.isEmpty() ? null : sorted(level, ship, found, local, ship.toWorld(local), profile, 0, false);
-        }
-
-        @Nullable
-        static Job fragile(ServerLevel level, ShipSpace.Ship ship, Vec3 centre, double yieldKg) {
-            Vec3 local = ship.toLocal(centre);
-            List<Hit> found = new ArrayList<>();
-            forEachBlock(level, ship, pos -> {
-                if (level.getBlockState(pos).is(CivilDefenseRegistry.BLAST_FRAGILE)) {
-                    found.add(new Hit(pos.asLong(), Vec3.atCenterOf(pos).distanceTo(local)));
-                }
-            });
-            return found.isEmpty() ? null : sorted(level, ship, found, local, centre, null, yieldKg, true);
-        }
-
-        private record Hit(long pos, double distance) {}
-
-        private static Job sorted(ServerLevel level, ShipSpace.Ship ship, List<Hit> found, Vec3 local, Vec3 world,
-                                  @Nullable DetonationProfile profile, double yieldKg, boolean fragileOnly) {
-            found.sort((a, b) -> Double.compare(a.distance(), b.distance()));
-            long[] blocks = new long[found.size()];
-            double[] distances = new double[found.size()];
-            for (int i = 0; i < blocks.length; i++) {
-                blocks[i] = found.get(i).pos();
-                distances[i] = found.get(i).distance();
-            }
-            return new Job(level, ship, blocks, distances, local, world, profile, yieldKg, fragileOnly);
-        }
-
-        private static void forEachBlock(ServerLevel level, ShipSpace.Ship ship, java.util.function.Consumer<BlockPos> action) {
-            BoundingBox box = ship.localBounds();
-            for (BlockPos pos : BlockPos.betweenClosed(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ())) {
-                if (!level.getBlockState(pos).isAir()) {
-                    action.accept(pos.immutable());
+                    foundBlocks.add(pos.asLong());
+                    foundDistances.add(d);
                 }
             }
+            if (scanIndex >= volume) {
+                sort();
+            }
+            return looked;
+        }
+
+        private void sort() {
+            int n = foundBlocks.size();
+            Integer[] order = new Integer[n];
+            for (int i = 0; i < n; i++) {
+                order[i] = i;
+            }
+            java.util.Arrays.sort(order, (a, b) -> Double.compare(foundDistances.getDouble(a), foundDistances.getDouble(b)));
+            blocks = new long[n];
+            distances = new double[n];
+            for (int i = 0; i < n; i++) {
+                blocks[i] = foundBlocks.getLong(order[i]);
+                distances[i] = foundDistances.getDouble(order[i]);
+            }
+            foundBlocks = null;
+            foundDistances = null;
         }
 
         boolean done() {
-            return next >= blocks.length;
+            return scanned() && next >= blocks.length;
         }
 
         /** Works through up to {@code budget} blocks; the blocks it looked at and the fires it lit. */
-        int[] work(int budget, int fires) {
+        int[] work(ServerLevel level, int budget, int fires) {
+            if (this.level != level) {
+                this.level = level;
+                this.explosion = new Explosion(level, null, localCentre.x, localCentre.y, localCentre.z,
+                        (float) Math.max(1, profile == null ? 1 : profile.fireballRadius()), false, Explosion.BlockInteraction.DESTROY);
+            }
             int looked = 0;
             int lit = 0;
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
@@ -217,6 +238,57 @@ public final class ShipBlastManager {
                 lit += hit(pos.immutable(), state, d, fires - lit);
             }
             return new int[]{looked, lit};
+        }
+
+        CompoundTag save() {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("Ship", ship);
+            putVec(tag, "Local", localCentre);
+            putVec(tag, "World", worldCentre);
+            if (profile != null) {
+                ListTag numbers = new ListTag();
+                for (double value : profile.encode()) {
+                    numbers.add(DoubleTag.valueOf(value));
+                }
+                tag.put("Profile", numbers);
+            }
+            tag.putDouble("Yield", yieldKg);
+            tag.putBoolean("FragileOnly", fragileOnly);
+            tag.putBoolean("Own", own);
+            tag.putDouble("Reach", reach);
+            return tag;
+        }
+
+        @Nullable
+        static Job load(CompoundTag tag) {
+            if (!tag.hasUUID("Ship")) {
+                return null;
+            }
+            DetonationProfile profile = null;
+            if (tag.contains("Profile")) {
+                ListTag numbers = tag.getList("Profile", Tag.TAG_DOUBLE);
+                double[] values = new double[numbers.size()];
+                for (int i = 0; i < values.length; i++) {
+                    values[i] = numbers.getDouble(i);
+                }
+                profile = DetonationProfile.decode(values);
+            }
+            boolean fragileOnly = tag.getBoolean("FragileOnly");
+            if (profile == null && !fragileOnly) {
+                return null;
+            }
+            return new Job(tag.getUUID("Ship"), getVec(tag, "Local"), getVec(tag, "World"), profile, tag.getDouble("Yield"), fragileOnly,
+                    tag.getBoolean("Own"), tag.getDouble("Reach"));
+        }
+
+        private static void putVec(CompoundTag tag, String key, Vec3 v) {
+            tag.putDouble(key + "X", v.x);
+            tag.putDouble(key + "Y", v.y);
+            tag.putDouble(key + "Z", v.z);
+        }
+
+        private static Vec3 getVec(CompoundTag tag, String key) {
+            return new Vec3(tag.getDouble(key + "X"), tag.getDouble(key + "Y"), tag.getDouble(key + "Z"));
         }
 
         /** The blast on one block {@code d} blocks from it; the fires it lit. */
@@ -269,15 +341,10 @@ public final class ShipBlastManager {
         }
 
         private void remove(BlockPos pos, BlockState state) {
-            if (state.is(Blocks.BEDROCK) || state.getExplosionResistance(level, pos, explosion) > ExplosiveConfig.blastProofResistance) {
+            if (state.is(Blocks.BEDROCK) || state.getExplosionResistance(level, pos, explosion) > profile.blastProof(ExplosiveConfig.blastProofResistance)) {
                 return;
             }
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), QUIET);
         }
-    }
-
-    /** For tests: forgets every queued job. */
-    public static void clear() {
-        JOBS.clear();
     }
 }

@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalDetonationEvent;
 
 /**
  * Explosions breach the waste containers they reach but do not blow apart (those spill as they
@@ -26,8 +27,13 @@ import java.util.Set;
 public final class ExplosionBreaches {
     /** Blast radius assumed when an explosion does not say. */
     static final float DEFAULT_RADIUS = 4;
-    /** Furthest a blast is searched for containers, so a huge one does not walk thousands of chunks. */
+    /** Furthest an ordinary explosion is searched for containers. */
     static final double MAX_REACH = 48;
+    /**
+     * Furthest a detonation is searched for containers: its wrecked zone, which breaks them open, up to this so a huge one
+     * does not walk tens of thousands of chunks.
+     */
+    static final double MAX_DETONATION_REACH = 320;
 
     private ExplosionBreaches() {}
 
@@ -41,7 +47,14 @@ public final class ExplosionBreaches {
 
     public static void onNuclearDetonation(NuclearDetonationEvent event) {
         if (WasteTransportConfig.breachOnExplosion) {
-            breachAround(event.getLevel(), event.getCenter(), event.getRadius(), List.of());
+            double radius = event.getProfile() != null ? event.getProfile().moderateRadius() : event.getRadius();
+            breachAround(event.getLevel(), event.getCenter(), radius, List.of(), MAX_DETONATION_REACH);
+        }
+    }
+
+    public static void onConventionalDetonation(ConventionalDetonationEvent event) {
+        if (WasteTransportConfig.breachOnExplosion) {
+            breachAround(event.getLevel(), event.getCentre(), event.getProfile().moderateRadius(), List.of(), MAX_DETONATION_REACH);
         }
     }
 
@@ -50,7 +63,12 @@ public final class ExplosionBreaches {
      * {@code destroyed} (they break and spill anyway). Returns how many were newly breached.
      */
     public static int breachAround(ServerLevel level, Vec3 center, double radius, Collection<BlockPos> destroyed) {
-        double reach = Math.min(radius, MAX_REACH);
+        return breachAround(level, center, radius, destroyed, MAX_REACH);
+    }
+
+    /** As {@link #breachAround(ServerLevel, Vec3, double, Collection)}, searching at most {@code maxReach} blocks out. */
+    public static int breachAround(ServerLevel level, Vec3 center, double radius, Collection<BlockPos> destroyed, double maxReach) {
+        double reach = Math.min(radius, maxReach);
         double reachSqr = reach * reach;
         Set<BlockPos> skip = destroyed.isEmpty() ? Set.of() : new HashSet<>(destroyed);
         Set<BlockPos> controllers = new HashSet<>();
@@ -65,6 +83,7 @@ public final class ExplosionBreaches {
                 }
                 for (BlockEntity be : chunk.getBlockEntities().values()) {
                     if (!(be instanceof WasteContainer container) || be.isRemoved() || skip.contains(be.getBlockPos())
+                            || org.papiricoh.create_nuclearindustry.integration.claims.ClaimGuards.protectsFromExplosions(level, cx, cz)
                             || Vec3.atCenterOf(be.getBlockPos()).distanceToSqr(center) > reachSqr) {
                         continue;
                     }

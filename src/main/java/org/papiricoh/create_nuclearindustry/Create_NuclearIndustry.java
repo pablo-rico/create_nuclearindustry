@@ -93,6 +93,8 @@ public class Create_NuclearIndustry {
         NeoForge.EVENT_BUS.addListener(RadiationHandler::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(org.papiricoh.create_nuclearindustry.radiation.FalloutData::onLevelTick);
         NeoForge.EVENT_BUS.addListener(Contamination::onChunkLoad);
+        NeoForge.EVENT_BUS.addListener(Contamination::onLevelTick);
+        NeoForge.EVENT_BUS.addListener(Contamination::onLevelUnload);
         NeoForge.EVENT_BUS.addListener(Contamination::onChunkUnload);
         NeoForge.EVENT_BUS.addListener(Contamination::onChunkWatch);
         NeoForge.EVENT_BUS.addListener(org.papiricoh.create_nuclearindustry.radiation.contamination.WaterContamination::onLevelTick);

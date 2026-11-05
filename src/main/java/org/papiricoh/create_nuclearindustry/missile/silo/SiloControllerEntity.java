@@ -234,7 +234,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     }
     @Override public void initialize() { super.initialize(); if (level != null && !level.isClientSide) { MultiblockRegistry.register(this); invalidatePorts(); } dirty = true; }
     // setRemoved is final in SmartBlockEntity; invalidate runs on both a replacement and a chunk unload.
-    @Override public void invalidate() { if (level != null && !level.isClientSide) { MultiblockRegistry.unregister(this); invalidatePorts(); } super.invalidate(); }
+    @Override public void invalidate() { if (level != null && !level.isClientSide) { MultiblockRegistry.unregister(this); invalidatePorts(); org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry.withdraw(level, worldPosition); } super.invalidate(); }
     /** Whether a fuel port touches its base or stands in its optional wall ring. */
     public boolean isPortPosition(BlockPos pos) {
         BlockPos f = floor();
@@ -284,7 +284,7 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
     /** Where it is sent: the target, or above it for an airburst. */
     private Vec3 designatedAim() {
         Vec3 aim = Vec3.atCenterOf(target);
-        return airburst && rocket != null && rocket.warhead().nuclear() ? aim.add(0, TargetDesignatorItem.airburstHeight(rocket.warhead().destructionRadius()), 0) : aim;
+        return rocket == null ? aim : aim.add(0, rocket.warhead().burstHeight(airburst), 0);
     }
     /** Where it really comes down: off the designated aim by its guidance's miss, drawn from the rocket itself. */
     private Vec3 aim() {
@@ -520,7 +520,23 @@ public class SiloControllerEntity extends KineticBlockEntity implements Multiblo
             if (state == State.COUNTDOWN) launch(server);
         }
         if (before != state) invalidatePorts();
+        reportThreat();
         if (before != state || level.getGameTime() % 20 == 0) sendData();
+    }
+    /** Ticks a missile is taken to fly before its real flight is known; refreshed once it is launched. */
+    private static final int THREAT_FLIGHT_GUESS = 600;
+    /** Tells the sirens near its target that a live missile is counting down here; withdrawn once it lifts off or stops. */
+    private void reportThreat() {
+        if (level == null || level.isClientSide) return;
+        boolean counting = state == State.COUNTDOWN && !satelliteMode() && !interceptorMode() && rocket != null && target != null
+                && rocket.warhead().kind() != org.papiricoh.create_nuclearindustry.missile.flight.Warhead.Kind.INERT;
+        if (counting && org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.sirenMissileThreats) {
+            if (level.getGameTime() % 20 == 0 || org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry.find(level, worldPosition) == null)
+                org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry.report(level, worldPosition, target,
+                        rocket.warhead().threatRadius(), countdown + THREAT_FLIGHT_GUESS);
+        } else if (org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry.find(level, worldPosition) != null) {
+            org.papiricoh.create_nuclearindustry.civildefense.ThreatRegistry.withdraw(level, worldPosition);
+        }
     }
     private void launch(ServerLevel server) {
         AssembledRocket assembled = rocket;

@@ -96,6 +96,7 @@ public final class WasteTransportRegistry implements NuclearFeature {
         NeoForge.EVENT_BUS.addListener(TrainBreachMonitor::onServerStopped);
         NeoForge.EVENT_BUS.addListener(ExplosionBreaches::onDetonate);
         NeoForge.EVENT_BUS.addListener(ExplosionBreaches::onNuclearDetonation);
+        NeoForge.EVENT_BUS.addListener(ExplosionBreaches::onConventionalDetonation);
     }
 
     private static void registerDataMaps(RegisterDataMapTypesEvent event) {

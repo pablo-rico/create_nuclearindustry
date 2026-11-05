@@ -87,7 +87,7 @@ public class NuclearBombBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
         if (level.getBlockEntity(pos) instanceof NuclearBombBlockEntity bomb) {
-            bomb.setChanged();
+            bomb.setArmedBy(player.getUUID());
             level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
             MenuProvider provider = new SimpleMenuProvider(menu(pos), Component.translatable(state.getBlock().getDescriptionId()));
             // The position travels with the menu, so each player's screen finds its own block.

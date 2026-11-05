@@ -5,13 +5,10 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
-import org.papiricoh.create_nuclearindustry.explosive.ExplosiveConfig;
 
 /**
  * Server to client: a non-nuclear warhead, bomblet or dirty bomb went off, for its fireball, smoke, debris, shock ring and
@@ -71,13 +68,11 @@ public record ConventionalBlastPayload(Vec3 centre, ConventionalKind kind, long 
                         () -> org.papiricoh.create_nuclearindustry.explosive.fx.client.ExplosionFxClient.onConventional(payload))));
     }
 
-    /** Sends it to the players of the level close enough to see or hear it. */
+    /**
+     * Sends it to the players of the level close enough to see or hear it, and to those who come in range while it still
+     * stands ({@link org.papiricoh.create_nuclearindustry.explosive.ActiveDetonations}).
+     */
     public void send(ServerLevel level) {
-        double range = ExplosiveConfig.broadcastRange();
-        for (ServerPlayer player : level.players()) {
-            if (player.position().distanceToSqr(centre) <= range * range) {
-                PacketDistributor.sendToPlayer(player, this);
-            }
-        }
+        org.papiricoh.create_nuclearindustry.explosive.ActiveDetonations.send(level, this);
     }
 }

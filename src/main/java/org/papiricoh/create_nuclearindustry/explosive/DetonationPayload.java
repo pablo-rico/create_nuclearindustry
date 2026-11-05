@@ -5,10 +5,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig;
@@ -99,13 +97,6 @@ public record DetonationPayload(Vec3 centre, DetonationStyle style, long seed, l
                 profile.airburst() ? 0 : falloutRadius, (float) NuclearDetonation.wind(level), (float) ExplosiveConfig.windStretch);
     }
 
-    /** A dirty bomb's conventional blast of {@code power} at {@code centre}. */
-    public static DetonationPayload dirty(ServerLevel level, Vec3 centre, float power, long seed) {
-        return new DetonationPayload(centre, DetonationStyle.DIRTY, seed, level.getGameTime(), 0, Math.max(2, power * 0.4f), 0, false,
-                (float) BlastWaveModel.yield(power, CivilDefenseConfig.blastWaveYieldPerPower), (float) CivilDefenseConfig.blastWaveSpeed,
-                0, 0, 0, 0, 0, 0);
-    }
-
     /** An antimatter annihilation of blast radius {@code radius} at {@code centre}: a small flash, no cloud. */
     public static DetonationPayload antimatter(ServerLevel level, Vec3 centre, float radius, long seed) {
         return new DetonationPayload(centre, DetonationStyle.ANTIMATTER, seed, level.getGameTime(), 0, Math.max(1.5f, radius * 0.5f), 0,
@@ -113,13 +104,11 @@ public record DetonationPayload(Vec3 centre, DetonationStyle style, long seed, l
                 (float) CivilDefenseConfig.blastWaveSpeed, 0, 0, 0, 0, 0, 0);
     }
 
-    /** Sends it to the players of the level close enough to see it. */
+    /**
+     * Sends it to the players of the level close enough to see or hear it, and to those who come in range while it still
+     * stands ({@link ActiveDetonations}).
+     */
     public void send(ServerLevel level) {
-        double range = ExplosiveConfig.broadcastRange();
-        for (ServerPlayer player : level.players()) {
-            if (player.position().distanceToSqr(centre) <= range * range) {
-                PacketDistributor.sendToPlayer(player, this);
-            }
-        }
+        ActiveDetonations.send(level, this);
     }
 }

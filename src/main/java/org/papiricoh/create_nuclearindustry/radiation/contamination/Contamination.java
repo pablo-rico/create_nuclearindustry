@@ -169,20 +169,83 @@ public final class Contamination {
                 (float) wind, (float) stretch);
         ChunkPos origin = new ChunkPos(center);
         int chunkRadius = ((int) Math.ceil(event.reach()) >> 4) + 1;
-        for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
-            for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
-                LevelChunk chunk = loaded(level, origin.x + dx, origin.z + dz);
-                if (chunk == null) {
-                    continue;
-                }
-                float amount = event.at(chunk.getPos().getMiddleBlockX(), chunk.getPos().getMiddleBlockZ());
-                if (amount > 0) {
-                    settle(level, chunk, add(chunk, amount));
-                    markSeen(chunk, event.id());
-                }
-            }
+        // The loaded chunks it reaches catch up with it nearest first, a few a tick, as chunks that load later do.
+        FalloutSweep sweep = new FalloutSweep(level, origin.x, origin.z, chunkRadius);
+        if (!sweep.step()) {
+            SWEEPS.add(sweep);
         }
         ShipContamination.fallout(level, event);
+    }
+
+    private static final java.util.List<FalloutSweep> SWEEPS = new java.util.ArrayList<>();
+
+    /** Fallout sweeps still settling on loaded chunks in {@code level}. */
+    public static int pendingSweeps(ServerLevel level) {
+        return (int) SWEEPS.stream().filter(sweep -> sweep.level == level).count();
+    }
+
+    public static void onLevelTick(net.neoforged.neoforge.event.tick.LevelTickEvent.Post event) {
+        if (SWEEPS.isEmpty() || !(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        SWEEPS.removeIf(sweep -> sweep.level == level && sweep.step());
+    }
+
+    public static void onLevelUnload(net.neoforged.neoforge.event.level.LevelEvent.Unload event) {
+        SWEEPS.removeIf(sweep -> sweep.level == event.getLevel());
+    }
+
+    /**
+     * Walks the chunks round a fallout event in square rings outwards, {@code explosive.fallout.chunksPerTick} a tick, letting
+     * each loaded one catch up with what it missed. Not saved: a chunk not reached yet catches up when it next loads.
+     */
+    private static final class FalloutSweep {
+        private final ServerLevel level;
+        private final int originX;
+        private final int originZ;
+        private final int radius;
+        private int ring;
+        private int index;
+
+        FalloutSweep(ServerLevel level, int originX, int originZ, int radius) {
+            this.level = level;
+            this.originX = originX;
+            this.originZ = originZ;
+            this.radius = radius;
+        }
+
+        /** Settles on this tick's share of chunks; true once every ring is done. */
+        boolean step() {
+            int budget = Math.max(1, org.papiricoh.create_nuclearindustry.explosive.ExplosiveConfig.falloutChunksPerTick);
+            while (budget-- > 0 && ring <= radius) {
+                int[] cell = ringCell(ring, index);
+                LevelChunk chunk = loaded(level, originX + cell[0], originZ + cell[1]);
+                if (chunk != null) {
+                    catchUp(level, chunk);
+                }
+                if (++index >= Math.max(1, 8 * ring)) {
+                    ring++;
+                    index = 0;
+                }
+            }
+            return ring > radius;
+        }
+
+        /** The {@code i}-th cell of the square ring {@code r} chunks out. */
+        private static int[] ringCell(int r, int i) {
+            if (r == 0) {
+                return new int[]{0, 0};
+            }
+            int side = 2 * r;
+            int edge = i / side;
+            int along = i % side;
+            return switch (edge) {
+                case 0 -> new int[]{-r + along, -r};
+                case 1 -> new int[]{r, -r + along};
+                case 2 -> new int[]{r - along, r};
+                default -> new int[]{-r, r - along};
+            };
+        }
     }
 
     /** Heavy fallout also reaches the chunk's open water, a few columns per tick. */

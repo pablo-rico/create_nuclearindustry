@@ -34,7 +34,7 @@ public class RocketWarheadBlock extends RocketSectionBlock {
 
     @Override public BlockState look(BlockState state, RocketSectionEntity part) {
         Charge charge = switch (part.warhead().kind()) {
-            case CONVENTIONAL -> Charge.CONVENTIONAL;
+            case CONVENTIONAL, CLUSTER, THERMOBARIC -> Charge.CONVENTIONAL;
             case FISSION -> Charge.FISSION;
             case DIRTY -> Charge.DIRTY;
             case THERMONUCLEAR -> Charge.THERMONUCLEAR;

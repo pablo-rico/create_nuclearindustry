@@ -75,6 +75,13 @@ public final class SeismicNetwork {
         }
     }
 
+    /** A conventional blast: every detector in its dimension records it, as a blast of its shock wave's power. */
+    public static void onConventionalDetonation(org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalDetonationEvent event) {
+        float power = (float) (event.getProfile().yieldKg()
+                / Math.max(1e-6, org.papiricoh.create_nuclearindustry.civildefense.CivilDefenseConfig.blastWaveYieldPerPower));
+        onEarthquake(event.getLevel(), event.getCentre(), power);
+    }
+
     /** An earthquake: every detector in its dimension records it, as a blast of {@code power}. */
     public static void onEarthquake(Level level, Vec3 epicentre, float power) {
         Set<SeismicDetectorBlockEntity> detectors = DETECTORS.get(level);

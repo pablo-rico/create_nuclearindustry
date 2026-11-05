@@ -29,6 +29,14 @@ public final class ExplosiveConfig {
     public static double airburstHeight = 2.0;
     public static int visualRange = 4096;
     public static int audibleRange = 4096;
+    public static int flashTracesPerTick = 64;
+    public static int falloutChunksPerTick = 64;
+    public static int shipScanBlocksPerTick = 32768;
+    public static boolean flashBlindness = true;
+    public static int flashBlindnessMaxSeconds = 30;
+    public static boolean deafening = true;
+    public static double deafeningThresholdKPa = 7.0;
+    public static boolean claimsProtectEntities = false;
     public static int craterMaxReach = 768;
     public static boolean thermonuclearEnabled = true;
     public static int thermonuclearMaxRadius = 750;
@@ -57,6 +65,10 @@ public final class ExplosiveConfig {
     private static ModConfigSpec.DoubleValue airburstHeightValue;
     private static ModConfigSpec.IntValue visualRangeValue;
     private static ModConfigSpec.IntValue audibleRangeValue;
+    private static ModConfigSpec.IntValue flashTracesPerTickValue, falloutChunksPerTickValue, shipScanBlocksPerTickValue,
+            flashBlindnessMaxSecondsValue;
+    private static ModConfigSpec.BooleanValue flashBlindnessValue, deafeningValue, claimsProtectEntitiesValue;
+    private static ModConfigSpec.DoubleValue deafeningThresholdKPaValue;
     private static ModConfigSpec.IntValue craterMaxReachValue;
     private static ModConfigSpec.BooleanValue thermonuclearEnabledValue;
     private static ModConfigSpec.IntValue thermonuclearMaxRadiusValue;
@@ -139,6 +151,33 @@ public final class ExplosiveConfig {
                 .comment("Players within this many blocks of a detonation hear it, late by the time its shock wave or its sound",
                         "takes to reach them. Conventional warheads and bombs are heard as far as their size carries, never past this.")
                 .defineInRange("explosive.audibleRange", 4096, 0, 100000);
+        flashTracesPerTickValue = builder
+                .comment("Bodies the thermal flash traces a line of sight to per tick, nearest first. A big detonation's flash is spread",
+                        "over the ticks it takes, about a second, as a real thermal pulse is.")
+                .defineInRange("explosive.flash.tracesPerTick", 64, 1, 100000);
+        falloutChunksPerTickValue = builder
+                .comment("Loaded chunks a detonation's fallout settles on per tick; the rest catch up as they come.")
+                .defineInRange("explosive.fallout.chunksPerTick", 64, 1, 100000);
+        shipScanBlocksPerTickValue = builder
+                .comment("Blocks of ships in reach a detonation looks at per tick to find what it breaks (with Create Aeronautics).")
+                .defineInRange("explosive.ship.scanBlocksPerTick", 32768, 256, 10000000);
+        flashBlindnessValue = builder
+                .comment("Players looking towards a fireball are dazzled for a while: their screen washes out. Goggles and visors",
+                        "(the item tag create_nuclearindustry:flash_protection) protect.")
+                .define("explosive.flashBlindness.enabled", true);
+        flashBlindnessMaxSecondsValue = builder
+                .comment("Longest a player stays dazzled, seconds.")
+                .defineInRange("explosive.flashBlindness.maxSeconds", 30, 1, 600);
+        deafeningValue = builder
+                .comment("A shock wave strong enough deafens the players it reaches for a while: the world goes muffled.")
+                .define("explosive.deafening.enabled", true);
+        deafeningThresholdKPaValue = builder
+                .comment("Overpressure, kPa, that reaches a player through walls and shelters before it deafens them.")
+                .defineInRange("explosive.deafening.thresholdKPa", 7.0, 0.1, 1000.0);
+        claimsProtectEntitiesValue = builder
+                .comment("Whether protected claims also shield the creatures and players inside them from blasts and flashes; by default",
+                        "they only keep blocks whole.")
+                .define("explosive.claimsProtectEntities", false);
         thermonuclearEnabledValue = builder
                 .comment("Whether thermonuclear warheads can light their secondary. Off, every one fizzles as its fission primary.")
                 .define("explosive.thermonuclear.enabled", true);
@@ -191,6 +230,14 @@ public final class ExplosiveConfig {
         airburstHeight = airburstHeightValue.get();
         visualRange = visualRangeValue.get();
         audibleRange = audibleRangeValue.get();
+        flashTracesPerTick = flashTracesPerTickValue.get();
+        falloutChunksPerTick = falloutChunksPerTickValue.get();
+        shipScanBlocksPerTick = shipScanBlocksPerTickValue.get();
+        flashBlindness = flashBlindnessValue.get();
+        flashBlindnessMaxSeconds = flashBlindnessMaxSecondsValue.get();
+        deafening = deafeningValue.get();
+        deafeningThresholdKPa = deafeningThresholdKPaValue.get();
+        claimsProtectEntities = claimsProtectEntitiesValue.get();
         craterMaxReach = craterMaxReachValue.get();
         thermonuclearEnabled = thermonuclearEnabledValue.get();
         thermonuclearMaxRadius = thermonuclearMaxRadiusValue.get();

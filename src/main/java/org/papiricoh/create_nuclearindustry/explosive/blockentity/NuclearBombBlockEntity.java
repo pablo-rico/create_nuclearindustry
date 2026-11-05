@@ -1,5 +1,7 @@
 package org.papiricoh.create_nuclearindustry.explosive.blockentity;
 
+import org.papiricoh.create_nuclearindustry.explosive.DetonationCause;
+
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentMap;
@@ -41,6 +43,8 @@ import org.slf4j.Logger;
  * longer fits is dropped beside the bomb and any countdown stops.
  */
 public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
+    @org.jetbrains.annotations.Nullable
+    private java.util.UUID armedBy;
     private static final Logger LOGGER = LogUtils.getLogger();
     public static final int SLOT_COUNT = 3;
     public static final int CORES_PER_SLOT = 2;
@@ -297,7 +301,7 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         Warhead charge = charge(inventory, isDirty());
         clearContent();
         level.removeBlock(center, false);
-        charge.detonate(level, center.getCenter());
+        charge.detonate(level, center.getCenter(), net.minecraft.world.phys.Vec3.ZERO, cause());
     }
 
     protected void markDirtyAndSync() {
@@ -316,11 +320,25 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
         }
     }
 
+    /** The last player to load or look into it: its blast is theirs. */
+    public void setArmedBy(@org.jetbrains.annotations.Nullable java.util.UUID player) {
+        armedBy = player;
+        setChanged();
+    }
+
+    /** Who answers for its blast. */
+    protected DetonationCause cause() {
+        return DetonationCause.of(armedBy);
+    }
+
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
         tag.put("inventory", inventory.serializeNBT(provider));
         tag.putInt("countdown", countdown);
+        if (armedBy != null) {
+            tag.putUUID("ArmedBy", armedBy);
+        }
     }
 
     @Override
@@ -330,6 +348,7 @@ public class NuclearBombBlockEntity extends BlockEntity implements Clearable {
             inventory.deserializeNBT(provider, tag.getCompound("inventory"));
         }
         countdown = tag.contains("countdown") ? tag.getInt("countdown") : -1;
+        armedBy = tag.hasUUID("ArmedBy") ? tag.getUUID("ArmedBy") : null;
     }
 
     @Override

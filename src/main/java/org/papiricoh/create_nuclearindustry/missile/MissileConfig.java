@@ -37,7 +37,6 @@ public final class MissileConfig {
     public static double tacticalLinkRange = 512;
     public static int maxLaunchDelaySeconds = 120;
     public static int salvoMaxSpacingSeconds = 30;
-    public static double conventionalMaxPower = 16;
     public static double selfDestructPower = 2;
 
     private static ModConfigSpec.IntValue launchCountdownSecondsValue;
@@ -58,7 +57,7 @@ public final class MissileConfig {
     private static ModConfigSpec.IntValue launchPermissionLevelValue;
     private static ModConfigSpec.IntValue launchCooldownSecondsValue;
     private static ModConfigSpec.EnumValue<LaunchBroadcast> launchBroadcastValue;
-    private static ModConfigSpec.DoubleValue tacticalLinkRangeValue, conventionalMaxPowerValue, selfDestructPowerValue;
+    private static ModConfigSpec.DoubleValue tacticalLinkRangeValue, selfDestructPowerValue;
     private static ModConfigSpec.IntValue maxLaunchDelaySecondsValue, salvoMaxSpacingSecondsValue;
 
     private MissileConfig() {}
@@ -149,14 +148,12 @@ public final class MissileConfig {
         salvoMaxSpacingSecondsValue = builder
                 .comment("Longest gap between impacts a command table's sequenced salvo may ask for, seconds.")
                 .defineInRange("missile.salvo.maxSpacingSeconds", 30, 0, 600);
-        conventionalMaxPowerValue = builder
-                .comment("Strongest explosion a conventional (TNT) warhead makes; TNT is 4. Its power grows with the cube root of the TNT loaded.")
-                .defineInRange("missile.warhead.conventionalMaxPower", 16.0, 1.0, 64.0);
         selfDestructPowerValue = builder
                 .comment("Explosion power of a missile its command table aborts in flight, where it is if that is loaded; its warhead never",
                         "goes off. 0 for none.")
                 .defineInRange("missile.salvo.selfDestructPower", 2.0, 0.0, 8.0);
         org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig.define(builder);
+        org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalConfig.define(builder);
         org.papiricoh.create_nuclearindustry.missile.orbit.OrbitConfig.define(builder);
     }
 
@@ -185,10 +182,10 @@ public final class MissileConfig {
         tacticalLinkRange = tacticalLinkRangeValue.get();
         maxLaunchDelaySeconds = maxLaunchDelaySecondsValue.get();
         salvoMaxSpacingSeconds = salvoMaxSpacingSecondsValue.get();
-        conventionalMaxPower = conventionalMaxPowerValue.get();
         selfDestructPower = selfDestructPowerValue.get();
         launchBroadcast = LaunchBroadcast.NONE; // Legacy option is ignored; radar supplies missile alerts.
         org.papiricoh.create_nuclearindustry.missile.defense.DefenseConfig.bake();
+        org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalConfig.bake();
         org.papiricoh.create_nuclearindustry.missile.orbit.OrbitConfig.bake();
     }
 
