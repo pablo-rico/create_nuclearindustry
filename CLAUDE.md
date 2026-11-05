@@ -3,7 +3,9 @@
 Addon de Create para **NeoForge 1.21.1** (Create 6.0.10, Ponder, Flywheel; JEI y Create Big Cannons opcionales), Java 21.
 Código en `src/main/java/org/papiricoh/create_nuclearindustry/`, recursos a mano en `src/main/resources/`, recursos generados en `src/generated/resources/` (no editar a mano: los rehace `runData`).
 
-No hagas commit a no ser que te lo pida.
+**No hagas commits** (ni `push`, ni tags): deja los cambios en el árbol de trabajo y yo los commiteo. Solo si te lo pido explícitamente en ese momento.
+
+**Releases**: `.github/workflows/release.yml` se lanza en cada push a `master`. Si `mod_version` de `gradle.properties` no tiene tag `v<versión>`, hace `build` + GameTests, crea el tag y publica la release con el jar. Para sacar versión basta con subir `mod_version` (y mover la sección "Unreleased" del CHANGELOG); no crees tags a mano.
 
 ## Comandos
 
@@ -90,4 +92,4 @@ Cosas que el recorrido ya destapó y conviene tener presentes al renderizar:
 
 - Código y comentarios en inglés, al estilo del archivo que tocas (Javadoc corto que explica el porqué). Documentación de usuario (`docs/`) en español; CHANGELOG en inglés.
 - Mecánicas nuevas: física y lógica testeables, configurables cuando tenga sentido, visibles para el jugador (gafas, JEI, Ponder, Display Link) y en EN+ES.
-- No toques `runs/junit/*` ni archivos que no son del cambio. Un commit por funcionalidad, con mensaje descriptivo.
+- No toques `runs/junit/*` ni archivos que no son del cambio. Cuando te pida commitear: un commit por funcionalidad, con mensaje descriptivo.
