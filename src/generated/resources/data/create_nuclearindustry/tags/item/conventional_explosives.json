@@ -1,5 +1,8 @@
 {
   "values": [
+    "create_nuclearindustry:plastic_explosive",
+    "create_nuclearindustry:thermobaric_charge",
+    "create_nuclearindustry:cluster_bomblet",
     "minecraft:tnt"
   ]
 }

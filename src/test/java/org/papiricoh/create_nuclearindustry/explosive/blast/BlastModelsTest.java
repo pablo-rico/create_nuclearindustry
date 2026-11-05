@@ -141,8 +141,12 @@ class BlastModelsTest {
         assertEquals(open.severeRadius(), capped.severeRadius(), 1e-9);
         assertEquals(open.moderateRadius(), capped.moderateRadius(), 1e-9);
         assertEquals(open.thermalRadius(), capped.thermalRadius(), 1e-9);
-        assertEquals(19, capped.encode().length);
+        assertEquals(20, capped.encode().length);
         assertEquals(capped, DetonationProfile.decode(capped.encode()));
+        double[] old = java.util.Arrays.copyOf(capped.encode(), 19);
+        DetonationProfile legacy = DetonationProfile.decode(old);
+        assertEquals(capped.craterRadius(), legacy.craterRadius(), "a crater saved before the 20th number still loads");
+        assertEquals(0, legacy.blastProofResistance(), "and keeps the server's blast-proof resistance");
     }
 
     @Test

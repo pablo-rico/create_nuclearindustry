@@ -45,7 +45,8 @@ public class ThermonuclearCannonShellProjectile extends FuzedBigCannonProjectile
         if (!(level() instanceof ServerLevel serverLevel)) {
             return;
         }
-        NuclearDetonation.detonateShellThermonuclear(serverLevel, position, load.stats(ExplosiveConfig.thermonuclearCaps()));
+        NuclearDetonation.detonateShellThermonuclear(serverLevel, position, load.stats(ExplosiveConfig.thermonuclearCaps()),
+                org.papiricoh.create_nuclearindustry.explosive.DetonationCause.of(getOwner()));
     }
 
     @Override

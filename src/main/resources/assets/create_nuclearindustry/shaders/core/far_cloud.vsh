@@ -1,13 +1,16 @@
 #version 150
 
-// A nuclear cloud's far puffs, drawn in Distant Horizons' pass with its projection.
+// A nuclear cloud's puffs beyond the vanilla terrain, drawn in Distant Horizons' pass with its projection: textured billboards
+// like nuke_cloud's.
 
 in vec3 Position;
+in vec2 UV0;
 in vec4 Color;
 
 uniform mat4 ModelViewMat;
 uniform mat4 ProjMat;
 
+out vec2 texCoord0;
 out vec4 vertexColor;
 out vec3 viewPosition;
 
@@ -15,6 +18,7 @@ void main() {
     vec4 view = ModelViewMat * vec4(Position, 1.0);
     gl_Position = ProjMat * view;
 
+    texCoord0 = UV0;
     vertexColor = Color;
     viewPosition = view.xyz;
 }

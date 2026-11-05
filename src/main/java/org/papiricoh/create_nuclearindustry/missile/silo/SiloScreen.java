@@ -129,6 +129,15 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
         PacketDistributor.sendToServer(new SiloControlPayload(menu.pos, action, target, arg));
     }
 
+    /** Whether the warhead standing in the silo may, must or cannot burst in the air; a choice without one. */
+    private Warhead.AirburstMode airburstMode() {
+        LaunchDiagram diagram = ClientLaunchDiagrams.at(menu.pos);
+        if (diagram == null || diagram.warhead() == null) return Warhead.AirburstMode.CHOICE;
+        Warhead.Kind[] kinds = Warhead.Kind.values();
+        int kind = diagram.warhead().kind();
+        return kind >= 0 && kind < kinds.length ? Warhead.airburstMode(kinds[kind]) : Warhead.AirburstMode.CHOICE;
+    }
+
     private void updateControls() {
         SiloControllerEntity c = controller();
         boolean editable = c != null && !menu.locked() && !c.interceptorMode() && !c.satelliteMode();
@@ -138,7 +147,13 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
         // A satellite's fairing has no target and is never armed: the table aims and launches it.
         set.visible = airburst.visible = arm.visible = disarm.visible = launch && !satellite;
         set.active = airburst.active = editable && enteredTarget() != null;
-        airburst.setMessage(text(c != null && c.airburst() ? "airburst.on" : "airburst.off"));
+        Warhead.AirburstMode mode = airburstMode();
+        airburst.active &= mode == Warhead.AirburstMode.CHOICE;
+        airburst.setMessage(text(switch (mode) {
+            case ALWAYS -> "airburst.always";
+            case NEVER -> "airburst.never";
+            case CHOICE -> c != null && c.airburst() ? "airburst.on" : "airburst.off";
+        }));
         arm.active = c != null && !c.interceptorMode() && !c.satelliteMode() && c.state() == SiloControllerEntity.State.READY;
         disarm.active = c != null && !c.interceptorMode() && !c.satelliteMode() && (c.state() == SiloControllerEntity.State.ARMED || c.state() == SiloControllerEntity.State.COUNTDOWN);
     }
@@ -594,7 +609,9 @@ public class SiloScreen extends AbstractContainerScreen<SiloMenu> {
                 LayoutRect sprite = selected ? SPRITE_TAB_ACTIVE : SPRITE_TAB_IDLE;
                 sprite(g, region.x(), region.y(), sprite.x(), sprite.y(), region.w(), region.h());
             } else if (region == AIRBURST) {
-                boolean on = controller() != null && controller().airburst();
+                Warhead.AirburstMode mode = airburstMode();
+                boolean on = mode == Warhead.AirburstMode.ALWAYS
+                        || mode == Warhead.AirburstMode.CHOICE && controller() != null && controller().airburst();
                 sprite(g, region.x(), region.y(), SPRITE_TOGGLES.x(), SPRITE_TOGGLES.y() + (on ? region.h() : 0), region.w(), region.h());
             } else if (region == ARM || region == DISARM) {
                 int state = armed ? 3 : !active ? 2 : isHoveredOrFocused() ? 1 : 0;

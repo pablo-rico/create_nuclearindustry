@@ -738,7 +738,7 @@ public final class NuclearBlastManager {
 
         private boolean blastProof(BlockPos pos, BlockState state) {
             return state.is(Blocks.BEDROCK) || state.is(Blocks.END_PORTAL_FRAME)
-                    || state.getExplosionResistance(level, pos, explosion) > ExplosiveConfig.blastProofResistance;
+                    || state.getExplosionResistance(level, pos, explosion) > profile.blastProof(ExplosiveConfig.blastProofResistance);
         }
 
         /** Turns a block to air unless it is air already or blast-proof; true if it changed. */

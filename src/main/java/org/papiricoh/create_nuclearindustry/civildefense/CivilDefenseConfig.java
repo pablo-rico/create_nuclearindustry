@@ -8,6 +8,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
  */
 public final class CivilDefenseConfig {
     public static int sirenThreatRadius = 96;
+    public static boolean sirenMissileThreats = true;
     public static int sirenAudibleRange = 128;
     /** How long a plant accident (meltdown, vessel breach, steam explosion, containment burst, hydrogen burn) sounds the sirens. */
     public static int plantAlarmSeconds = 120;
@@ -40,6 +41,7 @@ public final class CivilDefenseConfig {
     public static double shelterBlastFactor = 0.1;
 
     private static ModConfigSpec.IntValue sirenThreatRadiusValue;
+    private static ModConfigSpec.BooleanValue sirenMissileThreatsValue;
     private static ModConfigSpec.IntValue sirenAudibleRangeValue;
     private static ModConfigSpec.IntValue plantAlarmSecondsValue;
     private static ModConfigSpec.IntValue crankSirenMinSpeedValue;
@@ -73,6 +75,10 @@ public final class CivilDefenseConfig {
     private CivilDefenseConfig() {}
 
     public static void define(ModConfigSpec.Builder builder) {
+        sirenMissileThreatsValue = builder
+                .comment("Sound sirens for missiles launched from silos: from their countdown until they come down, near where each is",
+                        "aimed, as far as its blast or fallout reaches.")
+                .define("civilDefense.siren.missileThreats", true);
         sirenThreatRadiusValue = builder
                 .comment("Air raid sirens sound on their own when a missile, bomb or launch countdown is aimed this many blocks",
                         "from them, plus the radius the threat itself reaches (its fallout radius).")
@@ -181,6 +187,7 @@ public final class CivilDefenseConfig {
 
     public static void bake() {
         sirenThreatRadius = sirenThreatRadiusValue.get();
+        sirenMissileThreats = sirenMissileThreatsValue.get();
         sirenAudibleRange = sirenAudibleRangeValue.get();
         plantAlarmSeconds = plantAlarmSecondsValue.get();
         crankSirenMinSpeed = crankSirenMinSpeedValue.get();

@@ -215,7 +215,13 @@ final class CivilDefenseDataGen extends AreaDataGen {
         protected void addTags(HolderLookup.Provider provider) {
             tag(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION).add(CivilDefenseRegistry.BLAST_WAVE_DAMAGE);
             // The flash of a nuclear fireball burns: Fire Protection helps, and what is immune to fire takes none.
-            tag(net.minecraft.tags.DamageTypeTags.IS_FIRE).add(org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.NUCLEAR_FLASH);
+            tag(net.minecraft.tags.DamageTypeTags.IS_FIRE).add(org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.NUCLEAR_FLASH,
+                    org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalRegistry.THERMOBARIC_BURN);
+            // A warhead's blast is an explosion (Blast Protection); its fragments are projectiles (Projectile Protection).
+            tag(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION).add(
+                    org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalRegistry.CONVENTIONAL_BLAST);
+            tag(net.minecraft.tags.DamageTypeTags.IS_PROJECTILE).add(
+                    org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalRegistry.SHRAPNEL);
         }
 
         @Override

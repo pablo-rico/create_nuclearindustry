@@ -1456,6 +1456,7 @@ arranque.
 ```toml
 [civilDefense.siren]
 threatRadius = 96
+missileThreats = true
 audibleRange = 128
 plantAlarmSeconds = 120
 crankMinSpeed = 32
@@ -1497,14 +1498,18 @@ blastFactor = 0.1
 
 Sirenas:
 
+- Con `siren.missileThreats` (activado), un misil vivo lanzado desde un silo es
+  una amenaza desde su cuenta atrás hasta que cae: las sirenas cerca de su
+  objetivo suenan solas, con el alcance de su onda o de su lluvia radiactiva.
 - La Sirena antiaérea suena mientras recibe redstone (alerta: un aullido largo
   cada 8 s) o, sin redstone, mientras haya una amenaza a su alcance (aviso de
   ataque: un aullido rápido cada 3 s). Una amenaza está a su alcance si su
   objetivo está, en horizontal, a `siren.threatRadius` bloques o menos más el
   radio de la propia amenaza (el radio de su lluvia radiactiva).
-- Las bombas en cuenta atrás mantienen sus avisos automáticos. Los misiles y
-  las cuentas atrás de silos no publican amenazas. Para alertar de vuelos hay que
-  conectar la salida redstone de un radar operativo a las sirenas.
+- Las bombas en cuenta atrás mantienen sus avisos automáticos, y los misiles de
+  silo publican su amenaza (ver `siren.missileThreats` arriba). Para alertar de
+  vuelos de otros lanzadores, o mucho antes, conecta la salida redstone de un
+  radar operativo a las sirenas.
 - Los accidentes de una central también son amenazas, en el sitio del
   accidente: una fusión del núcleo, la rotura de la vasija, una explosión de
   vapor, la rotura de una contención y una combustión de hidrógeno hacen sonar
@@ -1646,15 +1651,32 @@ edgeDose = 3000.0
 
 [explosive.fallout]
 windStretch = 1.0
+chunksPerTick = 64
 
 [explosive.debris]
 fallingPerTick = 40
 maxFalling = 1500
 
+[explosive.flash]
+tracesPerTick = 64
+
+[explosive.ship]
+scanBlocksPerTick = 32768
+
+[explosive.flashBlindness]
+enabled = true
+maxSeconds = 30
+
+[explosive.deafening]
+enabled = true
+thresholdKPa = 7.0
+
 [explosive]
 airburstHeight = 2.0
 visualRange = 4096
+audibleRange = 4096
 respectClaims = true
+claimsProtectEntities = false
 
 [explosive.thermonuclear]
 enabled = true
@@ -1669,17 +1691,52 @@ tamperHotSpot = 150.0
 ```
 
 **Protecciones (claims)**: con `explosive.respectClaims` (activado por
-defecto), el cráter, las zonas de daño, el destello y los incendios de
-cualquier detonación nuclear no tocan los bloques de los chunks protegidos por
+defecto), el cráter, las zonas de daño, el destello, los incendios, los
+cristales que rompe la onda, los bloques de las naves, los escombros que salen
+volando y las brechas de los contenedores de residuos de cualquier detonación
+(nuclear o convencional) no tocan los bloques de los chunks protegidos por
 **Open Parties and Claims** o **FTB Chunks**, si alguno de los dos está
 instalado. Cuenta como protegido un chunk reclamado cuyo dueño no deja que las
 explosiones rompan bloques (en Open Parties and Claims, la opción de proteger
 los bloques de explosiones; en FTB Chunks, la de equipo «las explosiones dañan
 el terreno» desactivada). Esos chunks ni se cargan para el cráter, y el borde o
 la eyecta de al lado tampoco caen dentro. La radiación, la lluvia radiactiva y
-el daño a las entidades siguen llegando. Los dos mods son opcionales: sin
+el daño a las entidades siguen llegando, salvo con `claimsProtectEntities`, que
+también deja a salvo a las criaturas y jugadores dentro del claim. Los dos mods son opcionales: sin
 ellos, o con una versión cuya API no encaje (sale un aviso en el log), no se
 respeta ningún claim.
+
+**Quién la provoca**: el daño de una detonación es de quien la desencadenó (quien
+lanzó el misil, el último que abrió la bomba o quien disparó el proyectil), así que
+las muertes se le atribuyen y los mods de protección saben de quién es. El evento
+`NuclearDetonationEvent` se publica antes de que pase nada, lleva el perfil
+completo (alturas, radios, rendimiento) y quien la provocó, y se puede cancelar:
+cancelado, no hay destello, ni onda, ni cráter, ni lluvia radiactiva. Las
+explosiones convencionales publican `ConventionalDetonationEvent`, también
+cancelable, y además el `ExplosionEvent.Start` de siempre.
+
+**Repartido en ticks y guardado**: el destello y la radiación inmediata llegan a
+los cuerpos de cerca a lejos, `flash.tracesPerTick` por tick (una gran detonación
+tarda alrededor de un segundo, lo que dura un pulso térmico real). La lluvia
+radiactiva se posa en los chunks cargados de cerca a lejos, `fallout.chunksPerTick`
+por tick; los que aún no ha alcanzado la reciben al cargarse, como siempre. Las
+naves en alcance se revisan `ship.scanBlocksPerTick` bloques por tick. La onda
+expansiva, los trabajos sobre naves y las nubes que siguen en el cielo se guardan
+con el mundo: si el servidor se cierra a medias, siguen al volver. Quien entra al
+mundo, cruza un portal o se acerca mientras el hongo sigue en pie lo ve con su
+edad real.
+
+**Sentidos**: un jugador que ve la bola de fuego queda deslumbrado (efecto
+Deslumbrado) más tiempo cuanto más cerca, más grande la bola y más de frente la
+mire, y más de noche; nunca más de `flashBlindness.maxSeconds` segundos. Las
+gafas y visores (tag de objeto `create_nuclearindustry:flash_protection`, por
+defecto el casco antirradiación) lo evitan, igual que estar en un refugio o tener
+algo delante. Una onda que le llega con al menos `deafening.thresholdKPa` kPa
+(después de muros y refugios) lo ensordece (efecto Ensordecido): cada vez que la
+presión se dobla es un grado peor y dura más, hasta 45 segundos. Los dos se
+desactivan con su `enabled`. Los jugadores a menos de `audibleRange` bloques oyen
+la detonación cuando les llega la onda de choque (o, más allá de su alcance, el
+sonido): primero tiembla el suelo, luego el estampido y el retumbo.
 
 Cada detonación nuclear (bomba, misil, proyectil de cañón) calcula sus zonas a
 partir del radio de destrucción `R` de la cabeza (de 80 a 250 bloques en una
@@ -1839,8 +1896,29 @@ maxDelaySeconds = 120
 maxSpacingSeconds = 30
 selfDestructPower = 2.0
 
-[missile.warhead]
-conventionalMaxPower = 16.0
+[missile.conventional]
+maxCraterRadius = 20.0
+maxWaveRadius = 64.0
+referenceCharge = 192.0
+airburstWaveBonus = 1.25
+airburstHeightFactor = 1.5
+blastProofResistance = 100.0
+fragmentsPerCharge = 40.0
+debrisMax = 48
+
+[missile.thermobaric]
+waveFactor = 1.6
+craterFactor = 0.25
+fireFactor = 0.5
+shelterPenetration = 0.5
+burstHeightFactor = 1.2
+
+[missile.cluster]
+openHeight = 64.0
+footprintRadius = 40.0
+dudChance = 0.05
+dudMinSeconds = 5
+dudMaxSeconds = 300
 
 [missile.defense]
 enabled = true
@@ -1946,9 +2024,46 @@ separa los impactos como mucho `maxSpacingSeconds`. Abortar un misil propio en
 vuelo lo destruye con una explosión de potencia `selfDestructPower` (0 ninguna)
 si su posición está cargada; la ojiva nunca estalla.
 
-**Ojiva convencional** (`missile.warhead.conventionalMaxPower`): potencia máxima
-de la explosión de una ojiva cargada con TNT (la de un bloque de TNT es 4). Crece
-con la raíz cúbica de la TNT cargada.
+**Ojivas convencionales** (`missile.conventional.*`, `missile.thermobaric.*`,
+`missile.cluster.*`; sustituyen a la antigua `missile.warhead.conventionalMaxPower`,
+que ya no existe): la carga de una ojiva se mide en equivalentes de bloque de TNT
+según el mapa de datos `create_nuclearindustry:explosive_charge` (TNT 1, Explosivo
+plástico 4, Carga termobárica 4, Submunición de racimo 1,5; cualquier objeto del
+tag `conventional_explosives` sin entrada vale 1 de alto explosivo). Una ojiva solo
+admite un tipo de carga.
+
+- **Alto explosivo** (TNT, explosivo plástico): la carga de referencia
+  (`referenceCharge`, 3 huecos de 16 de explosivo plástico = 192) abre un cráter
+  de `maxCraterRadius` bloques y su onda llega a `maxWaveRadius`; todo crece con la
+  raíz cúbica de la carga (ocho veces la carga, el doble de alcance). La onda hiere
+  hasta el 85 % de su alcance, a través de muros y refugios como la nuclear; la
+  bola de fuego mata de cerca; la metralla (`fragmentsPerCharge` fragmentos por
+  equivalente) alcanza lo que se ve desde la explosión; unos pocos bloques del
+  cráter salen volando (`debrisMax` como mucho). Los bloques que resisten
+  explosiones más que `blastProofResistance` aguantan. El cráter no tiene fondo
+  vítreo ni deja contaminación. En modo aéreo estalla a `airburstHeightFactor`
+  radios de su bola de fuego sobre el objetivo: no abre cráter y su onda llega
+  `airburstWaveBonus` veces más lejos. Una ojiva convencional cargada antes de este
+  cambio conserva su carga.
+- **Termobárica** (Cargas termobáricas): siempre estalla en el aire, a
+  `burstHeightFactor` radios de su bola de fuego. Su bola de fuego es mucho más
+  ancha, su onda llega `waveFactor` veces más lejos, el combustible entra en los
+  refugios (`shelterPenetration` de su protección se pierde), prende fuego hasta
+  `fireFactor` de su alcance y apenas abre cráter (`craterFactor`). Lanza poca
+  metralla.
+- **Racimo** (Submuniciones de racimo): se abre `openHeight` bloques sobre el
+  objetivo y suelta una submunición por objeto, repartidas en un círculo de unos
+  `footprintRadius` bloques, más densas en el centro. Cada una estalla al tocar
+  algo como una pequeña carga de alto explosivo. Una parte (`dudChance`) no estalla
+  al caer: queda en el suelo y estalla sola entre `dudMinSeconds` y
+  `dudMaxSeconds` segundos después, o en cuanto algo la golpea o la alcanza otra
+  explosión.
+
+El botón de explosión aérea de la consola sigue el tipo de ojiva: se elige en las
+nucleares y de alto explosivo, está fijo en «siempre» en las termobáricas y de
+racimo, y en «solo en superficie» en las bombas sucias. La bomba sucia estalla
+ahora como una carga convencional (sin romper bloques más allá de su pequeño
+cráter) y esparce su carga radiactiva como antes.
 
 **Defensa antimisiles** (`missile.defense.*`): los interceptores salen de una
 batería de interceptores o de un controlador de lanzamiento cuyo cohete lleva un
@@ -2114,20 +2229,55 @@ a armar y aplicar un nuevo flanco de redstone.
   señal a las sirenas. No detecta preparativos ni cuentas atrás.
 
 Lo que se ve (solo en el cliente): los jugadores a menos de `visualRange`
-bloques reciben la detonación y ven un destello blanco (más fuerte mirando
-hacia ella y si nada la tapa), un brillo naranja en la pantalla y en la niebla
-que se apaga en un minuto, la bola de fuego que sube y se convierte en un hongo
-(unos cuatro minutos, visible más allá de la niebla de la distancia de
-renderizado), una cúpula de condensación al principio, un anillo de polvo que
-avanza con la onda y una sacudida de cámara cuando la onda pasa. En la config del
-cliente: `explosion.flash` (0 a 1, brillo del destello; bájalo si molestan los
-destellos), `explosion.cloudDetail` (0,25 a 2, número de bocanadas del hongo) y
-`explosion.shake` (sacudida de cámara). Una termonuclear se distingue a simple
-vista: el destello es blanco puro y dura más, la bola de fuego es mayor, más
-blanca y arde unos siete segundos antes de virar a un naranja rojo intenso, el
-hongo sube más alto y su humo es hollín casi negro, con el polvo del suelo y el
-anillo de la onda oscuros, dos cúpulas de condensación y un cielo más rojo. Su
-estruendo se oye el doble de lejos y más grave.
+bloques reciben la detonación, y quien llegue tarde (al entrar al mundo, cruzar un
+portal o acercarse) la ve con su edad real, sin repetir el destello ni el
+estruendo. La nube sigue fases físicas: un destello blanco, una bola de fuego que
+pasa de blanca a amarilla y naranja mientras sube deprisa, la cúpula de
+condensación (nube de Wilson) detrás del frente de choque, un anillo de polvo del
+color del terreno que barre el suelo con la onda y el surge de base, el tallo de
+polvo que se forma bajo la bola, el sombrero que se enrolla en un toro, anillos de
+condensación y un pileus. Primero es pardo rojizo, luego tostado y beis con las
+caras al sol casi blancas; hacia el minuto alcanza su altura (una atómica completa,
+unos 330–400 bloques y un sombrero tan ancho como su radio de destrucción; una
+termonuclear se aplana arriba en un yunque de más de mil bloques). Después se
+abre, deriva con el viento y se disipa: a los tres minutos empieza a aclararse y a
+los seis ha desaparecido. Los incendios del suelo levantan columnas de humo, cae
+ceniza y luego lluvia negra viento abajo, en la zona de la lluvia radiactiva, y en
+los primeros segundos hay rayos dentro de la nube. De noche la nube brilla rojiza
+por dentro y los incendios la iluminan desde abajo. El cielo se tiñe un momento
+alrededor de la bola de fuego (más cuanto mayor se ve), el terreno se ilumina con
+el destello, el aire tiembla sobre la bola de fuego y en el frente de choque, y el
+sol se oscurece tras el polvo. La cámara tiembla tres veces: el temblor sísmico, el
+golpe de la onda (con el estruendo) y el retumbo largo. Más allá de la distancia de
+renderizado se dibuja una versión simplificada de la nube con el mismo tamaño
+aparente. Las explosiones convencionales se ven con su bola de fuego, chispas,
+metralla, terrones, polvo del color del suelo, un anillo de choque y una columna de
+humo gris pardo que sube desde el cráter y se disipa en uno o dos minutos; la
+termobárica, con una neblina de combustible y una bola de fuego ancha y rasante; la
+de racimo, con la apertura en el aire y una cadena de explosiones pequeñas. Una
+bomba sucia se ve como una convencional.
+
+Opciones del cliente (`explosion.*`):
+
+- `quality` (`LOW`, `MEDIUM`, `HIGH`, `ULTRA`; por defecto `MEDIUM`): bocanadas,
+  capas, frecuencia de reconstrucción de la nube (5 a 20 veces por segundo) y
+  partículas. El detalle también baja con la distancia. `cloudDetail` (0,25 a 2)
+  sigue como ajuste fino del número de bocanadas.
+- `flash` (0 a 1): brillo del destello en pantalla; `flashBlindness` (0 a 1): cuánto
+  lava la pantalla el efecto Deslumbrado. Bájalos si molestan los destellos.
+- `shake`: sacudida de cámara. `tinnitus`: pitido mientras estás Ensordecido (el
+  resto de sonidos se amortigua igualmente).
+- `skyTint`: tinte del cielo y de las nubes y sol oscurecido. `terrainLight`: el
+  terreno iluminado por el destello y el brillo naranja posterior. `heatHaze`: la
+  distorsión del aire caliente. `farImpostor`: la nube simplificada más allá de la
+  distancia de renderizado. `ashParticles`: ceniza y lluvia negra.
+
+Con un pack de shaders (Iris u Oculus) la nube se dibuja con un sombreado más
+sencillo que el pack no oscurece, algo más cerca de la cámara para que su niebla no
+la borre (siempre detrás del terreno dibujado); el brillo del terreno, la
+distorsión por calor y el sol oscurecido se desactivan solos. La capa de nubes del
+propio pack puede dibujarse por delante del humo. Probado con Iris 1.8.14 y
+Complementary Reimagined r5.9.3.
 
 **Distant Horizons** (opcional, probado con la 3.3.2 y la 3.3.3): si está instalado, la parte
 del hongo que queda más allá del terreno normal se dibuja en el pase de Distant
@@ -2230,7 +2380,12 @@ Opciones para servidores, bajo `performance.*` y `explosive.*`:
   todas, las detonaciones nucleares de un mundo (cráter, zonas de daño y
   destello). Con menos, el trabajo se reparte en más ticks.
 - `explosive.blastBlocksPerTick` (3500): bloques que las detonaciones nucleares
-  de un mundo quitan o cambian como mucho por tick, entre todas.
+  de un mundo quitan o cambian como mucho por tick, entre todas. Las explosiones
+  convencionales comparten los dos presupuestos.
+- `explosive.flash.tracesPerTick` (64), `explosive.fallout.chunksPerTick` (64) y
+  `explosive.ship.scanBlocksPerTick` (32768): el destello, la lluvia radiactiva y
+  la revisión de las naves de una detonación se reparten en varios ticks en vez de
+  caer todos en el mismo.
 
 Sin opción propia:
 

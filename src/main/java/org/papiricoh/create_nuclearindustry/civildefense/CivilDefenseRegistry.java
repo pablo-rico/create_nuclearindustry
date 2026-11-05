@@ -133,8 +133,8 @@ public final class CivilDefenseRegistry implements NuclearFeature {
     @Override
     public void register(IEventBus modEventBus) {
         NeoForge.EVENT_BUS.addListener(SeismicNetwork::onDetonation);
+        NeoForge.EVENT_BUS.addListener(SeismicNetwork::onConventionalDetonation);
         NeoForge.EVENT_BUS.addListener(BlastWaveManager::onLevelTick);
-        NeoForge.EVENT_BUS.addListener(BlastWaveManager::onServerStopping);
     }
 
     @Override

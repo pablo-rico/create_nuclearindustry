@@ -71,6 +71,14 @@ public final class NuclearWorldgen {
                     context.register(org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry.NUCLEAR_FLASH,
                             new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".nuclear_flash", 0.1f,
                                     net.minecraft.world.damagesource.DamageEffects.BURNING));
+                    context.register(org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalRegistry.CONVENTIONAL_BLAST,
+                            new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".conventional_blast",
+                                    net.minecraft.world.damagesource.DamageScaling.NEVER, 0.1f));
+                    context.register(org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalRegistry.SHRAPNEL,
+                            new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".shrapnel", 0.1f));
+                    context.register(org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalRegistry.THERMOBARIC_BURN,
+                            new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".thermobaric_burn", 0.1f,
+                                    net.minecraft.world.damagesource.DamageEffects.BURNING));
                     context.register(org.papiricoh.create_nuclearindustry.fuelcycle.fan.NuclearFanTypes.ACID_DAMAGE,
                             new net.minecraft.world.damagesource.DamageType(Create_NuclearIndustry.MODID + ".acid", 0.1f));
                 });

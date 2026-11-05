@@ -24,6 +24,8 @@ public final class AllNuclearTags {
         public static final TagKey<Item> NUCLEAR_WARHEAD_CORES = mod("nuclear_warhead_cores");
         /** What a thermonuclear warhead's tamper is made of: depleted uranium blocks. */
         public static final TagKey<Item> THERMONUCLEAR_TAMPERS = mod("thermonuclear_tampers");
+        /** Headgear that keeps a fireball's flash from dazzling its wearer: goggles and visors. */
+        public static final TagKey<Item> FLASH_PROTECTION = mod("flash_protection");
         /** The parts of a thermonuclear warhead, which a missile cannot carry. */
         public static final TagKey<Item> THERMONUCLEAR_COMPONENTS = mod("thermonuclear_components");
 

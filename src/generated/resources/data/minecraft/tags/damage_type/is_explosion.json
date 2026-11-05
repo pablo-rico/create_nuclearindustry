@@ -1,5 +1,6 @@
 {
   "values": [
-    "create_nuclearindustry:blast_wave"
+    "create_nuclearindustry:blast_wave",
+    "create_nuclearindustry:conventional_blast"
   ]
 }

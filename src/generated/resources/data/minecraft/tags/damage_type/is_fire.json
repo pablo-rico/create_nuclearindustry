@@ -1,5 +1,6 @@
 {
   "values": [
-    "create_nuclearindustry:nuclear_flash"
+    "create_nuclearindustry:nuclear_flash",
+    "create_nuclearindustry:thermobaric_burn"
   ]
 }

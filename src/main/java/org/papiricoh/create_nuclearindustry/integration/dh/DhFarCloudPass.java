@@ -30,17 +30,19 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.papiricoh.create_nuclearindustry.Create_NuclearIndustry;
 import org.papiricoh.create_nuclearindustry.explosive.client.NuclearExplosionEffects;
+import org.papiricoh.create_nuclearindustry.explosive.fx.client.NukeRenderTypes;
+import com.mojang.blaze3d.platform.GlStateManager;
 import org.slf4j.Logger;
 
 import java.io.IOException;
 
 /**
- * Draws the far part of a nuclear cloud in Distant Horizons' pass ({@link DhApiAfterRenderEvent}), which
- * comes right after its distant terrain and before the vanilla terrain: the puffs past the vanilla
- * terrain's edge, with Distant Horizons' projection so they are not cut off at the vanilla far plane, and
- * hidden behind its terrain by a look at its depth (the {@code far_cloud} shader), forward or reversed. The vanilla terrain,
- * all nearer than these puffs, then draws over them where it should; the nearer puffs stay in the vanilla
- * pass. The matrices come from {@link DhApiBeforeRenderEvent} of the same frame.
+ * Draws the nuclear clouds beyond the vanilla terrain in Distant Horizons' pass ({@link DhApiAfterRenderEvent}), which
+ * comes right after its distant terrain and before the vanilla terrain: every cloud lying wholly past the vanilla terrain's
+ * edge, the full textured cloud (the same puffs, atlas and premultiplied blending as the vanilla pass, so it looks the same far
+ * off), with Distant Horizons' projection so it is not cut off at the vanilla far plane, and hidden behind its terrain by a look
+ * at its depth (the {@code far_cloud} shader), forward or reversed. The vanilla terrain, all nearer, then draws over it where it
+ * should; nearer clouds stay in the vanilla pass. The matrices come from {@link DhApiBeforeRenderEvent} of the same frame.
  * <p>
  * When Distant Horizons defers its transparent pass until after the vanilla terrain (with shader packs),
  * the cloud stays all in the vanilla pass. Costs nothing with no detonation in sight: the pass returns at once.
@@ -86,7 +88,7 @@ final class DhFarCloudPass {
     private static void onRegisterShaders(RegisterShadersEvent event) {
         try {
             event.registerShader(new ShaderInstance(event.getResourceProvider(),
-                    ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "far_cloud"), DefaultVertexFormat.POSITION_COLOR),
+                    ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "far_cloud"), DefaultVertexFormat.POSITION_TEX_COLOR),
                     loaded -> shader = loaded);
         } catch (IOException e) {
             throw new RuntimeException("Could not load the far nuclear cloud shader", e);
@@ -128,6 +130,12 @@ final class DhFarCloudPass {
             return;
         }
         int depth = depthTexture(proxy);
+        if (depth > 0) {
+            // Distant Horizons has just drawn into this depth texture. On macOS (OpenGL over Metal) sampling it in the same
+            // batch of work corrupts the driver's memory and brings the game down within seconds; ending the batch first
+            // keeps it whole. One flush a frame, and only while a far cloud is in sight.
+            GL11.glFlush();
+        }
 
         RenderTarget target = mc.getMainRenderTarget();
         target.bindWrite(true);
@@ -138,14 +146,22 @@ final class DhFarCloudPass {
         modelView.set(MODEL_VIEW);
         RenderSystem.applyModelViewMatrix();
         RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
+        // Premultiplied alpha, as the vanilla pass draws the cloud: smoke covers, fire and lightning add.
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         RenderSystem.disableCull();
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         // Distant Horizons binds its own textures and arrays behind the state cache's back: bind ours for real.
+        int atlas = mc.getTextureManager().getTexture(NukeRenderTypes.ATLAS).getId();
+        GL13.glActiveTexture(GL13.GL_TEXTURE1);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, atlas);
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, Math.max(0, depth));
         RenderSystem.setShaderTexture(0, Math.max(0, depth));
+        RenderSystem.setShaderTexture(1, atlas);
+        float[] fog = RenderSystem.getShaderFogColor();
+        shader.safeGetUniform("HazeColor").set(fog[0], fog[1], fog[2], 0.55f);
         shader.safeGetUniform("Occlude").set(depth > 0 ? 1.0f : 0.0f);
         shader.safeGetUniform("InverseProjMat").set(PROJECTION.invert(INVERSE_PROJECTION));
         shader.safeGetUniform("ScreenSize").set((float) target.width, (float) target.height);
@@ -158,6 +174,7 @@ final class DhFarCloudPass {
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
         RenderSystem.enableCull();
+        RenderSystem.defaultBlendFunc();
         RenderSystem.disableBlend();
         modelView.popMatrix();
         RenderSystem.applyModelViewMatrix();

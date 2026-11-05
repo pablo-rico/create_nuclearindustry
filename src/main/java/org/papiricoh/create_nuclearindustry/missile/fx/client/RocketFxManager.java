@@ -220,6 +220,7 @@ final class RocketFxManager implements FlightFxListener {
             // A satellite's moments: no flight of this client's, fx is null.
             case SATELLITE_KILLED -> OrbitFx.INSTANCE.killed(level, pos, vel, now, distance, bursts, random);
             case SATELLITE_REENTRY -> OrbitFx.INSTANCE.reentry(level, pos, vel, now, distance, bursts, random);
+            case CLUSTER_OPEN -> clusterOpen(fx, pos, vel, now, distance);
             default -> {
             }
         }
@@ -311,7 +312,7 @@ final class RocketFxManager implements FlightFxListener {
     private void impact(@Nullable FlightFx fx, Vec3 pos, int flags, long now, double distance) {
         float scale = FxScale.of(flags, fx == null ? RocketShape.LEGACY : fx.shape);
         if (fx != null && fx.passage.finish()) boom(pos, distance);
-        if ((flags & FlightFxState.NUCLEAR_WARHEAD) != 0) {
+        if ((flags & FlightFxState.LIVE_WARHEAD) != 0) {
             // The detonation's own effects take over: only let the warhead's glow go out.
             end(fx, now, true);
             return;
@@ -323,6 +324,25 @@ final class RocketFxManager implements FlightFxListener {
         bursts.add(new Burst(Burst.Kind.DUST_RING, new Vec3(pos.x, ground, pos.z), null, now, 70, 16 * scale, water ? 0xE6ECF0 : 0x9C8E78, ground));
         if (distance < FxBudget.MID) dust(pos, ground, 36, 1.4, water);
         scaledSound(RocketFxRegistry.DEBRIS_IMPACT.get(), pos, distance, 1400, 1.0f, 0.7f, true, scale);
+    }
+
+    /**
+     * A cluster warhead's casing blown open high over its target: a small flash and a puff of the casing charge's smoke where it
+     * opened, fragments of the casing thrown out, and its crack heard once sound gets here. The bomblets it frees are entities of
+     * their own; each one's blast is its own payload.
+     */
+    private void clusterOpen(@Nullable FlightFx fx, Vec3 pos, Vec3 vel, long now, double distance) {
+        bursts.add(new Burst(Burst.Kind.FLASH, pos, null, now, 6, 4.5f, 0xFFF0D8, 0));
+        Vec3 axis = vel.lengthSqr() < 1.0e-6 ? new Vec3(0, -1, 0) : vel.normalize();
+        bursts.add(new Burst(Burst.Kind.RING, pos, axis, now, 12, 9, 0xFFE0C0, 0));
+        if (distance < FxBudget.MID) {
+            ringOfSmoke(pos, axis, vel, 12, 1.2, 0.75f);
+            RocketParticles.smoke(level, true, pos.x, pos.y, pos.z, vel.x * 0.05, vel.y * 0.05, vel.z * 0.05,
+                    new RocketParticles.Puff(0.42f, 0.41f, 0.4f, 0.8f, 1.5f, 6.0f, 70, 3, 0.002f));
+            RocketParticles.debris(level, pos, vel, 14, 1.0f, random);
+        }
+        org.papiricoh.create_nuclearindustry.explosive.fx.client.ExplosionSounds.clusterOpen(pos, distance);
+        end(fx, now, false);
     }
 
     private static void scaledSound(net.minecraft.sounds.SoundEvent sound, Vec3 pos, double distance, double reach, float volume,

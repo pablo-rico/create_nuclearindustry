@@ -11,7 +11,6 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.createmod.ponder.foundation.PonderIndex;
 import org.papiricoh.create_nuclearindustry.data.NuclearDataGenerators;
-import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
 import org.papiricoh.create_nuclearindustry.infrastructure.ponder.NuclearPonderPlugin;
 import org.papiricoh.create_nuclearindustry.integration.cbc.CBCNuclearIntegration;
 import org.papiricoh.create_nuclearindustry.multiblock.MultiblockChangeHandler;
@@ -93,11 +92,12 @@ public class Create_NuclearIndustry {
         NeoForge.EVENT_BUS.addListener(RadiationHandler::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(org.papiricoh.create_nuclearindustry.radiation.FalloutData::onLevelTick);
         NeoForge.EVENT_BUS.addListener(Contamination::onChunkLoad);
+        NeoForge.EVENT_BUS.addListener(Contamination::onLevelTick);
+        NeoForge.EVENT_BUS.addListener(Contamination::onLevelUnload);
         NeoForge.EVENT_BUS.addListener(Contamination::onChunkUnload);
         NeoForge.EVENT_BUS.addListener(Contamination::onChunkWatch);
         NeoForge.EVENT_BUS.addListener(org.papiricoh.create_nuclearindustry.radiation.contamination.WaterContamination::onLevelTick);
         NeoForge.EVENT_BUS.addListener(NuclearCommands::onRegisterCommands);
-        NeoForge.EVENT_BUS.addListener(NuclearExplosionSoundManager::onLevelTick);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             PonderIndex.addPlugin(new NuclearPonderPlugin());

@@ -1,0 +1,35 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:dusts/aluminum"
+      }
+    }
+  ],
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "tag": "c:dusts/aluminum"
+    },
+    {
+      "item": "minecraft:gunpowder"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:rocket_fuel"
+    }
+  ],
+  "results": [
+    {
+      "count": 4,
+      "id": "create_nuclearindustry:thermobaric_charge"
+    }
+  ]
+}

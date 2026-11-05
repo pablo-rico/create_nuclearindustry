@@ -8,9 +8,11 @@
     "TallFlowerBlockMixin"
   ],
   "client": [
+    "client.ClientLevelSkyTintMixin",
     "client.CreativeModeInventoryScreenMixin",
     "client.ItemPickerMenuMixin",
     "client.LevelRendererSunDimMixin",
+    "client.LightTextureGlowMixin",
     "client.PonderUIMixin"
   ],
   "injectors": {

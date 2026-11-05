@@ -126,8 +126,10 @@ public final class AntimatterAnnihilation {
         int pulse = (int) Math.ceil(AnnihilationBlastModel.pulseRadius(p, ng));
         LOGGER.info("Antimatter annihilation at {} of {} ng: radius {}, gamma pulse {}", BlockPos.containing(centre),
                 String.format(java.util.Locale.ROOT, "%.3f", ng), radius, pulse);
-        NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, centre, radius, pulse, DetonationStyle.ANTIMATTER));
-        DetonationPayload.antimatter(centre, radius, level.random.nextLong()).send(level);
+        if (NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, centre, radius, pulse, DetonationStyle.ANTIMATTER)).isCanceled()) {
+            return;
+        }
+        DetonationPayload.antimatter(level, centre, radius, level.random.nextLong()).send(level);
         level.playSound(null, centre.x, centre.y, centre.z, AllNuclearSounds.ANNIHILATION_BLAST.get(), SoundSource.BLOCKS,
                 Math.min(8.0f, 2.0f + radius), 1.0f);
         gammaPulse(level, centre, ng, p);

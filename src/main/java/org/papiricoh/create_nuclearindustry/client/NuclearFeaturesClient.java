@@ -37,6 +37,8 @@ public final class NuclearFeaturesClient {
             AntimatterClient.INSTANCE,
             org.papiricoh.create_nuclearindustry.isotope.client.IsotopeClient.INSTANCE,
             org.papiricoh.create_nuclearindustry.explosive.client.ExplosiveClient.INSTANCE,
+            org.papiricoh.create_nuclearindustry.explosive.fx.client.ExplosionFxClient.INSTANCE,
+            org.papiricoh.create_nuclearindustry.explosive.conventional.client.ConventionalClient.INSTANCE,
             org.papiricoh.create_nuclearindustry.missile.client.MissileClient.INSTANCE,
             org.papiricoh.create_nuclearindustry.missile.fx.client.RocketFxClient.INSTANCE,
             org.papiricoh.create_nuclearindustry.radiation.decontamination.client.DecontaminationClient.INSTANCE,

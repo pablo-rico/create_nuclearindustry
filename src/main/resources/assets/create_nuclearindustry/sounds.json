@@ -3,7 +3,13 @@
     "subtitle": "subtitle.create_nuclearindustry.nuclear_explosion",
     "sounds": [
       {
-        "name": "create_nuclearindustry:nuclear_explosion",
+        "name": "create_nuclearindustry:nuke_boom_0",
+        "stream": true,
+        "volume": 1.0,
+        "pitch": 1.0
+      },
+      {
+        "name": "create_nuclearindustry:nuke_boom_1",
         "stream": true,
         "volume": 1.0,
         "pitch": 1.0
@@ -429,6 +435,171 @@
     "sounds": [
       {
         "name": "create_nuclearindustry:holo_blip",
+        "stream": false
+      }
+    ]
+  },
+  "nuke_crack": {
+    "subtitle": "subtitles.create_nuclearindustry.nuke_crack",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:nuke_crack_0",
+        "stream": false
+      },
+      {
+        "name": "create_nuclearindustry:nuke_crack_1",
+        "stream": false
+      },
+      {
+        "name": "create_nuclearindustry:nuke_crack_2",
+        "stream": false
+      }
+    ]
+  },
+  "nuke_boom": {
+    "subtitle": "subtitles.create_nuclearindustry.nuke_boom",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:nuke_boom_0",
+        "stream": false
+      },
+      {
+        "name": "create_nuclearindustry:nuke_boom_1",
+        "stream": false
+      }
+    ]
+  },
+  "nuke_rumble": {
+    "subtitle": "subtitles.create_nuclearindustry.nuke_rumble",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:nuke_rumble",
+        "stream": true
+      }
+    ]
+  },
+  "nuke_rumble_far": {
+    "subtitle": "subtitles.create_nuclearindustry.nuke_rumble_far",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:nuke_rumble_far",
+        "stream": true
+      }
+    ]
+  },
+  "nuke_return_wind": {
+    "subtitle": "subtitles.create_nuclearindustry.nuke_return_wind",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:nuke_return_wind",
+        "stream": true
+      }
+    ]
+  },
+  "seismic_rumble": {
+    "subtitle": "subtitles.create_nuclearindustry.seismic_rumble",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:seismic_rumble",
+        "stream": false
+      }
+    ]
+  },
+  "cloud_lightning": {
+    "subtitle": "subtitles.create_nuclearindustry.cloud_lightning",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:cloud_lightning",
+        "stream": false
+      }
+    ]
+  },
+  "explosion_small": {
+    "subtitle": "subtitles.create_nuclearindustry.explosion_small",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:explosion_small",
+        "stream": false
+      }
+    ]
+  },
+  "explosion_medium": {
+    "subtitle": "subtitles.create_nuclearindustry.explosion_medium",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:explosion_medium",
+        "stream": false
+      }
+    ]
+  },
+  "explosion_large": {
+    "subtitle": "subtitles.create_nuclearindustry.explosion_large",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:explosion_large",
+        "stream": false
+      }
+    ]
+  },
+  "explosion_distant": {
+    "subtitle": "subtitles.create_nuclearindustry.explosion_distant",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:explosion_distant",
+        "stream": false
+      }
+    ]
+  },
+  "debris_rain": {
+    "subtitle": "subtitles.create_nuclearindustry.debris_rain",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:debris_rain",
+        "stream": false
+      }
+    ]
+  },
+  "thermobaric_blast": {
+    "subtitle": "subtitles.create_nuclearindustry.thermobaric_blast",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:thermobaric_blast",
+        "stream": false
+      }
+    ]
+  },
+  "thermobaric_distant": {
+    "subtitle": "subtitles.create_nuclearindustry.thermobaric_distant",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:thermobaric_distant",
+        "stream": false
+      }
+    ]
+  },
+  "cluster_open": {
+    "subtitle": "subtitles.create_nuclearindustry.cluster_open",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:cluster_open",
+        "stream": false
+      }
+    ]
+  },
+  "cluster_crackle": {
+    "subtitle": "subtitles.create_nuclearindustry.cluster_crackle",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:cluster_crackle",
+        "stream": false
+      }
+    ]
+  },
+  "tinnitus": {
+    "subtitle": "subtitles.create_nuclearindustry.tinnitus",
+    "sounds": [
+      {
+        "name": "create_nuclearindustry:tinnitus",
         "stream": false
       }
     ]

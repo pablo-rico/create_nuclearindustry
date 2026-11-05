@@ -72,7 +72,7 @@ public final class LaunchDiagrams {
                 if ((flags & Cell.LOADED) != 0) fill = 100;
             }
             cells.add(new Cell((byte) part.section().ordinal(), (byte) cellStage, (byte) fill, flags));
-            if (RocketComposition.payload(part.section())) warhead = warhead(part);
+            if (RocketComposition.payload(part.section())) warhead = warhead(part, controller.airburst());
         }
         AssembledRocket rocket = controller.rocket();
         MissileDesign design = controller.currentDesign();
@@ -131,7 +131,7 @@ public final class LaunchDiagrams {
         return result;
     }
 
-    private static WarheadInfo warhead(RocketSectionEntity part) {
+    private static WarheadInfo warhead(RocketSectionEntity part, boolean airburst) {
         Warhead warhead = part.warhead();
         float power = warhead.power();
         int radius = warhead.destructionRadius();
@@ -145,7 +145,16 @@ public final class LaunchDiagrams {
                 power = stats.power();
                 fallout = stats.falloutRadius();
             }
-            case CONVENTIONAL -> radius = warhead.threatRadius();
+            case CONVENTIONAL, THERMOBARIC -> {
+                // Its charge, and how far its shock wave reaches as it is set to burst.
+                var blast = warhead.blast(airburst);
+                power = warhead.charge();
+                radius = blast == null ? 0 : (int) Math.ceil(blast.waveRadius());
+            }
+            case CLUSTER -> {
+                power = warhead.charge();
+                radius = warhead.threatRadius();
+            }
             default -> {}
         }
         return new WarheadInfo((byte) warhead.kind().ordinal(), power, radius, fallout, (float) part.payloadMass());

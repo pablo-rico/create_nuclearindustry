@@ -44,7 +44,8 @@ public class NuclearCannonShellProjectile extends FuzedBigCannonProjectile {
         if (!(level() instanceof ServerLevel serverLevel) || load.units() <= 0) {
             return;
         }
-        NuclearDetonation.detonateShell(serverLevel, position, load.units(), load.enrichment());
+        NuclearDetonation.detonateShell(serverLevel, position, load.units(), load.enrichment(),
+                org.papiricoh.create_nuclearindustry.explosive.DetonationCause.of(getOwner()));
     }
 
     @Override

@@ -31,11 +31,14 @@ import org.papiricoh.create_nuclearindustry.civildefense.blast.BlastWaveModel;
  * @param promptRadius   prompt radiation is worth counting out to this
  * @param falloutRadius  the fallout's reach, before the wind stretches it
  * @param falloutIntensity contamination at ground zero, rad/s
+ * @param blastProofResistance blocks resisting explosions more than this stand through the blast; 0 for the server's
+ *                       {@code explosive.crater.blastProofResistance}, which a conventional blast lowers
  */
 public record DetonationProfile(float power, double yieldKg, int horizontalRadius, float intensity, double burstHeight, boolean airburst,
                                 double fireballRadius, double craterRadius, double craterDepth, double rimRadius, double rimHeight,
                                 double ejectaRadius, double glassRadius, double severeRadius, double moderateRadius,
-                                double thermalRadius, double promptRadius, double falloutRadius, double falloutIntensity) {
+                                double thermalRadius, double promptRadius, double falloutRadius, double falloutIntensity,
+                                double blastProofResistance) {
 
     /**
      * What the effects are measured by, from the server config.
@@ -87,7 +90,7 @@ public record DetonationProfile(float power, double yieldKg, int horizontalRadiu
         return new DetonationProfile(power, yieldKg, horizontalRadius, intensity, burstHeight, airburst, fireball,
                 crater, depth, 1.3 * crater, crater > 0 ? Math.max(1, Math.round(0.07 * crater)) : 0, 2.0 * crater, 0.8 * crater,
                 Math.max(severe, crater), Math.max(moderate, 1.3 * crater), thermal, 0.7 * horizontalRadius,
-                1.5 * horizontalRadius, fallout);
+                1.5 * horizontalRadius, fallout, 0);
     }
 
     /**
@@ -96,7 +99,7 @@ public record DetonationProfile(float power, double yieldKg, int horizontalRadiu
      */
     public static DetonationProfile craterOnly(double radius, double depth, float intensity) {
         return new DetonationProfile(0, 0, (int) Math.ceil(radius), intensity, 0, false, 0, radius, depth, radius, 0, radius, 0,
-                radius, radius, 0, 0, 0, 0);
+                radius, radius, 0, 0, 0, 0, 0);
     }
 
     /** How far, blocks, the blast wave keeps {@code kPa} of overpressure in free air. */
@@ -124,16 +127,24 @@ public record DetonationProfile(float power, double yieldKg, int horizontalRadiu
     public double[] encode() {
         return new double[]{power, yieldKg, horizontalRadius, intensity, burstHeight, airburst ? 1 : 0, fireballRadius, craterRadius,
                 craterDepth, rimRadius, rimHeight, ejectaRadius, glassRadius, severeRadius, moderateRadius, thermalRadius, promptRadius,
-                falloutRadius, falloutIntensity};
+                falloutRadius, falloutIntensity, blastProofResistance};
     }
 
-    /** A profile saved by {@link #encode}, or null when the numbers are not one. */
+    /**
+     * A profile saved by {@link #encode}, or null when the numbers are not one. Profiles saved before the blast-proof
+     * resistance was kept (19 numbers) take the server's.
+     */
     public static DetonationProfile decode(double[] v) {
-        if (v.length != 19) {
+        if (v.length != 19 && v.length != 20) {
             return null;
         }
         return new DetonationProfile((float) v[0], v[1], (int) v[2], (float) v[3], v[4], v[5] != 0, v[6], v[7], v[8], v[9], v[10],
-                v[11], v[12], v[13], v[14], v[15], v[16], v[17], v[18]);
+                v[11], v[12], v[13], v[14], v[15], v[16], v[17], v[18], v.length > 19 ? v[19] : 0);
+    }
+
+    /** The resistance above which a block stands through this blast, {@code fallback} when the profile keeps the server's. */
+    public double blastProof(double fallback) {
+        return blastProofResistance > 0 ? blastProofResistance : fallback;
     }
 
     /**
@@ -152,7 +163,7 @@ public record DetonationProfile(float power, double yieldKg, int horizontalRadiu
         double moderate = Math.min(maxReach, Math.max(severe, moderateRadius * squeeze));
         return new DetonationProfile(power, yieldKg, horizontalRadius, intensity, burstHeight, airburst, fireballRadius, craterRadius,
                 craterDepth, Math.min(rimRadius, maxReach), rimHeight, Math.min(ejectaRadius, maxReach), glassRadius, severe, moderate,
-                thermalRadius * squeeze, promptRadius, falloutRadius, falloutIntensity);
+                thermalRadius * squeeze, promptRadius, falloutRadius, falloutIntensity, blastProofResistance);
     }
 
     /** The furthest any effect on blocks reaches: how far out the columns are worked through. */

@@ -1,11 +1,16 @@
 package org.papiricoh.create_nuclearindustry.explosive;
 
+import org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalConfig;
+import org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalDetonation;
+import org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalKind;
+import org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalProfile;
+import org.papiricoh.create_nuclearindustry.explosive.conventional.FireballStrike;
+
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import net.minecraft.core.Position;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
@@ -37,10 +42,10 @@ public final class NuclearDetonation {
     public static final float FALLOUT_RADIUS_FACTOR = 1.5f;
     /** Ground contamination at ground zero per point of blast power. */
     public static final float FALLOUT_PER_POWER = 0.2f;
-    /** Strongest vanilla explosion a nuclear fireball makes; the blast wave does the rest. */
-    public static final float FIREBALL_MAX_POWER = 12.0f;
     /** How far from a nuclear shell's impact the crew still sees it go off. */
     private static final double SHELL_WITNESS_RADIUS = 512.0;
+    /** Damage, half hearts, at the middle of a nuclear fireball: nothing lives through it. */
+    private static final double FIREBALL_DAMAGE = 400;
 
     private NuclearDetonation() {}
 
@@ -61,17 +66,29 @@ public final class NuclearDetonation {
 
     /** A cannon shell's warhead of {@code uraniumUnits} at {@code averageEnrichment}. */
     public static void detonateShell(ServerLevel level, Position position, int uraniumUnits, float averageEnrichment) {
-        detonate(level, position, uraniumUnits, averageEnrichment);
+        detonateShell(level, position, uraniumUnits, averageEnrichment, DetonationCause.NONE);
+    }
+
+    /** As {@link #detonateShell(ServerLevel, Position, int, float)}, its harm {@code cause}'s: whoever fired it. */
+    public static void detonateShell(ServerLevel level, Position position, int uraniumUnits, float averageEnrichment, DetonationCause cause) {
+        detonate(level, new Vec3(position.x(), position.y(), position.z()), WarheadStats.power(uraniumUnits, averageEnrichment),
+                WarheadStats.horizontalRadius(uraniumUnits, averageEnrichment), WarheadStats.intensity(averageEnrichment), 0.0f, cause);
         NuclearAdvancements.awardNearby(level, BlockPos.containing(position.x(), position.y(), position.z()), SHELL_WITNESS_RADIUS,
                 NuclearEvent.NUCLEAR_SHELL_FIRED);
     }
 
     /** A thermonuclear cannon shell's warhead. */
     public static void detonateShellThermonuclear(ServerLevel level, Position position, ThermonuclearStats.Result stats) {
+        detonateShellThermonuclear(level, position, stats, DetonationCause.NONE);
+    }
+
+    /** As {@link #detonateShellThermonuclear(ServerLevel, Position, ThermonuclearStats.Result)}, its harm {@code cause}'s. */
+    public static void detonateShellThermonuclear(ServerLevel level, Position position, ThermonuclearStats.Result stats,
+                                                  DetonationCause cause) {
         if (!stats.live()) {
             return;
         }
-        detonateThermonuclear(level, new Vec3(position.x(), position.y(), position.z()), stats);
+        detonateThermonuclear(level, new Vec3(position.x(), position.y(), position.z()), stats, cause);
         NuclearAdvancements.awardNearby(level, BlockPos.containing(position.x(), position.y(), position.z()), SHELL_WITNESS_RADIUS,
                 NuclearEvent.NUCLEAR_SHELL_FIRED);
     }
@@ -81,6 +98,11 @@ public final class NuclearDetonation {
      * server turned them off) goes off as its fission primary alone.
      */
     public static void detonateThermonuclear(ServerLevel level, Vec3 impact, ThermonuclearStats.Result stats) {
+        detonateThermonuclear(level, impact, stats, DetonationCause.NONE);
+    }
+
+    /** As {@link #detonateThermonuclear(ServerLevel, Vec3, ThermonuclearStats.Result)}, its harm {@code cause}'s. */
+    public static void detonateThermonuclear(ServerLevel level, Vec3 impact, ThermonuclearStats.Result stats, DetonationCause cause) {
         if (!stats.live()) {
             return;
         }
@@ -88,12 +110,12 @@ public final class NuclearDetonation {
             int units = ThermonuclearStats.PRIMARY_UNITS;
             float enrichment = WarheadStats.REQUIRED_ENRICHMENT;
             detonate(level, impact, WarheadStats.power(units, enrichment), WarheadStats.horizontalRadius(units, enrichment),
-                    WarheadStats.intensity(enrichment), 0.0f);
+                    WarheadStats.intensity(enrichment), 0.0f, cause);
             return;
         }
         explode(level, impact, stats.power(), stats.radius(), stats.intensity(), 0.0f, DetonationStyle.THERMONUCLEAR,
                 new Tuning(stats.maxCrater(), ExplosiveConfig.thermonuclearBlastWaveMaxRadius, ExplosiveConfig.thermonuclearThermalReach,
-                        stats.falloutRadius(), stats.hotSpot()));
+                        stats.falloutRadius(), stats.hotSpot()), cause);
     }
 
     public static void detonate(ServerLevel level, Position position, int uraniumUnits, float averageEnrichment) {
@@ -108,40 +130,47 @@ public final class NuclearDetonation {
      * core: same blast, dirtier and wider fallout.
      */
     public static void detonate(ServerLevel level, Vec3 impact, float power, int horizontalRadius, float intensity, float salting) {
-        explode(level, impact, power, horizontalRadius, intensity, salting, DetonationStyle.FISSION, Tuning.fission());
+        detonate(level, impact, power, horizontalRadius, intensity, salting, DetonationCause.NONE);
+    }
+
+    /** As {@link #detonate(ServerLevel, Vec3, float, int, float, float)}, its harm {@code cause}'s. */
+    public static void detonate(ServerLevel level, Vec3 impact, float power, int horizontalRadius, float intensity, float salting,
+                                DetonationCause cause) {
+        explode(level, impact, power, horizontalRadius, intensity, salting, DetonationStyle.FISSION, Tuning.fission(), cause);
     }
 
     private static void explode(ServerLevel level, Vec3 impact, float power, int horizontalRadius, float intensity, float salting,
-                                DetonationStyle style, Tuning tuning) {
+                                DetonationStyle style, Tuning tuning, DetonationCause cause) {
         // A warhead aboard a ship goes off where the ship really is, and takes its ship with it.
         ShipSpace.Ship carrier = ShipSpace.shipAt(level, impact);
         impact = ShipSpace.toWorld(level, impact);
         BlockPos center = BlockPos.containing(impact);
         DetonationProfile profile = DetonationProfile.of(power, horizontalRadius, intensity, burstHeight(level, impact),
                 ExplosiveConfig.settings(tuning.thermalReach()), tuning.craterCap());
+        if (NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, horizontalRadius, style, profile, cause)).isCanceled()) {
+            return;
+        }
         LOGGER.info("{} detonation at {} with power={}, horizontalRadius={}, burstHeight={}, airburst={}, salting={}",
                 style == DetonationStyle.THERMONUCLEAR ? "Thermonuclear" : "Nuclear", center, power, horizontalRadius,
                 Math.round(profile.burstHeight()), profile.airburst(), salting);
 
-        NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, horizontalRadius, style));
-        NuclearExplosionSoundManager.playDelayedForWorld(level, impact, style);
         double waveRadius = Math.min(tuning.waveCap(), BlastWaveModel.maxRadius(horizontalRadius, tuning.waveCap())
                 * (profile.airburst() ? DetonationProfile.AIRBURST_REACH : 1.0));
-        DetonationPayload.of(impact, profile, waveRadius, level.random.nextLong(), style).send(level);
-        NuclearFlash.strike(level, impact, profile);
-        // Only the bang and its hurt: the crater does the digging, without waking the water round ground zero.
-        level.explode(null, impact.x, impact.y, impact.z, fireballPower(power), Level.ExplosionInteraction.NONE);
-        if (ExplosiveConfig.crater) {
-            NuclearBlastManager.start(level, center, profile.withinReach(ExplosiveConfig.craterMaxReach));
-        }
-        ShipBlastManager.start(level, impact, profile, carrier);
-        BlastWaveManager.start(level, impact, BlastWaveModel.yield(power, CivilDefenseConfig.blastWaveYieldPerPower), waveRadius);
         int radius = tuning.falloutRadius() > 0 ? tuning.falloutRadius() : falloutRadius(horizontalRadius);
         float fallout = (float) profile.falloutIntensity();
         if (salting > 0) {
             radius = Math.max(radius, DirtyWarheadStats.falloutRadius(salting));
             fallout = (float) Math.min(Config.contaminationMax, fallout + DirtyWarheadStats.falloutIntensity(salting));
         }
+        DetonationPayload.of(level, impact, profile, waveRadius, radius, level.random.nextLong(), style).send(level);
+        NuclearFlash.strike(level, impact, profile, cause);
+        // Whatever the fireball engulfs; the crater does the digging, the wave and the flash the rest.
+        FireballStrike.strike(level, impact, profile.fireballRadius(), FIREBALL_DAMAGE, 15, cause, ExplosiveRegistry.NUCLEAR_FLASH);
+        if (ExplosiveConfig.crater) {
+            NuclearBlastManager.start(level, center, profile.withinReach(ExplosiveConfig.craterMaxReach));
+        }
+        ShipBlastManager.start(level, impact, profile, carrier);
+        BlastWaveManager.start(level, impact, BlastWaveModel.yield(power, CivilDefenseConfig.blastWaveYieldPerPower), waveRadius, cause, 0);
         Contamination.fallout(level, center, radius, fallout, wind(level), ExplosiveConfig.windStretch);
         if (tuning.hotSpot() > 0) {
             FalloutData.contaminate(level, center, tuning.hotSpot(), DirtyWarheadStats.HOT_SPOT_TICKS);
@@ -158,13 +187,26 @@ public final class NuclearDetonation {
      * fades over days.
      */
     public static void detonateDirty(ServerLevel level, Vec3 impact, float load) {
+        detonateDirty(level, impact, load, DetonationCause.NONE);
+    }
+
+    /**
+     * As {@link #detonateDirty(ServerLevel, Vec3, float)}, its harm {@code cause}'s. Its charge goes off as a conventional
+     * blast of high explosive, the size of a vanilla explosion of {@link DirtyWarheadStats#blastPower} (TNT is 4).
+     */
+    public static void detonateDirty(ServerLevel level, Vec3 impact, float load, DetonationCause cause) {
+        ShipSpace.Ship carrier = ShipSpace.shipAt(level, impact);
         impact = ShipSpace.toWorld(level, impact);
         BlockPos center = BlockPos.containing(impact);
-        LOGGER.info("Dirty bomb detonation at {} with load={}", center, load);
         float power = DirtyWarheadStats.blastPower(load);
-        NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, DirtyWarheadStats.falloutRadius(load), DetonationStyle.DIRTY));
-        DetonationPayload.dirty(impact, power, level.random.nextLong()).send(level);
-        level.explode(null, impact.x, impact.y, impact.z, power, Level.ExplosionInteraction.BLOCK);
+        if (NeoForge.EVENT_BUS.post(new NuclearDetonationEvent(level, impact, power, DirtyWarheadStats.falloutRadius(load),
+                DetonationStyle.DIRTY, null, cause)).isCanceled()) {
+            return;
+        }
+        LOGGER.info("Dirty bomb detonation at {} with load={}", center, load);
+        double tnt = Math.pow(power / 4.0, 3);
+        ConventionalDetonation.explode(level, impact, ConventionalProfile.of(ConventionalKind.DIRTY, tnt, burstHeight(level, impact),
+                ConventionalConfig.settings()), cause, carrier);
         Contamination.fallout(level, center, DirtyWarheadStats.falloutRadius(load), DirtyWarheadStats.falloutIntensity(load),
                 wind(level), ExplosiveConfig.windStretch);
         FalloutData.contaminate(level, center, DirtyWarheadStats.hotSpot(load), DirtyWarheadStats.HOT_SPOT_TICKS);
@@ -187,10 +229,6 @@ public final class NuclearDetonation {
         return impact.y - top;
     }
 
-    /** Power of the vanilla explosion at ground zero: the fireball, which wrecks the bomb's surroundings. */
-    public static float fireballPower(float power) {
-        return Math.min(FIREBALL_MAX_POWER, power * 0.35f);
-    }
 
     public static int falloutRadius(int horizontalRadius) {
         return Math.round(horizontalRadius * FALLOUT_RADIUS_FACTOR);

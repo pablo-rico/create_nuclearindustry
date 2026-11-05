@@ -30,7 +30,7 @@ public final class GuideJeiInfo {
             ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "thermonuclear_cannon_shell");
 
     /** Every page id, also those shown only when their item is there; the datagen writes a text for each. */
-    public static final List<String> IDS = List.of("nuclear_bomb", "thermonuclear_bomb", "warhead_parts", "missile_launch", "rocket_stages", "missile_defense", "satellites", "dyson_swarm", "nuclear_cannon_shell",
+    public static final List<String> IDS = List.of("nuclear_bomb", "thermonuclear_bomb", "warhead_parts", "missile_launch", "rocket_stages", "conventional_warheads", "missile_defense", "satellites", "dyson_swarm", "nuclear_cannon_shell",
             "thermonuclear_cannon_shell", "reactor_fuel_port",
             "reactor_fluid_port", "control_rod", "reactor_temperature_sensor", "tokamak_structure", "tokamak_magnet_drive",
             "tokamak_fluid_port", "tokamak_fuel_injector", "fusion_turbine", "reactor_viewport");
@@ -51,6 +51,12 @@ public final class GuideJeiInfo {
         pages.add(new PlantJeiInfo.Page("rocket_stages", Stream.of("rocket_engine", "rocket_tank", "rocket_guidance", "rocket_warhead")
                 .map(path -> BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path)))
                 .map(ItemStack::new).toList(), List.of()));
+        pages.add(new PlantJeiInfo.Page("conventional_warheads", Stream.of(
+                        new ItemStack(net.minecraft.world.item.Items.TNT),
+                        new ItemStack(org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalRegistry.PLASTIC_EXPLOSIVE.get()),
+                        new ItemStack(org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalRegistry.THERMOBARIC_CHARGE.get()),
+                        new ItemStack(org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalRegistry.CLUSTER_BOMBLET.get()))
+                .toList(), List.of()));
         pages.add(new PlantJeiInfo.Page("missile_defense", Stream.of("interceptor_battery", "interceptor", "rocket_kill_vehicle")
                 .map(path -> BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path)))
                 .map(ItemStack::new).toList(), List.of()));

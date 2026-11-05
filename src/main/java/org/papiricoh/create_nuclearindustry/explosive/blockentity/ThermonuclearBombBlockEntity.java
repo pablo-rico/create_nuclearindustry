@@ -146,6 +146,6 @@ public class ThermonuclearBombBlockEntity extends NuclearBombBlockEntity {
         ThermonuclearStats.Result stats = stats();
         clearContent();
         level.removeBlock(center, false);
-        NuclearDetonation.detonateThermonuclear(level, center.getCenter(), stats);
+        NuclearDetonation.detonateThermonuclear(level, center.getCenter(), stats, cause());
     }
 }
