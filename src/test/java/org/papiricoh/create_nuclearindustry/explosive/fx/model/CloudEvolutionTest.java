@@ -93,10 +93,46 @@ class CloudEvolutionTest {
         double early = meanX(puffs(c, 30), 200);
         double late = meanX(puffs(c, 250), 200);
         assertTrue(late > early + 30, "the wind blows along +x: " + early + " -> " + late);
-        assertTrue(c.capColour(250).luminance() < c.capColour(60).luminance(), "it darkens late");
+        ExplosionPalette.Rgb young = c.capColour(5);
+        assertTrue(young.red() > young.green() * 1.3 && young.green() > young.blue(), "reddish-brown while hot: " + young);
+        for (double t = 0; t < c.lifetime(); t += 10) {
+            assertTrue(c.capColour(t).luminance() > 0.4 && c.stemColour(t).luminance() > 0.35, "never soot-black at " + t);
+        }
+        assertTrue(c.capColour(60).luminance() > c.capColour(5).luminance() + 0.2, "tan and beige once condensation forms");
+        assertTrue(c.life(330) > 0.05 && c.life(330) < 0.3, "a faint smear of haze near its end");
         assertTrue(c.lifetime() >= 300 && c.lifetime() <= 360);
         assertTrue(puffs(c, c.lifetime() + 1).isEmpty(), "and is gone");
         assertTrue(c.life(c.lifetime() - 10) < 0.1 && c.life(100) == 1);
+    }
+
+    /** At stabilisation the cap is about as wide as the destruction radius, its top 1.3-1.6 of it, the stem a fifth of it. */
+    @Test
+    void itFillsTheSkyAsBigAsItsYield() {
+        CloudEvolution c = fission(250);
+        List<P> late = puffs(c, 90);
+        double cx = late.stream().filter(p -> p.y > c.capCentre(90) - 20).mapToDouble(P::x).average().orElse(0);
+        double cz = late.stream().filter(p -> p.y > c.capCentre(90) - 20).mapToDouble(P::z).average().orElse(0);
+        double wide = late.stream().filter(p -> Math.abs(p.y - c.capCentre(90)) < 60)
+                .mapToDouble(p -> Math.hypot(p.x - cx, p.z - cz) + p.radius).max().orElse(0);
+        assertTrue(2 * wide > 0.8 * 250 && 2 * wide < 1.4 * 250, "cap " + 2 * wide);
+        double top = late.stream().mapToDouble(p -> p.y + p.radius * 0.6).max().orElse(0);
+        assertTrue(top > 1.3 * 250 && top < 1.75 * 250, "top " + top);
+        assertTrue(c.capCentre(60) > 0.75 * c.capCentre(300), "most of its height within a minute");
+        CloudEvolution h = thermonuclear();
+        assertTrue(2 * h.capRadius(120) > 1.3 * 750, "an anvil a thousand blocks and more across: " + 2 * h.capRadius(120));
+    }
+
+    /** Fire columns stand on their fires' ground, not floating: their lowest puff sits at it. */
+    @Test
+    void fireColumnsStandOnTheGround() {
+        CloudEvolution c = fission(250);
+        for (int i = 0; i < c.fireCount(); i++) c.fireGround(i, 12);
+        double[] at = new double[2];
+        c.firePoint(0, at);
+        double low = puffs(c, 150).stream().filter(p -> Math.hypot(p.x - at[0], p.z - at[1]) < 30).mapToDouble(p -> p.y).min().orElse(-1);
+        assertTrue(low >= 12 && low < 25, "rooted at its ground: " + low);
+        c.unknownFireGround();
+        assertTrue(puffs(c, 150).stream().noneMatch(p -> Math.hypot(p.x - at[0], p.z - at[1]) < 5 && p.y < 40), "none where the ground is unknown");
     }
 
     @Test

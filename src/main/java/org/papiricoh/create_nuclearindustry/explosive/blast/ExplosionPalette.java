@@ -17,7 +17,7 @@ package org.papiricoh.create_nuclearindustry.explosive.blast;
  * @param flashFade         seconds the flash takes to fade to a third
  * @param glow              the lingering glow's colour over the screen
  * @param glowAlpha         and its strength
- * @param glowFade          seconds it takes to fade to a third
+ * @param glowFade          seconds its bulk takes to fade to a third (a faint afterglow lingers six times as long)
  * @param fog               the colour the fog and sky are drawn towards while the fireball glows
  * @param fogMax            and how far, at most
  * @param smoke             the cloud's soot and dust once cool, before the light
@@ -72,11 +72,11 @@ public record ExplosionPalette(double fireballScale, double fireballSeconds, Rgb
     /** Soot of burning ground: the dark grey of fire smoke. */
     public static final Rgb SOOT = new Rgb(0.2f, 0.19f, 0.18f);
 
-    public static final ExplosionPalette FISSION = new ExplosionPalette(1.0, 0.04, FLASH, 0.45, AFTERGLOW, 0.14, 25, FOG_GLOW, 0.5,
+    public static final ExplosionPalette FISSION = new ExplosionPalette(1.0, 0.04, FLASH, 0.45, AFTERGLOW, 0.12, 1.5, FOG_GLOW, 0.3,
             SMOKE, DUST, CONDENSATION, 0.55);
 
     /** The same physics, bigger and hotter: its fireball is larger, stays hot longer and its flash lasts. */
-    public static final ExplosionPalette THERMONUCLEAR = new ExplosionPalette(1.15, 0.05, FLASH, 0.8, AFTERGLOW, 0.18, 40, FOG_GLOW, 0.6,
+    public static final ExplosionPalette THERMONUCLEAR = new ExplosionPalette(1.15, 0.05, FLASH, 0.8, AFTERGLOW, 0.15, 3.0, FOG_GLOW, 0.35,
             SMOKE, DUST, CONDENSATION, 0.6);
 
     /** Antiprotons meeting matter, drawn by the antimatter feature's look: white-green light, no smoke. */

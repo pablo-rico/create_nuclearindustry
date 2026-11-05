@@ -118,6 +118,8 @@ public final class ScreenEffects {
         int x = Math.round(afterX * width - size / 2), y = Math.round(afterY * height - size / 2);
         double bright = Math.exp(-elapsed / 50);
         float a = (float) Math.min(1, strength * envelope);
+        // Smooth, not the texture's 64 pixels blown up into blocks.
+        mc.getTextureManager().getTexture(NukeRenderTypes.AFTERIMAGE).setFilter(true, false);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         if (bright > 0.05) {
@@ -133,25 +135,32 @@ public final class ScreenEffects {
         RenderSystem.disableBlend();
     }
 
-    /** Puts the afterimage where the brightest fireball was on screen when the blindness began, or in the middle. */
+    /**
+     * Puts the afterimage where the brightest fireball was on screen when the blindness began (seen from where the player looks
+     * now), or in the middle if none was in view. It then stays there on the screen: an afterimage is burnt into the retina, so it
+     * moves with the eye.
+     */
     private static void locateAfterimage(Minecraft mc) {
         afterX = 0.5f;
         afterY = 0.5f;
-        if (!haveView) return;
+        if (!haveView || mc.player == null) return;
+        Vec3 look = mc.player.getViewVector(1);
         Vec3 best = null;
-        double bestDistance = Double.POSITIVE_INFINITY;
+        double bestScore = 0;
         for (NuclearFx.Nuke nuke : NuclearFx.nukes()) {
-            Vec3 at = nuke.fireball(nuke.age(0));
-            double d = at.distanceTo(viewEye);
-            if (d < bestDistance) {
-                bestDistance = d;
+            double age = nuke.age(0);
+            Vec3 at = nuke.fireball(age);
+            double score = NuclearFx.flash(nuke, age, viewEye, look, mc) + 1e-4 * NuclearFx.apparent(nuke, age, viewEye);
+            if (score > bestScore) {
+                bestScore = score;
                 best = at;
             }
         }
         for (ConventionalFx.Blast blast : ConventionalFx.blasts()) {
-            double d = blast.centre().distanceTo(viewEye);
-            if (d < bestDistance) {
-                bestDistance = d;
+            double d = Math.max(1, blast.centre().distanceTo(viewEye));
+            double score = 1e-5 * blast.payload.fireballRadius() / d;
+            if (score > bestScore) {
+                bestScore = score;
                 best = blast.centre();
             }
         }
@@ -161,6 +170,7 @@ public final class ScreenEffects {
         PROJECTION.transform(clip);
         if (clip.w <= 0) return;
         float sx = clip.x / clip.w, sy = clip.y / clip.w;
+        if (Math.abs(sx) > 1.1f || Math.abs(sy) > 1.1f) return;
         afterX = Math.max(0.05f, Math.min(0.95f, sx * 0.5f + 0.5f));
         afterY = Math.max(0.05f, Math.min(0.95f, 0.5f - sy * 0.5f));
     }

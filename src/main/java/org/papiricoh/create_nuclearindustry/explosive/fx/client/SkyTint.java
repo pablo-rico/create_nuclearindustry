@@ -49,7 +49,7 @@ public final class SkyTint {
             Vec3 cap = nuke.fireball(age);
             double flat = Math.hypot(eye.x - cap.x, eye.z - cap.z);
             double reach = Math.max(cloud.capRadius(age) * 2, nuke.payload().thermalRadius());
-            dust = Math.max(dust, 0.35 * life * CloudEvolution.smooth((age - 15) / 40) * Math.max(0, 1 - flat / Math.max(1, reach)));
+            dust = Math.max(dust, 0.2 * life * CloudEvolution.smooth((age - 15) / 40) * Math.max(0, 1 - flat / Math.max(1, reach)));
             // The cap between the player and the sun.
             if (SUN[1] > -0.05 && age > cloud.fireballSeconds()) {
                 double dx = cap.x - eye.x, dy = cap.y - eye.y, dz = cap.z - eye.z;
@@ -75,7 +75,7 @@ public final class SkyTint {
     /** The sky's colour {@code colour} as tinted now, or null for no change. */
     @Nullable
     public static Vec3 sky(Vec3 colour) {
-        return tint(colour, 0.7, 0.5);
+        return tint(colour, 0.6, 0.5);
     }
 
     /** The clouds' colour, lit by the fireball more than the sky is. */
@@ -88,10 +88,11 @@ public final class SkyTint {
     private static Vec3 tint(Vec3 colour, double glowWeight, double dustWeight) {
         if (glow <= 0.005 && dust <= 0.005) return null;
         double r = colour.x, g = colour.y, b = colour.z;
+        // The glow is light added to the sky, not paint over it: barely there by day, a warm cast at night, never a wall of orange.
         double t = Math.min(1, glow * glowWeight);
-        r += (glowColour.red() - r) * t;
-        g += (glowColour.green() - g) * t;
-        b += (glowColour.blue() - b) * t;
+        r = Math.min(1, r + glowColour.red() * t * 0.7);
+        g = Math.min(1, g + glowColour.green() * t * 0.7);
+        b = Math.min(1, b + glowColour.blue() * t * 0.7);
         double d = Math.min(1, dust * dustWeight);
         double grey = (r + g + b) / 3 * 0.85;
         r += (grey * 1.05 - r) * d;

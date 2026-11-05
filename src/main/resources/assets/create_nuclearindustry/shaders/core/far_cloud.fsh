@@ -57,6 +57,6 @@ void main() {
     if (a < 0.003) {
         discard;
     }
-    vec3 rgb = mix(vertexColor.rgb * tex.rgb, HazeColor.rgb, HazeColor.a);
+    vec3 rgb = mix(vertexColor.rgb * min(tex.rgb * 1.3, vec3(1.25)), HazeColor.rgb, HazeColor.a);
     fragColor = vec4(rgb * a, a);
 }

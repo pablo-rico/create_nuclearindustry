@@ -30,6 +30,7 @@ public final class BlastFxModel {
     private final int seedHash;
     private final double driftX, driftZ;
     private final Rgb ground;
+    private final double burstHeight;
 
     /**
      * @param kind           what the charge was made of
@@ -42,10 +43,18 @@ public final class BlastFxModel {
      */
     public BlastFxModel(ConventionalKind kind, double charge, double fireballRadius, double fireRadius, boolean airburst, long seed,
                         Rgb ground) {
+        this(kind, charge, fireballRadius, fireRadius, airburst, seed, ground, 0);
+    }
+
+    /** As above, gone off {@code burstHeight} blocks above the ground, which its smoke column still stands on. */
+    public BlastFxModel(ConventionalKind kind, double charge, double fireballRadius, double fireRadius, boolean airburst, long seed,
+                        Rgb ground, double burstHeight) {
+        this.burstHeight = Math.max(0, burstHeight);
         this.kind = kind == ConventionalKind.DIRTY ? ConventionalKind.HIGH_EXPLOSIVE : kind;
         this.charge = Math.max(0.1, charge);
         this.root = Math.cbrt(this.charge);
-        this.fireballRadius = Math.max(0.6, fireballRadius);
+        // A fireball looks bigger than the radius it burns out to: its glowing gas and the flash round it.
+        this.fireballRadius = Math.max(0.6, 1.4 * fireballRadius + 0.8);
         this.fireRadius = Math.max(0, fireRadius);
         this.airburst = airburst;
         this.seedHash = (int) seed ^ (int) (seed >>> 32);
@@ -144,49 +153,61 @@ public final class BlastFxModel {
     }
 
     /**
-     * The smoke {@code t} seconds in, {@code count} puffs: born over the first seconds from the fireball (black at first, greyer
-     * later and as each thins out), each rising, swelling and drifting, and fading out over its life. A ground burst adds a few
-     * low puffs of dust in the ground's colour that settle sooner.
+     * The smoke {@code t} seconds in, {@code count} puffs: a column standing on the blast, its stem rising from the crater into a
+     * spreading head, leaning downwind, paling and thinning over its life. Each puff has its own height in the column (from just
+     * over the ground to the head), reached as the column climbs; most are born at once, the rest smoulder up later, so the
+     * column never comes loose from the ground. High explosive's smoke is a dark grey-brown, a thermobaric fire's sootier; both
+     * translucent. A ground burst adds a low skirt of dust in the ground's colour that settles sooner.
      */
     public void smoke(double t, int count, SmokeSink sink) {
         double life = smokeSeconds();
         if (t < 0 || t > life) return;
-        double emit = (kind == ConventionalKind.BOMBLET ? 0.6 : 1.5) + 6 * Math.min(1, size());
-        double height = columnHeight();
-        double rise = 3 + 3 * Math.min(1.5, size());
-        double r0 = 0.5 * fireballRadius + 0.6;
-        int dust = airburst ? 0 : Math.max(1, count / 5);
+        // Measured from the ground: an airburst's column reaches down to it from the burst, thinner below the burst (raised dust).
+        double height = Math.max(columnHeight(), burstHeight + 0.6 * columnHeight());
+        double rise = 2.5 + 2.5 * Math.min(1.5, size());
+        double r0 = 0.4 * fireballRadius + 0.6;
+        double peak = thermobaric() ? 0.55 : 0.5;
+        float dark = thermobaric() ? 0.17f : 0.27f;
+        int dust = airburst && burstHeight > 2 * fireballRadius ? 0 : Math.max(2, count / 3);
         int smoke = count - dust;
+        double since = t - hazeSeconds();
         for (int i = 0; i < smoke; i++) {
-            double born = Math.pow((i + 0.5) / smoke, 1.5) * emit;
-            double age = t - born - hazeSeconds();
+            double u = (i + 0.5) / smoke;
+            // Two thirds born with the blast, the rest smouldering up over the first half of its life.
+            double born = i % 3 == 2 ? life * 0.5 * rand(i, 7) : 0.3 * rand(i, 8);
+            double age = since - born;
             if (age <= 0) continue;
-            double span = life * (0.65 + 0.35 * rand(i, 1)) - born;
+            double span = life * (0.75 + 0.25 * rand(i, 1)) - born;
             if (age > span) continue;
             double x = age / span;
-            double up = height * (1 - Math.exp(-age / rise)) * (0.75 + 0.35 * rand(i, 2));
-            double lean = DRIFT * age * (0.3 + 0.7 * Math.min(1, up / height));
-            double spread = r0 * (0.3 + 0.9 * x) * (rand(i, 3) - 0.5) * 2;
+            // Its place in the column: low puffs make the stem, the top third the head.
+            double level = Math.pow(u, 0.8);
+            double up = height * level * (1 - Math.exp(-age / (rise * (0.4 + level))));
+            double head = Math.max(0, (level - 0.65) / 0.35);
+            double lean = DRIFT * age * (0.15 + 0.85 * level);
             double a = rand(i, 4) * 2 * Math.PI;
+            double spread = r0 * (0.25 + 1.6 * head) * (0.5 + 0.8 * Math.sqrt(x)) * rand(i, 3);
             double px = driftX * lean + Math.cos(a) * spread, pz = driftZ * lean + Math.sin(a) * spread;
-            double radius = r0 * (1 + 1.8 * Math.sqrt(age / life)) * (0.8 + 0.4 * rand(i, 5));
-            double alpha = 0.85 * Math.min(1, age / 0.3) * (1 - x * x);
-            float grey = (float) (0.1 + 0.14 * (i / (double) smoke) + 0.22 * x);
-            sink.puff(px, up + fireballRadius * 0.3, pz, radius, CloudEvolution.TILE_DENSE + (i & 3), (float) (rand(i, 6) * 6.283 + age * 0.05),
-                    grey, grey * 0.97f, grey * 0.94f, (float) alpha);
+            double radius = r0 * (0.8 + 0.6 * level + 1.4 * head) * (1 + 1.2 * Math.sqrt(x)) * (0.85 + 0.3 * rand(i, 5));
+            boolean below = up < burstHeight - radius;
+            double alpha = peak * Math.min(1, age / 0.3) * (1 - x) * (1 - x) * (0.7 + 0.3 * level) * (below ? 0.45 : 1);
+            float grey = (float) (dark + 0.2 * x + 0.06 * level + (below ? 0.15 : 0));
+            sink.puff(px, up + radius * 0.3 - burstHeight, pz, radius, CloudEvolution.TILE_DENSE + (i & 3), (float) (rand(i, 6) * 6.283 + age * 0.05),
+                    grey * 1.04f, grey, grey * 0.93f, (float) alpha);
         }
         for (int i = 0; i < dust; i++) {
             double age = t - 0.05;
             double span = Math.min(life, 12 + 10 * Math.min(1, size())) * (0.7 + 0.3 * rand(i, 11));
             if (age <= 0 || age > span) continue;
             double x = age / span;
-            double a = rand(i, 12) * 2 * Math.PI;
-            double out = r0 * (1.2 + 1.5 * Math.sqrt(x)) * (0.6 + 0.6 * rand(i, 13)) + fireballRadius * 0.8;
-            double radius = r0 * (1.2 + 1.2 * Math.sqrt(x));
+            // A ring of dust round the crater, overlapping, low and settling.
+            double a = (i + 0.4 * rand(i, 12)) * 2 * Math.PI / dust;
+            double out = fireballRadius * (0.7 + 0.8 * Math.sqrt(Math.min(1, age / 3))) * (0.85 + 0.3 * rand(i, 13));
+            double radius = Math.max(r0 * (1.4 + 1.2 * Math.sqrt(x)), 1.1 * Math.PI * out / dust);
             double lean = DRIFT * age * 0.3;
-            sink.puff(Math.cos(a) * out + driftX * lean, radius * 0.5 + 0.4 * age * 0.2, Math.sin(a) * out + driftZ * lean, radius,
+            sink.puff(Math.cos(a) * out + driftX * lean, radius * 0.35 - burstHeight, Math.sin(a) * out + driftZ * lean, radius,
                     CloudEvolution.TILE_DENSE + (i & 3), (float) (rand(i, 14) * 6.283), ground.red(), ground.green(), ground.blue(),
-                    (float) (0.6 * Math.min(1, age / 0.2) * (1 - x)));
+                    (float) (0.55 * Math.min(1, age / 0.2) * (1 - x)));
         }
     }
 

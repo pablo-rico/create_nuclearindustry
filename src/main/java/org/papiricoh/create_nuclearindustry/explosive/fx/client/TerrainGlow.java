@@ -29,10 +29,10 @@ public final class TerrainGlow {
         for (NuclearFx.Nuke nuke : NuclearFx.nukes()) {
             double age = nuke.age(0);
             flash = (float) Math.max(flash, NuclearFx.skyFlash(nuke, age, eye) * ClientConfig.explosionFlash);
-            double distance = Math.max(1, eye.distanceTo(nuke.payload().centre()));
-            double near = Math.min(1, 2.0 * Math.max(nuke.payload().thermalRadius(), 32) / distance);
+            // Lit by the fireball as big as it looks from here: strong close by, faint far off, gone as it cools.
+            double near = NuclearFx.apparent(nuke, age, eye);
             double heat = nuke.cloud().fireballHeat(age);
-            double light = near * (0.55 * heat + 0.35 * Math.exp(-age / nuke.palette().glowFade()) * nuke.palette().glowAlpha() / 0.14);
+            double light = near * (0.55 * heat + 0.25 * NuclearFx.afterglow(nuke, age));
             if (light > strongest) {
                 strongest = light;
                 ExplosionPalette.Rgb c = heat > 0.05 ? ExplosionPalette.fire(Math.max(0.3, heat)) : nuke.palette().glow();

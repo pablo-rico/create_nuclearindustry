@@ -19,9 +19,9 @@ import org.papiricoh.create_nuclearindustry.explosive.blast.ExplosionPalette.Rgb
  *     rolling outwards;</li>
  *     <li>the cloud stopping at its height: a fission cloud stands 250 to 400 blocks tall, while a thermonuclear one would rise
  *     far higher and instead flattens against the {@link #TROPOPAUSE}, spreading into a wide anvil;</li>
- *     <li>late, the cloud darkens as its condensation evaporates, drifts downwind (the higher the faster, so the stem leans),
- *     spreads, thins and is gone after five to six minutes; fires lit by the flash send up columns of soot that merge into a
- *     pyrocumulus.</li>
+ *     <li>late, the cloud greys as its condensation evaporates, drifts downwind (the higher the faster, so the stem leans),
+ *     spreads, thins to a smear of haze and is gone after six minutes; fires lit by the flash send up columns of soot, rooted
+ *     on the ground and spreading at their heads.</li>
  * </ol>
  * Every puff comes from the seed, so every player sees the same cloud, and from the time alone, so a player told of it late sees
  * it at its true age. Positions are blocks from ground zero at ground level. No game classes.
@@ -30,7 +30,7 @@ public final class CloudEvolution {
     /** Where a thermonuclear cloud stops rising and spreads: blocks above the ground. */
     public static final double TROPOPAUSE = 420;
     /** Blocks a second the high wind carries the cloud's top. */
-    public static final double WIND_SPEED = 0.28;
+    public static final double WIND_SPEED = 0.4;
     /** Lightning bolts a young cloud may throw. */
     public static final int BOLTS = 20;
     /** Seconds a bolt flickers. */
@@ -101,6 +101,7 @@ public final class CloudEvolution {
     private final double stemRadius;
     private final double surgeRadius;
     private final boolean highAirburst;
+    private final double[] fireGround;
 
     /**
      * @param seed          picks the puffs
@@ -134,16 +135,18 @@ public final class CloudEvolution {
         this.freeTop = Math.max(120, 160 + 0.95 * this.scale);
         this.flattened = freeTop > TROPOPAUSE;
         this.top = flattened ? TROPOPAUSE + Math.min(80, 0.15 * (freeTop - TROPOPAUSE)) : freeTop;
-        this.capRadius = flattened ? Math.min(TROPOPAUSE, 0.34 * TROPOPAUSE + 0.5 * (freeTop - TROPOPAUSE)) : 0.34 * freeTop;
-        this.thickRatio = flattened ? 0.28 : 0.45;
-        // The cap's puffs bulge past its half-thickness by about a fifth of its radius: its visible top stands at the top.
-        this.centreFinal = top - (thickRatio + 0.18) * capRadius;
-        this.riseTau = flattened ? 26 : 20;
-        this.spreadTau = flattened ? 45 : 30;
-        this.lifetime = 300 + 60 * Math.min(1, this.scale / 750);
-        this.stemRadius = 0.12 * capRadius + 4;
+        // Stopped by the tropopause, a thermonuclear cloud spreads into an anvil one and a half to two times its reach across.
+        this.capRadius = flattened ? Math.max(0.34 * TROPOPAUSE, 0.8 * this.scale) : 0.27 * freeTop;
+        this.thickRatio = flattened ? 0.15 : 0.45;
+        // The cap's puffs bulge past its half-thickness by about half their size: its visible top stands at the top.
+        this.centreFinal = top - thickRatio * capRadius - 0.6 * puffSize(capRadius, thickRatio * capRadius);
+        this.riseTau = flattened ? 24 : 20;
+        this.spreadTau = flattened ? 55 : 30;
+        this.lifetime = 360;
+        this.stemRadius = 0.08 * this.scale + 3;
         this.surgeRadius = Math.min(0.9 * this.scale, 6 * this.fireball);
         this.highAirburst = airburst && this.burstHeight > 2.5 * this.fireball;
+        this.fireGround = new double[fireCount()];
     }
 
     // ------------------------------------------------------------------ the shape over time
@@ -182,6 +185,11 @@ public final class CloudEvolution {
         return capRadius;
     }
 
+    /** The size of the cap's puffs for a cap of {@code radius} and {@code halfThick}: a flat anvil has flatter, smaller ones. */
+    private double puffSize(double radius, double halfThick) {
+        return flattened ? Math.min(0.3 * radius, 1.3 * halfThick) : 0.3 * radius;
+    }
+
     /** The fireball's radius {@code t} seconds in. */
     public double fireballRadius(double t) {
         double grow = Math.pow(1 - Math.exp(-Math.max(0, t) / 0.15), 0.4);
@@ -209,6 +217,8 @@ public final class CloudEvolution {
     /** The cap's radius. */
     public double capRadius(double t) {
         double r = Math.max(fireball * 1.05, capRadius * (1 - Math.exp(-Math.max(0, t) / spreadTau)));
+        // Late on it keeps spreading as it disperses; an anvil spreads further.
+        r *= 1 + 0.35 * clamp((t - 90) / (lifetime - 90));
         if (flattened) {
             r *= 1 + 0.2 * clamp((t - 60) / 240);
         }
@@ -226,10 +236,13 @@ public final class CloudEvolution {
         return capCentre(t) + capHalfThickness(t);
     }
 
-    /** How opaque the whole cloud still is: 1, fading over its last two minutes to 0 at its end. */
+    /**
+     * How opaque the whole cloud still is: 1 for three minutes, then thinning, still a faint smear of haze half a minute before
+     * its end and gone at it.
+     */
     public double life(double t) {
-        double x = clamp((t - (lifetime - 120)) / 120);
-        return 1 - x * x * (3 - 2 * x);
+        double x = clamp((t - 180) / (lifetime - 180));
+        return Math.pow(1 - x, 1.2);
     }
 
     /** How far the wind has carried what is {@code y} blocks up, {@code t} seconds in: the top fastest. */
@@ -245,23 +258,26 @@ public final class CloudEvolution {
     // ------------------------------------------------------------------ colours
 
     /**
-     * The colour of the cap's smoke {@code t} seconds in, before the light: reddish-brown while it is hot and full of nitrogen
-     * oxides, whitening as water condenses in it, then greying and darkening as that evaporates and dust and soot are left.
+     * The colour of the cap's smoke {@code t} seconds in, before the light: reddish-brown and orange-brown while it is hot and
+     * full of nitrogen oxides, turning tan and beige as water condenses in it (a thermonuclear cloud, carrying more, whiter),
+     * then a beige grey as it evaporates, and a light haze as it thins out.
      */
     public Rgb capColour(double t) {
-        Rgb young = groundDust.lerp(new Rgb(0.45f, 0.3f, 0.22f), 0.5);
-        Rgb white = palette.smoke().lerp(palette.condensation(), 0.6);
-        Rgb grey = palette.smoke().scale(0.9);
-        Rgb old = palette.smoke().scale(0.74);
-        if (t < 8) return young;
-        if (t < 40) return young.lerp(white, smooth((t - 8) / 32));
-        if (t < 120) return white.lerp(grey, smooth((t - 40) / 80));
-        return grey.lerp(old, smooth((t - 120) / Math.max(1, lifetime - 120)));
+        Rgb young = new Rgb(0.68f, 0.42f, 0.27f).lerp(groundDust, 0.25);
+        Rgb tan = new Rgb(0.8f, 0.68f, 0.55f);
+        Rgb beige = flattened ? new Rgb(0.93f, 0.91f, 0.88f) : new Rgb(0.88f, 0.82f, 0.74f);
+        Rgb grey = flattened ? new Rgb(0.84f, 0.82f, 0.8f) : new Rgb(0.8f, 0.76f, 0.71f);
+        Rgb haze = new Rgb(0.82f, 0.8f, 0.78f);
+        if (t < 10) return young;
+        if (t < 22) return young.lerp(tan, smooth((t - 10) / 12));
+        if (t < 60) return tan.lerp(beige, smooth((t - 22) / 38));
+        if (t < 200) return beige.lerp(grey, smooth((t - 60) / 140));
+        return grey.lerp(haze, smooth((t - 200) / Math.max(1, lifetime - 200)));
     }
 
-    /** The stem's dust: the ground's colour, darkening as it ages. */
+    /** The stem's dust: the earth it drew up, a dusty brown-grey, darker than the cap but never black. */
     public Rgb stemColour(double t) {
-        return groundDust.scale(1 - 0.18 * clamp(t / lifetime));
+        return groundDust.lerp(new Rgb(0.66f, 0.6f, 0.53f), 0.4).scale(1 - 0.08 * clamp(t / lifetime));
     }
 
     // ------------------------------------------------------------------ the puffs
@@ -272,7 +288,7 @@ public final class CloudEvolution {
             return;
         }
         double life = life(t);
-        double grown = 1 + 0.6 * clamp((t - (lifetime - 150)) / 150);
+        double grown = 1 + 0.8 * clamp((t - 100) / (lifetime - 100));
         if (t < fireSeconds * 1.6) {
             fireballPuffs(t, Math.max(10, counts.cap() / 5), sink);
         }
@@ -282,7 +298,6 @@ public final class CloudEvolution {
         int extra = counts.extra();
         condensation(t, (int) Math.round(extra * 0.45), sink);
         fireColumns(t, extra, life, sink);
-        pyrocumulus(t, Math.max(4, (int) Math.round(extra * 0.15)), life, sink);
     }
 
     /** The fireball: turbulent fire filling a sphere, hotter inside, cooling all over; then swallowed by the cap's smoke. */
@@ -333,7 +348,7 @@ public final class CloudEvolution {
             double out = major + tube * s * Math.cos(phi);
             double x = Math.cos(theta) * out, z = Math.sin(theta) * out;
             double y = centre + halfThick * s * Math.sin(phi);
-            double size = 0.3 * radius * (0.75 + 0.5 * rand(i, 14)) * grown;
+            double size = puffSize(radius, halfThick) * (0.75 + 0.5 * rand(i, 14)) * grown;
             double occlusion = (1 - s) / 0.45;
             double hot = heat * (0.5 + 0.7 * occlusion + 0.3 * Math.max(0, -Math.sin(phi)));
             capPuff(t, i, x, y, z, size, centre, radius, halfThick, stretch, colour, (float) occlusion, hot, formed, life, sink);
@@ -343,7 +358,7 @@ public final class CloudEvolution {
             double r = major * Math.sqrt(rand(i, 22));
             double x = Math.cos(a) * r, z = Math.sin(a) * r;
             double y = centre + halfThick * (0.5 + 0.38 * (1 - (r / major) * (r / major)));
-            double size = 0.3 * radius * (0.8 + 0.4 * rand(i, 23)) * grown;
+            double size = puffSize(radius, halfThick) * (0.8 + 0.4 * rand(i, 23)) * grown;
             capPuff(t, i + 5000, x, y, z, size, centre, radius, halfThick, stretch, colour, 0.15f, heat * 0.8, formed, life, sink);
         }
         for (int i = 0; i < under; i++) {
@@ -351,7 +366,7 @@ public final class CloudEvolution {
             double r = major * (0.3 + 0.7 * Math.sqrt(rand(i, 32)));
             double x = Math.cos(a) * r, z = Math.sin(a) * r;
             double y = centre - halfThick * (0.55 + 0.15 * rand(i, 33));
-            double size = 0.25 * radius * (0.8 + 0.4 * rand(i, 34)) * grown;
+            double size = 0.85 * puffSize(radius, halfThick) * (0.8 + 0.4 * rand(i, 34)) * grown;
             capPuff(t, i + 9000, x, y, z, size, centre, radius, halfThick, stretch, colour.scale(0.88), 0.45f, heat * 1.1, formed, life,
                     sink);
         }
@@ -447,14 +462,19 @@ public final class CloudEvolution {
         double settle = 1 - smooth((t - 60) / 140);
         if (settle <= 0 || reach < 2) return;
         double height = 3 + 0.07 * reach;
+        // A low, continuous torus of dust: two staggered rows round the ring, each puff overlapping its neighbours.
+        int perRow = Math.max(6, count / 2);
+        double spacing = 2 * Math.PI * reach / perRow;
+        double base = Math.min(0.4 * reach, Math.max(height, 0.8 * spacing)) * (1 + 0.3 * clamp(since / 120));
         for (int i = 0; i < count; i++) {
-            double a = rand(i, 51) * 2 * Math.PI;
-            double r = reach * (0.55 + 0.5 * rand(i, 52));
+            int row = i % 2;
+            double a = ((i / 2) + 0.5 * row + 0.3 * (rand(i, 51) - 0.5)) * 2 * Math.PI / perRow;
+            double r = reach * (row == 0 ? 0.92 : 0.7) * (0.95 + 0.1 * rand(i, 52));
             double x = Math.cos(a) * r, z = Math.sin(a) * r;
-            double y = height * 0.4 * (0.5 + rand(i, 53)) + 0.05 * since;
+            double size = base * (0.85 + 0.3 * rand(i, 55)) * (row == 0 ? 1 : 1.15);
+            double y = size * 0.35 + 0.05 * since;
             double d = drift(y, t) * 0.4;
             float shade = (float) (0.9 + 0.15 * rand(i, 54));
-            double size = (height * 0.8 + 0.04 * reach) * (0.8 + 0.4 * rand(i, 55)) * (1 + 0.3 * clamp(since / 120));
             sink.puff(x + windX * d, y, z + windZ * d, size, TILE_DENSE + (i & 3), (float) (rand(i, 56) * 6.283),
                     groundDust.red() * shade, groundDust.green() * shade, groundDust.blue() * shade,
                     (float) (alpha * clamp(since / 1.5) * settle * life), 0, (float) Math.cos(a), 0.6f, (float) Math.sin(a), 0.2f, 0);
@@ -531,6 +551,23 @@ public final class CloudEvolution {
         return thermalRadius <= 0 ? 0 : Math.max(3, Math.min(12, (int) Math.round(thermalRadius / 40)));
     }
 
+    /**
+     * The ground under fire {@code i}, blocks above ground zero's, so its column stands on it; {@code NaN} until it is known
+     * (the client looks it up once that ground is loaded) and while it is unknown or under water no column is drawn.
+     */
+    public void fireGround(int i, double dy) {
+        if (i >= 0 && i < fireGround.length) fireGround[i] = dy;
+    }
+
+    public double fireGround(int i) {
+        return i >= 0 && i < fireGround.length ? fireGround[i] : Double.NaN;
+    }
+
+    /** Forgets every fire's ground: none is drawn until the client has found it. */
+    public void unknownFireGround() {
+        java.util.Arrays.fill(fireGround, Double.NaN);
+    }
+
     /** Where ground fire {@code i} burns, blocks from ground zero, into {@code out} (x, z), and when it lights, seconds. */
     public double firePoint(int i, double[] out) {
         double a = rand(i, 71) * 2 * Math.PI;
@@ -540,49 +577,38 @@ public final class CloudEvolution {
         return 10 + 40 * rand(i, 73);
     }
 
-    /** Columns of soot from fires the flash lit, leaning downwind. */
+    /**
+     * Columns of soot from fires the flash lit: each rooted on the ground at its fire, a continuous column of overlapping puffs
+     * leaning downwind, widening into a spreading head and paling as it rises, slowly churning upwards. As many columns as the
+     * budget draws whole; the rest are left out rather than drawn as scattered puffs.
+     */
     private void fireColumns(double t, int extra, double life, PuffSink sink) {
-        int count = (int) Math.round(extra * 0.4);
         int fires = fireCount();
-        if (fires == 0 || count <= 0) return;
-        int per = Math.max(3, count / fires);
+        int per = 8;
+        int columns = Math.min(fires, Math.max(1, (int) Math.round(extra * 0.55 / per)));
+        if (fires == 0) return;
         double[] at = new double[2];
-        Rgb soot = ExplosionPalette.SOOT;
-        Rgb high = palette.smoke().scale(0.7);
-        for (int f = 0; f < fires; f++) {
+        Rgb soot = new Rgb(0.27f, 0.25f, 0.23f);
+        Rgb high = new Rgb(0.55f, 0.53f, 0.5f);
+        for (int f = 0; f < columns; f++) {
+            double ground = fireGround(f);
+            if (Double.isNaN(ground)) continue;
             double lit = firePoint(f, at);
             double grow = clamp((t - lit) / 40);
             if (grow <= 0) continue;
-            double height = (50 + 70 * rand(f, 74)) * grow;
+            double height = (60 + 70 * rand(f, 74)) * grow;
+            double spacing = height / per;
             for (int p = 0; p < per; p++) {
-                double u = frac((p + rand(f * 31 + p, 75)) / per + t * 0.02);
+                double u = frac((p + 0.5) / per + t * 0.004);
                 double y = u * height;
                 double lean = y * 0.35;
+                double radius = Math.max(0.8 * spacing, 3 + 0.12 * y) * (1 + 0.8 * u * u);
                 Rgb c = soot.lerp(high, u);
-                double alpha = 0.55 * Math.sqrt(1 - u) * clamp((t - lit) / 8) * life;
-                sink.puff(at[0] + windX * lean, y + 2, at[1] + windZ * lean, 3 + 0.18 * y, TILE_DENSE + (p & 3),
+                // Fading in from the ground, out at the head, so the churning never shows a puff jump.
+                double alpha = 0.6 * smooth(u / 0.08) * (1 - 0.7 * u) * (1 - smooth((u - 0.85) / 0.15)) * clamp((t - lit) / 8) * life;
+                sink.puff(at[0] + windX * lean, ground + y + radius * 0.4, at[1] + windZ * lean, radius, TILE_DENSE + (p & 3),
                         (float) (rand(f * 31 + p, 76) * 6.283), c.red(), c.green(), c.blue(), (float) alpha, 0, 0, 0.3f, 0, 0.2f, 0);
             }
-        }
-    }
-
-    /** The pyrocumulus: a cumulus the fires' heat raises over them, downwind, from a minute or so on. */
-    private void pyrocumulus(double t, int count, double life, PuffSink sink) {
-        if (thermalRadius <= 0) return;
-        double form = clamp((t - 70) / 60);
-        if (form <= 0) return;
-        double reach = Math.min(1.4 * scale, thermalRadius) * 0.5;
-        double height = Math.min(0.45 * top, 200);
-        double cx = windX * (40 + 0.15 * t), cz = windZ * (40 + 0.15 * t);
-        Rgb c = palette.smoke().lerp(palette.condensation(), 0.55);
-        for (int i = 0; i < count; i++) {
-            double a = rand(i, 81) * 2 * Math.PI;
-            double r = reach * Math.sqrt(rand(i, 82));
-            double y = height * (0.8 + 0.35 * rand(i, 83)) * (0.6 + 0.4 * form);
-            float shade = (float) (0.88 + 0.15 * rand(i, 84));
-            sink.puff(cx + Math.cos(a) * r, y, cz + Math.sin(a) * r, (8 + 0.12 * reach) * (0.7 + 0.6 * rand(i, 85)) * (0.6 + 0.4 * form),
-                    TILE_SOFT + (i & 3), (float) (rand(i, 86) * 6.283), c.red() * shade, c.green() * shade, c.blue() * shade,
-                    (float) (0.7 * form * life), 0, (float) Math.cos(a), 0.5f, (float) Math.sin(a), 0.2f, 0);
         }
     }
 
@@ -631,13 +657,15 @@ public final class CloudEvolution {
         double alpha = 0.7 * strength * settle;
         if (alpha < 0.01) return;
         double height = 2 + 0.03 * front;
-        double spacing = 2 * Math.PI * front / Math.max(1, count);
-        double size = Math.max(height * 1.2, Math.min(30, 0.6 * spacing));
+        int perRow = Math.max(8, count / 2);
+        double spacing = 2 * Math.PI * front / perRow;
+        double size = Math.min(45, Math.max(height * 1.2, 0.85 * spacing));
         for (int i = 0; i < count; i++) {
-            double a = (i + rand(i, 101)) * 2 * Math.PI / count;
-            double r = front * (0.97 + 0.04 * rand(i, 102));
+            int row = i % 2;
+            double a = ((i / 2) + 0.5 * row + 0.3 * (rand(i, 101) - 0.5)) * 2 * Math.PI / perRow;
+            double r = front * (row == 0 ? 0.99 : 0.96) - row * size * 0.3;
             float shade = (float) (0.9 + 0.15 * rand(i, 103));
-            sink.puff(Math.cos(a) * r, size * 0.45, Math.sin(a) * r, size, TILE_DENSE + (i & 3), (float) (rand(i, 104) * 6.283),
+            sink.puff(Math.cos(a) * r, size * 0.35, Math.sin(a) * r, size, TILE_DENSE + (i & 3), (float) (rand(i, 104) * 6.283),
                     groundDust.red() * shade, groundDust.green() * shade, groundDust.blue() * shade, (float) alpha, 0,
                     (float) Math.cos(a), 0.5f, (float) Math.sin(a), 0, 0);
         }

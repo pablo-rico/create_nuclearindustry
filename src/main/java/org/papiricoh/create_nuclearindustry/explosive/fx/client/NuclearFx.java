@@ -85,6 +85,8 @@ public final class NuclearFx {
         final double[] lightningTicks;
         long played;
         long farFrame = -1;
+        /** Which fires' ground has been looked up (a bit each). */
+        int firesFound;
         boolean soundsDone;
 
         Nuke(DetonationPayload payload, ExplosionPalette.Rgb ground) {
@@ -159,7 +161,9 @@ public final class NuclearFx {
             // Sent again on coming back in range: it is already here.
             if (nuke.payload.seed() == payload.seed() && nuke.startTick == payload.startTick()) return;
         }
-        ACTIVE.add(new Nuke(payload, ground(level, payload.centre().x, payload.centre().y - Math.max(0, payload.burstHeight()), payload.centre().z)));
+        Nuke nuke = new Nuke(payload, ground(level, payload.centre().x, payload.centre().y - Math.max(0, payload.burstHeight()), payload.centre().z));
+        nuke.cloud.unknownFireGround();
+        ACTIVE.add(nuke);
     }
 
     /** The colour of the ground at {@code (x, y, z)}, or plain dust where it is not loaded. */
@@ -274,7 +278,9 @@ public final class NuclearFx {
         }
         // Flames and soot of the fires the flash lit, near the player.
         int fires = nuke.cloud.fireCount();
+        findFireGround(level, nuke, fires);
         for (int f = 0; f < fires; f++) {
+            if (Double.isNaN(nuke.cloud.fireGround(f))) continue;
             double lit = nuke.cloud.firePoint(f, FIRE_AT);
             if (age < lit || age > nuke.cloud.lifetime() * 0.9) continue;
             double x = nuke.ox + FIRE_AT[0], z = nuke.oz + FIRE_AT[1];
@@ -311,6 +317,21 @@ public final class NuclearFx {
                     }
                 }
             }
+        }
+    }
+
+    /** Looks up the ground under each fire once it is loaded, so its column stands on it; none over water. */
+    private static void findFireGround(ClientLevel level, Nuke nuke, int fires) {
+        for (int f = 0; f < fires && f < 31; f++) {
+            if ((nuke.firesFound & 1 << f) != 0) continue;
+            nuke.cloud.firePoint(f, FIRE_AT);
+            BlockPos column = BlockPos.containing(nuke.ox + FIRE_AT[0], nuke.oy, nuke.oz + FIRE_AT[1]);
+            if (!level.hasChunkAt(column)) continue;
+            nuke.firesFound |= 1 << f;
+            int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column.getX(), column.getZ());
+            BlockState surface = level.getBlockState(new BlockPos(column.getX(), top - 1, column.getZ()));
+            nuke.cloud.fireGround(f, surface.getFluidState().isEmpty() ? top - nuke.oy : Double.NaN);
+            nuke.cache.invalidate();
         }
     }
 
@@ -413,8 +434,17 @@ public final class NuclearFx {
             float a = (float) (0.6 * Math.max(0, 1 - age / (fireSeconds * 1.3)));
             double d = nuke.cloud.drift(nuke.cloud.capCentre(age), age);
             GLOW.puff(Math.cos(nuke.payload.windAngle()) * d, nuke.cloud.capCentre(age), Math.sin(nuke.payload.windAngle()) * d,
-                    nuke.cloud.fireballRadius(age) * 2.2, CloudEvolution.TILE_VEIL, 0, c.red(), c.green(), c.blue(), a, 0, 0, 0, 0, 0,
+                    nuke.cloud.fireballRadius(age) * 1.6, CloudEvolution.TILE_VEIL, 0, c.red(), c.green(), c.blue(), a, 0, 0, 0, 0, 0,
                     CloudEvolution.EMISSIVE);
+        }
+        double fade = nuke.palette.glowFade();
+        if (age < fade * 5) {
+            // The sky lit round the fireball: a wide, faint glow in its direction rather than a tint over the whole sky.
+            ExplosionPalette.Rgb g = nuke.palette.glow();
+            double d = nuke.cloud.drift(nuke.cloud.capCentre(age), age);
+            GLOW.puff(Math.cos(nuke.payload.windAngle()) * d, nuke.cloud.capCentre(age), Math.sin(nuke.payload.windAngle()) * d,
+                    nuke.cloud.fireballRadius() * 6, CloudEvolution.TILE_VEIL, 0, g.red(), g.green(), g.blue(),
+                    (float) (0.35 * Math.exp(-age / (1.5 * fade))), 0, 0, 0, 0, 0, CloudEvolution.EMISSIVE);
         }
         if (GLOW.size() > 0) {
             GLOW.sort(eye.x, eye.y, eye.z);
@@ -613,17 +643,32 @@ public final class NuclearFx {
             }
         }
         if (tint <= 0.01) return;
-        float t = (float) tint;
+        // Light added to the haze, subtle: the land must not turn orange.
+        float t = (float) tint * 0.7f;
         ExplosionPalette.Rgb fog = palette.fog();
-        event.setRed(event.getRed() + (fog.red() - event.getRed()) * t);
-        event.setGreen(event.getGreen() + (fog.green() - event.getGreen()) * t);
-        event.setBlue(event.getBlue() + (fog.blue() - event.getBlue()) * t);
+        event.setRed(Math.min(1, event.getRed() + fog.red() * t));
+        event.setGreen(Math.min(1, event.getGreen() + fog.green() * t));
+        event.setBlue(Math.min(1, event.getBlue() + fog.blue() * t));
     }
 
-    /** How strongly a nuke's afterglow tints the air where the player stands, 0-1. */
+    /**
+     * How strongly a nuke's afterglow tints the air where the player stands, 0-1: by how big the fireball looks from there, so it
+     * falls fast with distance, its bulk gone in seconds and only a faint warm afterglow after.
+     */
     static double glow(Nuke nuke, double age, Vec3 eye) {
-        double distance = Math.max(1, eye.distanceTo(nuke.payload.centre()));
-        return Math.exp(-age / nuke.palette.glowFade()) * Math.min(1, 3.0 * nuke.payload.thermalRadius() / distance);
+        return apparent(nuke, age, eye) * afterglow(nuke, age);
+    }
+
+    /** How big the fireball looks from {@code eye}, 0-1 (1 once it fills a sixth of the sky or more). */
+    static double apparent(Nuke nuke, double age, Vec3 eye) {
+        double distance = Math.max(1, eye.distanceTo(nuke.fireball(age)));
+        return Math.min(1, 6 * nuke.cloud.fireballRadius() / distance);
+    }
+
+    /** The afterglow over time, 1 at the detonation: its bulk fading fast, a faint tail after. */
+    static double afterglow(Nuke nuke, double age) {
+        double fade = nuke.palette.glowFade();
+        return Math.exp(-age / fade) + 0.1 * Math.exp(-age / (6 * fade));
     }
 
     /**

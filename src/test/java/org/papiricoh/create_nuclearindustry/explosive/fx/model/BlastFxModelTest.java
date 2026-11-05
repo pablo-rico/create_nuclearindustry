@@ -55,6 +55,13 @@ class BlastFxModelTest {
             n[0]++;
         });
         assertTrue(n[0] > 10 && high[0] > 0.5 * bay.columnHeight());
+        double[] low = {Double.POSITIVE_INFINITY};
+        bay.smoke(30, 40, (x, y, z, r, tile, spin, red, g, b, a) -> low[0] = Math.min(low[0], y - r));
+        assertTrue(low[0] < 2, "a column standing on the ground, not a blob in the air: " + low[0]);
+        BlastFxModel air = new BlastFxModel(ConventionalKind.HIGH_EXPLOSIVE, 192, 8, 0, true, 5, ExplosionPalette.DUST, 30);
+        double[] airLow = {Double.POSITIVE_INFINITY};
+        air.smoke(30, 40, (x, y, z, r, tile, spin, red, g, b, a) -> airLow[0] = Math.min(airLow[0], y - r));
+        assertTrue(airLow[0] < -25, "an airburst's column reaches down to the ground below it: " + airLow[0]);
         int[] after = {0};
         bay.smoke(bay.smokeSeconds() + 1, 40, (x, y, z, r, tile, spin, red, g, b, a) -> after[0]++);
         assertEquals(0, after[0]);

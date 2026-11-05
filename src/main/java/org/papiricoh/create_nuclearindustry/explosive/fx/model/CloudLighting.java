@@ -28,9 +28,12 @@ public final class CloudLighting {
     /** Warm sunlight low on the horizon, white high up. */
     private static final Rgb LOW_SUN = new Rgb(1.0f, 0.62f, 0.38f);
     private static final Rgb HIGH_SUN = new Rgb(1.0f, 0.97f, 0.92f);
-    /** The sky's light by day, bluish, and by night, a dim moonlit blue. */
-    private static final Rgb DAY_SKY = new Rgb(0.42f, 0.46f, 0.55f);
-    private static final Rgb NIGHT_SKY = new Rgb(0.05f, 0.055f, 0.08f);
+    /**
+     * The sky's light by day, bluish and strong (a cloud's shaded side is still a mid grey, not black), and by night a dim
+     * moonlit blue that leaves a cloud faintly visible.
+     */
+    private static final Rgb DAY_SKY = new Rgb(0.6f, 0.63f, 0.7f);
+    private static final Rgb NIGHT_SKY = new Rgb(0.13f, 0.14f, 0.19f);
     /** The light of burning ground. */
     private static final Rgb FIRE_LIGHT = new Rgb(1.0f, 0.42f, 0.15f);
 
@@ -55,9 +58,10 @@ public final class CloudLighting {
         double dot = nx * sky.sunX() + ny * sky.sunY() + nz * sky.sunZ();
         double direct = Math.max(0, dot);
         double wrap = 0.5 + 0.5 * dot;
-        double shadow = 1 - 0.55 * occlusion;
-        double diffuse = (0.15 * wrap + 0.85 * direct) * shadow;
-        double sky1 = (0.55 + 0.25 * ny) * (1 - 0.4 * occlusion);
+        double shadow = 1 - 0.35 * occlusion;
+        // Light scattered through the cloud wraps well round the sun's side.
+        double diffuse = (0.35 * wrap + 0.65 * direct) * shadow * 0.75;
+        double sky1 = (0.75 + 0.25 * ny) * (1 - 0.3 * occlusion);
         double below = sky.fireBelow() * Math.max(0, -ny) * sky.night() * 0.6;
         double r = red * (sky.sun().red() * diffuse + sky.ambient().red() * sky1 + FIRE_LIGHT.red() * below);
         double g = green * (sky.sun().green() * diffuse + sky.ambient().green() * sky1 + FIRE_LIGHT.green() * below);

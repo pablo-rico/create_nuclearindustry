@@ -1,7 +1,8 @@
 #version 150
 
 // One pass for a whole cloud, far to near, premultiplied alpha. Which part of the atlas a puff uses says how it is drawn:
-//   smoke tiles (rows 0, 1 and the condensation row 3): the tile's grey, lit from above, times the vertex colour (the light of
+//   smoke tiles (rows 0, 1 and the condensation row 3): the tile's grey (lit from above, its mean brought to about 1), times
+//   the vertex colour (the light of
 //   the sun, the sky and the cloud's heat, worked out on the CPU), blended over what is behind;
 //   fire tiles (row 2): the tile's red is the gas's temperature, its white core hottest; hot parts glow in the vertex colour
 //   (a black body's), cool lanes are soot;
@@ -50,6 +51,6 @@ void main() {
     if (a < 0.003) {
         discard;
     }
-    vec3 rgb = mix(vertexColor.rgb * tex.rgb * ColorModulator.rgb, HazeColor.rgb, HazeColor.a);
+    vec3 rgb = mix(vertexColor.rgb * min(tex.rgb * 1.3, vec3(1.25)) * ColorModulator.rgb, HazeColor.rgb, HazeColor.a);
     fragColor = vec4(rgb * a, a);
 }

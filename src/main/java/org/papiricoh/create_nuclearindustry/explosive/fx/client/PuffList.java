@@ -20,6 +20,11 @@ final class PuffList implements CloudEvolution.PuffSink, BlastFxModel.SmokeSink 
     private static final int FAN = 8;
     /** The share of a fan's radius that is solid before it fades out. */
     private static final float CORE = 0.5f;
+    /**
+     * How much bigger than a puff's radius its textured quad is: the atlas' puffs fill only the middle of their tiles, with soft
+     * edges, so a puff's quad is drawn this much bigger for what shows to be its radius.
+     */
+    private static final double QUAD_SCALE = 1.5;
     /** Half a texel of the atlas, so a tile never bleeds into the next. */
     private static final float INSET = 0.5f / 512;
 
@@ -210,7 +215,7 @@ final class PuffList implements CloudEvolution.PuffSink, BlastFxModel.SmokeSink 
                 by = by2;
                 bz = bz2;
             }
-            double r = radius[i] * s;
+            double r = radius[i] * s * QUAD_SCALE;
             double qx = cx + px * s - rx, qy = cy + py * s - ry, qz = cz + pz * s - rz;
             int t = tile[i];
             float u0 = (t % NukeRenderTypes.TILES) / (float) NukeRenderTypes.TILES + INSET;
@@ -250,7 +255,7 @@ final class PuffList implements CloudEvolution.PuffSink, BlastFxModel.SmokeSink 
                 az /= al;
             }
             double bx = fy * az, by = fz * ax - fx * az, bz = -fy * ax;
-            double r = radius[i] * s * 0.85;
+            double r = radius[i] * s * 1.15;
             double qx = cx + px * s - rx, qy = cy + py * s - ry, qz = cz + pz * s - rz;
             boolean light = (flags[i] & CloudEvolution.EMISSIVE) != 0;
             float a = alpha[i] * (light ? 1 : 0.9f);

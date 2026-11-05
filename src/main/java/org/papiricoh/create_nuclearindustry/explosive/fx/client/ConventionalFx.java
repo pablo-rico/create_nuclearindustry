@@ -105,7 +105,7 @@ public final class ConventionalFx {
         if (state != null && state.isAir()) state = level.getBlockState(below.below());
         ExplosionPalette.Rgb ground = state == null ? ExplosionPalette.DUST : NuclearFx.ground(level, c.x, groundY, c.z);
         BlastFxModel model = new BlastFxModel(payload.kind(), payload.chargeKg(), payload.fireballRadius(), payload.fireRadius(),
-                payload.airburst(), payload.seed(), ground);
+                payload.airburst(), payload.seed(), ground, c.y - groundY);
         ACTIVE.add(new Blast(payload, model, groundY, state, ground));
     }
 
@@ -337,8 +337,16 @@ public final class ConventionalFx {
         }
         ExplosionPalette.Rgb core = ExplosionPalette.fire(heat);
         LIGHT.offset(c.x, c.y, c.z);
-        LIGHT.puff(0, baseY, 0, Math.max(width, height) * 1.6, CloudEvolution.TILE_VEIL, 0, core.red(), core.green(), core.blue(),
+        // The white-hot core, and a brief bloom of light round it as it goes off.
+        LIGHT.puff(0, baseY, 0, Math.max(width, height) * 0.8, CloudEvolution.TILE_VEIL, 0, 1.0f, 0.97f, 0.9f,
+                (float) (0.9 * fade * Math.min(1, heat * 1.3)), 0, 0, 0, 0, 0, CloudEvolution.EMISSIVE);
+        LIGHT.puff(0, baseY, 0, Math.max(width, height) * 1.4, CloudEvolution.TILE_VEIL, 0, core.red(), core.green(), core.blue(),
                 (float) (0.7 * fade * Math.min(1, heat * 1.5)), 0, 0, 0, 0, 0, CloudEvolution.EMISSIVE);
+        float bloom = (float) (0.6 * Math.exp(-s / 0.15));
+        if (bloom > 0.02) {
+            LIGHT.puff(0, baseY, 0, Math.max(width, height) * 4, CloudEvolution.TILE_VEIL, 0, 1.0f, 0.92f, 0.78f, bloom, 0, 0, 0, 0, 0,
+                    CloudEvolution.EMISSIVE);
+        }
         LIGHT.offset(0, 0, 0);
     }
 
@@ -423,13 +431,15 @@ public final class ConventionalFx {
         for (Blast blast : ACTIVE) {
             BlastFxModel m = blast.model;
             double age = blast.age(partial);
-            if (age > m.fireEnd() + 0.3) continue;
+            double s = age - m.hazeSeconds();
+            if (s < 0 || age > m.fireEnd() + 0.3) continue;
             double heat = m.fireballHeat(age);
             Vec3 toward = blast.centre().subtract(eye);
             double distance = Math.max(1, toward.length());
-            double near = Math.min(1, 6 * Math.max(1, blast.payload.fireballRadius()) / distance);
+            // A blink of white as it goes off, then the fireball's own light: clear at a couple of hundred blocks for a big charge.
+            double near = Math.min(1, 20 * Math.max(1, blast.payload.fireballRadius()) / distance);
             double facing = 0.3 + 0.7 * Math.max(0, look.dot(toward.scale(1 / distance)));
-            best = Math.max(best, 0.35 * heat * near * near * facing);
+            best = Math.max(best, (0.55 * Math.exp(-s / 0.12) + 0.12 * heat) * near * facing);
         }
         return best;
     }
