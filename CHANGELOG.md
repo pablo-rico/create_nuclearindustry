@@ -184,6 +184,12 @@
 - Designating a new target for an armed launch controller (from the command table or with a target designator) no
   longer quietly disarms it: it stays armed if the rocket reaches the new target, so the next redstone edge launches
   it. A countdown under way goes back to armed and waits for a fresh edge; a target out of reach stands it down.
+- A rocket built from copies of one that already flew (a blueprint or schematic of the launch site, the site moved in a
+  contraption, sections placed from items that kept their block data) no longer vanishes, with the controller showing
+  "Launched", the moment its warhead is loaded: copied sections are new sections, and a rocket is only taken for one that
+  already flew when it comes back on the same base from a chunk saved before its launch.
+- Ray receivers sharing the Dyson swarm now get exactly the same share: the last FE of an odd split no longer went to one
+  of them, which showed as receivers side by side reading 1 FE/t apart.
 
 ## 2.0.0 (beta): nuclear chain rewrite
 

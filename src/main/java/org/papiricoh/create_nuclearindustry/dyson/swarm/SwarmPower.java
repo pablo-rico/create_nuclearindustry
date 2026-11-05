@@ -32,7 +32,9 @@ public final class SwarmPower {
 
     /**
      * Splits {@code pool} FE per tick among receivers asking for {@code demands} (FE per tick each): evenly, none given more than
-     * it asks, what one leaves going to the others ("water-filling"). Whole FE, never more than the pool in all.
+     * it asks, what one leaves going to the others ("water-filling"). Whole FE, never more than the pool in all. Those that cannot
+     * have all they ask get the same, the whole FE under an even split: the remainder (less than one FE per tick each) is not
+     * handed to one of them, so two alike receivers never differ.
      */
     public static int[] allocate(double pool, int[] demands) {
         int n = demands.length;
@@ -44,10 +46,16 @@ public final class SwarmPower {
         double left = Math.floor(pool);
         for (int k = 0; k < n; k++) {
             int i = order[k];
-            double fair = Math.floor(left / (n - k));
-            int give = (int) Math.max(0, Math.min(Math.max(0, demands[i]), fair));
-            shares[i] = give;
-            left -= give;
+            int demand = Math.max(0, demands[i]);
+            int fair = (int) Math.min(Integer.MAX_VALUE, Math.floor(left / (n - k)));
+            if (demand <= fair) {
+                shares[i] = demand;
+                left -= demand;
+                continue;
+            }
+            // Sorted by demand: every one still to serve asks more than this level, so they all get it.
+            for (int rest = k; rest < n; rest++) shares[order[rest]] = fair;
+            break;
         }
         return shares;
     }

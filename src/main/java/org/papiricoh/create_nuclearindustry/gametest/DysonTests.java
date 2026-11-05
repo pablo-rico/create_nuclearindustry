@@ -13,6 +13,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -33,6 +36,8 @@ import org.papiricoh.create_nuclearindustry.dyson.swarm.SailCohorts;
 import org.papiricoh.create_nuclearindustry.dyson.terminal.ConfigureSwarmOrbitPayload;
 import org.papiricoh.create_nuclearindustry.dyson.terminal.SwarmTerminalBlockEntity;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -48,12 +53,40 @@ public class DysonTests {
             WEAR = "dyson_wear", PAYLOAD = "dyson_payload", CLOSED = "dyson_closed", FULL = "dyson_full";
     private static final BlockPos MOTOR = new BlockPos(4, 1, 4), EJECTOR = new BlockPos(4, 2, 4);
     private static long savedDayTime = -1;
+    /** How far round the test chunks earlier arenas are looked for, in chunks: the test grid lays them out a few chunks apart. */
+    private static final int SEARCH_CHUNKS = 16;
 
     private static void begin(ServerLevel level, long dayTime) {
         if (savedDayTime < 0) savedDayTime = level.getDayTime();
         level.setDayTime(dayTime);
         level.setWeatherParameters(12000, 0, false, false);
+        clearOtherMachines(level);
         DysonSwarm.get(level).reset();
+    }
+
+    /**
+     * Earlier tests' arenas stay in the world with their chunks forced, and their ejectors and receivers go on working: an ejector
+     * left with sails fires them once a later batch makes it day, a receiver asks the swarm for a share. Each batch starts with
+     * none but its own.
+     */
+    private static void clearOtherMachines(ServerLevel level) {
+        java.util.Set<Long> seen = new java.util.HashSet<>();
+        List<BlockPos> machines = new ArrayList<>();
+        for (long packed : level.getForcedChunks()) {
+            ChunkPos centre = new ChunkPos(packed);
+            for (int dx = -SEARCH_CHUNKS; dx <= SEARCH_CHUNKS; dx++) for (int dz = -SEARCH_CHUNKS; dz <= SEARCH_CHUNKS; dz++) {
+                if (!seen.add(ChunkPos.asLong(centre.x + dx, centre.z + dz))) continue;
+                LevelChunk chunk = level.getChunkSource().getChunkNow(centre.x + dx, centre.z + dz);
+                if (chunk == null) continue;
+                for (BlockEntity be : chunk.getBlockEntities().values())
+                    if (be instanceof EmRailEjectorBlockEntity || be instanceof RayReceiverBlockEntity) machines.add(be.getBlockPos());
+            }
+        }
+        for (BlockPos pos : machines) {
+            if (level.getBlockEntity(pos) instanceof EmRailEjectorBlockEntity ejector)
+                for (int slot = 0; slot < ejector.magazine().getSlots(); slot++) ejector.magazine().extractItem(slot, Integer.MAX_VALUE, false);
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        }
     }
 
     private static void end(ServerLevel level) {
@@ -149,7 +182,7 @@ public class DysonTests {
         // Nothing takes their energy, so their stores fill within a second of the first split and they stop asking: look then.
         h.succeedWhen(() -> {
             DysonSwarm swarm = swarm(h);
-            h.assertTrue(a.share() > 0 && b.share() > 0, "both receive: " + a.status() + ", " + b.status());
+            h.assertTrue(a.share() > 0 && b.share() > 0, "both receive: " + a.status() + ", " + b.status() + " receivers=" + swarm.receivers() + " pool=" + swarm.pool() + " shares=" + a.share() + "/" + b.share());
             h.assertTrue(swarm.pool() > 0.9 * 1000 * DysonConfig.fePerSail, "a clear noon sends nearly all the sails' power: " + swarm.pool());
             h.assertTrue(a.share() == b.share(), "two receivers share alike: " + a.share() + " and " + b.share());
             h.assertTrue(a.share() <= DysonConfig.receiverMaxFe, "none takes more than its most");
@@ -188,7 +221,7 @@ public class DysonTests {
         ejector.setOrbit(2);
         h.runAfterDelay(100, () -> {
             h.assertTrue(ejector.status() == EjectorStatus.ORBIT_CLOSED, "orbit 3 starts closed, but it is " + ejector.status());
-            h.assertTrue(swarm(h).totalSails() == 0 && ejector.sailsLoaded() == 4, "nothing launched into a closed orbit");
+            h.assertTrue(swarm(h).totalSails() == 0 && ejector.sailsLoaded() == 4, "nothing launched into a closed orbit: sails=" + swarm(h).sails(0) + "/" + swarm(h).sails(1) + "/" + swarm(h).sails(2) + " loaded=" + ejector.sailsLoaded());
             h.succeed();
         });
     }

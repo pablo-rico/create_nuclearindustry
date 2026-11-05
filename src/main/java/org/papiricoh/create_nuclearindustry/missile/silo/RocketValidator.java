@@ -63,13 +63,21 @@ public final class RocketValidator {
                 : composition.satellite() ? (SatelliteItem.kindOf(payload.contents().getStackInSlot(0)) == null ? "satellite" : null)
                 : WarheadBay.validate(payload.contents());
         if (why != null && why.startsWith("charge") && previewOnly)
-            return new Result(new AssembledRocket(UUID.nameUUIDFromBytes(identities.toString().getBytes(StandardCharsets.UTF_8)), base, composition,
+            return new Result(new AssembledRocket(launchId(base, identities), base, composition,
                     new MissileDesign(stages.stream().map(PropellantModel.Stage::design).toList(), payload.payloadMass(), 0), payload.warhead(), visuals,
                     identities, guidance, stages.stream().map(PropellantModel.Stage::kind).toList()), why, payload.getBlockPos());
         if (why != null) return new Result(null, why, payload == null ? base.above(sections.size() - 1) : payload.getBlockPos());
-        UUID id = UUID.nameUUIDFromBytes(identities.toString().getBytes(StandardCharsets.UTF_8));
+        UUID id = launchId(base, identities);
         MissileDesign design = new MissileDesign(stages.stream().map(PropellantModel.Stage::design).toList(), payload.payloadMass(), 0);
         return new Result(new AssembledRocket(id, base, composition, design, payload.warhead(), visuals, identities, guidance,
                 stages.stream().map(PropellantModel.Stage::kind).toList()), "", base);
+    }
+    /**
+     * The id a rocket launches under: the same sections on the same base always give the same one, so a chunk saved before a
+     * launch and restored after it is recognised in the dimension's launch ledger. The base is part of it because a stale
+     * chunk always comes back where it was; copies of a rocket that flew, standing anywhere else, are other rockets.
+     */
+    public static UUID launchId(BlockPos base, List<UUID> identities) {
+        return UUID.nameUUIDFromBytes((base.asLong() + ":" + identities).getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -226,7 +226,11 @@ public class RocketSectionEntity extends BlockEntity implements IHaveGoggleInfor
 
     @Override protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.loadAdditional(tag, provider);
-        identity = tag.hasUUID("Identity") ? tag.getUUID("Identity") : UUID.randomUUID();
+        // Kept only when read back from disk with its chunk, before it has a level. Data copied onto a block already in a world
+        // (an item's block data, a schematic or blueprint, a contraption, /clone) makes another section, with an identity of its
+        // own: otherwise a copy of a rocket that flew has that rocket's launch id and the silo takes it for a stale chunk.
+        boolean copied = level != null && !level.isClientSide;
+        identity = tag.hasUUID("Identity") && !copied ? tag.getUUID("Identity") : UUID.randomUUID();
         // Never deserialize into the live handler: old saves resize it back to five slots.
         ItemStackHandler old = new ItemStackHandler();
         old.deserializeNBT(provider, tag.getCompound("Contents"));

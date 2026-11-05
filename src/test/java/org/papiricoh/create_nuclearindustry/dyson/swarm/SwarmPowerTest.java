@@ -56,6 +56,16 @@ class SwarmPowerTest {
     }
 
     @Test
+    void alikeReceiversGetAlikeWhateverThePool() {
+        // An odd pool used to hand its last FE to one of two receivers asking the same.
+        assertArrayEquals(new int[] {32030, 32030}, SwarmPower.allocate(64061.9, new int[] {32768, 32768}));
+        assertArrayEquals(new int[] {21320, 100, 21320, 21320}, SwarmPower.allocate(64061, new int[] {32768, 100, 32768, 32768}));
+        int[] shares = SwarmPower.allocate(1001, new int[] {500, 500, 7});
+        assertArrayEquals(new int[] {497, 497, 7}, shares);
+        assertTrue(Arrays.stream(shares).sum() <= 1001);
+    }
+
+    @Test
     void noneTakesMoreThanItAsks() {
         int[] shares = SwarmPower.allocate(1.0e9, new int[] {32768, 10, 0});
         assertArrayEquals(new int[] {32768, 10, 0}, shares);

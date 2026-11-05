@@ -266,6 +266,82 @@ public class SiloTests {
     }
 
     /**
+     * A rocket built again from copies of one that flew (a blueprint printed over the same base, sections placed from items
+     * carrying their data) is a new rocket and flies: only a chunk read back from disk keeps its sections' identities, and with
+     * them the launch id of the rocket that left.
+     */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void aCopyOfALaunchedRocketStillFlies(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        SiloTestBuilder builder = new SiloTestBuilder().tanks(2);
+        SiloControllerEntity silo = aimed(helper, builder, helper.makeMockPlayer(GameType.SURVIVAL));
+        helper.runAfterDelay(5, () -> {
+            BlockPos base = helper.absolutePos(SiloTestBuilder.FLOOR).above();
+            RocketValidator.Result result = RocketValidator.validate(level, base);
+            helper.assertTrue(result.valid(), "the rocket is valid, got " + result.error());
+            java.util.UUID flown = result.rocket().launchId();
+            helper.assertTrue(flown.equals(RocketValidator.launchId(base, result.rocket().identities())), "its launch id comes from its base and sections");
+            helper.assertTrue(!flown.equals(RocketValidator.launchId(base.east(), result.rocket().identities())),
+                    "the same sections on another base are another rocket");
+            FlightTracker tracker = FlightTracker.get(level);
+            Vec3 start = Vec3.atBottomCenterOf(base);
+            Flight receipt = tracker.launchModular(level, flown, result.rocket().design(), start, Vec3.atCenterOf(target(helper)),
+                    target(helper), result.rocket().warhead(), null, java.util.List.of(), java.util.List.of(0));
+            helper.assertTrue(receipt != null, "the receipt's flight is made");
+            tracker.remove(level, receipt);
+            var registries = level.registryAccess();
+            for (int i = 1; i <= builder.height(); i++) {
+                BlockPos pos = helper.absolutePos(SiloTestBuilder.FLOOR.above(i));
+                if (!(level.getBlockEntity(pos) instanceof RocketSectionEntity section)) { helper.fail("no section " + i); return; }
+                net.minecraft.nbt.CompoundTag saved = section.saveWithFullMetadata(registries);
+                var fromDisk = net.minecraft.world.level.block.entity.BlockEntity.loadStatic(pos, section.getBlockState(), saved, registries);
+                helper.assertTrue(fromDisk instanceof RocketSectionEntity read && read.identity().equals(section.identity()),
+                        "read back from disk, section " + i + " keeps its identity");
+                var state = section.getBlockState();
+                level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+                level.setBlockAndUpdate(pos, state);
+                if (!(level.getBlockEntity(pos) instanceof RocketSectionEntity copy)) { helper.fail("section " + i + " was not placed again"); return; }
+                copy.loadWithComponents(saved, registries);
+                helper.assertTrue(!copy.identity().equals(section.identity()), "a copy placed in the world is another section, section " + i);
+            }
+            silo.validate();
+            helper.assertTrue(silo.state() == SiloControllerEntity.State.READY, "the copy is ready, got " + silo.state() + " " + silo.error());
+            for (int i = 1; i <= builder.height(); i++) {
+                helper.assertTrue(level.getBlockEntity(helper.absolutePos(SiloTestBuilder.FLOOR.above(i))) instanceof RocketSectionEntity,
+                        "and stays in the silo, section " + i);
+            }
+            helper.succeed();
+        });
+    }
+
+    /** Copies of a launched rocket's sections already in a world, read back from disk with the old identities, fly from another base. */
+    @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = BATCH)
+    public static void aLaunchElsewhereDoesNotConsumeThisRocket(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        SiloTestBuilder builder = new SiloTestBuilder().tanks(2);
+        SiloControllerEntity silo = aimed(helper, builder, helper.makeMockPlayer(GameType.SURVIVAL));
+        helper.runAfterDelay(5, () -> {
+            BlockPos base = helper.absolutePos(SiloTestBuilder.FLOOR).above();
+            RocketValidator.Result result = RocketValidator.validate(level, base);
+            helper.assertTrue(result.valid(), "the rocket is valid, got " + result.error());
+            // The same sections launched from another base: what a copy that kept its identities leaves in the ledger.
+            BlockPos elsewhere = base.offset(40, 0, 0);
+            FlightTracker tracker = FlightTracker.get(level);
+            Flight receipt = tracker.launchModular(level, RocketValidator.launchId(elsewhere, result.rocket().identities()), result.rocket().design(),
+                    Vec3.atBottomCenterOf(elsewhere), Vec3.atCenterOf(target(helper)), target(helper), result.rocket().warhead(), null,
+                    java.util.List.of(), java.util.List.of(0));
+            helper.assertTrue(receipt != null, "the other launch is made");
+            tracker.remove(level, receipt);
+            silo.validate();
+            helper.assertTrue(silo.state() == SiloControllerEntity.State.READY, "this rocket is still ready, got " + silo.state() + " " + silo.error());
+            for (int i = 1; i <= builder.height(); i++) {
+                helper.assertTrue(!helper.getBlockState(SiloTestBuilder.FLOOR.above(i)).isAir(), "and still stands, section " + i);
+            }
+            helper.succeed();
+        });
+    }
+
+    /**
      * Reach is judged on the target as designated: one near the edge of the rocket's reach is ready even though its guidance
      * misses by hundreds of blocks, and one beyond says how far it is and how far the rocket reaches.
      */
