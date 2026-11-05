@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+### Explosions
+
+- **Conventional warheads are real explosives now.** A warhead loaded with TNT or the new Plastic Explosive (four times TNT)
+  makes its own blast instead of a vanilla explosion: a fireball, a crater dug like a small nuclear one but without the glassy
+  floor, a shock wave that walls and shelters block, casing fragments that hit whatever can see the blast, and clods of earth
+  thrown out of the crater. Everything grows with the cube root of the charge: a full warhead of plastic explosive digs a crater
+  about 20 blocks wide and its shock wave reaches 64 blocks. Set to airburst, it digs nothing but its wave reaches further.
+  Old conventional warheads keep their charge.
+- **Thermobaric warheads**: Thermobaric Charges (iron or, where a mod provides it, aluminium powder with rocket fuel, mixed
+  hot) always go off in the air over the target. A much wider fireball, a longer and stronger pressure wave that gets into
+  shelters, fires all around, and little crater.
+- **Cluster warheads**: Cluster Bomblets open high over the target and scatter one bomblet per item. Now and then one fails
+  to go off on landing; it lies there and goes off later, or as soon as something hits it.
+- A warhead takes one kind of conventional charge. The console's airburst button follows the warhead: a choice for nuclear and
+  high-explosive warheads, always on for thermobaric and cluster ones, ground only for dirty bombs.
+- The dirty bomb's charge goes off as a small conventional blast instead of a vanilla explosion that dropped every block.
+- **Sirens sound for missiles**: a live missile launched from a silo sets off the sirens near its target from its countdown
+  until it comes down, as far as its blast or fallout reaches (`civilDefense.siren.missileThreats`).
+- **Whose blast it is**: deaths from a detonation are credited to whoever launched the missile, armed the bomb or fired the
+  shell.
+- **Flash blindness and deafness**: looking towards a fireball dazzles you for a while (longer the closer, the bigger and the
+  darker the night); the hazmat helmet's visor protects. A strong enough shock wave deafens you and your ears ring.
+- **Sound travels**: the ground trembles first, then the crack and boom arrive with the shock front, and far beyond it the
+  rumble at the speed of sound. Explosions play under the Blocks volume slider.
+- A cloud still standing is shown to players who log in, come through a portal or walk into range while it does, at its true
+  age; clouds survive a server restart, and so do blast waves and the damage still being done to ships.
+- Claims are respected by everything a detonation does to blocks: the wave's broken windows, ship blocks, thrown debris,
+  fires and waste container breaches (`explosive.claimsProtectEntities` also keeps creatures and players in a claim safe).
+- Big detonations no longer stall the server for a tick: the flash, the fallout and the look over nearby ships are spread over
+  several ticks (`explosive.flash.tracesPerTick`, `explosive.fallout.chunksPerTick`, `explosive.ship.scanBlocksPerTick`).
+- Mods and data packs can cancel a nuclear detonation (`NuclearDetonationEvent` now carries its whole profile) or a
+  conventional one (new `ConventionalDetonationEvent`).
+- Removed `missile.warhead.conventionalMaxPower`; conventional warheads are set up under `missile.conventional`,
+  `missile.thermobaric` and `missile.cluster`.
+
 ### Dyson swarm
 - New endgame power source, after antimatter: a **Dyson swarm** of solar sails orbiting the sun, beaming its light
   down to the ground. There is one swarm per world, shared by everyone, and it only shines on the Overworld.

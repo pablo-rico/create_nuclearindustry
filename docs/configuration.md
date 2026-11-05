@@ -1456,6 +1456,7 @@ arranque.
 ```toml
 [civilDefense.siren]
 threatRadius = 96
+missileThreats = true
 audibleRange = 128
 plantAlarmSeconds = 120
 crankMinSpeed = 32
@@ -1497,14 +1498,18 @@ blastFactor = 0.1
 
 Sirenas:
 
+- Con `siren.missileThreats` (activado), un misil vivo lanzado desde un silo es
+  una amenaza desde su cuenta atrás hasta que cae: las sirenas cerca de su
+  objetivo suenan solas, con el alcance de su onda o de su lluvia radiactiva.
 - La Sirena antiaérea suena mientras recibe redstone (alerta: un aullido largo
   cada 8 s) o, sin redstone, mientras haya una amenaza a su alcance (aviso de
   ataque: un aullido rápido cada 3 s). Una amenaza está a su alcance si su
   objetivo está, en horizontal, a `siren.threatRadius` bloques o menos más el
   radio de la propia amenaza (el radio de su lluvia radiactiva).
-- Las bombas en cuenta atrás mantienen sus avisos automáticos. Los misiles y
-  las cuentas atrás de silos no publican amenazas. Para alertar de vuelos hay que
-  conectar la salida redstone de un radar operativo a las sirenas.
+- Las bombas en cuenta atrás mantienen sus avisos automáticos, y los misiles de
+  silo publican su amenaza (ver `siren.missileThreats` arriba). Para alertar de
+  vuelos de otros lanzadores, o mucho antes, conecta la salida redstone de un
+  radar operativo a las sirenas.
 - Los accidentes de una central también son amenazas, en el sitio del
   accidente: una fusión del núcleo, la rotura de la vasija, una explosión de
   vapor, la rotura de una contención y una combustión de hidrógeno hacen sonar
@@ -1646,15 +1651,32 @@ edgeDose = 3000.0
 
 [explosive.fallout]
 windStretch = 1.0
+chunksPerTick = 64
 
 [explosive.debris]
 fallingPerTick = 40
 maxFalling = 1500
 
+[explosive.flash]
+tracesPerTick = 64
+
+[explosive.ship]
+scanBlocksPerTick = 32768
+
+[explosive.flashBlindness]
+enabled = true
+maxSeconds = 30
+
+[explosive.deafening]
+enabled = true
+thresholdKPa = 7.0
+
 [explosive]
 airburstHeight = 2.0
 visualRange = 4096
+audibleRange = 4096
 respectClaims = true
+claimsProtectEntities = false
 
 [explosive.thermonuclear]
 enabled = true
@@ -1669,17 +1691,52 @@ tamperHotSpot = 150.0
 ```
 
 **Protecciones (claims)**: con `explosive.respectClaims` (activado por
-defecto), el cráter, las zonas de daño, el destello y los incendios de
-cualquier detonación nuclear no tocan los bloques de los chunks protegidos por
+defecto), el cráter, las zonas de daño, el destello, los incendios, los
+cristales que rompe la onda, los bloques de las naves, los escombros que salen
+volando y las brechas de los contenedores de residuos de cualquier detonación
+(nuclear o convencional) no tocan los bloques de los chunks protegidos por
 **Open Parties and Claims** o **FTB Chunks**, si alguno de los dos está
 instalado. Cuenta como protegido un chunk reclamado cuyo dueño no deja que las
 explosiones rompan bloques (en Open Parties and Claims, la opción de proteger
 los bloques de explosiones; en FTB Chunks, la de equipo «las explosiones dañan
 el terreno» desactivada). Esos chunks ni se cargan para el cráter, y el borde o
 la eyecta de al lado tampoco caen dentro. La radiación, la lluvia radiactiva y
-el daño a las entidades siguen llegando. Los dos mods son opcionales: sin
+el daño a las entidades siguen llegando, salvo con `claimsProtectEntities`, que
+también deja a salvo a las criaturas y jugadores dentro del claim. Los dos mods son opcionales: sin
 ellos, o con una versión cuya API no encaje (sale un aviso en el log), no se
 respeta ningún claim.
+
+**Quién la provoca**: el daño de una detonación es de quien la desencadenó (quien
+lanzó el misil, el último que abrió la bomba o quien disparó el proyectil), así que
+las muertes se le atribuyen y los mods de protección saben de quién es. El evento
+`NuclearDetonationEvent` se publica antes de que pase nada, lleva el perfil
+completo (alturas, radios, rendimiento) y quien la provocó, y se puede cancelar:
+cancelado, no hay destello, ni onda, ni cráter, ni lluvia radiactiva. Las
+explosiones convencionales publican `ConventionalDetonationEvent`, también
+cancelable, y además el `ExplosionEvent.Start` de siempre.
+
+**Repartido en ticks y guardado**: el destello y la radiación inmediata llegan a
+los cuerpos de cerca a lejos, `flash.tracesPerTick` por tick (una gran detonación
+tarda alrededor de un segundo, lo que dura un pulso térmico real). La lluvia
+radiactiva se posa en los chunks cargados de cerca a lejos, `fallout.chunksPerTick`
+por tick; los que aún no ha alcanzado la reciben al cargarse, como siempre. Las
+naves en alcance se revisan `ship.scanBlocksPerTick` bloques por tick. La onda
+expansiva, los trabajos sobre naves y las nubes que siguen en el cielo se guardan
+con el mundo: si el servidor se cierra a medias, siguen al volver. Quien entra al
+mundo, cruza un portal o se acerca mientras el hongo sigue en pie lo ve con su
+edad real.
+
+**Sentidos**: un jugador que ve la bola de fuego queda deslumbrado (efecto
+Deslumbrado) más tiempo cuanto más cerca, más grande la bola y más de frente la
+mire, y más de noche; nunca más de `flashBlindness.maxSeconds` segundos. Las
+gafas y visores (tag de objeto `create_nuclearindustry:flash_protection`, por
+defecto el casco antirradiación) lo evitan, igual que estar en un refugio o tener
+algo delante. Una onda que le llega con al menos `deafening.thresholdKPa` kPa
+(después de muros y refugios) lo ensordece (efecto Ensordecido): cada vez que la
+presión se dobla es un grado peor y dura más, hasta 45 segundos. Los dos se
+desactivan con su `enabled`. Los jugadores a menos de `audibleRange` bloques oyen
+la detonación cuando les llega la onda de choque (o, más allá de su alcance, el
+sonido): primero tiembla el suelo, luego el estampido y el retumbo.
 
 Cada detonación nuclear (bomba, misil, proyectil de cañón) calcula sus zonas a
 partir del radio de destrucción `R` de la cabeza (de 80 a 250 bloques en una
@@ -1839,8 +1896,29 @@ maxDelaySeconds = 120
 maxSpacingSeconds = 30
 selfDestructPower = 2.0
 
-[missile.warhead]
-conventionalMaxPower = 16.0
+[missile.conventional]
+maxCraterRadius = 20.0
+maxWaveRadius = 64.0
+referenceCharge = 192.0
+airburstWaveBonus = 1.25
+airburstHeightFactor = 1.5
+blastProofResistance = 100.0
+fragmentsPerCharge = 40.0
+debrisMax = 48
+
+[missile.thermobaric]
+waveFactor = 1.6
+craterFactor = 0.25
+fireFactor = 0.5
+shelterPenetration = 0.5
+burstHeightFactor = 1.2
+
+[missile.cluster]
+openHeight = 64.0
+footprintRadius = 40.0
+dudChance = 0.05
+dudMinSeconds = 5
+dudMaxSeconds = 300
 
 [missile.defense]
 enabled = true
@@ -1946,9 +2024,46 @@ separa los impactos como mucho `maxSpacingSeconds`. Abortar un misil propio en
 vuelo lo destruye con una explosión de potencia `selfDestructPower` (0 ninguna)
 si su posición está cargada; la ojiva nunca estalla.
 
-**Ojiva convencional** (`missile.warhead.conventionalMaxPower`): potencia máxima
-de la explosión de una ojiva cargada con TNT (la de un bloque de TNT es 4). Crece
-con la raíz cúbica de la TNT cargada.
+**Ojivas convencionales** (`missile.conventional.*`, `missile.thermobaric.*`,
+`missile.cluster.*`; sustituyen a la antigua `missile.warhead.conventionalMaxPower`,
+que ya no existe): la carga de una ojiva se mide en equivalentes de bloque de TNT
+según el mapa de datos `create_nuclearindustry:explosive_charge` (TNT 1, Explosivo
+plástico 4, Carga termobárica 4, Submunición de racimo 1,5; cualquier objeto del
+tag `conventional_explosives` sin entrada vale 1 de alto explosivo). Una ojiva solo
+admite un tipo de carga.
+
+- **Alto explosivo** (TNT, explosivo plástico): la carga de referencia
+  (`referenceCharge`, 3 huecos de 16 de explosivo plástico = 192) abre un cráter
+  de `maxCraterRadius` bloques y su onda llega a `maxWaveRadius`; todo crece con la
+  raíz cúbica de la carga (ocho veces la carga, el doble de alcance). La onda hiere
+  hasta el 85 % de su alcance, a través de muros y refugios como la nuclear; la
+  bola de fuego mata de cerca; la metralla (`fragmentsPerCharge` fragmentos por
+  equivalente) alcanza lo que se ve desde la explosión; unos pocos bloques del
+  cráter salen volando (`debrisMax` como mucho). Los bloques que resisten
+  explosiones más que `blastProofResistance` aguantan. El cráter no tiene fondo
+  vítreo ni deja contaminación. En modo aéreo estalla a `airburstHeightFactor`
+  radios de su bola de fuego sobre el objetivo: no abre cráter y su onda llega
+  `airburstWaveBonus` veces más lejos. Una ojiva convencional cargada antes de este
+  cambio conserva su carga.
+- **Termobárica** (Cargas termobáricas): siempre estalla en el aire, a
+  `burstHeightFactor` radios de su bola de fuego. Su bola de fuego es mucho más
+  ancha, su onda llega `waveFactor` veces más lejos, el combustible entra en los
+  refugios (`shelterPenetration` de su protección se pierde), prende fuego hasta
+  `fireFactor` de su alcance y apenas abre cráter (`craterFactor`). Lanza poca
+  metralla.
+- **Racimo** (Submuniciones de racimo): se abre `openHeight` bloques sobre el
+  objetivo y suelta una submunición por objeto, repartidas en un círculo de unos
+  `footprintRadius` bloques, más densas en el centro. Cada una estalla al tocar
+  algo como una pequeña carga de alto explosivo. Una parte (`dudChance`) no estalla
+  al caer: queda en el suelo y estalla sola entre `dudMinSeconds` y
+  `dudMaxSeconds` segundos después, o en cuanto algo la golpea o la alcanza otra
+  explosión.
+
+El botón de explosión aérea de la consola sigue el tipo de ojiva: se elige en las
+nucleares y de alto explosivo, está fijo en «siempre» en las termobáricas y de
+racimo, y en «solo en superficie» en las bombas sucias. La bomba sucia estalla
+ahora como una carga convencional (sin romper bloques más allá de su pequeño
+cráter) y esparce su carga radiactiva como antes.
 
 **Defensa antimisiles** (`missile.defense.*`): los interceptores salen de una
 batería de interceptores o de un controlador de lanzamiento cuyo cohete lleva un
@@ -2230,7 +2345,12 @@ Opciones para servidores, bajo `performance.*` y `explosive.*`:
   todas, las detonaciones nucleares de un mundo (cráter, zonas de daño y
   destello). Con menos, el trabajo se reparte en más ticks.
 - `explosive.blastBlocksPerTick` (3500): bloques que las detonaciones nucleares
-  de un mundo quitan o cambian como mucho por tick, entre todas.
+  de un mundo quitan o cambian como mucho por tick, entre todas. Las explosiones
+  convencionales comparten los dos presupuestos.
+- `explosive.flash.tracesPerTick` (64), `explosive.fallout.chunksPerTick` (64) y
+  `explosive.ship.scanBlocksPerTick` (32768): el destello, la lluvia radiactiva y
+  la revisión de las naves de una detonación se reparten en varios ticks en vez de
+  caer todos en el mismo.
 
 Sin opción propia:
 
