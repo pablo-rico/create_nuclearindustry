@@ -19,7 +19,12 @@ final class PuffList implements CloudEvolution.PuffSink, BlastFxModel.SmokeSink 
     /** Sides of a fan under a shader pack. */
     private static final int FAN = 8;
     /** The share of a fan's radius that is solid before it fades out. */
-    private static final float CORE = 0.5f;
+    private static final float CORE = 0.55f;
+    /**
+     * How much bigger than a puff's radius its fan is: a fan fades from half way out, so it is drawn this much bigger for its
+     * solid part and soft edge to cover the puff, overlapping its neighbours with no sky between (stems and columns).
+     */
+    private static final double FAN_SCALE = 1.6;
     /**
      * How much bigger than a puff's radius its textured quad is: the atlas' puffs fill only the middle of their tiles, with soft
      * edges, so a puff's quad is drawn this much bigger for what shows to be its radius.
@@ -119,8 +124,17 @@ final class PuffList implements CloudEvolution.PuffSink, BlastFxModel.SmokeSink 
 
     /** Turns every unlit puff's colour into the colour it is seen in under {@code sky}. */
     void light(CloudLighting.Sky sky) {
+        light(sky, 0);
+    }
+
+    /**
+     * As {@link #light(CloudLighting.Sky)}, with dust lying on the ground made {@code groundFade} (0-1) fainter: under a shader
+     * pack at night it would be a dark blot over the pale fog, mirroring the cloud above it.
+     */
+    void light(CloudLighting.Sky sky, float groundFade) {
         for (int i = 0; i < size; i++) {
             if ((flags[i] & CloudEvolution.EMISSIVE) != 0) continue;
+            if (groundFade > 0 && (flags[i] & CloudEvolution.GROUND) != 0) alpha[i] *= 1 - groundFade;
             CloudLighting.light(sky, red[i], green[i], blue[i], nx[i], ny[i], nz[i], occlusion[i], heat[i], lit);
             red[i] = lit[0];
             green[i] = lit[1];
@@ -255,7 +269,7 @@ final class PuffList implements CloudEvolution.PuffSink, BlastFxModel.SmokeSink 
                 az /= al;
             }
             double bx = fy * az, by = fz * ax - fx * az, bz = -fy * ax;
-            double r = radius[i] * s * 1.15;
+            double r = radius[i] * s * FAN_SCALE;
             double qx = cx + px * s - rx, qy = cy + py * s - ry, qz = cz + pz * s - rz;
             boolean light = (flags[i] & CloudEvolution.EMISSIVE) != 0;
             float a = alpha[i] * (light ? 1 : 0.9f);

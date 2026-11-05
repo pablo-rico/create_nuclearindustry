@@ -67,7 +67,7 @@ public final class CloudMeshCache implements AutoCloseable {
         puffs.clear();
         puffs.scale(growth, 1);
         cloud.emit(age, counts, puffs);
-        puffs.light(sky);
+        puffs.light(sky, !textured && NukeRenderTypes.pack() ? (float) (0.75 * sky.night()) : 0);
         puffs.sort(cx, cy, cz);
         if (bytes == null) bytes = new ByteBufferBuilder(1 << 20);
         quads = 0;

@@ -40,6 +40,8 @@ public final class CloudEvolution {
     public static final int UPRIGHT = 1;
     /** Puff flags: light of its own (fire, lightning), its colour already the light given off; not lit by the sun. */
     public static final int EMISSIVE = 2;
+    /** Puff flags: dust lying along the ground (the base surge, the shock's dust front). */
+    public static final int GROUND = 4;
 
     /** Atlas tiles ({@code textures/fx/nuke_cloud.png}, row * 4 + column). */
     public static final int TILE_SOFT = 0, TILE_DENSE = 4, TILE_FIRE = 8, TILE_VEIL = 12, TILE_PILEUS = 13, TILE_RING = 14,
@@ -505,7 +507,7 @@ public final class CloudEvolution {
             float shade = (float) (0.9 + 0.15 * rand(i, 54));
             sink.puff(x + windX * d, y, z + windZ * d, size, TILE_DENSE + (i & 3), (float) (rand(i, 56) * 6.283),
                     groundDust.red() * shade, groundDust.green() * shade, groundDust.blue() * shade,
-                    (float) (alpha * clamp(since / 1.5) * settle * life), 0, (float) Math.cos(a), 0.6f, (float) Math.sin(a), 0.2f, 0);
+                    (float) (alpha * clamp(since / 1.5) * settle * life), 0, (float) Math.cos(a), 0.6f, (float) Math.sin(a), 0.2f, GROUND);
         }
     }
 
@@ -695,7 +697,7 @@ public final class CloudEvolution {
             float shade = (float) (0.9 + 0.15 * rand(i, 103));
             sink.puff(Math.cos(a) * r, size * 0.35, Math.sin(a) * r, size, TILE_DENSE + (i & 3), (float) (rand(i, 104) * 6.283),
                     groundDust.red() * shade, groundDust.green() * shade, groundDust.blue() * shade, (float) alpha, 0,
-                    (float) Math.cos(a), 0.5f, (float) Math.sin(a), 0, 0);
+                    (float) Math.cos(a), 0.5f, (float) Math.sin(a), 0, GROUND);
         }
     }
 

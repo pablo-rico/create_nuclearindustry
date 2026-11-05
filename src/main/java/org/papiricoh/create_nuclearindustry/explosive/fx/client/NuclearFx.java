@@ -361,10 +361,15 @@ public final class NuclearFx {
         return HAZE;
     }
 
-    /** Where the pulled-in far plane is: inside the game's own, closer under a shader pack, whose fog hides the far distance. */
+    /**
+     * Where the pulled-in far plane is: inside the game's own. Under a shader pack, whose fog hides the far distance, closer, but
+     * never nearer than every block of terrain drawn (the render distance out to the corners of its square, and a margin): a
+     * cloud pulled in front of terrain would be drawn over trees that stand between it and the camera.
+     */
     static double pullLimit(Minecraft mc) {
         double far = mc.gameRenderer.getDepthFar();
-        return NukeRenderTypes.pack() ? Math.max(96, 0.25 * far) : 0.9 * far;
+        if (!NukeRenderTypes.pack()) return 0.9 * far;
+        return Math.min(0.9 * far, Math.max(96, 1.5 * mc.gameRenderer.getRenderDistance() + 16));
     }
 
     static void render(RenderLevelStageEvent event) {
@@ -407,7 +412,7 @@ public final class NuclearFx {
     private static void prepare(Nuke nuke, double age, Vec3 eye, ClientLevel level, float partial, QualityPreset quality, boolean textured,
                                 double distance) {
         double lod = quality.lod(distance);
-        double detail = ClientConfig.explosionCloudDetail * (textured ? 1 : 0.6);
+        double detail = ClientConfig.explosionCloudDetail;
         CloudEvolution.Counts counts = CloudEvolution.Counts.of(quality, detail, lod);
         nuke.cache.update(nuke.cloud, age, counts, (float) QualityPreset.lodGrowth(lod), sky(level, partial, fireBelow(nuke, age)),
                 eye.x - nuke.ox, eye.y - nuke.oy, eye.z - nuke.oz, quality.rebuildSeconds(age, nuke.cloud.fireballSeconds()), textured);
@@ -421,7 +426,8 @@ public final class NuclearFx {
         int front = QualityPreset.scaled(quality.surgePuffs(), ClientConfig.explosionCloudDetail, quality.lod(distance));
         nuke.cloud.dustFront(age, front, BATCH);
         if (BATCH.size() > 0) {
-            BATCH.light(sky(level, partial, 0));
+            CloudLighting.Sky light = sky(level, partial, 0);
+            BATCH.light(light, NukeRenderTypes.textured() || !NukeRenderTypes.pack() ? 0 : (float) (0.75 * light.night()));
             BATCH.sort(eye.x, eye.y, eye.z);
             drawBatch(BATCH, eye, limit, false, distance);
         }
