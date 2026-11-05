@@ -130,6 +130,12 @@ final class DhFarCloudPass {
             return;
         }
         int depth = depthTexture(proxy);
+        if (depth > 0) {
+            // Distant Horizons has just drawn into this depth texture. On macOS (OpenGL over Metal) sampling it in the same
+            // batch of work corrupts the driver's memory and brings the game down within seconds; ending the batch first
+            // keeps it whole. One flush a frame, and only while a far cloud is in sight.
+            GL11.glFlush();
+        }
 
         RenderTarget target = mc.getMainRenderTarget();
         target.bindWrite(true);

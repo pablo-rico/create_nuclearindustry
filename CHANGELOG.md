@@ -47,6 +47,7 @@
   opening in the air and a chain of small blasts.
 - The cloud keeps its true apparent size beyond the render distance, and is drawn so shader packs (tested with Iris and
   Complementary Reimagined) do not darken or hide it. The flash overlay no longer covers the chat.
+- Fixed the game crashing on macOS with Distant Horizons whenever a nuclear cloud stood beyond the render distance.
 - New client options: `explosion.quality` (LOW to ULTRA), `heatHaze`, `terrainLight`, `skyTint`, `farImpostor`,
   `ashParticles`, `tinnitus` and `flashBlindness`.
 - Removed `missile.warhead.conventionalMaxPower`; conventional warheads are set up under `missile.conventional`,
