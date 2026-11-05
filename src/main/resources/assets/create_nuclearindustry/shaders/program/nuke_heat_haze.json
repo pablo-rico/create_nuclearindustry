@@ -1,0 +1,23 @@
+{
+    "vertex": "create_nuclearindustry:nuke_heat_haze",
+    "fragment": "create_nuclearindustry:nuke_heat_haze",
+    "attributes": [ "Position" ],
+    "samplers": [
+        { "name": "DiffuseSampler" },
+        { "name": "DepthSampler" },
+        { "name": "NoiseSampler" }
+    ],
+    "uniforms": [
+        { "name": "ProjMat",      "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+        { "name": "InSize",       "type": "float",     "count": 2,  "values": [ 1.0, 1.0 ] },
+        { "name": "OutSize",      "type": "float",     "count": 2,  "values": [ 1.0, 1.0 ] },
+        { "name": "ProjScale",    "type": "float",     "count": 2,  "values": [ 1.0, 1.0 ] },
+        { "name": "DepthRange",   "type": "float",     "count": 2,  "values": [ 0.05, 1024.0 ] },
+        { "name": "FireCentre",   "type": "float",     "count": 3,  "values": [ 0.0, 0.0, 0.0 ] },
+        { "name": "GroundCentre", "type": "float",     "count": 3,  "values": [ 0.0, 0.0, 0.0 ] },
+        { "name": "Up",           "type": "float",     "count": 3,  "values": [ 0.0, 1.0, 0.0 ] },
+        { "name": "Fire",         "type": "float",     "count": 2,  "values": [ 0.0, 0.0 ] },
+        { "name": "Shock",        "type": "float",     "count": 3,  "values": [ 0.0, 1.0, 0.0 ] },
+        { "name": "HazeTime",     "type": "float",     "count": 1,  "values": [ 0.0 ] }
+    ]
+}
