@@ -2229,20 +2229,55 @@ a armar y aplicar un nuevo flanco de redstone.
   señal a las sirenas. No detecta preparativos ni cuentas atrás.
 
 Lo que se ve (solo en el cliente): los jugadores a menos de `visualRange`
-bloques reciben la detonación y ven un destello blanco (más fuerte mirando
-hacia ella y si nada la tapa), un brillo naranja en la pantalla y en la niebla
-que se apaga en un minuto, la bola de fuego que sube y se convierte en un hongo
-(unos cuatro minutos, visible más allá de la niebla de la distancia de
-renderizado), una cúpula de condensación al principio, un anillo de polvo que
-avanza con la onda y una sacudida de cámara cuando la onda pasa. En la config del
-cliente: `explosion.flash` (0 a 1, brillo del destello; bájalo si molestan los
-destellos), `explosion.cloudDetail` (0,25 a 2, número de bocanadas del hongo) y
-`explosion.shake` (sacudida de cámara). Una termonuclear se distingue a simple
-vista: el destello es blanco puro y dura más, la bola de fuego es mayor, más
-blanca y arde unos siete segundos antes de virar a un naranja rojo intenso, el
-hongo sube más alto y su humo es hollín casi negro, con el polvo del suelo y el
-anillo de la onda oscuros, dos cúpulas de condensación y un cielo más rojo. Su
-estruendo se oye el doble de lejos y más grave.
+bloques reciben la detonación, y quien llegue tarde (al entrar al mundo, cruzar un
+portal o acercarse) la ve con su edad real, sin repetir el destello ni el
+estruendo. La nube sigue fases físicas: un destello blanco, una bola de fuego que
+pasa de blanca a amarilla y naranja mientras sube deprisa, la cúpula de
+condensación (nube de Wilson) detrás del frente de choque, un anillo de polvo del
+color del terreno que barre el suelo con la onda y el surge de base, el tallo de
+polvo que se forma bajo la bola, el sombrero que se enrolla en un toro, anillos de
+condensación y un pileus. Primero es pardo rojizo, luego tostado y beis con las
+caras al sol casi blancas; hacia el minuto alcanza su altura (una atómica completa,
+unos 330–400 bloques y un sombrero tan ancho como su radio de destrucción; una
+termonuclear se aplana arriba en un yunque de más de mil bloques). Después se
+abre, deriva con el viento y se disipa: a los tres minutos empieza a aclararse y a
+los seis ha desaparecido. Los incendios del suelo levantan columnas de humo, cae
+ceniza y luego lluvia negra viento abajo, en la zona de la lluvia radiactiva, y en
+los primeros segundos hay rayos dentro de la nube. De noche la nube brilla rojiza
+por dentro y los incendios la iluminan desde abajo. El cielo se tiñe un momento
+alrededor de la bola de fuego (más cuanto mayor se ve), el terreno se ilumina con
+el destello, el aire tiembla sobre la bola de fuego y en el frente de choque, y el
+sol se oscurece tras el polvo. La cámara tiembla tres veces: el temblor sísmico, el
+golpe de la onda (con el estruendo) y el retumbo largo. Más allá de la distancia de
+renderizado se dibuja una versión simplificada de la nube con el mismo tamaño
+aparente. Las explosiones convencionales se ven con su bola de fuego, chispas,
+metralla, terrones, polvo del color del suelo, un anillo de choque y una columna de
+humo gris pardo que sube desde el cráter y se disipa en uno o dos minutos; la
+termobárica, con una neblina de combustible y una bola de fuego ancha y rasante; la
+de racimo, con la apertura en el aire y una cadena de explosiones pequeñas. Una
+bomba sucia se ve como una convencional.
+
+Opciones del cliente (`explosion.*`):
+
+- `quality` (`LOW`, `MEDIUM`, `HIGH`, `ULTRA`; por defecto `MEDIUM`): bocanadas,
+  capas, frecuencia de reconstrucción de la nube (5 a 20 veces por segundo) y
+  partículas. El detalle también baja con la distancia. `cloudDetail` (0,25 a 2)
+  sigue como ajuste fino del número de bocanadas.
+- `flash` (0 a 1): brillo del destello en pantalla; `flashBlindness` (0 a 1): cuánto
+  lava la pantalla el efecto Deslumbrado. Bájalos si molestan los destellos.
+- `shake`: sacudida de cámara. `tinnitus`: pitido mientras estás Ensordecido (el
+  resto de sonidos se amortigua igualmente).
+- `skyTint`: tinte del cielo y de las nubes y sol oscurecido. `terrainLight`: el
+  terreno iluminado por el destello y el brillo naranja posterior. `heatHaze`: la
+  distorsión del aire caliente. `farImpostor`: la nube simplificada más allá de la
+  distancia de renderizado. `ashParticles`: ceniza y lluvia negra.
+
+Con un pack de shaders (Iris u Oculus) la nube se dibuja con un sombreado más
+sencillo que el pack no oscurece, algo más cerca de la cámara para que su niebla no
+la borre (siempre detrás del terreno dibujado); el brillo del terreno, la
+distorsión por calor y el sol oscurecido se desactivan solos. La capa de nubes del
+propio pack puede dibujarse por delante del humo. Probado con Iris 1.8.14 y
+Complementary Reimagined r5.9.3.
 
 **Distant Horizons** (opcional, probado con la 3.3.2 y la 3.3.3): si está instalado, la parte
 del hongo que queda más allá del terreno normal se dibuja en el pase de Distant

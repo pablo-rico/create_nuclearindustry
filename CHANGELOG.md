@@ -34,6 +34,21 @@
   several ticks (`explosive.flash.tracesPerTick`, `explosive.fallout.chunksPerTick`, `explosive.ship.scanBlocksPerTick`).
 - Mods and data packs can cancel a nuclear detonation (`NuclearDetonationEvent` now carries its whole profile) or a
   conventional one (new `ConventionalDetonationEvent`).
+- **A realistic mushroom cloud**: the fireball cools from white to orange as it rises fast, the condensation dome follows the
+  shock, a dust ring in the ground's colour sweeps outward, the dust stem forms beneath, the cap rolls into a torus with
+  condensation rings and a pileus, reddish-brown at first and then tan and beige with sunlit tops. It grows with the warhead
+  (a full atomic bomb's cap is as wide as its destruction radius; a thermonuclear one flattens into an anvil over a thousand
+  blocks across), drifts with the wind and fades over six minutes. Ground fires send up smoke columns, ash and then black
+  rain fall downwind, lightning flickers in the young cloud, and at night it glows red from inside.
+- The sky glows briefly around the fireball, the ground lights up in the flash, the air ripples over the fireball and along
+  the shock front, the sun dims behind the dust, and the view shakes three times: the tremor, the shock and the rumble.
+- Conventional blasts show a fireball, sparks, fragments, clods, dust in the ground's colour, a shock ring and a grey-brown
+  smoke column rising from the crater; thermobaric blasts a fuel haze and a wide, rolling fireball; cluster warheads their
+  opening in the air and a chain of small blasts.
+- The cloud keeps its true apparent size beyond the render distance, and is drawn so shader packs (tested with Iris and
+  Complementary Reimagined) do not darken or hide it. The flash overlay no longer covers the chat.
+- New client options: `explosion.quality` (LOW to ULTRA), `heatHaze`, `terrainLight`, `skyTint`, `farImpostor`,
+  `ashParticles`, `tinnitus` and `flashBlindness`.
 - Removed `missile.warhead.conventionalMaxPower`; conventional warheads are set up under `missile.conventional`,
   `missile.thermobaric` and `missile.cluster`.
 
