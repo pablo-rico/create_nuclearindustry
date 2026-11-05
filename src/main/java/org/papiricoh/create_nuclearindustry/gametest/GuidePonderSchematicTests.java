@@ -197,6 +197,27 @@ public class GuidePonderSchematicTests {
         helper.succeed();
     }
 
+    @GameTest(template = "gametest/dyson_ejector_ponder", batch = BATCH)
+    public static void dysonEjectorSchematicLoads(GameTestHelper helper) {
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.dyson.DysonRegistry.EM_RAIL_EJECTOR.get(), new BlockPos(3, 2, 3));
+        helper.assertBlockPresent(createBlock("creative_motor"), new BlockPos(3, 1, 3));
+        helper.assertBlockPresent(net.minecraft.world.level.block.Blocks.HOPPER, new BlockPos(3, 2, 4));
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/dyson_receivers_ponder", batch = BATCH)
+    public static void dysonReceiversSchematicLoads(GameTestHelper helper) {
+        for (int x : new int[] {1, 3, 5})
+            helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.dyson.DysonRegistry.RAY_RECEIVER.get(), new BlockPos(x, 2, 3));
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/dyson_terminal_ponder", batch = BATCH)
+    public static void dysonTerminalSchematicLoads(GameTestHelper helper) {
+        helper.assertBlockPresent(org.papiricoh.create_nuclearindustry.dyson.DysonRegistry.SWARM_TERMINAL.get(), new BlockPos(2, 2, 2));
+        helper.succeed();
+    }
+
     @GameTest(template = "gametest/orbit_satellite_launch_ponder", batch = BATCH)
     public static void satelliteLaunchSchematicLoads(GameTestHelper helper) {
         for (int x = 2; x <= 4; x++) for (int z = 2; z <= 4; z++)

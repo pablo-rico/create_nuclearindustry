@@ -42,7 +42,8 @@ abstract class AreaDataGen {
             OrbitDataGen.INSTANCE,
             PropulsionDataGen.INSTANCE,
             ShutdownDataGen.INSTANCE,
-            DecontaminationDataGen.INSTANCE);
+            DecontaminationDataGen.INSTANCE,
+            DysonDataGen.INSTANCE);
 
     void lang() {}
 

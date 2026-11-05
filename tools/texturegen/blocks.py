@@ -1187,3 +1187,4 @@ import tex_turbine  # noqa: E402,F401
 import tex_tokamak  # noqa: E402,F401
 import tex_decontamination  # noqa: E402,F401
 import tex_centrifuge  # noqa: E402,F401
+import tex_dyson  # noqa: E402,F401

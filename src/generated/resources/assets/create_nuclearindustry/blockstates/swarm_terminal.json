@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "create_nuclearindustry:block/swarm_terminal",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "create_nuclearindustry:block/swarm_terminal"
+    },
+    "facing=south": {
+      "model": "create_nuclearindustry:block/swarm_terminal",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "create_nuclearindustry:block/swarm_terminal",
+      "y": 270
+    }
+  }
+}

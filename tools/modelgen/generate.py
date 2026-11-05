@@ -1236,6 +1236,425 @@ def processing_machines():
 
 
 # ======================================================================================
+# Dyson swarm: EM rail ejector, ray receiver, swarm terminal
+# ======================================================================================
+# Textures in tools/texturegen/tex_dyson.py (``block/dyson/*``). The pivots and lengths are DysonPartials.java's, which the
+# renderers use: the mounts turn about x = z = 8; the ejector's rails, coils and sled are modelled level and pointing north
+# (-z) and are raised about the axle along x through (8, 15, 8); the receiver's dish and focus look north and are raised
+# about (8, 14, 8). Unlike the traps these pieces are emitted whole, may turn about any one axis (22.5 degree steps) and
+# may turn a face's UVs.
+
+DY = NS + "block/dyson/"
+DY_EJECTOR_PIVOT = (8, 15, 8)
+DY_RECEIVER_PIVOT = (8, 14, 8)
+DY_RAIL_BACK, DY_RAIL_FRONT = 6, 22
+DY_DISH_RADIUS, DY_FOCUS = 11, 9
+# The ejector's coil rings: where each starts along z (they are 1 px deep), all in front of the yoke's base so they clear it
+# with the rails level.
+DY_COILS_Z = (-0.5, -3.25, -6.0, -8.75, -11.5)
+DY_COIL_DEPTH = 1.0
+# The receiver's dish: terraces of octagonal rings (apothem in, out; z of the mirror face, z of the back) on the paraboloid
+# z = 5 - r^2 / 24 (its vertex 3 px in front of the axle, its focus 9 px in front at z = -1).
+DY_DISH_RINGS = ((3.5, 6.0, 3.5, 4.5), (6.0, 8.5, 2.0, 3.5), (8.5, 10.5, 0.4, 2.0))
+DY_DISH_DISC = (3.5, 4.5, 5.0)  # apothem, mirror face z, back z
+DY_ANGLES = (-45, -22.5, 22.5, 45)
+
+
+def _dy_fit(a, b):
+    """Slides a UV span that falls off the texture back onto it (spans are at most 16)."""
+    span = b - a
+    assert span <= 16.0001, (a, b)
+    if a >= -1e-6 and b <= 16.0001:
+        return a, b
+    a2 = a % 16
+    if a2 + span > 16.0001:
+        a2 = 16 - span
+    return a2, a2 + span
+
+
+def _dy_auto(face, frm, to):
+    """Vanilla's default UVs for ``face`` of the box (north u = 16 - x, sides v = 16 - y, up u = x, v = z ...)."""
+    (ua, urev), (va, vrev) = UV_AXES[face]
+
+    def c(axis, rev, value):
+        return 16 - value if rev else value
+
+    u0, u1 = _dy_fit(*sorted((c(ua, urev, frm[ua]), c(ua, urev, to[ua]))))
+    v0, v1 = _dy_fit(*sorted((c(va, vrev, frm[va]), c(va, vrev, to[va]))))
+    return [u0, v0, u1, v1]
+
+
+def dy(frm, to, faces, rot=None, cull=False):
+    """One element. ``faces``: face -> ``"#tex"`` (UVs from position), ``("#tex", uv)`` or ``("#tex", uv, uv_rotation)``.
+    ``rot`` = (axis, angle, origin). ``cull`` marks the faces on the block's boundary (static block models)."""
+    for v in list(frm) + list(to):
+        assert -16 <= v <= 32, (frm, to)
+    assert all(frm[i] < to[i] for i in range(3)), (frm, to)
+    el = {"from": [r4(v) for v in frm], "to": [r4(v) for v in to]}
+    if rot:
+        axis, angle, origin = rot
+        assert axis in ("x", "y", "z") and angle in DY_ANGLES, rot
+        el["rotation"] = {"angle": angle, "axis": axis, "origin": [r4(v) for v in origin]}
+    out = {}
+    for face in FACES:
+        if face not in faces:
+            continue
+        spec = faces[face]
+        turn = 0
+        if isinstance(spec, str):
+            tex, uv = spec, _dy_auto(face, frm, to)
+        elif len(spec) == 2:
+            tex, uv = spec
+        else:
+            tex, uv, turn = spec
+        entry = {"uv": [r4(v) for v in uv], "texture": tex}
+        if turn:
+            entry["rotation"] = turn
+        axis, high = FACE_PLANE[face]
+        if cull and not rot and (to[axis] if high else frm[axis]) == (16 if high else 0):
+            entry["cullface"] = face
+        out[face] = entry
+    el["faces"] = out
+    return el
+
+
+def _dy_faces(tex, skip=()):
+    return {f: tex for f in FACES if f not in skip}
+
+
+def _dy_model(textures, elements):
+    return {"parent": "minecraft:block/block", "textures": textures, "elements": elements}
+
+
+# -- EM rail ejector ---------------------------------------------------------------------
+
+def ejector_plinth():
+    """The block: a 12 px andesite tub on Create's half shaft. A ring round the shaft hole (5..11) up to y 8, the well's floor
+    at y 8.5 and its 1.5 px walls up to 12. The well is where the rails' breech, 6 px behind the axle, swings down to when
+    they point high: at 90 degrees their end plate reaches y 8.6."""
+    C, T, B, P, F = "#casing", "#top", "#bottom", "#pit", "#frame"
+    return [
+        dy((0, 0, 0), (16, 8, 5), {"north": C, "east": C, "west": C, "south": F, "down": B}, cull=True),
+        dy((0, 0, 11), (16, 8, 16), {"south": C, "east": C, "west": C, "north": F, "down": B}, cull=True),
+        dy((0, 0, 5), (5, 8, 11), {"west": C, "east": F, "down": B}, cull=True),
+        dy((11, 0, 5), (16, 8, 11), {"east": C, "west": F, "down": B}, cull=True),
+        dy((1.5, 8, 1.5), (14.5, 8.5, 14.5), {"up": T, "down": B}),
+        dy((0, 8, 0), (16, 12, 1.5), {"north": C, "east": C, "west": C, "south": P, "up": T}, cull=True),
+        dy((0, 8, 14.5), (16, 12, 16), {"south": C, "east": C, "west": C, "north": P, "up": T}, cull=True),
+        dy((0, 8, 1.5), (1.5, 12, 14.5), {"west": C, "east": P, "up": T}, cull=True),
+        dy((14.5, 8, 1.5), (16, 12, 14.5), {"east": C, "west": P, "up": T}, cull=True),
+    ]
+
+
+def ejector_turntable():
+    """The turntable: a brass race on the plinth's rim (y 12..13.5), octagonal but open at the back, where the breech swings
+    down; the yoke's arms stand on its thick sides and carry the elevation axle (8, 15, 8) on stubs up to the rails."""
+    B, F = "#brass", "#frame"
+    y0, y1 = 12, 13.5
+    out, inn = 7.4, 6.1
+    h = out * TAN
+    e = [
+        dy((8 - h, y0, 8 - out), (8 + h, y1, 8 - inn), _dy_faces(B)),
+        dy((8 - out, y0, 8 - h), (3, y1, 8 + h), _dy_faces(B)),
+        dy((13, y0, 8 - h), (8 + out, y1, 8 + h), _dy_faces(B)),
+    ]
+    # The front corners: the front segment turned 45 degrees each way, a hair lower so the overlaps never fight.
+    for a in (45, -45):
+        e.append(dy((8 - h, y0, 8 - out), (8 + h, y1 - 0.05, 8 - inn), _dy_faces(B), rot=("y", a, (8, y0, 8))))
+    for x0, x1, c0, c1, s0, s1 in ((0.75, 2.75, 0.25, 0.75, 2.75, 3.9), (13.25, 15.25, 15.25, 15.75, 12.1, 13.25)):
+        e.append(dy((x0, y1, 5.5), (x1, 18, 10.5), _dy_faces(F, skip=("down",))))
+        e.append(dy((c0, 13.75, 6.5), (c1, 16.25, 9.5), _dy_faces(B)))
+        e.append(dy((s0, 14.25, 7.25), (s1, 15.75, 8.75), _dy_faces(B)))
+    return e
+
+
+def ejector_rails():
+    """Two rail bars (x 4..6 and 10..12, y 13.5..16.5) from the breech plate (z 13..14, 6 px behind the axle) to the muzzle
+    at z = -14 (22 px in front), on a guide keel the sled runs along, a spine under the breech and brass collars at the
+    muzzle. ``#rail`` rows: 0..2 bar top, 2..4 bar bottom, 4..7 outer side, 7..10 conductor face, 10..14 keel top,
+    14..15 keel front; u 14..16 of rows 4..7 the bar's muzzle end."""
+    R, F, B, K = "#rail", "#frame", "#brass", "#breech"
+    e = []
+    for x0, x1, outer, inner in ((4, 6, "west", "east"), (10, 12, "east", "west")):
+        for z0, z1 in ((-14, 0), (0, 13.5)):
+            n = z1 - z0
+            faces = {outer: (R, [0, 4, n, 7]), inner: (R, [0, 7, n, 10]),
+                     "up": (R, [0, 0, n, 2], 90), "down": (R, [0, 2, n, 4], 90)}
+            if z0 < 0:
+                faces["north"] = (R, [14, 4, 16, 7])
+            e.append(dy((x0, 13.5, z0), (x1, 16.5, z1), faces))
+    for z0, z1 in ((-13, 0), (0, 13)):
+        faces = {"up": (R, [0, 10, z1 - z0, 14], 90)}
+        if z0 < 0:
+            faces["north"] = (R, [0, 14, 4, 14.5])
+        e.append(dy((6, 13.5, z0), (10, 14, z1), faces))
+    e.append(dy((7, 12.75, 3), (9, 13.5, 12.75), _dy_faces(F, skip=("up",))))
+    e.append(dy((4, 12.75, 13), (12, 17.25, 14), {
+        "north": (K, [4, 1, 12, 5.5]), "south": (K, [4, 1, 12, 5.5]),
+        "east": (K, [0, 1, 1, 5.5]), "west": (K, [0, 1, 1, 5.5]),
+        "up": (K, [4, 0, 12, 1]), "down": (K, [4, 0, 12, 1])}))
+    for x0, x1 in ((3.75, 6.25), (9.75, 12.25)):
+        e.append(dy((x0, 13.25, -13.75), (x1, 16.75, -12.75), _dy_faces(B)))
+    return e
+
+
+def ejector_coils():
+    """Five rectangular coil rings round the rails, 0.75 px bars (outer x 3..13, y 12.25..18.75; inner x 3.75..12.25,
+    y 13..18, so the sled passes through), near-white. ``#coil`` rows 0..8 have the windings across a horizontal bar, rows
+    8..16 across an upright one."""
+    K = "#coil"
+    d, w = DY_COIL_DEPTH, 0.75
+    x0, x1, y0, y1 = 3, 13, 12.25, 18.75
+    e = []
+    for z0 in DY_COILS_Z:
+        z1 = z0 + d
+        for b0 in (y0, y1 - w):
+            e.append(dy((x0, b0, z0), (x1, b0 + w, z1), {
+                "north": (K, [0, 0, x1 - x0, w]), "south": (K, [0, 0, x1 - x0, w]),
+                "up": (K, [0, 2, x1 - x0, 2 + d]), "down": (K, [0, 4, x1 - x0, 4 + d]),
+                "east": (K, [12, 0, 12 + d, w]), "west": (K, [12, 0, 12 + d, w])}))
+        for b0 in (x0, x1 - w):
+            e.append(dy((b0, y0 + w, z0), (b0 + w, y1 - w, z1), {
+                "north": (K, [0, 9, w, 9 + y1 - y0 - 2 * w]), "south": (K, [0, 9, w, 9 + y1 - y0 - 2 * w]),
+                "east": (K, [2, 9, 2 + d, 9 + y1 - y0 - 2 * w]), "west": (K, [4, 9, 4 + d, 9 + y1 - y0 - 2 * w])}))
+    return e
+
+
+def ejector_sled():
+    """The sled at the breech (z 9..12.9) between the bars: a brass carriage on the keel, a folded gold sail strapped on it
+    (under the coils' inner top, y 18) and the pusher plate behind."""
+    B, S, F = "#brass", "#sail", "#frame"
+    return [
+        dy((6.1, 14, 9.5), (9.9, 14.75, 12.4), _dy_faces(B)),
+        dy((7, 14, 9), (9, 14.6, 9.5), _dy_faces(B, skip=("south",))),
+        dy((6.5, 14.75, 10), (9.5, 17.5, 12.25), _dy_faces(S, skip=("down",))),
+        dy((6.4, 14.75, 10.75), (9.6, 17.6, 11.25), _dy_faces(F, skip=("down",))),
+        dy((6.25, 14, 12.4), (9.75, 16.5, 12.9), _dy_faces(F)),
+    ]
+
+
+# -- ray receiver --------------------------------------------------------------------------
+
+def receiver_plinth():
+    """The block, 10 px: an andesite foot, a brass body between brass corner posts, a deck at y 9..10, and a copper FE
+    terminal with two studs on every side."""
+    S, T, Bo, K, B, F = "#side", "#top", "#bottom", "#terminal", "#brass", "#frame"
+    side4 = ("north", "south", "east", "west")
+    e = [
+        dy((0, 0, 0), (16, 2, 16), dict({f: S for f in side4}, up=F, down=Bo), cull=True),
+        dy((1, 2, 1), (15, 9, 15), {f: S for f in side4}),
+        dy((0.5, 9, 0.5), (15.5, 10, 15.5), dict({f: S for f in side4}, up=T, down=F)),
+    ]
+    for x0, z0 in ((0.5, 0.5), (13.5, 0.5), (0.5, 13.5), (13.5, 13.5)):
+        e.append(dy((x0, 2, z0), (x0 + 2, 9, z0 + 2), {f: B for f in side4}))
+    stud_face, stud_side = (K, [0, 0, 1.5, 1.5]), (K, [0, 0, 1.5, 0.5])
+    for face, box, studs in (
+            ("north", ((5, 3.5, 0.5), (11, 7.5, 1)), [((6, 5, 0), (7.5, 6.5, 0.5)), ((8.5, 5, 0), (10, 6.5, 0.5))]),
+            ("south", ((5, 3.5, 15), (11, 7.5, 15.5)), [((6, 5, 15.5), (7.5, 6.5, 16)), ((8.5, 5, 15.5), (10, 6.5, 16))]),
+            ("west", ((0.5, 3.5, 5), (1, 7.5, 11)), [((0, 5, 6), (0.5, 6.5, 7.5)), ((0, 5, 8.5), (0.5, 6.5, 10))]),
+            ("east", ((15, 3.5, 5), (15.5, 7.5, 11)), [((15.5, 5, 6), (16, 6.5, 7.5)), ((15.5, 5, 8.5), (16, 6.5, 10))])):
+        e.append(dy(box[0], box[1], _dy_faces(K, skip=({"north": "south", "south": "north", "west": "east",
+                                                        "east": "west"}[face],))))
+        for frm, to in studs:
+            faces = {f: stud_side for f in FACES}
+            faces[face] = stud_face
+            e.append(dy(frm, to, faces, cull=True))
+    return e
+
+
+def receiver_mount():
+    """The turntable on the deck (y 10..12) and the fork: two arms (x 2.5..4, 12..13.5) close round the axle (8, 14, 8),
+    within 2.4 px of it, so the dish's back (3 px in front of the axle at least) clears them; brass caps outside, a drive box
+    behind."""
+    T, B, F = "#table", "#brass", "#frame"
+    rim = (T, [2.5, 0, 13.5, 1.5])
+    e = [
+        dy((2.5, 10, 2.5), (13.5, 11.5, 13.5), {"north": rim, "south": rim, "east": rim, "west": rim, "up": T, "down": T}),
+        dy((4, 11.5, 4), (12, 12, 12), _dy_faces(B, skip=("down",))),
+        dy((6, 12, 10.5), (10, 13, 12.5), _dy_faces(F, skip=("down",))),
+    ]
+    for x0, x1, c0, c1 in ((2.5, 4, 2, 2.5), (12, 13.5, 13.5, 14)):
+        e.append(dy((x0, 12, 6.75), (x1, 15.25, 9.25), _dy_faces(F, skip=("down",))))
+        e.append(dy((c0, 13, 7.25), (c1, 15, 8.75), _dy_faces(B)))
+    return e
+
+
+def _dish_ring(a, b, zf, zb):
+    """One terrace of the dish: an octagonal ring of apothems ``a``..``b`` round the axis of sight (x 8, y 14), its gold
+    face at ``zf`` and its back at ``zb``. Four straight segments and four diagonal ones (the top and bottom ones turned 45
+    degrees about z), the diagonals 0.02 px forward so the corners they share never fight. The inner faces, the risers seen
+    from the front, take the mirror's dark rows 14..16."""
+    M, K = "#mirror", "#back"
+    h = b * TAN
+    d = zb - zf
+    cx, cy = 8, 14
+    riser_h = (M, [0, 14, 2 * h, 14 + d])
+    riser_v = (M, [0, 14, 2 * h, 14 + d], 90)
+    e = []
+    for dz, rot_list in ((0, (None,)), (-0.02, (45, -45))):
+        for rot in rot_list:
+            r = None if rot is None else ("z", rot, (cx, cy, (zf + zb) / 2))
+            e.append(dy((cx - h, cy + a, zf + dz), (cx + h, cy + b, zb + dz),
+                        {"north": M, "south": K, "up": K, "east": K, "west": K, "down": riser_h}, rot=r))
+            e.append(dy((cx - h, cy - b, zf + dz), (cx + h, cy - a, zb + dz),
+                        {"north": M, "south": K, "down": K, "east": K, "west": K, "up": riser_h}, rot=r))
+    e.append(dy((cx - b, cy - h, zf), (cx - a, cy + h, zb),
+                {"north": M, "south": K, "west": K, "up": K, "down": K, "east": riser_v}))
+    e.append(dy((cx + a, cy - h, zf), (cx + b, cy + h, zb),
+                {"north": M, "south": K, "east": K, "up": K, "down": K, "west": riser_v}))
+    return e
+
+
+def receiver_dish():
+    """The dish, level and looking north: a gold centre (an octagon of four planks) and three terraces out to the rim
+    (apothem 10.5, corners 11.4, so about DY_DISH_RADIUS), the hub and the axle through (8, 14, 8), and four brass struts at
+    22.5 degrees from the collector (r 1.25, z -1) to the face of the middle terrace (r 8.5)."""
+    M, K, B, F = "#mirror", "#back", "#brass", "#frame"
+    a, zf, zb = DY_DISH_DISC
+    h = a * TAN
+    e = []
+    for i, (rot, wide) in enumerate(((None, False), (None, True), (45, False), (-45, False))):
+        hx, hy = (a, h) if wide else (h, a)
+        r = None if rot is None else ("z", rot, (8, 14, (zf + zb) / 2))
+        e.append(dy((8 - hx, 14 - hy, zf - 0.01 * i), (8 + hx, 14 + hy, zb - 0.01 * i),
+                    {"north": M, "south": K, "up": K, "down": K, "east": K, "west": K}, rot=r))
+    for ring in DY_DISH_RINGS:
+        e += _dish_ring(*ring)
+    e.append(dy((6.25, 12.25, 5), (9.75, 15.75, 9), _dy_faces(F, skip=("north",))))
+    axle_long, axle_end = (B, [0, 0, 10.5, 1.5]), (B, [0, 0, 1.5, 1.5])
+    e.append(dy((2.75, 13.25, 7.25), (13.25, 14.75, 8.75), {"north": axle_long, "south": axle_long, "up": axle_long,
+                                                              "down": axle_long, "east": axle_end, "west": axle_end}))
+    # Struts: 7.84 px long, so at 22.5 degrees they run from r 1.25 to r 8.49 and z -1 to 2.
+    n, w = 7.84, 0.3
+    along_x = {"north": (B, [0, 0, n, 0.6]), "south": (B, [0, 0, n, 0.6]), "up": (B, [0, 0, n, 0.6]),
+               "down": (B, [0, 0, n, 0.6]), "east": (B, [0, 0, 0.6, 0.6]), "west": (B, [0, 0, 0.6, 0.6])}
+    along_y = {"north": (B, [0, 0, 0.6, n]), "south": (B, [0, 0, 0.6, n]), "east": (B, [0, 0, 0.6, n]),
+               "west": (B, [0, 0, 0.6, n]), "up": (B, [0, 0, 0.6, 0.6]), "down": (B, [0, 0, 0.6, 0.6])}
+    fz = 8 - DY_FOCUS
+    e.append(dy((9.25, 14 - w, fz - w), (9.25 + n, 14 + w, fz + w), along_x, rot=("y", -22.5, (9.25, 14, fz))))
+    e.append(dy((6.75 - n, 14 - w, fz - w), (6.75, 14 + w, fz + w), along_x, rot=("y", 22.5, (6.75, 14, fz))))
+    e.append(dy((8 - w, 15.25, fz - w), (8 + w, 15.25 + n, fz + w), along_y, rot=("x", 22.5, (8, 15.25, fz))))
+    e.append(dy((8 - w, 12.75 - n, fz - w), (8 + w, 12.75, fz + w), along_y, rot=("x", -22.5, (8, 12.75, fz))))
+    return e
+
+
+def receiver_focus():
+    """The collector at the focus (8, 14, -1), 9 px in front of the axle: a 2.5 px core rounded by three crossed plates.
+    Each face shows the middle of ``#focus`` at twice the density, so its glow is centred whatever the face's size."""
+    G = "#focus"
+    fz = 8 - DY_FOCUS
+    e = []
+    for hx, hy, hz in ((1.25, 1.25, 1.25), (0.75, 1.75, 0.75), (1.75, 0.75, 0.75), (0.75, 0.75, 1.75)):
+        half = {"north": (hx, hy), "south": (hx, hy), "east": (hz, hy), "west": (hz, hy), "up": (hx, hz), "down": (hx, hz)}
+        faces = {f: (G, [8 - 2 * p, 8 - 2 * q, 8 + 2 * p, 8 + 2 * q]) for f, (p, q) in half.items()}
+        e.append(dy((8 - hx, 14 - hy, fz - hz), (8 + hx, 14 + hy, fz + hz), faces))
+    return e
+
+
+# -- swarm terminal ------------------------------------------------------------------------
+
+def swarm_terminal():
+    """The console, facing north: an andesite foot, a low desk (y 7.5) in front of a tall back cabinet (y 10), the brass
+    monitor tilted back 22.5 degrees on the desk (its screen, 12x8, shows rings round a sun: ``#screen`` u 2..14, v 4..12),
+    in a dark steel housing, an electronics box behind it with a little brass orrery on top."""
+    Fr, Fn, Sd, Dk, Tp, Bk, Sc, B, M = ("#frame", "#front", "#side", "#desk", "#top", "#back", "#screen", "#brass",
+                                        "#mirror")
+    side4 = ("north", "south", "east", "west")
+    e = [
+        dy((0, 0, 0), (16, 2, 16), dict({f: Fr for f in side4}, up=Fr, down=Fr), cull=True),
+        dy((1, 2, 1), (15, 7.5, 7), {"north": Fn, "east": Sd, "west": Sd, "up": Dk}),
+        dy((1, 2, 7), (15, 10, 16), {"north": Sd, "east": Sd, "west": Sd, "south": Bk, "up": Tp}, cull=True),
+        dy((2, 7.5, 5), (14, 15.5, 7), {"north": (Sc, [2, 4, 14, 12]), "south": Fr, "east": Fr, "west": Fr, "up": Fr,
+                                        "down": Fr}, rot=("x", 22.5, (8, 7.5, 7))),
+        dy((3, 10, 11), (13, 13.5, 15.5), {"north": Bk, "south": Bk, "east": Bk, "west": Bk, "up": Tp}),
+        dy((2.5, 7.5, 2), (4, 8.25, 3.5), _dy_faces(B, skip=("down",))),
+        dy((12, 7.5, 2), (13.5, 8.25, 3.5), _dy_faces(B, skip=("down",))),
+        dy((7.5, 13.5, 12.75), (8.5, 14.75, 13.75), _dy_faces(B, skip=("down",))),
+        dy((7, 14.75, 12.25), (9, 16, 14.25), _dy_faces(M)),
+    ]
+    # The orrery's ring round its sun.
+    for frm, to in (((5.75, 15.25, 11), (10.25, 15.5, 11.5)), ((5.75, 15.25, 15), (10.25, 15.5, 15.5)),
+                    ((5.75, 15.25, 11.5), (6.25, 15.5, 15)), ((9.75, 15.25, 11.5), (10.25, 15.5, 15))):
+        e.append(dy(frm, to, _dy_faces(B)))
+    return e
+
+
+def _dy_child(model, pivot=None, angle=0):
+    child = {"parent": NS + "block/" + model}
+    if angle:
+        child["transform"] = {"origin": [r4(p / 16) for p in pivot], "rotation": {"x": angle}}
+    return child
+
+
+def _dy_item_display(gui_scale, gui_y, ground, fixed, hand, third):
+    return {
+        "gui": {"rotation": [30, 225, 0], "translation": [0, gui_y, 0], "scale": [gui_scale] * 3},
+        "ground": {"rotation": [0, 0, 0], "translation": [0, 2, 0], "scale": [ground] * 3},
+        "fixed": {"rotation": [0, 0, 0], "translation": [0, -1, 0], "scale": [fixed] * 3},
+        "thirdperson_righthand": {"rotation": [75, 45, 0], "translation": [0, 1.5, 0], "scale": [third] * 3},
+        "thirdperson_lefthand": {"rotation": [75, 45, 0], "translation": [0, 1.5, 0], "scale": [third] * 3},
+        "firstperson_righthand": {"rotation": [0, 45, 0], "translation": [0, 0, 0], "scale": [hand] * 3},
+        "firstperson_lefthand": {"rotation": [0, 225, 0], "translation": [0, 0, 0], "scale": [hand] * 3},
+    }
+
+
+def dyson_models():
+    """Block, partial and item models of the Dyson swarm's machines: relative path -> JSON."""
+    def t(**names):
+        return {k: DY + v for k, v in names.items()}
+
+    m = {}
+    m["block/em_rail_ejector.json"] = _dy_model(t(particle="ejector_casing", casing="ejector_casing", top="ejector_top",
+                                                  bottom="ejector_bottom", pit="ejector_pit", frame="frame"),
+                                                ejector_plinth())
+    m["block/em_rail_ejector/turntable.json"] = _dy_model(t(particle="brass", brass="brass", frame="frame"),
+                                                          ejector_turntable())
+    m["block/em_rail_ejector/rails.json"] = _dy_model(t(particle="ejector_rail", rail="ejector_rail", frame="frame",
+                                                        brass="brass", breech="ejector_breech"), ejector_rails())
+    m["block/em_rail_ejector/coils.json"] = _dy_model(t(particle="ejector_coil", coil="ejector_coil"), ejector_coils())
+    m["block/em_rail_ejector/sled.json"] = _dy_model(t(particle="sail_folded", brass="brass", sail="sail_folded",
+                                                       frame="frame"), ejector_sled())
+    m["block/ray_receiver.json"] = _dy_model(t(particle="receiver_side", side="receiver_side", top="receiver_top",
+                                               bottom="receiver_bottom", terminal="receiver_terminal", brass="brass",
+                                               frame="frame"), receiver_plinth())
+    m["block/ray_receiver/mount.json"] = _dy_model(t(particle="turntable", table="turntable", brass="brass",
+                                                     frame="frame"), receiver_mount())
+    m["block/ray_receiver/dish.json"] = _dy_model(t(particle="receiver_mirror", mirror="receiver_mirror",
+                                                    back="receiver_dish_back", brass="brass", frame="frame"),
+                                                  receiver_dish())
+    m["block/ray_receiver/focus.json"] = _dy_model(t(particle="receiver_focus", focus="receiver_focus"), receiver_focus())
+    m["block/swarm_terminal.json"] = _dy_model(t(particle="terminal_side", frame="frame", front="terminal_front",
+                                                 side="terminal_side", desk="terminal_desk", top="terminal_top",
+                                                 back="terminal_back", screen="terminal_screen", brass="brass",
+                                                 mirror="receiver_mirror"), swarm_terminal())
+    # Items: the machines parked, rails 30 degrees up and the dish 45.
+    m["item/em_rail_ejector.json"] = {
+        "loader": "neoforge:composite", "parent": "minecraft:block/block",
+        "textures": {"particle": DY + "ejector_casing"},
+        "children": {
+            "plinth": _dy_child("em_rail_ejector"),
+            "turntable": _dy_child("em_rail_ejector/turntable"),
+            "rails": _dy_child("em_rail_ejector/rails", DY_EJECTOR_PIVOT, 30),
+            "coils": _dy_child("em_rail_ejector/coils", DY_EJECTOR_PIVOT, 30),
+            "sled": _dy_child("em_rail_ejector/sled", DY_EJECTOR_PIVOT, 30),
+        },
+        "display": _dy_item_display(0.42, -2.5, 0.2, 0.4, 0.28, 0.28),
+    }
+    m["item/ray_receiver.json"] = {
+        "loader": "neoforge:composite", "parent": "minecraft:block/block",
+        "textures": {"particle": DY + "receiver_side"},
+        "children": {
+            "plinth": _dy_child("ray_receiver"),
+            "mount": _dy_child("ray_receiver/mount"),
+            "dish": _dy_child("ray_receiver/dish", DY_RECEIVER_PIVOT, 45),
+            "focus": _dy_child("ray_receiver/focus", DY_RECEIVER_PIVOT, 45),
+        },
+        "display": _dy_item_display(0.42, -2.5, 0.2, 0.4, 0.28, 0.28),
+    }
+    return m
+
+
+# ======================================================================================
 # output
 # ======================================================================================
 
@@ -1372,6 +1791,10 @@ def main():
 
     # Gas centrifuge and electrolyzer: body, partials, cascade manifold and items.
     for rel, data in sorted(processing_machines().items()):
+        put(os.path.join(args.out, "models", *rel.split("/")), data)
+
+    # Dyson swarm: the ejector, the receiver and the terminal, their partials and the two composite items.
+    for rel, data in sorted(dyson_models().items()):
         put(os.path.join(args.out, "models", *rel.split("/")), data)
 
     print("wrote %d models -> %s" % (len(written), args.out))

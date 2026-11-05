@@ -2422,6 +2422,59 @@ no deja lluvia radiactiva ni contaminación, pero da una dosis gamma.
 El Generador de RF creativo (solo en creativo, sin receta) no tiene configuración:
 su ritmo, de 0 a 1.000.000 FE/t por cara, se ajusta en su panel de valor.
 
+## Enjambre Dyson
+
+Un enjambre de velas solares orbita el sol y envía su luz a los Receptores de rayos,
+que la convierten en Forge Energy. Hay un único enjambre por mundo, guardado con el
+mundo normal (Overworld), y solo funciona bajo su cielo: los eyectores y receptores
+de otras dimensiones no hacen nada. Las velas se lanzan con el Eyector de raíl EM y
+las cuatro órbitas se editan en el Terminal del enjambre Dyson (solo cambian el
+aspecto, no la potencia).
+
+- `dyson.sailLifetimeDays` (20): días de juego que dura una vela en órbita antes de
+  gastarse. Las velas lanzadas en el mismo minuto se gastan juntas.
+- `dyson.fePerSail` (64): FE por tick que envía cada vela con el sol en lo alto y el
+  cielo despejado. La potencia total del enjambre es velas × este valor × la luz
+  solar (el seno de la altura del sol, menos con lluvia y tormenta, nada de noche).
+- `dyson.receiverMaxFe` (32768): FE por tick que puede tomar como máximo un receptor.
+  Con los valores por defecto, un receptor a tope necesita 512 velas a mediodía.
+- `dyson.receiverBufferSeconds` (1): segundos de su máximo que guarda un receptor
+  cuando nada se lleva su energía.
+- `dyson.maxSails` (20000): velas que puede tener el enjambre entre todas sus órbitas;
+  lleno, los eyectores se paran. Si se baja, sobran las más viejas.
+- `dyson.ejector.minRpm` (64): RPM mínimas a las que un eyector lanza velas.
+- `dyson.ejector.stress` (16): impacto de estrés del eyector, en SU por RPM.
+- `dyson.ejector.ticksPerSail` (40): ticks que tarda un eyector en cargar y lanzar una
+  vela a 256 RPM; más despacio en proporción por debajo (a 64 RPM, 160 ticks).
+- `dyson.rainFactor` (0,4) y `dyson.thunderFactor` (0,1): parte de la luz que llega a
+  los receptores con lluvia y con tormenta.
+- `dyson.minSunElevation` (5): grados que tiene que estar el sol sobre el horizonte
+  para que los eyectores lancen y los receptores reciban.
+- `dyson.syncSeconds` (10): segundos entre los envíos del enjambre a los jugadores
+  (además de cada cambio).
+
+Los receptores se reparten la potencia del enjambre a partes iguales; ninguno toma
+más de lo que pide (lo que cabe en su almacén, hasta su máximo) y lo que deja uno
+va a los demás. Poner más receptores de los que el enjambre alimenta no da más
+energía. Eyectores y receptores necesitan cielo abierto encima (en una nave de
+Create Aeronautics se mira el cielo donde se dibuja la nave).
+
+### Cliente: el enjambre en el cielo
+
+- `dyson.sky` (true): las velas del enjambre alrededor del sol en el cielo del
+  mundo normal.
+- `dyson.maxPoints` (1500, de 0 a 6000): velas que se dibujan como máximo; con más
+  en órbita, cada punto representa varias y brilla más.
+- `dyson.beams` (true): el haz de luz que baja del cielo a cada receptor que recibe.
+- `dyson.dimSun` (true): el sol se atenúa a medida que crece el enjambre. Solo sin
+  shaderpack, que dibuja su propio sol.
+- `dyson.domeScale` (0,8) y `dyson.shaderDomeScale` (0,15): a qué distancia se
+  dibujan las velas, como fracción de la distancia de renderizado, sin y con
+  shaderpack (Iris/Oculus). Los shaderpacks ponen más niebla a lo lejos, así que
+  con ellos se dibujan más cerca; el terreno más cercano que eso las tapa.
+- `dyson.fxDetail` (1, de 0,25 a 2): detalle de los lanzamientos de los eyectores y
+  de los haces de los receptores.
+
 ## Isótopos y medicina nuclear
 
 Cada isótopo lleva su propio reloj en el objeto: la actividad se calcula a partir de

@@ -60,6 +60,27 @@ public class ClientConfig {
     private static final ModConfigSpec.BooleanValue RADAR_PHOSPHOR = BUILDER
             .comment("Draw radar scopes like a phosphor screen: echoes glow where the sweep passes and fade until it comes round again.")
             .define("radar.phosphor", true);
+    private static final ModConfigSpec.BooleanValue DYSON_SKY = BUILDER
+            .comment("Draw the Dyson swarm's sails round the sun in the Overworld's sky.")
+            .define("dyson.sky", true);
+    private static final ModConfigSpec.IntValue DYSON_MAX_POINTS = BUILDER
+            .comment("Most sails drawn in the sky; with more in orbit, each point stands for several and shines brighter.")
+            .defineInRange("dyson.maxPoints", 1500, 0, 6000);
+    private static final ModConfigSpec.BooleanValue DYSON_BEAMS = BUILDER
+            .comment("Draw the beam of light from the sky down to every ray receiver taking power.")
+            .define("dyson.beams", true);
+    private static final ModConfigSpec.BooleanValue DYSON_DIM_SUN = BUILDER
+            .comment("Dim the sun as the swarm grows round it. Only without a shader pack, which draws its own sun.")
+            .define("dyson.dimSun", true);
+    private static final ModConfigSpec.DoubleValue DYSON_DOME_SCALE = BUILDER
+            .comment("How far away the sails are drawn, as a share of the render distance. Terrain closer than that hides them.")
+            .defineInRange("dyson.domeScale", 0.8, 0.2, 0.95);
+    private static final ModConfigSpec.DoubleValue DYSON_SHADER_DOME_SCALE = BUILDER
+            .comment("The same with a shader pack on. Packs fog distant things heavily, so the sails are drawn much closer.")
+            .defineInRange("dyson.shaderDomeScale", 0.15, 0.05, 0.95);
+    private static final ModConfigSpec.DoubleValue DYSON_FX_DETAIL = BUILDER
+            .comment("How detailed the ejectors' launches and the receivers' beams are: 0.25 is light on slow machines, 2 is richer.")
+            .defineInRange("dyson.fxDetail", 1.0, 0.25, 2.0);
 
     private static final ModConfigSpec.BooleanValue CREATIVE_TAB_SECTIONS = BUILDER
             .comment("Split the mod's creative tab into themed sections with banners. Off, it is one list in the same order.",
@@ -84,6 +105,13 @@ public class ClientConfig {
     public static boolean rocketSatellites = true;
     public static boolean radarSounds = true;
     public static boolean radarPhosphor = true;
+    public static boolean dysonSky = true;
+    public static int dysonMaxPoints = 1500;
+    public static boolean dysonBeams = true;
+    public static boolean dysonDimSun = true;
+    public static double dysonDomeScale = 0.8;
+    public static double dysonShaderDomeScale = 0.15;
+    public static double dysonFxDetail = 1.0;
 
     public enum HudCorner {
         TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT;
@@ -125,6 +153,13 @@ public class ClientConfig {
         rocketSatellites = ROCKET_SATELLITES.get();
         radarSounds = RADAR_SOUNDS.get();
         radarPhosphor = RADAR_PHOSPHOR.get();
+        dysonSky = DYSON_SKY.get();
+        dysonMaxPoints = DYSON_MAX_POINTS.get();
+        dysonBeams = DYSON_BEAMS.get();
+        dysonDimSun = DYSON_DIM_SUN.get();
+        dysonDomeScale = DYSON_DOME_SCALE.get();
+        dysonShaderDomeScale = DYSON_SHADER_DOME_SCALE.get();
+        dysonFxDetail = DYSON_FX_DETAIL.get();
         NuclearTab.bannersEnabled = CREATIVE_TAB_SECTIONS.get();
     }
 }

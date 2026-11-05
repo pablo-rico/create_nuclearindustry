@@ -236,6 +236,7 @@ public final class LangEntries {
         add("itemGroup.create_nuclearindustry.section.cryogenics", "Cryogenics", "Criogenia");
         add("itemGroup.create_nuclearindustry.section.accelerator", "Accelerators", "Aceleradores");
         add("itemGroup.create_nuclearindustry.section.antimatter", "Antimatter", "Antimateria");
+        add("itemGroup.create_nuclearindustry.section.dyson", "Dyson Swarm", "Enjambre Dyson");
         add("itemGroup.create_nuclearindustry.section.civil_defense", "Civil Defense", "Defensa civil");
         add("itemGroup.create_nuclearindustry.section.weapons", "Weapons", "Armamento");
         add("itemGroup.create_nuclearindustry.section.other", "Other", "Otros");

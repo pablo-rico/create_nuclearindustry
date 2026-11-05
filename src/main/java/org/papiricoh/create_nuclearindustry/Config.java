@@ -183,6 +183,7 @@ public class Config
         org.papiricoh.create_nuclearindustry.maintenance.MaintenanceConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.propulsion.PropulsionConfig.define(BUILDER);
+        org.papiricoh.create_nuclearindustry.dyson.DysonConfig.define(BUILDER);
         org.papiricoh.create_nuclearindustry.ruins.RuinsConfig.define(BUILDER);
     }
 
@@ -316,6 +317,7 @@ public class Config
         org.papiricoh.create_nuclearindustry.maintenance.MaintenanceConfig.bake();
         org.papiricoh.create_nuclearindustry.integration.sable.AeronauticsConfig.bake();
         org.papiricoh.create_nuclearindustry.propulsion.PropulsionConfig.bake();
+        org.papiricoh.create_nuclearindustry.dyson.DysonConfig.bake();
         org.papiricoh.create_nuclearindustry.ruins.RuinsConfig.bake();
     }
 }

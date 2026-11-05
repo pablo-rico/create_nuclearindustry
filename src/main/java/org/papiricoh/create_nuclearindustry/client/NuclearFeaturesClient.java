@@ -39,7 +39,8 @@ public final class NuclearFeaturesClient {
             org.papiricoh.create_nuclearindustry.explosive.client.ExplosiveClient.INSTANCE,
             org.papiricoh.create_nuclearindustry.missile.client.MissileClient.INSTANCE,
             org.papiricoh.create_nuclearindustry.missile.fx.client.RocketFxClient.INSTANCE,
-            org.papiricoh.create_nuclearindustry.radiation.decontamination.client.DecontaminationClient.INSTANCE);
+            org.papiricoh.create_nuclearindustry.radiation.decontamination.client.DecontaminationClient.INSTANCE,
+            org.papiricoh.create_nuclearindustry.dyson.client.DysonClient.INSTANCE);
 
     private NuclearFeaturesClient() {}
 

@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:annihilation_power",
+  "criteria": {
+    "sail_launched": {
+      "conditions": {
+        "event": "sail_launched"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.sail_launched.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:em_rail_ejector"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.sail_launched.title"
+    }
+  },
+  "requirements": [
+    [
+      "sail_launched"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

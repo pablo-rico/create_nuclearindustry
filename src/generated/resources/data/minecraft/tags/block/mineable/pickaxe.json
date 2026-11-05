@@ -144,6 +144,9 @@
     "create_nuclearindustry:magnetic_nozzle",
     "create_nuclearindustry:decontamination_sprinkler",
     "create_nuclearindustry:irradiated_sunflower",
+    "create_nuclearindustry:em_rail_ejector",
+    "create_nuclearindustry:ray_receiver",
+    "create_nuclearindustry:swarm_terminal",
     "create_nuclearindustry:rocket_engine",
     "create_nuclearindustry:rocket_tank",
     "create_nuclearindustry:rocket_guidance",
@@ -189,6 +192,9 @@
     "create_nuclearindustry:interceptor_battery_part",
     "create_nuclearindustry:rocket_kill_vehicle",
     "create_nuclearindustry:ground_station",
-    "create_nuclearindustry:rocket_satellite_fairing"
+    "create_nuclearindustry:rocket_satellite_fairing",
+    "create_nuclearindustry:em_rail_ejector",
+    "create_nuclearindustry:ray_receiver",
+    "create_nuclearindustry:swarm_terminal"
   ]
 }

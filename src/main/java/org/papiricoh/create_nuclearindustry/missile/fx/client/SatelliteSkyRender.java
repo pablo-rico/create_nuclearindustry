@@ -29,6 +29,8 @@ public final class SatelliteSkyRender {
     private static final FxQuads QUADS = new FxQuads();
     /** The dome's radius as a share of the far plane's distance. */
     private static final double DOME = 0.8;
+    /** The same under a shader pack, which fogs the distance heavily enough to swallow what is drawn that far. */
+    private static final double SHADER_DOME = 0.15;
     /** A point's radius, as a share of the dome's: moving and parked. */
     private static final double LOW_SIZE = 0.0042, HIGH_SIZE = 0.0032;
     private static boolean initialised;
@@ -44,7 +46,11 @@ public final class SatelliteSkyRender {
     }
 
     private static void onRenderLevel(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_WEATHER || !ClientConfig.rocketSatellites) return;
+        // Under a shader pack, what is drawn after the weather goes through the pack's weather program, which may take it for rain
+        // and fade it out on a clear night (Complementary does): there the satellites are drawn with the block entities.
+        RenderLevelStageEvent.Stage stage = RocketRenderTypes.shaderPackInUse()
+                ? RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES : RenderLevelStageEvent.Stage.AFTER_WEATHER;
+        if (event.getStage() != stage || !ClientConfig.rocketSatellites) return;
         List<Satellite> satellites = ClientSatellites.all();
         if (satellites.isEmpty()) return;
         Minecraft mc = Minecraft.getInstance();
@@ -58,7 +64,7 @@ public final class SatelliteSkyRender {
 
         Vec3 eye = camera.getPosition();
         double far = mc.gameRenderer.getDepthFar();
-        double radius = far * DOME;
+        double radius = far * (RocketRenderTypes.shaderPackInUse() ? SHADER_DOME : DOME);
         boolean shaded = RocketRenderTypes.shaded();
         QUADS.begin(eye, far * 0.9, shaded, camera.getLeftVector(), camera.getUpVector());
         double time = level.getGameTime() + partial;

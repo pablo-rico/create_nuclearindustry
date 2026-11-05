@@ -558,3 +558,36 @@ def _other(row, phase):
     row.disc(132, 9, 8.0, DARK[0])
     row.disc(132, 9, 7.2, WARN[4])
     row.trefoil(132, 9, 6.4, DARK[0], turn=phase / 3)
+
+
+DYSON = Ramp("#140e04", "#2e2208", "#3e2d0c", "#4a3410", "#634816", "#80601e", "#d8b060")
+DYSON_SUN = Ramp("#6a3a0c", "#a8661a", "#e09a32", "#ffc552", "#ffe08a", "#fff2c4", "#ffffff")
+SAIL = (255, 214, 110, 255)
+
+
+@banner("dyson", DYSON, 1118)
+def _dyson(row, phase):
+    # A sun with its swarm: sails round a wide ring and a steep one, the far halves behind the sun.
+    cx, cy = 133, 9
+    for x, y, k in ((110, 4, 0.0), (121, 14, 0.3), (151, 3, 0.55), (157, 13, 0.8), (115, 11, 0.45), (146, 15, 0.15)):
+        row.blend(x, y, (255, 240, 200, 255), 0.25 + 0.5 * _pulse(phase, k))
+    rings = ((19.0, 4.2, 9, 1), (6.5, 7.6, 5, -1))
+    sails = []
+    for rx, ry, n, sense in rings:
+        row.ring(cx, cy, rx, ry, DYSON[6], width=0.45, a=0.28)
+        for k in range(n):
+            a = TAU * (sense * phase + k / n)
+            sails.append((math.sin(a) > 0, cx + math.cos(a) * rx, cy + math.sin(a) * ry))
+    for front, x, y in sails:
+        if not front:
+            row.blend(x, y, SAIL, 0.55)
+    glow = _pulse(phase * 2)
+    row.disc(cx, cy, 6.2, DYSON_SUN[2], a=0.18 + 0.08 * glow)
+    row.disc(cx, cy, 4.6, DYSON_SUN[3], a=0.55)
+    row.disc(cx, cy, 3.6, DYSON_SUN[4])
+    row.disc(cx, cy, 2.4, DYSON_SUN[5])
+    row.disc(cx - 0.6, cy - 0.6, 1.1, DYSON_SUN[6])
+    for front, x, y in sails:
+        if front:
+            row.set(x, y, SAIL)
+            row.blend(x + 1, y, SAIL, 0.5)

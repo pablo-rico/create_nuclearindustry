@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+### Dyson swarm
+- New endgame power source, after antimatter: a **Dyson swarm** of solar sails orbiting the sun, beaming its light
+  down to the ground. There is one swarm per world, shared by everyone, and it only shines on the Overworld.
+- **Solar Sails** are made two at a time on a sequenced assembly: a golden sheet with polished rose quartz and a
+  copper nugget deployed on, then pressed.
+- The **EM Rail Ejector** throws sails into orbit. Drive it with a shaft from below at 64 RPM or more, load sails by
+  hand, funnel or hopper, and leave the sky above it open. By day its turret follows the sun and its coils glow from
+  copper to white-hot as they charge; then the sled slams up the rails, a flash and a shock ring burst from the muzzle,
+  and the sail streaks up towards the sun, unfolding high in the sky. Launches can be seen from 512 blocks away. It
+  fires a sail every 2 seconds at 256 RPM (slower when it turns slower). Its screen picks the orbit, and its goggle
+  tooltip says what stops it.
+- The **Ray Receiver** is a gold dish that follows the sun and turns the swarm's light into Forge Energy, pushed into
+  the blocks around it. While it receives, a beam of light comes down from the sky into its glowing collector, with
+  packets of light running down it. Each sail gives 64 FE/t at noon under a clear sky, less as the sun gets lower, in
+  rain or in a storm, and nothing at night. One receiver takes up to 32,768 FE/t, so a full receiver needs 512 sails
+  at noon. All receivers split what the swarm sends: building more receivers never makes more power.
+- Sails wear out after **20 in-game days**, so the swarm needs a steady supply of new launches.
+- The **Dyson Swarm Terminal** opens and shapes the swarm's **four orbits**: radius, inclination and node, shown on a
+  sky plot round the sun. It also shows the sails in each orbit and how many wear out within a day, and what the
+  swarm beams down.
+- The swarm can be seen round the sun, even by day: glowing sails orbit it in rings that grow with the swarm, and the
+  sun dims as the swarm fills (not with a shader pack). Works with Iris/Oculus shader packs; the client config
+  (`dyson.*`) can tone the sky, beams and effects down.
+- Ponder scenes for the ejector, the receivers and the terminal.
+- Satellites in the night sky and rocket flames now show with shader packs such as Complementary Reimagined, where
+  they used to vanish or come out nearly black.
+- Display Link sources for the terminal (the whole swarm) and the receiver; a JEI info page; four advancements,
+  from the first sail launched to 1000 sails ("Kardashev Type I").
+
 ### Centrifuge and electrolyzer
 - New look for the **Centrifuge**, closer to Create's machines: an open frame whose gas-centrifuge rotor you can see
   spinning, faster than the shaft driving it. The shaft goes into a gearbox at the back, and a dial on the

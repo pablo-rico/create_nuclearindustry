@@ -55,6 +55,19 @@ public final class RocketRenderTypes extends RenderType {
                     .setWriteMaskState(COLOR_WRITE)
                     .setCullState(NO_CULL)
                     .createCompositeState(false));
+    /**
+     * The light under a shader pack. The plain type's position–colour shader becomes the pack's basic program, which lights it by
+     * the lightmap these quads do not carry, so it comes out nearly black (Complementary does this); the lightning shader becomes
+     * the pack's lightning program, drawn unlit as it is, the way packs draw beams. Not without a pack: the game's lightning shader
+     * fogs, and would hide what is drawn far off.
+     */
+    public static final RenderType GLOW_PACK = create("create_nuclearindustry_rocket_glow_pack", DefaultVertexFormat.POSITION_COLOR,
+            CompositeState.builder()
+                    .setShaderState(RENDERTYPE_LIGHTNING_SHADER)
+                    .setTransparencyState(LIGHTNING_TRANSPARENCY)
+                    .setWriteMaskState(COLOR_WRITE)
+                    .setCullState(NO_CULL)
+                    .createCompositeState(false));
     public static final RenderType SMOKE_PLAIN = create("create_nuclearindustry_rocket_smoke_plain", DefaultVertexFormat.POSITION_COLOR,
             CompositeState.builder()
                     .setShaderState(new ShaderStateShard(GameRenderer::getPositionColorShader))
@@ -65,6 +78,8 @@ public final class RocketRenderTypes extends RenderType {
 
     @Nullable
     private static MethodHandle shaderPackInUse;
+    @Nullable
+    private static MethodHandle sunPathRotation;
     private static boolean irisChecked;
 
     private RocketRenderTypes(String name, VertexFormat format, VertexFormat.Mode mode, int bufferSize, boolean affectsCrumbling,
@@ -96,15 +111,18 @@ public final class RocketRenderTypes extends RenderType {
     }
 
     public static RenderType glow(boolean shaded) {
-        return shaded ? GLOW : GLOW_PLAIN;
+        return shaded ? GLOW : shaderPackInUse() ? GLOW_PACK : GLOW_PLAIN;
     }
 
     public static RenderType smoke(boolean shaded) {
         return shaded ? SMOKE : SMOKE_PLAIN;
     }
 
-    /** Whether Iris (or Oculus, which shares its API) has a shader pack on. */
-    private static boolean shaderPackInUse() {
+    /**
+     * Whether Iris (or Oculus, which shares its API) has a shader pack on. Unlike {@code !shaded()}, false while the game's own
+     * shaders are still loading, so callers that only care about a pack (it redraws the sky, say) can ask this.
+     */
+    public static boolean shaderPackInUse() {
         if (!irisChecked) {
             irisChecked = true;
             if (ModList.get() != null && (ModList.get().isLoaded("iris") || ModList.get().isLoaded("oculus"))) {
@@ -113,6 +131,12 @@ public final class RocketRenderTypes extends RenderType {
                     Object instance = api.getMethod("getInstance").invoke(null);
                     shaderPackInUse = MethodHandles.publicLookup().findVirtual(api, "isShaderPackInUse", MethodType.methodType(boolean.class))
                             .bindTo(instance);
+                    try {
+                        sunPathRotation = MethodHandles.publicLookup().findVirtual(api, "getSunPathRotation", MethodType.methodType(float.class))
+                                .bindTo(instance);
+                    } catch (ReflectiveOperationException e) {
+                        // An older API (or Oculus): the pack's sun is taken to follow the game's.
+                    }
                 } catch (ReflectiveOperationException | LinkageError | RuntimeException e) {
                     LOGGER.warn("Could not ask Iris whether a shader pack is on; rocket effects use their plain look", e);
                     shaderPackInUse = MethodHandles.constant(boolean.class, true);
@@ -124,6 +148,20 @@ public final class RocketRenderTypes extends RenderType {
             return (boolean) shaderPackInUse.invoke();
         } catch (Throwable e) {
             return true;
+        }
+    }
+
+    /**
+     * Degrees the shader pack in use tips the sun's daily path by ({@code sunPathRotation}, so shadows never fall straight), or 0
+     * with no pack: where the pack draws the sun, for whatever must line up with it.
+     */
+    public static float sunPathRotation() {
+        if (!shaderPackInUse() || sunPathRotation == null) return 0;
+        try {
+            float degrees = (float) sunPathRotation.invoke();
+            return Float.isFinite(degrees) ? degrees : 0;
+        } catch (Throwable e) {
+            return 0;
         }
     }
 }

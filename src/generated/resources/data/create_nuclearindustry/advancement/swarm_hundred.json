@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:dyson_power",
+  "criteria": {
+    "swarm_hundred": {
+      "conditions": {
+        "event": "swarm_hundred"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.swarm_hundred.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:solar_sail"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.swarm_hundred.title"
+    }
+  },
+  "requirements": [
+    [
+      "swarm_hundred"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

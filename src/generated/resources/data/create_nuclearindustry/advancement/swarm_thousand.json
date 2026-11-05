@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:swarm_hundred",
+  "criteria": {
+    "swarm_thousand": {
+      "conditions": {
+        "event": "swarm_thousand"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancement.create_nuclearindustry.swarm_thousand.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:swarm_terminal"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.swarm_thousand.title"
+    }
+  },
+  "requirements": [
+    [
+      "swarm_thousand"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

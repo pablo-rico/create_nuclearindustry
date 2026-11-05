@@ -454,7 +454,25 @@ public class NuclearAdvancementProvider extends AdvancementProvider {
                             event(NuclearEvent.ANNIHILATION_IGNITION),
                             "Ignition by Annihilation", "Ignición por aniquilación",
                             "Ignite a tokamak's plasma with an Antiproton Injector",
-                            "Enciende el plasma de un tokamak con un inyector de antiprotones"), AdvancementType.CHALLENGE, false))
+                            "Enciende el plasma de un tokamak con un inyector de antiprotones"), AdvancementType.CHALLENGE, false),
+                    task("sail_launched", "annihilation_power", org.papiricoh.create_nuclearindustry.dyson.DysonRegistry.EM_RAIL_EJECTOR_ITEM,
+                            event(NuclearEvent.SAIL_LAUNCHED),
+                            "Here Comes the Sun", "Aquí llega el sol",
+                            "Launch a Solar Sail into orbit with an EM Rail Ejector",
+                            "Lanza una vela solar a la órbita con un eyector de raíl EM"),
+                    task("dyson_power", "sail_launched", org.papiricoh.create_nuclearindustry.dyson.DysonRegistry.RAY_RECEIVER_ITEM,
+                            event(NuclearEvent.DYSON_POWER),
+                            "Sunbeam", "Rayo de sol",
+                            "Take power from the swarm with a Ray Receiver",
+                            "Recibe energía del enjambre con un receptor de rayos"),
+                    with(task("swarm_hundred", "dyson_power", org.papiricoh.create_nuclearindustry.dyson.DysonRegistry.SOLAR_SAIL,
+                            event(NuclearEvent.SWARM_HUNDRED),
+                            "Swarm", "Enjambre",
+                            "Have 100 sails orbiting the sun", "Ten 100 velas orbitando el sol"), AdvancementType.GOAL, false),
+                    with(task("swarm_thousand", "swarm_hundred", org.papiricoh.create_nuclearindustry.dyson.DysonRegistry.SWARM_TERMINAL_ITEM,
+                            event(NuclearEvent.SWARM_THOUSAND),
+                            "Kardashev Type I", "Kardashev tipo I",
+                            "Have 1000 sails orbiting the sun", "Ten 1000 velas orbitando el sol"), AdvancementType.CHALLENGE, false))
     );
 
     /** The tab roots, in the order the tabs appear. */

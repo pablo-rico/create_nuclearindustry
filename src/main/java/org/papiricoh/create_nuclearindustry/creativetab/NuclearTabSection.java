@@ -23,6 +23,8 @@ public enum NuclearTabSection {
     CRYOGENICS(0xAA22303A, 0xFFE6F6FF, 0xFF38494A, 4),
     ACCELERATOR(0xAA141D33, 0xFFC9DCF3, 0xFF1D2A45, 2),
     ANTIMATTER(0xAA221438, 0xFFD6BFFF, 0xFF2E1F45, 3),
+    /** The Dyson swarm: sails, ejectors, receivers and the terminal. */
+    DYSON(0xAA2E2208, 0xFFFFE6A0, 0xFF4A3410, 2),
     CIVIL_DEFENSE(0xAA262A18, 0xFFE0E6B0, 0xFF353A20, 3),
     WEAPONS(0xAA3A1A0C, 0xFFFFC080, 0xFF4C2410, 3),
     /** Nuclear engines for Create Aeronautics ships; only shown with Sable installed. */

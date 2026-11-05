@@ -71,7 +71,16 @@ public enum NuclearEvent {
     /** A launch vehicle put its satellite in orbit. */
     SATELLITE_IN_ORBIT,
     /** An interceptor destroyed a satellite in orbit. */
-    SATELLITE_DESTROYED;
+    SATELLITE_DESTROYED,
+    // Dyson swarm
+    /** An EM rail ejector put a solar sail into orbit. */
+    SAIL_LAUNCHED,
+    /** The swarm reached 100 sails. */
+    SWARM_HUNDRED,
+    /** The swarm reached 1000 sails. */
+    SWARM_THOUSAND,
+    /** A ray receiver took power from the swarm. */
+    DYSON_POWER;
 
     public String id() {
         return name().toLowerCase(Locale.ROOT);

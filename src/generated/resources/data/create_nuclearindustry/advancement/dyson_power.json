@@ -1,0 +1,30 @@
+{
+  "parent": "create_nuclearindustry:sail_launched",
+  "criteria": {
+    "dyson_power": {
+      "conditions": {
+        "event": "dyson_power"
+      },
+      "trigger": "create_nuclearindustry:nuclear_event"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancement.create_nuclearindustry.dyson_power.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "create_nuclearindustry:ray_receiver"
+    },
+    "title": {
+      "translate": "advancement.create_nuclearindustry.dyson_power.title"
+    }
+  },
+  "requirements": [
+    [
+      "dyson_power"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

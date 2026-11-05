@@ -30,7 +30,7 @@ public final class GuideJeiInfo {
             ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "thermonuclear_cannon_shell");
 
     /** Every page id, also those shown only when their item is there; the datagen writes a text for each. */
-    public static final List<String> IDS = List.of("nuclear_bomb", "thermonuclear_bomb", "warhead_parts", "missile_launch", "rocket_stages", "missile_defense", "satellites", "nuclear_cannon_shell",
+    public static final List<String> IDS = List.of("nuclear_bomb", "thermonuclear_bomb", "warhead_parts", "missile_launch", "rocket_stages", "missile_defense", "satellites", "dyson_swarm", "nuclear_cannon_shell",
             "thermonuclear_cannon_shell", "reactor_fuel_port",
             "reactor_fluid_port", "control_rod", "reactor_temperature_sensor", "tokamak_structure", "tokamak_magnet_drive",
             "tokamak_fluid_port", "tokamak_fuel_injector", "fusion_turbine", "reactor_viewport");
@@ -55,6 +55,9 @@ public final class GuideJeiInfo {
                 .map(path -> BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path)))
                 .map(ItemStack::new).toList(), List.of()));
         pages.add(new PlantJeiInfo.Page("satellites", Stream.of("ground_station", "rocket_satellite_fairing", "early_warning_satellite", "comms_satellite")
+                .map(path -> BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path)))
+                .map(ItemStack::new).toList(), List.of()));
+        pages.add(new PlantJeiInfo.Page("dyson_swarm", Stream.of("em_rail_ejector", "ray_receiver", "swarm_terminal", "solar_sail")
                 .map(path -> BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, path)))
                 .map(ItemStack::new).toList(), List.of()));
         item(NUCLEAR_CANNON_SHELL).ifPresent(shell ->

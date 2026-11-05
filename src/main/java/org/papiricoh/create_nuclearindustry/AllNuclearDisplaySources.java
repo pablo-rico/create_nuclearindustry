@@ -50,6 +50,11 @@ public class AllNuclearDisplaySources {
     public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.missile.orbit.GroundStationDisplaySource> GROUND_STATION =
             DISPLAY_SOURCES.register("ground_station", org.papiricoh.create_nuclearindustry.missile.orbit.GroundStationDisplaySource::new);
 
+    public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.dyson.SwarmDisplaySource> DYSON_SWARM =
+            DISPLAY_SOURCES.register("dyson_swarm", org.papiricoh.create_nuclearindustry.dyson.SwarmDisplaySource::swarm);
+    public static final DeferredHolder<DisplaySource, org.papiricoh.create_nuclearindustry.dyson.SwarmDisplaySource> RAY_RECEIVER =
+            DISPLAY_SOURCES.register("ray_receiver", org.papiricoh.create_nuclearindustry.dyson.SwarmDisplaySource::receiver);
+
     /** One source per reactor reading, in {@link ReactorReadout} order. */
     public static final Map<ReactorReadout, DeferredHolder<DisplaySource, SingleLineDisplaySource>> REACTOR_READOUTS = readouts();
 
@@ -69,6 +74,8 @@ public class AllNuclearDisplaySources {
     private static void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.orbit.OrbitRegistry.STATION_ENTITY.get(), GROUND_STATION.get());
+            DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.dyson.DysonRegistry.TERMINAL_ENTITY.get(), DYSON_SWARM.get());
+            DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.dyson.DysonRegistry.RECEIVER_ENTITY.get(), RAY_RECEIVER.get());
             DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.ENTITY.get(), MISSILE_RADAR.get());
             DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.ENTITY.get(), MISSILE_RADAR_TRACKS.get());
             DisplaySource.BY_BLOCK_ENTITY.add(org.papiricoh.create_nuclearindustry.missile.radar.RadarRegistry.ENTITY.get(), MISSILE_RADAR_THREATS.get());

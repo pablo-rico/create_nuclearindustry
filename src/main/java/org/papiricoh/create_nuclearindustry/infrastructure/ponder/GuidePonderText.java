@@ -602,11 +602,50 @@ public final class GuidePonderText {
                             "Sin energía el campo cae: suena una alarma de quench y la antimateria de la cámara se aniquila donde está el motor.")),
             List.of("antimatter_engine", "magnetic_coil", "magnetic_nozzle"));
 
+    public static final Scene EM_RAIL_EJECTOR = new Scene("em_rail_ejector", "dyson_ejector",
+            line("Launching Solar Sails", "Lanzar velas solares"),
+            List.of(
+                    line("The EM Rail Ejector throws Solar Sails into orbit round the sun, building up the Dyson swarm. Drive it with a shaft from below at 64 RPM or more.",
+                            "El Eyector de raíl EM lanza Velas solares a la órbita del sol y va formando el enjambre Dyson. Muévelo con un eje desde abajo a 64 RPM o más."),
+                    line("Load it with sails by hand, funnel or hopper.",
+                            "Cárgalo de velas a mano, con embudo o con tolva."),
+                    line("It needs the open sky above it and works only by day. Its rails turn to the sun, charge up and fire a sail every 2 seconds at 256 RPM, slower when it turns slower.",
+                            "Necesita cielo abierto encima y solo funciona de día. Sus raíles se giran hacia el sol, se cargan y disparan una vela cada 2 segundos a 256 RPM, más despacio si gira más lento."),
+                    line("Right-click it to pick the orbit it launches into: only open orbits take sails. Goggles show what it is doing, or what stops it.",
+                            "Haz clic derecho para elegir la órbita a la que lanza: solo las órbitas abiertas admiten velas. Las gafas muestran qué hace o qué lo detiene.")),
+            List.of("em_rail_ejector", "solar_sail"));
+
+    public static final Scene RAY_RECEIVER = new Scene("ray_receiver", "dyson_receivers",
+            line("Receiving the Swarm's Power", "Recibir la energía del enjambre"),
+            List.of(
+                    line("A Ray Receiver takes the Dyson swarm's light and turns it into Forge Energy, pushed into the blocks around it or pulled out by cables.",
+                            "Un Receptor de rayos toma la luz del enjambre Dyson y la convierte en Forge Energy, que empuja a los bloques de alrededor o que sacan los cables."),
+                    line("It needs the open sky above it. Its dish follows the sun: it takes most at noon, less as the sun gets low or in rain, and nothing at night.",
+                            "Necesita cielo abierto encima. Su antena sigue al sol: recibe más a mediodía, menos con el sol bajo o con lluvia, y nada de noche."),
+                    line("All receivers share what the swarm sends. Each sail gives 64 FE/t at noon and a receiver takes up to 32,768 FE/t: more receivers than the swarm can feed make nothing.",
+                            "Todos los receptores se reparten lo que envía el enjambre. Cada vela da 64 FE/t a mediodía y un receptor toma hasta 32.768 FE/t: más receptores de los que el enjambre alimenta no dan nada."),
+                    line("Sails wear out after twenty days, so keep the ejectors launching.",
+                            "Las velas se gastan a los veinte días: mantén los eyectores lanzando.")),
+            List.of("ray_receiver"));
+
+    public static final Scene SWARM_TERMINAL = new Scene("swarm_terminal", "dyson_terminal",
+            line("The Dyson Swarm Terminal", "El terminal del enjambre Dyson"),
+            List.of(
+                    line("The Dyson Swarm Terminal shows the world's swarm: its sails, what it beams down and how the receivers share it.",
+                            "El Terminal del enjambre Dyson muestra el enjambre del mundo: sus velas, lo que envía y cómo se lo reparten los receptores."),
+                    line("Right-click it to open, close and shape the swarm's four orbits. Ejectors launch only into open orbits; sails in a closed one stay until they wear out.",
+                            "Haz clic derecho para abrir, cerrar y dar forma a las cuatro órbitas del enjambre. Los eyectores solo lanzan a órbitas abiertas; las velas de una cerrada siguen hasta que se gastan."),
+                    line("An orbit's radius, inclination and node change only how the swarm looks in the sky, never how much power it gives.",
+                            "El radio, la inclinación y el nodo de una órbita solo cambian cómo se ve el enjambre en el cielo, nunca cuánta energía da."),
+                    line("A Display Link reads the whole swarm from a terminal, and one receiver from that receiver.",
+                            "Un Display Link lee el enjambre entero desde un terminal, y un receptor desde ese receptor.")),
+            List.of("swarm_terminal"));
+
     /** Every guide scene, in the order they are registered. */
     public static final List<Scene> SCENES = List.of(SIRENS, BLAST_DOOR, SHELTER, BOMBS, THERMONUCLEAR, LAUNCH_BASE, MISSILE, SILO_LAUNCH, RADAR, HOLO_TABLE, INTERCEPTOR_BATTERY, INTERCEPTOR_SILO, GROUND_STATION, SATELLITE_LAUNCH, FUEL_CYCLE, ACID_LEACHING, IRRADIATION,
             ACCELERATOR_LINAC, ACCELERATOR_SYNCHROTRON, ANTIMATTER_CONTAINMENT, ANTIMATTER_GENERATOR, ANTIPROTON_INJECTOR,
             ISOTOPES, MAINTENANCE, CONTROL_ROOM, CONTROL_MODULES, CONTROL_INSTRUMENTS, CONTROL_SIGNALS, CONTROL_SERVO,
-            THERMAL_ENGINE, ANTIMATTER_ENGINE);
+            THERMAL_ENGINE, ANTIMATTER_ENGINE, EM_RAIL_EJECTOR, RAY_RECEIVER, SWARM_TERMINAL);
 
     private GuidePonderText() {}
 

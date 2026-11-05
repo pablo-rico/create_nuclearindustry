@@ -1,0 +1,7 @@
+// 1.21.1	2026-10-24T05:13:56.50336	Dyson swarm recipes
+02c1eb7e95b5aa1cd18edf07e5149fbf7a5c7e56 data/create_nuclearindustry/advancement/recipes/misc/crafting/em_rail_ejector.json
+620713a392b94d9692adaf367b532ae12886d309 data/create_nuclearindustry/advancement/recipes/misc/crafting/ray_receiver.json
+859011cf3055da27485151c05f1570c96dc6ec5a data/create_nuclearindustry/advancement/recipes/misc/crafting/swarm_terminal.json
+fa9ee44b23f5b89ba6cc36f9780cba43d6a277c8 data/create_nuclearindustry/recipe/crafting/em_rail_ejector.json
+14d18121d063486f1407efaf109b8eb0b029b98d data/create_nuclearindustry/recipe/crafting/ray_receiver.json
+c37a45c7c818d1cb4d67a9686ef33d279c06f5a5 data/create_nuclearindustry/recipe/crafting/swarm_terminal.json

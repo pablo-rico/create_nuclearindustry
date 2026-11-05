@@ -72,6 +72,9 @@ public final class GuidePonderScenes {
         boards.put(GuidePonderText.CONTROL_SERVO, ControlRoomScenes::servo);
         boards.put(GuidePonderText.THERMAL_ENGINE, PropulsionScenes::thermal);
         boards.put(GuidePonderText.ANTIMATTER_ENGINE, PropulsionScenes::antimatter);
+        boards.put(GuidePonderText.EM_RAIL_EJECTOR, org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.DysonScenes::ejector);
+        boards.put(GuidePonderText.RAY_RECEIVER, org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.DysonScenes::receivers);
+        boards.put(GuidePonderText.SWARM_TERMINAL, org.papiricoh.create_nuclearindustry.infrastructure.ponder.scenes.DysonScenes::terminal);
         return boards;
     }
 
