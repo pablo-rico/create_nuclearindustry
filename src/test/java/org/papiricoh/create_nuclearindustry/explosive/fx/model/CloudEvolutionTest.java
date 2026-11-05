@@ -99,7 +99,7 @@ class CloudEvolutionTest {
             assertTrue(c.capColour(t).luminance() > 0.4 && c.stemColour(t).luminance() > 0.35, "never soot-black at " + t);
         }
         assertTrue(c.capColour(60).luminance() > c.capColour(5).luminance() + 0.2, "tan and beige once condensation forms");
-        assertTrue(c.life(330) > 0.05 && c.life(330) < 0.3, "a faint smear of haze near its end");
+        assertTrue(c.life(330) > 0.01 && c.life(330) < 0.1, "a faint smear of haze near its end");
         assertTrue(c.lifetime() >= 300 && c.lifetime() <= 360);
         assertTrue(puffs(c, c.lifetime() + 1).isEmpty(), "and is gone");
         assertTrue(c.life(c.lifetime() - 10) < 0.1 && c.life(100) == 1);

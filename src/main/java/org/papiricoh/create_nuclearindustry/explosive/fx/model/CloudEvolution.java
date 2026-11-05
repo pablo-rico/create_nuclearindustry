@@ -140,7 +140,7 @@ public final class CloudEvolution {
         this.thickRatio = flattened ? 0.15 : 0.45;
         // The cap's puffs bulge past its half-thickness by about half their size: its visible top stands at the top.
         this.centreFinal = top - thickRatio * capRadius - 0.6 * puffSize(capRadius, thickRatio * capRadius);
-        this.riseTau = flattened ? 24 : 20;
+        this.riseTau = flattened ? 32 : 27;
         this.spreadTau = flattened ? 55 : 30;
         this.lifetime = 360;
         this.stemRadius = 0.08 * this.scale + 3;
@@ -209,8 +209,8 @@ public final class CloudEvolution {
     /** The height of the cap's (first the fireball's) centre. */
     public double capCentre(double t) {
         double start = burstHeight + (airburst ? 0 : 0.6 * fireball);
-        double x = Math.max(0, t) / riseTau;
-        double rise = 1 - (1 + x) * Math.exp(-x);
+        // Buoyant and fast from its first second: a third of the way up in ten seconds, most of it within a minute.
+        double rise = 1 - Math.exp(-Math.max(0, t - 0.8) / riseTau);
         return start + (Math.max(start, centreFinal) - start) * rise;
     }
 
@@ -227,7 +227,7 @@ public final class CloudEvolution {
 
     /** Half the cap's height. */
     public double capHalfThickness(double t) {
-        double ratio = 1 + (thickRatio - 1) * (1 - Math.exp(-Math.max(0, t) / 20));
+        double ratio = 1 + (thickRatio - 1) * (1 - Math.exp(-Math.max(0, t) / 10));
         return ratio * capRadius(t);
     }
 
@@ -237,12 +237,40 @@ public final class CloudEvolution {
     }
 
     /**
-     * How opaque the whole cloud still is: 1 for three minutes, then thinning, still a faint smear of haze half a minute before
-     * its end and gone at it.
+     * How opaque each puff of the cloud still is: 1 for three minutes, then thinning fast (puffs overlap several deep, so the
+     * whole cloud keeps more than this), a faint smear of haze half a minute before its end and gone at it.
      */
     public double life(double t) {
         double x = clamp((t - 180) / (lifetime - 180));
-        return Math.pow(1 - x, 1.2);
+        return (1 - x) * (1 - x);
+    }
+
+    /** How much bigger the puffs have grown as the cloud disperses, 1 to 1.8. */
+    public double grown(double t) {
+        return 1 + 0.8 * clamp((t - 100) / (lifetime - 100));
+    }
+
+    /** How far the cap's puffs reach out from its axis {@code t} seconds in: its radius and the puffs bulging past it. */
+    public double visibleCapRadius(double t) {
+        double radius = capRadius(t);
+        return radius + 1.05 * puffSize(radius, capHalfThickness(t)) * grown(t);
+    }
+
+    /** How high the cap's puffs reach. */
+    public double visibleCapTop(double t) {
+        double radius = capRadius(t);
+        return capCentre(t) + 0.88 * capHalfThickness(t) + 0.95 * puffSize(radius, capHalfThickness(t)) * grown(t);
+    }
+
+    /** How low the cap's underside hangs. */
+    public double visibleCapBottom(double t) {
+        double radius = capRadius(t);
+        return capCentre(t) - 0.7 * capHalfThickness(t) - 0.6 * puffSize(radius, capHalfThickness(t)) * grown(t);
+    }
+
+    /** Half the stem's width as seen. */
+    public double visibleStemRadius(double t) {
+        return 1.1 * stemRadius * Math.min(1, 0.4 + capRadius(t) / capRadius) * (highAirburst ? 0.55 : airburst ? 0.75 : 1);
     }
 
     /** How far the wind has carried what is {@code y} blocks up, {@code t} seconds in: the top fastest. */
@@ -288,7 +316,7 @@ public final class CloudEvolution {
             return;
         }
         double life = life(t);
-        double grown = 1 + 0.8 * clamp((t - 100) / (lifetime - 100));
+        double grown = grown(t);
         if (t < fireSeconds * 1.6) {
             fireballPuffs(t, Math.max(10, counts.cap() / 5), sink);
         }

@@ -36,6 +36,7 @@ import org.papiricoh.create_nuclearindustry.explosive.fx.model.CameraShake;
 import org.papiricoh.create_nuclearindustry.explosive.fx.model.CloudEvolution;
 import org.papiricoh.create_nuclearindustry.explosive.fx.model.CloudLighting;
 import org.papiricoh.create_nuclearindustry.explosive.fx.model.ExplosionAudio;
+import org.papiricoh.create_nuclearindustry.explosive.fx.model.FarView;
 import org.papiricoh.create_nuclearindustry.explosive.fx.model.QualityPreset;
 
 import java.util.ArrayList;
@@ -392,7 +393,8 @@ public final class NuclearFx {
                 continue;
             }
             prepare(nuke, age, eye, level, partial, quality, textured, distance);
-            double k = distance > limit ? limit / distance : 1;
+            // Pulled in about the camera by the same factor as its distance: the same angle, only nearer.
+            double k = FarView.pullIn(distance, limit);
             Matrix4f modelView = new Matrix4f(event.getModelViewMatrix()).scale((float) k)
                     .translate((float) (nuke.ox - eye.x), (float) (nuke.oy - eye.y), (float) (nuke.oz - eye.z));
             nuke.cache.draw(modelView, event.getProjectionMatrix(), haze(distance));
@@ -491,42 +493,49 @@ public final class NuclearFx {
     private static void impostor(Nuke nuke, double age, Vec3 eye, ClientLevel level, float partial, double limit, QualityPreset quality) {
         CloudEvolution cloud = nuke.cloud;
         double life = cloud.life(age);
-        if (life <= 0.01) return;
+        if (life <= 0.001) return;
+        // One sheet stands for puffs several deep: as opaque as they are together.
+        double together = 1 - Math.pow(1 - life, 4);
         double wind = nuke.payload.windAngle();
+        FarView.Sheet capSheet = FarView.capSheet(cloud, age);
+        FarView.Sheet stemSheet = FarView.stemSheet(cloud, age);
         double capY = cloud.capCentre(age);
         double drift = cloud.drift(capY, age);
         double cx = nuke.ox + Math.cos(wind) * drift, cz = nuke.oz + Math.sin(wind) * drift;
-        double radius = cloud.capRadius(age);
-        double half = cloud.capHalfThickness(age);
-        double stemTop = capY - 0.6 * half;
-        double stemHalf = 0.12 * cloud.capRadius() + 4;
+        double radius = cloud.visibleCapRadius(age);
         CloudLighting.Sky sky = sky(level, partial, fireBelow(nuke, age));
         ExplosionPalette.Rgb cap = cloud.capColour(age);
         ExplosionPalette.Rgb stem = cloud.stemColour(age);
         Vec3 centre = new Vec3(cx, nuke.oy + capY, cz);
         double distance = centre.distanceTo(eye);
+        double stemTop = cloud.visibleCapBottom(age);
         if (!NukeRenderTypes.textured()) {
+            // Soft puffs sized to the cloud's visible cap and stem (fans show about three quarters of their radius).
             BATCH.clear();
+            double ring = 0.55 * radius, size = 0.6 * radius;
+            double midY = (cloud.visibleCapTop(age) + cloud.visibleCapBottom(age)) / 2;
             for (int i = 0; i < 6; i++) {
                 double a = i * Math.PI / 3;
-                BATCH.puff(cx + Math.cos(a) * radius * 0.55, nuke.oy + capY + half * 0.2, cz + Math.sin(a) * radius * 0.55, radius * 0.55,
-                        CloudEvolution.TILE_SOFT, 0, cap.red(), cap.green(), cap.blue(), (float) (0.9 * life), 0, (float) Math.cos(a), 0.3f,
-                        (float) Math.sin(a), 0.1f, 0);
+                BATCH.puff(cx + Math.cos(a) * ring, nuke.oy + midY, cz + Math.sin(a) * ring, size, CloudEvolution.TILE_SOFT, 0, cap.red(),
+                        cap.green(), cap.blue(), (float) (0.9 * together), 0, (float) Math.cos(a), 0.3f, (float) Math.sin(a), 0.1f, 0);
             }
-            BATCH.puff(cx, nuke.oy + capY + half * 0.5, cz, radius * 0.6, CloudEvolution.TILE_SOFT, 0, cap.red(), cap.green(), cap.blue(),
-                    (float) (0.9 * life), 0, 0, 1, 0, 0, 0);
-            for (int i = 0; i < 4; i++) {
-                double y = stemTop * (i + 0.5) / 4;
+            BATCH.puff(cx, nuke.oy + midY + 0.2 * size, cz, size, CloudEvolution.TILE_SOFT, 0, cap.red(), cap.green(), cap.blue(),
+                    (float) (0.9 * together), 0, 0, 1, 0, 0, 0);
+            double stemHalf = cloud.visibleStemRadius(age);
+            int pieces = Math.max(3, (int) Math.ceil(stemTop / (2 * stemHalf)));
+            for (int i = 0; i < pieces; i++) {
+                double y = stemTop * (i + 0.5) / pieces;
                 double sd = cloud.drift(y, age);
-                BATCH.puff(nuke.ox + Math.cos(wind) * sd, nuke.oy + y, nuke.oz + Math.sin(wind) * sd, stemHalf * 1.4, CloudEvolution.TILE_DENSE,
-                        0, stem.red(), stem.green(), stem.blue(), (float) (0.8 * life), 0, 0, 0, 0, 0.3f, 0);
+                BATCH.puff(nuke.ox + Math.cos(wind) * sd, nuke.oy + y, nuke.oz + Math.sin(wind) * sd, stemHalf * 1.3, CloudEvolution.TILE_DENSE,
+                        0, stem.red(), stem.green(), stem.blue(), (float) (0.8 * together), 0, 0, 0, 0, 0.3f, 0);
             }
             BATCH.light(sky);
             BATCH.sort(eye.x, eye.y, eye.z);
             drawBatch(BATCH, eye, limit, false, distance);
             return;
         }
-        double k = distance > limit ? limit / distance : 1;
+        // Every sheet pulled in about the camera by the same factor as its distance: the same angle, only nearer.
+        double k = FarView.pullIn(distance, limit);
         // Across the line of sight, horizontally, and the sun's side of it.
         double vx = cx - eye.x, vz = cz - eye.z;
         double vl = Math.max(1e-6, Math.sqrt(vx * vx + vz * vz));
@@ -534,17 +543,19 @@ public final class NuclearFx {
         double right = CloudLighting.side(sky, ax, az), left = CloudLighting.side(sky, -ax, -az);
         BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         float[] lit = new float[3];
-        float a = (float) life;
+        float a = (float) together;
         if (quality.impostorLayers() >= 3) {
             // A rear cap, a little bigger and in shade, for depth.
             double back = radius * 0.3;
-            sheet(builder, eye, k, cx + vx / vl * back, nuke.oy + capY + half * 0.1, cz + vz / vl * back, ax, az, radius * 1.15, half * 1.7,
-                    0, 0.5f, shade(sky, cap.scale(0.85), -ax, -az, lit, left), shade(sky, cap.scale(0.85), ax, az, lit, right), a * 0.8f);
+            sheet(builder, eye, k, cx + vx / vl * back, nuke.oy + capSheet.centreY(), cz + vz / vl * back, ax, az, capSheet.halfWidth() * 1.05,
+                    capSheet.halfHeight() * 1.05, 0, 0.5f, shade(sky, cap.scale(0.85), -ax, -az, lit, left),
+                    shade(sky, cap.scale(0.85), ax, az, lit, right), a * 0.8f);
         }
-        double stemDrift = cloud.drift(stemTop * 0.5, age) * 0.5;
-        sheet(builder, eye, k, nuke.ox + Math.cos(wind) * stemDrift, nuke.oy + stemTop * 0.5, nuke.oz + Math.sin(wind) * stemDrift, ax, az,
-                stemHalf * 2.2, stemTop * 0.5 + half * 0.2, 0.5f, 1.0f, shade(sky, stem, -ax, -az, lit, left), shade(sky, stem, ax, az, lit, right), a);
-        sheet(builder, eye, k, cx, nuke.oy + capY + half * 0.15, cz, ax, az, radius * 1.05, half * 1.6, 0, 0.5f,
+        double stemDrift = cloud.drift(stemSheet.centreY(), age);
+        sheet(builder, eye, k, nuke.ox + Math.cos(wind) * stemDrift, nuke.oy + stemSheet.centreY(), nuke.oz + Math.sin(wind) * stemDrift, ax, az,
+                stemSheet.halfWidth(), stemSheet.halfHeight(), 0.5f, 1.0f, shade(sky, stem, -ax, -az, lit, left),
+                shade(sky, stem, ax, az, lit, right), a);
+        sheet(builder, eye, k, cx, nuke.oy + capSheet.centreY(), cz, ax, az, capSheet.halfWidth(), capSheet.halfHeight(), 0, 0.5f,
                 shade(sky, cap, -ax, -az, lit, left), shade(sky, cap, ax, az, lit, right), a);
         MeshData mesh = builder.build();
         if (mesh == null) return;
