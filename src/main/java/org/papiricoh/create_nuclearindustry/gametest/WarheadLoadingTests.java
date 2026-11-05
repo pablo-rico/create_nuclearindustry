@@ -72,8 +72,19 @@ public class WarheadLoadingTests {
         bay.contents().insertItem(0, new ItemStack(Items.TNT, 8), false);
         var warhead = bay.warhead();
         helper.assertTrue(bay.validCharge() && warhead.kind() == Warhead.Kind.CONVENTIONAL, "TNT makes a conventional warhead");
-        helper.assertTrue(warhead.power() == 8 && warhead.threatRadius() == 12 && !warhead.nuclear(), "cube-root TNT power without radiation");
+        helper.assertTrue(warhead.charge() == 8 && !warhead.nuclear(), "eight TNT blocks of charge, no radiation: " + warhead.charge());
+        var ground = warhead.blast(false);
+        var air = warhead.blast(true);
+        helper.assertTrue(ground != null && air != null && air.waveRadius() > ground.waveRadius() && air.craterRadius() == 0,
+                "an airburst trades its crater for reach");
+        helper.assertTrue(warhead.threatRadius() == (int) Math.ceil(air.waveRadius()), "sirens sound as far as its wave reaches");
         helper.assertTrue(Warhead.load(warhead.save()).equals(warhead), "conventional kind survives saves");
+        // A warhead saved when its power was 4 times the cube root of its TNT keeps its charge.
+        net.minecraft.nbt.CompoundTag old = new net.minecraft.nbt.CompoundTag();
+        old.putString("Kind", "conventional");
+        old.putFloat("Power", 8);
+        Warhead migrated = Warhead.load(old);
+        helper.assertTrue(Math.abs(migrated.charge() - 8) < 1e-3, "an old conventional warhead keeps its charge: " + migrated.charge());
         helper.succeed();
     }
 
@@ -85,7 +96,7 @@ public class WarheadLoadingTests {
         int events = data.events().size(), sources = fallout.sources().size();
         ContaminationTests.clean(helper, 1);
         try {
-            Warhead.conventional(4).detonate(level, helper.absolutePos(AT).getCenter());
+            Warhead.conventional(1).detonate(level, helper.absolutePos(AT).getCenter());
             helper.assertTrue(Contamination.get(level, new ChunkPos(helper.absolutePos(AT))) == 0, "TNT leaves the ground clean");
             helper.assertTrue(data.events().size() == events && fallout.sources().size() == sources, "no fallout event or source");
         } finally { ContaminationTests.clean(helper, 1); }

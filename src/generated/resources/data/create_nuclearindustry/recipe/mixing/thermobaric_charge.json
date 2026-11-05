@@ -1,0 +1,29 @@
+{
+  "type": "create:mixing",
+  "heat_requirement": "heated",
+  "ingredients": [
+    {
+      "item": "create:crushed_raw_iron"
+    },
+    {
+      "item": "create:crushed_raw_iron"
+    },
+    {
+      "item": "minecraft:gunpowder"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "create_nuclearindustry:rocket_fuel"
+    }
+  ],
+  "results": [
+    {
+      "count": 2,
+      "id": "create_nuclearindustry:thermobaric_charge"
+    }
+  ]
+}

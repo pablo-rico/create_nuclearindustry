@@ -86,5 +86,10 @@ class ConventionalProfileTest {
         assertEquals(0, d.falloutIntensity());
         assertEquals(100, d.blastProof(1200));
         assertEquals(d, DetonationProfile.decode(d.encode()));
+        org.papiricoh.create_nuclearindustry.explosive.blast.CraterShape shape = new org.papiricoh.create_nuclearindustry.explosive.blast.CraterShape(d);
+        for (int x = -3; x <= 3; x++) {
+            assertEquals(org.papiricoh.create_nuclearindustry.explosive.blast.CraterShape.Floor.NONE, shape.floor(x, 0, x, 0),
+                    "no fused floor, not even at the centre");
+        }
     }
 }

@@ -107,27 +107,34 @@ public final class NuclearFlash {
             return;
         }
         Vec3 fireball = centre.add(0, profile.fireballRadius() * 0.5, 0);
-        boolean night = !level.isDay();
-        double range = ExplosiveConfig.visualRange;
         for (ServerPlayer player : level.players()) {
-            Vec3 eyes = player.getEyePosition();
-            double distance = eyes.distanceTo(fireball);
-            if (distance > range || player.isSpectator()) {
-                continue;
-            }
-            Vec3 toward = fireball.subtract(eyes);
-            double facing = toward.lengthSqr() < 1e-6 ? 1 : player.getLookAngle().dot(toward.normalize());
-            boolean goggles = player.getItemBySlot(EquipmentSlot.HEAD).is(AllNuclearTags.Items.FLASH_PROTECTION);
-            double seconds = FlashBlindnessModel.seconds(distance, profile.fireballRadius(), facing, night, goggles,
-                    ExplosiveConfig.flashBlindnessMaxSeconds);
-            if (seconds <= 0 || ShelterRegistry.isSheltered(level, eyes)
-                    || distance <= BLINDNESS_TRACE_RANGE && !seesFireball(level, fireball, eyes, player)) {
-                continue;
-            }
-            int grade = FlashBlindnessModel.grade(seconds, ExplosiveConfig.flashBlindnessMaxSeconds);
-            player.addEffect(new MobEffectInstance(ExplosionFxRegistry.FLASH_BLINDED, (int) Math.round(seconds * 20), Math.max(0, grade),
-                    false, false, true));
+            dazzle(level, player, fireball, profile.fireballRadius());
         }
+    }
+
+    /**
+     * Dazzles {@code player} if they see a fireball {@code fireballRadius} wide at {@code fireball}, for as long as the
+     * model gives; true if they were.
+     */
+    public static boolean dazzle(ServerLevel level, Player player, Vec3 fireball, double fireballRadius) {
+        Vec3 eyes = player.getEyePosition();
+        double distance = eyes.distanceTo(fireball);
+        if (distance > ExplosiveConfig.visualRange || player.isSpectator() || player.isCreative()) {
+            return false;
+        }
+        Vec3 toward = fireball.subtract(eyes);
+        double facing = toward.lengthSqr() < 1e-6 ? 1 : player.getLookAngle().dot(toward.normalize());
+        boolean goggles = player.getItemBySlot(EquipmentSlot.HEAD).is(AllNuclearTags.Items.FLASH_PROTECTION);
+        double seconds = FlashBlindnessModel.seconds(distance, fireballRadius, facing, !level.isDay(), goggles,
+                ExplosiveConfig.flashBlindnessMaxSeconds);
+        if (seconds <= 0 || ShelterRegistry.isSheltered(level, eyes)
+                || distance <= BLINDNESS_TRACE_RANGE && !seesFireball(level, fireball, eyes, player)) {
+            return false;
+        }
+        int grade = FlashBlindnessModel.grade(seconds, ExplosiveConfig.flashBlindnessMaxSeconds);
+        player.addEffect(new MobEffectInstance(ExplosionFxRegistry.FLASH_BLINDED, (int) Math.round(seconds * 20), Math.max(0, grade),
+                false, false, true));
+        return true;
     }
 
     /** One detonation's flash still reaching the bodies it caught, nearest first. */

@@ -1,5 +1,7 @@
 package org.papiricoh.create_nuclearindustry.data.recipe;
 
+import org.papiricoh.create_nuclearindustry.explosive.conventional.ConventionalRegistry;
+
 import com.simibubi.create.api.data.recipe.MechanicalCraftingRecipeGen;
 import com.simibubi.create.api.data.recipe.MixingRecipeGen;
 import com.simibubi.create.api.data.recipe.SequencedAssemblyRecipeGen;
@@ -88,6 +90,36 @@ public final class WeaponsRecipes implements DataProvider {
                 .require(CreateItems.get("golden_sheet"))
                 .output(ExplosiveRegistry.NEUTRON_INITIATOR.get())
                 .requiresHeat(HeatCondition.HEATED));
+
+        /** RDX worked into a plasticiser and binder: four times TNT for its weight, and safe until a detonator fires it. */
+        GeneratedRecipe PLASTIC_EXPLOSIVE = create("plastic_explosive", b -> b
+                .require(Items.GUNPOWDER)
+                .require(Items.GUNPOWDER)
+                .require(Items.GUNPOWDER)
+                .require(Items.SLIME_BALL)
+                .require(Items.PAPER)
+                .output(ConventionalRegistry.PLASTIC_EXPLOSIVE.get(), 2));
+
+        /** Fine metal powder slurried in fuel round a small burster charge: dispersed as a cloud, then lit. */
+        GeneratedRecipe THERMOBARIC_CHARGE = create("thermobaric_charge", b -> b
+                .require(CreateItems.get("crushed_raw_iron"))
+                .require(CreateItems.get("crushed_raw_iron"))
+                .require(Items.GUNPOWDER)
+                .require(CreateItems.get("iron_sheet"))
+                .require(AllNuclearFluids.ROCKET_FUEL.get(), 250)
+                .output(ConventionalRegistry.THERMOBARIC_CHARGE.get(), 2)
+                .requiresHeat(HeatCondition.HEATED));
+
+        /** Aluminium powder burns hotter and faster than iron: the charge as it is really made, where a mod supplies it. */
+        GeneratedRecipe THERMOBARIC_CHARGE_ALUMINIUM = create("thermobaric_charge_from_aluminum", b -> b
+                .require(net.minecraft.tags.ItemTags.create(ResourceLocation.fromNamespaceAndPath("c", "dusts/aluminum")))
+                .require(Items.GUNPOWDER)
+                .require(CreateItems.get("iron_sheet"))
+                .require(AllNuclearFluids.ROCKET_FUEL.get(), 250)
+                .output(ConventionalRegistry.THERMOBARIC_CHARGE.get(), 4)
+                .requiresHeat(HeatCondition.HEATED)
+                .withCondition(new net.neoforged.neoforge.common.conditions.NotCondition(
+                        new net.neoforged.neoforge.common.conditions.TagEmptyCondition("c", "dusts/aluminum"))));
 
         Mixing(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
             super(output, registries, Create_NuclearIndustry.MODID);
@@ -212,6 +244,16 @@ public final class WeaponsRecipes implements DataProvider {
             ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, SiloRegistry.CONTROLLER.get())
                     .requires(MissileRegistry.LAUNCH_PAD_ITEM.get()).unlockedBy("has_legacy_pad", has(MissileRegistry.LAUNCH_PAD_ITEM.get()))
                     .save(output, ResourceLocation.fromNamespaceAndPath(Create_NuclearIndustry.MODID, "crafting/convert_legacy_launch_pad"));
+            // A small grenade-like bomblet: a scored iron case round its charge, a ribbon to steady it as it falls.
+            ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ConventionalRegistry.CLUSTER_BOMBLET.get(), 4)
+                    .pattern(" S ")
+                    .pattern("IGI")
+                    .pattern(" I ")
+                    .define('S', Items.STRING)
+                    .define('I', Items.IRON_NUGGET)
+                    .define('G', Items.GUNPOWDER)
+                    .unlockedBy("has_gunpowder", has(Items.GUNPOWDER))
+                    .save(output);
             ShapedRecipeBuilder.shaped(RecipeCategory.MISC, AllNuclearItems.DIRTY_BOMB.get())
                     .pattern("SFS")
                     .pattern("TBT")

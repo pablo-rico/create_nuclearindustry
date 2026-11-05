@@ -26,7 +26,6 @@ import org.papiricoh.create_nuclearindustry.civildefense.seismic.SeismicNetwork;
 import org.papiricoh.create_nuclearindustry.explosive.BlastJobs;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationProfile;
-import org.papiricoh.create_nuclearindustry.explosive.NuclearExplosionSoundManager;
 import org.papiricoh.create_nuclearindustry.explosive.gui.NuclearBombMenu;
 import org.papiricoh.create_nuclearindustry.missile.MissileRegistry;
 import org.papiricoh.create_nuclearindustry.missile.entity.MissileEntity;
@@ -108,7 +107,7 @@ public class StaticStatePerformanceTests {
     }
 
     /**
-     * Sounds still on their way and probed repository sites go when the server stops. Craters still to
+     * Probed repository sites go when the server stops (a detonation's sound is the client's, timed by its shock front). Craters still to
      * dig are saved with their level instead, to carry on after a restart: nothing static holds them.
      */
     @GameTest(template = NuclearGameTests.SMALL_ARENA, batch = "perf_static_stop")
@@ -124,11 +123,9 @@ public class StaticStatePerformanceTests {
             RepositoryProbe.site(level, helper.absolutePos(new BlockPos(6, 2, 6)));
             helper.assertTrue(RepositoryProbe.cachedSites() >= 1, "the probed site is cached");
             ServerStoppingEvent stopping = new ServerStoppingEvent(level.getServer());
-            NuclearExplosionSoundManager.onServerStopping(stopping);
             RepositoryProbe.onServerStopping(stopping);
             helper.assertTrue(NuclearBlastManager.pending(level) == before + 1, "the crater stays with its level for the next start");
             NuclearBlastManager.cancelAll(level);
-            helper.assertTrue(NuclearExplosionSoundManager.pending(level) == 0, "no sound outlives the server");
             helper.assertTrue(RepositoryProbe.cachedSites() == 0, "nor a cached site");
             helper.succeed();
         });

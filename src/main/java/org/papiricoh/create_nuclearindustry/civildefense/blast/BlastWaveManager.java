@@ -107,12 +107,14 @@ public final class BlastWaveManager {
         if (waves == null || waves.waves().isEmpty()) {
             return;
         }
-        Iterator<Wave> iterator = waves.waves().iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().tick(level)) {
-                iterator.remove();
+        // A copy: a wave's strike can set off another blast (a bomblet it hits), which starts a wave of its own.
+        List<Wave> finished = new java.util.ArrayList<>();
+        for (Wave wave : List.copyOf(waves.waves())) {
+            if (wave.tick(level)) {
+                finished.add(wave);
             }
         }
+        waves.waves().removeAll(finished);
         // Every tick a wave moves on, so what is saved is always a tick behind at most.
         waves.setDirty();
     }
@@ -296,20 +298,21 @@ public final class BlastWaveManager {
             }
         }
 
-        /** Deafens {@code player} for as long and as badly as {@code kPa} reaching them does. */
-        private static void deafen(ServerPlayer player, double kPa) {
+        /** Deafens {@code player} for as long and as badly as {@code kPa} reaching them does; true if it did. */
+        public static boolean deafen(net.minecraft.world.entity.player.Player player, double kPa) {
             if (!ExplosiveConfig.deafening || player.isCreative() || player.isSpectator()) {
-                return;
+                return false;
             }
             int grade = DeafeningModel.grade(kPa, ExplosiveConfig.deafeningThresholdKPa);
             if (grade < 0) {
-                return;
+                return false;
             }
             int ticks = (int) Math.round(20 * DeafeningModel.seconds(kPa, ExplosiveConfig.deafeningThresholdKPa));
             MobEffectInstance current = player.getEffect(ExplosionFxRegistry.DEAFENED);
             if (current == null || current.getAmplifier() < grade || current.getDuration() < ticks) {
                 player.addEffect(new MobEffectInstance(ExplosionFxRegistry.DEAFENED, ticks, grade, false, false, true));
             }
+            return true;
         }
 
         /** Whether a claim keeps blasts away from {@code pos}'s chunk; asked once per chunk and wave. */

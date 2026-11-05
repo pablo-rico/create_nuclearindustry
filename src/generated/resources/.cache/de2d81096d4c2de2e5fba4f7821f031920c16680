@@ -1,3 +1,4 @@
-// 1.21.1	2026-10-14T01:44:39.484948	Civil defense damage type tags
-67f1b05b6ac950d498e78dced519da160e9aeea9 data/minecraft/tags/damage_type/is_explosion.json
-c23e41a63a7ae43d674ee698b26b51753b4af4f3 data/minecraft/tags/damage_type/is_fire.json
+// 1.21.1	2026-11-05T08:47:06.545599	Civil defense damage type tags
+ccb4680e09984b53ec291069ac6efe604b37855d data/minecraft/tags/damage_type/is_explosion.json
+d91b307b163ce18cc768aedcca7e1debc92af367 data/minecraft/tags/damage_type/is_fire.json
+1f04d63a3b9738b57d24a602202448c387ba5e7b data/minecraft/tags/damage_type/is_projectile.json

@@ -79,9 +79,12 @@ public final class CraterShape {
         return BlastHash.unit(x, z, 11) < 0.45 * t * t;
     }
 
-    /** What the bowl's floor becomes at a column: fused sand glass, with basalt, obsidian and at the centre magma. */
+    /**
+     * What the bowl's floor becomes at a column: fused sand glass, with basalt, obsidian and at the centre magma. Only a
+     * fireball hot enough to fuse its floor (a profile with a glass radius) leaves any; a conventional crater is bare.
+     */
     public Floor floor(int x, int z, int dx, int dz) {
-        if (!inBowl(dx, dz)) {
+        if (!inBowl(dx, dz) || profile.glassRadius() <= 0) {
             return Floor.NONE;
         }
         double t = distance(dx, dz) / Math.max(1.0e-6, profile.craterRadius());

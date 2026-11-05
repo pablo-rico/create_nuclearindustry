@@ -154,7 +154,6 @@ public final class NuclearDetonation {
                 style == DetonationStyle.THERMONUCLEAR ? "Thermonuclear" : "Nuclear", center, power, horizontalRadius,
                 Math.round(profile.burstHeight()), profile.airburst(), salting);
 
-        NuclearExplosionSoundManager.playDelayedForWorld(level, impact, style);
         double waveRadius = Math.min(tuning.waveCap(), BlastWaveModel.maxRadius(horizontalRadius, tuning.waveCap())
                 * (profile.airburst() ? DetonationProfile.AIRBURST_REACH : 1.0));
         int radius = tuning.falloutRadius() > 0 ? tuning.falloutRadius() : falloutRadius(horizontalRadius);

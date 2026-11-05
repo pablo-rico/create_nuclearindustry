@@ -1,4 +1,4 @@
-// 1.21.1	2026-10-24T05:13:56.506276	Item Models: create_nuclearindustry
+// 1.21.1	2026-11-05T08:47:06.5442	Item Models: create_nuclearindustry
 fbb44421d41b161a776411650882a190059c17c8 assets/create_nuclearindustry/models/item/americium_241.json
 c751b3309684aa5733087dd1d1e82066016215f0 assets/create_nuclearindustry/models/item/amidoxime_adsorbent.json
 70769908b82daba73c4d705865fc8fd119e7b179 assets/create_nuclearindustry/models/item/bomb_casing.json
@@ -60,6 +60,7 @@ ebde79d2881b6bb5a4b644fad2128044c22d691a assets/create_nuclearindustry/models/it
 fefd81b21894174c714624d2ded97b3e925d22a2 assets/create_nuclearindustry/models/item/mox_fuel_pellet.json
 aceb29b5e8332b11cc59434c25b21becaeb5c537 assets/create_nuclearindustry/models/item/mox_reactor_fuel.json
 f4eba5f74cf6c589e30841d919dee289a6c496e2 assets/create_nuclearindustry/models/item/neutron_initiator.json
+1416d728383a4ac51ec30b8cd1aebe4e73ad366e assets/create_nuclearindustry/models/item/plastic_explosive.json
 33e69144f7e083e782d887bed61caf2107cf1fd0 assets/create_nuclearindustry/models/item/plutonium.json
 a94416806290a8e1545b417cce3a6d0d251fb65c assets/create_nuclearindustry/models/item/plutonium_dioxide.json
 4e74631d4d0a8f2db43e4ae418e1990ded5e714d assets/create_nuclearindustry/models/item/plutonium_rtg_pellet.json

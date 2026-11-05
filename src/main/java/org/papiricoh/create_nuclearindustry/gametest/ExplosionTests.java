@@ -25,6 +25,7 @@ import org.papiricoh.create_nuclearindustry.explosive.BlastJobs;
 import org.papiricoh.create_nuclearindustry.explosive.ExplosiveRegistry;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearBlastManager;
 import org.papiricoh.create_nuclearindustry.explosive.NuclearFlash;
+import org.papiricoh.create_nuclearindustry.explosive.ExplosiveConfig;
 import org.papiricoh.create_nuclearindustry.explosive.blast.DetonationProfile;
 import org.papiricoh.create_nuclearindustry.radiation.AllNuclearRadiation;
 import org.papiricoh.create_nuclearindustry.radiation.contamination.Contamination;
@@ -288,8 +289,15 @@ public class ExplosionTests {
         ContaminationData data = ContaminationData.get(level);
         try {
             ContaminationTests.loadAround(level, origin, 5);
-            // Blowing towards +x: 64 blocks of fallout stretch to 128 downwind and 32 upwind.
-            Contamination.fallout(level, center, 64, 10, 0, 1);
+            // Blowing towards +x: 64 blocks of fallout stretch to 128 downwind and 32 upwind. All of it at once here: how it
+            // spreads over ticks is DetonationSystemTests' business.
+            int perTick = ExplosiveConfig.falloutChunksPerTick;
+            ExplosiveConfig.falloutChunksPerTick = 100000;
+            try {
+                Contamination.fallout(level, center, 64, 10, 0, 1);
+            } finally {
+                ExplosiveConfig.falloutChunksPerTick = perTick;
+            }
             float down = Contamination.get(level, new ChunkPos(origin.x + 5, origin.z));
             float up = Contamination.get(level, new ChunkPos(origin.x - 5, origin.z));
             helper.assertTrue(down > 0, "fallout lands five chunks downwind");
