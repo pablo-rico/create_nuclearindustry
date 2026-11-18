@@ -34,15 +34,15 @@ public abstract class SoundEngineMixin {
         //if (!(soundInstance instanceof MachineLoopSound)) return;
         if (!this.loaded) cir.setReturnValue(false);
         else {
-            if (containsMovingSoundKey(this.soundDeleteTime, soundInstance) && getSoundDeleteTime(this.soundDeleteTime, soundInstance) <= this.tickCount) cir.setReturnValue(true);
+            if (create_nuclearindustry$isContainingMovingSoundKey(this.soundDeleteTime, soundInstance) && create_nuclearindustry$getSoundDeleteTime(this.soundDeleteTime, soundInstance) <= this.tickCount) cir.setReturnValue(true);
             else {
-                cir.setReturnValue(containsMovingSoundKey(this.instanceToChannel, soundInstance));
+                cir.setReturnValue(create_nuclearindustry$isContainingMovingSoundKey(this.instanceToChannel, soundInstance));
             }
         }
     }
 
     @Unique
-    private static boolean containsMovingSoundKey(Map<SoundInstance, ?> map, SoundInstance soundInstance) {
+    private static boolean create_nuclearindustry$isContainingMovingSoundKey(Map<SoundInstance, ?> map, SoundInstance soundInstance) {
         for (Object key: map.keySet()) {
             if (key instanceof MovingSoundInstanceDelegate movingSoundInstance) {
                 if (soundInstance == movingSoundInstance.instance) return true;
@@ -52,7 +52,7 @@ public abstract class SoundEngineMixin {
     }
 
     @Unique
-    private static Integer getSoundDeleteTime(Map<SoundInstance, Integer> map, SoundInstance soundInstance) {
+    private static Integer create_nuclearindustry$getSoundDeleteTime(Map<SoundInstance, Integer> map, SoundInstance soundInstance) {
         for (SoundInstance key: map.keySet()) {
             if (key instanceof MovingSoundInstanceDelegate movingSoundInstance) {
                 if (soundInstance == movingSoundInstance.instance) return map.get(movingSoundInstance);
