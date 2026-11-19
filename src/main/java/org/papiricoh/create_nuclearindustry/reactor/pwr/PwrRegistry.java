@@ -166,8 +166,8 @@ public final class PwrRegistry implements NuclearFeature {
     public void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, STEAM_GENERATOR_PORT_ENTITY.get(),
                 (port, direction) -> port.getFluidHandler(direction));
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, CONTAINMENT_PENETRATION_ENTITY.get(),
-                (penetration, direction) -> penetration.getFluidHandler(direction));
+//        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, CONTAINMENT_PENETRATION_ENTITY.get(),
+//                (penetration, direction) -> penetration.getFluidHandler(direction));
     }
 
     @Override
