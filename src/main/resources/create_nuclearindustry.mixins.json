@@ -8,6 +8,7 @@
     "TallFlowerBlockMixin"
   ],
   "client": [
+    "client.SoundEngineMixin",
     "client.ClientLevelSkyTintMixin",
     "client.CreativeModeInventoryScreenMixin",
     "client.ItemPickerMenuMixin",

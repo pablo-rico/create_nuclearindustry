@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.papiricoh.create_nuclearindustry.AllNuclearBlocks;
 import org.papiricoh.create_nuclearindustry.client.sound.MachineLoopSound;
 import org.papiricoh.create_nuclearindustry.fluids.NuclearFluidHelper;
+import org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortBlock;
 import org.papiricoh.create_nuclearindustry.reactor.block.ReactorFluidPortMode;
 import org.papiricoh.create_nuclearindustry.reactor.blockentity.ReactorBlockEntity;
@@ -50,7 +51,7 @@ public final class ReactorClientEffects {
         if (level == null || level != minecraft.level || minecraft.player == null) {
             return;
         }
-        if (org.papiricoh.create_nuclearindustry.integration.sable.ShipSpace.toWorld(level, reactor.getBlockPos()).distanceToSqr(minecraft.player.position()) > EFFECT_RANGE * EFFECT_RANGE) {
+        if (ShipSpace.toWorld(level, reactor.getBlockPos()).distanceToSqr(minecraft.player.position()) > EFFECT_RANGE * EFFECT_RANGE) {
             return;
         }
         State state = STATES.computeIfAbsent(reactor, r -> new State());
